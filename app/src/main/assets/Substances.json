@@ -16240,6 +16240,7 @@
       "commonNames": [
         "HRT",
         "Gynokadin",
+        "Estreva",
         "Estrogen"
       ],
       "url": "https://de.wikipedia.org/wiki/Estradiol",
@@ -16269,33 +16270,141 @@
           },
           "duration": {
             "onset": {
-              "min": 60,
-              "max": 90,
+              "min": 30,
+              "max": 120,
               "units": "minutes"
             },
             "comeup": {
-              "min": 30,
-              "max": 60,
-              "units": "minutes"
-            },
-            "peak": {
               "min": 3,
               "max": 5,
               "units": "hours"
             },
+            "peak": {
+              "min": 6,
+              "max": 8,
+              "units": "hours"
+            },
             "offset": {
-              "min": 4,
-              "max": 6,
+              "min": 12,
+              "max": 24,
               "units": "hours"
             },
             "total": {
-              "min": 10,
-              "max": 14,
+              "min": 12,
+              "max": 48,
               "units": "hours"
             },
             "afterglow": {
+              "min": 48,
+              "max": 96,
+              "units": "hours"
+            }
+          }
+        },
+        {
+          "name": "transdermal",
+          "dose": {
+            "units": "mg",
+            "lightMin": 1,
+            "commonMin": 2,
+            "strongMin": 3,
+            "heavyMin": 4
+          },
+          "duration": {
+            "onset": {
+              "min": 10,
+              "max": 20,
+              "units": "minutes"
+            },
+            "comeup": {
               "min": 2,
-              "max": 6,
+              "max": 5,
+              "units": "hours"
+            },
+            "peak": {
+              "min": 4,
+              "max": 8,
+              "units": "hours"
+            },
+            "offset": {
+              "min": 8,
+              "max": 18,
+              "units": "hours"
+            },
+            "total": {
+              "min": 24,
+              "max": 48,
+              "units": "hours"
+            },
+            "afterglow": {
+              "min": 48,
+              "max": 96,
+              "units": "hours"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ibuprofene",
+      "commonNames": [
+        "Ibu",
+        "Nurofen"
+      ],
+      "url": "https://de.wikipedia.org/wiki/Ibuprofen",
+      "isApproved": false,
+      "crossTolerances": [],
+      "toxicities": [],
+      "categories": [],
+      "interactions": {
+        "dangerous": [
+          "Alcohol",
+          "Lithium"
+        ],
+        "unsafe": [
+          "Aspirin"
+        ],
+        "uncertain": []
+      },
+      "roas": [
+        {
+          "name": "oral",
+          "dose": {
+            "units": "mg",
+            "lightMin": 200,
+            "commonMin": 400,
+            "strongMin": 600,
+            "heavyMin": 800
+          },
+          "duration": {
+            "onset": {
+              "min": 10,
+              "max": 20,
+              "units": "minutes"
+            },
+            "comeup": {
+              "min": 20,
+              "max": 80,
+              "units": "minutes"
+            },
+            "peak": {
+              "min": 80,
+              "max": 120,
+              "units": "minutes"
+            },
+            "offset": {
+              "min": 2,
+              "max": 4,
+              "units": "hours"
+            },
+            "total": {
+              "min": 6,
+              "max": 12,
+              "units": "hours"
+            },
+            "afterglow": {
+              "min": 12,
+              "max": 18,
               "units": "hours"
             }
           }
