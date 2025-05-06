@@ -122,6 +122,12 @@
       "description": "Hypnotics, or soporifics, are a class of drugs which promote and induce sleep. They are the opposite of eugeroics which promote wakefulness. They are commonly distributed in the form of pharmaceutical drugs prescribed to treat insomnia.",
       "url": "https://psychonautwiki.org/wiki/Hypnotic",
       "color": 4293455940
+    },
+    {
+      "name": "Medical",
+      "description": "Custom Medical Substances added by Pilz0",
+      "url": "https://pilz.foo",
+      "color": 4293455323
     }
   ],
   "substances": [
@@ -16248,6 +16254,7 @@
       "crossTolerances": [],
       "toxicities": [],
       "categories": [
+        "Medical"
       ],
       "interactions": {
         "dangerous": [
@@ -16346,7 +16353,7 @@
       ]
     },
     {
-      "name": "Ibuprofene",
+      "name": "Ibuprofen",
       "commonNames": [
         "Ibu",
         "Nurofen"
@@ -16355,7 +16362,9 @@
       "isApproved": false,
       "crossTolerances": [],
       "toxicities": [],
-      "categories": [],
+      "categories": [
+        "Medical"
+      ],
       "interactions": {
         "dangerous": [
           "Alcohol",
@@ -16389,7 +16398,7 @@
             },
             "peak": {
               "min": 80,
-              "max": 120,
+              "max": 100,
               "units": "minutes"
             },
             "offset": {
@@ -16405,6 +16414,74 @@
             "afterglow": {
               "min": 12,
               "max": 18,
+              "units": "hours"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "paracetamol",
+      "commonNames": [
+        "Perfalgan",
+        "Panadol",
+        "co-codamol"
+      ],
+      "url": "https://en.wikipedia.org/wiki/Paracetamol",
+      "isApproved": false,
+      "crossTolerances": [],
+      "toxicities": [],
+      "categories": [
+        "Medical"
+      ],
+      "interactions": {
+        "dangerous": [
+          "Alcohol"
+        ],
+        "unsafe": [
+          "Aspirin"
+        ],
+        "uncertain": []
+      },
+      "roas": [
+        {
+          "name": "oral",
+          "dose": {
+            "units": "mg",
+            "lightMin": 200,
+            "commonMin": 400,
+            "strongMin": 600,
+            "heavyMin": 800
+          },
+          "duration": {
+            "onset": {
+              "min": 15,
+              "max": 20,
+              "units": "minutes"
+            },
+            "comeup": {
+              "min": 20,
+              "max": 40,
+              "units": "minutes"
+            },
+            "peak": {
+              "min": 40,
+              "max": 40,
+              "units": "minutes"
+            },
+            "offset": {
+              "min": 40,
+              "max": 300,
+              "units": "minutes"
+            },
+            "total": {
+              "min": 4,
+              "max": 8,
+              "units": "hours"
+            },
+            "afterglow": {
+              "min": 10,
+              "max": 12,
               "units": "hours"
             }
           }
