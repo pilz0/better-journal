@@ -101,6 +101,6 @@ public class AxisDrawableUtilsTest {
         
         assertNotNull(instants);
         assertTrue(instants.size() > 0);
-        assertEquals(6, instants.size()); // From 23:00 to 04:00
+        assertEquals(5, instants.size()); // From 23:00 to 03:00 (before 04:00)
     }
 }

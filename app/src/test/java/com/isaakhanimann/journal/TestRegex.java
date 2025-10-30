@@ -28,7 +28,7 @@ public class TestRegex {
     
     @Test
     public void testRegex() {
-        String patternString = "5-MeO-xxT".replace("x", "[\\\\S]*");
+        String patternString = "5-MeO-xxT".replace("x", "[\\S]*");
         Pattern regex = Pattern.compile(patternString, Pattern.CASE_INSENSITIVE);
         
         assertTrue(regex.matcher("5-MeO-DALT").matches());
