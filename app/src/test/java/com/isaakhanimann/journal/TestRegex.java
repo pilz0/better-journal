@@ -16,10 +16,25 @@
  * along with PsychonautWiki Journal.  If not, see https://www.gnu.org/licenses/gpl-3.0.en.html.
  */
 
-package com.isaakhanimann.journal.ui.utils
+package com.isaakhanimann.journal;
 
-import java.time.Instant
+import org.junit.Test;
+import java.util.regex.Pattern;
 
-fun getTimeDifferenceText(fromInstant: Instant, toInstant: Instant): String {
-    return TimeDifferenceUtils.getTimeDifferenceText(fromInstant, toInstant)
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+public class TestRegex {
+    
+    @Test
+    public void testRegex() {
+        String patternString = "5-MeO-xxT".replace("x", "[\\\\S]*");
+        Pattern regex = Pattern.compile(patternString, Pattern.CASE_INSENSITIVE);
+        
+        assertTrue(regex.matcher("5-MeO-DALT").matches());
+        assertTrue(regex.matcher("5-MeO-DMT").matches());
+        assertTrue(regex.matcher("5-MeO-DiPT").matches());
+        assertTrue(regex.matcher("5-MeO-EiPT").matches());
+        assertFalse(regex.matcher("something else").matches());
+    }
 }

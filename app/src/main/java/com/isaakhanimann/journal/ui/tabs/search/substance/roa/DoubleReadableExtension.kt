@@ -18,6 +18,7 @@
 
 package com.isaakhanimann.journal.ui.tabs.search.substance.roa
 
+import com.isaakhanimann.journal.ui.utils.DoubleReadableUtils
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.DecimalFormat
@@ -27,32 +28,17 @@ import java.util.Locale
 
 
 fun Double.toReadableString(): String {
-    val numberOfSignificantDigits = if (this > 1) 3 else 2
-    val roundedNumber = roundToSignificantDigits(this, numberOfSignificantDigits)
-    return formatToMaximumFractionDigits(roundedNumber, 6)
+    return DoubleReadableUtils.toReadableString(this)
 }
 
 fun Double.toPreservedString(): String {
-    val numberFormat = NumberFormat.getInstance(Locale.US).apply {
-        isGroupingUsed = false
-    }
-    return numberFormat.format(this)
+    return DoubleReadableUtils.toPreservedString(this)
 }
 
 fun roundToSignificantDigits(value: Double, significantDigits: Int): Double {
-    if (value == 0.0) return 0.0
-    val bigDecimal = BigDecimal(value)
-    val scale = significantDigits - bigDecimal.precision() + bigDecimal.scale()
-    return bigDecimal.setScale(scale, RoundingMode.HALF_UP).toDouble()
+    return DoubleReadableUtils.roundToSignificantDigits(value, significantDigits)
 }
 
 fun formatToMaximumFractionDigits(value: Double, maximumFractionDigits: Int): String {
-    val df = DecimalFormat()
-    df.decimalFormatSymbols = DecimalFormatSymbols(Locale.US)
-    df.isDecimalSeparatorAlwaysShown = false
-    df.minimumFractionDigits = 0
-    df.maximumFractionDigits = maximumFractionDigits
-    df.isGroupingUsed = false
-
-    return df.format(value)
+    return DoubleReadableUtils.formatToMaximumFractionDigits(value, maximumFractionDigits)
 }
