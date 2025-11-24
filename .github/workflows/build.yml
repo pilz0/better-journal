@@ -31,72 +31,39 @@ jobs:
         run: chmod +x ./gradlew
       # Run Build Project
       - name: Build gradle project
-        run: ./gradlew build
+ 
+      - name: build app
+        run: ./gradlew assembleRelease --no-daemon
 
-      # Create APK Debug
-      - name: Build apk debug project (APK)
-        run: ./gradlew assembleDebug
+      - name: Setup Android SDK
+        run: |
+          ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager "build-tools;35.0.0"
 
-      # Create APK Release
-      - name: Build apk release project (APK)
-        run: ./gradlew assemble
-
-      # Create Bundle AAB Release
-      # Noted for main module build [main_project_module]:bundleRelease
-      - name: Build app bundle release (AAB)
-        run: ./gradlew ${{ env.main_project_module }}:bundleRelease
-
-      # Upload Artifact Build
-      # Noted For Output [main_project_module]/build/outputs/apk/debug/
-      - name: Upload APK Debug
-        uses: actions/upload-artifact@v4
+      - name: Sign app APK
+        uses: ilharp/sign-android-release@nightly
+        id: sign
         with:
-          name: apk-debug
-          path: ${{ env.main_project_module }}/build/outputs/apk/debug/
+          signingKey: ${{ secrets.KEYSTORE }}
+          keyAlias: ${{ secrets.SIGNING_KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          buildToolsVersion: 35.0.0
 
-      # Noted For Output [main_project_module]/build/outputs/apk/release/
-      - name: Upload APK Release
-        uses: actions/upload-artifact@v4
+      - name: Rename signed APK
+        run: |
+          mv "${{steps.sign.outputs.signedFile}}" "psychonautwiki-journal.apk"
+
+      # Uploads to the action results if not pointed at a tag
+      - uses: actions/upload-artifact@v4
         with:
-          name: apk-release
-          path: ${{ env.main_project_module }}/build/outputs/apk/release/
+          name: "psychonautwiki-journal.apk"
+          path: "psychonautwiki-journal.apk"
+          if-no-files-found: error
 
-      # Noted For Output [main_project_module]/build/outputs/bundle/release/
-      - name: Upload AAB (App Bundle) Release
-        uses: actions/upload-artifact@v4
-        with:
-          name: aab-bundles
-          path: ${{ env.main_project_module }}/build/outputs/bundle/release/
-
-  release:
-    runs-on: ubuntu-22.04
-    needs: build
-    # Only run if tag pushed
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
-    steps:
-      - name: Download Artifact (Debug)
-        uses: actions/download-artifact@v4
-        with:
-          name: apk-debug
-          path: ${{ github.workspace }}/artifacts-debug
-
-      - name: Download APK (Release)
-        uses: actions/download-artifact@v4
-        with:
-          name: apk-release
-          path: ${{ github.workspace }}/artifacts-release
-
-      - name: Download App Bundle
-        uses: actions/download-artifact@v4
-        with:
-          name: aab-bundles
-          path: ${{ github.workspace }}/artifacts-bundle
-
-      - name: Create GitHub Release
+      # Creates a release if pointed at a tag
+      - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          draft: true
-          files: |
-            ${{ github.workspace }}/artifacts-release/app-release-unsigned.apk
-            ${{ github.workspace }}/artifacts-debug/app-debug.apk
-            ${{ github.workspace }}/artifacts-bundle/app-release.aab
+          files: "psychonautwiki-journal.apk"
+          fail_on_unmatched_files: true
+          make_latest: true
