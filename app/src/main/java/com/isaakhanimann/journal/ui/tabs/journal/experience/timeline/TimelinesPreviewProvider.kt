@@ -1150,16 +1150,8 @@ class TimelinesPreviewProvider :
                         max = 4f,
                         units = DurationUnits.HOURS
                     ),
-                    total = DurationRange(
-                        min = 3f,
-                        max = 5f,
-                        units = DurationUnits.HOURS
-                    ),
-                    afterglow = DurationRange(
-                        min = 12f,
-                        max = 48f,
-                        units = DurationUnits.HOURS
-                    )
+                    total = null,
+                    afterglow = null
                 ),
                 height = 1f,
                 horizontalWeight = 0.5f,

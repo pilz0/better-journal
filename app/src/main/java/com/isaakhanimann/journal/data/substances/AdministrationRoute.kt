@@ -137,8 +137,8 @@ Ethnobotanist Daniel Siebert cautions that inhaling hot air can be irritating an
         override val color = AdaptiveColor.GREEN
     },
     MEDIKINET {
-        override val displayText = "Medikinet Adult Oral"
-        override val description = "Medikinet Adult custom oral ROA"
+        override val displayText = "Medikinet Oral"
+        override val description = "Medikinet custom oral ROA"
         override val articleText =
             """Medikinet Adult custom oral ROA"""
         override val isInjectionMethod = false

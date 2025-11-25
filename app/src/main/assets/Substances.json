@@ -19429,28 +19429,28 @@
               "units": "minutes"
             },
             "comeup": {
-              "min": 100,
-              "max": 120,
+              "min": 60,
+              "max": 80,
               "units": "minutes"
             },
             "peak": {
-              "min": 140,
-              "max": 400,
+              "min": 100,
+              "max": 320,
               "units": "minutes"
             },
             "offset": {
-              "min": 400,
-              "max": 540,
+              "min": 120,
+              "max": 480,
               "units": "minutes"
             },
             "total": {
-              "min": 8,
-              "max": 12,
+              "min": 4.6,
+              "max": 8,
               "units": "hours"
             },
             "afterglow": {
-              "min": 8,
-              "max": 12,
+              "min": 2,
+              "max": 6,
               "units": "hours"
             }
           }
@@ -19466,33 +19466,33 @@
           },
           "duration": {
             "onset": {
-              "min": 30,
+              "min": 40,
               "max": 60,
               "units": "minutes"
             },
             "comeup": {
-              "min": 100,
-              "max": 300,
+              "min": 40,
+              "max": 80,
               "units": "minutes"
             },
             "peak": {
-              "min": 300,
-              "max": 600,
+              "min": 120,
+              "max": 640,
               "units": "minutes"
             },
             "offset": {
-              "min": 600,
-              "max": 840,
+              "min": 120,
+              "max": 540,
               "units": "minutes"
             },
             "total": {
               "min": 8,
-              "max": 12,
+              "max": 14,
               "units": "hours"
             },
             "afterglow": {
-              "min": 14,
-              "max": 18,
+              "min": 2,
+              "max": 4,
               "units": "hours"
             }
           }
