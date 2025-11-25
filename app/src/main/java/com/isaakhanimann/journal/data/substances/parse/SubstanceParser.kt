@@ -203,6 +203,8 @@ class SubstanceParser @Inject constructor() : SubstanceParserInterface {
             AdministrationRoute.INTRAVENOUS.name -> AdministrationRoute.INTRAVENOUS
             AdministrationRoute.SMOKED.name -> AdministrationRoute.SMOKED
             AdministrationRoute.INHALED.name -> AdministrationRoute.INHALED
+            AdministrationRoute.MEDIKINET.name -> AdministrationRoute.MEDIKINET
+            AdministrationRoute.KINECTEEN.name -> AdministrationRoute.KINECTEEN
             else -> return null
         }
         val jsonRoaDose = oneJsonRoa.getOptionalJSONObject("dose")

@@ -16257,10 +16257,8 @@
         "Medical"
       ],
       "interactions": {
-        "dangerous": [
-        ],
-        "unsafe": [
-        ],
+        "dangerous": [],
+        "unsafe": [],
         "uncertain": [
           "Alcohol"
         ]
@@ -17700,7 +17698,7 @@
       ]
     },
     {
-      "name": "Mephedrone",
+      "name": "4-MMC",
       "commonNames": [
         "Mephedrone",
         "4-MMC",
@@ -19291,7 +19289,9 @@
         "Concerta",
         "Methylin",
         "Ritalin",
-        "Equasym XL"
+        "Equasym XL",
+        "Kinecteen",
+        "mph"
       ],
       "url": "https://psychonautwiki.org/wiki/Methylphenidate",
       "isApproved": true,
@@ -19412,6 +19412,90 @@
               "units": "hours"
             }
           }
+        },
+        {
+          "name": "medikinet",
+          "dose": {
+            "units": "mg",
+            "lightMin": 5,
+            "commonMin": 20,
+            "strongMin": 30,
+            "heavyMin": 40
+          },
+          "duration": {
+            "onset": {
+              "min": 30,
+              "max": 60,
+              "units": "minutes"
+            },
+            "comeup": {
+              "min": 100,
+              "max": 120,
+              "units": "minutes"
+            },
+            "peak": {
+              "min": 140,
+              "max": 400,
+              "units": "minutes"
+            },
+            "offset": {
+              "min": 400,
+              "max": 540,
+              "units": "minutes"
+            },
+            "total": {
+              "min": 8,
+              "max": 12,
+              "units": "hours"
+            },
+            "afterglow": {
+              "min": 8,
+              "max": 16,
+              "units": "hours"
+            }
+          }
+        },
+        {
+          "name": "kinecteen",
+          "dose": {
+            "units": "mg",
+            "lightMin": 18,
+            "commonMin": 27,
+            "strongMin": 36,
+            "heavyMin": 54
+          },
+          "duration": {
+            "onset": {
+              "min": 30,
+              "max": 60,
+              "units": "minutes"
+            },
+            "comeup": {
+              "min": 100,
+              "max": 300,
+              "units": "minutes"
+            },
+            "peak": {
+              "min": 300,
+              "max": 600,
+              "units": "minutes"
+            },
+            "offset": {
+              "min": 600,
+              "max": 840,
+              "units": "minutes"
+            },
+            "total": {
+              "min": 8,
+              "max": 12,
+              "units": "hours"
+            },
+            "afterglow": {
+              "min": 14,
+              "max": 18,
+              "units": "hours"
+            }
+          }
         }
       ]
     },
@@ -19475,7 +19559,7 @@
       ]
     },
     {
-      "name": "Mexedrone",
+      "name": "4-MMC-MeO",
       "commonNames": [
         "Mexedrone",
         "4-MMC-MeO"

@@ -136,6 +136,22 @@ Ethnobotanist Daniel Siebert cautions that inhaling hot air can be irritating an
         override val isInjectionMethod = false
         override val color = AdaptiveColor.GREEN
     },
+    MEDIKINET {
+        override val displayText = "Medikinet Adult Oral"
+        override val description = "Medikinet Adult custom oral ROA"
+        override val articleText =
+            """Medikinet Adult custom oral ROA"""
+        override val isInjectionMethod = false
+        override val color = AdaptiveColor.MINT
+    },
+    KINECTEEN {
+        override val displayText = "Kinecteen Oral"
+        override val description = "Kinecteen oral custom ROA"
+        override val articleText =
+            """Kinecteen custom oral ROA"""
+        override val isInjectionMethod = false
+        override val color = AdaptiveColor.YELLOW
+    },
     INHALED {
         override val displayText = "Inhaled"
         override val description = "Inhaling without heat source"

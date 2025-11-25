@@ -1085,6 +1085,90 @@ class TimelinesPreviewProvider :
                 startTime = Instant.now(),
                 endTime = null,
             ),
-        ),
+            DataForOneEffectLine(
+                substanceName = "name17",
+                route = AdministrationRoute.MEDIKINET,
+                roaDuration = RoaDuration(
+                    onset = DurationRange(
+                        min = 20f,
+                        max = 40f,
+                        units = DurationUnits.MINUTES
+                    ),
+                    comeup = DurationRange(
+                        min = 15f,
+                        max = 30f,
+                        units = DurationUnits.MINUTES
+                    ),
+                    peak = DurationRange(
+                        min = 1.5f,
+                        max = 2.5f,
+                        units = DurationUnits.HOURS
+                    ),
+                    offset = DurationRange(
+                        min = 2f,
+                        max = 4f,
+                        units = DurationUnits.HOURS
+                    ),
+                    total = DurationRange(
+                        min = 3f,
+                        max = 5f,
+                        units = DurationUnits.HOURS
+                    ),
+                    afterglow = DurationRange(
+                        min = 12f,
+                        max = 48f,
+                        units = DurationUnits.HOURS
+                    )
+                ),
+                height = 1f,
+                horizontalWeight = 0.5f,
+                color = AdaptiveColor.MINT,
+                startTime = Instant.now(),
+                endTime = null,
+            ),
+            DataForOneEffectLine(
+                substanceName = "name18",
+                route = AdministrationRoute.KINECTEEN,
+                roaDuration = RoaDuration(
+                    onset = DurationRange(
+                        min = 20f,
+                        max = 40f,
+                        units = DurationUnits.MINUTES
+                    ),
+                    comeup = DurationRange(
+                        min = 15f,
+                        max = 30f,
+                        units = DurationUnits.MINUTES
+                    ),
+                    peak = DurationRange(
+                        min = 1.5f,
+                        max = 2.5f,
+                        units = DurationUnits.HOURS
+                    ),
+                    offset = DurationRange(
+                        min = 2f,
+                        max = 4f,
+                        units = DurationUnits.HOURS
+                    ),
+                    total = DurationRange(
+                        min = 3f,
+                        max = 5f,
+                        units = DurationUnits.HOURS
+                    ),
+                    afterglow = DurationRange(
+                        min = 12f,
+                        max = 48f,
+                        units = DurationUnits.HOURS
+                    )
+                ),
+                height = 1f,
+                horizontalWeight = 0.5f,
+                color = AdaptiveColor.YELLOW,
+                startTime = Instant.now(),
+                endTime = null,
+            ),
+
+            ),
+
     )
 }
