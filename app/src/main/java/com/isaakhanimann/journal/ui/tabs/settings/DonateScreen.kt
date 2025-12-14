@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Coffee
 import androidx.compose.material.icons.outlined.Payment
+import androidx.compose.material.icons.outlined.VapingRooms
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -62,17 +63,9 @@ fun DonateScreen() {
             Spacer(modifier = Modifier.height(5.dp))
             val uriHandler = LocalUriHandler.current
             DonateButton(
-                imageVector = Icons.Outlined.Coffee,
-                text = "Buy me a coffee"
+                imageVector = Icons.Outlined.VapingRooms,
+                text = "Ruachen!!!"
             ) {
-                uriHandler.openUri("https://www.buymeacoffee.com/isaakhanimann")
-            }
-            Spacer(modifier = Modifier.height(15.dp))
-            DonateButton(
-                imageVector = Icons.Outlined.Payment,
-                text = "Paypal donate"
-            ) {
-                uriHandler.openUri("https://www.paypal.com/donate/?hosted_button_id=A8XKEKXN64VQJ")
             }
         }
     }
