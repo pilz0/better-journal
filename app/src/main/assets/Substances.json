@@ -274,7 +274,7 @@
             },
             "offset": {
               "min": 3,
-              "max": 5,
+              "max": 6.5,
               "units": "hours"
             },
             "total": {
@@ -5492,6 +5492,91 @@
               "min": 25,
               "max": 45,
               "units": "minutes"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4-PrO-MET",
+      "commonNames": [
+        "4-propionoxy-4-HO-MET"
+      ],
+      "url": "https://rc.community/article/438",
+      "isApproved": true,
+      "tolerance": {
+        "full": "almost immediately after ingestion",
+        "half": "3 days",
+        "zero": "7 days"
+      },
+      "crossTolerances": [
+        "psychedelic"
+      ],
+      "addictionPotential": "Low; classic-psychedelic profile with rapid tolerance discouraging daily use. Compulsive redosing uncommon but possible with pellet products due to mislabeling/variability.",
+      "toxicities": [
+        "toxic dose is unknown"
+      ],
+      "categories": [
+        "psychedelic",
+        "research-chemical"
+      ],
+      "summary": "4-PrO-MET is marketed in Europe as pressed pellets labeled 15–20 mg; multiple user reports indicate substantial potency variability between batches, so titration from 2–3 mg is prudent. A German-language thread documents perceived microdose at 0.5–3 mg, light 4–8 mg, and 8 mg+ as very strong; half of a 15 mg pellet (~7.5 mg) ranged from mild to quite strong depending on the commenter, underscoring variability in pressing and individual sensitivity. As an O-propionyl ester at the 4-position, 4-PrO-MET is expected to hydrolyze to 4-HO-MET in vivo; human data are absent, but analogous work with 4-PrO-DMT demonstrates psychedelic activity in animals and supports the prodrug model. Compared with 4-HO-MET, some users describe slightly slower onset and equal or lower mg-for-mg potency; others report unexpectedly strong visuals from a single pellet, suggesting either under/overfilled tablets or uneven distribution of active. A conservative harm-reduction approach is to treat 4-PrO-MET as roughly equipotent to 4-AcO-MET and somewhat less potent than 4-HO-MET, keeping first trials ≤5–7 mg. Come-up may be 'sneaky' with waves, yawning, and mild nausea; set and setting control anxiety spikes. Visuals can be intense and 'cartoony,' while headspace is often reported as lighter than psilocybin or LSD. Cannabis co-use reliably amplifies visuals but can worsen body-load. Acute tolerance develops within hours; wait at least 7–14 days before re-dosing to regain baseline response. Because this is a novel ester, reagent tests may not distinguish it from other tryptamines; consider multi-reagent testing plus, where feasible, analytical confirmation. Avoid insufflation due to ester hydrolysis uncertainty, harshness, and limited benefit; oral titration is preferred.",
+      "interactions": {
+        "dangerous": [
+          "Lithium",
+          "MAOIs",
+          "Tramadol"
+        ],
+        "unsafe": [
+          "Tramadol"
+        ],
+        "uncertain": [
+          "Alcohol",
+          "Benzodiazepines",
+          "Cannabis",
+          "Stimulants"
+        ]
+      },
+      "roas": [
+        {
+          "name": "oral",
+          "dose": {
+            "units": "mg",
+            "lightMin": 3,
+            "commonMin": 7,
+            "strongMin": 15,
+            "heavyMin": 25
+          },
+          "duration": {
+            "onset": {
+              "min": 20,
+              "max": 30,
+              "units": "minutes"
+            },
+            "comeup": {
+              "min": 20,
+              "max": 45,
+              "units": "minutes"
+            },
+            "peak": {
+              "min": 1,
+              "max": 3,
+              "units": "hours"
+            },
+            "offset": {
+              "min": 1,
+              "max": 3,
+              "units": "hours"
+            },
+            "total": {
+              "min": 4,
+              "max": 7,
+              "units": "hours"
+            },
+            "afterglow": {
+              "min": 1,
+              "max": 6,
+              "units": "hours"
             }
           }
         }
@@ -16787,6 +16872,116 @@
             "afterglow": {
               "min": 12,
               "max": 48,
+              "units": "hours"
+            }
+          },
+          "bioavailability": {
+            "min": 71,
+            "max": 71
+          }
+        }
+      ]
+    },
+    {
+      "name": "1S-LSD",
+      "commonNames": [
+        "LSD",
+        "Lucy",
+        "L",
+        "Acid",
+        "Cid",
+        "Tabs",
+        "Blotter"
+      ],
+      "url": "https://rc.community/article/427",
+      "isApproved": true,
+      "tolerance": {
+        "full": "almost immediately after ingestion",
+        "half": "3-4 days",
+        "zero": "7-14 days"
+      },
+      "crossTolerances": [
+        "psychedelics"
+      ],
+      "addictionPotential": "non-addictive with a low abuse potential",
+      "toxicities": [
+        "extremely low toxicity relative to dose"
+      ],
+      "categories": [
+        "psychedelic",
+        "research-chemical"
+      ],
+      "summary": "1S-LSD is 1-(3-trimethylsilyl-propionyl)-LSD, a silicon-containing N1-acyl analogue designed to skirt Germany’s NpSG after the 1D-LSD ban in 2024. Analytical papers confirm it hydrolyses in vitro and in vivo to LSD-25; user reports and reagent-testing services (e.g., Miraculix QTest) show the blotters do *not* trigger Ehrlich/DMAB, so lab testing is advised. Community consensus suggests oral potency is about 0.7 of equimolar LSD-25 (e.g., 150 ug 1S ≈ 110 ug LSD), with a noticeably slower come-up but identical plateau once conversion occurs. Because silicon-carbon bonds are hydrolytically labile, storage in dry foil at <10 °C is recommended; moisture can degrade tabs within weeks. Harm-reduction points: always verify blotter identity with multiple reagents, weigh liquid for volumetric dosing, arrange a 14-hour safety window before obligations, and keep benzodiazepines (e.g., 1 mg lorazepam) on hand for panic or prolonged stimulation.",
+      "effectsSummary": "The effect is very much dependent on dose, set and setting. As a hallucinogen, LSD intensifies and alienates sensory perceptions and the sense of space-time. Mood and feelings can change abruptly. At higher doses, feelings of detachment from one's own body can occur. Especially in the initial phase of the trip, slight breathing difficulties, palpitations, sweating, altered blood pressure and nausea may occur.",
+      "generalRisks": "The risks of LSD use are psychological and depend on the personality structure of the user. The perceptual changes during a trip can be so intense that inexperienced users in particular feel overwhelmed by the flood of impressions. This can lead to erroneous reactions, loss of orientation, panic, paranoia and badtrips/horror trips.\nThere is a risk - even with single use - that latent (hidden) mental disorders can be triggered. LSD does not lead to organ damage or genetic mutations and is not physically addictive.",
+      "saferUse": [
+        "Take LSD only if you are well prepared, in an environment where you feel comfortable, and only with experienced friends (favourable setting).",
+        "Only take LSD when you feel good mentally and physically (cheap set).",
+        "You should not be afraid, but have enough respect for the LSD effect.",
+        "Do not consume LSD on a full stomach, but eat something light before or during the high.",
+        "Dose low. Don't throw it if it doesn't work right away!",
+        "Let yourself go during the trip, don't try to fight the LSD effect.",
+        "Dextrose can help against circulatory problems.",
+        "Avoid roads and other \"dangerous\" places, your orientation may be disturbed.",
+        "At least the day after the trip, allow yourself plenty of rest and recovery to be able to process the experience.",
+        "LSD trips should remain exceptional experiences and should in no case be experienced more than once a month.",
+        "People with mental problems or illnesses, people taking neuroleptics and people with circulatory and heart problems should refrain from consuming LSD.",
+        "Blotters: Orally administering (swallowing) substances whose identity is uncertain is a potential way to eliminate most of the effects from dangerous mimics like 25x-NBx (25x-NBOMe like 25I-NBOMe, and 25x-NBOH like 25I-NBOH, etc). 25I-NBOMe is widely rumored to be orally inactive; however, oral efficacy has not been disproven and apparent overdoses have occurred via oral administration. 25I-NBOMe (and other NB's like 25x-NBOMe, 25x-NBOH) have much lower oral bioavailability than sublingual, buccal, and sublabial administration. 25I-NBOMe, to which several deaths have been attributed may commonly be mistaken for LSD by sellers and users."
+      ],
+      "interactions": {
+        "dangerous": [
+          "Lithium"
+        ],
+        "unsafe": [
+          "Tramadol",
+          "Deliriant",
+          "Tricyclic antidepressants",
+          "Ritonavir"
+        ],
+        "uncertain": [
+          "Cannabis",
+          "Stimulants"
+        ]
+      },
+      "roas": [
+        {
+          "name": "sublingual",
+          "dose": {
+            "units": "µg",
+            "lightMin": 15,
+            "commonMin": 75,
+            "strongMin": 150,
+            "heavyMin": 300
+          },
+          "duration": {
+            "onset": {
+              "min": 45,
+              "max": 60,
+              "units": "minutes"
+            },
+            "comeup": {
+              "min": 20,
+              "max": 60,
+              "units": "minutes"
+            },
+            "peak": {
+              "min": 3,
+              "max": 5,
+              "units": "hours"
+            },
+            "offset": {
+              "min": 2,
+              "max": 4,
+              "units": "hours"
+            },
+            "total": {
+              "min": 9,
+              "max": 12,
+              "units": "hours"
+            },
+            "afterglow": {
+              "min": 6,
+              "max": 24,
               "units": "hours"
             }
           },
