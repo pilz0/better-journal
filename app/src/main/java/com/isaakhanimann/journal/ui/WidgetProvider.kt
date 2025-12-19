@@ -3,8 +3,13 @@ package com.isaakhanimann.journal.ui
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.toArgb
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -37,6 +42,8 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.glance.GlanceTheme
+import androidx.glance.background
 import androidx.room.Room
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
@@ -52,6 +59,9 @@ import java.io.File
 import java.io.FileOutputStream
 import java.time.Duration
 import java.time.Instant
+import com.isaakhanimann.journal.ui.theme.md_theme_dark_primary
+import androidx.core.graphics.createBitmap
+import com.isaakhanimann.journal.ui.theme.md_theme_light_primary
 
 object WidgetKeys {
     val TITLE = stringPreferencesKey("title")
@@ -68,7 +78,7 @@ private object WorkerInput {
 class MyWidgetProvider : GlanceAppWidgetReceiver() {
     override val glanceAppWidget: GlanceAppWidget = MyAppWidget()
 }
-
+@OptIn(ExperimentalMaterial3Api::class)
 class MyAppWidget : GlanceAppWidget() {
 
     override val stateDefinition = PreferencesGlanceStateDefinition
@@ -84,21 +94,25 @@ class MyAppWidget : GlanceAppWidget() {
 
             Column(
                 modifier = GlanceModifier
+                    // Fix: Use GlanceTheme instead of MaterialTheme for proper widget support
+                    .background(GlanceTheme.colors.background)
                     .fillMaxSize()
                     .padding(12.dp),
+
                 verticalAlignment = Alignment.Vertical.Top
             ) {
                 Row(
-                    modifier = GlanceModifier.fillMaxWidth(),
+                    modifier = GlanceModifier .fillMaxWidth(),
                     verticalAlignment = Alignment.Vertical.CenterVertically
                 ) {
                     Text(
                         text = title,
-                        style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold),
+                        style = TextStyle(color = GlanceTheme.colors.primary ,fontSize = 16.sp, fontWeight = FontWeight.Bold),
                         modifier = GlanceModifier.defaultWeight()
                     )
                     Button(
                         text = "↻",
+                        style = TextStyle(color = GlanceTheme.colors.primary ,fontSize = 16.sp, fontWeight = FontWeight.Bold),
                         onClick = actionRunCallback<RefreshAction>()
                     )
                 }
@@ -115,7 +129,8 @@ class MyAppWidget : GlanceAppWidget() {
                     !hasData -> {
                         Text(
                             text = "No ingestions yet.\nAdd your first entry in the app.",
-                            style = TextStyle(fontSize = 14.sp)
+                            style = TextStyle(fontSize = 14.sp, color = GlanceTheme.colors.primary)
+
                         )
                     }
                     else -> {
@@ -137,10 +152,10 @@ class MyAppWidget : GlanceAppWidget() {
                                 }
                             }
                         }
-                        
+
                         Text(
                             text = ingestionsText,
-                            style = TextStyle(fontSize = 12.sp),
+                            style = TextStyle(fontSize = 12.sp, color = GlanceTheme.colors.primary),
                             maxLines = 8
                         )
                     }
@@ -190,23 +205,24 @@ class TimelineWidgetWorker(
 
             // Fetch latest ingestions directly sorted by time
             val ingestions = experienceDao.getSortedIngestionsFlow().first()
-            
+
             // Also get ingestions with companion for colors (last 24 hours for the graph)
             val now = Instant.now()
-            val twentyFourHoursAgo = now.minus(Duration.ofHours(24))
+            val nowMinusOneHour = now.minus(Duration.ofHours(2))
+            val nowPlusThreeHours = now.plus(Duration.ofHours(3))
             val ingestionsWithCompanions = experienceDao.getIngestionsWithCompanions(
-                fromInstant = twentyFourHoursAgo,
-                toInstant = now
+                fromInstant = nowMinusOneHour,
+                toInstant = nowPlusThreeHours,
             )
-            
+
             val (title, ingestionsText, hasData, timelineImagePath) = if (ingestions.isEmpty()) {
                 WidgetData("Journal", "", false, null)
             } else {
                 // Take the most recent ingestions (up to 5)
                 val recentIngestions = ingestions.take(5)
-                
+
                 val lines = recentIngestions.map { ingestion ->
-                    val timeText = formatRelativeTime(ingestion.time, now)
+                    val timeText = formatRelativeTime(ingestion.time, nowPlusThreeHours)
                     val doseText = ingestion.dose?.let { dose ->
                         val doseFormatted = if (dose == dose.toLong().toDouble()) {
                             dose.toLong().toString()
@@ -218,7 +234,7 @@ class TimelineWidgetWorker(
                     } ?: "unknown dose"
                     "• ${ingestion.substanceName} ($doseText) - $timeText"
                 }
-                
+
                 // Generate timeline graph bitmap
                 val imagePath = if (ingestionsWithCompanions.isNotEmpty()) {
                     generateTimelineGraph(
@@ -229,8 +245,7 @@ class TimelineWidgetWorker(
                 } else {
                     null
                 }
-                
-                WidgetData("Recent Ingestions", lines.joinToString("\n"), true, imagePath)
+                WidgetData( "Journal",lines.joinToString("\n"), true, imagePath)
             }
 
             val manager = GlanceAppWidgetManager(applicationContext)
@@ -273,117 +288,125 @@ class TimelineWidgetWorker(
         appWidgetId: Int
     ): String? {
         if (ingestions.isEmpty()) return null
-        
+
         val width = 600
         val height = 160
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(width, height)
         val canvas = Canvas(bitmap)
-        
-        // Background - transparent
-        canvas.drawColor(android.graphics.Color.TRANSPARENT)
-        
+
         val now = Instant.now()
-        val twentyFourHoursAgo = now.minus(Duration.ofHours(24))
-        val totalSeconds = Duration.ofHours(24).seconds.toFloat()
-        
+        val nowMinusOneHour = now.minus(Duration.ofHours(2))
+        val nowPlusThreeHours = now.plus(Duration.ofHours(3))
+        val totalSeconds = Duration.ofHours(5).seconds.toFloat()
+
         val padding = 16f
         val graphWidth = width - 2 * padding
         val graphHeight = height - 2 * padding
         val baselineY = height - padding
-        
-        // Draw subtle grid lines
+
+        fun getGridColor(context: Context): Int {
+            val nightModeFlags = context.resources.configuration.uiMode and
+                    android.content.res.Configuration.UI_MODE_NIGHT_MASK
+            val isDarkMode = nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES
+
+            return if (isDarkMode) {
+                md_theme_dark_primary.toArgb()
+            } else {
+                // TODO: Replace with your light theme color if desired
+                md_theme_light_primary.toArgb()
+            }
+        }
+
         val gridPaint = Paint().apply {
-            color = android.graphics.Color.argb(40, 128, 128, 128)
+            color = getGridColor(context) // Pass context here
             strokeWidth = 1f
             style = Paint.Style.STROKE
         }
-        
-        // Vertical lines for every 6 hours
-        for (i in 0..4) {
-            val x = padding + (graphWidth * i / 4f)
+
+
+        // Vertical lines for every hour
+        for (i in 0..5) {
+            val x = padding + (graphWidth * i / 5f)
             canvas.drawLine(x, padding, x, baselineY, gridPaint)
         }
-        
+
         // Horizontal baseline
         canvas.drawLine(padding, baselineY, width - padding, baselineY, gridPaint)
-        
+
         // Group ingestions by substance for layered rendering
         val groupedBySubstance = ingestions.groupBy { it.ingestion.substanceName }
-        
+
         // Draw each substance's effect curve
         groupedBySubstance.forEach { (_, substanceIngestions) ->
             val companion = substanceIngestions.firstOrNull()?.substanceCompanion
             val color = companion?.color ?: AdaptiveColor.BLUE
             val androidColor = getAndroidColor(color, isDarkTheme = true)
-            
+
             val fillPaint = Paint().apply {
-                this.color = android.graphics.Color.argb(
+                this.color = Color.argb(
                     80,
-                    android.graphics.Color.red(androidColor),
-                    android.graphics.Color.green(androidColor),
-                    android.graphics.Color.blue(androidColor)
+                    Color.red(androidColor),
+                    Color.green(androidColor),
+                    Color.blue(androidColor)
                 )
                 style = Paint.Style.FILL
                 isAntiAlias = true
             }
-            
+
             val strokePaint = Paint().apply {
                 this.color = androidColor
                 style = Paint.Style.STROKE
                 strokeWidth = 3f
                 isAntiAlias = true
             }
-            
+
             substanceIngestions.forEach { ingestionWithCompanion ->
                 val ingestion = ingestionWithCompanion.ingestion
                 val ingestionTime = ingestion.time
-                
+
                 // Calculate x position based on time
-                val secondsFromStart = Duration.between(twentyFourHoursAgo, ingestionTime).seconds.toFloat()
+                val secondsFromStart = Duration.between(nowMinusOneHour, ingestionTime).seconds.toFloat()
                 val xPos = padding + (secondsFromStart / totalSeconds) * graphWidth
-                
+
                 // Draw a simplified effect curve for visual representation
-                // Note: This uses a generic 2-hour peak / 6-hour duration approximation
-                // since exact substance durations would require loading substance data.
-                // The actual effect duration varies significantly by substance.
                 val peakDurationSeconds = Duration.ofHours(2).seconds.toFloat()
                 val totalDurationSeconds = Duration.ofHours(6).seconds.toFloat()
-                
+
                 val peakX = xPos + (peakDurationSeconds / totalSeconds) * graphWidth
                 val endX = xPos + (totalDurationSeconds / totalSeconds) * graphWidth
-                
+
                 // Clamp to graph bounds
                 val clampedPeakX = peakX.coerceIn(padding, width - padding)
                 val clampedEndX = endX.coerceIn(padding, width - padding)
                 val clampedStartX = xPos.coerceIn(padding, width - padding)
-                
+
                 // Calculate peak height based on dose (normalized)
                 val peakHeight = graphHeight * 0.7f
                 val peakY = baselineY - peakHeight
-                
+
                 // Create curved path for the effect
                 val path = Path().apply {
                     moveTo(clampedStartX, baselineY)
-                    
+
                     // Smooth curve up to peak
                     val cp1x = clampedStartX + (clampedPeakX - clampedStartX) * 0.3f
                     val cp1y = baselineY
                     val cp2x = clampedStartX + (clampedPeakX - clampedStartX) * 0.7f
                     val cp2y = peakY
                     cubicTo(cp1x, cp1y, cp2x, cp2y, clampedPeakX, peakY)
-                    
+
                     // Smooth curve down from peak
                     val cp3x = clampedPeakX + (clampedEndX - clampedPeakX) * 0.3f
                     val cp3y = peakY
                     val cp4x = clampedPeakX + (clampedEndX - clampedPeakX) * 0.7f
                     val cp4y = baselineY
                     cubicTo(cp3x, cp3y, cp4x, cp4y, clampedEndX, baselineY)
-                    
+
                     close()
                 }
-                
+
                 canvas.drawPath(path, fillPaint)
-                
+
                 // Draw stroke on top
                 val strokePath = Path().apply {
                     moveTo(clampedStartX, baselineY)
@@ -392,7 +415,7 @@ class TimelineWidgetWorker(
                     val cp2x = clampedStartX + (clampedPeakX - clampedStartX) * 0.7f
                     val cp2y = peakY
                     cubicTo(cp1x, cp1y, cp2x, cp2y, clampedPeakX, peakY)
-                    
+
                     val cp3x = clampedPeakX + (clampedEndX - clampedPeakX) * 0.3f
                     val cp3y = peakY
                     val cp4x = clampedPeakX + (clampedEndX - clampedPeakX) * 0.7f
@@ -400,7 +423,7 @@ class TimelineWidgetWorker(
                     cubicTo(cp3x, cp3y, cp4x, cp4y, clampedEndX, baselineY)
                 }
                 canvas.drawPath(strokePath, strokePaint)
-                
+
                 // Draw a small dot at ingestion point
                 val dotPaint = Paint().apply {
                     this.color = androidColor
@@ -410,26 +433,26 @@ class TimelineWidgetWorker(
                 canvas.drawCircle(clampedStartX, baselineY, 6f, dotPaint)
             }
         }
-        
+
         // Draw current time indicator
         val currentTimeX = width - padding
         val nowPaint = Paint().apply {
-            color = android.graphics.Color.WHITE
+            color = Color.WHITE
             strokeWidth = 2f
             style = Paint.Style.STROKE
         }
         canvas.drawLine(currentTimeX, padding, currentTimeX, baselineY, nowPaint)
-        
+
         // Draw time labels
         val textPaint = Paint().apply {
-            color = android.graphics.Color.argb(180, 255, 255, 255)
+            color = Color.argb(180, 255, 255, 255)
             textSize = 20f
             textAlign = Paint.Align.CENTER
             isAntiAlias = true
         }
-        canvas.drawText("24h ago", padding + 30, height - 2f, textPaint)
-        canvas.drawText("Now", width - padding - 15, height - 2f, textPaint)
-        
+        canvas.drawText("1h ago", padding + 30, height - 2f, textPaint)
+        canvas.drawText("In 3h", width - padding - 15, height - 2f, textPaint)
+
         // Save bitmap to file, ensuring bitmap is recycled even if an error occurs
         val file = File(context.cacheDir, "widget_timeline_$appWidgetId.png")
         try {
@@ -439,10 +462,10 @@ class TimelineWidgetWorker(
         } finally {
             bitmap.recycle()
         }
-        
+
         return file.absolutePath
     }
-    
+
     private fun getAndroidColor(color: AdaptiveColor, isDarkTheme: Boolean): Int {
         // Map AdaptiveColor to Android color int
         return when (color) {
