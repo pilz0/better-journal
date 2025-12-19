@@ -18,12 +18,8 @@ import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.currentState
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
-import androidx.glance.layout.Row
-import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
-import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.padding
-import androidx.glance.layout.height
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
@@ -39,14 +35,14 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.isaakhanimann.journal.data.room.AppDatabase
 import kotlinx.coroutines.flow.first
-import java.time.Duration
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 object WidgetKeys {
     val TITLE = stringPreferencesKey("title")
-    val INGESTIONS_TEXT = stringPreferencesKey("ingestionsText")
+    val TIMELINE_OPTION = stringPreferencesKey("timelineDisplayOption")
+    val TIME_OPTION = stringPreferencesKey("timeDisplayOption")
     val IS_LOADING = booleanPreferencesKey("isLoading")
-    val HAS_DATA = booleanPreferencesKey("hasData")
 }
 
 private object WorkerInput {
@@ -64,55 +60,45 @@ class MyAppWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
             val prefs = currentState<Preferences>()
-            val title = prefs[WidgetKeys.TITLE] ?: "Journal"
-            val ingestionsText = prefs[WidgetKeys.INGESTIONS_TEXT] ?: ""
+            val title = prefs[WidgetKeys.TITLE] ?: "Timeline"
+            val timelineOption = prefs[WidgetKeys.TIMELINE_OPTION] ?: "Hidden"
+            val timeOption = prefs[WidgetKeys.TIME_OPTION] ?: "Absolute"
             val isLoading = prefs[WidgetKeys.IS_LOADING] ?: false
-            val hasData = prefs[WidgetKeys.HAS_DATA] ?: false
 
             Column(
                 modifier = GlanceModifier
                     .fillMaxSize()
                     .padding(12.dp),
-                verticalAlignment = Alignment.Vertical.Top
+                verticalAlignment = Alignment.Vertical.CenterVertically
             ) {
-                Row(
-                    modifier = GlanceModifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.Vertical.CenterVertically
-                ) {
-                    Text(
-                        text = title,
-                        style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold),
-                        modifier = GlanceModifier.defaultWeight()
-                    )
-                    Button(
-                        text = "↻",
-                        onClick = actionRunCallback<RefreshAction>()
-                    )
-                }
-
-                Spacer(modifier = GlanceModifier.height(8.dp))
+                Text(
+                    text = title,
+                    style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                )
 
                 when {
-                    isLoading -> {
-                        Text(
-                            text = "Loading…",
-                            style = TextStyle(fontSize = 14.sp)
-                        )
+                    isLoading || timelineOption == "Loading" -> {
+                        Text(text = "Loading…", modifier = GlanceModifier.padding(top = 8.dp))
                     }
-                    !hasData -> {
-                        Text(
-                            text = "No ingestions yet.\nAdd your first entry in the app.",
-                            style = TextStyle(fontSize = 14.sp)
-                        )
+                    timelineOption == "Hidden" -> {
+                        Text(text = "Timeline hidden", modifier = GlanceModifier.padding(top = 8.dp))
                     }
-                    else -> {
+                    timelineOption == "NotWorthDrawing" -> {
+                        Text(text = "Nothing to show", modifier = GlanceModifier.padding(top = 8.dp))
+                    }
+                    timelineOption == "Shown" -> {
                         Text(
-                            text = ingestionsText,
-                            style = TextStyle(fontSize = 13.sp),
-                            maxLines = 10
+                            text = "Timeline ready ($timeOption)",
+                            modifier = GlanceModifier.padding(top = 8.dp)
                         )
                     }
                 }
+
+                Button(
+                    text = "Refresh",
+                    onClick = actionRunCallback<RefreshAction>(),
+                    modifier = GlanceModifier.padding(top = 12.dp)
+                )
             }
         }
     }
@@ -128,6 +114,7 @@ class RefreshAction : ActionCallback {
         ) { prefs ->
             prefs.toMutablePreferences().apply {
                 this[WidgetKeys.IS_LOADING] = true
+                this[WidgetKeys.TIMELINE_OPTION] = "Loading"
             }
         }
         MyAppWidget().update(context, glanceId)
@@ -156,31 +143,37 @@ class TimelineWidgetWorker(
             ).build()
             val experienceDao = database.experienceDao()
 
-            // Fetch latest ingestions directly sorted by time
-            val ingestions = experienceDao.getSortedIngestionsFlow().first()
+            // Fetch latest experiences with ingestions
+            val experiences = experienceDao.getSortedExperiencesWithIngestionsFlow().first()
             
-            val (title, ingestionsText, hasData) = if (ingestions.isEmpty()) {
-                Triple("Journal", "", false)
+            // Determine if there's a timeline worth showing
+            val (fetchedTitle, fetchedTimelineOption, fetchedTimeOption) = if (experiences.isEmpty()) {
+                Triple("Timeline", "NotWorthDrawing", "Absolute")
             } else {
-                // Take the most recent ingestions (up to 5)
-                val recentIngestions = ingestions.take(5)
-                val now = Instant.now()
+                val latestExperience = experiences.first()
+                val hasIngestions = latestExperience.ingestions.isNotEmpty()
                 
-                val lines = recentIngestions.map { ingestion ->
-                    val timeText = formatRelativeTime(ingestion.time, now)
-                    val doseText = ingestion.dose?.let { dose ->
-                        val doseFormatted = if (dose == dose.toLong().toDouble()) {
-                            dose.toLong().toString()
-                        } else {
-                            dose.toString()
-                        }
-                        val units = ingestion.units
-                        if (units.isNullOrEmpty()) doseFormatted else "$doseFormatted $units"
-                    } ?: "unknown dose"
-                    "• ${ingestion.substanceName} ($doseText) - $timeText"
+                if (!hasIngestions) {
+                    Triple(
+                        latestExperience.experience.title.ifEmpty { "Timeline" },
+                        "NotWorthDrawing",
+                        "Absolute"
+                    )
+                } else {
+                    // Check if ingestions are recent (within last 48 hours)
+                    val now = Instant.now()
+                    val recentIngestions = latestExperience.ingestions.filter {
+                        ChronoUnit.HOURS.between(it.time, now) <= 48
+                    }
+                    
+                    val timeOption = if (recentIngestions.isNotEmpty()) "Relative" else "Absolute"
+                    
+                    Triple(
+                        latestExperience.experience.title.ifEmpty { "Timeline" },
+                        "Shown",
+                        timeOption
+                    )
                 }
-                
-                Triple("Recent Ingestions", lines.joinToString("\n"), true)
             }
 
             val manager = GlanceAppWidgetManager(applicationContext)
@@ -192,9 +185,9 @@ class TimelineWidgetWorker(
                 glanceId = glanceId
             ) { prefs: Preferences ->
                 prefs.toMutablePreferences().apply {
-                    this[WidgetKeys.TITLE] = title
-                    this[WidgetKeys.INGESTIONS_TEXT] = ingestionsText
-                    this[WidgetKeys.HAS_DATA] = hasData
+                    this[WidgetKeys.TITLE] = fetchedTitle
+                    this[WidgetKeys.TIMELINE_OPTION] = fetchedTimelineOption
+                    this[WidgetKeys.TIME_OPTION] = fetchedTimeOption
                     this[WidgetKeys.IS_LOADING] = false
                 }
             }
@@ -204,16 +197,6 @@ class TimelineWidgetWorker(
             Result.success()
         } catch (t: Throwable) {
             Result.retry()
-        }
-    }
-
-    private fun formatRelativeTime(time: Instant, now: Instant): String {
-        val duration = Duration.between(time, now)
-        return when {
-            duration.toDays() > 0 -> "${duration.toDays()}d ago"
-            duration.toHours() > 0 -> "${duration.toHours()}h ago"
-            duration.toMinutes() > 0 -> "${duration.toMinutes()}m ago"
-            else -> "just now"
         }
     }
 }
