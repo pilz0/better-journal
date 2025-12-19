@@ -46,7 +46,7 @@ jobs:
 
       - name: Rename signed APK
         run: |
-          mv "${{steps.sign.outputs.signedFile}}" "psychonautwiki-journal.apk"
+          mv "${{ steps.sign.outputs.signedFile }}" "psychonautwiki-journal.apk"
 
       # Uploads to the action results if not pointed at a tag
       - uses: actions/upload-artifact@v4
