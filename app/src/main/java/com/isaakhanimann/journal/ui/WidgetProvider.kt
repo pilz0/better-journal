@@ -63,6 +63,8 @@ import java.time.Duration
 import java.time.Instant
 import com.isaakhanimann.journal.ui.theme.md_theme_dark_primary
 import androidx.core.graphics.createBitmap
+import android.util.Log
+import com.isaakhanimann.journal.ui.tabs.journal.experience.timeline.shapeAlpha
 import com.isaakhanimann.journal.ui.theme.md_theme_light_primary
 import java.util.concurrent.TimeUnit
 
@@ -361,7 +363,7 @@ class TimelineWidgetWorker(
 
             val fillPaint = Paint().apply {
                 this.color = Color.argb(
-                    64, // 25% alpha for fill, matching shapeAlpha = 0.25f in the app
+                    (shapeAlpha * 255).toInt(), // Use app's shapeAlpha constant
                     Color.red(androidColor),
                     Color.green(androidColor),
                     Color.blue(androidColor)
@@ -496,6 +498,7 @@ class TimelineWidgetWorker(
                 }
             }
         } catch (e: Exception) {
+            Log.w("WidgetProvider", "Failed to load substance durations", e)
             emptyMap()
         }
     }
@@ -579,6 +582,7 @@ class PeriodicWidgetRefreshWorker(
             }
             Result.success()
         } catch (e: Exception) {
+            Log.w("PeriodicWidgetRefreshWorker", "Widget refresh failed", e)
             Result.retry()
         }
     }
