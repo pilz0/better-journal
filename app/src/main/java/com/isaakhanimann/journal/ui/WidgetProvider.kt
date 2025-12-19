@@ -120,11 +120,11 @@ class MyAppWidget : GlanceAppWidget() {
                     }
                     else -> {
                         // Display timeline graph image if available
+                        // Note: Bitmap memory is managed by Glance internally when passed to ImageProvider
                         if (timelineImagePath != null) {
                             val file = File(timelineImagePath)
                             if (file.exists()) {
-                                val bitmap = android.graphics.BitmapFactory.decodeFile(timelineImagePath)
-                                if (bitmap != null) {
+                                android.graphics.BitmapFactory.decodeFile(timelineImagePath)?.let { bitmap ->
                                     Image(
                                         provider = ImageProvider(bitmap),
                                         contentDescription = "Timeline graph",
@@ -342,8 +342,10 @@ class TimelineWidgetWorker(
                 val secondsFromStart = Duration.between(twentyFourHoursAgo, ingestionTime).seconds.toFloat()
                 val xPos = padding + (secondsFromStart / totalSeconds) * graphWidth
                 
-                // Draw a simple effect curve (triangle wave for simplicity)
-                // Peak at 2 hours, fade out by 6 hours (rough approximation)
+                // Draw a simplified effect curve for visual representation
+                // Note: This uses a generic 2-hour peak / 6-hour duration approximation
+                // since exact substance durations would require loading substance data.
+                // The actual effect duration varies significantly by substance.
                 val peakDurationSeconds = Duration.ofHours(2).seconds.toFloat()
                 val totalDurationSeconds = Duration.ofHours(6).seconds.toFloat()
                 
@@ -428,12 +430,15 @@ class TimelineWidgetWorker(
         canvas.drawText("24h ago", padding + 30, height - 2f, textPaint)
         canvas.drawText("Now", width - padding - 15, height - 2f, textPaint)
         
-        // Save bitmap to file
+        // Save bitmap to file, ensuring bitmap is recycled even if an error occurs
         val file = File(context.cacheDir, "widget_timeline_$appWidgetId.png")
-        FileOutputStream(file).use { out ->
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+        try {
+            FileOutputStream(file).use { out ->
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            }
+        } finally {
+            bitmap.recycle()
         }
-        bitmap.recycle()
         
         return file.absolutePath
     }
@@ -453,7 +458,8 @@ class TimelineWidgetWorker(
             AdaptiveColor.PURPLE -> if (isDarkTheme) android.graphics.Color.rgb(191, 90, 242) else android.graphics.Color.rgb(175, 82, 222)
             AdaptiveColor.PINK -> if (isDarkTheme) android.graphics.Color.rgb(255, 55, 95) else android.graphics.Color.rgb(255, 45, 85)
             AdaptiveColor.BROWN -> if (isDarkTheme) android.graphics.Color.rgb(172, 142, 104) else android.graphics.Color.rgb(162, 132, 94)
-            else -> android.graphics.Color.rgb(10, 132, 255) // Default to blue
+            // Default case uses BLUE colors for consistency
+            else -> getAndroidColor(AdaptiveColor.BLUE, isDarkTheme)
         }
     }
 
