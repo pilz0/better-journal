@@ -81,6 +81,15 @@ object WidgetKeys {
     val SUBSTANCE_COLORS = stringPreferencesKey("substanceColors") // JSON map of substance name to color name
 }
 
+private object WidgetConstants {
+    const val REFRESH_BUTTON_ICON = "↻"
+    const val ADD_BUTTON_ICON = "+"
+    const val PEAK_HEIGHT_FRACTION = 0.85f
+    const val STROKE_WIDTH = 5f
+    const val CORNER_PATH_EFFECT_RADIUS = 15f
+    const val INGESTION_DOT_RADIUS = 7f
+}
+
 private object WorkerInput {
     const val APP_WIDGET_ID = "appWidgetId"
 }
@@ -143,12 +152,12 @@ class MyAppWidget : GlanceAppWidget() {
                         modifier = GlanceModifier.defaultWeight()
                     )
                     Button(
-                        text = "+",
+                        text = WidgetConstants.ADD_BUTTON_ICON,
                         onClick = actionStartActivity(addIngestionIntent)
                     )
                     Spacer(modifier = GlanceModifier.width(4.dp))
                     Button(
-                        text = "↻",
+                        text = WidgetConstants.REFRESH_BUTTON_ICON,
                         onClick = actionRunCallback<RefreshAction>()
                     )
                 }
@@ -528,12 +537,12 @@ class TimelineWidgetWorker(
             val strokePaint = Paint().apply {
                 this.color = androidColor
                 style = Paint.Style.STROKE
-                strokeWidth = 5f
+                strokeWidth = WidgetConstants.STROKE_WIDTH
                 isAntiAlias = true
                 strokeCap = Paint.Cap.ROUND
                 strokeJoin = Paint.Join.ROUND
                 // Add corner path effect for smoother transitions (matches app's normalStroke)
-                pathEffect = android.graphics.CornerPathEffect(15f)
+                pathEffect = android.graphics.CornerPathEffect(WidgetConstants.CORNER_PATH_EFFECT_RADIUS)
             }
 
             substanceIngestions.forEach { ingestionWithCompanion ->
@@ -559,8 +568,8 @@ class TimelineWidgetWorker(
                 val peakEndX = comeupEndX + peakSec
                 val offsetEndX = peakEndX + offsetSec
 
-                // Calculate peak height (85% of graph height for visual appeal)
-                val peakHeight = graphHeight * 0.85f
+                // Calculate peak height
+                val peakHeight = graphHeight * WidgetConstants.PEAK_HEIGHT_FRACTION
                 val peakY = baselineY - peakHeight
 
                 // Convert seconds to pixels
@@ -656,7 +665,7 @@ class TimelineWidgetWorker(
                             isAntiAlias = true
                         }
                         val dotX = secToPixel(secondsFromStart).coerceIn(padding, width - padding)
-                        canvas.drawCircle(dotX, baselineY, 7f, dotPaint)
+                        canvas.drawCircle(dotX, baselineY, WidgetConstants.INGESTION_DOT_RADIUS, dotPaint)
                     }
                 }
             }
