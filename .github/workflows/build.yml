@@ -27,22 +27,15 @@ jobs:
 
       - name: Change wrapper permissions
         run: chmod +x ./gradlew
-      
-      - name: debug
-        run: ls
 
       - name: build app
         run: ./gradlew assembleRelease --no-daemon
 
-      - name: debug
-        run: ls
-
       - uses: actions/upload-artifact@v4
         with:
           name: "freaklog-unsigned.apk"
-          path: "freaklog-unsigned.apk"
+          path: app/build/outputs/apk/release/app-release-unsigned.apk
           if-no-files-found: error
-
   sign:
     needs: build
     runs-on: ubuntu-24.04
