@@ -52,6 +52,7 @@ fun MainScreen(
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         
         // Handle navigation to Add Ingestion when triggered from widget
+        // The guard condition prevents re-execution when state is reset to false
         LaunchedEffect(shouldNavigateToAddIngestion) {
             if (shouldNavigateToAddIngestion) {
                 navController.navigate(AddIngestionRoute) {

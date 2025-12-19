@@ -227,10 +227,14 @@ class MyAppWidget : GlanceAppWidget() {
         }
     }
 
+    /**
+     * Simple JSON parser for substance colors format: {"substance1":color1,"substance2":color2}
+     * Note: This parser assumes substance names don't contain commas or colons.
+     * Substance names in PsychonautWiki typically don't contain these characters.
+     */
     private fun parseSubstanceColors(json: String): Map<String, Int> {
         return try {
             val result = mutableMapOf<String, Int>()
-            // Simple JSON parsing for format: {"substance1":color1,"substance2":color2}
             val content = json.trim().removePrefix("{").removeSuffix("}")
             if (content.isNotEmpty()) {
                 content.split(",").forEach { pair ->
@@ -290,6 +294,10 @@ class TimelineWidgetWorker(
     appContext: Context,
     params: WorkerParameters
 ) : CoroutineWorker(appContext, params) {
+
+    companion object {
+        private const val TAG = "TimelineWidgetWorker"
+    }
 
     override suspend fun doWork(): Result {
         val appWidgetId = inputData.getInt(WorkerInput.APP_WIDGET_ID, -1)
@@ -427,7 +435,7 @@ class TimelineWidgetWorker(
             database.close()
             Result.success()
         } catch (t: Throwable) {
-            Log.e("TimelineWidgetWorker", "Error updating widget", t)
+            Log.e(TAG, "Error updating widget", t)
             Result.retry()
         }
     }
