@@ -2,11 +2,12 @@
 name: Build
 on:
   push:
+  pull_request:
 env:
   main_project_module: 'app'
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         name: Checkout repository
@@ -29,14 +30,21 @@ jobs:
 
       - name: build app
         run: ./gradlew assembleRelease --no-daemon
-
+  
+  sign:
+    runs-on: ubuntu-24.04
+    steps:
       - name: Setup Android SDK
+        if: >
+          github.event_name == 'push'
         run: |
           ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager "build-tools;35.0.0"
 
       - name: Sign app APK
         uses: ilharp/sign-android-release@nightly
         id: sign
+        if: >
+          github.event_name == 'push'
         with:
           signingKey: ${{ secrets.KEYSTORE }}
           keyAlias: ${{ secrets.SIGNING_KEY_ALIAS }}
@@ -45,11 +53,15 @@ jobs:
           buildToolsVersion: 35.0.0
 
       - name: Rename signed APK
+        if: >
+          github.event_name == 'push'
         run: |
           mv "${{ steps.sign.outputs.signedFile }}" "psychonautwiki-journal.apk"
 
       # Uploads to the action results if not pointed at a tag
       - uses: actions/upload-artifact@v4
+        if: >
+          github.event_name == 'push'
         with:
           name: "psychonautwiki-journal.apk"
           path: "psychonautwiki-journal.apk"
@@ -57,7 +69,7 @@ jobs:
 
       # Creates a release if pointed at a tag
       - name: Create release
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') && github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
           files: "psychonautwiki-journal.apk"
