@@ -227,23 +227,27 @@ class MyAppWidget : GlanceAppWidget() {
 
     /**
      * Simple JSON parser for substance colors format: {"substance1":color1,"substance2":color2}
-     * Note: This parser assumes substance names don't contain commas or colons.
-     * Substance names in PsychonautWiki typically don't contain these characters.
+     * Handles escaped characters in substance names.
+     * Note: Uses simple regex-based parsing - substance names in PsychonautWiki 
+     * typically don't contain problematic characters, but escaping is supported.
      */
     private fun parseSubstanceColors(json: String): Map<String, Int> {
         return try {
             val result = mutableMapOf<String, Int>()
-            val content = json.trim().removePrefix("{").removeSuffix("}")
-            if (content.isNotEmpty()) {
-                content.split(",").forEach { pair ->
-                    val parts = pair.split(":")
-                    if (parts.size == 2) {
-                        val name = parts[0].trim().removeSurrounding("\"")
-                        val colorInt = parts[1].trim().toIntOrNull()
-                        if (colorInt != null) {
-                            result[name] = colorInt
-                        }
-                    }
+            // Use regex to find "name":value pairs more robustly
+            val pattern = "\"((?:[^\"\\\\]|\\\\.)*)\"\\s*:\\s*(-?\\d+)".toRegex()
+            pattern.findAll(json).forEach { match ->
+                val escapedName = match.groupValues[1]
+                val colorInt = match.groupValues[2].toIntOrNull()
+                if (colorInt != null) {
+                    // Unescape the name
+                    val name = escapedName
+                        .replace("\\\"", "\"")
+                        .replace("\\\\", "\\")
+                        .replace("\\n", "\n")
+                        .replace("\\r", "\r")
+                        .replace("\\t", "\t")
+                    result[name] = colorInt
                 }
             }
             result
@@ -404,9 +408,15 @@ class TimelineWidgetWorker(
                 WidgetData("Journal", lines.joinToString("\n"), true, imagePath, colorsMap)
             }
 
-            // Serialize substance colors to JSON
+            // Serialize substance colors to JSON with proper escaping
             val substanceColorsJson = substanceColors.entries.joinToString(",", "{", "}") { (name, color) ->
-                "\"$name\":$color"
+                val escapedName = name
+                    .replace("\\", "\\\\")
+                    .replace("\"", "\\\"")
+                    .replace("\n", "\\n")
+                    .replace("\r", "\\r")
+                    .replace("\t", "\\t")
+                "\"$escapedName\":$color"
             }
 
             val manager = GlanceAppWidgetManager(applicationContext)
