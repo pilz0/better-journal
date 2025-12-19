@@ -9,8 +9,8 @@ This app is built natively with [Jetpack Compose](https://developer.android.com/
 
 ![A presentation of the App](https://github.com/isaakhanimann/psychonautwiki-journal-android/blob/main/metadata/en-US/images/Google%20Pixel%204%20XL%20Presentation.png?raw=true)
 
-<a href='https://play.google.com/store/apps/details?id=com.isaakhanimann.journal&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png' height='100' /></a>
-<a href='https://f-droid.org/en/packages/com.isaakhanimann.journal/'><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="100" /></a>
+<a href='https://play.google.com/store/apps/details?id=foo.pilz.freaklog&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png' height='100' /></a>
+<a href='https://f-droid.org/en/packages/foo.pilz.freaklog/'><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="100" /></a>
 
 Or download the latest version from [GitHub releases](https://github.com/isaakhanimann/psychonautwiki-journal-android/releases/latest).
 
