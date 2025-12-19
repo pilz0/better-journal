@@ -24,9 +24,18 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
           cache: 'gradle'
+          
+      - name: debug
+        run: ls -lR app/build/outputs
 
-      - name: Change wrapper permissions
-        run: chmod +x ./gradlew
+      - name: debug
+        run: ls -lR |grep -E -i -w 'apk$'
+
+      - name: debug
+        run: ls -lR app/build/outputs
+
+      - name: debug
+        run: ls -lR |grep -E -i -w 'apk$'
 
       - name: build app
         run: ./gradlew assembleRelease --no-daemon
