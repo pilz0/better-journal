@@ -1,7 +1,6 @@
 package com.isaakhanimann.journal.ui
 
 import android.content.Context
-import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -9,7 +8,6 @@ import androidx.glance.Button
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.action.ActionParameters
-import androidx.glance.action.actionParametersOf
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
@@ -43,11 +41,8 @@ object WidgetKeys {
     val IS_LOADING = booleanPreferencesKey("isLoading")
 }
 
-private object RefreshParams {
-    val GLANCE_ID = ActionParameters.Key<String>("glanceId")
-}
 private object WorkerInput {
-    const val GLANCE_ID = "glanceId"
+    const val APP_WIDGET_ID = "appWidgetId"
 }
 
 class MyWidgetProvider : GlanceAppWidgetReceiver() {
@@ -57,14 +52,6 @@ class MyWidgetProvider : GlanceAppWidgetReceiver() {
 class MyAppWidget : GlanceAppWidget() {
 
     override val stateDefinition = PreferencesGlanceStateDefinition
-
-    companion object {
-        fun refreshAction(glanceId: GlanceId) = actionRunCallback<RefreshAction>(
-            parameters = actionParametersOf(
-                RefreshParams.GLANCE_ID to glanceId.toString()
-            )
-        )
-    }
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
@@ -105,7 +92,7 @@ class MyAppWidget : GlanceAppWidget() {
 
                 Button(
                     text = "Refresh",
-                    onClick = refreshAction(id),
+                    onClick = actionRunCallback<RefreshAction>(),
                     modifier = GlanceModifier.padding(top = 12.dp)
                 )
             }
@@ -128,9 +115,9 @@ class RefreshAction : ActionCallback {
         }
         MyAppWidget().update(context, glanceId)
 
-        // 2) Enqueue worker for this widget instance
-        val glanceIdStr = parameters[RefreshParams.GLANCE_ID] ?: glanceId.toString()
-        enqueueRefresh(context, glanceIdStr)
+        // 2) Get the app widget ID and enqueue worker for this widget instance
+        val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(glanceId)
+        enqueueRefresh(context, appWidgetId)
     }
 }
 
@@ -140,8 +127,8 @@ class TimelineWidgetWorker(
 ) : CoroutineWorker(appContext, params) {
 
     override suspend fun doWork(): Result {
-        val glanceIdStr = inputData.getString(WorkerInput.GLANCE_ID)
-            ?: return Result.failure()
+        val appWidgetId = inputData.getInt(WorkerInput.APP_WIDGET_ID, -1)
+        if (appWidgetId == -1) return Result.failure()
 
         return try {
             // TODO: replace with your real fetch logic
@@ -150,7 +137,7 @@ class TimelineWidgetWorker(
             val fetchedTimeOption = "Relative"
 
             val manager = GlanceAppWidgetManager(applicationContext)
-            val glanceId = manager.getGlanceIdBy(glanceIdStr)
+            val glanceId = manager.getGlanceIdBy(appWidgetId)
 
             updateAppWidgetState(
                 context = applicationContext,
@@ -173,14 +160,14 @@ class TimelineWidgetWorker(
     }
 }
 
-fun enqueueRefresh(context: Context, glanceIdStr: String) {
+fun enqueueRefresh(context: Context, appWidgetId: Int) {
     val work = OneTimeWorkRequestBuilder<TimelineWidgetWorker>()
-        .setInputData(workDataOf(WorkerInput.GLANCE_ID to glanceIdStr))
+        .setInputData(workDataOf(WorkerInput.APP_WIDGET_ID to appWidgetId))
         .build()
 
     // Make the unique name per-widget, otherwise multiple widgets fight each other.
     WorkManager.getInstance(context).enqueueUniqueWork(
-        "timeline-widget-refresh-$glanceIdStr",
+        "timeline-widget-refresh-$appWidgetId",
         ExistingWorkPolicy.REPLACE,
         work
     )
