@@ -512,10 +512,12 @@ class TimelineWidgetWorker(
             val strokePaint = Paint().apply {
                 this.color = androidColor
                 style = Paint.Style.STROKE
-                strokeWidth = 4f
+                strokeWidth = 5f
                 isAntiAlias = true
                 strokeCap = Paint.Cap.ROUND
                 strokeJoin = Paint.Join.ROUND
+                // Add corner path effect for smoother transitions (matches app's normalStroke)
+                pathEffect = android.graphics.CornerPathEffect(15f)
             }
 
             substanceIngestions.forEach { ingestionWithCompanion ->
@@ -531,61 +533,116 @@ class TimelineWidgetWorker(
                 val peakSec = roaDuration?.peak?.interpolateAtValueInSeconds(0.5f) ?: 5400f // 1.5 hr default
                 val offsetSec = roaDuration?.offset?.interpolateAtValueInSeconds(0.5f) ?: 5400f // 1.5 hr default
 
-                // Calculate x positions
+                // Calculate x positions (in seconds from graph start)
                 val secondsFromStart = Duration.between(startTime, ingestionTime).seconds.toFloat()
-                val startX = padding + (secondsFromStart / totalSeconds) * graphWidth
-                val onsetEndX = startX + (onsetSec / totalSeconds) * graphWidth
-                val comeupEndX = onsetEndX + (comeupSec / totalSeconds) * graphWidth
-                val peakEndX = comeupEndX + (peakSec / totalSeconds) * graphWidth
-                val offsetEndX = peakEndX + (offsetSec / totalSeconds) * graphWidth
+                
+                // These are the actual timeline phase positions in seconds from graph start
+                val ingestionX = secondsFromStart
+                val onsetEndX = ingestionX + onsetSec
+                val comeupEndX = onsetEndX + comeupSec
+                val peakEndX = comeupEndX + peakSec
+                val offsetEndX = peakEndX + offsetSec
 
-                // Clamp all x positions to graph bounds
-                val clampedStartX = startX.coerceIn(padding, width - padding)
-                val clampedOnsetEndX = onsetEndX.coerceIn(padding, width - padding)
-                val clampedComeupEndX = comeupEndX.coerceIn(padding, width - padding)
-                val clampedPeakEndX = peakEndX.coerceIn(padding, width - padding)
-                val clampedOffsetEndX = offsetEndX.coerceIn(padding, width - padding)
-
-                // Calculate peak height (70% of graph height)
+                // Calculate peak height (85% of graph height for visual appeal)
                 val peakHeight = graphHeight * 0.85f
                 val peakY = baselineY - peakHeight
 
-                // Create path matching the app's timeline style:
-                // Start -> Onset (flat at baseline) -> Comeup (rise to peak) -> Peak (flat at top) -> Offset (descend to baseline)
-                val path = Path().apply {
-                    moveTo(clampedStartX, baselineY)
-                    
-                    // Onset phase: flat line at baseline
-                    lineTo(clampedOnsetEndX, baselineY)
-                    
-                    // Comeup phase: rise from baseline to peak height
-                    lineTo(clampedComeupEndX, peakY)
-                    
-                    // Peak phase: flat line at peak height
-                    lineTo(clampedPeakEndX, peakY)
-                    
-                    // Offset phase: descend from peak to baseline
-                    lineTo(clampedOffsetEndX, baselineY)
+                // Convert seconds to pixels
+                fun secToPixel(sec: Float): Float = padding + (sec / totalSeconds) * graphWidth
+
+                // Create a list of points that define the timeline shape
+                // Format: Pair(seconds from graph start, height fraction 0-1)
+                val timelinePoints = mutableListOf<Pair<Float, Float>>()
+                
+                // Ingestion point (start, at baseline)
+                timelinePoints.add(Pair(ingestionX, 0f))
+                // End of onset (still at baseline)
+                timelinePoints.add(Pair(onsetEndX, 0f))
+                // End of comeup (at peak)
+                timelinePoints.add(Pair(comeupEndX, 1f))
+                // End of peak (still at peak)
+                timelinePoints.add(Pair(peakEndX, 1f))
+                // End of offset (back to baseline)
+                timelinePoints.add(Pair(offsetEndX, 0f))
+
+                // Filter to only include points that are within or adjacent to visible window
+                // and interpolate for edge cases
+                val visibleStartSec = 0f
+                val visibleEndSec = totalSeconds
+
+                // Build the visible path
+                val path = Path()
+                var pathStarted = false
+                var firstVisibleX = padding
+                var lastVisibleX = padding
+
+                for (i in 0 until timelinePoints.size) {
+                    val (currentSec, currentHeight) = timelinePoints[i]
+                    val currentPixelX = secToPixel(currentSec)
+                    val currentY = baselineY - (currentHeight * peakHeight)
+
+                    if (currentSec >= visibleStartSec && currentSec <= visibleEndSec) {
+                        // Point is visible
+                        if (!pathStarted) {
+                            // Check if we need to interpolate entry point
+                            if (i > 0) {
+                                val (prevSec, prevHeight) = timelinePoints[i - 1]
+                                if (prevSec < visibleStartSec) {
+                                    // Interpolate entry point
+                                    val t = (visibleStartSec - prevSec) / (currentSec - prevSec)
+                                    val entryHeight = prevHeight + t * (currentHeight - prevHeight)
+                                    val entryY = baselineY - (entryHeight * peakHeight)
+                                    path.moveTo(padding, entryY)
+                                    firstVisibleX = padding
+                                } else {
+                                    path.moveTo(currentPixelX.coerceIn(padding, width - padding), currentY)
+                                    firstVisibleX = currentPixelX.coerceIn(padding, width - padding)
+                                }
+                            } else {
+                                path.moveTo(currentPixelX.coerceIn(padding, width - padding), currentY)
+                                firstVisibleX = currentPixelX.coerceIn(padding, width - padding)
+                            }
+                            pathStarted = true
+                        } else {
+                            path.lineTo(currentPixelX.coerceIn(padding, width - padding), currentY)
+                        }
+                        lastVisibleX = currentPixelX.coerceIn(padding, width - padding)
+                    } else if (currentSec > visibleEndSec && pathStarted) {
+                        // Point is after visible window, interpolate exit
+                        val (prevSec, prevHeight) = timelinePoints[i - 1]
+                        if (prevSec < visibleEndSec) {
+                            val t = (visibleEndSec - prevSec) / (currentSec - prevSec)
+                            val exitHeight = prevHeight + t * (currentHeight - prevHeight)
+                            val exitY = baselineY - (exitHeight * peakHeight)
+                            path.lineTo(width - padding, exitY)
+                            lastVisibleX = width - padding
+                        }
+                        break
+                    }
                 }
 
-                // Draw stroke first
-                canvas.drawPath(path, strokePaint)
+                if (pathStarted) {
+                    // Draw stroke
+                    canvas.drawPath(path, strokePaint)
 
-                // Create filled path (close it for fill)
-                val fillPath = Path(path).apply {
-                    lineTo(clampedOffsetEndX, baselineY)
-                    lineTo(clampedStartX, baselineY)
-                    close()
-                }
-                canvas.drawPath(fillPath, fillPaint)
+                    // Create filled path (close it for fill)
+                    val fillPath = Path(path)
+                    fillPath.lineTo(lastVisibleX, baselineY + strokePaint.strokeWidth / 2)
+                    fillPath.lineTo(firstVisibleX, baselineY + strokePaint.strokeWidth / 2)
+                    fillPath.close()
+                    canvas.drawPath(fillPath, fillPaint)
 
-                // Draw ingestion dot at the start point
-                val dotPaint = Paint().apply {
-                    this.color = androidColor
-                    style = Paint.Style.FILL
-                    isAntiAlias = true
+                    // Draw ingestion dot at the start point if visible
+                    if (secondsFromStart >= 0 && secondsFromStart <= totalSeconds) {
+                        val dotPaint = Paint().apply {
+                            this.color = androidColor
+                            style = Paint.Style.FILL
+                            isAntiAlias = true
+                        }
+                        val dotX = secToPixel(secondsFromStart).coerceIn(padding, width - padding)
+                        canvas.drawCircle(dotX, baselineY, 7f, dotPaint)
+                    }
                 }
-                canvas.drawCircle(clampedStartX, baselineY, 7f, dotPaint)
             }
         }
 
