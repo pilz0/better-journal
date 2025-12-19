@@ -1,0 +1,15 @@
+package com.isaakhanimann.journal.ui
+
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
+import android.content.Context
+
+fun updateWidget(context: Context) {
+    val appWidgetManager = AppWidgetManager.getInstance(context)
+    val widgetComponent = ComponentName(context, MyWidgetProvider::class.java)
+    val appWidgetIds = appWidgetManager.getAppWidgetIds(widgetComponent)
+
+    for (appWidgetId in appWidgetIds) {
+        MyWidgetProvider.updateAppWidget(context, appWidgetManager, appWidgetId)
+    }
+}
