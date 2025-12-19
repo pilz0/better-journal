@@ -26,12 +26,17 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.room.Room
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.isaakhanimann.journal.data.room.AppDatabase
+import kotlinx.coroutines.flow.first
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 object WidgetKeys {
     val TITLE = stringPreferencesKey("title")
@@ -130,10 +135,46 @@ class TimelineWidgetWorker(
         if (appWidgetId == -1) return Result.failure()
 
         return try {
-            // TODO: replace with your real fetch logic
-            val fetchedTitle = "My Timeline"
-            val fetchedTimelineOption = "Shown"
-            val fetchedTimeOption = "Relative"
+            // Get database instance
+            val database = Room.databaseBuilder(
+                applicationContext,
+                AppDatabase::class.java,
+                "experiences_db"
+            ).build()
+            val experienceDao = database.experienceDao()
+
+            // Fetch latest experiences with ingestions
+            val experiences = experienceDao.getSortedExperiencesWithIngestionsFlow().first()
+            
+            // Determine if there's a timeline worth showing
+            val (fetchedTitle, fetchedTimelineOption, fetchedTimeOption) = if (experiences.isEmpty()) {
+                Triple("Timeline", "NotWorthDrawing", "Absolute")
+            } else {
+                val latestExperience = experiences.first()
+                val hasIngestions = latestExperience.ingestions.isNotEmpty()
+                
+                if (!hasIngestions) {
+                    Triple(
+                        latestExperience.experience.title.ifEmpty { "Timeline" },
+                        "NotWorthDrawing",
+                        "Absolute"
+                    )
+                } else {
+                    // Check if ingestions are recent (within last 48 hours)
+                    val now = Instant.now()
+                    val recentIngestions = latestExperience.ingestions.filter {
+                        ChronoUnit.HOURS.between(it.time, now) <= 48
+                    }
+                    
+                    val timeOption = if (recentIngestions.isNotEmpty()) "Relative" else "Absolute"
+                    
+                    Triple(
+                        latestExperience.experience.title.ifEmpty { "Timeline" },
+                        "Shown",
+                        timeOption
+                    )
+                }
+            }
 
             val manager = GlanceAppWidgetManager(applicationContext)
             val glanceId = manager.getGlanceIdBy(appWidgetId)
@@ -152,6 +193,7 @@ class TimelineWidgetWorker(
             }
 
             MyAppWidget().update(applicationContext, glanceId)
+            database.close()
             Result.success()
         } catch (t: Throwable) {
             Result.retry()
