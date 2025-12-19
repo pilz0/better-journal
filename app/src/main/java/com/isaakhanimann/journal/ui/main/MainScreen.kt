@@ -22,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -36,16 +37,34 @@ import com.isaakhanimann.journal.ui.main.navigation.graphs.saferGraph
 import com.isaakhanimann.journal.ui.main.navigation.graphs.searchGraph
 import com.isaakhanimann.journal.ui.main.navigation.graphs.settingsGraph
 import com.isaakhanimann.journal.ui.main.navigation.graphs.statsGraph
+import com.isaakhanimann.journal.ui.main.navigation.graphs.AddIngestionRoute
 import com.isaakhanimann.journal.ui.main.navigation.JournalTopLevelRoute
 import com.isaakhanimann.journal.ui.main.navigation.topLevelRoutes
 
 @Composable
 fun MainScreen(
-    viewModel: MainScreenViewModel = hiltViewModel()
+    viewModel: MainScreenViewModel = hiltViewModel(),
+    shouldNavigateToAddIngestion: Boolean = false,
+    onAddIngestionNavigated: () -> Unit = {}
 ) {
     if (viewModel.isAcceptedFlow.collectAsState().value) {
         val navController = rememberNavController()
         val navBackStackEntry by navController.currentBackStackEntryAsState()
+        
+        // Handle navigation to Add Ingestion when triggered from widget
+        // The guard condition prevents re-execution when state is reset to false
+        LaunchedEffect(shouldNavigateToAddIngestion) {
+            if (shouldNavigateToAddIngestion) {
+                navController.navigate(AddIngestionRoute) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                }
+                onAddIngestionNavigated()
+            }
+        }
+        
         NavigationSuiteScaffold(
             navigationSuiteItems = {
                 val currentDestination = navBackStackEntry?.destination

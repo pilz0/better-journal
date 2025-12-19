@@ -18,6 +18,7 @@
 
 package com.isaakhanimann.journal
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -25,6 +26,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.isaakhanimann.journal.ui.main.MainScreen
@@ -34,19 +36,40 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+    companion object {
+        const val ACTION_ADD_INGESTION = "com.isaakhanimann.journal.ADD_INGESTION"
+    }
+
+    private val shouldNavigateToAddIngestion = mutableStateOf(false)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        
+        // Check if launched from widget with ADD_INGESTION action
+        shouldNavigateToAddIngestion.value = intent?.action == ACTION_ADD_INGESTION
+        
         setContent {
             JournalTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainScreen()
+                    MainScreen(
+                        shouldNavigateToAddIngestion = shouldNavigateToAddIngestion.value,
+                        onAddIngestionNavigated = { shouldNavigateToAddIngestion.value = false }
+                    )
                 }
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // Handle new intent when activity is already running
+        if (intent.action == ACTION_ADD_INGESTION) {
+            shouldNavigateToAddIngestion.value = true
         }
     }
 }
