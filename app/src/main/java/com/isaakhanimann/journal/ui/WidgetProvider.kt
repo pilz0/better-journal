@@ -168,16 +168,15 @@ class TimelineWidgetWorker(
                 
                 val lines = recentIngestions.map { ingestion ->
                     val timeText = formatRelativeTime(ingestion.time, now)
-                    val doseText = if (ingestion.dose != null) {
-                        val doseFormatted = if (ingestion.dose!! == ingestion.dose!!.toLong().toDouble()) {
-                            ingestion.dose!!.toLong().toString()
+                    val doseText = ingestion.dose?.let { dose ->
+                        val doseFormatted = if (dose == dose.toLong().toDouble()) {
+                            dose.toLong().toString()
                         } else {
-                            ingestion.dose.toString()
+                            dose.toString()
                         }
-                        "$doseFormatted ${ingestion.units ?: ""}"
-                    } else {
-                        "unknown dose"
-                    }
+                        val units = ingestion.units
+                        if (units.isNullOrEmpty()) doseFormatted else "$doseFormatted $units"
+                    } ?: "unknown dose"
                     "• ${ingestion.substanceName} ($doseText) - $timeText"
                 }
                 
