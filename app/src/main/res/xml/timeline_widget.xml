@@ -6,6 +6,6 @@
     android:updatePeriodMillis="1800000"
     android:initialLayout="@layout/glance_default_loading_layout"
     android:description="@string/widget_description"
-    android:previewImage="@drawable/splash_logo"
+    android:previewImage="@drawable/timeline_widget"
     android:resizeMode="horizontal|vertical"
-    android:widgetCategory="home_screen"/>
+    android:widgetCategory="keyguard|home_screen"/>

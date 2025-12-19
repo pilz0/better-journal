@@ -103,7 +103,7 @@ class MyAppWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
             val prefs = currentState<Preferences>()
-            val title = prefs[WidgetKeys.TITLE] ?: "Journal"
+            val title = prefs[WidgetKeys.TITLE] ?: "Psychonautwiki Journal"
             val ingestionsText = prefs[WidgetKeys.INGESTIONS_TEXT] ?: ""
             val isLoading = prefs[WidgetKeys.IS_LOADING] ?: false
             val hasData = prefs[WidgetKeys.HAS_DATA] ?: false
@@ -124,12 +124,12 @@ class MyAppWidget : GlanceAppWidget() {
                 ) {
                     Text(
                         text = title,
-                        style = TextStyle(color = GlanceTheme.colors.primary ,fontSize = 16.sp, fontWeight = FontWeight.Bold),
+                        style = TextStyle(color = GlanceTheme.colors.primary ,fontSize = 15.sp, fontWeight = FontWeight.Bold),
                         modifier = GlanceModifier.defaultWeight()
                     )
                     Button(
                         text = "↻",
-                        style = TextStyle(color = GlanceTheme.colors.primary ,fontSize = 16.sp, fontWeight = FontWeight.Bold),
+                        style = TextStyle(color = GlanceTheme.colors.primary ,fontSize = 18.sp, fontWeight = FontWeight.Bold),
                         onClick = actionRunCallback<RefreshAction>()
                     )
                 }
@@ -145,7 +145,7 @@ class MyAppWidget : GlanceAppWidget() {
                     }
                     !hasData -> {
                         Text(
-                            text = "No ingestions yet.\nAdd your first entry in the app.",
+                            text = "No current ingestions",
                             style = TextStyle(fontSize = 14.sp, color = GlanceTheme.colors.primary)
 
                         )
@@ -162,14 +162,13 @@ class MyAppWidget : GlanceAppWidget() {
                                         contentDescription = "Timeline graph",
                                         modifier = GlanceModifier
                                             .fillMaxWidth()
-                                            .height(80.dp),
+                                            .height(120.dp),
                                         contentScale = ContentScale.FillBounds
                                     )
                                     Spacer(modifier = GlanceModifier.height(4.dp))
                                 }
                             }
                         }
-
                         Text(
                             text = ingestionsText,
                             style = TextStyle(fontSize = 12.sp, color = GlanceTheme.colors.primary),
@@ -238,8 +237,8 @@ class TimelineWidgetWorker(
             val (title, ingestionsText, hasData, timelineImagePath) = if (ingestions.isEmpty()) {
                 WidgetData("Journal", "", false, null)
             } else {
-                // Take the most recent ingestions (up to 5)
-                val recentIngestions = ingestions.take(5)
+                // Take the most recent ingestions (up to 7)
+                val recentIngestions = ingestions.take(7)
 
                 val lines = recentIngestions.map { ingestion ->
                     val timeText = formatRelativeTime(ingestion.time, now)
@@ -317,7 +316,7 @@ class TimelineWidgetWorker(
         val isDarkMode = nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES
 
         val width = 600
-        val height = 160
+        val height = 120
         val bitmap = createBitmap(width, height)
         val canvas = Canvas(bitmap)
 
@@ -390,7 +389,7 @@ class TimelineWidgetWorker(
 
                 // Calculate duration phases in seconds with fallback to default values
                 val onsetSec = roaDuration?.onset?.interpolateAtValueInSeconds(0.5f) ?: 1800f // 30 min default
-                val comeupSec = roaDuration?.comeup?.interpolateAtValueInSeconds(0.5f) ?: 2700f // 45 min default  
+                val comeupSec = roaDuration?.comeup?.interpolateAtValueInSeconds(0.5f) ?: 2700f // 45 min default
                 val peakSec = roaDuration?.peak?.interpolateAtValueInSeconds(0.5f) ?: 5400f // 1.5 hr default
                 val offsetSec = roaDuration?.offset?.interpolateAtValueInSeconds(0.5f) ?: 5400f // 1.5 hr default
 
@@ -410,7 +409,7 @@ class TimelineWidgetWorker(
                 val clampedOffsetEndX = offsetEndX.coerceIn(padding, width - padding)
 
                 // Calculate peak height (70% of graph height)
-                val peakHeight = graphHeight * 0.7f
+                val peakHeight = graphHeight * 0.85f
                 val peakY = baselineY - peakHeight
 
                 // Create path matching the app's timeline style:
