@@ -51,12 +51,10 @@ fun DatePickerButton(
         dialogTheme,
         { _: DatePicker, newYear: Int, newMonth: Int, newDay: Int ->
             onChange(
-                LocalDateTime.now()
+                localDateTime
                     .withYear(newYear)
                     .withMonth(newMonth + 1)
                     .withDayOfMonth(newDay)
-                    .withHour(localDateTime.hour)
-                    .withMinute(localDateTime.minute)
             )
         }, localDateTime.year, localDateTime.monthValue - 1, localDateTime.dayOfMonth
     )
