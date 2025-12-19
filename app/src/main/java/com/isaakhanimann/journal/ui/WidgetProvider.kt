@@ -6,9 +6,6 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.toArgb
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -46,14 +43,19 @@ import androidx.glance.GlanceTheme
 import androidx.glance.background
 import androidx.room.Room
 import androidx.work.CoroutineWorker
+import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.isaakhanimann.journal.data.room.AppDatabase
 import com.isaakhanimann.journal.data.room.experiences.entities.AdaptiveColor
 import com.isaakhanimann.journal.data.room.experiences.relations.IngestionWithCompanion
+import com.isaakhanimann.journal.data.substances.AdministrationRoute
+import com.isaakhanimann.journal.data.substances.classes.roa.RoaDuration
+import com.isaakhanimann.journal.data.substances.parse.SubstanceParser
 import kotlinx.coroutines.flow.first
 import java.io.File
 import java.io.FileOutputStream
@@ -62,6 +64,7 @@ import java.time.Instant
 import com.isaakhanimann.journal.ui.theme.md_theme_dark_primary
 import androidx.core.graphics.createBitmap
 import com.isaakhanimann.journal.ui.theme.md_theme_light_primary
+import java.util.concurrent.TimeUnit
 
 object WidgetKeys {
     val TITLE = stringPreferencesKey("title")
@@ -77,8 +80,20 @@ private object WorkerInput {
 
 class MyWidgetProvider : GlanceAppWidgetReceiver() {
     override val glanceAppWidget: GlanceAppWidget = MyAppWidget()
+
+    override fun onEnabled(context: Context) {
+        super.onEnabled(context)
+        // Start periodic widget updates when widget is enabled
+        schedulePeriodicWidgetUpdates(context)
+    }
+
+    override fun onDisabled(context: Context) {
+        super.onDisabled(context)
+        // Cancel periodic updates when all widgets are removed
+        WorkManager.getInstance(context).cancelUniqueWork("timeline-widget-periodic-refresh")
+    }
 }
-@OptIn(ExperimentalMaterial3Api::class)
+
 class MyAppWidget : GlanceAppWidget() {
 
     override val stateDefinition = PreferencesGlanceStateDefinition
@@ -203,16 +218,19 @@ class TimelineWidgetWorker(
             ).build()
             val experienceDao = database.experienceDao()
 
+            // Load substance data for accurate timeline durations
+            val substanceDurations = loadSubstanceDurations(applicationContext)
+
             // Fetch latest ingestions directly sorted by time
             val ingestions = experienceDao.getSortedIngestionsFlow().first()
 
             // Also get ingestions with companion for colors (last 24 hours for the graph)
             val now = Instant.now()
-            val nowMinusOneHour = now.minus(Duration.ofHours(2))
-            val nowPlusThreeHours = now.plus(Duration.ofHours(3))
+            val startTime = now.minus(Duration.ofHours(2))
+            val endTime = now.plus(Duration.ofHours(3))
             val ingestionsWithCompanions = experienceDao.getIngestionsWithCompanions(
-                fromInstant = nowMinusOneHour,
-                toInstant = nowPlusThreeHours,
+                fromInstant = startTime,
+                toInstant = endTime,
             )
 
             val (title, ingestionsText, hasData, timelineImagePath) = if (ingestions.isEmpty()) {
@@ -222,7 +240,7 @@ class TimelineWidgetWorker(
                 val recentIngestions = ingestions.take(5)
 
                 val lines = recentIngestions.map { ingestion ->
-                    val timeText = formatRelativeTime(ingestion.time, nowPlusThreeHours)
+                    val timeText = formatRelativeTime(ingestion.time, now)
                     val doseText = ingestion.dose?.let { dose ->
                         val doseFormatted = if (dose == dose.toLong().toDouble()) {
                             dose.toLong().toString()
@@ -235,12 +253,13 @@ class TimelineWidgetWorker(
                     "• ${ingestion.substanceName} ($doseText) - $timeText"
                 }
 
-                // Generate timeline graph bitmap
+                // Generate timeline graph bitmap with accurate substance durations
                 val imagePath = if (ingestionsWithCompanions.isNotEmpty()) {
                     generateTimelineGraph(
                         context = applicationContext,
                         ingestions = ingestionsWithCompanions,
-                        appWidgetId = appWidgetId
+                        appWidgetId = appWidgetId,
+                        substanceDurations = substanceDurations
                     )
                 } else {
                     null
@@ -285,9 +304,15 @@ class TimelineWidgetWorker(
     private fun generateTimelineGraph(
         context: Context,
         ingestions: List<IngestionWithCompanion>,
-        appWidgetId: Int
+        appWidgetId: Int,
+        substanceDurations: Map<String, Map<AdministrationRoute, RoaDuration?>>
     ): String? {
         if (ingestions.isEmpty()) return null
+
+        // Detect dark mode
+        val nightModeFlags = context.resources.configuration.uiMode and
+                android.content.res.Configuration.UI_MODE_NIGHT_MASK
+        val isDarkMode = nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES
 
         val width = 600
         val height = 160
@@ -295,56 +320,48 @@ class TimelineWidgetWorker(
         val canvas = Canvas(bitmap)
 
         val now = Instant.now()
-        val nowMinusOneHour = now.minus(Duration.ofHours(2))
-        val nowPlusThreeHours = now.plus(Duration.ofHours(3))
+        val startTime = now.minus(Duration.ofHours(2))
+        val endTime = now.plus(Duration.ofHours(3))
         val totalSeconds = Duration.ofHours(5).seconds.toFloat()
 
         val padding = 16f
+        val labelHeight = 18f
         val graphWidth = width - 2 * padding
-        val graphHeight = height - 2 * padding
-        val baselineY = height - padding
+        val graphHeight = height - 2 * padding - labelHeight
+        val baselineY = height - padding - labelHeight
 
-        fun getGridColor(context: Context): Int {
-            val nightModeFlags = context.resources.configuration.uiMode and
-                    android.content.res.Configuration.UI_MODE_NIGHT_MASK
-            val isDarkMode = nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES
-
-            return if (isDarkMode) {
-                md_theme_dark_primary.toArgb()
-            } else {
-                // TODO: Replace with your light theme color if desired
-                md_theme_light_primary.toArgb()
-            }
+        val gridColor = if (isDarkMode) {
+            md_theme_dark_primary.toArgb()
+        } else {
+            md_theme_light_primary.toArgb()
         }
 
         val gridPaint = Paint().apply {
-            color = getGridColor(context) // Pass context here
+            color = Color.argb(60, Color.red(gridColor), Color.green(gridColor), Color.blue(gridColor))
             strokeWidth = 1f
             style = Paint.Style.STROKE
         }
 
-
-        // Vertical lines for every hour
+        // Draw vertical hour markers
         for (i in 0..5) {
             val x = padding + (graphWidth * i / 5f)
             canvas.drawLine(x, padding, x, baselineY, gridPaint)
         }
 
-        // Horizontal baseline
-        canvas.drawLine(padding, baselineY, width - padding, baselineY, gridPaint)
+        // Group ingestions by substance and route for layered rendering
+        val groupedBySubstanceAndRoute = ingestions.groupBy { 
+            "${it.ingestion.substanceName}|${it.ingestion.administrationRoute}" 
+        }
 
-        // Group ingestions by substance for layered rendering
-        val groupedBySubstance = ingestions.groupBy { it.ingestion.substanceName }
-
-        // Draw each substance's effect curve
-        groupedBySubstance.forEach { (_, substanceIngestions) ->
+        // Draw each substance's effect curve using actual duration data
+        groupedBySubstanceAndRoute.forEach { (key, substanceIngestions) ->
             val companion = substanceIngestions.firstOrNull()?.substanceCompanion
             val color = companion?.color ?: AdaptiveColor.BLUE
-            val androidColor = getAndroidColor(color, isDarkTheme = true)
+            val androidColor = getAndroidColor(color, isDarkMode)
 
             val fillPaint = Paint().apply {
                 this.color = Color.argb(
-                    80,
+                    64, // 25% alpha for fill, matching shapeAlpha = 0.25f in the app
                     Color.red(androidColor),
                     Color.green(androidColor),
                     Color.blue(androidColor)
@@ -356,104 +373,106 @@ class TimelineWidgetWorker(
             val strokePaint = Paint().apply {
                 this.color = androidColor
                 style = Paint.Style.STROKE
-                strokeWidth = 3f
+                strokeWidth = 4f
                 isAntiAlias = true
+                strokeCap = Paint.Cap.ROUND
+                strokeJoin = Paint.Join.ROUND
             }
 
             substanceIngestions.forEach { ingestionWithCompanion ->
                 val ingestion = ingestionWithCompanion.ingestion
                 val ingestionTime = ingestion.time
 
-                // Calculate x position based on time
-                val secondsFromStart = Duration.between(nowMinusOneHour, ingestionTime).seconds.toFloat()
-                val xPos = padding + (secondsFromStart / totalSeconds) * graphWidth
+                // Get RoaDuration for this substance and route
+                val roaDuration = substanceDurations[ingestion.substanceName]?.get(ingestion.administrationRoute)
 
-                // Draw a simplified effect curve for visual representation
-                val peakDurationSeconds = Duration.ofHours(2).seconds.toFloat()
-                val totalDurationSeconds = Duration.ofHours(6).seconds.toFloat()
+                // Calculate duration phases in seconds with fallback to default values
+                val onsetSec = roaDuration?.onset?.interpolateAtValueInSeconds(0.5f) ?: 1800f // 30 min default
+                val comeupSec = roaDuration?.comeup?.interpolateAtValueInSeconds(0.5f) ?: 2700f // 45 min default  
+                val peakSec = roaDuration?.peak?.interpolateAtValueInSeconds(0.5f) ?: 5400f // 1.5 hr default
+                val offsetSec = roaDuration?.offset?.interpolateAtValueInSeconds(0.5f) ?: 5400f // 1.5 hr default
 
-                val peakX = xPos + (peakDurationSeconds / totalSeconds) * graphWidth
-                val endX = xPos + (totalDurationSeconds / totalSeconds) * graphWidth
+                // Calculate x positions
+                val secondsFromStart = Duration.between(startTime, ingestionTime).seconds.toFloat()
+                val startX = padding + (secondsFromStart / totalSeconds) * graphWidth
+                val onsetEndX = startX + (onsetSec / totalSeconds) * graphWidth
+                val comeupEndX = onsetEndX + (comeupSec / totalSeconds) * graphWidth
+                val peakEndX = comeupEndX + (peakSec / totalSeconds) * graphWidth
+                val offsetEndX = peakEndX + (offsetSec / totalSeconds) * graphWidth
 
-                // Clamp to graph bounds
-                val clampedPeakX = peakX.coerceIn(padding, width - padding)
-                val clampedEndX = endX.coerceIn(padding, width - padding)
-                val clampedStartX = xPos.coerceIn(padding, width - padding)
+                // Clamp all x positions to graph bounds
+                val clampedStartX = startX.coerceIn(padding, width - padding)
+                val clampedOnsetEndX = onsetEndX.coerceIn(padding, width - padding)
+                val clampedComeupEndX = comeupEndX.coerceIn(padding, width - padding)
+                val clampedPeakEndX = peakEndX.coerceIn(padding, width - padding)
+                val clampedOffsetEndX = offsetEndX.coerceIn(padding, width - padding)
 
-                // Calculate peak height based on dose (normalized)
+                // Calculate peak height (70% of graph height)
                 val peakHeight = graphHeight * 0.7f
                 val peakY = baselineY - peakHeight
 
-                // Create curved path for the effect
+                // Create path matching the app's timeline style:
+                // Start -> Onset (flat at baseline) -> Comeup (rise to peak) -> Peak (flat at top) -> Offset (descend to baseline)
                 val path = Path().apply {
                     moveTo(clampedStartX, baselineY)
+                    
+                    // Onset phase: flat line at baseline
+                    lineTo(clampedOnsetEndX, baselineY)
+                    
+                    // Comeup phase: rise from baseline to peak height
+                    lineTo(clampedComeupEndX, peakY)
+                    
+                    // Peak phase: flat line at peak height
+                    lineTo(clampedPeakEndX, peakY)
+                    
+                    // Offset phase: descend from peak to baseline
+                    lineTo(clampedOffsetEndX, baselineY)
+                }
 
-                    // Smooth curve up to peak
-                    val cp1x = clampedStartX + (clampedPeakX - clampedStartX) * 0.3f
-                    val cp1y = baselineY
-                    val cp2x = clampedStartX + (clampedPeakX - clampedStartX) * 0.7f
-                    val cp2y = peakY
-                    cubicTo(cp1x, cp1y, cp2x, cp2y, clampedPeakX, peakY)
+                // Draw stroke first
+                canvas.drawPath(path, strokePaint)
 
-                    // Smooth curve down from peak
-                    val cp3x = clampedPeakX + (clampedEndX - clampedPeakX) * 0.3f
-                    val cp3y = peakY
-                    val cp4x = clampedPeakX + (clampedEndX - clampedPeakX) * 0.7f
-                    val cp4y = baselineY
-                    cubicTo(cp3x, cp3y, cp4x, cp4y, clampedEndX, baselineY)
-
+                // Create filled path (close it for fill)
+                val fillPath = Path(path).apply {
+                    lineTo(clampedOffsetEndX, baselineY)
+                    lineTo(clampedStartX, baselineY)
                     close()
                 }
+                canvas.drawPath(fillPath, fillPaint)
 
-                canvas.drawPath(path, fillPaint)
-
-                // Draw stroke on top
-                val strokePath = Path().apply {
-                    moveTo(clampedStartX, baselineY)
-                    val cp1x = clampedStartX + (clampedPeakX - clampedStartX) * 0.3f
-                    val cp1y = baselineY
-                    val cp2x = clampedStartX + (clampedPeakX - clampedStartX) * 0.7f
-                    val cp2y = peakY
-                    cubicTo(cp1x, cp1y, cp2x, cp2y, clampedPeakX, peakY)
-
-                    val cp3x = clampedPeakX + (clampedEndX - clampedPeakX) * 0.3f
-                    val cp3y = peakY
-                    val cp4x = clampedPeakX + (clampedEndX - clampedPeakX) * 0.7f
-                    val cp4y = baselineY
-                    cubicTo(cp3x, cp3y, cp4x, cp4y, clampedEndX, baselineY)
-                }
-                canvas.drawPath(strokePath, strokePaint)
-
-                // Draw a small dot at ingestion point
+                // Draw ingestion dot at the start point
                 val dotPaint = Paint().apply {
                     this.color = androidColor
                     style = Paint.Style.FILL
                     isAntiAlias = true
                 }
-                canvas.drawCircle(clampedStartX, baselineY, 6f, dotPaint)
+                canvas.drawCircle(clampedStartX, baselineY, 7f, dotPaint)
             }
         }
 
-        // Draw current time indicator
-        val currentTimeX = width - padding
+        // Draw current time indicator at the correct position
+        val nowSecondsFromStart = Duration.between(startTime, now).seconds.toFloat()
+        val currentTimeX = padding + (nowSecondsFromStart / totalSeconds) * graphWidth
         val nowPaint = Paint().apply {
-            color = Color.WHITE
-            strokeWidth = 2f
+            color = if (isDarkMode) Color.WHITE else Color.BLACK
+            strokeWidth = 3f
             style = Paint.Style.STROKE
+            strokeCap = Paint.Cap.ROUND
         }
         canvas.drawLine(currentTimeX, padding, currentTimeX, baselineY, nowPaint)
 
         // Draw time labels
         val textPaint = Paint().apply {
-            color = Color.argb(180, 255, 255, 255)
-            textSize = 20f
+            color = if (isDarkMode) Color.argb(180, 255, 255, 255) else Color.argb(180, 0, 0, 0)
+            textSize = 18f
             textAlign = Paint.Align.CENTER
             isAntiAlias = true
         }
-        canvas.drawText("1h ago", padding + 30, height - 2f, textPaint)
-        canvas.drawText("In 3h", width - padding - 15, height - 2f, textPaint)
+        canvas.drawText("-2h", padding + 20, height - 4f, textPaint)
+        canvas.drawText("now", currentTimeX, height - 4f, textPaint)
+        canvas.drawText("+3h", width - padding - 15, height - 4f, textPaint)
 
-        // Save bitmap to file, ensuring bitmap is recycled even if an error occurs
+        // Save bitmap to file
         val file = File(context.cacheDir, "widget_timeline_$appWidgetId.png")
         try {
             FileOutputStream(file).use { out ->
@@ -464,6 +483,21 @@ class TimelineWidgetWorker(
         }
 
         return file.absolutePath
+    }
+
+    private fun loadSubstanceDurations(context: Context): Map<String, Map<AdministrationRoute, RoaDuration?>> {
+        return try {
+            val fileContent = context.assets.open("Substances.json").bufferedReader().use { it.readText() }
+            val parser = SubstanceParser()
+            val substanceFile = parser.parseSubstanceFile(fileContent)
+            substanceFile.substances.associate { substance ->
+                substance.name to substance.roas.associate { roa ->
+                    roa.route to roa.roaDuration
+                }
+            }
+        } catch (e: Exception) {
+            emptyMap()
+        }
     }
 
     private fun getAndroidColor(color: AdaptiveColor, isDarkTheme: Boolean): Int {
@@ -508,4 +542,44 @@ fun enqueueRefresh(context: Context, appWidgetId: Int) {
         ExistingWorkPolicy.REPLACE,
         work
     )
+}
+
+/**
+ * Schedule periodic widget updates every 15 minutes (minimum interval for WorkManager).
+ * This ensures the widget automatically refreshes without user interaction.
+ */
+fun schedulePeriodicWidgetUpdates(context: Context) {
+    val periodicWork = PeriodicWorkRequestBuilder<PeriodicWidgetRefreshWorker>(
+        15, TimeUnit.MINUTES
+    ).build()
+
+    WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+        "timeline-widget-periodic-refresh",
+        ExistingPeriodicWorkPolicy.KEEP,
+        periodicWork
+    )
+}
+
+/**
+ * Worker that refreshes all widget instances periodically.
+ */
+class PeriodicWidgetRefreshWorker(
+    appContext: Context,
+    params: WorkerParameters
+) : CoroutineWorker(appContext, params) {
+
+    override suspend fun doWork(): Result {
+        return try {
+            val manager = GlanceAppWidgetManager(applicationContext)
+            val glanceIds = manager.getGlanceIds(MyAppWidget::class.java)
+
+            for (glanceId in glanceIds) {
+                val appWidgetId = manager.getAppWidgetId(glanceId)
+                enqueueRefresh(applicationContext, appWidgetId)
+            }
+            Result.success()
+        } catch (e: Exception) {
+            Result.retry()
+        }
+    }
 }
