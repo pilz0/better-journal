@@ -27,11 +27,11 @@ class WebhookServiceTest {
 
     @Test
     fun testProcessTemplate_allValuesPresent() {
-        val template = "{user}: [{dose} {unit} ]{substance} via {route}[ ({site})][\n> {note}]"
+        val template = "{user}: [{dose} {units} ]{substance} via {route}[ ({site})][\n> {note}]"
         val values = mapOf(
             "user" to "Alice",
             "dose" to "100",
-            "unit" to "mg",
+            "units" to "mg",
             "substance" to "Caffeine",
             "route" to "oral",
             "site" to "arm",
@@ -45,11 +45,11 @@ class WebhookServiceTest {
 
     @Test
     fun testProcessTemplate_emptyDose() {
-        val template = "{user}: [{dose} {unit} ]{substance} via {route}[ ({site})][\n> {note}]"
+        val template = "{user}: [{dose} {units} ]{substance} via {route}[ ({site})][\n> {note}]"
         val values = mapOf(
             "user" to "Bob",
             "dose" to "",
-            "unit" to "",
+            "units" to "",
             "substance" to "LSD",
             "route" to "sublingual",
             "site" to "",
@@ -63,11 +63,11 @@ class WebhookServiceTest {
 
     @Test
     fun testProcessTemplate_emptySite() {
-        val template = "{user}: [{dose} {unit} ]{substance} via {route}[ ({site})][\n> {note}]"
+        val template = "{user}: [{dose} {units} ]{substance} via {route}[ ({site})][\n> {note}]"
         val values = mapOf(
             "user" to "Charlie",
             "dose" to "50",
-            "unit" to "μg",
+            "units" to "μg",
             "substance" to "LSD",
             "route" to "oral",
             "site" to "",
@@ -81,11 +81,11 @@ class WebhookServiceTest {
 
     @Test
     fun testProcessTemplate_emptyNote() {
-        val template = "{user}: [{dose} {unit} ]{substance} via {route}[ ({site})][\n> {note}]"
+        val template = "{user}: [{dose} {units} ]{substance} via {route}[ ({site})][\n> {note}]"
         val values = mapOf(
             "user" to "Dave",
             "dose" to "200",
-            "unit" to "mg",
+            "units" to "mg",
             "substance" to "MDMA",
             "route" to "oral",
             "site" to "stomach",
@@ -99,11 +99,11 @@ class WebhookServiceTest {
 
     @Test
     fun testProcessTemplate_allOptionalEmpty() {
-        val template = "{user}: [{dose} {unit} ]{substance} via {route}[ ({site})][\n> {note}]"
+        val template = "{user}: [{dose} {units} ]{substance} via {route}[ ({site})][\n> {note}]"
         val values = mapOf(
             "user" to "Eve",
             "dose" to "",
-            "unit" to "",
+            "units" to "",
             "substance" to "Cannabis",
             "route" to "smoked",
             "site" to "",
@@ -133,12 +133,12 @@ class WebhookServiceTest {
         // Note: The current implementation doesn't support true nested brackets.
         // It processes all bracket pairs at the same level independently.
         // This test shows the actual behavior - nested brackets are processed as separate blocks.
-        val template = "{user}: {substance}[ {dose}][ {unit}]"
+        val template = "{user}: {substance}[ {dose}][ {units}]"
         val values = mapOf(
             "user" to "Grace",
             "substance" to "Ibuprofen",
             "dose" to "400",
-            "unit" to "mg"
+            "units" to "mg"
         )
         
         val result = webhookService.processTemplate(template, values)
@@ -148,11 +148,11 @@ class WebhookServiceTest {
 
     @Test
     fun testProcessTemplate_withHyperlink() {
-        val template = "{user}: [{dose} {unit} ]{substance} via {route}"
+        val template = "{user}: [{dose} {units} ]{substance} via {route}"
         val values = mapOf(
             "user" to "Henry",
             "dose" to "100",
-            "unit" to "mg",
+            "units" to "mg",
             "substance" to "[Caffeine](<https://psychonautwiki.org/wiki/Caffeine>)",
             "route" to "oral"
         )
@@ -164,11 +164,11 @@ class WebhookServiceTest {
 
     @Test
     fun testProcessTemplate_estimatedDose() {
-        val template = "{user}: [{dose} {unit} ]{substance}"
+        val template = "{user}: [{dose} {units} ]{substance}"
         val values = mapOf(
             "user" to "Ivy",
             "dose" to "~25",
-            "unit" to "mg",
+            "units" to "mg",
             "substance" to "THC"
         )
         
@@ -179,11 +179,11 @@ class WebhookServiceTest {
 
     @Test
     fun testProcessTemplate_unicodeCharacters() {
-        val template = "{user}: [{dose} {unit} ]{substance} via {route}"
+        val template = "{user}: [{dose} {units} ]{substance} via {route}"
         val values = mapOf(
             "user" to "José",
             "dose" to "50",
-            "unit" to "μg",
+            "units" to "μg",
             "substance" to "LSD",
             "route" to "sublingual"
         )
