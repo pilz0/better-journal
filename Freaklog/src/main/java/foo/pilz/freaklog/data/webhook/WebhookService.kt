@@ -148,7 +148,7 @@ class WebhookService @Inject constructor() {
     ): WebhookResult {
         val doseString: String
         val unitString: String
-        if (dose != null && dose > 0) {
+        if (dose != null && dose >= 0) {
             val formattedDose = if (dose % 1.0 == 0.0) {
                 dose.toInt().toString()
             } else {
@@ -253,7 +253,10 @@ class WebhookService @Inject constructor() {
     fun processTemplate(template: String, values: Map<String, String>): String {
         var processed = template
         
-        // Pattern to match optional blocks: [...] 
+        // Pattern to match optional blocks: [...]
+        // Note: This simple pattern doesn't handle nested brackets. For nested structures,
+        // a more complex parser would be needed. Current implementation matches iOS behavior
+        // which also doesn't support true nesting - it processes brackets sequentially.
         val pattern = "\\[([^\\[\\]]+)\\]".toRegex()
         
         // Process all matches in reverse order to avoid index issues

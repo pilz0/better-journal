@@ -359,7 +359,7 @@ class FinishIngestionScreenViewModel @Inject constructor(
                 units = ingestion.units,
                 isEstimate = ingestion.isDoseAnEstimate,
                 route = route,
-                site = null, // Site is not captured in Android ingestion
+                site = null, // Note: Site/injection location is not currently captured in Android ingestion entity
                 note = ingestion.notes,
                 template = webhookTemplate,
                 isHyperlinked = true

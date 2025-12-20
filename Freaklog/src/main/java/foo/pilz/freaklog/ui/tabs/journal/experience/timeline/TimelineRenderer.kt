@@ -37,6 +37,9 @@ import kotlinx.coroutines.withContext
 /**
  * Renders an AllTimelines composable to a Bitmap.
  * This allows the widget to use the exact same graph renderer as the ExperienceScreen.
+ * 
+ * Note: This function must be called from the Main dispatcher due to Compose View requirements.
+ * The actual rendering is fast and won't block the UI for long.
  */
 suspend fun renderTimelineToBitmap(
     context: Context,
