@@ -92,6 +92,17 @@ private object WidgetConstants {
     const val STROKE_WIDTH = 5f
     const val CORNER_PATH_EFFECT_RADIUS = 15f
     const val INGESTION_DOT_RADIUS = 7f
+    
+    // Default duration values in seconds when RoaDuration is not available
+    const val DEFAULT_ONSET_SECONDS = 1800f  // 30 minutes
+    const val DEFAULT_COMEUP_SECONDS = 2700f  // 45 minutes
+    const val DEFAULT_PEAK_SECONDS = 5400f  // 1.5 hours
+    const val DEFAULT_OFFSET_SECONDS = 5400f  // 1.5 hours
+    const val DEFAULT_TOTAL_DURATION_SECONDS = 21600f  // 6 hours (sum of above)
+    
+    // Default values for timeline rendering
+    const val DEFAULT_HEIGHT = 1.0f
+    const val DEFAULT_HORIZONTAL_WEIGHT = 1.0f
 }
 
 private object WorkerInput {
@@ -356,14 +367,14 @@ class TimelineWidgetWorker(
                 
                 // Calculate the end time of the effect
                 val totalDurationSec = if (roaDuration != null) {
-                    val onset = roaDuration.onset?.interpolateAtValueInSeconds(0.5f) ?: 1800f
-                    val comeup = roaDuration.comeup?.interpolateAtValueInSeconds(0.5f) ?: 2700f
-                    val peak = roaDuration.peak?.interpolateAtValueInSeconds(0.5f) ?: 5400f
-                    val offset = roaDuration.offset?.interpolateAtValueInSeconds(0.5f) ?: 5400f
+                    val onset = roaDuration.onset?.interpolateAtValueInSeconds(0.5f) ?: WidgetConstants.DEFAULT_ONSET_SECONDS
+                    val comeup = roaDuration.comeup?.interpolateAtValueInSeconds(0.5f) ?: WidgetConstants.DEFAULT_COMEUP_SECONDS
+                    val peak = roaDuration.peak?.interpolateAtValueInSeconds(0.5f) ?: WidgetConstants.DEFAULT_PEAK_SECONDS
+                    val offset = roaDuration.offset?.interpolateAtValueInSeconds(0.5f) ?: WidgetConstants.DEFAULT_OFFSET_SECONDS
                     onset + comeup + peak + offset
                 } else {
-                    // Default total duration of 6 hours if no data available
-                    6 * 3600f
+                    // Default total duration if no data available
+                    WidgetConstants.DEFAULT_TOTAL_DURATION_SECONDS
                 }
                 
                 val effectEndTime = ingestionTime.plusSeconds(totalDurationSec.toLong())
@@ -469,6 +480,12 @@ class TimelineWidgetWorker(
         val substanceColors: Map<String, Int>
     )
 
+    /**
+     * Generate timeline graph bitmap using TimelineRenderer.
+     * 
+     * This function is suspend because renderTimelineToBitmap requires Main dispatcher context
+     * to create and render the Compose view. The actual rendering is fast and non-blocking.
+     */
     private suspend fun generateTimelineGraph(
         context: Context,
         ingestions: List<IngestionWithCompanion>,
@@ -487,14 +504,14 @@ class TimelineWidgetWorker(
             
             // Calculate total duration for the effect
             val totalDurationSec = if (roaDuration != null) {
-                val onset = roaDuration.onset?.interpolateAtValueInSeconds(0.5f) ?: 1800f
-                val comeup = roaDuration.comeup?.interpolateAtValueInSeconds(0.5f) ?: 2700f
-                val peak = roaDuration.peak?.interpolateAtValueInSeconds(0.5f) ?: 5400f
-                val offset = roaDuration.offset?.interpolateAtValueInSeconds(0.5f) ?: 5400f
+                val onset = roaDuration.onset?.interpolateAtValueInSeconds(0.5f) ?: WidgetConstants.DEFAULT_ONSET_SECONDS
+                val comeup = roaDuration.comeup?.interpolateAtValueInSeconds(0.5f) ?: WidgetConstants.DEFAULT_COMEUP_SECONDS
+                val peak = roaDuration.peak?.interpolateAtValueInSeconds(0.5f) ?: WidgetConstants.DEFAULT_PEAK_SECONDS
+                val offset = roaDuration.offset?.interpolateAtValueInSeconds(0.5f) ?: WidgetConstants.DEFAULT_OFFSET_SECONDS
                 onset + comeup + peak + offset
             } else {
-                // Default total duration of 6 hours if no data available
-                6 * 3600f
+                // Default total duration if no data available
+                WidgetConstants.DEFAULT_TOTAL_DURATION_SECONDS
             }
             
             val effectEndTime = ingestion.time.plusSeconds(totalDurationSec.toLong())
@@ -503,8 +520,8 @@ class TimelineWidgetWorker(
                 substanceName = ingestion.substanceName,
                 route = ingestion.administrationRoute,
                 roaDuration = roaDuration,
-                height = 1.0f,  // Default height
-                horizontalWeight = 1.0f,  // Default weight
+                height = WidgetConstants.DEFAULT_HEIGHT,
+                horizontalWeight = WidgetConstants.DEFAULT_HORIZONTAL_WEIGHT,
                 color = companion?.color ?: AdaptiveColor.BLUE,
                 startTime = ingestion.time,
                 endTime = effectEndTime
