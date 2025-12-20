@@ -17,6 +17,6 @@
   -->
 
 <resources>
-    <string name="app_name">Journal</string>
-    <string name="widget_description">Timeline widget</string>
+    <string name="app_name">FreakLog</string>
+    <string name="widget_description">Freak Log Timeline widget</string>
 </resources>
