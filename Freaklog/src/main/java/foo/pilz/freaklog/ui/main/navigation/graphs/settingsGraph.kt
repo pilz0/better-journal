@@ -25,6 +25,7 @@ import foo.pilz.freaklog.ui.main.navigation.composableWithTransitions
 import foo.pilz.freaklog.ui.main.navigation.SettingsTopLevelRoute
 import foo.pilz.freaklog.ui.tabs.settings.FAQScreen
 import foo.pilz.freaklog.ui.tabs.settings.SettingsScreen
+import foo.pilz.freaklog.ui.tabs.settings.WebhookSettingsScreen
 import foo.pilz.freaklog.ui.tabs.settings.colors.SubstanceColorsScreen
 import foo.pilz.freaklog.ui.tabs.settings.combinations.CombinationSettingsScreen
 import foo.pilz.freaklog.ui.tabs.settings.customunits.CustomUnitsScreen
@@ -50,11 +51,15 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
                 navigateToCustomUnits = {
                     navController.navigate(CustomUnitsRoute)
                 },
+                navigateToWebhook = {
+                  navController.navigate(WebhookSettingsScreenRoute)
+                },
             )
         }
         composableWithTransitions<FAQRoute> { FAQScreen() }
         composableWithTransitions<CombinationSettingsRoute> { CombinationSettingsScreen() }
         composableWithTransitions<SubstanceColorsRoute> { SubstanceColorsScreen() }
+        composableWithTransitions<WebhookSettingsScreenRoute> { WebhookSettingsScreen(navController) }
         composableWithTransitions<CustomUnitArchiveRoute> {
             CustomUnitArchiveScreen(navigateToEditCustomUnit = { customUnitId ->
                 navController.navigate(EditCustomUnitRoute(customUnitId))
@@ -97,6 +102,9 @@ object CustomUnitArchiveRoute
 
 @Serializable
 object CustomUnitsRoute
+
+@Serializable
+object WebhookSettingsScreenRoute
 
 @Serializable
 data class EditCustomUnitRoute(val customUnitId: Int)

@@ -18,6 +18,7 @@
 
 package foo.pilz.freaklog.ui.tabs.settings.combinations
 
+import android.R
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -25,6 +26,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.SavedTimeDisplayOption
+import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences.PreferencesKeys.WEBHOOK_URL
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.Instant
@@ -47,6 +49,12 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
         val KEY_ARE_SUBSTANCE_HEIGHTS_INDEPENDENT = booleanPreferencesKey("KEY_ARE_SUBSTANCE_HEIGHTS_INDEPENDENT")
         val KEY_IS_TIMELINE_HIDDEN = booleanPreferencesKey("KEY_IS_TIMELINE_HIDDEN")
         val KEY_HIDE_SAFER = booleanPreferencesKey("KEY_HIDE_SAFER")
+
+        val WEBHOOK_URL = stringPreferencesKey("webhook_url")
+
+        val WEBHOOK_NAME = stringPreferencesKey("webhook_name")
+
+        val WEBHOOK_TEMPLATE =  stringPreferencesKey("webhook_template")
     }
 
     suspend fun saveTimeDisplayOption(value: SavedTimeDisplayOption) {
@@ -146,5 +154,34 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
             preferences[PreferencesKeys.KEY_HIDE_SAFER] = value
         }
     }
-}
 
+    fun readWebhookURL(): Flow<String> = dataStore.data
+        .map { preferences ->
+            (preferences[PreferencesKeys.WEBHOOK_URL] ?: "")
+        }
+    suspend fun writeWebhookURL(value: String) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.WEBHOOK_URL] = value
+        }
+    }
+
+    fun readWebhookName(): Flow<String> = dataStore.data
+        .map { preferences ->
+            (preferences[PreferencesKeys.WEBHOOK_NAME] ?: "")
+        }
+    suspend fun writeWebhookName(value: String) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.WEBHOOK_NAME] = value
+        }
+    }
+
+    fun readWebhookTemplate(): Flow<String> = dataStore.data
+        .map { preferences ->
+            (preferences[PreferencesKeys.WEBHOOK_TEMPLATE] ?: "")
+        }
+    suspend fun writeWebhookTemplate(value: String) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.WEBHOOK_TEMPLATE] = value
+        }
+    }
+}

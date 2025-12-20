@@ -47,6 +47,7 @@ import androidx.compose.material.icons.outlined.QuestionAnswer
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material.icons.outlined.WarningAmber
+import androidx.compose.material.icons.outlined.Webhook
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -94,6 +95,7 @@ fun SettingsPreview() {
         navigateToComboSettings = {},
         navigateToSubstanceColors = {},
         navigateToCustomUnits = {},
+        navigateToWebhook = {},
         importFile = {},
         exportFile = {},
         snackbarHostState = remember { SnackbarHostState() },
@@ -112,12 +114,14 @@ fun SettingsPreview() {
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
     navigateToFAQ: () -> Unit,
+    navigateToWebhook: () -> Unit,
     navigateToComboSettings: () -> Unit,
     navigateToSubstanceColors: () -> Unit,
     navigateToCustomUnits: () -> Unit,
 ) {
     SettingsScreen(
         navigateToFAQ = navigateToFAQ,
+        navigateToWebhook = navigateToWebhook,
         navigateToComboSettings = navigateToComboSettings,
         navigateToSubstanceColors = navigateToSubstanceColors,
         navigateToCustomUnits = navigateToCustomUnits,
@@ -140,6 +144,7 @@ fun SettingsScreen(
 @Composable
 fun SettingsScreen(
     navigateToFAQ: () -> Unit,
+    navigateToWebhook: () -> Unit,
     navigateToComboSettings: () -> Unit,
     navigateToSubstanceColors: () -> Unit,
     navigateToCustomUnits: () -> Unit,
@@ -413,6 +418,10 @@ fun SettingsScreen(
                             }
                         }
                     )
+                }
+                HorizontalDivider()
+                SettingsButton(imageVector = Icons.Outlined.Webhook, text = "Webhook") {
+                    navigateToWebhook()
                 }
             }
             val uriHandler = LocalUriHandler.current
