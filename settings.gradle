@@ -13,4 +13,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "FreakLog"
-include ':Freaklog'
+include ':app'
