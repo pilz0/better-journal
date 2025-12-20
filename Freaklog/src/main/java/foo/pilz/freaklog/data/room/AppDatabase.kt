@@ -34,7 +34,7 @@ import foo.pilz.freaklog.data.room.experiences.entities.TimedNote
 
 @TypeConverters(InstantConverter::class)
 @Database(
-    version = 7,
+    version = 8,
     entities = [Experience::class, Ingestion::class, SubstanceCompanion::class, CustomSubstance::class, ShulginRating::class, TimedNote::class, CustomUnit::class],
     autoMigrations = [
         AutoMigration (from = 1, to = 2),
@@ -43,6 +43,7 @@ import foo.pilz.freaklog.data.room.experiences.entities.TimedNote
         AutoMigration (from = 4, to = 5),
         AutoMigration (from = 5, to = 6),
         AutoMigration (from = 6, to = 7),
+        AutoMigration (from = 7, to = 8),
     ]
 )
 abstract class AppDatabase : RoomDatabase() {

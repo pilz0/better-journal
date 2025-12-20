@@ -65,7 +65,8 @@ enum class IngestionTimePickerOption {
 @HiltViewModel
 class FinishIngestionScreenViewModel @Inject constructor(
     private val experienceRepo: ExperienceRepository,
-    userPreferences: UserPreferences,
+    private val userPreferences: UserPreferences,
+    private val webhookService: foo.pilz.freaklog.data.webhook.WebhookService,
     state: SavedStateHandle
 ) : ViewModel() {
     var substanceName by mutableStateOf("")
@@ -277,6 +278,7 @@ class FinishIngestionScreenViewModel @Inject constructor(
             color = selectedColor
         )
         val oldIdToUse = selectedExperienceFlow.firstOrNull()?.experience?.id
+        val newIngestion: Ingestion
         if (oldIdToUse == null) {
             val newIdToUse = newExperienceIdToUseFlow.firstOrNull() ?: 1
             val ingestionTime =
@@ -289,19 +291,22 @@ class FinishIngestionScreenViewModel @Inject constructor(
                 sortDate = ingestionTime,
                 location = null // todo: allow to add real location
             )
-            val newIngestion = createNewIngestion(newExperience.id)
+            newIngestion = createNewIngestion(newExperience.id)
             experienceRepo.insertIngestionExperienceAndCompanion(
                 ingestion = newIngestion,
                 experience = newExperience,
                 substanceCompanion = substanceCompanion
             )
         } else {
-            val newIngestion = createNewIngestion(oldIdToUse)
+            newIngestion = createNewIngestion(oldIdToUse)
             experienceRepo.insertIngestionAndCompanion(
                 ingestion = newIngestion,
                 substanceCompanion = substanceCompanion
             )
         }
+        
+        // Send webhook notification
+        sendWebhookForIngestion(newIngestion)
     }
 
     private suspend fun createNewIngestion(experienceId: Int): Ingestion {
@@ -329,5 +334,45 @@ class FinishIngestionScreenViewModel @Inject constructor(
             },
             customUnitId = customUnitId
         )
+    }
+
+    private suspend fun sendWebhookForIngestion(ingestion: Ingestion) {
+        val webhookURL = userPreferences.readWebhookURL().first()
+        if (webhookURL.isBlank()) {
+            return // Webhook not configured, skip
+        }
+
+        val webhookName = userPreferences.readWebhookName().first()
+        val webhookTemplate = userPreferences.readWebhookTemplate().first().ifBlank { 
+            foo.pilz.freaklog.data.webhook.WebhookService.DEFAULT_TEMPLATE 
+        }
+
+        val user = webhookName.ifBlank { "User" }
+        val route = ingestion.administrationRoute.displayText
+
+        try {
+            val result = webhookService.sendWebhook(
+                url = webhookURL,
+                user = user,
+                substance = ingestion.substanceName,
+                dose = ingestion.dose,
+                units = ingestion.units,
+                isEstimate = ingestion.isDoseAnEstimate,
+                route = route,
+                site = null, // Note: Site/injection location is not currently captured in Android ingestion entity
+                note = ingestion.notes,
+                template = webhookTemplate,
+                isHyperlinked = true
+            )
+
+            // If webhook was successful, update ingestion with message ID
+            if (result.success && result.messageId != null) {
+                ingestion.webhookMessageId = result.messageId
+                experienceRepo.update(ingestion)
+            }
+        } catch (e: Exception) {
+            // Silently fail - don't block ingestion creation if webhook fails
+            android.util.Log.w("FinishIngestionViewModel", "Webhook send failed", e)
+        }
     }
 }

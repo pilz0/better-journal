@@ -54,6 +54,7 @@ import javax.inject.Inject
 class EditIngestionViewModel @Inject constructor(
     private val experienceRepo: ExperienceRepository,
     private val userPreferences: UserPreferences,
+    private val webhookService: foo.pilz.freaklog.data.webhook.WebhookService,
     state: SavedStateHandle
 ) : ViewModel() {
     private var ingestionFlow: MutableStateFlow<Ingestion?> = MutableStateFlow(null)
@@ -208,6 +209,9 @@ class EditIngestionViewModel @Inject constructor(
                 it.endTime = endTime
                 it.consumerName = consumerName.ifBlank { null }
                 experienceRepo.update(it)
+                
+                // Send webhook edit notification
+                editWebhookForIngestion(it)
             }
         }
     }
@@ -215,8 +219,62 @@ class EditIngestionViewModel @Inject constructor(
     fun deleteIngestion() {
         viewModelScope.launch {
             ingestion?.let {
+                // Delete webhook message if it exists
+                deleteWebhookForIngestion(it)
                 experienceRepo.delete(ingestion = it)
             }
+        }
+    }
+
+    private suspend fun editWebhookForIngestion(ingestion: Ingestion) {
+        val webhookURL = userPreferences.readWebhookURL().first()
+        if (webhookURL.isBlank() || ingestion.webhookMessageId == null) {
+            return // Webhook not configured or no message ID, skip
+        }
+
+        val webhookName = userPreferences.readWebhookName().first()
+        val webhookTemplate = userPreferences.readWebhookTemplate().first().ifBlank { 
+            foo.pilz.freaklog.data.webhook.WebhookService.DEFAULT_TEMPLATE 
+        }
+
+        val user = webhookName.ifBlank { "User" }
+        val route = ingestion.administrationRoute.displayText
+
+        try {
+            webhookService.editWebhook(
+                url = webhookURL,
+                messageId = ingestion.webhookMessageId!!,
+                user = user,
+                substance = ingestion.substanceName,
+                dose = ingestion.dose,
+                units = ingestion.units,
+                isEstimate = ingestion.isDoseAnEstimate,
+                route = route,
+                site = null,
+                note = ingestion.notes,
+                template = webhookTemplate,
+                isHyperlinked = true
+            )
+        } catch (e: Exception) {
+            // Silently fail - don't block ingestion update if webhook fails
+            android.util.Log.w("EditIngestionViewModel", "Webhook edit failed", e)
+        }
+    }
+
+    private suspend fun deleteWebhookForIngestion(ingestion: Ingestion) {
+        val webhookURL = userPreferences.readWebhookURL().first()
+        if (webhookURL.isBlank() || ingestion.webhookMessageId == null) {
+            return // Webhook not configured or no message ID, skip
+        }
+
+        try {
+            webhookService.deleteWebhookMessage(
+                url = webhookURL,
+                messageId = ingestion.webhookMessageId!!
+            )
+        } catch (e: Exception) {
+            // Silently fail - don't block ingestion deletion if webhook fails
+            android.util.Log.w("EditIngestionViewModel", "Webhook delete failed", e)
         }
     }
 }
