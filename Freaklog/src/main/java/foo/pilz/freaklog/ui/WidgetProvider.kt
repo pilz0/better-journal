@@ -7,7 +7,9 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -162,7 +164,7 @@ class MyAppWidget : GlanceAppWidget() {
                     )
                 }
 
-                Spacer(modifier = GlanceModifier.height(4.dp))
+                Spacer(modifier = GlanceModifier.height(2.dp))
 
                 when {
                     isLoading -> {
@@ -196,9 +198,9 @@ class MyAppWidget : GlanceAppWidget() {
                                         contentDescription = "Timeline graph",
                                         modifier = GlanceModifier
                                             .fillMaxWidth()
-                                            .height(120.dp),
-                                        contentScale = ContentScale.FillBounds
-                                    )
+                                            .height(100.dp),
+                                        contentScale = ContentScale.FillBounds,
+                                        )
                                     Spacer(modifier = GlanceModifier.height(4.dp))
                                 }
                             }
@@ -212,7 +214,7 @@ class MyAppWidget : GlanceAppWidget() {
                                     Text(
                                         text = line,
                                         style = TextStyle(
-                                            fontSize = 12.sp,
+                                            fontSize = 14.sp,
                                             color = androidx.glance.unit.ColorProvider(
                                                 androidx.compose.ui.graphics.Color(color)
                                             )
@@ -222,7 +224,7 @@ class MyAppWidget : GlanceAppWidget() {
                                 } else {
                                     Text(
                                         text = line,
-                                        style = TextStyle(fontSize = 12.sp, color = GlanceTheme.colors.primary),
+                                        style = TextStyle(fontSize = 14.sp, color = GlanceTheme.colors.primary),
                                         maxLines = 1
                                     )
                                 }
@@ -330,26 +332,26 @@ class TimelineWidgetWorker(
             val ingestions = experienceDao.getSortedIngestionsFlow().first()
 
             val now = Instant.now()
-            
+
             // For the graph, we need to fetch ingestions that could still be active
             // Use a longer time window (24h back) to catch long-acting substances
             val graphStartTime = now.minus(Duration.ofHours(2))
             val graphEndTime = now.plus(Duration.ofHours(3))
             val fetchStartTime = now.minus(Duration.ofHours(24)) // Fetch 24h back for long-acting substances
-            
+
             val allRecentIngestionsWithCompanions = experienceDao.getIngestionsWithCompanions(
                 fromInstant = fetchStartTime,
                 toInstant = graphEndTime,
             )
-            
+
             // Filter to only include ingestions that are still active during the graph window
             val ingestionsWithCompanions = allRecentIngestionsWithCompanions.filter { ingestionWithCompanion ->
                 val ingestion = ingestionWithCompanion.ingestion
                 val ingestionTime = ingestion.time
-                
+
                 // Get the total duration for this substance
                 val roaDuration = substanceDurations[ingestion.substanceName]?.get(ingestion.administrationRoute)
-                
+
                 // Calculate the end time of the effect
                 val totalDurationSec = if (roaDuration != null) {
                     val onset = roaDuration.onset?.interpolateAtValueInSeconds(0.5f) ?: 1800f
@@ -361,25 +363,25 @@ class TimelineWidgetWorker(
                     // Default total duration of 6 hours if no data available
                     6 * 3600f
                 }
-                
+
                 val effectEndTime = ingestionTime.plusSeconds(totalDurationSec.toLong())
-                
+
                 // Include if the effect overlaps with the graph window
                 ingestionTime.isBefore(graphEndTime) && effectEndTime.isAfter(graphStartTime)
             }
 
             val (title, ingestionsText, hasData, timelineImagePath, substanceColors) = if (ingestions.isEmpty()) {
-                WidgetData("Journal", "", false, null, emptyMap())
+                WidgetData("", "", false, null, emptyMap())
             } else {
                 // Take the most recent ingestions (up to 7)
                 val recentIngestions = ingestions.take(7)
-                
+
                 // Get colors for substances from companions
                 val colorsMap = mutableMapOf<String, Int>()
                 val nightModeFlags = applicationContext.resources.configuration.uiMode and
                         android.content.res.Configuration.UI_MODE_NIGHT_MASK
                 val isDarkMode = nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES
-                
+
                 // Get colors from ingestions with companions
                 allRecentIngestionsWithCompanions.forEach { ingestionWithCompanion ->
                     val name = ingestionWithCompanion.ingestion.substanceName
@@ -400,7 +402,7 @@ class TimelineWidgetWorker(
                         val units = ingestion.units
                         if (units.isNullOrEmpty()) doseFormatted else "$doseFormatted $units"
                     } ?: "unknown dose"
-                    "• ${ingestion.substanceName} ($doseText) - $timeText"
+                    "${ingestion.substanceName} ($doseText) - $timeText"
                 }
 
                 // Generate timeline graph bitmap with accurate substance durations
@@ -513,8 +515,8 @@ class TimelineWidgetWorker(
         }
 
         // Group ingestions by substance and route for layered rendering
-        val groupedBySubstanceAndRoute = ingestions.groupBy { 
-            "${it.ingestion.substanceName}|${it.ingestion.administrationRoute}" 
+        val groupedBySubstanceAndRoute = ingestions.groupBy {
+            "${it.ingestion.substanceName}|${it.ingestion.administrationRoute}"
         }
 
         // Draw each substance's effect curve using actual duration data
@@ -560,7 +562,7 @@ class TimelineWidgetWorker(
 
                 // Calculate x positions (in seconds from graph start)
                 val secondsFromStart = Duration.between(startTime, ingestionTime).seconds.toFloat()
-                
+
                 // These are the actual timeline phase positions in seconds from graph start
                 val ingestionX = secondsFromStart
                 val onsetEndX = ingestionX + onsetSec
@@ -578,7 +580,7 @@ class TimelineWidgetWorker(
                 // Create a list of points that define the timeline shape
                 // Format: Pair(seconds from graph start, height fraction 0-1)
                 val timelinePoints = mutableListOf<Pair<Float, Float>>()
-                
+
                 // Ingestion point (start, at baseline)
                 timelinePoints.add(Pair(ingestionX, 0f))
                 // End of onset (still at baseline)
@@ -689,9 +691,9 @@ class TimelineWidgetWorker(
             textAlign = Paint.Align.CENTER
             isAntiAlias = true
         }
-        canvas.drawText("-2h", padding + 20, height - 4f, textPaint)
-        canvas.drawText("now", currentTimeX, height - 4f, textPaint)
-        canvas.drawText("+3h", width - padding - 15, height - 4f, textPaint)
+        canvas.drawText("-2h", padding + 20, height - 3f,  textPaint)
+        canvas.drawText("now", currentTimeX, height - 3f, textPaint)
+        canvas.drawText("+3h", width - padding - 15, height - 3f, textPaint)
 
         // Save bitmap to file
         val file = File(context.cacheDir, "widget_timeline_$appWidgetId.png")
@@ -738,7 +740,7 @@ class TimelineWidgetWorker(
             AdaptiveColor.PURPLE -> if (isDarkTheme) android.graphics.Color.rgb(191, 90, 242) else android.graphics.Color.rgb(175, 82, 222)
             AdaptiveColor.PINK -> if (isDarkTheme) android.graphics.Color.rgb(255, 55, 95) else android.graphics.Color.rgb(255, 45, 85)
             AdaptiveColor.BROWN -> if (isDarkTheme) android.graphics.Color.rgb(172, 142, 104) else android.graphics.Color.rgb(162, 132, 94)
-            
+
             // Extended colors
             AdaptiveColor.FIRE_ENGINE_RED -> if (isDarkTheme) android.graphics.Color.rgb(237, 43, 42) else android.graphics.Color.rgb(237, 14, 6)
             AdaptiveColor.CORAL -> if (isDarkTheme) android.graphics.Color.rgb(255, 131, 121) else android.graphics.Color.rgb(180, 92, 85)
@@ -782,12 +784,13 @@ class TimelineWidgetWorker(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
     private fun formatRelativeTime(time: Instant, now: Instant): String {
         val duration = Duration.between(time, now)
         return when {
-            duration.toDays() > 0 -> "${duration.toDays()}d ago"
-            duration.toHours() > 0 -> "${duration.toHours()}h ago"
-            duration.toMinutes() > 0 -> "${duration.toMinutes()}m ago"
+            duration.toDays() > 0 -> "${duration.toDays()}d ${(duration.minusDays(duration.toHours())).toHours()}h ago"
+            duration.toHours() > 0 -> "${duration.toHours()}h ${(duration.minusHours(duration.toHours())).toMinutes()}m ago"
+            duration.toMinutes() > 0 -> "${duration.toMinutes()}m ${(duration.minusMinutes(duration.toMinutes())).toSeconds()}s ago"
             else -> "just now"
         }
     }
