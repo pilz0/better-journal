@@ -63,6 +63,10 @@ import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
 import foo.pilz.freaklog.data.substances.parse.SubstanceParser
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.shapeAlpha
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.renderTimelineToBitmap
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.AllTimelinesModel
+import foo.pilz.freaklog.ui.tabs.journal.experience.components.DataForOneEffectLine
+import foo.pilz.freaklog.ui.tabs.journal.experience.components.TimeDisplayOption
 import foo.pilz.freaklog.ui.theme.md_theme_dark_primary
 import foo.pilz.freaklog.ui.theme.md_theme_light_primary
 import kotlinx.coroutines.flow.first
@@ -465,7 +469,7 @@ class TimelineWidgetWorker(
         val substanceColors: Map<String, Int>
     )
 
-    private fun generateTimelineGraph(
+    private suspend fun generateTimelineGraph(
         context: Context,
         ingestions: List<IngestionWithCompanion>,
         appWidgetId: Int,
@@ -473,226 +477,60 @@ class TimelineWidgetWorker(
     ): String? {
         if (ingestions.isEmpty()) return null
 
-        // Detect dark mode
-        val nightModeFlags = context.resources.configuration.uiMode and
-                android.content.res.Configuration.UI_MODE_NIGHT_MASK
-        val isDarkMode = nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES
-
+        val now = Instant.now()
+        
+        // Convert ingestions to DataForOneEffectLine format
+        val dataForLines = ingestions.map { ingestionWithCompanion ->
+            val ingestion = ingestionWithCompanion.ingestion
+            val companion = ingestionWithCompanion.substanceCompanion
+            val roaDuration = substanceDurations[ingestion.substanceName]?.get(ingestion.administrationRoute)
+            
+            // Calculate total duration for the effect
+            val totalDurationSec = if (roaDuration != null) {
+                val onset = roaDuration.onset?.interpolateAtValueInSeconds(0.5f) ?: 1800f
+                val comeup = roaDuration.comeup?.interpolateAtValueInSeconds(0.5f) ?: 2700f
+                val peak = roaDuration.peak?.interpolateAtValueInSeconds(0.5f) ?: 5400f
+                val offset = roaDuration.offset?.interpolateAtValueInSeconds(0.5f) ?: 5400f
+                onset + comeup + peak + offset
+            } else {
+                // Default total duration of 6 hours if no data available
+                6 * 3600f
+            }
+            
+            val effectEndTime = ingestion.time.plusSeconds(totalDurationSec.toLong())
+            
+            DataForOneEffectLine(
+                substanceName = ingestion.substanceName,
+                route = ingestion.administrationRoute,
+                roaDuration = roaDuration,
+                height = 1.0f,  // Default height
+                horizontalWeight = 1.0f,  // Default weight
+                color = companion?.color ?: AdaptiveColor.BLUE,
+                startTime = ingestion.time,
+                endTime = effectEndTime
+            )
+        }
+        
+        // Create the timeline model
+        val model = AllTimelinesModel(
+            dataForLines = dataForLines,
+            dataForRatings = emptyList(),
+            timedNotes = emptyList(),
+            areSubstanceHeightsIndependent = false
+        )
+        
+        // Render the timeline using TimelineRenderer
         val width = 600
         val height = 120
-        val bitmap = createBitmap(width, height)
-        val canvas = Canvas(bitmap)
-
-        val now = Instant.now()
-        val startTime = now.minus(Duration.ofHours(2))
-        val endTime = now.plus(Duration.ofHours(3))
-        val totalSeconds = Duration.ofHours(5).seconds.toFloat()
-
-        val padding = 15f
-        val labelHeight = 14f
-        val graphWidth = width - 2 * padding
-        val graphHeight = height - 2 * padding - labelHeight
-        val baselineY = height - padding - labelHeight
-
-        val gridColor = if (isDarkMode) {
-            md_theme_dark_primary.toArgb()
-        } else {
-            md_theme_light_primary.toArgb()
-        }
-
-        val gridPaint = Paint().apply {
-            color = Color.argb(60, Color.red(gridColor), Color.green(gridColor), Color.blue(gridColor))
-            strokeWidth = 1f
-            style = Paint.Style.STROKE
-        }
-
-        // Draw vertical hour markers
-        for (i in 0..5) {
-            val x = padding + (graphWidth * i / 5f)
-            canvas.drawLine(x, padding, x, baselineY, gridPaint)
-        }
-
-        // Group ingestions by substance and route for layered rendering
-        val groupedBySubstanceAndRoute = ingestions.groupBy { 
-            "${it.ingestion.substanceName}|${it.ingestion.administrationRoute}" 
-        }
-
-        // Draw each substance's effect curve using actual duration data
-        groupedBySubstanceAndRoute.forEach { (key, substanceIngestions) ->
-            val companion = substanceIngestions.firstOrNull()?.substanceCompanion
-            val color = companion?.color ?: AdaptiveColor.BLUE
-            val androidColor = getAndroidColor(color, isDarkMode)
-
-            val fillPaint = Paint().apply {
-                this.color = Color.argb(
-                    (shapeAlpha * 255).toInt(), // Use app's shapeAlpha constant
-                    Color.red(androidColor),
-                    Color.green(androidColor),
-                    Color.blue(androidColor)
-                )
-                style = Paint.Style.FILL
-                isAntiAlias = true
-            }
-
-            val strokePaint = Paint().apply {
-                this.color = androidColor
-                style = Paint.Style.STROKE
-                strokeWidth = WidgetConstants.STROKE_WIDTH
-                isAntiAlias = true
-                strokeCap = Paint.Cap.ROUND
-                strokeJoin = Paint.Join.ROUND
-                // Add corner path effect for smoother transitions (matches app's normalStroke)
-                pathEffect = android.graphics.CornerPathEffect(WidgetConstants.CORNER_PATH_EFFECT_RADIUS)
-            }
-
-            substanceIngestions.forEach { ingestionWithCompanion ->
-                val ingestion = ingestionWithCompanion.ingestion
-                val ingestionTime = ingestion.time
-
-                // Get RoaDuration for this substance and route
-                val roaDuration = substanceDurations[ingestion.substanceName]?.get(ingestion.administrationRoute)
-
-                // Calculate duration phases in seconds with fallback to default values
-                val onsetSec = roaDuration?.onset?.interpolateAtValueInSeconds(0.5f) ?: 1800f // 30 min default
-                val comeupSec = roaDuration?.comeup?.interpolateAtValueInSeconds(0.5f) ?: 2700f // 45 min default
-                val peakSec = roaDuration?.peak?.interpolateAtValueInSeconds(0.5f) ?: 5400f // 1.5 hr default
-                val offsetSec = roaDuration?.offset?.interpolateAtValueInSeconds(0.5f) ?: 5400f // 1.5 hr default
-
-                // Calculate x positions (in seconds from graph start)
-                val secondsFromStart = Duration.between(startTime, ingestionTime).seconds.toFloat()
-                
-                // These are the actual timeline phase positions in seconds from graph start
-                val ingestionX = secondsFromStart
-                val onsetEndX = ingestionX + onsetSec
-                val comeupEndX = onsetEndX + comeupSec
-                val peakEndX = comeupEndX + peakSec
-                val offsetEndX = peakEndX + offsetSec
-
-                // Calculate peak height
-                val peakHeight = graphHeight * WidgetConstants.PEAK_HEIGHT_FRACTION
-                val peakY = baselineY - peakHeight
-
-                // Convert seconds to pixels
-                fun secToPixel(sec: Float): Float = padding + (sec / totalSeconds) * graphWidth
-
-                // Create a list of points that define the timeline shape
-                // Format: Pair(seconds from graph start, height fraction 0-1)
-                val timelinePoints = mutableListOf<Pair<Float, Float>>()
-                
-                // Ingestion point (start, at baseline)
-                timelinePoints.add(Pair(ingestionX, 0f))
-                // End of onset (still at baseline)
-                timelinePoints.add(Pair(onsetEndX, 0f))
-                // End of comeup (at peak)
-                timelinePoints.add(Pair(comeupEndX, 1f))
-                // End of peak (still at peak)
-                timelinePoints.add(Pair(peakEndX, 1f))
-                // End of offset (back to baseline)
-                timelinePoints.add(Pair(offsetEndX, 0f))
-
-                // Filter to only include points that are within or adjacent to visible window
-                // and interpolate for edge cases
-                val visibleStartSec = 0f
-                val visibleEndSec = totalSeconds
-
-                // Build the visible path
-                val path = Path()
-                var pathStarted = false
-                var firstVisibleX = padding
-                var lastVisibleX = padding
-
-                for (i in 0 until timelinePoints.size) {
-                    val (currentSec, currentHeight) = timelinePoints[i]
-                    val currentPixelX = secToPixel(currentSec)
-                    val currentY = baselineY - (currentHeight * peakHeight)
-
-                    if (currentSec >= visibleStartSec && currentSec <= visibleEndSec) {
-                        // Point is visible
-                        if (!pathStarted) {
-                            // Check if we need to interpolate entry point
-                            if (i > 0) {
-                                val (prevSec, prevHeight) = timelinePoints[i - 1]
-                                if (prevSec < visibleStartSec) {
-                                    // Interpolate entry point
-                                    val t = (visibleStartSec - prevSec) / (currentSec - prevSec)
-                                    val entryHeight = prevHeight + t * (currentHeight - prevHeight)
-                                    val entryY = baselineY - (entryHeight * peakHeight)
-                                    path.moveTo(padding, entryY)
-                                    firstVisibleX = padding
-                                } else {
-                                    path.moveTo(currentPixelX.coerceIn(padding, width - padding), currentY)
-                                    firstVisibleX = currentPixelX.coerceIn(padding, width - padding)
-                                }
-                            } else {
-                                path.moveTo(currentPixelX.coerceIn(padding, width - padding), currentY)
-                                firstVisibleX = currentPixelX.coerceIn(padding, width - padding)
-                            }
-                            pathStarted = true
-                        } else {
-                            path.lineTo(currentPixelX.coerceIn(padding, width - padding), currentY)
-                        }
-                        lastVisibleX = currentPixelX.coerceIn(padding, width - padding)
-                    } else if (currentSec > visibleEndSec && pathStarted) {
-                        // Point is after visible window, interpolate exit
-                        val (prevSec, prevHeight) = timelinePoints[i - 1]
-                        if (prevSec < visibleEndSec) {
-                            val t = (visibleEndSec - prevSec) / (currentSec - prevSec)
-                            val exitHeight = prevHeight + t * (currentHeight - prevHeight)
-                            val exitY = baselineY - (exitHeight * peakHeight)
-                            path.lineTo(width - padding, exitY)
-                            lastVisibleX = width - padding
-                        }
-                        break
-                    }
-                }
-
-                if (pathStarted) {
-                    // Draw stroke
-                    canvas.drawPath(path, strokePaint)
-
-                    // Create filled path (close it for fill)
-                    val fillPath = Path(path)
-                    fillPath.lineTo(lastVisibleX, baselineY + strokePaint.strokeWidth / 2)
-                    fillPath.lineTo(firstVisibleX, baselineY + strokePaint.strokeWidth / 2)
-                    fillPath.close()
-                    canvas.drawPath(fillPath, fillPaint)
-
-                    // Draw ingestion dot at the start point if visible
-                    if (secondsFromStart >= 0 && secondsFromStart <= totalSeconds) {
-                        val dotPaint = Paint().apply {
-                            this.color = androidColor
-                            style = Paint.Style.FILL
-                            isAntiAlias = true
-                        }
-                        val dotX = secToPixel(secondsFromStart).coerceIn(padding, width - padding)
-                        canvas.drawCircle(dotX, baselineY, WidgetConstants.INGESTION_DOT_RADIUS, dotPaint)
-                    }
-                }
-            }
-        }
-
-        // Draw current time indicator at the correct position
-        val nowSecondsFromStart = Duration.between(startTime, now).seconds.toFloat()
-        val currentTimeX = padding + (nowSecondsFromStart / totalSeconds) * graphWidth
-        val nowPaint = Paint().apply {
-            color = if (isDarkMode) Color.WHITE else Color.BLACK
-            strokeWidth = 3f
-            style = Paint.Style.STROKE
-            strokeCap = Paint.Cap.ROUND
-        }
-        canvas.drawLine(currentTimeX, padding, currentTimeX, baselineY, nowPaint)
-
-        // Draw time labels
-        val textPaint = Paint().apply {
-            color = if (isDarkMode) Color.argb(180, 255, 255, 255) else Color.argb(180, 0, 0, 0)
-            textSize = 20f
-            textAlign = Paint.Align.CENTER
-            isAntiAlias = true
-        }
-        canvas.drawText("-2h", padding + 20, height - 4f, textPaint)
-        canvas.drawText("now", currentTimeX, height - 4f, textPaint)
-        canvas.drawText("+3h", width - padding - 15, height - 4f, textPaint)
-
+        val bitmap = renderTimelineToBitmap(
+            context = context,
+            model = model,
+            timeDisplayOption = TimeDisplayOption.REGULAR,
+            isShowingCurrentTime = true,
+            width = width,
+            height = height
+        )
+        
         // Save bitmap to file
         val file = File(context.cacheDir, "widget_timeline_$appWidgetId.png")
         try {
