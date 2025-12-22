@@ -1,5 +1,0 @@
-# yaml-language-server: $schema=https://devenv.sh/devenv.schema.json
-inputs:
-  android-nixpkgs:  # Use a repository that makes Android configuration easy
-    url: github:tadfisher/android-nixpkgs/stable
-allowUnfree: true

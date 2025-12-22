@@ -157,11 +157,11 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
 
     fun readWebhookURL(): Flow<String> = dataStore.data
         .map { preferences ->
-            (preferences[PreferencesKeys.WEBHOOK_URL] ?: "")
+            (preferences[WEBHOOK_URL] ?: "")
         }
     suspend fun writeWebhookURL(value: String) {
         dataStore.edit { preferences ->
-            preferences[PreferencesKeys.WEBHOOK_URL] = value
+            preferences[WEBHOOK_URL] = value
         }
     }
 

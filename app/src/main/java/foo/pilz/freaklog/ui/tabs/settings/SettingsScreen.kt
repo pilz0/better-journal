@@ -435,8 +435,8 @@ fun SettingsScreen(
                     uriHandler.openUri("https://woof.rip/pilz0/better-journal")
                 }
                 HorizontalDivider()
-                val context = LocalContext.current
-                val sendIntent: Intent = Intent().apply {
+                LocalContext.current
+                Intent().apply {
                     action = Intent.ACTION_SEND
                     putExtra(Intent.EXTRA_TEXT, SHARE_APP_URL)
                     type = "text/plain"

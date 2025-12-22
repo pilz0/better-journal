@@ -487,7 +487,7 @@ class TimelineWidgetWorker(
 
         val now = Instant.now()
         val startTime = now.minus(Duration.ofHours(2))
-        val endTime = now.plus(Duration.ofHours(3))
+        now.plus(Duration.ofHours(3))
         val totalSeconds = Duration.ofHours(5).seconds.toFloat()
 
         val padding = 15f
@@ -520,7 +520,7 @@ class TimelineWidgetWorker(
         }
 
         // Draw each substance's effect curve using actual duration data
-        groupedBySubstanceAndRoute.forEach { (key, substanceIngestions) ->
+        groupedBySubstanceAndRoute.forEach { (_, substanceIngestions) ->
             val companion = substanceIngestions.firstOrNull()?.substanceCompanion
             val color = companion?.color ?: AdaptiveColor.BLUE
             val androidColor = getAndroidColor(color, isDarkMode)
@@ -572,7 +572,7 @@ class TimelineWidgetWorker(
 
                 // Calculate peak height
                 val peakHeight = graphHeight * WidgetConstants.PEAK_HEIGHT_FRACTION
-                val peakY = baselineY - peakHeight
+                baselineY - peakHeight
 
                 // Convert seconds to pixels
                 fun secToPixel(sec: Float): Float = padding + (sec / totalSeconds) * graphWidth
@@ -728,59 +728,59 @@ class TimelineWidgetWorker(
         // Map AdaptiveColor to Android color int - matches the values in AdaptiveColor.kt
         return when (color) {
             // Preferred colors
-            AdaptiveColor.RED -> if (isDarkTheme) android.graphics.Color.rgb(255, 69, 58) else android.graphics.Color.rgb(255, 59, 48)
-            AdaptiveColor.ORANGE -> if (isDarkTheme) android.graphics.Color.rgb(255, 159, 10) else android.graphics.Color.rgb(255, 149, 0)
-            AdaptiveColor.YELLOW -> if (isDarkTheme) android.graphics.Color.rgb(255, 214, 10) else android.graphics.Color.rgb(255, 204, 0)
-            AdaptiveColor.GREEN -> if (isDarkTheme) android.graphics.Color.rgb(48, 209, 88) else android.graphics.Color.rgb(52, 199, 89)
-            AdaptiveColor.MINT -> if (isDarkTheme) android.graphics.Color.rgb(102, 212, 207) else android.graphics.Color.rgb(0, 199, 190)
-            AdaptiveColor.TEAL -> if (isDarkTheme) android.graphics.Color.rgb(64, 200, 224) else android.graphics.Color.rgb(48, 176, 199)
-            AdaptiveColor.CYAN -> if (isDarkTheme) android.graphics.Color.rgb(100, 210, 255) else android.graphics.Color.rgb(50, 173, 230)
-            AdaptiveColor.BLUE -> if (isDarkTheme) android.graphics.Color.rgb(10, 132, 255) else android.graphics.Color.rgb(0, 122, 255)
-            AdaptiveColor.INDIGO -> if (isDarkTheme) android.graphics.Color.rgb(94, 92, 230) else android.graphics.Color.rgb(88, 86, 214)
-            AdaptiveColor.PURPLE -> if (isDarkTheme) android.graphics.Color.rgb(191, 90, 242) else android.graphics.Color.rgb(175, 82, 222)
-            AdaptiveColor.PINK -> if (isDarkTheme) android.graphics.Color.rgb(255, 55, 95) else android.graphics.Color.rgb(255, 45, 85)
-            AdaptiveColor.BROWN -> if (isDarkTheme) android.graphics.Color.rgb(172, 142, 104) else android.graphics.Color.rgb(162, 132, 94)
+            AdaptiveColor.RED -> if (isDarkTheme) Color.rgb(255, 69, 58) else Color.rgb(255, 59, 48)
+            AdaptiveColor.ORANGE -> if (isDarkTheme) Color.rgb(255, 159, 10) else Color.rgb(255, 149, 0)
+            AdaptiveColor.YELLOW -> if (isDarkTheme) Color.rgb(255, 214, 10) else Color.rgb(255, 204, 0)
+            AdaptiveColor.GREEN -> if (isDarkTheme) Color.rgb(48, 209, 88) else Color.rgb(52, 199, 89)
+            AdaptiveColor.MINT -> if (isDarkTheme) Color.rgb(102, 212, 207) else Color.rgb(0, 199, 190)
+            AdaptiveColor.TEAL -> if (isDarkTheme) Color.rgb(64, 200, 224) else Color.rgb(48, 176, 199)
+            AdaptiveColor.CYAN -> if (isDarkTheme) Color.rgb(100, 210, 255) else Color.rgb(50, 173, 230)
+            AdaptiveColor.BLUE -> if (isDarkTheme) Color.rgb(10, 132, 255) else Color.rgb(0, 122, 255)
+            AdaptiveColor.INDIGO -> if (isDarkTheme) Color.rgb(94, 92, 230) else Color.rgb(88, 86, 214)
+            AdaptiveColor.PURPLE -> if (isDarkTheme) Color.rgb(191, 90, 242) else Color.rgb(175, 82, 222)
+            AdaptiveColor.PINK -> if (isDarkTheme) Color.rgb(255, 55, 95) else Color.rgb(255, 45, 85)
+            AdaptiveColor.BROWN -> if (isDarkTheme) Color.rgb(172, 142, 104) else Color.rgb(162, 132, 94)
 
             // Extended colors
-            AdaptiveColor.FIRE_ENGINE_RED -> if (isDarkTheme) android.graphics.Color.rgb(237, 43, 42) else android.graphics.Color.rgb(237, 14, 6)
-            AdaptiveColor.CORAL -> if (isDarkTheme) android.graphics.Color.rgb(255, 131, 121) else android.graphics.Color.rgb(180, 92, 85)
-            AdaptiveColor.TOMATO -> if (isDarkTheme) android.graphics.Color.rgb(255, 99, 71) else android.graphics.Color.rgb(180, 69, 50)
-            AdaptiveColor.CINNABAR -> android.graphics.Color.rgb(227, 36, 0)
-            AdaptiveColor.RUST -> android.graphics.Color.rgb(199, 81, 58)
-            AdaptiveColor.ORANGE_RED -> if (isDarkTheme) android.graphics.Color.rgb(255, 69, 0) else android.graphics.Color.rgb(205, 55, 0)
-            AdaptiveColor.AUBURN -> if (isDarkTheme) android.graphics.Color.rgb(217, 80, 0) else android.graphics.Color.rgb(173, 62, 0)
-            AdaptiveColor.SADDLE_BROWN -> if (isDarkTheme) android.graphics.Color.rgb(191, 95, 25) else android.graphics.Color.rgb(139, 69, 19)
-            AdaptiveColor.DARK_ORANGE -> if (isDarkTheme) android.graphics.Color.rgb(255, 140, 0) else android.graphics.Color.rgb(155, 84, 0)
-            AdaptiveColor.DARK_GOLD -> android.graphics.Color.rgb(169, 104, 0)
-            AdaptiveColor.KHAKI -> if (isDarkTheme) android.graphics.Color.rgb(203, 183, 137) else android.graphics.Color.rgb(128, 114, 86)
-            AdaptiveColor.BRONZE -> if (isDarkTheme) android.graphics.Color.rgb(167, 123, 0) else android.graphics.Color.rgb(120, 87, 0)
-            AdaptiveColor.GOLD -> if (isDarkTheme) android.graphics.Color.rgb(255, 215, 0) else android.graphics.Color.rgb(130, 109, 0)
-            AdaptiveColor.OLIVE -> if (isDarkTheme) android.graphics.Color.rgb(141, 134, 0) else android.graphics.Color.rgb(102, 97, 0)
-            AdaptiveColor.OLIVE_DRAB -> if (isDarkTheme) android.graphics.Color.rgb(154, 166, 14) else android.graphics.Color.rgb(111, 118, 8)
-            AdaptiveColor.DARK_OLIVE_GREEN -> if (isDarkTheme) android.graphics.Color.rgb(105, 133, 58) else android.graphics.Color.rgb(85, 107, 47)
-            AdaptiveColor.MOSS_GREEN -> if (isDarkTheme) android.graphics.Color.rgb(102, 156, 53) else android.graphics.Color.rgb(79, 122, 40)
-            AdaptiveColor.LIME_GREEN -> if (isDarkTheme) android.graphics.Color.rgb(0, 255, 0) else android.graphics.Color.rgb(0, 130, 0)
-            AdaptiveColor.LIME -> if (isDarkTheme) android.graphics.Color.rgb(50, 205, 50) else android.graphics.Color.rgb(32, 130, 32)
-            AdaptiveColor.FOREST_GREEN -> if (isDarkTheme) android.graphics.Color.rgb(34, 139, 34) else android.graphics.Color.rgb(28, 114, 28)
-            AdaptiveColor.SEA_GREEN -> if (isDarkTheme) android.graphics.Color.rgb(46, 139, 87) else android.graphics.Color.rgb(38, 114, 71)
-            AdaptiveColor.JUNGLE_GREEN -> android.graphics.Color.rgb(3, 136, 88)
-            AdaptiveColor.LIGHT_SEA_GREEN -> if (isDarkTheme) android.graphics.Color.rgb(32, 178, 170) else android.graphics.Color.rgb(22, 128, 122)
-            AdaptiveColor.DARK_TURQUOISE -> if (isDarkTheme) android.graphics.Color.rgb(0, 206, 209) else android.graphics.Color.rgb(0, 131, 134)
-            AdaptiveColor.DODGER_BLUE -> if (isDarkTheme) android.graphics.Color.rgb(30, 144, 255) else android.graphics.Color.rgb(24, 116, 205)
-            AdaptiveColor.ROYAL_BLUE -> if (isDarkTheme) android.graphics.Color.rgb(72, 117, 251) else android.graphics.Color.rgb(65, 105, 225)
-            AdaptiveColor.DEEP_LAVENDER -> android.graphics.Color.rgb(135, 78, 254)
-            AdaptiveColor.BLUE_VIOLET -> if (isDarkTheme) android.graphics.Color.rgb(166, 73, 252) else android.graphics.Color.rgb(138, 43, 226)
-            AdaptiveColor.DARK_VIOLET -> if (isDarkTheme) android.graphics.Color.rgb(162, 76, 210) else android.graphics.Color.rgb(148, 0, 211)
-            AdaptiveColor.HELIOTROPE -> android.graphics.Color.rgb(151, 93, 175)
-            AdaptiveColor.BYZANTIUM -> if (isDarkTheme) android.graphics.Color.rgb(190, 56, 243) else android.graphics.Color.rgb(153, 41, 189)
-            AdaptiveColor.MAGENTA -> if (isDarkTheme) android.graphics.Color.rgb(255, 0, 255) else android.graphics.Color.rgb(205, 0, 205)
-            AdaptiveColor.DARK_MAGENTA -> if (isDarkTheme) android.graphics.Color.rgb(217, 0, 217) else android.graphics.Color.rgb(139, 0, 139)
-            AdaptiveColor.FUCHSIA -> if (isDarkTheme) android.graphics.Color.rgb(214, 68, 146) else android.graphics.Color.rgb(189, 60, 129)
-            AdaptiveColor.DEEP_PINK -> if (isDarkTheme) android.graphics.Color.rgb(255, 20, 147) else android.graphics.Color.rgb(205, 16, 117)
-            AdaptiveColor.GRAYISH_MAGENTA -> android.graphics.Color.rgb(161, 96, 128)
-            AdaptiveColor.HOT_PINK -> if (isDarkTheme) android.graphics.Color.rgb(255, 105, 180) else android.graphics.Color.rgb(180, 74, 126)
-            AdaptiveColor.JAZZBERRY_JAM -> if (isDarkTheme) android.graphics.Color.rgb(230, 59, 122) else android.graphics.Color.rgb(185, 45, 93)
-            AdaptiveColor.MAROON -> if (isDarkTheme) android.graphics.Color.rgb(187, 82, 99) else android.graphics.Color.rgb(190, 49, 68)
+            AdaptiveColor.FIRE_ENGINE_RED -> if (isDarkTheme) Color.rgb(237, 43, 42) else Color.rgb(237, 14, 6)
+            AdaptiveColor.CORAL -> if (isDarkTheme) Color.rgb(255, 131, 121) else Color.rgb(180, 92, 85)
+            AdaptiveColor.TOMATO -> if (isDarkTheme) Color.rgb(255, 99, 71) else Color.rgb(180, 69, 50)
+            AdaptiveColor.CINNABAR -> Color.rgb(227, 36, 0)
+            AdaptiveColor.RUST -> Color.rgb(199, 81, 58)
+            AdaptiveColor.ORANGE_RED -> if (isDarkTheme) Color.rgb(255, 69, 0) else Color.rgb(205, 55, 0)
+            AdaptiveColor.AUBURN -> if (isDarkTheme) Color.rgb(217, 80, 0) else Color.rgb(173, 62, 0)
+            AdaptiveColor.SADDLE_BROWN -> if (isDarkTheme) Color.rgb(191, 95, 25) else Color.rgb(139, 69, 19)
+            AdaptiveColor.DARK_ORANGE -> if (isDarkTheme) Color.rgb(255, 140, 0) else Color.rgb(155, 84, 0)
+            AdaptiveColor.DARK_GOLD -> Color.rgb(169, 104, 0)
+            AdaptiveColor.KHAKI -> if (isDarkTheme) Color.rgb(203, 183, 137) else Color.rgb(128, 114, 86)
+            AdaptiveColor.BRONZE -> if (isDarkTheme) Color.rgb(167, 123, 0) else Color.rgb(120, 87, 0)
+            AdaptiveColor.GOLD -> if (isDarkTheme) Color.rgb(255, 215, 0) else Color.rgb(130, 109, 0)
+            AdaptiveColor.OLIVE -> if (isDarkTheme) Color.rgb(141, 134, 0) else Color.rgb(102, 97, 0)
+            AdaptiveColor.OLIVE_DRAB -> if (isDarkTheme) Color.rgb(154, 166, 14) else Color.rgb(111, 118, 8)
+            AdaptiveColor.DARK_OLIVE_GREEN -> if (isDarkTheme) Color.rgb(105, 133, 58) else Color.rgb(85, 107, 47)
+            AdaptiveColor.MOSS_GREEN -> if (isDarkTheme) Color.rgb(102, 156, 53) else Color.rgb(79, 122, 40)
+            AdaptiveColor.LIME_GREEN -> if (isDarkTheme) Color.rgb(0, 255, 0) else Color.rgb(0, 130, 0)
+            AdaptiveColor.LIME -> if (isDarkTheme) Color.rgb(50, 205, 50) else Color.rgb(32, 130, 32)
+            AdaptiveColor.FOREST_GREEN -> if (isDarkTheme) Color.rgb(34, 139, 34) else Color.rgb(28, 114, 28)
+            AdaptiveColor.SEA_GREEN -> if (isDarkTheme) Color.rgb(46, 139, 87) else Color.rgb(38, 114, 71)
+            AdaptiveColor.JUNGLE_GREEN -> Color.rgb(3, 136, 88)
+            AdaptiveColor.LIGHT_SEA_GREEN -> if (isDarkTheme) Color.rgb(32, 178, 170) else Color.rgb(22, 128, 122)
+            AdaptiveColor.DARK_TURQUOISE -> if (isDarkTheme) Color.rgb(0, 206, 209) else Color.rgb(0, 131, 134)
+            AdaptiveColor.DODGER_BLUE -> if (isDarkTheme) Color.rgb(30, 144, 255) else Color.rgb(24, 116, 205)
+            AdaptiveColor.ROYAL_BLUE -> if (isDarkTheme) Color.rgb(72, 117, 251) else Color.rgb(65, 105, 225)
+            AdaptiveColor.DEEP_LAVENDER -> Color.rgb(135, 78, 254)
+            AdaptiveColor.BLUE_VIOLET -> if (isDarkTheme) Color.rgb(166, 73, 252) else Color.rgb(138, 43, 226)
+            AdaptiveColor.DARK_VIOLET -> if (isDarkTheme) Color.rgb(162, 76, 210) else Color.rgb(148, 0, 211)
+            AdaptiveColor.HELIOTROPE -> Color.rgb(151, 93, 175)
+            AdaptiveColor.BYZANTIUM -> if (isDarkTheme) Color.rgb(190, 56, 243) else Color.rgb(153, 41, 189)
+            AdaptiveColor.MAGENTA -> if (isDarkTheme) Color.rgb(255, 0, 255) else Color.rgb(205, 0, 205)
+            AdaptiveColor.DARK_MAGENTA -> if (isDarkTheme) Color.rgb(217, 0, 217) else Color.rgb(139, 0, 139)
+            AdaptiveColor.FUCHSIA -> if (isDarkTheme) Color.rgb(214, 68, 146) else Color.rgb(189, 60, 129)
+            AdaptiveColor.DEEP_PINK -> if (isDarkTheme) Color.rgb(255, 20, 147) else Color.rgb(205, 16, 117)
+            AdaptiveColor.GRAYISH_MAGENTA -> Color.rgb(161, 96, 128)
+            AdaptiveColor.HOT_PINK -> if (isDarkTheme) Color.rgb(255, 105, 180) else Color.rgb(180, 74, 126)
+            AdaptiveColor.JAZZBERRY_JAM -> if (isDarkTheme) Color.rgb(230, 59, 122) else Color.rgb(185, 45, 93)
+            AdaptiveColor.MAROON -> if (isDarkTheme) Color.rgb(187, 82, 99) else Color.rgb(190, 49, 68)
         }
     }
 

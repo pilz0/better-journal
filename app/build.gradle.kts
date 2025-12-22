@@ -7,6 +7,9 @@ plugins {
     kotlin("plugin.serialization") version "2.0.20"
     id("kotlin-kapt") // this needs to be on bottom
 }
+dependencyLocking {
+    lockAllConfigurations()
+}
 
 android {
     namespace = "foo.pilz.freaklog"
