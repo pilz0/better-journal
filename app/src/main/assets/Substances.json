@@ -8173,6 +8173,7 @@
       "interactions": {
         "dangerous": [
           "Depressant",
+          "grapefruit",
           "Dissociatives"
         ],
         "unsafe": [],
@@ -9153,6 +9154,7 @@
       "summary": "A benzodiazepine drug with a medium-long duration, developed by Roche in the 1960s. Has primarily anxiolytic properties. May cause lowered inhibitions and amnesia in high doses.",
       "interactions": {
         "dangerous": [
+          "grapefruit",
           "Depressant",
           "Dissociatives",
           "Stimulants"
@@ -9225,6 +9227,7 @@
       "summary": "A rather novel Benzodiazepine that is structurally quite close to Alprazolam.",
       "interactions": {
         "dangerous": [
+          "grapefruit",
           "Depressant",
           "Dissociatives"
         ],
@@ -10294,6 +10297,7 @@
       "summary": "A benzodiazepine derivative drug with anxiolytic effects but mainly hypnotic effects. It is extremely effective for sleep aid but has mild euphoria compared to other benzos",
       "interactions": {
         "dangerous": [
+          "grapefruit",
           "Depressant",
           "Dissociatives"
         ],
@@ -10422,6 +10426,7 @@
       "summary": "A medium-length common prescription benzodiazepine, often used to treat panic attacks because of its relatively fast sublingual onset. Primarily anxiolytic, but also possessing of other benzo traits.",
       "interactions": {
         "dangerous": [
+          "grapefruit",
           "Depressant",
           "Dissociatives"
         ],
@@ -10502,6 +10507,7 @@
       "summary": "A long lasting benzodiazepine with heavily hypnotic effects. The safety profile is not well established, and there have been reports that people taking it three days in a row have had a seizure. Most comparable to Triazolam, but with a much longer half-life.",
       "interactions": {
         "dangerous": [
+          "grapefruit",
           "Depressant",
           "Dissociatives"
         ],
@@ -11862,6 +11868,7 @@
       ],
       "interactions": {
         "dangerous": [
+          "grapefruit",
           "Depressant",
           "Dissociatives",
           "Stimulants"
@@ -14383,6 +14390,7 @@
       ],
       "interactions": {
         "dangerous": [
+          "grapefruit",
           "Depressant",
           "Dissociatives"
         ],
@@ -19018,6 +19026,23 @@
           },
           "duration": {
             "total": {
+              "min": 4,
+              "max": 6,
+              "units": "hours"
+            }
+          }
+        },
+        {
+          "name": "insufflated",
+          "dose": {
+            "units": "mg",
+            "lightMin": 40,
+            "commonMin": 50,
+            "strongMin": 80,
+            "heavyMin": 300
+          },
+          "duration": {
+            "total": {
               "min": 1,
               "max": 2,
               "units": "hours"
@@ -22830,6 +22855,7 @@
       "summary": "A very long acting, potent and subtle benzodiazepine. Infamous for the calamitous experiences it tends to produce in people dosing unknown amounts. Prescribed in certain countries for epilepsy and alcohol withdrawal.",
       "interactions": {
         "dangerous": [
+          "grapefruit",
           "Depressant",
           "Dissociatives"
         ],

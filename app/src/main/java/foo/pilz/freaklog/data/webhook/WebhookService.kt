@@ -18,7 +18,9 @@
 
 package foo.pilz.freaklog.data.webhook
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
@@ -111,25 +113,26 @@ class WebhookService @Inject constructor() {
         )
     }
 
-    suspend fun deleteWebhookMessage(url: String, messageId: String): Boolean {
-        return try {
-            val cleanUrl = if (url.endsWith("/")) url.dropLast(1) else url
-            val webhookUrl = URL(cleanUrl)
-            val requestUrl = URL("${webhookUrl}/messages/$messageId")
-            
-            val connection = requestUrl.openConnection() as HttpURLConnection
-            connection.requestMethod = "DELETE"
-            connection.connectTimeout = 10000
-            connection.readTimeout = 10000
+    suspend fun deleteWebhookMessage(url: String, messageId: String): Boolean =
+        withContext(Dispatchers.IO) {
+            try {
+                val cleanUrl = if (url.endsWith("/")) url.dropLast(1) else url
+                val webhookUrl = URL(cleanUrl)
+                val requestUrl = URL("${webhookUrl}/messages/$messageId")
 
-            val responseCode = connection.responseCode
-            connection.disconnect()
-            
-            responseCode in 200..299
-        } catch (e: Exception) {
-            false
+                val connection = requestUrl.openConnection() as HttpURLConnection
+                connection.requestMethod = "DELETE"
+                connection.connectTimeout = 10000
+                connection.readTimeout = 10000
+
+                val responseCode = connection.responseCode
+                connection.disconnect()
+
+                responseCode in 200..299
+            } catch (e: Exception) {
+                false
+            }
         }
-    }
 
     private suspend fun sendWebhookWithRetry(
         url: String,
@@ -190,7 +193,7 @@ class WebhookService @Inject constructor() {
 
         for (attempt in 0 until MAX_RETRIES) {
             try {
-                android.util.Log.w("WebhookService", "Attempting to send webhook",)
+                android.util.Log.w("WebhookService", "Attempting to send webhook")
                 val result = performWebhookRequest(
                     url = url,
                     payload = payload,
@@ -199,7 +202,7 @@ class WebhookService @Inject constructor() {
                 )
                 return WebhookResult(success = true, messageId = result, error = null)
             } catch (e: Exception) {
-                android.util.Log.w("WebhookService", "Got error:" + lastError,)
+                android.util.Log.w("WebhookService", "Got error: $e")
                 lastError = e
                 if (attempt < MAX_RETRIES - 1) {
                     val delayMs = (1L shl attempt) * 1000L // Exponential backoff: 1s, 2s, 4s
@@ -211,15 +214,15 @@ class WebhookService @Inject constructor() {
         return WebhookResult(success = false, messageId = null, error = lastError)
     }
 
-    private fun performWebhookRequest(
+    private suspend fun performWebhookRequest(
         url: String,
         payload: JsonObject,
         isEdit: Boolean,
         messageId: String?
-    ): String? {
+    ): String? = withContext(Dispatchers.IO) {
         val cleanUrl = if (url.endsWith("/")) url.dropLast(1) else url
         val webhookUrl = URL(cleanUrl)
-        
+
         val requestUrl = if (isEdit && messageId != null) {
             URL("${webhookUrl}/messages/$messageId")
         } else {
@@ -242,20 +245,20 @@ class WebhookService @Inject constructor() {
         val responseCode = connection.responseCode
         if (responseCode !in 200..299) {
             connection.disconnect()
+            android.util.Log.w("WebhookService", "HTTP error code:$responseCode")
             throw IOException("HTTP error code: $responseCode")
-            android.util.Log.w("WebhookService", "Got error" + responseCode,)
         }
 
         if (!isEdit) {
             val response = connection.inputStream.bufferedReader().use { it.readText() }
             connection.disconnect()
-            
-            val json = Json.parseToJsonElement(response).jsonObject
-            return json["id"]?.jsonPrimitive?.content
-        }
 
-        connection.disconnect()
-        return null
+            val json = Json.parseToJsonElement(response).jsonObject
+            json["id"]?.jsonPrimitive?.content
+        } else {
+            connection.disconnect()
+            null
+        }
     }
 
     fun processTemplate(template: String, values: Map<String, String>): String {
@@ -263,7 +266,7 @@ class WebhookService @Inject constructor() {
         
         val pattern = "\\[([^\\[\\]]+)\\]".toRegex()
         val matches = pattern.findAll(processed).toList().reversed()
-        
+
         for (match in matches) {
             val fullMatch = match.value
             val content = match.groupValues[1]
