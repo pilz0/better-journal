@@ -1,16 +1,18 @@
 ---
 name: Build
-# only run on main branch to avoid running untrusted code on the self hosted runner
 on:
   push:
-    branches: [ "main" ]
+  pull_request:
 env:
   main_project_module: 'app'
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v5
+    - uses: cachix/install-nix-action@v31
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
 
     - name: Load JDK
       run: nix develop .
@@ -25,7 +27,7 @@ jobs:
         if-no-files-found: error
   sign:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Download a single artifact
         if: >
