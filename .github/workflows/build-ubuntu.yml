@@ -1,5 +1,5 @@
 ---
-name: Build
+name: Build on ubuntu
 on:
   push:
   pull_request:

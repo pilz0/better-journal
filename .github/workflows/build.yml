@@ -1,5 +1,5 @@
 ---
-name: Build
+name: Build on self-hosted
 # only run on main branch to avoid running untrusted code on the self hosted runner
 on:
   push:
