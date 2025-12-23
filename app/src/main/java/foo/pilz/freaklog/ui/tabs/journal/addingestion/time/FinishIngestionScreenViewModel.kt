@@ -339,11 +339,13 @@ class FinishIngestionScreenViewModel @Inject constructor(
     private suspend fun sendWebhookForIngestion(ingestion: Ingestion) {
         val webhookURL = userPreferences.readWebhookURL().first()
         if (webhookURL.isBlank()) {
+            android.util.Log.d("FinishIngestionScreenViewModel:", "Webhook is blank, skipping")
             return // Webhook not configured, skip
         }
 
         val webhookName = userPreferences.readWebhookName().first()
-        val webhookTemplate = userPreferences.readWebhookTemplate().first().ifBlank { 
+        val webhookTemplate = userPreferences.readWebhookTemplate().first().ifBlank {
+            android.util.Log.d("FinishIngestionScreenViewModel:", "Webhook template is blank, using default")
             foo.pilz.freaklog.data.webhook.WebhookService.DEFAULT_TEMPLATE 
         }
 
@@ -351,6 +353,7 @@ class FinishIngestionScreenViewModel @Inject constructor(
         val route = ingestion.administrationRoute.displayText
 
         try {
+            android.util.Log.d("FinishIngestionScreenViewModel:", "Trying to send webhook")
             val result = webhookService.sendWebhook(
                 url = webhookURL,
                 user = user,
@@ -367,12 +370,13 @@ class FinishIngestionScreenViewModel @Inject constructor(
 
             // If webhook was successful, update ingestion with message ID
             if (result.success && result.messageId != null) {
+                android.util.Log.d("FinishIngestionScreenViewModel:", "Webhook send correctly." + result.toString())
                 ingestion.webhookMessageId = result.messageId
                 experienceRepo.update(ingestion)
             }
         } catch (e: Exception) {
             // Silently fail - don't block ingestion creation if webhook fails
-            android.util.Log.w("FinishIngestionViewModel", "Webhook send failed", e)
+            android.util.Log.d("FinishIngestionViewModel", "Webhook send failed", e)
         }
     }
 }

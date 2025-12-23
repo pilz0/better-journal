@@ -190,6 +190,7 @@ class WebhookService @Inject constructor() {
 
         for (attempt in 0 until MAX_RETRIES) {
             try {
+                android.util.Log.w("WebhookService", "Attempting to send webhook",)
                 val result = performWebhookRequest(
                     url = url,
                     payload = payload,
@@ -198,6 +199,7 @@ class WebhookService @Inject constructor() {
                 )
                 return WebhookResult(success = true, messageId = result, error = null)
             } catch (e: Exception) {
+                android.util.Log.w("WebhookService", "Got error:" + lastError,)
                 lastError = e
                 if (attempt < MAX_RETRIES - 1) {
                     val delayMs = (1L shl attempt) * 1000L // Exponential backoff: 1s, 2s, 4s
@@ -241,6 +243,7 @@ class WebhookService @Inject constructor() {
         if (responseCode !in 200..299) {
             connection.disconnect()
             throw IOException("HTTP error code: $responseCode")
+            android.util.Log.w("WebhookService", "Got error" + responseCode,)
         }
 
         if (!isEdit) {
