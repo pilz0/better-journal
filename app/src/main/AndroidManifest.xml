@@ -46,6 +46,10 @@
                 <action android:name="foo.pilz.freaklog.ADD_INGESTION" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="foo.pilz.freaklog.JOURNAL_SCREEN" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
         <receiver
             android:name=".ui.MyWidgetProvider"

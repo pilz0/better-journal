@@ -184,9 +184,6 @@ class WebhookService @Inject constructor() {
         val content = processTemplate(template, values)
         val payload = buildJsonObject {
             put("content", content)
-            if (user.isNotBlank()) {
-                put("username", user)
-            }
         }
 
         var lastError: Exception? = null

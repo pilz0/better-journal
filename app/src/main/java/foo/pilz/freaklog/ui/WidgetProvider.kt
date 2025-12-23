@@ -24,6 +24,7 @@ import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.action.ActionParameters
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
@@ -134,10 +135,12 @@ class MyAppWidget : GlanceAppWidget() {
                 action = ".ADD_INGESTION"
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
-
+            val addJournalScreenIntent = Intent(context, MainActivity::class.java).apply {
+                action = ".JOURNAL_SCREEN"
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
             Column(
                 modifier = GlanceModifier
-                    // Fix: Use GlanceTheme instead of MaterialTheme for proper widget support
                     .background(GlanceTheme.colors.background)
                     .fillMaxSize()
                     .padding(12.dp),
@@ -194,9 +197,13 @@ class MyAppWidget : GlanceAppWidget() {
                             if (file.exists()) {
                                 android.graphics.BitmapFactory.decodeFile(timelineImagePath)?.let { bitmap ->
                                     Image(
+
                                         provider = ImageProvider(bitmap),
                                         contentDescription = "Timeline graph",
                                         modifier = GlanceModifier
+                                            .clickable(
+                                                onClick = actionStartActivity(addJournalScreenIntent)
+                                            )
                                             .fillMaxWidth()
                                             .height(100.dp),
                                         contentScale = ContentScale.FillBounds,

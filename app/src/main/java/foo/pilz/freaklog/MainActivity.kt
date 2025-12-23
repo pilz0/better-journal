@@ -22,54 +22,77 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.setValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.lifecycle.lifecycleScope
+import dagger.hilt.android.AndroidEntryPoint
+import foo.pilz.freaklog.ui.MyAppWidget
 import foo.pilz.freaklog.ui.main.MainScreen
 import foo.pilz.freaklog.ui.theme.JournalTheme
-import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     companion object {
         const val ACTION_ADD_INGESTION = ".ADD_INGESTION"
+        const val ACTION_JOURNAL_SCREEN = ".JOURNAL_SCREEN"
     }
 
-    private val shouldNavigateToAddIngestion = mutableStateOf(false)
+    private var shouldNavigateToAddIngestion by mutableStateOf(false)
+    private var shouldNavigateToJournalScreen by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        
-        // Check if launched from widget with ADD_INGESTION action
-        shouldNavigateToAddIngestion.value = intent?.action == ACTION_ADD_INGESTION
-        
+
+        handleIntent(intent)
+
+        // Update all widgets on launch
+        lifecycleScope.launch {
+            val manager = GlanceAppWidgetManager(this@MainActivity)
+            val glanceIds = manager.getGlanceIds(MyAppWidget::class.java)
+            glanceIds.forEach { glanceId ->
+                foo.pilz.freaklog.ui.enqueueRefresh(
+                    context = this@MainActivity,
+                    appWidgetId = manager.getAppWidgetId(glanceId)
+                )
+            }
+        }
+
         setContent {
             JournalTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    MainScreen(
-                        shouldNavigateToAddIngestion = shouldNavigateToAddIngestion.value,
-                        onAddIngestionNavigated = { shouldNavigateToAddIngestion.value = false }
-                    )
-                }
+                MainScreen(
+                    shouldNavigateToAddIngestion = shouldNavigateToAddIngestion,
+                    onAddIngestionNavigated = ::onAddIngestionNavigated,
+                    shouldNavigateToJournalScreen = shouldNavigateToJournalScreen,
+                    onJournalScreenNavigated = ::onJournalScreenNavigated
+                )
             }
         }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        // Handle new intent when activity is already running
-        if (intent.action == ACTION_ADD_INGESTION) {
-            shouldNavigateToAddIngestion.value = true
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent?) {
+        if (intent?.action == "${packageName}$ACTION_ADD_INGESTION") {
+            shouldNavigateToAddIngestion = true
+        } else if (intent?.action == "${packageName}$ACTION_JOURNAL_SCREEN") {
+            shouldNavigateToJournalScreen = true
         }
+    }
+
+    private fun onAddIngestionNavigated() {
+        shouldNavigateToAddIngestion = false
+    }
+
+    private fun onJournalScreenNavigated() {
+        shouldNavigateToJournalScreen = false
     }
 }

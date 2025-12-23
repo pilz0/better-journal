@@ -45,12 +45,14 @@ import foo.pilz.freaklog.ui.main.navigation.topLevelRoutes
 fun MainScreen(
     viewModel: MainScreenViewModel = hiltViewModel(),
     shouldNavigateToAddIngestion: Boolean = false,
-    onAddIngestionNavigated: () -> Unit = {}
+    onAddIngestionNavigated: () -> Unit = {},
+    shouldNavigateToJournalScreen: Boolean = false,
+    onJournalScreenNavigated: () -> Unit = {}
 ) {
     if (viewModel.isAcceptedFlow.collectAsState().value) {
         val navController = rememberNavController()
         val navBackStackEntry by navController.currentBackStackEntryAsState()
-        
+
         // Handle navigation to Add Ingestion when triggered from widget
         // The guard condition prevents re-execution when state is reset to false
         LaunchedEffect(shouldNavigateToAddIngestion) {
@@ -64,7 +66,19 @@ fun MainScreen(
                 onAddIngestionNavigated()
             }
         }
-        
+
+        LaunchedEffect(shouldNavigateToJournalScreen) {
+            if (shouldNavigateToJournalScreen) {
+                navController.navigate(JournalTopLevelRoute) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                }
+                onJournalScreenNavigated()
+            }
+        }
+
         val hideSafer = viewModel.activateSaferFlow.collectAsState().value
 
         NavigationSuiteScaffold(
