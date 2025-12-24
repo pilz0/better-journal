@@ -1,5 +1,6 @@
 package foo.pilz.freaklog.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -11,6 +12,7 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.createBitmap
@@ -23,14 +25,17 @@ import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
+import androidx.glance.LocalSize
 import androidx.glance.action.ActionParameters
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
+import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity
+import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.background
@@ -76,7 +81,6 @@ import java.time.Instant
 import java.util.concurrent.TimeUnit
 
 object WidgetKeys {
-    val TITLE = stringPreferencesKey("title")
     val INGESTIONS_TEXT = stringPreferencesKey("ingestionsText")
     val IS_LOADING = booleanPreferencesKey("isLoading")
     val HAS_DATA = booleanPreferencesKey("hasData")
@@ -116,12 +120,28 @@ class MyWidgetProvider : GlanceAppWidgetReceiver() {
 
 class MyAppWidget : GlanceAppWidget() {
 
+    companion object {
+        private val SMALL_RECTANGLE = DpSize(250.dp, 50.dp)
+        private val MEDIUM_RECTANGLE = DpSize(250.dp, 200.dp)
+        private val BIG_RECTANGLE = DpSize(250.dp, 200.dp)
+    }
+
+    override val sizeMode = SizeMode.Responsive(
+        setOf(
+            SMALL_RECTANGLE,
+            MEDIUM_RECTANGLE,
+            BIG_RECTANGLE
+        )
+    )
+
+
     override val stateDefinition = PreferencesGlanceStateDefinition
 
+    @SuppressLint("RestrictedApi")
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
+            val size = LocalSize.current
             val prefs = currentState<Preferences>()
-            val title = prefs[WidgetKeys.TITLE] ?: "Psychonautwiki Journal"
             val ingestionsText = prefs[WidgetKeys.INGESTIONS_TEXT] ?: ""
             val isLoading = prefs[WidgetKeys.IS_LOADING] ?: false
             val hasData = prefs[WidgetKeys.HAS_DATA] ?: false
@@ -157,47 +177,35 @@ class MyAppWidget : GlanceAppWidget() {
                     .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.Vertical.Top
             ) {
-                // Header row with title and compact buttons
-                Row(
-                    modifier = GlanceModifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.Vertical.CenterVertically
-                ) {
-                    Text(
-                        text = title,
-                        style = TextStyle(
-                            color = GlanceTheme.colors.primary,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
-                        ),
-                        modifier = GlanceModifier.defaultWeight().clickable(
-                            onClick = actionStartActivity(addJournalScreenIntent)
+                if (size.width >= SMALL_RECTANGLE.width && size.height >= SMALL_RECTANGLE.height) {
+                    Row(
+                        modifier = GlanceModifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.Vertical.CenterVertically
+                    ) {
+                        Text(
+                            text = WidgetConstants.ADD_BUTTON_ICON,
+                            style = TextStyle(
+                                color = GlanceTheme.colors.primary,
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            modifier = GlanceModifier
+                                .padding(horizontal = 8.dp, vertical = 0.dp)
+                                .clickable(onClick = actionStartActivity(addIngestionIntent))
                         )
-                    )
-                    // Compact add button
-                    Text(
-                        text = WidgetConstants.ADD_BUTTON_ICON,
-                        style = TextStyle(
-                            color = GlanceTheme.colors.primary,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold
-                        ),
-                        modifier = GlanceModifier
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                            .clickable(onClick = actionStartActivity(addIngestionIntent))
-                    )
-                    // Compact refresh button
-                    Text(
-                        text = WidgetConstants.REFRESH_BUTTON_ICON,
-                        style = TextStyle(
-                            color = GlanceTheme.colors.secondary,
-                            fontSize = 18.sp
-                        ),
-                        modifier = GlanceModifier
-                            .padding(horizontal = 6.dp, vertical = 4.dp)
-                            .clickable(onClick = actionRunCallback<RefreshAction>())
-                    )
+                        // Compact refresh button
+                        Text(
+                            text = WidgetConstants.REFRESH_BUTTON_ICON,
+                            style = TextStyle(
+                                color = GlanceTheme.colors.secondary,
+                                fontSize = 20.sp
+                            ),
+                            modifier = GlanceModifier
+                                .padding(horizontal = 6.dp, vertical = 0.dp)
+                                .clickable(onClick = actionRunCallback<RefreshAction>())
+                        )
+                    }
                 }
-
                 when {
                     isLoading -> {
                         Spacer(modifier = GlanceModifier.height(16.dp))
@@ -215,11 +223,6 @@ class MyAppWidget : GlanceAppWidget() {
                             Text(
                                 text = "No active ingestions",
                                 style = TextStyle(fontSize = 13.sp, color = GlanceTheme.colors.secondary)
-                            )
-                            Spacer(modifier = GlanceModifier.height(8.dp))
-                            Button(
-                                text = "Add Ingestion",
-                                onClick = actionStartActivity(addIngestionIntent)
                             )
                         }
                     }
@@ -242,45 +245,40 @@ class MyAppWidget : GlanceAppWidget() {
                             }
                         }
 
-                        Spacer(modifier = GlanceModifier.height(4.dp))
-
-                        // Condensed ingestion list - show fewer items with smaller font
-                        Column {
-                            ingestionsText.split("\n").take(4).forEach { line ->
-                                val substanceName = extractSubstanceName(line)
-                                val color = substanceColors[substanceName]
-                                // Create a condensed version of the line
-                                val condensedLine = condenseIngestionLine(line)
-                                if (color != null) {
-                                    Text(
-                                        text = condensedLine,
-                                        style = TextStyle(
-                                            fontSize = 16.sp,
-                                            color = androidx.glance.unit.ColorProvider(
-                                                androidx.compose.ui.graphics.Color(color)
-                                            )
-                                        ),
-                                        maxLines = 1
-                                    )
-                                } else {
-                                    Text(
-                                        text = condensedLine,
-                                        style = TextStyle(fontSize = 12.sp, color = GlanceTheme.colors.onBackground),
-                                        maxLines = 1
-                                    )
+                    if (size.width >= MEDIUM_RECTANGLE.width && size.height >= MEDIUM_RECTANGLE.height) {
+                    Spacer(modifier = GlanceModifier.height(4.dp))
+                        LazyColumn {
+                            ingestionsText.split("\n").take(20).forEach { line ->
+                                item {
+                                    val substanceName = extractSubstanceName(line)
+                                    val color = substanceColors[substanceName]
+                                    // Create a condensed version of the line
+                                    val condensedLine = condenseIngestionLine(line)
+                                    if (color != null) {
+                                        Text(
+                                            text = condensedLine,
+                                            style = TextStyle(
+                                                fontSize = 16.sp,
+                                                color = androidx.glance.unit.ColorProvider(
+                                                    androidx.compose.ui.graphics.Color(color)
+                                                )
+                                            ),
+                                            maxLines = 1
+                                        )
+                                    } else {
+                                        Text(
+                                            text = condensedLine,
+                                            style = TextStyle(
+                                                fontSize = 12.sp,
+                                                color = GlanceTheme.colors.onBackground
+                                            ),
+                                            maxLines = 1
+                                        )
+                                    }
                                 }
                             }
-                            // Show "+N more" if there are more items
-                            val totalItems = ingestionsText.split("\n").size
-                            if (totalItems > 4) {
-                                Text(
-                                    text = "+${totalItems - 4} more",
-                                    style = TextStyle(fontSize = 11.sp, color = GlanceTheme.colors.secondary),
-                                    modifier = GlanceModifier.clickable(
-                                        onClick = actionStartActivity(addJournalScreenIntent)
-                                    )
-                                )
-                            }
+                        }
+                    }
                         }
                     }
                 }
@@ -359,7 +357,6 @@ class MyAppWidget : GlanceAppWidget() {
             line
         }
     }
-}
 
 class RefreshAction : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
@@ -390,6 +387,7 @@ class TimelineWidgetWorker(
         private const val TAG = "TimelineWidgetWorker"
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
     override suspend fun doWork(): Result {
         val appWidgetId = inputData.getInt(WorkerInput.APP_WIDGET_ID, -1)
         if (appWidgetId == -1) return Result.failure()
@@ -452,7 +450,7 @@ class TimelineWidgetWorker(
                 WidgetData("", "", false, null, emptyMap(), null)
             } else {
                 // Take the most recent ingestions (up to 7)
-                val recentIngestions = ingestions.take(7)
+                val recentIngestions = ingestions.take(40)
 
                 // Get colors for substances from companions
                 val colorsMap = mutableMapOf<String, Int>()
@@ -521,7 +519,6 @@ class TimelineWidgetWorker(
                 glanceId = glanceId
             ) { prefs: Preferences ->
                 prefs.toMutablePreferences().apply {
-                    this[WidgetKeys.TITLE] = title
                     this[WidgetKeys.INGESTIONS_TEXT] = ingestionsText
                     this[WidgetKeys.HAS_DATA] = hasData
                     this[WidgetKeys.IS_LOADING] = false
