@@ -40,10 +40,12 @@ class MainActivity : ComponentActivity() {
     companion object {
         const val ACTION_ADD_INGESTION = ".ADD_INGESTION"
         const val ACTION_JOURNAL_SCREEN = ".JOURNAL_SCREEN"
+        const val ACTION_OPEN_EXPERIENCE = ".OPEN_EXPERIENCE"
     }
 
     private var shouldNavigateToAddIngestion by mutableStateOf(false)
     private var shouldNavigateToJournalScreen by mutableStateOf(false)
+    private var shouldNavigateToExperienceId by mutableStateOf<Int?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -69,7 +71,9 @@ class MainActivity : ComponentActivity() {
                     shouldNavigateToAddIngestion = shouldNavigateToAddIngestion,
                     onAddIngestionNavigated = ::onAddIngestionNavigated,
                     shouldNavigateToJournalScreen = shouldNavigateToJournalScreen,
-                    onJournalScreenNavigated = ::onJournalScreenNavigated
+                    onJournalScreenNavigated = ::onJournalScreenNavigated,
+                    shouldNavigateToExperienceId = shouldNavigateToExperienceId,
+                    onExperienceNavigated = ::onExperienceNavigated
                 )
             }
         }
@@ -85,6 +89,11 @@ class MainActivity : ComponentActivity() {
             shouldNavigateToAddIngestion = true
         } else if (intent?.action == "${packageName}$ACTION_JOURNAL_SCREEN") {
             shouldNavigateToJournalScreen = true
+        } else if (intent?.action == "${packageName}$ACTION_OPEN_EXPERIENCE") {
+            val experienceId = intent.getIntExtra("experienceId", -1)
+            if (experienceId != -1) {
+                shouldNavigateToExperienceId = experienceId
+            }
         }
     }
 
@@ -94,5 +103,9 @@ class MainActivity : ComponentActivity() {
 
     private fun onJournalScreenNavigated() {
         shouldNavigateToJournalScreen = false
+    }
+
+    private fun onExperienceNavigated() {
+        shouldNavigateToExperienceId = null
     }
 }

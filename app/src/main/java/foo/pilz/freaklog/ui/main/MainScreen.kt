@@ -32,6 +32,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import foo.pilz.freaklog.ui.main.navigation.graphs.ExperienceRoute
 import foo.pilz.freaklog.ui.main.navigation.graphs.journalGraph
 import foo.pilz.freaklog.ui.main.navigation.graphs.saferGraph
 import foo.pilz.freaklog.ui.main.navigation.graphs.searchGraph
@@ -47,7 +48,9 @@ fun MainScreen(
     shouldNavigateToAddIngestion: Boolean = false,
     onAddIngestionNavigated: () -> Unit = {},
     shouldNavigateToJournalScreen: Boolean = false,
-    onJournalScreenNavigated: () -> Unit = {}
+    onJournalScreenNavigated: () -> Unit = {},
+    shouldNavigateToExperienceId: Int? = null,
+    onExperienceNavigated: () -> Unit = {}
 ) {
     if (viewModel.isAcceptedFlow.collectAsState().value) {
         val navController = rememberNavController()
@@ -76,6 +79,18 @@ fun MainScreen(
                     launchSingleTop = true
                 }
                 onJournalScreenNavigated()
+            }
+        }
+
+        LaunchedEffect(shouldNavigateToExperienceId) {
+            if (shouldNavigateToExperienceId != null) {
+                navController.navigate(ExperienceRoute(shouldNavigateToExperienceId)) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                }
+                onExperienceNavigated()
             }
         }
 
