@@ -27,9 +27,9 @@ jobs:
         if-no-files-found: error
   sign:
     needs: build
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
-      - name: Download a single artifact
+      - name: Download unsigned APK
         if: >
           github.event_name == 'push'
         uses: actions/download-artifact@v5
@@ -78,3 +78,24 @@ jobs:
           files: "freaklog.apk"
           fail_on_unmatched_files: true
           make_latest: true
+
+  upload_to_s3:
+    needs: [ sign, build ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download APKs
+        uses: actions/download-artifact@v5
+        with:
+          path: apks
+
+      - name: Upload APKs to S3
+        uses: ryand56/r2-upload-action@latest
+        with:
+          r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
+          r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
+          r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          r2-bucket: ${{ secrets.R2_BUCKET }}
+          source-dir: apks
+          destination-dir: apks
+          keep-file-fresh: true
+
