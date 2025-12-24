@@ -154,44 +154,67 @@ class MyAppWidget : GlanceAppWidget() {
                 modifier = GlanceModifier
                     .background(GlanceTheme.colors.background)
                     .fillMaxSize()
-                    .padding(12.dp),
-
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.Vertical.Top
             ) {
+                // Header row with title and compact buttons
                 Row(
                     modifier = GlanceModifier.fillMaxWidth(),
                     verticalAlignment = Alignment.Vertical.CenterVertically
                 ) {
                     Text(
                         text = title,
-                        style = TextStyle(color = GlanceTheme.colors.primary, fontSize = 15.sp, fontWeight = FontWeight.Bold),
-                        modifier = GlanceModifier.defaultWeight()
+                        style = TextStyle(
+                            color = GlanceTheme.colors.primary,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        modifier = GlanceModifier.defaultWeight().clickable(
+                            onClick = actionStartActivity(addJournalScreenIntent)
+                        )
                     )
-                    Button(
+                    // Compact add button
+                    Text(
                         text = WidgetConstants.ADD_BUTTON_ICON,
-                        onClick = actionStartActivity(addIngestionIntent)
+                        style = TextStyle(
+                            color = GlanceTheme.colors.primary,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        modifier = GlanceModifier
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                            .clickable(onClick = actionStartActivity(addIngestionIntent))
                     )
-                    Spacer(modifier = GlanceModifier.width(4.dp))
-                    Button(
+                    // Compact refresh button
+                    Text(
                         text = WidgetConstants.REFRESH_BUTTON_ICON,
-                        onClick = actionRunCallback<RefreshAction>()
+                        style = TextStyle(
+                            color = GlanceTheme.colors.secondary,
+                            fontSize = 18.sp
+                        ),
+                        modifier = GlanceModifier
+                            .padding(horizontal = 6.dp, vertical = 4.dp)
+                            .clickable(onClick = actionRunCallback<RefreshAction>())
                     )
                 }
 
-                Spacer(modifier = GlanceModifier.height(2.dp))
-
                 when {
                     isLoading -> {
+                        Spacer(modifier = GlanceModifier.height(16.dp))
                         Text(
                             text = "Loading…",
-                            style = TextStyle(fontSize = 30.sp, color = GlanceTheme.colors.primary)
+                            style = TextStyle(fontSize = 16.sp, color = GlanceTheme.colors.secondary)
                         )
                     }
                     !hasData -> {
-                        Column {
+                        Spacer(modifier = GlanceModifier.height(16.dp))
+                        Column(
+                            horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
+                            modifier = GlanceModifier.fillMaxWidth()
+                        ) {
                             Text(
-                                text = "No current ingestions",
-                                style = TextStyle(fontSize = 14.sp, color = GlanceTheme.colors.primary)
+                                text = "No active ingestions",
+                                style = TextStyle(fontSize = 13.sp, color = GlanceTheme.colors.secondary)
                             )
                             Spacer(modifier = GlanceModifier.height(8.dp))
                             Button(
@@ -201,38 +224,38 @@ class MyAppWidget : GlanceAppWidget() {
                         }
                     }
                     else -> {
-                        // Display timeline graph image if available
-                        // Note: Bitmap memory is managed by Glance internally when passed to ImageProvider
+                        // Timeline graph
                         if (timelineImagePath != null) {
                             val file = File(timelineImagePath)
                             if (file.exists()) {
                                 android.graphics.BitmapFactory.decodeFile(timelineImagePath)?.let { bitmap ->
                                     Image(
-
                                         provider = ImageProvider(bitmap),
                                         contentDescription = "Timeline graph",
                                         modifier = GlanceModifier
-                                            .clickable(
-                                                onClick = actionStartActivity(addJournalScreenIntent)
-                                            )
+                                            .clickable(onClick = actionStartActivity(addJournalScreenIntent))
                                             .fillMaxWidth()
-                                            .height(100.dp),
+                                            .height(90.dp),
                                         contentScale = ContentScale.FillBounds,
-                                        )
-                                    Spacer(modifier = GlanceModifier.height(4.dp))
+                                    )
                                 }
                             }
                         }
-                        // Display ingestions with colored substance names
+
+                        Spacer(modifier = GlanceModifier.height(4.dp))
+
+                        // Condensed ingestion list - show fewer items with smaller font
                         Column {
-                            ingestionsText.split("\n").take(7).forEach { line ->
+                            ingestionsText.split("\n").take(4).forEach { line ->
                                 val substanceName = extractSubstanceName(line)
                                 val color = substanceColors[substanceName]
+                                // Create a condensed version of the line
+                                val condensedLine = condenseIngestionLine(line)
                                 if (color != null) {
                                     Text(
-                                        text = line,
+                                        text = condensedLine,
                                         style = TextStyle(
-                                            fontSize = 14.sp,
+                                            fontSize = 16.sp,
                                             color = androidx.glance.unit.ColorProvider(
                                                 androidx.compose.ui.graphics.Color(color)
                                             )
@@ -241,11 +264,22 @@ class MyAppWidget : GlanceAppWidget() {
                                     )
                                 } else {
                                     Text(
-                                        text = line,
-                                        style = TextStyle(fontSize = 14.sp, color = GlanceTheme.colors.primary),
+                                        text = condensedLine,
+                                        style = TextStyle(fontSize = 12.sp, color = GlanceTheme.colors.onBackground),
                                         maxLines = 1
                                     )
                                 }
+                            }
+                            // Show "+N more" if there are more items
+                            val totalItems = ingestionsText.split("\n").size
+                            if (totalItems > 4) {
+                                Text(
+                                    text = "+${totalItems - 4} more",
+                                    style = TextStyle(fontSize = 11.sp, color = GlanceTheme.colors.secondary),
+                                    modifier = GlanceModifier.clickable(
+                                        onClick = actionStartActivity(addJournalScreenIntent)
+                                    )
+                                )
                             }
                         }
                     }
@@ -286,17 +320,43 @@ class MyAppWidget : GlanceAppWidget() {
     }
 
     private fun extractSubstanceName(line: String): String? {
-        // Extract substance name from format: "• SubstanceName (dose) - time"
+        // Extract substance name from format: "SubstanceName (dose) - time"
         return try {
-            val withoutBullet = line.removePrefix("• ").trim()
-            val parenIndex = withoutBullet.indexOf('(')
+            val parenIndex = line.indexOf('(')
             if (parenIndex > 0) {
-                withoutBullet.substring(0, parenIndex).trim()
+                line.substring(0, parenIndex).trim()
             } else {
                 null
             }
         } catch (e: Exception) {
             null
+        }
+    }
+
+    /**
+     * Condense ingestion line to a shorter format.
+     * Input: "SubstanceName (200 mg) - 16h 31m ago"
+     * Output: "SubstanceName 200mg · 16h 31m"
+     */
+    private fun condenseIngestionLine(line: String): String {
+        return try {
+            val parenStart = line.indexOf('(')
+            val parenEnd = line.indexOf(')')
+            val dashIndex = line.indexOf(" - ")
+            
+            if (parenStart > 0 && parenEnd > parenStart && dashIndex > parenEnd) {
+                val substance = line.substring(0, parenStart).trim()
+                val dose = line.substring(parenStart + 1, parenEnd)
+                    .replace(" ", "") // Remove spaces in dose
+                val time = line.substring(dashIndex + 3)
+                    .replace(" ago", "")
+                    .trim()
+                "$substance $dose · $time"
+            } else {
+                line
+            }
+        } catch (e: Exception) {
+            line
         }
     }
 }
@@ -403,8 +463,9 @@ class TimelineWidgetWorker(
                 // Get colors from ingestions with companions
                 allRecentIngestionsWithCompanions.forEach { ingestionWithCompanion ->
                     val name = ingestionWithCompanion.ingestion.substanceName
-                    val color = ingestionWithCompanion.substanceCompanion?.color
-                    if (color != null && !colorsMap.containsKey(name)) {
+                    if (!colorsMap.containsKey(name)) {
+                        // Use companion color if available, otherwise default to BLUE (matching graph)
+                        val color = ingestionWithCompanion.substanceCompanion?.color ?: AdaptiveColor.BLUE
                         colorsMap[name] = getAndroidColor(color, isDarkMode)
                     }
                 }
@@ -495,7 +556,7 @@ class TimelineWidgetWorker(
         val mostRecentExperienceId: Int?
     )
 
-    private suspend fun generateTimelineGraph(
+    private fun generateTimelineGraph(
         context: Context,
         ingestions: List<IngestionWithCompanion>,
         appWidgetId: Int,
@@ -503,42 +564,242 @@ class TimelineWidgetWorker(
     ): String? {
         if (ingestions.isEmpty()) return null
 
-        // Map ingestions to DataForOneEffectLine
-        val dataForLines = ingestions.map { ingestionWithCompanion ->
-            val ingestion = ingestionWithCompanion.ingestion
-            val companion = ingestionWithCompanion.substanceCompanion
-            val roaDuration = substanceDurations[ingestion.substanceName]?.get(ingestion.administrationRoute)
-
-            DataForOneEffectLine(
-                substanceName = ingestion.substanceName,
-                route = ingestion.administrationRoute,
-                roaDuration = roaDuration,
-                height = 1f, // Normalized height, will be recalculated by AllTimelinesModel
-                horizontalWeight = 0.5f, // Default weight
-                color = companion?.color ?: AdaptiveColor.BLUE,
-                startTime = ingestion.time,
-                endTime = ingestion.endTime
-            )
-        }
-
-        val model = AllTimelinesModel(
-            dataForLines = dataForLines,
-            dataForRatings = emptyList(),
-            timedNotes = emptyList(),
-            areSubstanceHeightsIndependent = false
-        )
+        // Detect dark mode
+        val nightModeFlags = context.resources.configuration.uiMode and
+                android.content.res.Configuration.UI_MODE_NIGHT_MASK
+        val isDarkMode = nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES
 
         val width = 600
         val height = 120
+        val bitmap = createBitmap(width, height)
+        val canvas = Canvas(bitmap)
 
-        val bitmap = renderTimelineToBitmap(
-            context = context,
-            model = model,
-            timeDisplayOption = TimeDisplayOption.REGULAR,
-            isShowingCurrentTime = true,
-            width = width,
-            height = height
-        )
+        val now = Instant.now()
+        val startTime = now.minus(Duration.ofHours(2))
+        val totalSeconds = Duration.ofHours(5).seconds.toFloat()
+
+        val padding = 15f
+        val labelHeight = 14f
+        val graphWidth = width - 2 * padding
+        val graphHeight = height - 2 * padding - labelHeight
+        val baselineY = height - padding - labelHeight
+
+        val gridColor = if (isDarkMode) {
+            md_theme_dark_primary.toArgb()
+        } else {
+            md_theme_light_primary.toArgb()
+        }
+
+        val gridPaint = Paint().apply {
+            color = Color.argb(60, Color.red(gridColor), Color.green(gridColor), Color.blue(gridColor))
+            strokeWidth = 1f
+            style = Paint.Style.STROKE
+        }
+
+        // Draw vertical hour markers
+        for (i in 0..5) {
+            val x = padding + (graphWidth * i / 5f)
+            canvas.drawLine(x, padding, x, baselineY, gridPaint)
+        }
+
+        // Group ingestions by substance and route for layered rendering
+        val groupedBySubstanceAndRoute = ingestions.groupBy {
+            "${it.ingestion.substanceName}|${it.ingestion.administrationRoute}"
+        }
+
+        // Draw each substance's effect curve using actual duration data
+        groupedBySubstanceAndRoute.forEach { (_, substanceIngestions) ->
+            val companion = substanceIngestions.firstOrNull()?.substanceCompanion
+            val color = companion?.color ?: AdaptiveColor.BLUE
+            val androidColor = getAndroidColor(color, isDarkMode)
+
+            substanceIngestions.forEach { ingestionWithCompanion ->
+                val ingestion = ingestionWithCompanion.ingestion
+                val ingestionTime = ingestion.time
+
+                // Get RoaDuration for this substance and route
+                val roaDuration = substanceDurations[ingestion.substanceName]?.get(ingestion.administrationRoute)
+
+                // Check which phases have data
+                val hasOnset = roaDuration?.onset != null
+                val hasComeup = roaDuration?.comeup != null
+                val hasPeak = roaDuration?.peak != null
+                val hasOffset = roaDuration?.offset != null
+                val hasTotal = roaDuration?.total != null
+                val hasAllPhases = hasOnset && hasComeup && hasPeak && hasOffset
+
+                // Calculate duration phases in seconds with fallback
+                val onsetSec = roaDuration?.onset?.interpolateAtValueInSeconds(0.5f) ?: 1800f
+                val comeupSec = roaDuration?.comeup?.interpolateAtValueInSeconds(0.5f) ?: 2700f
+                val peakSec = roaDuration?.peak?.interpolateAtValueInSeconds(0.5f) ?: 5400f
+                val offsetSec = roaDuration?.offset?.interpolateAtValueInSeconds(0.5f) ?: 5400f
+                val totalSec = roaDuration?.total?.interpolateAtValueInSeconds(0.5f)
+
+                // Calculate x positions (in seconds from graph start)
+                val secondsFromStart = Duration.between(startTime, ingestionTime).seconds.toFloat()
+
+                // Calculate peak height
+                val peakHeight = graphHeight * WidgetConstants.PEAK_HEIGHT_FRACTION
+
+                // Convert seconds to pixels
+                fun secToPixel(sec: Float): Float = padding + (sec / totalSeconds) * graphWidth
+
+                // Determine if we should use dotted lines (missing some phases)
+                val useDottedLine = !hasAllPhases && hasTotal
+
+                // Create stroke paint
+                val strokePaint = Paint().apply {
+                    this.color = androidColor
+                    style = Paint.Style.STROKE
+                    strokeWidth = WidgetConstants.STROKE_WIDTH
+                    isAntiAlias = true
+                    strokeCap = Paint.Cap.ROUND
+                    strokeJoin = Paint.Join.ROUND
+                    if (useDottedLine) {
+                        // Dotted line for missing phases
+                        val dashLength = WidgetConstants.STROKE_WIDTH * 4
+                        val gapLength = WidgetConstants.STROKE_WIDTH * 3
+                        pathEffect = android.graphics.DashPathEffect(floatArrayOf(dashLength, gapLength), 0f)
+                    } else {
+                        pathEffect = android.graphics.CornerPathEffect(WidgetConstants.CORNER_PATH_EFFECT_RADIUS)
+                    }
+                }
+
+                val fillPaint = Paint().apply {
+                    this.color = Color.argb(
+                        (shapeAlpha * 255).toInt(),
+                        Color.red(androidColor),
+                        Color.green(androidColor),
+                        Color.blue(androidColor)
+                    )
+                    style = Paint.Style.FILL
+                    isAntiAlias = true
+                }
+
+                // Build the timeline points based on available data
+                val timelinePoints = mutableListOf<Pair<Float, Float>>()
+                val ingestionX = secondsFromStart
+
+                if (useDottedLine && totalSec != null) {
+                    // Use simplified curve when we only have total duration
+                    val peakX = ingestionX + totalSec / 2
+                    val endX = ingestionX + totalSec
+                    timelinePoints.add(Pair(ingestionX, 0f))
+                    timelinePoints.add(Pair(peakX, 1f))
+                    timelinePoints.add(Pair(endX, 0f))
+                } else {
+                    // Use full timeline shape
+                    val onsetEndX = ingestionX + onsetSec
+                    val comeupEndX = onsetEndX + comeupSec
+                    val peakEndX = comeupEndX + peakSec
+                    val offsetEndX = peakEndX + offsetSec
+                    timelinePoints.add(Pair(ingestionX, 0f))
+                    timelinePoints.add(Pair(onsetEndX, 0f))
+                    timelinePoints.add(Pair(comeupEndX, 1f))
+                    timelinePoints.add(Pair(peakEndX, 1f))
+                    timelinePoints.add(Pair(offsetEndX, 0f))
+                }
+
+                // Filter to visible window and build path
+                val visibleStartSec = 0f
+                val visibleEndSec = totalSeconds
+
+                val path = Path()
+                var pathStarted = false
+                var firstVisibleX = padding
+                var lastVisibleX = padding
+
+                for (i in 0 until timelinePoints.size) {
+                    val (currentSec, currentHeight) = timelinePoints[i]
+                    val currentPixelX = secToPixel(currentSec)
+                    val currentY = baselineY - (currentHeight * peakHeight)
+
+                    if (currentSec >= visibleStartSec && currentSec <= visibleEndSec) {
+                        if (!pathStarted) {
+                            // Check if we need to interpolate entry point
+                            if (i > 0) {
+                                val (prevSec, prevHeight) = timelinePoints[i - 1]
+                                if (prevSec < visibleStartSec) {
+                                    val t = (visibleStartSec - prevSec) / (currentSec - prevSec)
+                                    val entryHeight = prevHeight + t * (currentHeight - prevHeight)
+                                    val entryY = baselineY - (entryHeight * peakHeight)
+                                    path.moveTo(padding, entryY)
+                                    firstVisibleX = padding
+                                } else {
+                                    path.moveTo(currentPixelX.coerceIn(padding, width - padding), currentY)
+                                    firstVisibleX = currentPixelX.coerceIn(padding, width - padding)
+                                }
+                            } else {
+                                path.moveTo(currentPixelX.coerceIn(padding, width - padding), currentY)
+                                firstVisibleX = currentPixelX.coerceIn(padding, width - padding)
+                            }
+                            pathStarted = true
+                        } else {
+                            path.lineTo(currentPixelX.coerceIn(padding, width - padding), currentY)
+                        }
+                        lastVisibleX = currentPixelX.coerceIn(padding, width - padding)
+                    } else if (currentSec > visibleEndSec && pathStarted) {
+                        // Interpolate exit point
+                        if (i > 0) {
+                            val (prevSec, prevHeight) = timelinePoints[i - 1]
+                            if (prevSec < visibleEndSec) {
+                                val t = (visibleEndSec - prevSec) / (currentSec - prevSec)
+                                val exitHeight = prevHeight + t * (currentHeight - prevHeight)
+                                val exitY = baselineY - (exitHeight * peakHeight)
+                                path.lineTo(width - padding, exitY)
+                                lastVisibleX = width - padding
+                            }
+                        }
+                        break
+                    }
+                }
+
+                if (pathStarted) {
+                    // Draw stroke
+                    canvas.drawPath(path, strokePaint)
+
+                    // Create filled path (close it for fill)
+                    val fillPath = Path(path)
+                    fillPath.lineTo(lastVisibleX, baselineY + strokePaint.strokeWidth / 2)
+                    fillPath.lineTo(firstVisibleX, baselineY + strokePaint.strokeWidth / 2)
+                    fillPath.close()
+                    canvas.drawPath(fillPath, fillPaint)
+
+                    // Draw ingestion dot at the start point if visible
+                    if (secondsFromStart >= 0 && secondsFromStart <= totalSeconds) {
+                        val dotPaint = Paint().apply {
+                            this.color = androidColor
+                            style = Paint.Style.FILL
+                            isAntiAlias = true
+                        }
+                        val dotX = secToPixel(secondsFromStart).coerceIn(padding, width - padding)
+                        canvas.drawCircle(dotX, baselineY, WidgetConstants.INGESTION_DOT_RADIUS, dotPaint)
+                    }
+                }
+            }
+        }
+
+        // Draw current time indicator at the correct position
+        val nowSecondsFromStart = Duration.between(startTime, now).seconds.toFloat()
+        val currentTimeX = padding + (nowSecondsFromStart / totalSeconds) * graphWidth
+        val nowPaint = Paint().apply {
+            color = if (isDarkMode) Color.WHITE else Color.BLACK
+            strokeWidth = 3f
+            style = Paint.Style.STROKE
+            strokeCap = Paint.Cap.ROUND
+        }
+        canvas.drawLine(currentTimeX, padding, currentTimeX, baselineY, nowPaint)
+
+        // Draw time labels
+        val textPaint = Paint().apply {
+            color = if (isDarkMode) Color.argb(180, 255, 255, 255) else Color.argb(180, 0, 0, 0)
+            textSize = 20f
+            textAlign = Paint.Align.CENTER
+            isAntiAlias = true
+        }
+        canvas.drawText("-2h", padding + 20, height - 3f, textPaint)
+        canvas.drawText("now", currentTimeX, height - 3f, textPaint)
+        canvas.drawText("+3h", width - padding - 15, height - 3f, textPaint)
 
         // Save bitmap to file
         val file = File(context.cacheDir, "widget_timeline_$appWidgetId.png")
@@ -632,10 +893,15 @@ class TimelineWidgetWorker(
     @RequiresApi(Build.VERSION_CODES.S)
     private fun formatRelativeTime(time: Instant, now: Instant): String {
         val duration = Duration.between(time, now)
+        val days = duration.toDays()
+        val hours = duration.toHours() % 24
+        val minutes = duration.toMinutes() % 60
+        val seconds = duration.seconds % 60
+        
         return when {
-            duration.toDays() > 0 -> "${duration.toDays()}d ${(duration.minusDays(duration.toHours())).toHours()}h ago"
-            duration.toHours() > 0 -> "${duration.toHours()}h ${(duration.minusHours(duration.toHours())).toMinutes()}m ago"
-            duration.toMinutes() > 0 -> "${duration.toMinutes()}m ${(duration.minusMinutes(duration.toMinutes())).toSeconds()}s ago"
+            days > 0 -> "${days}d ${hours}h ago"
+            hours > 0 -> "${hours}h ${minutes}m ago"
+            minutes > 0 -> "${minutes}m ${seconds}s ago"
             else -> "just now"
         }
     }

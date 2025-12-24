@@ -19,4 +19,5 @@
 <resources>
     <string name="app_name">FreakLog</string>
     <string name="widget_description">Freak Log Timeline widget</string>
+    <string name="heatmap_widget_description">Freak Log Activity Heatmap</string>
 </resources>
