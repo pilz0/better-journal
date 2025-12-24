@@ -4,19 +4,14 @@ name: Build on self-hosted
 on:
   push:
     branches: [ "main" ]
-env:
-  main_project_module: 'app'
 jobs:
   build:
     runs-on: self-hosted
     steps:
     - uses: actions/checkout@v5
 
-    - name: Load JDK
-      run: nix develop .
-
     - name: build app
-      run: nix run github:tadfisher/gradle2nix/v2 -- assembleRelease
+      run: nix run github:tadfisher/gradle2nix/v2 -- assembleRelease --option sandbox false
 
     - uses: actions/upload-artifact@v4
       with:
