@@ -4,23 +4,20 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("com.google.dagger.hilt.android")
     id("androidx.room")
-    kotlin("plugin.serialization") version "2.0.20"
-    id("kotlin-kapt") // this needs to be on bottom
-}
-dependencyLocking {
-    lockAllConfigurations()
+    kotlin("plugin.serialization") version "2.0.21"
+    id("com.google.devtools.ksp")
 }
 
 android {
     namespace = "foo.pilz.freaklog"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "foo.pilz.freaklog"
-        minSdk = 26
-        targetSdk = 35
+        minSdk = 31
+        targetSdk = 36
         versionCode = 62
-        versionName = "11.11"
+        versionName = "11.12"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -43,6 +40,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
         jvmTarget = "17"
@@ -65,12 +63,12 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
 
     implementation(libs.hilt.android)
-    kapt(libs.hilt.android.compiler)
+    ksp(libs.hilt.android.compiler)
 
     implementation(libs.androidx.navigation.compose)
 
     implementation(libs.androidx.room.runtime)
-    kapt(libs.androidx.room.compiler)
+    ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
 
     implementation(libs.kotlinx.coroutines.core)
@@ -85,10 +83,9 @@ dependencies {
 
     implementation(libs.androidx.core.splashscreen)
 
-    implementation("androidx.glance:glance:1.1.0")
-    implementation("androidx.glance:glance-appwidget:1.1.0")
-    implementation("androidx.glance:glance-material3:1.1.0")
-    // optional base: implementation("androidx.glance:glance:1.1.1")
+    implementation(libs.androidx.glance)
+    implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.glance.material3)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -97,8 +94,6 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-}
 
-kapt {
-    correctErrorTypes = true
+    coreLibraryDesugaring(libs.android.desugarJdkLibs)
 }

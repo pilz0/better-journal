@@ -8,9 +8,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -19,7 +17,6 @@ import androidx.core.graphics.createBitmap
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.glance.Button
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -49,7 +46,6 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
-import androidx.glance.layout.width
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
@@ -312,7 +308,7 @@ class MyAppWidget : GlanceAppWidget() {
                 }
             }
             result
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             emptyMap()
         }
     }
@@ -322,11 +318,11 @@ class MyAppWidget : GlanceAppWidget() {
         return try {
             val parenIndex = line.indexOf('(')
             if (parenIndex > 0) {
-                line.substring(0, parenIndex).trim()
+                line.take(parenIndex).trim()
             } else {
                 null
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
@@ -341,9 +337,9 @@ class MyAppWidget : GlanceAppWidget() {
             val parenStart = line.indexOf('(')
             val parenEnd = line.indexOf(')')
             val dashIndex = line.indexOf(" - ")
-            
-            if (parenStart > 0 && parenEnd > parenStart && dashIndex > parenEnd) {
-                val substance = line.substring(0, parenStart).trim()
+
+            if (parenStart in 1..<parenEnd && dashIndex > parenEnd) {
+                val substance = line.take(parenStart).trim()
                 val dose = line.substring(parenStart + 1, parenEnd)
                     .replace(" ", "") // Remove spaces in dose
                 val time = line.substring(dashIndex + 3)
@@ -353,7 +349,7 @@ class MyAppWidget : GlanceAppWidget() {
             } else {
                 line
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             line
         }
     }
@@ -387,7 +383,6 @@ class TimelineWidgetWorker(
         private const val TAG = "TimelineWidgetWorker"
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
     override suspend fun doWork(): Result {
         val appWidgetId = inputData.getInt(WorkerInput.APP_WIDGET_ID, -1)
         if (appWidgetId == -1) return Result.failure()
@@ -887,7 +882,6 @@ class TimelineWidgetWorker(
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
     private fun formatRelativeTime(time: Instant, now: Instant): String {
         val duration = Duration.between(time, now)
         val days = duration.toDays()
