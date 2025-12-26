@@ -6,7 +6,7 @@
     flake-utils.url = "github:numtide/flake-utils";
     gradle2nix = {
       url = "github:tadfisher/gradle2nix/v2";
-      inputs.nixpkgs.follows = "nixpkgs"; # Reduce duplication
+      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
@@ -20,7 +20,21 @@
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
+        pkgs = import nixpkgs {
+          inherit system;
+          config = {
+            allowUnfree = true;
+            android_sdk.accept_license = true;
+          };
+        };
+
+        androidSdk = pkgs.androidenv.composeAndroidPackages {
+          cmdLineToolsVersion = "9.0"; # Matches your previous intent
+          buildToolsVersions = [ "34.0.0" ];
+          platformVersions = [ "36" "35" "34" "33" "31" ];
+          abiVersions = [ "x86_64" ];
+          includeEmulator = false;
+        };
       in
       {
         packages = {
@@ -30,15 +44,40 @@
             version = "11.12";
             lockFile = ./gradle.lock;
             src = ./.;
+            gradleBuildFlags = [ "assembleRelease" ];
+            ANDROID_HOME = "${androidSdk.androidsdk}/libexec/android-sdk";
+            nativeBuildInputs = [
+              jetbrains.jdk
+              androidSdk.androidsdk
+            ];
+            overrides = {
+              "com.android.tools.build:aapt2:8.7.3-12006047" = {
+                "aapt2-8.7.3-12006047-linux.jar" = src: pkgs.runCommandCC src.name {
+                  nativeBuildInputs = [ pkgs.jdk pkgs.libgcc pkgs.autoPatchelfHook ];
+                  dontAutoPatchelf = true;
+                } ''
+                  cp ${src} aapt2.jar
+                  jar xf aapt2.jar aapt2
+                  chmod +x aapt2
+                  autoPatchelf aapt2
+                  jar uf aapt2.jar aapt2
+                  cp aapt2.jar $out
+                '';
+              };
+            };
+            installPhase = ''
+              mkdir -p $out/bin
+              cp app/build/outputs/apk/release/*.apk $out/bin/
+            '';
           };
         };
 
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             jetbrains.jdk
+            androidSdk.androidsdk
           ];
         };
-
         formatter = pkgs.nixpkgs-fmt;
       }
     );

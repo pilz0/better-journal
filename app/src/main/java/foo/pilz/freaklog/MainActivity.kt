@@ -48,7 +48,7 @@ class MainActivity : ComponentActivity() {
     private var shouldNavigateToExperienceId by mutableStateOf<Int?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+      //  installSplashScreen()
         super.onCreate(savedInstanceState)
 
         handleIntent(intent)

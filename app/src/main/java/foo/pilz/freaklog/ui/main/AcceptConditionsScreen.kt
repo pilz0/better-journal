@@ -69,10 +69,10 @@ fun AcceptConditionsScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            var checkedState0 by remember { mutableStateOf(false) }
-            var checkedState1 by remember { mutableStateOf(false) }
-            var checkedState2 by remember { mutableStateOf(false) }
-            var checkedState3 by remember { mutableStateOf(false) }
+            var checkedState0 by remember { mutableStateOf(true) }
+            var checkedState1 by remember { mutableStateOf(true) }
+            var checkedState2 by remember { mutableStateOf(true) }
+            var checkedState3 by remember { mutableStateOf(true) }
             val allIsChecked =
                 checkedState0 && checkedState1 && checkedState2 && checkedState3
             val painter =

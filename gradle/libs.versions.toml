@@ -8,9 +8,7 @@ coreSplashscreen = "1.0.1"
 datastorePreferences = "1.1.1"
 espressoCore = "3.6.1"
 glanceAppwidget = "1.1.0"
-hiltAndroid = "2.52"
 hiltAndroidCompiler = "2.52"
-hiltAndroidCompilerVersion = "2.52"
 hiltNavigationCompose = "1.2.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -57,8 +55,6 @@ androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version
 compose = { module = "com.kizitonwose.calendar:compose", version.ref = "compose" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroidCompiler" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltAndroidCompiler" }
-hilt-android-compiler-v2571 = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltAndroidCompilerVersion" }
-hilt-android-v2571 = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
 junit = { module = "junit:junit", version.ref = "junit" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
