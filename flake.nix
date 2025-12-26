@@ -47,7 +47,7 @@
             gradleBuildFlags = [ "assembleRelease" ];
             ANDROID_HOME = "${androidSdk.androidsdk}/libexec/android-sdk";
             nativeBuildInputs = [
-              jetbrains.jdk
+              pkgs.jetbrains.jdk
               androidSdk.androidsdk
             ];
             overrides = {
