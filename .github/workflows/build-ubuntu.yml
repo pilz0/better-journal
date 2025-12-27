@@ -1,5 +1,5 @@
 ---
-name: Build on ubuntu
+name: Build and sign APK
 on:
   push:
   pull_request:
@@ -24,6 +24,7 @@ jobs:
         if-no-files-found: error
   sign:
     needs: build
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Download unsigned APK
@@ -76,8 +77,9 @@ jobs:
           fail_on_unmatched_files: true
           make_latest: true
 
-  upload_to_s3:
+  upload:
     needs: [ sign, build ]
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Download APKs
