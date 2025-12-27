@@ -171,29 +171,11 @@ class EditIngestionViewModel @Inject constructor(
 
     // Check if site selection is relevant for the current administration route
     val showSiteSelection: Boolean
-        get() = ingestion?.let {
-            when (it.administrationRoute) {
-                foo.pilz.freaklog.data.substances.AdministrationRoute.INSUFFLATED,
-                foo.pilz.freaklog.data.substances.AdministrationRoute.INTRAVENOUS,
-                foo.pilz.freaklog.data.substances.AdministrationRoute.INTRAMUSCULAR,
-                foo.pilz.freaklog.data.substances.AdministrationRoute.SUBCUTANEOUS -> true
-                else -> false
-            }
-        } ?: false
+        get() = ingestion?.administrationRoute?.showSiteSelection ?: false
 
     // Get the appropriate site options for the current administration route
     val siteOptions: List<String>
-        get() = ingestion?.let {
-            when (it.administrationRoute) {
-                foo.pilz.freaklog.data.substances.AdministrationRoute.INSUFFLATED -> 
-                    listOf("Left nostril", "Right nostril", "Both nostrils")
-                foo.pilz.freaklog.data.substances.AdministrationRoute.INTRAVENOUS,
-                foo.pilz.freaklog.data.substances.AdministrationRoute.INTRAMUSCULAR,
-                foo.pilz.freaklog.data.substances.AdministrationRoute.SUBCUTANEOUS -> 
-                    listOf("Left arm", "Right arm", "Left leg", "Right leg", "Left hand", "Right hand")
-                else -> emptyList()
-            }
-        } ?: emptyList()
+        get() = ingestion?.administrationRoute?.siteOptions ?: emptyList()
 
     fun toggleIsKnown() {
         isKnown = isKnown.not()

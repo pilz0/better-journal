@@ -137,30 +137,11 @@ class FinishIngestionScreenViewModel @Inject constructor(
 
     // Check if site selection is relevant for the current administration route
     val showSiteSelection: Boolean
-        get() = when (_administrationRoute) {
-            AdministrationRoute.INSUFFLATED,
-            AdministrationRoute.INTRAVENOUS,
-            AdministrationRoute.INTRAMUSCULAR,
-            AdministrationRoute.SUBCUTANEOUS -> true
-            else -> false
-        }
+        get() = _administrationRoute.showSiteSelection
 
     // Get the appropriate site options for the current administration route
     val siteOptions: List<String>
-        get() = when (_administrationRoute) {
-            AdministrationRoute.INSUFFLATED -> listOf("Left nostril", "Right nostril", "Both nostrils")
-            AdministrationRoute.INTRAVENOUS,
-            AdministrationRoute.INTRAMUSCULAR,
-            AdministrationRoute.SUBCUTANEOUS -> listOf(
-                "Left arm",
-                "Right arm",
-                "Left leg",
-                "Right leg",
-                "Left hand",
-                "Right hand"
-            )
-            else -> emptyList()
-        }
+        get() = _administrationRoute.siteOptions
 
     private val companionFlow = experienceRepo.getAllSubstanceCompanionsFlow()
 
