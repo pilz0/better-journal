@@ -241,42 +241,42 @@ class MyAppWidget : GlanceAppWidget() {
                             }
                         }
 
-                    if (size.width >= MEDIUM_RECTANGLE.width && size.height >= MEDIUM_RECTANGLE.height) {
-                    Spacer(modifier = GlanceModifier.height(4.dp))
-                        LazyColumn {
-                            ingestionsText.split("\n").take(20).forEach { line ->
-                                item {
-                                    val substanceName = extractSubstanceName(line)
-                                    val color = substanceColors[substanceName]
-                                    // Create a condensed version of the line
-                                    val condensedLine = condenseIngestionLine(line)
-                                    if (color != null) {
-                                        Text(
-                                            text = condensedLine,
-                                            style = TextStyle(
-                                                fontSize = 16.sp,
-                                                color = androidx.glance.unit.ColorProvider(
-                                                    androidx.compose.ui.graphics.Color(color)
-                                                )
-                                            ),
-                                            maxLines = 1
-                                        )
-                                    } else {
-                                        Text(
-                                            text = condensedLine,
-                                            style = TextStyle(
-                                                fontSize = 12.sp,
-                                                color = GlanceTheme.colors.onBackground
-                                            ),
-                                            maxLines = 1
-                                        )
+                        if (size.width >= MEDIUM_RECTANGLE.width && size.height >= MEDIUM_RECTANGLE.height) {
+                            Spacer(modifier = GlanceModifier.height(4.dp))
+                            LazyColumn {
+                                ingestionsText.split("\n").take(20).forEach { line ->
+                                    item {
+                                        val substanceName = extractSubstanceName(line)
+                                        val color = substanceColors[substanceName]
+                                        // Create a condensed version of the line
+                                        val condensedLine = condenseIngestionLine(line)
+                                        if (color != null) {
+                                            Text(
+                                                text = condensedLine,
+                                                style = TextStyle(
+                                                    fontSize = 16.sp,
+                                                    color = androidx.glance.unit.ColorProvider(
+                                                        androidx.compose.ui.graphics.Color(color)
+                                                    )
+                                                ),
+                                                maxLines = 1
+                                            )
+                                        } else {
+                                            Text(
+                                                text = condensedLine,
+                                                style = TextStyle(
+                                                    fontSize = 16.sp,
+                                                    color = GlanceTheme.colors.onBackground
+                                                ),
+                                                maxLines = 1
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                        }
-                    }
+                }
                 }
             }
         }

@@ -137,7 +137,11 @@ fun EditIngestionScreen(
             viewModel.saveClonedIngestionTime()
             navigateBack()
             navigateToAddIngestion()
-        }
+        },
+        showSiteSelection = viewModel.showSiteSelection,
+        siteOptions = viewModel.siteOptions,
+        administrationSite = viewModel.administrationSite,
+        onChangeOfAdministrationSite = viewModel::onChangeAdministrationSite
     )
 }
 
@@ -176,7 +180,11 @@ fun EditIngestionScreenPreview() {
             customUnit = null,
             onCustomUnitChange = {},
             otherCustomUnits = emptyList(),
-            addIngestionWithClonedTime = {}
+            addIngestionWithClonedTime = {},
+            showSiteSelection = true,
+            siteOptions = listOf("Left nostril", "Right nostril", "Both nostrils"),
+            administrationSite = "Left nostril",
+            onChangeOfAdministrationSite = {}
         )
     }
 }
@@ -214,7 +222,11 @@ fun EditIngestionScreen(
     customUnit: CustomUnit?,
     onCustomUnitChange: (CustomUnit?) -> Unit,
     otherCustomUnits: List<CustomUnit>,
-    addIngestionWithClonedTime: () -> Unit
+    addIngestionWithClonedTime: () -> Unit,
+    showSiteSelection: Boolean,
+    siteOptions: List<String>,
+    administrationSite: String,
+    onChangeOfAdministrationSite: (String) -> Unit
 ) {
     var isPresentingBottomSheet by rememberSaveable { mutableStateOf(false) }
     val skipPartiallyExpanded by remember { mutableStateOf(false) }
@@ -528,6 +540,43 @@ fun EditIngestionScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                         )
+                    }
+                }
+            }
+            if (showSiteSelection) {
+                CardWithTitle(title = "Administration site") {
+                    var isShowingDropDownMenu by remember { mutableStateOf(false) }
+                    Box(
+                        modifier = Modifier
+                            .wrapContentSize(Alignment.TopEnd)
+                    ) {
+                        OutlinedButton(
+                            onClick = { isShowingDropDownMenu = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(text = if (administrationSite.isNotBlank()) administrationSite else "Select site (optional)")
+                        }
+                        DropdownMenu(
+                            expanded = isShowingDropDownMenu,
+                            onDismissRequest = { isShowingDropDownMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("None") },
+                                onClick = {
+                                    onChangeOfAdministrationSite("")
+                                    isShowingDropDownMenu = false
+                                }
+                            )
+                            siteOptions.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option) },
+                                    onClick = {
+                                        onChangeOfAdministrationSite(option)
+                                        isShowingDropDownMenu = false
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }

@@ -41,5 +41,6 @@ data class Ingestion(
     var stomachFullness: StomachFullness?,
     var consumerName: String?,
     var customUnitId: Int?,
-    var webhookMessageId: String? = null
+    var webhookMessageId: String? = null,
+    var administrationSite: String? = null
 )

@@ -100,6 +100,7 @@ class FinishIngestionScreenViewModel @Inject constructor(
     var isShowingColorPicker by mutableStateOf(false)
     var selectedColor by mutableStateOf(AdaptiveColor.BLUE)
     var note by mutableStateOf("")
+    var administrationSite by mutableStateOf("")
     private var hasTitleBeenChanged = false
 
     fun changeTitle(newTitle: String) {
@@ -111,6 +112,10 @@ class FinishIngestionScreenViewModel @Inject constructor(
         consumerName = newName
     }
 
+    fun changeAdministrationSite(newSite: String) {
+        administrationSite = newSite
+    }
+
     val previousNotesFlow: StateFlow<List<String>> =
         experienceRepo.getSortedIngestionsFlow(substanceName, limit = 10).map { list ->
             list.mapNotNull { it.notes }.filter { it.isNotBlank() }.distinct()
@@ -120,13 +125,42 @@ class FinishIngestionScreenViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000)
         )
 
-    private val administrationRoute: AdministrationRoute
+    private val _administrationRoute: AdministrationRoute
+    val administrationRoute: AdministrationRoute
+        get() = _administrationRoute
     private val dose: Double?
     private val units: String?
     private val isEstimate: Boolean
     private val estimatedDoseStandardDeviation: Double?
     private val customUnitId: Int?
     private var substanceCompanion: SubstanceCompanion? = null
+
+    // Check if site selection is relevant for the current administration route
+    val showSiteSelection: Boolean
+        get() = when (_administrationRoute) {
+            AdministrationRoute.INSUFFLATED,
+            AdministrationRoute.INTRAVENOUS,
+            AdministrationRoute.INTRAMUSCULAR,
+            AdministrationRoute.SUBCUTANEOUS -> true
+            else -> false
+        }
+
+    // Get the appropriate site options for the current administration route
+    val siteOptions: List<String>
+        get() = when (_administrationRoute) {
+            AdministrationRoute.INSUFFLATED -> listOf("Left nostril", "Right nostril", "Both nostrils")
+            AdministrationRoute.INTRAVENOUS,
+            AdministrationRoute.INTRAMUSCULAR,
+            AdministrationRoute.SUBCUTANEOUS -> listOf(
+                "Left arm",
+                "Right arm",
+                "Left leg",
+                "Right leg",
+                "Left hand",
+                "Right hand"
+            )
+            else -> emptyList()
+        }
 
     private val companionFlow = experienceRepo.getAllSubstanceCompanionsFlow()
 
@@ -158,7 +192,7 @@ class FinishIngestionScreenViewModel @Inject constructor(
     init {
         val finishIngestionRoute = state.toRoute<FinishIngestionRoute>()
         substanceName = finishIngestionRoute.substanceName
-        administrationRoute = finishIngestionRoute.administrationRoute
+        _administrationRoute = finishIngestionRoute.administrationRoute
         dose = finishIngestionRoute.dose
         estimatedDoseStandardDeviation = finishIngestionRoute.estimatedDoseStandardDeviation
         customUnitId = finishIngestionRoute.customUnitId
@@ -332,7 +366,8 @@ class FinishIngestionScreenViewModel @Inject constructor(
             consumerName = consumerName.ifBlank {
                 null
             },
-            customUnitId = customUnitId
+            customUnitId = customUnitId,
+            administrationSite = administrationSite.ifBlank { null }
         )
     }
 
@@ -362,7 +397,7 @@ class FinishIngestionScreenViewModel @Inject constructor(
                 units = ingestion.units,
                 isEstimate = ingestion.isDoseAnEstimate,
                 route = route,
-                site = null, // Note: Site/injection location is not currently captured in Android ingestion entity
+                site = ingestion.administrationSite,
                 note = ingestion.notes,
                 template = webhookTemplate,
                 isHyperlinked = true

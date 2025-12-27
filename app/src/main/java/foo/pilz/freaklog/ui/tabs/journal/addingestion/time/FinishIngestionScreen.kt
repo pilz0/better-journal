@@ -122,7 +122,11 @@ fun FinishIngestionScreen(
         isEnteredTitleOk = viewModel.isEnteredTitleOk,
         consumerName = viewModel.consumerName,
         onChangeOfConsumerName = viewModel::changeConsumerName,
-        consumerNamesSorted = viewModel.sortedConsumerNamesFlow.collectAsState().value
+        consumerNamesSorted = viewModel.sortedConsumerNamesFlow.collectAsState().value,
+        showSiteSelection = viewModel.showSiteSelection,
+        siteOptions = viewModel.siteOptions,
+        administrationSite = viewModel.administrationSite,
+        onChangeOfAdministrationSite = viewModel::changeAdministrationSite
     )
 }
 
@@ -162,7 +166,11 @@ fun FinishIngestionScreenPreview() {
         isEnteredTitleOk = true,
         consumerName = "",
         onChangeOfConsumerName = {},
-        consumerNamesSorted = listOf("Isaak", "Marc", "Eve")
+        consumerNamesSorted = listOf("Isaak", "Marc", "Eve"),
+        showSiteSelection = true,
+        siteOptions = listOf("Left nostril", "Right nostril", "Both nostrils"),
+        administrationSite = "",
+        onChangeOfAdministrationSite = {}
     )
 }
 
@@ -194,7 +202,11 @@ fun FinishIngestionScreen(
     isEnteredTitleOk: Boolean,
     consumerName: String,
     onChangeOfConsumerName: (String) -> Unit,
-    consumerNamesSorted: List<String>
+    consumerNamesSorted: List<String>,
+    showSiteSelection: Boolean,
+    siteOptions: List<String>,
+    administrationSite: String,
+    onChangeOfAdministrationSite: (String) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
     Scaffold(
@@ -385,6 +397,43 @@ fun FinishIngestionScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                             )
+                        }
+                    }
+                }
+                if (showSiteSelection) {
+                    CardWithTitle(title = "Administration site") {
+                        var isShowingDropDownMenu by remember { mutableStateOf(false) }
+                        Box(
+                            modifier = Modifier
+                                .wrapContentSize(Alignment.TopEnd)
+                        ) {
+                            OutlinedButton(
+                                onClick = { isShowingDropDownMenu = true },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(text = if (administrationSite.isNotBlank()) administrationSite else "Select site (optional)")
+                            }
+                            DropdownMenu(
+                                expanded = isShowingDropDownMenu,
+                                onDismissRequest = { isShowingDropDownMenu = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("None") },
+                                    onClick = {
+                                        onChangeOfAdministrationSite("")
+                                        isShowingDropDownMenu = false
+                                    }
+                                )
+                                siteOptions.forEach { option ->
+                                    DropdownMenuItem(
+                                        text = { Text(option) },
+                                        onClick = {
+                                            onChangeOfAdministrationSite(option)
+                                            isShowingDropDownMenu = false
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
