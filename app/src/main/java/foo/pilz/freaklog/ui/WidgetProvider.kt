@@ -119,7 +119,7 @@ class MyAppWidget : GlanceAppWidget() {
     companion object {
         private val SMALL_RECTANGLE = DpSize(250.dp, 50.dp)
         private val MEDIUM_RECTANGLE = DpSize(250.dp, 200.dp)
-        private val BIG_RECTANGLE = DpSize(250.dp, 200.dp)
+        private val BIG_RECTANGLE = DpSize(350.dp, 300.dp)
     }
 
     override val sizeMode = SizeMode.Responsive(
@@ -149,7 +149,7 @@ class MyAppWidget : GlanceAppWidget() {
 
             // Create intent to open the app with add ingestion action
             val addIngestionIntent = Intent(context, MainActivity::class.java).apply {
-                action = ".ADD_INGESTION"
+                action = "${context.packageName}.ADD_INGESTION"
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
 
