@@ -100,6 +100,13 @@ fun IngestionRow(
                                 append(" = unknown dose ${ingestion.administrationRoute.displayText.lowercase()}")
                             }
                         }
+                        if (ingestion.administrationSite != null)
+                        {
+                            append(" (" + ingestion.administrationSite + ")")
+                        }
+                        else {
+                            append("")
+                        }
                     }
                 }
                 Text(text = text, style = MaterialTheme.typography.titleSmall)

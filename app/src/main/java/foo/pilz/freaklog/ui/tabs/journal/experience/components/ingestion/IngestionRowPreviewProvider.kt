@@ -37,7 +37,7 @@ class IngestionRowPreviewProvider : PreviewParameterProvider<IngestionElement> {
                     substanceName = "MDMA",
                     time = Instant.now(),
                     endTime = null,
-                    administrationRoute = AdministrationRoute.ORAL,
+                    administrationRoute = AdministrationRoute.INSUFFLATED,
                     dose = 90.0,
                     isDoseAnEstimate = false,
                     estimatedDoseStandardDeviation = null,
@@ -46,7 +46,8 @@ class IngestionRowPreviewProvider : PreviewParameterProvider<IngestionElement> {
                     notes = "This is a very long note which I wrote to see how it looks like if the note spans more than one line in the ingestion row.",
                     stomachFullness = StomachFullness.EMPTY,
                     consumerName = null,
-                    customUnitId = null
+                    customUnitId = null,
+                    administrationSite = "right nostril"
                 ),
                 substanceCompanion = SubstanceCompanion(
                     substanceName = "MDMA",

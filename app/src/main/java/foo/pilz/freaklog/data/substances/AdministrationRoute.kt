@@ -195,12 +195,16 @@ Many substances can be inhaled to achieve an altered state of consciousness, how
 
         val NOSTRIL_OPTIONS = listOf("Left nostril", "Right nostril", "Both nostrils")
         val INJECTION_SITE_OPTIONS = listOf(
-            "Left arm",
-            "Right arm",
-            "Left leg",
-            "Right leg",
-            "Left hand",
-            "Right hand"
+            "Left Median Cubital",
+            "Left Cephalic",
+            "Left Basilic",
+            "Left Dorsal Hand",
+            "Left Median Antebrachial",
+            "Right Median Cubital",
+            "Right Cephalic",
+            "Right Basilic",
+            "Right Dorsal Hand",
+            "Right Median Antebrachial",
         )
     }
 }
