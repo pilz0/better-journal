@@ -86,6 +86,7 @@ import foo.pilz.freaklog.ui.YOU
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.StandardDeviationExplanation
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.IngestionTimePickerOption
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.TimePointOrRangePicker
+import foo.pilz.freaklog.ui.tabs.journal.experience.components.AdministrationSitePicker
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
 import foo.pilz.freaklog.ui.theme.JournalTheme
 import foo.pilz.freaklog.ui.theme.horizontalPadding
@@ -545,39 +546,11 @@ fun EditIngestionScreen(
             }
             if (showSiteSelection) {
                 CardWithTitle(title = "Administration site") {
-                    var isShowingDropDownMenu by remember { mutableStateOf(false) }
-                    Box(
-                        modifier = Modifier
-                            .wrapContentSize(Alignment.TopEnd)
-                    ) {
-                        OutlinedButton(
-                            onClick = { isShowingDropDownMenu = true },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(text = if (administrationSite.isNotBlank()) administrationSite else "Select site (optional)")
-                        }
-                        DropdownMenu(
-                            expanded = isShowingDropDownMenu,
-                            onDismissRequest = { isShowingDropDownMenu = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("None") },
-                                onClick = {
-                                    onChangeOfAdministrationSite("")
-                                    isShowingDropDownMenu = false
-                                }
-                            )
-                            siteOptions.forEach { option ->
-                                DropdownMenuItem(
-                                    text = { Text(option) },
-                                    onClick = {
-                                        onChangeOfAdministrationSite(option)
-                                        isShowingDropDownMenu = false
-                                    }
-                                )
-                            }
-                        }
-                    }
+                    AdministrationSitePicker(
+                        administrationSite = administrationSite,
+                        siteOptions = siteOptions,
+                        onSiteChange = onChangeOfAdministrationSite
+                    )
                 }
             }
             ElevatedCard(

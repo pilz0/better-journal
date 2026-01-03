@@ -464,17 +464,41 @@ class TimelineWidgetWorker(
                 }
 
                 val lines = recentIngestions.map { ingestion ->
-                    val timeText = formatRelativeTime(ingestion.time, now)
-                    val doseText = ingestion.dose?.let { dose ->
-                        val doseFormatted = if (dose == dose.toLong().toDouble()) {
-                            dose.toLong().toString()
-                        } else {
-                            dose.toString()
-                        }
-                        val units = ingestion.units
-                        if (units.isNullOrEmpty()) doseFormatted else "$doseFormatted $units"
-                    } ?: "unknown dose"
-                    "${ingestion.substanceName} ($doseText) - $timeText"
+                    val timeText = formatElapsedTime(ingestion.time, now)
+                    
+                    // Get duration information for this substance/route
+                    val roaDuration = substanceDurations[ingestion.substanceName]?.get(ingestion.administrationRoute)
+                    
+                    // Format peak duration range
+                    val peakText = roaDuration?.peak?.let { peak ->
+                        val minText = formatDurationValue(peak.minInSec)
+                        val maxText = formatDurationValue(peak.maxInSec)
+                        if (minText != null && maxText != null) {
+                            "peak $minText - $maxText"
+                        } else if (minText != null) {
+                            "peak $minText"
+                        } else null
+                    }
+                    
+                    // Format offset duration (comedown)
+                    val offsetText = roaDuration?.offset?.let { offset ->
+                        val minText = formatDurationValue(offset.minInSec)
+                        val maxText = formatDurationValue(offset.maxInSec)
+                        if (minText != null && maxText != null) {
+                            "offset: $minText - $maxText"
+                        } else if (minText != null) {
+                            "offset: $minText"
+                        } else null
+                    }
+                    
+                    // Build the line with all available info
+                    val parts = mutableListOf<String>()
+                    parts.add(ingestion.substanceName)
+                    parts.add(timeText)
+                    peakText?.let { parts.add(it) }
+                    offsetText?.let { parts.add(it) }
+                    
+                    parts.joinToString(" * ")
                 }
 
                 // Generate timeline graph bitmap with accurate substance durations
@@ -894,6 +918,42 @@ class TimelineWidgetWorker(
             hours > 0 -> "${hours}h ${minutes}m ago"
             minutes > 0 -> "${minutes}m ${seconds}s ago"
             else -> "just now"
+        }
+    }
+
+    /**
+     * Formats elapsed time since ingestion (without "ago" suffix)
+     * Format: "23m 21s" or "1h 5m"
+     */
+    private fun formatElapsedTime(time: Instant, now: Instant): String {
+        val duration = Duration.between(time, now)
+        val days = duration.toDays()
+        val hours = duration.toHours() % 24
+        val minutes = duration.toMinutes() % 60
+        val seconds = duration.seconds % 60
+        
+        return when {
+            days > 0 -> "${days}d ${hours}h"
+            hours > 0 -> "${hours}h ${minutes}m"
+            minutes > 0 -> "${minutes}m ${seconds}s"
+            else -> "${seconds}s"
+        }
+    }
+
+    /**
+     * Formats a duration value in seconds to a human-readable string (e.g., "23m" or "1h 30m")
+     */
+    private fun formatDurationValue(seconds: Float?): String? {
+        if (seconds == null) return null
+        val totalMinutes = (seconds / 60).toInt()
+        val hours = totalMinutes / 60
+        val mins = totalMinutes % 60
+        
+        return when {
+            hours > 0 && mins > 0 -> "${hours}h ${mins}m"
+            hours > 0 -> "${hours}h"
+            mins > 0 -> "${mins}m"
+            else -> "0m"
         }
     }
 }

@@ -79,6 +79,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestions
 import foo.pilz.freaklog.ui.YOU
+import foo.pilz.freaklog.ui.tabs.journal.experience.components.AdministrationSitePicker
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
 import foo.pilz.freaklog.ui.tabs.journal.experience.rating.FloatingDoneButton
 import foo.pilz.freaklog.ui.theme.horizontalPadding
@@ -402,39 +403,11 @@ fun FinishIngestionScreen(
                 }
                 if (showSiteSelection) {
                     CardWithTitle(title = "Administration site") {
-                        var isShowingDropDownMenu by remember { mutableStateOf(false) }
-                        Box(
-                            modifier = Modifier
-                                .wrapContentSize(Alignment.TopEnd)
-                        ) {
-                            OutlinedButton(
-                                onClick = { isShowingDropDownMenu = true },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(text = if (administrationSite.isNotBlank()) administrationSite else "Select site (optional)")
-                            }
-                            DropdownMenu(
-                                expanded = isShowingDropDownMenu,
-                                onDismissRequest = { isShowingDropDownMenu = false }
-                            ) {
-                                DropdownMenuItem(
-                                    text = { Text("None") },
-                                    onClick = {
-                                        onChangeOfAdministrationSite("")
-                                        isShowingDropDownMenu = false
-                                    }
-                                )
-                                siteOptions.forEach { option ->
-                                    DropdownMenuItem(
-                                        text = { Text(option) },
-                                        onClick = {
-                                            onChangeOfAdministrationSite(option)
-                                            isShowingDropDownMenu = false
-                                        }
-                                    )
-                                }
-                            }
-                        }
+                        AdministrationSitePicker(
+                            administrationSite = administrationSite,
+                            siteOptions = siteOptions,
+                            onSiteChange = onChangeOfAdministrationSite
+                        )
                     }
                 }
                 CardWithTitle(title = "Ingestion note") {
