@@ -23,12 +23,7 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.hapticfeedback.HapticFeedback
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 
 /**
  * Enum representing different types of haptic feedback effects.
@@ -66,152 +61,45 @@ enum class HapticType {
  */
 class HapticFeedbackManager(
     private val context: Context,
-    private val composeHapticFeedback: HapticFeedback
+    hapticFeedback: HapticFeedback,
 ) {
-    // Use VibratorManager on API 31+ for proper multi-actuator support
-    private val vibrator: Vibrator? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
-        vibratorManager?.defaultVibrator
-    } else {
-        @Suppress("DEPRECATION")
-        context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+    private val vibrator: Vibrator? by lazy {
+        val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val vibratorManager =
+                context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
+            vibratorManager?.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+        }
+        vibrator?.takeIf { it.hasVibrator() }
     }
 
-    private val hasVibrator: Boolean = vibrator?.hasVibrator() == true
-
-    /**
-     * Performs haptic feedback of the specified type.
-     * Uses Android's VibrationEffect API for satisfying tactile feedback.
-     */
     fun performHaptic(type: HapticType) {
-        if (!hasVibrator) return
-
-        when (type) {
-            HapticType.TICK -> performTick()
-            HapticType.CLICK -> performClick()
-            HapticType.DOUBLE_CLICK -> performDoubleClick()
-            HapticType.HEAVY_CLICK -> performHeavyClick()
-            HapticType.TEXTURE_TICK -> performTextureTick()
-            HapticType.SUCCESS -> performSuccess()
-            HapticType.ERROR -> performError()
-            HapticType.SELECTION -> performSelection()
-            HapticType.TOGGLE -> performToggle()
-            HapticType.LONG_PRESS -> performLongPress()
-            HapticType.TIMELINE_SCRUB -> performTimelineScrub()
+        vibrator?.let {
+            val effect = when (type) {
+                HapticType.TICK, HapticType.SELECTION -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
+                HapticType.CLICK, HapticType.TOGGLE -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
+                HapticType.DOUBLE_CLICK -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_DOUBLE_CLICK)
+                HapticType.HEAVY_CLICK, HapticType.LONG_PRESS -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK)
+                HapticType.TEXTURE_TICK -> VibrationEffect.createOneShot(5, 50)
+                HapticType.SUCCESS -> {
+                    val timings = longArrayOf(0, 30, 50, 30)
+                    val amplitudes = intArrayOf(0, 100, 0, 200)
+                    VibrationEffect.createWaveform(timings, amplitudes, -1)
+                }
+                HapticType.ERROR -> {
+                    val timings = longArrayOf(0, 50, 30, 50, 30, 50)
+                    val amplitudes = intArrayOf(0, 150, 0, 150, 0, 150)
+                    VibrationEffect.createWaveform(timings, amplitudes, -1)
+                }
+                HapticType.TIMELINE_SCRUB -> {
+                    VibrationEffect.startComposition()
+                        .addPrimitive(VibrationEffect.Composition.PRIMITIVE_TICK)
+                        .compose()
+                }
+            }
+            it.vibrate(effect)
         }
-    }
-
-    private fun performTick() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            vibrator?.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK))
-        } else {
-            composeHapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-        }
-    }
-
-    private fun performClick() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            vibrator?.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
-        } else {
-            composeHapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-        }
-    }
-
-    private fun performDoubleClick() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            vibrator?.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_DOUBLE_CLICK))
-        } else {
-            composeHapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-        }
-    }
-
-    private fun performHeavyClick() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            vibrator?.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK))
-        } else {
-            composeHapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-        }
-    }
-
-    private fun performTextureTick() {
-        // Create a subtle, satisfying texture effect for scrubbing
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val effect = VibrationEffect.createOneShot(5, 50)
-            vibrator?.vibrate(effect)
-        } else {
-            composeHapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-        }
-    }
-
-    private fun performSuccess() {
-        // Create a satisfying success pattern
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val timings = longArrayOf(0, 30, 50, 30)
-            val amplitudes = intArrayOf(0, 100, 0, 200)
-            val effect = VibrationEffect.createWaveform(timings, amplitudes, -1)
-            vibrator?.vibrate(effect)
-        } else {
-            composeHapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-        }
-    }
-
-    private fun performError() {
-        // Create a distinct error pattern
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val timings = longArrayOf(0, 50, 30, 50, 30, 50)
-            val amplitudes = intArrayOf(0, 150, 0, 150, 0, 150)
-            val effect = VibrationEffect.createWaveform(timings, amplitudes, -1)
-            vibrator?.vibrate(effect)
-        } else {
-            composeHapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-        }
-    }
-
-    private fun performSelection() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            vibrator?.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK))
-        } else {
-            composeHapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-        }
-    }
-
-    private fun performToggle() {
-        // Satisfying toggle effect
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            vibrator?.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
-        } else {
-            composeHapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-        }
-    }
-
-    private fun performLongPress() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            vibrator?.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK))
-        } else {
-            composeHapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-        }
-    }
-
-    private fun performTimelineScrub() {
-        // Create an especially satisfying scrubbing effect for the timeline graph
-        // This uses a short, crisp vibration that feels great when dragging across the graph
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val effect = VibrationEffect.createOneShot(8, 80)
-            vibrator?.vibrate(effect)
-        } else {
-            composeHapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-        }
-    }
-}
-
-/**
- * Composable function to remember and create a HapticFeedbackManager.
- */
-@Composable
-fun rememberHapticFeedbackManager(): HapticFeedbackManager {
-    val context = LocalContext.current
-    val hapticFeedback = LocalHapticFeedback.current
-    return remember(context, hapticFeedback) {
-        HapticFeedbackManager(context, hapticFeedback)
     }
 }
