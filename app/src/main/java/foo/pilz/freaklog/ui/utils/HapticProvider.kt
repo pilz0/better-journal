@@ -74,17 +74,3 @@ fun rememberHaptic(): (HapticType) -> Unit {
         }
     }
 }
-
-/**
- * Extension function to easily perform haptic feedback with a single call.
- * Uses the local haptic feedback manager and respects the enabled state.
- */
-@Composable
-fun performHapticIfEnabled(type: HapticType) {
-    val isEnabled = LocalHapticEnabled.current
-    val manager = LocalHapticFeedbackManager.current
-    
-    if (isEnabled) {
-        manager?.performHaptic(type)
-    }
-}

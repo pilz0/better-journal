@@ -174,9 +174,9 @@ fun AllTimelines(
 
     Canvas(modifier = modifier.pointerInput(Unit) {
         detectHorizontalDragGestures(
-            onDragStart = {
+            onDragStart = { startOffset ->
                 performHaptic(HapticType.HEAVY_CLICK)
-                lastHapticX = it.x
+                lastHapticX = startOffset.x
             },
             onHorizontalDrag = { change, _ ->
                 change.consume()
