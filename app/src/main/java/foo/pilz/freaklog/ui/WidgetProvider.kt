@@ -119,7 +119,7 @@ class MyAppWidget : GlanceAppWidget() {
     companion object {
         private val SMALL_RECTANGLE = DpSize(250.dp, 50.dp)
         private val MEDIUM_RECTANGLE = DpSize(250.dp, 200.dp)
-        private val BIG_RECTANGLE = DpSize(250.dp, 200.dp)
+        private val BIG_RECTANGLE = DpSize(350.dp, 300.dp)
     }
 
     override val sizeMode = SizeMode.Responsive(
@@ -149,7 +149,7 @@ class MyAppWidget : GlanceAppWidget() {
 
             // Create intent to open the app with add ingestion action
             val addIngestionIntent = Intent(context, MainActivity::class.java).apply {
-                action = ".ADD_INGESTION"
+                action = "${context.packageName}.ADD_INGESTION"
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
 
@@ -241,42 +241,42 @@ class MyAppWidget : GlanceAppWidget() {
                             }
                         }
 
-                    if (size.width >= MEDIUM_RECTANGLE.width && size.height >= MEDIUM_RECTANGLE.height) {
-                    Spacer(modifier = GlanceModifier.height(4.dp))
-                        LazyColumn {
-                            ingestionsText.split("\n").take(20).forEach { line ->
-                                item {
-                                    val substanceName = extractSubstanceName(line)
-                                    val color = substanceColors[substanceName]
-                                    // Create a condensed version of the line
-                                    val condensedLine = condenseIngestionLine(line)
-                                    if (color != null) {
-                                        Text(
-                                            text = condensedLine,
-                                            style = TextStyle(
-                                                fontSize = 16.sp,
-                                                color = androidx.glance.unit.ColorProvider(
-                                                    androidx.compose.ui.graphics.Color(color)
-                                                )
-                                            ),
-                                            maxLines = 1
-                                        )
-                                    } else {
-                                        Text(
-                                            text = condensedLine,
-                                            style = TextStyle(
-                                                fontSize = 12.sp,
-                                                color = GlanceTheme.colors.onBackground
-                                            ),
-                                            maxLines = 1
-                                        )
+                        if (size.width >= MEDIUM_RECTANGLE.width && size.height >= MEDIUM_RECTANGLE.height) {
+                            Spacer(modifier = GlanceModifier.height(4.dp))
+                            LazyColumn {
+                                ingestionsText.split("\n").take(20).forEach { line ->
+                                    item {
+                                        val substanceName = extractSubstanceName(line)
+                                        val color = substanceColors[substanceName]
+                                        // Create a condensed version of the line
+                                        val condensedLine = condenseIngestionLine(line)
+                                        if (color != null) {
+                                            Text(
+                                                text = condensedLine,
+                                                style = TextStyle(
+                                                    fontSize = 16.sp,
+                                                    color = androidx.glance.unit.ColorProvider(
+                                                        androidx.compose.ui.graphics.Color(color)
+                                                    )
+                                                ),
+                                                maxLines = 1
+                                            )
+                                        } else {
+                                            Text(
+                                                text = condensedLine,
+                                                style = TextStyle(
+                                                    fontSize = 16.sp,
+                                                    color = GlanceTheme.colors.onBackground
+                                                ),
+                                                maxLines = 1
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                        }
-                    }
+                }
                 }
             }
         }
@@ -297,13 +297,13 @@ class MyAppWidget : GlanceAppWidget() {
                 val escapedName = match.groupValues[1]
                 val colorInt = match.groupValues[2].toIntOrNull()
                 if (colorInt != null) {
-                    // Unescape the name
+                    // Unescape the name - reverse the escaping order
                     val name = escapedName
-                        .replace("\\\"", "\"")
-                        .replace("\\\\", "\\")
                         .replace("\\n", "\n")
                         .replace("\\r", "\r")
                         .replace("\\t", "\t")
+                        .replace("\\\"", "\"")
+                        .replace("\\\\", "\\")
                     result[name] = colorInt
                 }
             }
@@ -312,15 +312,29 @@ class MyAppWidget : GlanceAppWidget() {
             emptyMap()
         }
     }
-
+    /**
+     * Extract substance name from line format: "SubstanceName • elapsed • ..."
+     */
     private fun extractSubstanceName(line: String): String? {
-        // Extract substance name from format: "SubstanceName (dose) - time"
         return try {
-            val parenIndex = line.indexOf('(')
-            if (parenIndex > 0) {
-                line.take(parenIndex).trim()
+            // Look for bullet separator (•) used in new format
+            val bulletIndex = line.indexOf(" • ")
+            if (bulletIndex > 0) {
+                line.take(bulletIndex).trim()
             } else {
-                null
+                // Fallback to asterisk separator
+                val starIndex = line.indexOf(" * ")
+                if (starIndex > 0) {
+                    line.take(starIndex).trim()
+                } else {
+                    // Fallback to old format with parentheses
+                    val parenIndex = line.indexOf('(')
+                    if (parenIndex > 0) {
+                        line.take(parenIndex).trim()
+                    } else {
+                        null
+                    }
+                }
             }
         } catch (_: Exception) {
             null
@@ -328,30 +342,11 @@ class MyAppWidget : GlanceAppWidget() {
     }
 
     /**
-     * Condense ingestion line to a shorter format.
-     * Input: "SubstanceName (200 mg) - 16h 31m ago"
-     * Output: "SubstanceName 200mg · 16h 31m"
+     * Condense ingestion line by keeping only key information.
+     * Returns the line as-is since it's already formatted by the worker.
      */
     private fun condenseIngestionLine(line: String): String {
-        return try {
-            val parenStart = line.indexOf('(')
-            val parenEnd = line.indexOf(')')
-            val dashIndex = line.indexOf(" - ")
-
-            if (parenStart in 1..<parenEnd && dashIndex > parenEnd) {
-                val substance = line.take(parenStart).trim()
-                val dose = line.substring(parenStart + 1, parenEnd)
-                    .replace(" ", "") // Remove spaces in dose
-                val time = line.substring(dashIndex + 3)
-                    .replace(" ago", "")
-                    .trim()
-                "$substance $dose · $time"
-            } else {
-                line
-            }
-        } catch (_: Exception) {
-            line
-        }
+        return line
     }
 
 class RefreshAction : ActionCallback {
@@ -464,17 +459,48 @@ class TimelineWidgetWorker(
                 }
 
                 val lines = recentIngestions.map { ingestion ->
-                    val timeText = formatRelativeTime(ingestion.time, now)
-                    val doseText = ingestion.dose?.let { dose ->
-                        val doseFormatted = if (dose == dose.toLong().toDouble()) {
-                            dose.toLong().toString()
-                        } else {
-                            dose.toString()
+                    val elapsedSeconds = Duration.between(ingestion.time, now).seconds.toFloat()
+                    val timeText = formatElapsedTime(ingestion.time, now)
+                    
+                    // Get duration information for this substance/route
+                    val roaDuration = substanceDurations[ingestion.substanceName]?.get(ingestion.administrationRoute)
+                    
+                    // Calculate phase timings in seconds from ingestion
+                    val onsetSec = roaDuration?.onset?.interpolateAtValueInSeconds(0.5f) ?: 1800f
+                    val comeupSec = roaDuration?.comeup?.interpolateAtValueInSeconds(0.5f) ?: 2700f
+                    val peakSec = roaDuration?.peak?.interpolateAtValueInSeconds(0.5f) ?: 5400f
+                    val offsetSec = roaDuration?.offset?.interpolateAtValueInSeconds(0.5f) ?: 5400f
+
+                    // Calculate phase boundaries from ingestion time
+                    val onsetEnd = onsetSec
+                    val comeupEnd = onsetEnd + comeupSec
+                    val peakEnd = comeupEnd + peakSec
+                    val offsetEnd = peakEnd + offsetSec
+
+                    // Determine current phase and format status text
+                    val phaseText = when {
+                        elapsedSeconds < 0 -> "not started"
+                        elapsedSeconds < onsetEnd -> {
+                            val timeToPeak = (comeupEnd - elapsedSeconds).toLong()
+                            "onset • peak in ${formatSecondsToTime(timeToPeak)}"
                         }
-                        val units = ingestion.units
-                        if (units.isNullOrEmpty()) doseFormatted else "$doseFormatted $units"
-                    } ?: "unknown dose"
-                    "${ingestion.substanceName} ($doseText) - $timeText"
+                        elapsedSeconds < comeupEnd -> {
+                            val remaining = (comeupEnd - elapsedSeconds).toLong()
+                            "↑ comeup • peak in ${formatSecondsToTime(remaining)}"
+                        }
+                        elapsedSeconds < peakEnd -> {
+                            val remaining = (peakEnd - elapsedSeconds).toLong()
+                            "peak • ${formatSecondsToTime(remaining)} left"
+                        }
+                        elapsedSeconds < offsetEnd -> {
+                            val remaining = (offsetEnd - elapsedSeconds).toLong()
+                            "↓ offset • ${formatSecondsToTime(remaining)} left"
+                        }
+                        else -> "finished"
+                    }
+                    
+                    // Build the line: Substance * elapsed * phase status
+                    "${ingestion.substanceName} • $timeText • $phaseText"
                 }
 
                 // Generate timeline graph bitmap with accurate substance durations
@@ -882,7 +908,11 @@ class TimelineWidgetWorker(
         }
     }
 
-    private fun formatRelativeTime(time: Instant, now: Instant): String {
+    /**
+     * Formats elapsed time since ingestion (without "ago" suffix)
+     * Format: "23m 21s" or "1h 5m"
+     */
+    private fun formatElapsedTime(time: Instant, now: Instant): String {
         val duration = Duration.between(time, now)
         val days = duration.toDays()
         val hours = duration.toHours() % 24
@@ -890,10 +920,27 @@ class TimelineWidgetWorker(
         val seconds = duration.seconds % 60
         
         return when {
-            days > 0 -> "${days}d ${hours}h ago"
-            hours > 0 -> "${hours}h ${minutes}m ago"
-            minutes > 0 -> "${minutes}m ${seconds}s ago"
-            else -> "just now"
+            days > 0 -> "${days}d ${hours}h"
+            hours > 0 -> "${hours}h ${minutes}m"
+            minutes > 0 -> "${minutes}m ${seconds}s"
+            else -> "${seconds}s"
+        }
+    }
+
+    /**
+     * Formats seconds to a compact time string (e.g., "23m" or "1h 30m")
+     */
+    private fun formatSecondsToTime(totalSeconds: Long): String {
+        if (totalSeconds <= 0) return "<1m"
+
+        val hours = totalSeconds / 3600
+        val minutes = (totalSeconds % 3600) / 60
+        
+        return when {
+            hours > 0 && minutes > 0 -> "${hours}h ${minutes}m"
+            hours > 0 -> "${hours}h"
+            minutes > 0 -> "${minutes}m"
+            else -> "<1m"
         }
     }
 }

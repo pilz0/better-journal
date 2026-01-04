@@ -169,10 +169,42 @@ Many substances can be inhaled to achieve an altered state of consciousness, how
     abstract val isInjectionMethod: Boolean
     abstract val color: AdaptiveColor
 
+    /**
+     * Returns true if site selection (nostril or injection location) is relevant for this route.
+     */
+    val showSiteSelection: Boolean
+        get() = this in listOf(INSUFFLATED, INTRAVENOUS, INTRAMUSCULAR, SUBCUTANEOUS)
+
+    /**
+     * Returns the appropriate site options for this administration route.
+     * For insufflated: nostril options
+     * For injection methods: body location options
+     */
+    val siteOptions: List<String>
+        get() = when (this) {
+            INSUFFLATED -> NOSTRIL_OPTIONS
+            INTRAVENOUS, INTRAMUSCULAR, SUBCUTANEOUS -> INJECTION_SITE_OPTIONS
+            else -> emptyList()
+        }
+
     companion object {
         const val PSYCHONAUT_WIKI_ARTICLE_URL =
             "https://psychonautwiki.org/wiki/Route_of_administration"
         const val SAFER_INJECTION_ARTICLE_URL = "https://psychonautwiki.org/wiki/Safer_injection_guide"
         const val SAFER_PLUGGING_ARTICLE_URL = "https://wiki.tripsit.me/wiki/Quick_Guide_to_Plugging"
+
+        val NOSTRIL_OPTIONS = listOf("Left nostril", "Right nostril", "Both nostrils")
+        val INJECTION_SITE_OPTIONS = listOf(
+            "Left Median Cubital",
+            "Left Cephalic",
+            "Left Basilic",
+            "Left Dorsal Hand",
+            "Left Median Antebrachial",
+            "Right Median Cubital",
+            "Right Cephalic",
+            "Right Basilic",
+            "Right Dorsal Hand",
+            "Right Median Antebrachial",
+        )
     }
 }

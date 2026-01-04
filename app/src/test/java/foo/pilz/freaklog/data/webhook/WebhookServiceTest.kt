@@ -192,4 +192,40 @@ class WebhookServiceTest {
         
         assertEquals("José: 50 μg LSD via sublingual", result)
     }
+
+    @Test
+    fun testProcessTemplate_withNostrilSite() {
+        val template = "{user}: [{dose} {units} ]{substance} via {route}[ ({site})][\n> {note}]"
+        val values = mapOf(
+            "user" to "Alice",
+            "dose" to "30",
+            "units" to "mg",
+            "substance" to "Ketamine",
+            "route" to "Insufflated",
+            "site" to "Left nostril",
+            "note" to ""
+        )
+        
+        val result = webhookService.processTemplate(template, values)
+        
+        assertEquals("Alice: 30 mg Ketamine via Insufflated (Left nostril)", result)
+    }
+
+    @Test
+    fun testProcessTemplate_withVeinSite() {
+        val template = "{user}: [{dose} {units} ]{substance} via {route}[ ({site})][\n> {note}]"
+        val values = mapOf(
+            "user" to "Bob",
+            "dose" to "100",
+            "units" to "mg",
+            "substance" to "Morphine",
+            "route" to "Intravenous",
+            "site" to "Left arm",
+            "note" to "Medical setting"
+        )
+        
+        val result = webhookService.processTemplate(template, values)
+        
+        assertEquals("Bob: 100 mg Morphine via Intravenous (Left arm)\n> Medical setting", result)
+    }
 }

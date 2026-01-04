@@ -70,6 +70,7 @@ class EditIngestionViewModel @Inject constructor(
     var localDateTimeStartFlow = MutableStateFlow(LocalDateTime.now())
     var localDateTimeEndFlow = MutableStateFlow(LocalDateTime.now())
     var consumerName by mutableStateOf("")
+    var administrationSite by mutableStateOf("")
     var customUnit: CustomUnit? by mutableStateOf(null)
     val otherCustomUnits = experienceRepo.getAllCustomUnitsFlow().combine(ingestionFlow) { customUnits, ing ->
         customUnits.filter {customUnit ->
@@ -105,6 +106,7 @@ class EditIngestionViewModel @Inject constructor(
             isKnown = ing.dose != null
             units = ing.units ?: ""
             consumerName = ing.consumerName ?: ""
+            administrationSite = ing.administrationSite ?: ""
             localDateTimeStartFlow.emit(ing.time.getLocalDateTime())
             val endTime = ing.endTime
             if (endTime != null) {
@@ -163,6 +165,18 @@ class EditIngestionViewModel @Inject constructor(
         consumerName = newName
     }
 
+    fun onChangeAdministrationSite(newSite: String) {
+        administrationSite = newSite
+    }
+
+    // Check if site selection is relevant for the current administration route
+    val showSiteSelection: Boolean
+        get() = ingestion?.administrationRoute?.showSiteSelection ?: false
+
+    // Get the appropriate site options for the current administration route
+    val siteOptions: List<String>
+        get() = ingestion?.administrationRoute?.siteOptions ?: emptyList()
+
     fun toggleIsKnown() {
         isKnown = isKnown.not()
     }
@@ -208,6 +222,7 @@ class EditIngestionViewModel @Inject constructor(
                 it.time = selectedStartInstant
                 it.endTime = endTime
                 it.consumerName = consumerName.ifBlank { null }
+                it.administrationSite = administrationSite.ifBlank { null }
                 experienceRepo.update(it)
                 
                 // Send webhook edit notification
@@ -250,7 +265,7 @@ class EditIngestionViewModel @Inject constructor(
                 units = ingestion.units,
                 isEstimate = ingestion.isDoseAnEstimate,
                 route = route,
-                site = null,
+                site = ingestion.administrationSite,
                 note = ingestion.notes,
                 template = webhookTemplate,
                 isHyperlinked = true

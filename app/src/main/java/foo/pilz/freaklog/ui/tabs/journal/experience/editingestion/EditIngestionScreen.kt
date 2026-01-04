@@ -86,6 +86,7 @@ import foo.pilz.freaklog.ui.YOU
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.StandardDeviationExplanation
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.IngestionTimePickerOption
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.TimePointOrRangePicker
+import foo.pilz.freaklog.ui.tabs.journal.experience.components.AdministrationSitePicker
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
 import foo.pilz.freaklog.ui.theme.JournalTheme
 import foo.pilz.freaklog.ui.theme.horizontalPadding
@@ -137,7 +138,11 @@ fun EditIngestionScreen(
             viewModel.saveClonedIngestionTime()
             navigateBack()
             navigateToAddIngestion()
-        }
+        },
+        showSiteSelection = viewModel.showSiteSelection,
+        siteOptions = viewModel.siteOptions,
+        administrationSite = viewModel.administrationSite,
+        onChangeOfAdministrationSite = viewModel::onChangeAdministrationSite
     )
 }
 
@@ -176,7 +181,11 @@ fun EditIngestionScreenPreview() {
             customUnit = null,
             onCustomUnitChange = {},
             otherCustomUnits = emptyList(),
-            addIngestionWithClonedTime = {}
+            addIngestionWithClonedTime = {},
+            showSiteSelection = true,
+            siteOptions = listOf("Left nostril", "Right nostril", "Both nostrils"),
+            administrationSite = "Left nostril",
+            onChangeOfAdministrationSite = {}
         )
     }
 }
@@ -214,7 +223,11 @@ fun EditIngestionScreen(
     customUnit: CustomUnit?,
     onCustomUnitChange: (CustomUnit?) -> Unit,
     otherCustomUnits: List<CustomUnit>,
-    addIngestionWithClonedTime: () -> Unit
+    addIngestionWithClonedTime: () -> Unit,
+    showSiteSelection: Boolean,
+    siteOptions: List<String>,
+    administrationSite: String,
+    onChangeOfAdministrationSite: (String) -> Unit
 ) {
     var isPresentingBottomSheet by rememberSaveable { mutableStateOf(false) }
     val skipPartiallyExpanded by remember { mutableStateOf(false) }
@@ -529,6 +542,15 @@ fun EditIngestionScreen(
                                 .fillMaxWidth()
                         )
                     }
+                }
+            }
+            if (showSiteSelection) {
+                CardWithTitle(title = "Administration site") {
+                    AdministrationSitePicker(
+                        administrationSite = administrationSite,
+                        siteOptions = siteOptions,
+                        onSiteChange = onChangeOfAdministrationSite
+                    )
                 }
             }
             ElevatedCard(

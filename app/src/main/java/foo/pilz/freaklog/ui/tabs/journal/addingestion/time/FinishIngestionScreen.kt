@@ -79,6 +79,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestions
 import foo.pilz.freaklog.ui.YOU
+import foo.pilz.freaklog.ui.tabs.journal.experience.components.AdministrationSitePicker
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
 import foo.pilz.freaklog.ui.tabs.journal.experience.rating.FloatingDoneButton
 import foo.pilz.freaklog.ui.theme.horizontalPadding
@@ -122,7 +123,11 @@ fun FinishIngestionScreen(
         isEnteredTitleOk = viewModel.isEnteredTitleOk,
         consumerName = viewModel.consumerName,
         onChangeOfConsumerName = viewModel::changeConsumerName,
-        consumerNamesSorted = viewModel.sortedConsumerNamesFlow.collectAsState().value
+        consumerNamesSorted = viewModel.sortedConsumerNamesFlow.collectAsState().value,
+        showSiteSelection = viewModel.showSiteSelection,
+        siteOptions = viewModel.siteOptions,
+        administrationSite = viewModel.administrationSite,
+        onChangeOfAdministrationSite = viewModel::changeAdministrationSite
     )
 }
 
@@ -162,7 +167,11 @@ fun FinishIngestionScreenPreview() {
         isEnteredTitleOk = true,
         consumerName = "",
         onChangeOfConsumerName = {},
-        consumerNamesSorted = listOf("Isaak", "Marc", "Eve")
+        consumerNamesSorted = listOf("Isaak", "Marc", "Eve"),
+        showSiteSelection = true,
+        siteOptions = listOf("Left nostril", "Right nostril", "Both nostrils"),
+        administrationSite = "",
+        onChangeOfAdministrationSite = {}
     )
 }
 
@@ -194,7 +203,11 @@ fun FinishIngestionScreen(
     isEnteredTitleOk: Boolean,
     consumerName: String,
     onChangeOfConsumerName: (String) -> Unit,
-    consumerNamesSorted: List<String>
+    consumerNamesSorted: List<String>,
+    showSiteSelection: Boolean,
+    siteOptions: List<String>,
+    administrationSite: String,
+    onChangeOfAdministrationSite: (String) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
     Scaffold(
@@ -386,6 +399,15 @@ fun FinishIngestionScreen(
                                     .fillMaxWidth()
                             )
                         }
+                    }
+                }
+                if (showSiteSelection) {
+                    CardWithTitle(title = "Administration site") {
+                        AdministrationSitePicker(
+                            administrationSite = administrationSite,
+                            siteOptions = siteOptions,
+                            onSiteChange = onChangeOfAdministrationSite
+                        )
                     }
                 }
                 CardWithTitle(title = "Ingestion note") {
