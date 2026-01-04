@@ -73,6 +73,8 @@ import foo.pilz.freaklog.ui.tabs.journal.components.ExperienceRow
 import foo.pilz.freaklog.ui.tabs.stats.EmptyScreenDisclaimer
 import foo.pilz.freaklog.ui.theme.JournalTheme
 import foo.pilz.freaklog.ui.theme.horizontalPadding
+import foo.pilz.freaklog.ui.utils.HapticType
+import foo.pilz.freaklog.ui.utils.rememberHaptic
 import kotlinx.coroutines.launch
 
 @Composable
@@ -146,6 +148,8 @@ fun JournalScreen(
     onChangeIsSearchEnabled: (Boolean) -> Unit,
     experiences: List<ExperienceWithIngestionsCompanionsAndRatings>,
 ) {
+    val performHaptic = rememberHaptic()
+    
     Scaffold(
         topBar = {
             TopAppBar(
@@ -153,7 +157,10 @@ fun JournalScreen(
                 actions = {
                     IconToggleButton(
                         checked = isTimeRelativeToNow,
-                        onCheckedChange = onChangeIsRelative
+                        onCheckedChange = { 
+                            performHaptic(HapticType.TOGGLE)
+                            onChangeIsRelative(it)
+                        }
                     ) {
                         if (isTimeRelativeToNow) {
                             Icon(Icons.Filled.Timer, contentDescription = "Regular time")
@@ -163,7 +170,10 @@ fun JournalScreen(
                     }
                     IconToggleButton(
                         checked = isFavoriteEnabled,
-                        onCheckedChange = onChangeIsFavorite
+                        onCheckedChange = { 
+                            performHaptic(HapticType.TOGGLE)
+                            onChangeIsFavorite(it)
+                        }
                     ) {
                         if (isFavoriteEnabled) {
                             Icon(Icons.Filled.Star, contentDescription = "Is favorite")
@@ -173,7 +183,10 @@ fun JournalScreen(
                     }
                     IconToggleButton(
                         checked = isSearchEnabled,
-                        onCheckedChange = onChangeIsSearchEnabled
+                        onCheckedChange = { 
+                            performHaptic(HapticType.TOGGLE)
+                            onChangeIsSearchEnabled(it)
+                        }
                     ) {
                         if (isSearchEnabled) {
                             Icon(Icons.Outlined.SearchOff, contentDescription = "Search off")
@@ -181,7 +194,10 @@ fun JournalScreen(
                             Icon(Icons.Filled.Search, contentDescription = "Search")
                         }
                     }
-                    IconButton(onClick = navigateToCalendar) {
+                    IconButton(onClick = { 
+                        performHaptic(HapticType.CLICK)
+                        navigateToCalendar()
+                    }) {
                         Icon(
                             Icons.Default.CalendarMonth,
                             contentDescription = "Navigate to calendar"
@@ -193,7 +209,10 @@ fun JournalScreen(
         floatingActionButton = {
             if (!isSearchEnabled) {
                 ExtendedFloatingActionButton(
-                    onClick = navigateToAddIngestion,
+                    onClick = { 
+                        performHaptic(HapticType.HEAVY_CLICK)
+                        navigateToAddIngestion()
+                    },
                     icon = {
                         Icon(
                             Icons.Filled.Add,
@@ -298,6 +317,7 @@ fun JournalScreen(
                             ExperienceRow(
                                 experienceWithIngestions,
                                 navigateToExperienceScreen = {
+                                    performHaptic(HapticType.SELECTION)
                                     navigateToExperiencePopNothing(experienceWithIngestions.experience.id)
                                 },
                                 isTimeRelativeToNow = isTimeRelativeToNow
@@ -310,6 +330,7 @@ fun JournalScreen(
                         ElevatedButton(
                             modifier = Modifier.padding(all = horizontalPadding),
                             onClick = {
+                                performHaptic(HapticType.CLICK)
                                 scope.launch {
                                     listState.scrollToItem(index = 0)
                                 }

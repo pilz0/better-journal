@@ -41,6 +41,9 @@ import foo.pilz.freaklog.ui.main.navigation.graphs.statsGraph
 import foo.pilz.freaklog.ui.main.navigation.graphs.AddIngestionRoute
 import foo.pilz.freaklog.ui.main.navigation.JournalTopLevelRoute
 import foo.pilz.freaklog.ui.main.navigation.topLevelRoutes
+import foo.pilz.freaklog.ui.utils.HapticFeedbackProvider
+import foo.pilz.freaklog.ui.utils.HapticType
+import foo.pilz.freaklog.ui.utils.rememberHaptic
 
 @Composable
 fun MainScreen(
@@ -55,6 +58,7 @@ fun MainScreen(
     if (viewModel.isAcceptedFlow.collectAsState().value) {
         val navController = rememberNavController()
         val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val isHapticEnabled = viewModel.isHapticFeedbackEnabledFlow.collectAsState().value
 
         // Handle navigation to Add Ingestion when triggered from widget
         // The guard condition prevents re-execution when state is reset to false
@@ -96,57 +100,62 @@ fun MainScreen(
 
         val hideSafer = viewModel.activateSaferFlow.collectAsState().value
 
-        NavigationSuiteScaffold(
-            navigationSuiteItems = {
-                val currentDestination = navBackStackEntry?.destination
-                topLevelRoutes(hideSafer).forEach { topLevelRoute ->
-                    val selected =
-                        currentDestination?.hierarchy?.any { it.hasRoute(topLevelRoute.route::class) } == true
-                    item(
-                        icon = {
-                            Icon(
-                                if (selected) topLevelRoute.filledIcon else topLevelRoute.outlinedIcon,
-                                contentDescription = topLevelRoute.name
-                            )
-                        },
-                        label = { Text(topLevelRoute.name) },
-                        selected = selected,
-                        onClick = {
-                            if (selected) {
-                                val isAlreadyOnTopOfTab =
-                                    topLevelRoutes(hideSafer).any { it.route == currentDestination?.route }
-                                if (!isAlreadyOnTopOfTab) {
-                                    navController.popBackStack()
-                                }
-                            } else {
-                                navController.navigate(topLevelRoute.route) {
-                                    // Pop up to the start destination of the graph to
-                                    // avoid building up a large stack of destinations
-                                    // on the back stack as users select items
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+        HapticFeedbackProvider(isEnabled = isHapticEnabled) {
+            val performHaptic = rememberHaptic()
+
+            NavigationSuiteScaffold(
+                navigationSuiteItems = {
+                    val currentDestination = navBackStackEntry?.destination
+                    topLevelRoutes(hideSafer).forEach { topLevelRoute ->
+                        val selected =
+                            currentDestination?.hierarchy?.any { it.hasRoute(topLevelRoute.route::class) } == true
+                        item(
+                            icon = {
+                                Icon(
+                                    if (selected) topLevelRoute.filledIcon else topLevelRoute.outlinedIcon,
+                                    contentDescription = topLevelRoute.name
+                                )
+                            },
+                            label = { Text(topLevelRoute.name) },
+                            selected = selected,
+                            onClick = {
+                                performHaptic(HapticType.CLICK)
+                                if (selected) {
+                                    val isAlreadyOnTopOfTab =
+                                        topLevelRoutes(hideSafer).any { it.route == currentDestination?.route }
+                                    if (!isAlreadyOnTopOfTab) {
+                                        navController.popBackStack()
                                     }
-                                    // Avoid multiple copies of the same destination when
-                                    // reselecting the same item
-                                    launchSingleTop = true
-                                    // Restore state when reselecting a previously selected item
-                                    restoreState = true
+                                } else {
+                                    navController.navigate(topLevelRoute.route) {
+                                        // Pop up to the start destination of the graph to
+                                        // avoid building up a large stack of destinations
+                                        // on the back stack as users select items
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        // Avoid multiple copies of the same destination when
+                                        // reselecting the same item
+                                        launchSingleTop = true
+                                        // Restore state when reselecting a previously selected item
+                                        restoreState = true
+                                    }
                                 }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
-            }
-        ) {
-            NavHost(
-                navController,
-                startDestination = JournalTopLevelRoute
             ) {
-                journalGraph(navController)
-                statsGraph(navController)
-                searchGraph(navController)
-                saferGraph(navController)
-                settingsGraph(navController)
+                NavHost(
+                    navController,
+                    startDestination = JournalTopLevelRoute
+                ) {
+                    journalGraph(navController)
+                    statsGraph(navController)
+                    searchGraph(navController)
+                    saferGraph(navController)
+                    settingsGraph(navController)
+                }
             }
         }
     } else {

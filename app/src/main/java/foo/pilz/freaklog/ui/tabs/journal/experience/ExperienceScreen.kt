@@ -102,7 +102,9 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.models.OneExperienceScreenMo
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.AllTimelines
 import foo.pilz.freaklog.ui.theme.JournalTheme
 import foo.pilz.freaklog.ui.theme.horizontalPadding
+import foo.pilz.freaklog.ui.utils.HapticType
 import foo.pilz.freaklog.ui.utils.getDateWithWeekdayText
+import foo.pilz.freaklog.ui.utils.rememberHaptic
 import kotlinx.coroutines.delay
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -729,9 +731,13 @@ private fun AddIngestionFAB(
             .any {
                 it > Instant.now().minus(4, ChronoUnit.HOURS)
             }
+    val performHaptic = rememberHaptic()
     if (oneExperienceScreenModel.isCurrentExperience || wasAnyIngestionCreatedInLast4Hours) {
         ExtendedFloatingActionButton(
-            onClick = addIngestion,
+            onClick = { 
+                performHaptic(HapticType.HEAVY_CLICK)
+                addIngestion()
+            },
             icon = {
                 Icon(
                     Icons.Filled.Add,

@@ -28,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -60,11 +61,14 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.components.TimeDisplayOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.getDurationText
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.AxisDrawable
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.TimeRangeDrawable
+import foo.pilz.freaklog.ui.utils.HapticType
 import foo.pilz.freaklog.ui.utils.getShortTimeText
+import foo.pilz.freaklog.ui.utils.rememberHaptic
 import kotlinx.coroutines.delay
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import kotlin.math.abs
 import kotlin.math.max
 
 
@@ -162,15 +166,32 @@ fun AllTimelines(
     }
     var dragPoint by remember { mutableStateOf<Offset?>(null) }
     val verticalDistanceFromFinger = LocalDensity.current.run { 60.dp.toPx() }
+    
+    // Haptic feedback for satisfying timeline scrubbing
+    val performHaptic = rememberHaptic()
+    var lastHapticX by remember { mutableFloatStateOf(0f) }
+    val hapticThreshold = 15f // Trigger haptic every 15 pixels of movement for satisfying feedback
 
     Canvas(modifier = modifier.pointerInput(Unit) {
         detectHorizontalDragGestures(
+            onDragStart = { startOffset ->
+                performHaptic(HapticType.HEAVY_CLICK)
+                lastHapticX = startOffset.x
+            },
             onHorizontalDrag = { change, _ ->
                 change.consume()
                 dragPoint = change.position
+                
+                // Provide satisfying haptic feedback as user drags across the timeline
+                val deltaX = abs(change.position.x - lastHapticX)
+                if (deltaX >= hapticThreshold) {
+                    performHaptic(HapticType.TIMELINE_SCRUB)
+                    lastHapticX = change.position.x
+                }
             },
             onDragEnd = {
                 dragPoint = null
+                performHaptic(HapticType.CLICK)
             },
             onDragCancel = {
                 dragPoint = null
