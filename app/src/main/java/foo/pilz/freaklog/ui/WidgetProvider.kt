@@ -475,8 +475,8 @@ class TimelineWidgetWorker(
                     val phaseText = when {
                         elapsedSeconds < 0 -> "not started"
                         elapsedSeconds < onsetEnd -> {
-                            val remaining = (onsetEnd - elapsedSeconds).toLong()
-                            "onset · peak in ${formatSecondsToTime(remaining + comeupSec.toLong())}"
+                            val timeToPeak = (comeupEnd - elapsedSeconds).toLong()
+                            "onset · peak in ${formatSecondsToTime(timeToPeak)}"
                         }
                         elapsedSeconds < comeupEnd -> {
                             val remaining = (comeupEnd - elapsedSeconds).toLong()
@@ -925,6 +925,8 @@ class TimelineWidgetWorker(
      * Formats seconds to a compact time string (e.g., "23m" or "1h 30m")
      */
     private fun formatSecondsToTime(totalSeconds: Long): String {
+        if (totalSeconds <= 0) return "<1m"
+        
         val hours = totalSeconds / 3600
         val minutes = (totalSeconds % 3600) / 60
         
