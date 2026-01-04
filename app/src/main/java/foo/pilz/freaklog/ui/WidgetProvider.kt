@@ -313,14 +313,22 @@ class MyAppWidget : GlanceAppWidget() {
         }
     }
 
+    /**
+     * Extract substance name from line format: "SubstanceName * elapsed * ..."
+     */
     private fun extractSubstanceName(line: String): String? {
-        // Extract substance name from format: "SubstanceName (dose) - time"
         return try {
-            val parenIndex = line.indexOf('(')
-            if (parenIndex > 0) {
-                line.take(parenIndex).trim()
+            val starIndex = line.indexOf(" * ")
+            if (starIndex > 0) {
+                line.take(starIndex).trim()
             } else {
-                null
+                // Fallback to old format with parentheses
+                val parenIndex = line.indexOf('(')
+                if (parenIndex > 0) {
+                    line.take(parenIndex).trim()
+                } else {
+                    null
+                }
             }
         } catch (_: Exception) {
             null
@@ -328,30 +336,11 @@ class MyAppWidget : GlanceAppWidget() {
     }
 
     /**
-     * Condense ingestion line to a shorter format.
-     * Input: "SubstanceName (200 mg) - 16h 31m ago"
-     * Output: "SubstanceName 200mg · 16h 31m"
+     * Condense ingestion line by keeping only key information.
+     * Returns the line as-is since it's already formatted by the worker.
      */
     private fun condenseIngestionLine(line: String): String {
-        return try {
-            val parenStart = line.indexOf('(')
-            val parenEnd = line.indexOf(')')
-            val dashIndex = line.indexOf(" - ")
-
-            if (parenStart in 1..<parenEnd && dashIndex > parenEnd) {
-                val substance = line.take(parenStart).trim()
-                val dose = line.substring(parenStart + 1, parenEnd)
-                    .replace(" ", "") // Remove spaces in dose
-                val time = line.substring(dashIndex + 3)
-                    .replace(" ago", "")
-                    .trim()
-                "$substance $dose · $time"
-            } else {
-                line
-            }
-        } catch (_: Exception) {
-            line
-        }
+        return line
     }
 
 class RefreshAction : ActionCallback {
@@ -464,41 +453,48 @@ class TimelineWidgetWorker(
                 }
 
                 val lines = recentIngestions.map { ingestion ->
+                    val elapsedSeconds = Duration.between(ingestion.time, now).seconds.toFloat()
                     val timeText = formatElapsedTime(ingestion.time, now)
                     
                     // Get duration information for this substance/route
                     val roaDuration = substanceDurations[ingestion.substanceName]?.get(ingestion.administrationRoute)
                     
-                    // Format peak duration range
-                    val peakText = roaDuration?.peak?.let { peak ->
-                        val minText = formatDurationValue(peak.minInSec)
-                        val maxText = formatDurationValue(peak.maxInSec)
-                        if (minText != null && maxText != null) {
-                            "peak $minText - $maxText"
-                        } else if (minText != null) {
-                            "peak $minText"
-                        } else null
+                    // Calculate phase timings in seconds from ingestion
+                    val onsetSec = roaDuration?.onset?.interpolateAtValueInSeconds(0.5f) ?: 1800f
+                    val comeupSec = roaDuration?.comeup?.interpolateAtValueInSeconds(0.5f) ?: 2700f
+                    val peakSec = roaDuration?.peak?.interpolateAtValueInSeconds(0.5f) ?: 5400f
+                    val offsetSec = roaDuration?.offset?.interpolateAtValueInSeconds(0.5f) ?: 5400f
+                    
+                    // Calculate phase boundaries from ingestion time
+                    val onsetEnd = onsetSec
+                    val comeupEnd = onsetEnd + comeupSec
+                    val peakEnd = comeupEnd + peakSec
+                    val offsetEnd = peakEnd + offsetSec
+                    
+                    // Determine current phase and format status text
+                    val phaseText = when {
+                        elapsedSeconds < 0 -> "not started"
+                        elapsedSeconds < onsetEnd -> {
+                            val remaining = (onsetEnd - elapsedSeconds).toLong()
+                            "onset · peak in ${formatSecondsToTime(remaining + comeupSec.toLong())}"
+                        }
+                        elapsedSeconds < comeupEnd -> {
+                            val remaining = (comeupEnd - elapsedSeconds).toLong()
+                            "↑ comeup · peak in ${formatSecondsToTime(remaining)}"
+                        }
+                        elapsedSeconds < peakEnd -> {
+                            val remaining = (peakEnd - elapsedSeconds).toLong()
+                            "⬆ PEAK · ${formatSecondsToTime(remaining)} left"
+                        }
+                        elapsedSeconds < offsetEnd -> {
+                            val remaining = (offsetEnd - elapsedSeconds).toLong()
+                            "↓ offset · ${formatSecondsToTime(remaining)} left"
+                        }
+                        else -> "finished"
                     }
                     
-                    // Format offset duration (comedown)
-                    val offsetText = roaDuration?.offset?.let { offset ->
-                        val minText = formatDurationValue(offset.minInSec)
-                        val maxText = formatDurationValue(offset.maxInSec)
-                        if (minText != null && maxText != null) {
-                            "offset: $minText - $maxText"
-                        } else if (minText != null) {
-                            "offset: $minText"
-                        } else null
-                    }
-                    
-                    // Build the line with all available info
-                    val parts = mutableListOf<String>()
-                    parts.add(ingestion.substanceName)
-                    parts.add(timeText)
-                    peakText?.let { parts.add(it) }
-                    offsetText?.let { parts.add(it) }
-                    
-                    parts.joinToString(" * ")
+                    // Build the line: Substance * elapsed * phase status
+                    "${ingestion.substanceName} * $timeText * $phaseText"
                 }
 
                 // Generate timeline graph bitmap with accurate substance durations
@@ -906,21 +902,6 @@ class TimelineWidgetWorker(
         }
     }
 
-    private fun formatRelativeTime(time: Instant, now: Instant): String {
-        val duration = Duration.between(time, now)
-        val days = duration.toDays()
-        val hours = duration.toHours() % 24
-        val minutes = duration.toMinutes() % 60
-        val seconds = duration.seconds % 60
-        
-        return when {
-            days > 0 -> "${days}d ${hours}h ago"
-            hours > 0 -> "${hours}h ${minutes}m ago"
-            minutes > 0 -> "${minutes}m ${seconds}s ago"
-            else -> "just now"
-        }
-    }
-
     /**
      * Formats elapsed time since ingestion (without "ago" suffix)
      * Format: "23m 21s" or "1h 5m"
@@ -941,19 +922,17 @@ class TimelineWidgetWorker(
     }
 
     /**
-     * Formats a duration value in seconds to a human-readable string (e.g., "23m" or "1h 30m")
+     * Formats seconds to a compact time string (e.g., "23m" or "1h 30m")
      */
-    private fun formatDurationValue(seconds: Float?): String? {
-        if (seconds == null) return null
-        val totalMinutes = (seconds / 60).toInt()
-        val hours = totalMinutes / 60
-        val mins = totalMinutes % 60
+    private fun formatSecondsToTime(totalSeconds: Long): String {
+        val hours = totalSeconds / 3600
+        val minutes = (totalSeconds % 3600) / 60
         
         return when {
-            hours > 0 && mins > 0 -> "${hours}h ${mins}m"
+            hours > 0 && minutes > 0 -> "${hours}h ${minutes}m"
             hours > 0 -> "${hours}h"
-            mins > 0 -> "${mins}m"
-            else -> "0m"
+            minutes > 0 -> "${minutes}m"
+            else -> "<1m"
         }
     }
 }
