@@ -313,20 +313,27 @@ class MyAppWidget : GlanceAppWidget() {
         }
     }
     /**
-     * Extract substance name from line format: "SubstanceName * elapsed * ..."
+     * Extract substance name from line format: "SubstanceName • elapsed • ..."
      */
     private fun extractSubstanceName(line: String): String? {
         return try {
-            val starIndex = line.indexOf(" * ")
-            if (starIndex > 0) {
-                line.take(starIndex).trim()
+            // Look for bullet separator (•) used in new format
+            val bulletIndex = line.indexOf(" • ")
+            if (bulletIndex > 0) {
+                line.take(bulletIndex).trim()
             } else {
-                // Fallback to old format with parentheses
-                val parenIndex = line.indexOf('(')
-                if (parenIndex > 0) {
-                    line.take(parenIndex).trim()
+                // Fallback to asterisk separator
+                val starIndex = line.indexOf(" * ")
+                if (starIndex > 0) {
+                    line.take(starIndex).trim()
                 } else {
-                    null
+                    // Fallback to old format with parentheses
+                    val parenIndex = line.indexOf('(')
+                    if (parenIndex > 0) {
+                        line.take(parenIndex).trim()
+                    } else {
+                        null
+                    }
                 }
             }
         } catch (_: Exception) {
