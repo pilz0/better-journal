@@ -55,6 +55,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import foo.pilz.freaklog.ui.tabs.search.substancerow.SubstanceRow
 import foo.pilz.freaklog.ui.theme.horizontalPadding
+import foo.pilz.freaklog.ui.utils.HapticType
+import foo.pilz.freaklog.ui.utils.rememberHaptic
 
 @Composable
 fun SearchScreen(
@@ -65,11 +67,16 @@ fun SearchScreen(
 ) {
     val focusRequester = remember { FocusRequester() }
     var isFocused by remember { mutableStateOf(false) }
+    val performHaptic = rememberHaptic()
+    
     Scaffold(
         floatingActionButton = {
             if (!isFocused) {
                 FloatingActionButton(
-                    onClick = { focusRequester.requestFocus() }) {
+                    onClick = { 
+                        performHaptic(HapticType.CLICK)
+                        focusRequester.requestFocus() 
+                    }) {
                     Icon(Icons.Default.Keyboard, contentDescription = "Keyboard")
                 }
             }
@@ -89,12 +96,18 @@ fun SearchScreen(
                     searchViewModel.filterSubstances(searchText = it)
                 },
                 categories = searchViewModel.chipCategoriesFlow.collectAsState().value,
-                onFilterTapped = searchViewModel::onFilterTapped,
+                onFilterTapped = { 
+                    performHaptic(HapticType.SELECTION)
+                    searchViewModel.onFilterTapped(it)
+                },
                 isShowingFilter = true
             )
             val activeFilters =
                 searchViewModel.chipCategoriesFlow.collectAsState().value.filter { it.isActive }
-            val onFilterTapped = searchViewModel::onFilterTapped
+            val onFilterTapped = { chipName: String ->
+                performHaptic(HapticType.SELECTION)
+                searchViewModel.onFilterTapped(chipName)
+            }
             val filteredSubstances = searchViewModel.filteredSubstancesFlow.collectAsState().value
             val filteredCustomSubstances =
                 searchViewModel.filteredCustomSubstancesFlow.collectAsState().value
@@ -136,7 +149,10 @@ fun SearchScreen(
                         )
                     }
                     TextButton(
-                        onClick = navigateToAddCustomSubstanceScreen,
+                        onClick = { 
+                            performHaptic(HapticType.CLICK)
+                            navigateToAddCustomSubstanceScreen()
+                        },
                         modifier = Modifier.padding(horizontal = horizontalPadding)
                     ) {
                         Icon(
@@ -160,12 +176,14 @@ fun SearchScreen(
                             hasSaferUse = false,
                             hasInteractions = false
                         ), onTap = {
+                            performHaptic(HapticType.SELECTION)
                             onCustomSubstanceTap(customSubstance.id)
                         })
                         HorizontalDivider()
                     }
                     items(filteredSubstances) { substance ->
                         SubstanceRow(substanceModel = substance, onTap = {
+                            performHaptic(HapticType.SELECTION)
                             onSubstanceTap(substance)
                         })
                         HorizontalDivider()
@@ -174,7 +192,10 @@ fun SearchScreen(
                     item {
                         val addCustomSubstanceText = "Add custom substance"
                         TextButton(
-                            onClick = navigateToAddCustomSubstanceScreen,
+                            onClick = { 
+                                performHaptic(HapticType.CLICK)
+                                navigateToAddCustomSubstanceScreen()
+                            },
                             modifier = Modifier
                                 .padding(horizontal = horizontalPadding)
                                 .semantics { contentDescription = addCustomSubstanceText }

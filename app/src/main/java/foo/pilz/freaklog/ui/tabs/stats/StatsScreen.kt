@@ -70,6 +70,8 @@ import foo.pilz.freaklog.ui.YOU
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
 import foo.pilz.freaklog.ui.theme.JournalTheme
 import foo.pilz.freaklog.ui.theme.horizontalPadding
+import foo.pilz.freaklog.ui.utils.HapticType
+import foo.pilz.freaklog.ui.utils.rememberHaptic
 
 
 @Composable
@@ -113,6 +115,8 @@ fun StatsScreen(
     onChangeConsumerName: (String?) -> Unit,
     consumerNamesSorted: List<String>,
 ) {
+    val performHaptic = rememberHaptic()
+    
     Scaffold(
         topBar = {
             TopAppBar(
@@ -120,7 +124,10 @@ fun StatsScreen(
                 actions = {
                     if (consumerNamesSorted.isNotEmpty()) {
                         var isConsumerSelectionExpanded by remember { mutableStateOf(false) }
-                        IconButton(onClick = { isConsumerSelectionExpanded = true }) {
+                        IconButton(onClick = { 
+                            performHaptic(HapticType.CLICK)
+                            isConsumerSelectionExpanded = true 
+                        }) {
                             Icon(Icons.Outlined.Person, contentDescription = "Consumer")
                         }
                         DropdownMenu(
@@ -130,6 +137,7 @@ fun StatsScreen(
                             DropdownMenuItem(
                                 text = { Text(YOU) },
                                 onClick = {
+                                    performHaptic(HapticType.SELECTION)
                                     onChangeConsumerName(null)
                                     isConsumerSelectionExpanded = false
                                 },
@@ -147,6 +155,7 @@ fun StatsScreen(
                                 DropdownMenuItem(
                                     text = { Text(consumerName) },
                                     onClick = {
+                                        performHaptic(HapticType.SELECTION)
                                         onChangeConsumerName(consumerName)
                                         isConsumerSelectionExpanded = false
                                     },
@@ -182,7 +191,10 @@ fun StatsScreen(
                         Tab(
                             text = { Text(option.displayText) },
                             selected = statsModel.selectedOption.tabIndex == index,
-                            onClick = { onTapOption(option) }
+                            onClick = { 
+                                performHaptic(HapticType.SELECTION)
+                                onTapOption(option) 
+                            }
                         )
                     }
                 }
@@ -217,6 +229,7 @@ fun StatsScreen(
                                             .fillMaxWidth()
                                             .height(intrinsicSize = IntrinsicSize.Min)
                                             .clickable {
+                                                performHaptic(HapticType.SELECTION)
                                                 navigateToSubstanceCompanion(
                                                     subStat.substanceName,
                                                     statsModel.consumerName
