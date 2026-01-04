@@ -82,7 +82,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import foo.pilz.freaklog.ui.VERSION_NAME
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
 import foo.pilz.freaklog.ui.theme.horizontalPadding
+import foo.pilz.freaklog.ui.utils.HapticType
 import foo.pilz.freaklog.ui.utils.getStringOfPattern
+import foo.pilz.freaklog.ui.utils.rememberHaptic
 import kotlinx.coroutines.launch
 import java.time.Instant
 
@@ -107,6 +109,8 @@ fun SettingsPreview() {
         saveAreSubstanceHeightsIndependent = {},
         activateSafer = true,
         saveActivateSafer = {},
+        isHapticFeedbackEnabled = true,
+        saveHapticFeedbackEnabled = {},
         )
 }
 
@@ -137,6 +141,8 @@ fun SettingsScreen(
         saveAreSubstanceHeightsIndependent = viewModel::saveAreSubstanceHeightsIndependent,
         activateSafer = viewModel.activateSaferFlow.collectAsState().value,
         saveActivateSafer = viewModel::saveActivateSafer,
+        isHapticFeedbackEnabled = viewModel.isHapticFeedbackEnabledFlow.collectAsState().value,
+        saveHapticFeedbackEnabled = viewModel::saveHapticFeedbackEnabled,
     )
 }
 
@@ -160,7 +166,11 @@ fun SettingsScreen(
     saveAreSubstanceHeightsIndependent: (Boolean) -> Unit,
     activateSafer: Boolean,
     saveActivateSafer: (Boolean) -> Unit,
+    isHapticFeedbackEnabled: Boolean,
+    saveHapticFeedbackEnabled: (Boolean) -> Unit,
 ) {
+    val performHaptic = rememberHaptic()
+    
     Scaffold(
         topBar = {
             TopAppBar(
@@ -181,6 +191,7 @@ fun SettingsScreen(
                     imageVector = Icons.Outlined.Medication,
                     text = "Custom units"
                 ) {
+                    performHaptic(HapticType.CLICK)
                     navigateToCustomUnits()
                 }
                 HorizontalDivider()
@@ -188,6 +199,7 @@ fun SettingsScreen(
                     imageVector = Icons.Outlined.Palette,
                     text = "Substance colors"
                 ) {
+                    performHaptic(HapticType.CLICK)
                     navigateToSubstanceColors()
                 }
                 HorizontalDivider()
@@ -195,6 +207,7 @@ fun SettingsScreen(
                     imageVector = Icons.Outlined.WarningAmber,
                     text = "Interaction settings"
                 ) {
+                    performHaptic(HapticType.CLICK)
                     navigateToComboSettings()
                 }
                 HorizontalDivider()
@@ -208,7 +221,10 @@ fun SettingsScreen(
                     Text(text = "Hide dosage dots")
                     Switch(
                         checked = areDosageDotsHidden,
-                        onCheckedChange = saveDosageDotsAreHidden
+                        onCheckedChange = { 
+                            performHaptic(HapticType.TOGGLE)
+                            saveDosageDotsAreHidden(it)
+                        }
                     )
                 }
                 HorizontalDivider()
@@ -222,7 +238,10 @@ fun SettingsScreen(
                     Text(text = "Hide timeline")
                     Switch(
                         checked = isTimelineHidden,
-                        onCheckedChange = saveIsTimelineHidden
+                        onCheckedChange = { 
+                            performHaptic(HapticType.TOGGLE)
+                            saveIsTimelineHidden(it)
+                        }
                     )
                 }
                 HorizontalDivider()
@@ -240,6 +259,7 @@ fun SettingsScreen(
                         horizontalArrangement = Arrangement.spacedBy(5.dp),
                         modifier = Modifier
                             .clickable {
+                                performHaptic(HapticType.CLICK)
                                 showBottomSheet = true
                             }
                             .padding(end = ButtonDefaults.IconSpacing)
@@ -271,7 +291,10 @@ fun SettingsScreen(
                     }
                     Switch(
                         checked = areSubstanceHeightsIndependent,
-                        onCheckedChange = saveAreSubstanceHeightsIndependent
+                        onCheckedChange = { 
+                            performHaptic(HapticType.TOGGLE)
+                            saveAreSubstanceHeightsIndependent(it)
+                        }
                     )
                 }
                 HorizontalDivider()
@@ -285,13 +308,34 @@ fun SettingsScreen(
                     Text(text = "Hide Safer page")
                     Switch(
                         checked = activateSafer,
-                        onCheckedChange = saveActivateSafer
+                        onCheckedChange = { 
+                            performHaptic(HapticType.TOGGLE)
+                            saveActivateSafer(it)
+                        }
+                    )
+                }
+                HorizontalDivider()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = horizontalPadding),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = "Haptic feedback")
+                    Switch(
+                        checked = isHapticFeedbackEnabled,
+                        onCheckedChange = { 
+                            performHaptic(HapticType.TOGGLE)
+                            saveHapticFeedbackEnabled(it)
+                        }
                     )
                 }
             }
             CardWithTitle(title = "App data", innerPaddingHorizontal = 0.dp) {
                 var isShowingExportDialog by remember { mutableStateOf(false) }
                 SettingsButton(imageVector = Icons.Outlined.FileUpload, text = "Export File") {
+                    performHaptic(HapticType.CLICK)
                     isShowingExportDialog = true
                 }
                 val jsonMIMEType = "application/json"

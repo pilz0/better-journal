@@ -83,6 +83,16 @@ class SettingsViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000)
     )
 
+    fun saveHapticFeedbackEnabled(value: Boolean) = viewModelScope.launch {
+        userPreferences.saveHapticFeedbackEnabled(value)
+    }
+
+    val isHapticFeedbackEnabledFlow = userPreferences.isHapticFeedbackEnabledFlow.stateIn(
+        initialValue = true,
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000)
+    )
+
     val snackbarHostState = SnackbarHostState()
 
     fun importFile(uri: Uri) {

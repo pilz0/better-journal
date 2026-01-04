@@ -49,6 +49,7 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
         val KEY_ARE_SUBSTANCE_HEIGHTS_INDEPENDENT = booleanPreferencesKey("KEY_ARE_SUBSTANCE_HEIGHTS_INDEPENDENT")
         val KEY_IS_TIMELINE_HIDDEN = booleanPreferencesKey("KEY_IS_TIMELINE_HIDDEN")
         val KEY_HIDE_SAFER = booleanPreferencesKey("KEY_HIDE_SAFER")
+        val KEY_HAPTIC_FEEDBACK_ENABLED = booleanPreferencesKey("KEY_HAPTIC_FEEDBACK_ENABLED")
 
         val WEBHOOK_URL = stringPreferencesKey("webhook_url")
 
@@ -182,6 +183,17 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
     suspend fun writeWebhookTemplate(value: String) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.WEBHOOK_TEMPLATE] = value
+        }
+    }
+
+    val isHapticFeedbackEnabledFlow: Flow<Boolean> = dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.KEY_HAPTIC_FEEDBACK_ENABLED] ?: true
+        }
+
+    suspend fun saveHapticFeedbackEnabled(value: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.KEY_HAPTIC_FEEDBACK_ENABLED] = value
         }
     }
 }
