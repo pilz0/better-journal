@@ -297,13 +297,13 @@ class MyAppWidget : GlanceAppWidget() {
                 val escapedName = match.groupValues[1]
                 val colorInt = match.groupValues[2].toIntOrNull()
                 if (colorInt != null) {
-                    // Unescape the name
+                    // Unescape the name - reverse the escaping order
                     val name = escapedName
-                        .replace("\\\"", "\"")
-                        .replace("\\\\", "\\")
                         .replace("\\n", "\n")
                         .replace("\\r", "\r")
                         .replace("\\t", "\t")
+                        .replace("\\\"", "\"")
+                        .replace("\\\\", "\\")
                     result[name] = colorInt
                 }
             }
@@ -312,7 +312,6 @@ class MyAppWidget : GlanceAppWidget() {
             emptyMap()
         }
     }
-
     /**
      * Extract substance name from line format: "SubstanceName * elapsed * ..."
      */
@@ -464,37 +463,37 @@ class TimelineWidgetWorker(
                     val comeupSec = roaDuration?.comeup?.interpolateAtValueInSeconds(0.5f) ?: 2700f
                     val peakSec = roaDuration?.peak?.interpolateAtValueInSeconds(0.5f) ?: 5400f
                     val offsetSec = roaDuration?.offset?.interpolateAtValueInSeconds(0.5f) ?: 5400f
-                    
+
                     // Calculate phase boundaries from ingestion time
                     val onsetEnd = onsetSec
                     val comeupEnd = onsetEnd + comeupSec
                     val peakEnd = comeupEnd + peakSec
                     val offsetEnd = peakEnd + offsetSec
-                    
+
                     // Determine current phase and format status text
                     val phaseText = when {
                         elapsedSeconds < 0 -> "not started"
                         elapsedSeconds < onsetEnd -> {
                             val timeToPeak = (comeupEnd - elapsedSeconds).toLong()
-                            "onset · peak in ${formatSecondsToTime(timeToPeak)}"
+                            "onset • peak in ${formatSecondsToTime(timeToPeak)}"
                         }
                         elapsedSeconds < comeupEnd -> {
                             val remaining = (comeupEnd - elapsedSeconds).toLong()
-                            "↑ comeup · peak in ${formatSecondsToTime(remaining)}"
+                            "↑ comeup • peak in ${formatSecondsToTime(remaining)}"
                         }
                         elapsedSeconds < peakEnd -> {
                             val remaining = (peakEnd - elapsedSeconds).toLong()
-                            "⬆ PEAK · ${formatSecondsToTime(remaining)} left"
+                            "peak • ${formatSecondsToTime(remaining)} left"
                         }
                         elapsedSeconds < offsetEnd -> {
                             val remaining = (offsetEnd - elapsedSeconds).toLong()
-                            "↓ offset · ${formatSecondsToTime(remaining)} left"
+                            "↓ offset • ${formatSecondsToTime(remaining)} left"
                         }
                         else -> "finished"
                     }
                     
                     // Build the line: Substance * elapsed * phase status
-                    "${ingestion.substanceName} * $timeText * $phaseText"
+                    "${ingestion.substanceName} • $timeText • $phaseText"
                 }
 
                 // Generate timeline graph bitmap with accurate substance durations
@@ -926,7 +925,7 @@ class TimelineWidgetWorker(
      */
     private fun formatSecondsToTime(totalSeconds: Long): String {
         if (totalSeconds <= 0) return "<1m"
-        
+
         val hours = totalSeconds / 3600
         val minutes = (totalSeconds % 3600) / 60
         
