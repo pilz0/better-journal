@@ -90,7 +90,7 @@ fun WebhookSettingsContent(
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
-                        text = "Paste your Discord Webhook URL below. The 'Webhook Name' will be used as the bot's username.",
+                        text = "Paste your Discord Webhook URL below. The 'Webhook Name' will be used as the name for ingestion's.",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }

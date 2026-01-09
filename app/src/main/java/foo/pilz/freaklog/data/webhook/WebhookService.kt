@@ -43,9 +43,9 @@ data class WebhookResult(
 class WebhookService @Inject constructor() {
 
     companion object {
-        const val DEFAULT_TEMPLATE = "{user}: [{dose} {units} ]{substance} via {route}[ ({site})][\n> {note}]"
+        const val DEFAULT_TEMPLATE = "{user}: [{dose} {units} ]{substance} via {route}[ at {site}][\n> {note}]"
         private const val MAX_RETRIES = 3
-        private const val SUBSTANCE_INFO_URL = "https://psychonautwiki.org/wiki/"
+        private const val SUBSTANCE_INFO_URL = "https://anodyne.wiki/substance/"
     }
 
     suspend fun sendWebhook(
