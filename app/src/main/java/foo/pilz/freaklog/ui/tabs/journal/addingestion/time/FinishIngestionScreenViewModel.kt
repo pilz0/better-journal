@@ -370,12 +370,24 @@ class FinishIngestionScreenViewModel @Inject constructor(
 
         try {
             android.util.Log.d("FinishIngestionScreenViewModel:", "Trying to send webhook")
+            var displayDose = ingestion.dose
+            var displayUnits = ingestion.units
+            
+            val customUnitId = ingestion.customUnitId
+            if (customUnitId != null) {
+                val customUnit = experienceRepo.getCustomUnit(customUnitId)
+                if (customUnit != null && customUnit.dose != null && ingestion.dose != null) {
+                   displayDose = ingestion.dose!! * customUnit.dose!!
+                   displayUnits = customUnit.originalUnit
+                }
+            }
+
             val result = webhookService.sendWebhook(
                 url = webhookURL,
                 user = user,
                 substance = ingestion.substanceName,
-                dose = ingestion.dose,
-                units = ingestion.units,
+                dose = displayDose,
+                units = displayUnits,
                 isEstimate = ingestion.isDoseAnEstimate,
                 route = route,
                 site = ingestion.administrationSite,
