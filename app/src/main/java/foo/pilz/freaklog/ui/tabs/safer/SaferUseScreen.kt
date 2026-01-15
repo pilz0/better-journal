@@ -63,6 +63,7 @@ fun SaferUsePreview() {
         navigateToDosageClassificationScreen = {},
         navigateToRouteExplanationScreen = {},
         navigateToReagentTestingScreen = {},
+        navigateToSprayCalculatorScreen = {},
     )
 }
 
@@ -76,6 +77,7 @@ fun SaferUseScreen(
     navigateToDosageClassificationScreen: () -> Unit,
     navigateToRouteExplanationScreen: () -> Unit,
     navigateToReagentTestingScreen: () -> Unit,
+    navigateToSprayCalculatorScreen: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -227,6 +229,26 @@ fun SaferUseScreen(
                     Text("Recovery position video")
                 }
                 VerticalSpace()
+            }
+            ElevatedCard(
+                modifier = Modifier.padding(
+                    horizontal = horizontalPadding,
+                    vertical = verticalPaddingCards
+                )
+            ) {
+                TextButton(
+                    onClick = navigateToSprayCalculatorScreen,
+                    modifier = Modifier.padding(horizontal = horizontalPadding)
+                ) {
+                    Icon(
+                        Icons.Outlined.Science,
+                        contentDescription = "Spray Calculator",
+                        modifier = Modifier.size(ButtonDefaults.IconSize)
+                    )
+                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                    Text("Spray Calculator")
+                    Spacer(modifier = Modifier.weight(1f))
+                }
             }
             ElevatedCard(
                 modifier = Modifier.padding(
