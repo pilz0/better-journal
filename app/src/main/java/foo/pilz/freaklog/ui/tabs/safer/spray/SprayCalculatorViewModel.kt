@@ -22,6 +22,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import foo.pilz.freaklog.data.room.SprayRepository
 import foo.pilz.freaklog.data.room.experiences.entities.Spray
+import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -140,7 +141,7 @@ class SprayCalculatorViewModel @Inject constructor(
 
         val numSprays = liquidMl * selectedSpray.numSprays / selectedSpray.contentInMl
         val result = numSprays * weightPerSprayValue
-        val resultText = formatDouble(result)
+        val resultText = result.toReadableString()
         if (resultText != _totalWeight.value) {
             _totalWeight.value = resultText
         }
@@ -155,7 +156,7 @@ class SprayCalculatorViewModel @Inject constructor(
 
         val numSprays = totalWeightValue / weightPerSprayValue
         val result = numSprays * selectedSpray.contentInMl / selectedSpray.numSprays
-        val resultText = formatDouble(result)
+        val resultText = result.toReadableString()
         if (resultText != _liquidAmountInMl.value) {
             _liquidAmountInMl.value = resultText
         }
@@ -166,13 +167,5 @@ class SprayCalculatorViewModel @Inject constructor(
         val purityValue = _purityInPercent.value.toDoubleOrNull() ?: return null
         if (purityValue <= 0) return null
         return totalWeightValue * 100 / purityValue
-    }
-
-    private fun formatDouble(value: Double): String {
-        return if (value == value.toLong().toDouble()) {
-            value.toLong().toString()
-        } else {
-            String.format("%.2f", value).trimEnd('0').trimEnd('.')
-        }
     }
 }

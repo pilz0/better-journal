@@ -66,6 +66,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import foo.pilz.freaklog.data.room.experiences.entities.Spray
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
+import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 
 @Composable
@@ -254,7 +255,7 @@ fun SprayCalculatorScreenContent(
 
                     if (doseAdjustedToPurity != null) {
                         Text(
-                            text = "${formatDouble(doseAdjustedToPurity)} ${weightUnit.displayName}",
+                            text = "${doseAdjustedToPurity.toReadableString()} ${weightUnit.displayName}",
                             style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -272,7 +273,7 @@ Note that substances are the most stable in their salt form and degrade more qui
 Don't use tap water because it can become stale and the chlorine inside it breaks down some substances (e.g. LSD). Use distilled water instead.
 Look up the solubility of the substance you want to dissolve in water/ethanol to make sure it will dissolve fully. Most if not all common substances in their salt form are more than soluble enough.
 To prevent degradation by temperature use ethanol or a water/ethanol mix as the solvent such that it can be put in the freezer without freezing. However don't use ethanol for nasal sprays as this can damage the nasal mucosa.
-Powders for nasal delivery have higher bioavailiability than liquids because of increased stability and residence time on nasal mucosa.""",
+Powders for nasal delivery have higher bioavailability than liquids because of increased stability and residence time on nasal mucosa.""",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(16.dp)
                 )
@@ -308,7 +309,7 @@ fun SprayItem(
                     style = MaterialTheme.typography.titleSmall
                 )
                 Text(
-                    text = "${formatDouble(spray.contentInMl)} ml = ${formatDouble(spray.numSprays)} sprays",
+                    text = "${spray.contentInMl.toReadableString()} ml = ${spray.numSprays.toReadableString()} sprays",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -366,14 +367,6 @@ fun WeightUnitDropdown(
                 )
             }
         }
-    }
-}
-
-private fun formatDouble(value: Double): String {
-    return if (value == value.toLong().toDouble()) {
-        value.toLong().toString()
-    } else {
-        String.format("%.2f", value).trimEnd('0').trimEnd('.')
     }
 }
 
