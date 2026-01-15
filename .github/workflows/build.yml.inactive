@@ -71,3 +71,12 @@ jobs:
           files: "freaklog.apk"
           fail_on_unmatched_files: true
           make_latest: true
+
+      - name: upload to google play
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ SERVICE_ACCOUNT_JSON }}
+          packageName: foo.pilz.freaklog
+          releaseFiles: app/build/outputs/bundle/release/app-release.aab
+          track: qa
+          userFraction: 1.0

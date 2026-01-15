@@ -41,7 +41,7 @@
           default = self.packages.${system}.app;
           app = gradle2nix.builders.${system}.buildGradlePackage {
             pname = "app";
-            version = "11.12";
+            version = "11.13";
             lockFile = ./gradle.lock;
             src = ./.;
             gradleBuildFlags = [ "assembleRelease" ];
