@@ -255,6 +255,11 @@ fun SprayCalculatorScreenContent(
 
                     if (doseAdjustedToPurity != null) {
                         Text(
+                            text = "Pure substance needed:",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
                             text = "${doseAdjustedToPurity.toReadableString()} ${weightUnit.displayName}",
                             style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.primary

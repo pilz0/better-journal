@@ -74,7 +74,9 @@ fun AddSprayScreenContent(
 
     val sizeInMlValue = sizeInMl.toDoubleOrNull()
     val numSpraysValue = numSprays.toDoubleOrNull()
-    val canSave = name.isNotBlank() && sizeInMlValue != null && numSpraysValue != null
+    val canSave = name.isNotBlank() && 
+                  sizeInMlValue != null && sizeInMlValue > 0 && 
+                  numSpraysValue != null && numSpraysValue > 0
 
     Scaffold(
         topBar = {
