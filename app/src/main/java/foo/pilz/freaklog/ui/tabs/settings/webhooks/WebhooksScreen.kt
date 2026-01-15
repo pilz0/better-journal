@@ -234,7 +234,7 @@ fun WebhooksScreenContent(
                     Text("Reset to Default")
                 }
                 Text(
-                    text = "Variables: {user}, {dose}, {unit}, {substance}, {route}, {site}, {note}",
+                    text = "Variables: {user}, {dose}, {units}, {substance}, {route}, {site}, {note}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

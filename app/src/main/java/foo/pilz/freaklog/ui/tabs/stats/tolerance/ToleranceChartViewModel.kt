@@ -40,7 +40,12 @@ class ToleranceChartViewModel @Inject constructor(
     private val substanceRepository: SubstanceRepository
 ) : ViewModel() {
 
-    private val _sinceDate = MutableStateFlow(Instant.now().minus(Duration.ofDays(90))) // 3 months ago
+    companion object {
+        private const val MAX_INGESTIONS_TO_LOAD = 1000
+        private const val DEFAULT_LOOKBACK_DAYS = 90L // 3 months
+    }
+
+    private val _sinceDate = MutableStateFlow(Instant.now().minus(Duration.ofDays(DEFAULT_LOOKBACK_DAYS)))
     val sinceDate: StateFlow<Instant> = _sinceDate.asStateFlow()
 
     private val _isTimeRelative = MutableStateFlow(false)
@@ -49,7 +54,7 @@ class ToleranceChartViewModel @Inject constructor(
     private val _additionalSubstanceDays = MutableStateFlow<List<SubstanceAndDay>>(emptyList())
 
     val toleranceDataFlow: StateFlow<ToleranceData> = combine(
-        experienceRepository.getSortedIngestionsWithSubstanceCompanionsFlow(1000),
+        experienceRepository.getSortedIngestionsWithSubstanceCompanionsFlow(MAX_INGESTIONS_TO_LOAD),
         experienceRepository.getAllSubstanceCompanionsFlow(),
         _sinceDate,
         _additionalSubstanceDays

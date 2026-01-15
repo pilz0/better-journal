@@ -45,6 +45,10 @@ class AllIngestionsViewModel @Inject constructor(
     private val experienceRepository: ExperienceRepository
 ) : ViewModel() {
 
+    companion object {
+        private const val MAX_INGESTIONS_TO_LOAD = 500
+    }
+
     private val _searchText = MutableStateFlow("")
     val searchText: StateFlow<String> = _searchText.asStateFlow()
 
@@ -52,7 +56,7 @@ class AllIngestionsViewModel @Inject constructor(
     val isTimeRelative: StateFlow<Boolean> = _isTimeRelative.asStateFlow()
 
     val ingestionSectionsFlow: StateFlow<List<IngestionSection>> = combine(
-        experienceRepository.getSortedIngestionsWithSubstanceCompanionsFlow(500),
+        experienceRepository.getSortedIngestionsWithSubstanceCompanionsFlow(MAX_INGESTIONS_TO_LOAD),
         _searchText
     ) { ingestions, searchQuery ->
         val filtered = if (searchQuery.isBlank()) {
