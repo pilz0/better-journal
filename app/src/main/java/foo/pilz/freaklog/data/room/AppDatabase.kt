@@ -32,12 +32,20 @@ import foo.pilz.freaklog.data.room.experiences.entities.ShulginRating
 import foo.pilz.freaklog.data.room.experiences.entities.Spray
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
 import foo.pilz.freaklog.data.room.experiences.entities.TimedNote
-import foo.pilz.freaklog.data.room.experiences.entities.WebhookPreset
 
 @TypeConverters(InstantConverter::class)
 @Database(
-    version = 11,
-    entities = [Experience::class, Ingestion::class, SubstanceCompanion::class, CustomSubstance::class, ShulginRating::class, TimedNote::class, CustomUnit::class, Spray::class, WebhookPreset::class],
+    version = 10,
+    entities = [
+        Experience::class,
+        Ingestion::class,
+        SubstanceCompanion::class,
+        CustomSubstance::class,
+        ShulginRating::class,
+        TimedNote::class,
+        CustomUnit::class,
+        Spray::class
+    ],
     autoMigrations = [
         AutoMigration (from = 1, to = 2),
         AutoMigration (from = 2, to = 3),
@@ -48,11 +56,9 @@ import foo.pilz.freaklog.data.room.experiences.entities.WebhookPreset
         AutoMigration (from = 7, to = 8),
         AutoMigration (from = 8, to = 9),
         AutoMigration (from = 9, to = 10),
-        AutoMigration (from = 10, to = 11),
     ]
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun experienceDao(): ExperienceDao
     abstract fun sprayDao(): SprayDao
-    abstract fun webhookPresetDao(): WebhookPresetDao
 }

@@ -25,14 +25,12 @@ import foo.pilz.freaklog.ui.main.navigation.composableWithTransitions
 import foo.pilz.freaklog.ui.main.navigation.SettingsTopLevelRoute
 import foo.pilz.freaklog.ui.tabs.settings.FAQScreen
 import foo.pilz.freaklog.ui.tabs.settings.SettingsScreen
+import foo.pilz.freaklog.ui.tabs.settings.WebhookSettingsScreen
 import foo.pilz.freaklog.ui.tabs.settings.colors.SubstanceColorsScreen
 import foo.pilz.freaklog.ui.tabs.settings.combinations.CombinationSettingsScreen
 import foo.pilz.freaklog.ui.tabs.settings.customunits.CustomUnitsScreen
 import foo.pilz.freaklog.ui.tabs.settings.customunits.archive.CustomUnitArchiveScreen
 import foo.pilz.freaklog.ui.tabs.settings.customunits.edit.EditCustomUnitScreen
-import foo.pilz.freaklog.ui.tabs.settings.webhooks.EditWebhookPresetScreen
-import foo.pilz.freaklog.ui.tabs.settings.webhooks.WebhookArchiveScreen
-import foo.pilz.freaklog.ui.tabs.settings.webhooks.WebhooksScreen
 import kotlinx.serialization.Serializable
 
 fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
@@ -54,33 +52,14 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
                     navController.navigate(CustomUnitsRoute)
                 },
                 navigateToWebhook = {
-                  navController.navigate(WebhooksScreenRoute)
+                  navController.navigate(WebhookSettingsScreenRoute)
                 },
             )
         }
         composableWithTransitions<FAQRoute> { FAQScreen() }
         composableWithTransitions<CombinationSettingsRoute> { CombinationSettingsScreen() }
         composableWithTransitions<SubstanceColorsRoute> { SubstanceColorsScreen() }
-        composableWithTransitions<WebhooksScreenRoute> {
-            WebhooksScreen(
-                navigateToEditPreset = { presetId ->
-                    navController.navigate(EditWebhookPresetRoute(presetId))
-                },
-                navigateToArchive = {
-                    navController.navigate(WebhookArchiveRoute)
-                }
-            )
-        }
-        composableWithTransitions<EditWebhookPresetRoute> { backStackEntry ->
-            val presetId = backStackEntry.arguments?.getInt("presetId") ?: return@composableWithTransitions
-            EditWebhookPresetScreen(
-                presetId = presetId,
-                navigateBack = navController::popBackStack
-            )
-        }
-        composableWithTransitions<WebhookArchiveRoute> {
-            WebhookArchiveScreen()
-        }
+        composableWithTransitions<WebhookSettingsScreenRoute> { WebhookSettingsScreen(navController) }
         composableWithTransitions<CustomUnitArchiveRoute> {
             CustomUnitArchiveScreen(navigateToEditCustomUnit = { customUnitId ->
                 navController.navigate(EditCustomUnitRoute(customUnitId))
@@ -125,13 +104,7 @@ object CustomUnitArchiveRoute
 object CustomUnitsRoute
 
 @Serializable
-object WebhooksScreenRoute
-
-@Serializable
-data class EditWebhookPresetRoute(val presetId: Int)
-
-@Serializable
-object WebhookArchiveRoute
+object WebhookSettingsScreenRoute
 
 @Serializable
 data class EditCustomUnitRoute(val customUnitId: Int)
