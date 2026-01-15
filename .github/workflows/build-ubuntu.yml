@@ -103,5 +103,5 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: foo.pilz.freaklog
-          releaseFiles: apks/freaklog.apk
+          releaseFiles: apks/freaklog.apk/freaklog.apk
           track: qa
