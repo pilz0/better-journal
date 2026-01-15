@@ -28,6 +28,7 @@ import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
 import foo.pilz.freaklog.data.room.AppDatabase
 import foo.pilz.freaklog.data.room.SprayDao
+import foo.pilz.freaklog.data.room.WebhookPresetDao
 import foo.pilz.freaklog.data.room.experiences.ExperienceDao
 import dagger.Module
 import dagger.Provides
@@ -49,6 +50,11 @@ object AppModule {
     @Provides
     fun provideSprayDao(appDatabase: AppDatabase): SprayDao =
         appDatabase.sprayDao()
+
+    @Singleton
+    @Provides
+    fun provideWebhookPresetDao(appDatabase: AppDatabase): WebhookPresetDao =
+        appDatabase.webhookPresetDao()
 
     @Singleton
     @Provides

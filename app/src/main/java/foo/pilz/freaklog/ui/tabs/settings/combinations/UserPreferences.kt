@@ -56,6 +56,8 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
         val WEBHOOK_NAME = stringPreferencesKey("webhook_name")
 
         val WEBHOOK_TEMPLATE =  stringPreferencesKey("webhook_template")
+        val WEBHOOK_IS_HYPERLINKED = booleanPreferencesKey("webhook_is_hyperlinked")
+        val WEBHOOK_SUBSTANCE_INFO_URL = stringPreferencesKey("webhook_substance_info_url")
     }
 
     suspend fun saveTimeDisplayOption(value: SavedTimeDisplayOption) {
@@ -183,6 +185,26 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
     suspend fun writeWebhookTemplate(value: String) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.WEBHOOK_TEMPLATE] = value
+        }
+    }
+
+    fun readWebhookIsHyperlinked(): Flow<Boolean> = dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.WEBHOOK_IS_HYPERLINKED] ?: false
+        }
+    suspend fun writeWebhookIsHyperlinked(value: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.WEBHOOK_IS_HYPERLINKED] = value
+        }
+    }
+
+    fun readWebhookSubstanceInfoUrl(): Flow<String> = dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.WEBHOOK_SUBSTANCE_INFO_URL] ?: "https://anodyne.wiki/substance/"
+        }
+    suspend fun writeWebhookSubstanceInfoUrl(value: String) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.WEBHOOK_SUBSTANCE_INFO_URL] = value
         }
     }
 
