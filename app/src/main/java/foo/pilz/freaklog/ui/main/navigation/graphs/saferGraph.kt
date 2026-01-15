@@ -31,6 +31,8 @@ import foo.pilz.freaklog.ui.tabs.safer.RouteExplanationScreen
 import foo.pilz.freaklog.ui.tabs.safer.SaferHallucinogensScreen
 import foo.pilz.freaklog.ui.tabs.safer.SaferUseScreen
 import foo.pilz.freaklog.ui.tabs.safer.VolumetricDosingScreen
+import foo.pilz.freaklog.ui.tabs.safer.spray.AddSprayScreen
+import foo.pilz.freaklog.ui.tabs.safer.spray.SprayCalculatorScreen
 import foo.pilz.freaklog.ui.tabs.search.substance.SaferStimulantsScreen
 import kotlinx.serialization.Serializable
 
@@ -60,6 +62,9 @@ fun NavGraphBuilder.saferGraph(navController: NavHostController) {
                 },
                 navigateToReagentTestingScreen = {
                     navController.navigate(ReagentTestingRoute)
+                },
+                navigateToSprayCalculatorScreen = {
+                    navController.navigate(SprayCalculatorRoute)
                 }
             )
         }
@@ -85,6 +90,20 @@ fun NavGraphBuilder.saferGraph(navController: NavHostController) {
         }
         composableWithTransitions<ReagentTestingRoute> {
             ReagentTestingScreen()
+        }
+        composableWithTransitions<SprayCalculatorRoute> {
+            SprayCalculatorScreen(
+                navigateToAddSpray = {
+                    navController.navigate(AddSprayRoute)
+                }
+            )
+        }
+        composableWithTransitions<AddSprayRoute> {
+            AddSprayScreen(
+                navigateBack = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }
@@ -116,3 +135,9 @@ object DosageGuideRoute
 
 @Serializable
 object VolumetricDosingOnSaferTabRoute
+
+@Serializable
+object SprayCalculatorRoute
+
+@Serializable
+object AddSprayRoute

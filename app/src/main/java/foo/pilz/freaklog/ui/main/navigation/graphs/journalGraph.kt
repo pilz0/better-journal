@@ -25,6 +25,7 @@ import androidx.navigation.toRoute
 import foo.pilz.freaklog.ui.main.navigation.JournalTopLevelRoute
 import foo.pilz.freaklog.ui.main.navigation.composableWithTransitions
 import foo.pilz.freaklog.ui.tabs.journal.JournalScreen
+import foo.pilz.freaklog.ui.tabs.journal.allingestions.AllIngestionsScreen
 import foo.pilz.freaklog.ui.tabs.journal.calendar.CalendarJournalScreen
 import foo.pilz.freaklog.ui.tabs.journal.experience.ExperienceScreen
 import foo.pilz.freaklog.ui.tabs.journal.experience.edit.EditExperienceScreen
@@ -53,6 +54,9 @@ fun NavGraphBuilder.journalGraph(navController: NavHostController) {
                 },
                 navigateToCalendar = {
                     navController.navigate(CalendarRoute)
+                },
+                navigateToAllIngestions = {
+                    navController.navigate(AllIngestionsRoute)
                 }
             )
         }
@@ -139,6 +143,13 @@ fun NavGraphBuilder.journalGraph(navController: NavHostController) {
                 },
             )
         }
+        composableWithTransitions<AllIngestionsRoute> {
+            AllIngestionsScreen(
+                navigateToEditIngestion = { ingestionId ->
+                    navController.navigate(EditIngestionRoute(ingestionId))
+                }
+            )
+        }
     }
 }
 
@@ -180,3 +191,6 @@ object SaferSniffingRouteOnJournalTab
 
 @Serializable
 object CalendarRoute
+
+@Serializable
+object AllIngestionsRoute

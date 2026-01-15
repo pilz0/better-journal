@@ -55,7 +55,7 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
 
         val WEBHOOK_NAME = stringPreferencesKey("webhook_name")
 
-        val WEBHOOK_TEMPLATE =  stringPreferencesKey("webhook_template")
+        val WEBHOOK_TEMPLATE = stringPreferencesKey("webhook_template")
     }
 
     suspend fun saveTimeDisplayOption(value: SavedTimeDisplayOption) {

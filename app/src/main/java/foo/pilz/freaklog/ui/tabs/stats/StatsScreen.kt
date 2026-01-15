@@ -39,6 +39,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -78,9 +79,11 @@ import foo.pilz.freaklog.ui.utils.rememberHaptic
 fun StatsScreen(
     viewModel: StatsViewModel = hiltViewModel(),
     navigateToSubstanceCompanion: (substanceName: String, consumerName: String?) -> Unit,
+    navigateToToleranceChart: () -> Unit = {}
 ) {
     StatsScreen(
         navigateToSubstanceCompanion = navigateToSubstanceCompanion,
+        navigateToToleranceChart = navigateToToleranceChart,
         onTapOption = viewModel::onTapOption,
         statsModel = viewModel.statsModelFlow.collectAsState().value,
         onChangeConsumerName = viewModel::onChangeConsumer,
@@ -98,6 +101,7 @@ fun StatsPreview(
     JournalTheme {
         StatsScreen(
             navigateToSubstanceCompanion = { _, _ -> },
+            navigateToToleranceChart = {},
             onTapOption = {},
             statsModel = statsModel,
             onChangeConsumerName = {},
@@ -110,6 +114,7 @@ fun StatsPreview(
 @Composable
 fun StatsScreen(
     navigateToSubstanceCompanion: (substanceName: String, consumerName: String?) -> Unit,
+    navigateToToleranceChart: () -> Unit = {},
     onTapOption: (option: TimePickerOption) -> Unit,
     statsModel: StatsModel,
     onChangeConsumerName: (String?) -> Unit,
@@ -171,6 +176,12 @@ fun StatsScreen(
                                 )
                             }
                         }
+                    }
+                    IconButton(onClick = { 
+                        performHaptic(HapticType.CLICK)
+                        navigateToToleranceChart()
+                    }) {
+                        Icon(Icons.Outlined.Schedule, contentDescription = "Tolerance")
                     }
                 }
             )
