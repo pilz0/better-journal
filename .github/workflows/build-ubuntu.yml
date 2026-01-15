@@ -105,4 +105,3 @@ jobs:
           packageName: foo.pilz.freaklog
           releaseFiles: apks/freaklog.apk
           track: qa
-          userFraction: 1.0
