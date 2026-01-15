@@ -31,6 +31,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.CalendarMonth
@@ -82,6 +83,7 @@ fun JournalScreen(
     navigateToExperiencePopNothing: (experienceId: Int) -> Unit,
     navigateToAddIngestion: () -> Unit,
     navigateToCalendar: () -> Unit,
+    navigateToAllIngestions: () -> Unit = {},
     viewModel: JournalViewModel = hiltViewModel()
 ) {
     val experiences = viewModel.experiences.collectAsState().value
@@ -95,6 +97,7 @@ fun JournalScreen(
             navigateToAddIngestion()
         },
         navigateToCalendar = navigateToCalendar,
+        navigateToAllIngestions = navigateToAllIngestions,
         isFavoriteEnabled = viewModel.isFavoriteEnabledFlow.collectAsState().value,
         onChangeIsFavorite = viewModel::onChangeFavorite,
         isTimeRelativeToNow = viewModel.isTimeRelativeToNow.value,
@@ -119,6 +122,7 @@ fun ExperiencesScreenPreview(
             navigateToExperiencePopNothing = {},
             navigateToAddIngestion = {},
             navigateToCalendar = {},
+            navigateToAllIngestions = {},
             isFavoriteEnabled = false,
             onChangeIsFavorite = {},
             isTimeRelativeToNow = true,
@@ -138,6 +142,7 @@ fun JournalScreen(
     navigateToExperiencePopNothing: (experienceId: Int) -> Unit,
     navigateToAddIngestion: () -> Unit,
     navigateToCalendar: () -> Unit,
+    navigateToAllIngestions: () -> Unit = {},
     isFavoriteEnabled: Boolean,
     onChangeIsFavorite: (Boolean) -> Unit,
     isTimeRelativeToNow: Boolean,
@@ -201,6 +206,15 @@ fun JournalScreen(
                         Icon(
                             Icons.Default.CalendarMonth,
                             contentDescription = "Navigate to calendar"
+                        )
+                    }
+                    IconButton(onClick = { 
+                        performHaptic(HapticType.CLICK)
+                        navigateToAllIngestions()
+                    }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.List,
+                            contentDescription = "All Ingestions"
                         )
                     }
                 }
