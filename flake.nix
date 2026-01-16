@@ -80,7 +80,7 @@
              ANDROID_HOME = "${androidSdk.androidsdk}/libexec/android-sdk";
              nativeBuildInputs = [
                pkgs.jetbrains.jdk
-               pkgs.androidSdk.androidsdk
+               androidSdk.androidsdk
              ];
              overrides = {
                "com.android.tools.build:aapt2:8.7.3-12006047" = {
