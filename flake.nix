@@ -31,7 +31,7 @@
 
         androidSdk = pkgs.androidenv.composeAndroidPackages {
           cmdLineToolsVersion = "9.0"; # Matches your previous intent
-          buildToolsVersions = [ "34.0.0" ];
+          buildToolsVersions = [ "35.0.0" "34.0.0" ];
           platformVersions = [ "36" "35" "34" "33" "31" ];
           abiVersions = [ "x86_64" ];
           includeEmulator = false;
