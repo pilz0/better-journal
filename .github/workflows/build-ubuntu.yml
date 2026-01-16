@@ -42,9 +42,9 @@ jobs:
         run: |
           ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager "build-tools;35.0.0"
 
-      - name: Sign app APK
+      - name: Sign app
         uses: ilharp/sign-android-release@nightly
-        id: sign
+        id: sign_app
         if: >
           github.event_name == 'push'
         with:
@@ -55,28 +55,29 @@ jobs:
           keyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
           buildToolsVersion: 35.0.0
 
-      - name: Rename signed APK
-        if: >
-          github.event_name == 'push'
-        run: |
-          mv "${{ steps.sign.outputs.signedFile }}" "freaklog.apk"
+      - name: split signed files
+        uses: jungwinter/split@v2
+        id: signed_files
+        with:
+          msg: ${{ steps.sign_app.outputs.signedFiles }}
+          separator: ':'
 
-      # Uploads to the action results if not pointed at a tag
       - uses: actions/upload-artifact@v4
         if: >
           github.event_name == 'push'
         with:
-          name: "freaklog.apk"
-          path: "freaklog.apk"
-          if-no-files-found: error
+          name: "freaklog"
+          path: |
+            ${{ steps.signed_files.outputs._0 }}
+            ${{ steps.signed_files.outputs._1 }}
+            ${{ steps.signed_files.outputs._2 }}
 
       # Creates a release if pointed at a tag
       - name: Create release
         if: startsWith(github.ref, 'refs/tags/') && github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
-          files: "freaklog.apk"
-          fail_on_unmatched_files: true
+          files: "freaklog"
           make_latest: true
 
   upload:
@@ -87,7 +88,7 @@ jobs:
       - name: Download APKs
         uses: actions/download-artifact@v5
         with:
-          path: apks
+          path: .
 
       - name: Upload APKs to S3
         uses: ryand56/r2-upload-action@latest
@@ -96,7 +97,7 @@ jobs:
           r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
           r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           r2-bucket: ${{ secrets.R2_BUCKET }}
-          source-dir: apks
+          source-dir: freaklog
           destination-dir: apks
           keep-file-fresh: true
 
@@ -105,5 +106,5 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: foo.pilz.freaklog
-          releaseFiles: apks/freaklog.apk/freaklog.apk
+          releaseFiles: apks/freaklog/app-release.aab
           track: internal
