@@ -24,6 +24,7 @@
           inherit system;
           config = {
             allowUnfree = true;
+            allowBroken = true;
             android_sdk.accept_license = true;
           };
         };
@@ -47,7 +48,7 @@
             gradleBuildFlags = [ "assembleRelease" ];
             ANDROID_HOME = "${androidSdk.androidsdk}/libexec/android-sdk";
             nativeBuildInputs = [
-              pkgs.jetbrains.jdk
+             # pkgs.jetbrains.jdk
               androidSdk.androidsdk
             ];
             overrides = {
@@ -70,6 +71,39 @@
               cp app/build/outputs/apk/release/*.apk $out/bin/
             '';
           };
+           aab = gradle2nix.builders.${system}.buildGradlePackage {
+             pname = "aab";
+             version = "11.13";
+             lockFile = ./gradle.lock;
+             src = ./.;
+             gradleBuildFlags = [ "bundle" ];
+             ANDROID_HOME = "${androidSdk.androidsdk}/libexec/android-sdk";
+             nativeBuildInputs = [
+               pkgs.jetbrains.jdk
+               pkgs.androidSdk.androidsdk
+             ];
+             overrides = {
+               "com.android.tools.build:aapt2:8.7.3-12006047" = {
+                 "aapt2-8.7.3-12006047-linux.jar" = src: pkgs.runCommandCC src.name {
+                   nativeBuildInputs = [ pkgs.jdk pkgs.libgcc pkgs.autoPatchelfHook ];
+                   dontAutoPatchelf = true;
+                 } ''
+                   cp ${src} aapt2.jar
+                   jar xf aapt2.jar aapt2
+                   chmod +x aapt2
+                   autoPatchelf aapt2
+                   jar uf aapt2.jar aapt2
+                   cp aapt2.jar $out
+                 '';
+               };
+             };
+             installPhase = ''
+               mkdir -p $out/bin
+               cp app/build/outputs/bundle/release/*.aab $out/bin/
+               cp app/build/outputs/bundle/debug/*.aab $out/bin/
+             '';
+           };
+
         };
 
         devShells.default = pkgs.mkShell {
