@@ -1115,24 +1115,24 @@
       "hash": "sha256-n6YhlsTE55tqWNuziowCK++NshmJ19ri2g9vW2Yompw="
     }
   },
-  "androidx.databinding:databinding-common:8.7.3": {
-    "databinding-common-8.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/androidx/databinding/databinding-common/8.7.3/databinding-common-8.7.3.jar",
+  "androidx.databinding:databinding-common:8.13.2": {
+    "databinding-common-8.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/databinding/databinding-common/8.13.2/databinding-common-8.13.2.jar",
       "hash": "sha256-Zsq4JjnawPbCQzRkwJOwdNYIxLuIfsOKm4vErJgSZzI="
     },
-    "databinding-common-8.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/androidx/databinding/databinding-common/8.7.3/databinding-common-8.7.3.pom",
-      "hash": "sha256-n+PDSKMnWP7DyJbrWleh9jyiuJXePYZ1E7Zx4e4iDqQ="
+    "databinding-common-8.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/databinding/databinding-common/8.13.2/databinding-common-8.13.2.pom",
+      "hash": "sha256-HRsskeiTEHht7ncOkSby+iDtEuPmF+Q5yiif9d85E7E="
     }
   },
-  "androidx.databinding:databinding-compiler-common:8.7.3": {
-    "databinding-compiler-common-8.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/androidx/databinding/databinding-compiler-common/8.7.3/databinding-compiler-common-8.7.3.jar",
-      "hash": "sha256-skMcu+ONCjHgAbfDT1L2mjI/yexXO2r+WJPaztWrMoU="
+  "androidx.databinding:databinding-compiler-common:8.13.2": {
+    "databinding-compiler-common-8.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/databinding/databinding-compiler-common/8.13.2/databinding-compiler-common-8.13.2.jar",
+      "hash": "sha256-osP/8MOaxyxMIcQVAXBmwmPv4XDYrrnTOaPsp8DXnx4="
     },
-    "databinding-compiler-common-8.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/androidx/databinding/databinding-compiler-common/8.7.3/databinding-compiler-common-8.7.3.pom",
-      "hash": "sha256-HHunhKp5zc9OfMtUmGdZgEpo+oz4v/sy0FOP6gwd1Rc="
+    "databinding-compiler-common-8.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/databinding/databinding-compiler-common/8.13.2/databinding-compiler-common-8.13.2.pom",
+      "hash": "sha256-b+dyhf/5yqYWJqP8b/Y1JUj4GQosdDS+kh7P70a+o+s="
     }
   },
   "androidx.datastore:datastore:1.1.1": {
@@ -2279,60 +2279,60 @@
       "hash": "sha256-EIx091ygy16ACVdo8o9Sn3aqg1CDjvji6XNTxkUdXTg="
     }
   },
-  "com.android:signflinger:8.7.3": {
-    "signflinger-8.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/signflinger/8.7.3/signflinger-8.7.3.jar",
+  "com.android:signflinger:8.13.2": {
+    "signflinger-8.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/signflinger/8.13.2/signflinger-8.13.2.jar",
       "hash": "sha256-wdyixoNjTuGilCmPnHF5V4r2qG4IC9xA+WGRW8XIFC8="
     },
-    "signflinger-8.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/signflinger/8.7.3/signflinger-8.7.3.pom",
-      "hash": "sha256-/EbBXN+8shna1dluzsd0AikmzP+ZMmOEO+srUyup2h8="
+    "signflinger-8.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/signflinger/8.13.2/signflinger-8.13.2.pom",
+      "hash": "sha256-CfafQNTgDVIHLrDdB6xnaugjEyeaYIUw043RSAD1X8Q="
     }
   },
-  "com.android:zipflinger:8.7.3": {
-    "zipflinger-8.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/zipflinger/8.7.3/zipflinger-8.7.3.jar",
-      "hash": "sha256-gd1IVhilCaMjWSm56xMJHYhEUmYd5s5aRcw4scVVQhw="
+  "com.android:zipflinger:8.13.2": {
+    "zipflinger-8.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/zipflinger/8.13.2/zipflinger-8.13.2.jar",
+      "hash": "sha256-BwYAacNeRp18NDq8FfHWNivBNWuBv0YlOduIpT7WU/E="
     },
-    "zipflinger-8.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/zipflinger/8.7.3/zipflinger-8.7.3.pom",
-      "hash": "sha256-eoR+FAkDQ1VYyEcDqQpS+1SGyLdn4MixrOkTVUsqW5g="
+    "zipflinger-8.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/zipflinger/8.13.2/zipflinger-8.13.2.pom",
+      "hash": "sha256-4u7Td4LaTYx5nUxLc3w1rYjTkS9RNs/f4sAUzNQLNQw="
     }
   },
-  "com.android.application:com.android.application.gradle.plugin:8.7.3": {
-    "com.android.application.gradle.plugin-8.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/application/com.android.application.gradle.plugin/8.7.3/com.android.application.gradle.plugin-8.7.3.pom",
-      "hash": "sha256-lFjUZhcxlXbTf77C7HMwBh70tmbfhTijdbxTmGIpuRQ="
+  "com.android.application:com.android.application.gradle.plugin:8.13.2": {
+    "com.android.application.gradle.plugin-8.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/application/com.android.application.gradle.plugin/8.13.2/com.android.application.gradle.plugin-8.13.2.pom",
+      "hash": "sha256-1FkMwEiO+6eC+zfRPlKBKTL37/8QIi7SqWt1IL/aoq8="
     }
   },
-  "com.android.databinding:baseLibrary:8.7.3": {
-    "baseLibrary-8.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/databinding/baseLibrary/8.7.3/baseLibrary-8.7.3.jar",
+  "com.android.databinding:baseLibrary:8.13.2": {
+    "baseLibrary-8.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/databinding/baseLibrary/8.13.2/baseLibrary-8.13.2.jar",
       "hash": "sha256-eUETcJ2rIbBsJis3lec8twj7rK5hcV80Nh4a9iN6GHA="
     },
-    "baseLibrary-8.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/databinding/baseLibrary/8.7.3/baseLibrary-8.7.3.pom",
-      "hash": "sha256-3t+hkSFIJf8+NUON0wcZMMYfF/g3hz626xvpwqQ97J4="
+    "baseLibrary-8.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/databinding/baseLibrary/8.13.2/baseLibrary-8.13.2.pom",
+      "hash": "sha256-3/d3DxXM6F4bqoYuCUeh9ubuxNZJcLuz7MevDcFKbRw="
     }
   },
-  "com.android.tools:annotations:31.7.3": {
-    "annotations-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/annotations/31.7.3/annotations-31.7.3.jar",
-      "hash": "sha256-slmV+nsiDTX7uOMl3wcfgpFpG/uv+XNMmOOPRewqc+4="
+  "com.android.tools:annotations:31.13.2": {
+    "annotations-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/annotations/31.13.2/annotations-31.13.2.jar",
+      "hash": "sha256-O0u5YgwX0Z5b2RrBmICAVTVztMO3Of3ZJBb0Ly2vPng="
     },
-    "annotations-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/annotations/31.7.3/annotations-31.7.3.pom",
-      "hash": "sha256-IggjjUccCrksasegWaCp7INdWuE5Kq8Lsk5FW3D9a0s="
+    "annotations-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/annotations/31.13.2/annotations-31.13.2.pom",
+      "hash": "sha256-63PyFYFKl68he6cabGhZ+xx+V7E8XWzNmVneLJdCR1U="
     }
   },
-  "com.android.tools:common:31.7.3": {
-    "common-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/common/31.7.3/common-31.7.3.jar",
-      "hash": "sha256-q7Wy8olUrAnc+10ZLjVa9BI2yDN6/AixaqGtwOiuv2M="
+  "com.android.tools:common:31.13.2": {
+    "common-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/common/31.13.2/common-31.13.2.jar",
+      "hash": "sha256-1OvhcR3gz1CcTVYiRWJLohqxR5RLzd5jUb+26NrM+CY="
     },
-    "common-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/common/31.7.3/common-31.7.3.pom",
-      "hash": "sha256-fWLfKNC8mKnW3l3Vz5pStYe59NOORrAiqY/KqXLgwMM="
+    "common-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/common/31.13.2/common-31.13.2.pom",
+      "hash": "sha256-JhPXZpT9SkW7xosWXBRTfVtUadvqbap32cMuj4VCFHM="
     }
   },
   "com.android.tools:desugar_jdk_libs:2.0.4": {
@@ -2355,250 +2355,264 @@
       "hash": "sha256-oJR5btt6kWzCS+m9CVyW4QcWYwpHrz4GbA0y3j+4vPQ="
     }
   },
-  "com.android.tools:dvlib:31.7.3": {
-    "dvlib-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/dvlib/31.7.3/dvlib-31.7.3.jar",
-      "hash": "sha256-j9NJWi67ULGqyxtDYtxKRxuHRiwersQ2kbtW+JXpxjY="
+  "com.android.tools:dvlib:31.13.2": {
+    "dvlib-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/dvlib/31.13.2/dvlib-31.13.2.jar",
+      "hash": "sha256-488/3JR3iN7o1bqnbLcqZlcRdLxHQe3w47q5enypDhs="
     },
-    "dvlib-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/dvlib/31.7.3/dvlib-31.7.3.pom",
-      "hash": "sha256-/u38iQ67+yMC/G83ZefB/V0/SBsTdC8nrbYArwRze7Y="
+    "dvlib-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/dvlib/31.13.2/dvlib-31.13.2.pom",
+      "hash": "sha256-HKqrkCIWAyLLMQfz/p4VuBXr0391aLxklStZCi3c5wY="
     }
   },
-  "com.android.tools:repository:31.7.3": {
-    "repository-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/repository/31.7.3/repository-31.7.3.jar",
-      "hash": "sha256-FpwueneqMJeIedv4swQ2ZxFlhy/L392mxzWq3bZxA0A="
+  "com.android.tools:repository:31.13.2": {
+    "repository-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/repository/31.13.2/repository-31.13.2.jar",
+      "hash": "sha256-6VCbMNCI6JmUj4yw1zKTwe/S4fEh/Mu+JdUztki5P6E="
     },
-    "repository-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/repository/31.7.3/repository-31.7.3.pom",
-      "hash": "sha256-/KvwRMRUxajJlJ6d7Flu9eqhvvBDsOEaLBlUspjH2wQ="
+    "repository-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/repository/31.13.2/repository-31.13.2.pom",
+      "hash": "sha256-7+6KWA6sdHjIrvnTC85aQydT0m2UCl2VP/SCzkE8Zjo="
     }
   },
-  "com.android.tools:sdk-common:31.7.3": {
-    "sdk-common-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/sdk-common/31.7.3/sdk-common-31.7.3.jar",
-      "hash": "sha256-T6RKfZZ13xPaYU3uUS35CtPkMI0K3bMurZn1fOWPZ18="
+  "com.android.tools:sdk-common:31.13.2": {
+    "sdk-common-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/sdk-common/31.13.2/sdk-common-31.13.2.jar",
+      "hash": "sha256-jP35nW8XaJ5907zxg01zT23Rxk2MQ5BGMsZdVGlWWTQ="
     },
-    "sdk-common-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/sdk-common/31.7.3/sdk-common-31.7.3.pom",
-      "hash": "sha256-qixXwckc96kRBeDOS73akUUdNka2fZHRVpVdvPTIwdM="
+    "sdk-common-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/sdk-common/31.13.2/sdk-common-31.13.2.pom",
+      "hash": "sha256-ezPXPdQoR7BPWaUeqrcbNFLA1pn3xpZZFSuDhjzJDMQ="
     }
   },
-  "com.android.tools:sdklib:31.7.3": {
-    "sdklib-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/sdklib/31.7.3/sdklib-31.7.3.jar",
-      "hash": "sha256-Cj9wl6SgCzhARreDtwU6WewL2SJWq4S6pr2AeqAoWLM="
+  "com.android.tools:sdklib:31.13.2": {
+    "sdklib-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/sdklib/31.13.2/sdklib-31.13.2.jar",
+      "hash": "sha256-3vmw5/ROVK3ThcrBcVSDck+CfxZlEevAwQMZdCqoCGU="
     },
-    "sdklib-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/sdklib/31.7.3/sdklib-31.7.3.pom",
-      "hash": "sha256-a/777V0ro1SwxNEVT6YIbnSBDSZdfOD5gdpRS4c1kS4="
+    "sdklib-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/sdklib/31.13.2/sdklib-31.13.2.pom",
+      "hash": "sha256-/saYRrZwqz267yBnul+YKa77gEd8n3aA+Q9Ka+NpWlg="
     }
   },
-  "com.android.tools.analytics-library:crash:31.7.3": {
-    "crash-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/analytics-library/crash/31.7.3/crash-31.7.3.jar",
+  "com.android.tools.analytics-library:crash:31.13.2": {
+    "crash-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/analytics-library/crash/31.13.2/crash-31.13.2.jar",
       "hash": "sha256-zKl6wpoTKb0xCj6DK25X9GIn5QGqUpwApj3yF8XX30E="
     },
-    "crash-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/analytics-library/crash/31.7.3/crash-31.7.3.pom",
-      "hash": "sha256-Y2k1CO6e1TLmb+4Skpna+6kaD41RZMGXS+IqWvLm34c="
+    "crash-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/analytics-library/crash/31.13.2/crash-31.13.2.pom",
+      "hash": "sha256-+Rdh8nEZmwiOhbYjLgWYM+EU9WoT8RpVeVx2/rljZpM="
     }
   },
-  "com.android.tools.analytics-library:protos:31.7.3": {
-    "protos-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/analytics-library/protos/31.7.3/protos-31.7.3.jar",
-      "hash": "sha256-aSz5gTlf4XGi8in/cMxswd354iYbKOrdoiadZuVQl4Y="
+  "com.android.tools.analytics-library:protos:31.13.2": {
+    "protos-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/analytics-library/protos/31.13.2/protos-31.13.2.jar",
+      "hash": "sha256-st7SCol/upZJ7+sYui/AYu455QDU63EgRcsONLQ7Xvs="
     },
-    "protos-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/analytics-library/protos/31.7.3/protos-31.7.3.pom",
-      "hash": "sha256-OULGcsqFS4Ql6JllHPAj9imcYkgXxSCYA0pOXkImS7Q="
+    "protos-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/analytics-library/protos/31.13.2/protos-31.13.2.pom",
+      "hash": "sha256-h+Vtxrwei3h2ACBQiqMn14SubOmq3mwenHpPPyZSXOA="
     }
   },
-  "com.android.tools.analytics-library:shared:31.7.3": {
-    "shared-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/analytics-library/shared/31.7.3/shared-31.7.3.jar",
-      "hash": "sha256-yte7j5agR6XvehOxyDA0FCKenVByCWRuw7Y6ZIYeHOE="
+  "com.android.tools.analytics-library:shared:31.13.2": {
+    "shared-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/analytics-library/shared/31.13.2/shared-31.13.2.jar",
+      "hash": "sha256-dUNYFvICt6PITZyvMSqJViWiRJkfj8UtBEYjnjrimpw="
     },
-    "shared-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/analytics-library/shared/31.7.3/shared-31.7.3.pom",
-      "hash": "sha256-XqiMevFXcLSVBzsH77c1WWVGL3JUnJk9+xnz7u2TCfI="
+    "shared-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/analytics-library/shared/31.13.2/shared-31.13.2.pom",
+      "hash": "sha256-iosZjZfS6noBpq5TxyRwfWa6N6BATLmCNJzs5F9VDHg="
     }
   },
-  "com.android.tools.analytics-library:tracker:31.7.3": {
-    "tracker-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/analytics-library/tracker/31.7.3/tracker-31.7.3.jar",
-      "hash": "sha256-4flUlzpHM/dgJ6X5b6RUctw8wi0nsdyT8/5qRqdWgb4="
+  "com.android.tools.analytics-library:tracker:31.13.2": {
+    "tracker-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/analytics-library/tracker/31.13.2/tracker-31.13.2.jar",
+      "hash": "sha256-G2ZRS/KRUkIu6KGbmOAgDZLrCj0oBI60hXVk6aHHuFs="
     },
-    "tracker-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/analytics-library/tracker/31.7.3/tracker-31.7.3.pom",
-      "hash": "sha256-1ag5OTcKdMumfmDfbPGnP3cwJWLCaxMbJikc2AX/iy8="
+    "tracker-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/analytics-library/tracker/31.13.2/tracker-31.13.2.pom",
+      "hash": "sha256-fyfJXcqu/ZLc7ss35hsam3AUHs7oaiENnFf0bK5Pkck="
     }
   },
-  "com.android.tools.build:aapt2:8.7.3-12006047": {
-    "aapt2-8.7.3-12006047-osx.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/aapt2/8.7.3-12006047/aapt2-8.7.3-12006047-osx.jar",
-      "hash": "sha256-jPyo0/y4rUXPRuN4DN1KZMs4xwykW0QmVd6fPn0Z78E="
+  "com.android.tools.build:aapt2:8.13.2-14304508": {
+    "aapt2-8.13.2-14304508-osx.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/aapt2/8.13.2-14304508/aapt2-8.13.2-14304508-osx.jar",
+      "hash": "sha256-DUfxfDkk5UcrYSWqYI2Undf0ZRCIlylnHzHy9NgB6Oc="
     },
-    "aapt2-8.7.3-12006047.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/aapt2/8.7.3-12006047/aapt2-8.7.3-12006047.pom",
-      "hash": "sha256-qOlhnTjlOiqyiEisWiD6rA7XUdIkqKJSNmTsmYfxPw8="
+    "aapt2-8.13.2-14304508.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/aapt2/8.13.2-14304508/aapt2-8.13.2-14304508.pom",
+      "hash": "sha256-fghWNPUD1CpPPqFEiMJdSlc5FNsjxkpaBaDFwYbJMRI="
     }
   },
-  "com.android.tools.build:aapt2-proto:8.7.3-12006047": {
-    "aapt2-proto-8.7.3-12006047.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/aapt2-proto/8.7.3-12006047/aapt2-proto-8.7.3-12006047.jar",
-      "hash": "sha256-sy99Syl1rJ7n8GBUwY8f6p2gRdwaYf9Dbs9UNIADYwI="
+  "com.android.tools.build:aapt2-proto:8.13.2-14304508": {
+    "aapt2-proto-8.13.2-14304508.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/aapt2-proto/8.13.2-14304508/aapt2-proto-8.13.2-14304508.jar",
+      "hash": "sha256-ps2oLVCOw7MlqeN/ePn6hFVv80DPQ7sjxiew8550bw4="
     },
-    "aapt2-proto-8.7.3-12006047.module": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/aapt2-proto/8.7.3-12006047/aapt2-proto-8.7.3-12006047.module",
-      "hash": "sha256-vElUf3eyh2nNyoQZjS/s4dZZSikY0RyrPPSxu1eRXis="
+    "aapt2-proto-8.13.2-14304508.module": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/aapt2-proto/8.13.2-14304508/aapt2-proto-8.13.2-14304508.module",
+      "hash": "sha256-fVtyhfR2yCAI8NOfUGsLjFPxsCa9Yk163GiCFr6Opb4="
     },
-    "aapt2-proto-8.7.3-12006047.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/aapt2-proto/8.7.3-12006047/aapt2-proto-8.7.3-12006047.pom",
-      "hash": "sha256-u0XfDcUZLK+jKKGwxaxQJDjeJPM+jvQdyYNt2IzZ8Do="
+    "aapt2-proto-8.13.2-14304508.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/aapt2-proto/8.13.2-14304508/aapt2-proto-8.13.2-14304508.pom",
+      "hash": "sha256-+f1XBgvd7CGC3Mk1dBbpk5DUq4t4YWVLZ7cqdOCQ/6U="
     }
   },
-  "com.android.tools.build:aaptcompiler:8.7.3": {
-    "aaptcompiler-8.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/aaptcompiler/8.7.3/aaptcompiler-8.7.3.jar",
-      "hash": "sha256-RwYuueVJfgdClGUo/ZPDiGdz3SM5BZMV9jFtXAXXza8="
+  "com.android.tools.build:aaptcompiler:8.13.2": {
+    "aaptcompiler-8.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/aaptcompiler/8.13.2/aaptcompiler-8.13.2.jar",
+      "hash": "sha256-9vZwbTt6Jh4kKCDaXIVRI9PCNzgVnKNybgw05IK4B3A="
     },
-    "aaptcompiler-8.7.3.module": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/aaptcompiler/8.7.3/aaptcompiler-8.7.3.module",
-      "hash": "sha256-Pfe+D8ZksWVlQoGEyMu0DI8iMiojO0qCINu9bTmTU68="
+    "aaptcompiler-8.13.2.module": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/aaptcompiler/8.13.2/aaptcompiler-8.13.2.module",
+      "hash": "sha256-DjumtDrZj6aRMd4di2xqdUGzr3FEPctdUqLP/CVY7ms="
     },
-    "aaptcompiler-8.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/aaptcompiler/8.7.3/aaptcompiler-8.7.3.pom",
-      "hash": "sha256-yhzBgzCbhrtVFahbPJlUgg1jw50AHMdZCCoTGi0vfhY="
+    "aaptcompiler-8.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/aaptcompiler/8.13.2/aaptcompiler-8.13.2.pom",
+      "hash": "sha256-sQ/OQPXnkalYeGlI/NanTEc7yHTLScuYpnePGBz3MeQ="
     }
   },
-  "com.android.tools.build:apksig:8.7.3": {
-    "apksig-8.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/apksig/8.7.3/apksig-8.7.3.jar",
+  "com.android.tools.build:apksig:8.13.2": {
+    "apksig-8.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/apksig/8.13.2/apksig-8.13.2.jar",
       "hash": "sha256-wHDtE5RinXRkGqCQb2Cy/6Hud+Y2ah+TQ39ZcXsa64k="
     },
-    "apksig-8.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/apksig/8.7.3/apksig-8.7.3.pom",
-      "hash": "sha256-pouibUpuejW77i/lFGYBRubCshcUa5wahrW1q62Zo8k="
+    "apksig-8.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/apksig/8.13.2/apksig-8.13.2.pom",
+      "hash": "sha256-Ij3tgmjn8O6d8BCdgEnO1hR0tevYSMLToIiTKixcyCM="
     }
   },
-  "com.android.tools.build:apkzlib:8.7.3": {
-    "apkzlib-8.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/apkzlib/8.7.3/apkzlib-8.7.3.jar",
-      "hash": "sha256-HBpn1vTxhkJ6wWbrqg3YZ/WV1RRPySUlKwX/udGhVrc="
+  "com.android.tools.build:apkzlib:8.13.2": {
+    "apkzlib-8.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/apkzlib/8.13.2/apkzlib-8.13.2.jar",
+      "hash": "sha256-KQkclFclL5l93+r7M91lo3OtRYQBKPlFgy2Or9kRhWE="
     },
-    "apkzlib-8.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/apkzlib/8.7.3/apkzlib-8.7.3.pom",
-      "hash": "sha256-fDrDehKu9BN7cxbt6jXl3zKmEEjYu6jdNJA7xIUxp90="
+    "apkzlib-8.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/apkzlib/8.13.2/apkzlib-8.13.2.pom",
+      "hash": "sha256-szSNoCWwi1M/Lm45E4aS6gsaiZVd3D4bjbF5alUxRtQ="
     }
   },
-  "com.android.tools.build:builder:8.7.3": {
-    "builder-8.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/builder/8.7.3/builder-8.7.3.jar",
-      "hash": "sha256-LQrANphsDyVrnzJ4EMJcHd5tWDmVZYDTKD4ODxRsuSY="
+  "com.android.tools.build:builder:8.13.2": {
+    "builder-8.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/builder/8.13.2/builder-8.13.2.jar",
+      "hash": "sha256-fTk/hVMSDH16hpyzPEJ5qtlIWYZ3P2Ovl68I6i4f83o="
     },
-    "builder-8.7.3.module": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/builder/8.7.3/builder-8.7.3.module",
-      "hash": "sha256-iQxY1qte99ABTaqN3zj9W2iqStY8m7TdQl2jPqZAB7M="
+    "builder-8.13.2.module": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/builder/8.13.2/builder-8.13.2.module",
+      "hash": "sha256-SooQjeXwQUKmdXhhoKV6KYuTa3t/f5xbkeXKqafv2pA="
     },
-    "builder-8.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/builder/8.7.3/builder-8.7.3.pom",
-      "hash": "sha256-9E/DMAcOdQDMrwmvaHWC2LSYq6oHD01qwzfLvR+MLY8="
+    "builder-8.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/builder/8.13.2/builder-8.13.2.pom",
+      "hash": "sha256-Gqs99HpacMRsGOT6BuNjrVf3UPtGDHHvFl9xqHb3hyY="
     }
   },
-  "com.android.tools.build:builder-model:8.7.3": {
-    "builder-model-8.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/builder-model/8.7.3/builder-model-8.7.3.jar",
-      "hash": "sha256-ABjH3SyraW4H8UC7HcjAsOyTtr8ZXpOHBDAQrIlNt9c="
+  "com.android.tools.build:builder-model:8.13.2": {
+    "builder-model-8.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/builder-model/8.13.2/builder-model-8.13.2.jar",
+      "hash": "sha256-rl6VUVqzSNNKNb6D7TFcX7fowGZ+GG9OFWxl36omFf4="
     },
-    "builder-model-8.7.3.module": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/builder-model/8.7.3/builder-model-8.7.3.module",
-      "hash": "sha256-thR6gFeGPiAZR1wG9A7W9MHHU6kzTXU4RNgdNfEHXH8="
+    "builder-model-8.13.2.module": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/builder-model/8.13.2/builder-model-8.13.2.module",
+      "hash": "sha256-WuEdekCFfhpLC8an9CGCVclhabcBFTX5owt3tfbjJ6E="
     },
-    "builder-model-8.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/builder-model/8.7.3/builder-model-8.7.3.pom",
-      "hash": "sha256-TeLf91xue+6OP/9JYo08LwfY0uriXkntj9pkwgM1ssU="
+    "builder-model-8.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/builder-model/8.13.2/builder-model-8.13.2.pom",
+      "hash": "sha256-TyWfQx/NK5q6MxCW8Q+Xq0ttX+kn32N+yy08+Vw8/eA="
     }
   },
-  "com.android.tools.build:builder-test-api:8.7.3": {
-    "builder-test-api-8.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/builder-test-api/8.7.3/builder-test-api-8.7.3.jar",
-      "hash": "sha256-d43ZwX5VlAHIDbCOvKtny3c6Q95mV0F7QyCWDSlrm0A="
+  "com.android.tools.build:builder-test-api:8.13.2": {
+    "builder-test-api-8.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/builder-test-api/8.13.2/builder-test-api-8.13.2.jar",
+      "hash": "sha256-PP7QuuwufQ5kVm9oCKAO9eBRrXb8T7qdRk0Ro8L5hqk="
     },
-    "builder-test-api-8.7.3.module": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/builder-test-api/8.7.3/builder-test-api-8.7.3.module",
-      "hash": "sha256-6iyiLxBrb83jr26EH204l4KmkywivcgIT3vWLdyFLZU="
+    "builder-test-api-8.13.2.module": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/builder-test-api/8.13.2/builder-test-api-8.13.2.module",
+      "hash": "sha256-T3Lzqf0+n1FsNs76xpeNzAQEliELjPrX0pVMg7ug6ZA="
     },
-    "builder-test-api-8.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/builder-test-api/8.7.3/builder-test-api-8.7.3.pom",
-      "hash": "sha256-GKBnNBY92tqv7Vp8Gim4HwGV+yj12CogkU9UnszCNRU="
+    "builder-test-api-8.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/builder-test-api/8.13.2/builder-test-api-8.13.2.pom",
+      "hash": "sha256-E1tr6DkVxZFu6TBTxUTaQb0Avc8Y6wjEsNT8SsnLyb8="
     }
   },
-  "com.android.tools.build:bundletool:1.17.1": {
-    "bundletool-1.17.1.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/bundletool/1.17.1/bundletool-1.17.1.jar",
-      "hash": "sha256-OS/TsJm9grEWyHcquPxBOZhKkRCKZD+N/J7ilkiBitg="
+  "com.android.tools.build:bundletool:1.18.1": {
+    "bundletool-1.18.1.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/bundletool/1.18.1/bundletool-1.18.1.jar",
+      "hash": "sha256-pzNBp5RavLDmuJccexsoAb12UAZEfKDSQ3pCYNVyzqw="
     },
-    "bundletool-1.17.1.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/bundletool/1.17.1/bundletool-1.17.1.pom",
-      "hash": "sha256-fN0zdkTVI/5gz7YyQQxrf7fZgu7FMnDdvt/xwmMzVF0="
+    "bundletool-1.18.1.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/bundletool/1.18.1/bundletool-1.18.1.pom",
+      "hash": "sha256-XE33suMfF/IOS429YqK3hloJpJof0pMaNZ/TlOy5taU="
     }
   },
-  "com.android.tools.build:gradle:8.7.3": {
-    "gradle-8.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/8.7.3/gradle-8.7.3.jar",
-      "hash": "sha256-q7T56SyYOL2ZiboFlo7IkhieFuI/Qq26LgY4Q9oEBw0="
+  "com.android.tools.build:gradle:8.13.2": {
+    "gradle-8.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/8.13.2/gradle-8.13.2.jar",
+      "hash": "sha256-5JT3znXKbBq/8wHUpwsY/dPWr4VYdfT4UIK7dgjwQd4="
     },
-    "gradle-8.7.3.module": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/8.7.3/gradle-8.7.3.module",
-      "hash": "sha256-FvTIe08bezuZs9vCN9wP4sWmtqazFDukbko1sduZamU="
+    "gradle-8.13.2.module": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/8.13.2/gradle-8.13.2.module",
+      "hash": "sha256-CqwL7hpPxlzWmmeIVIp+IdJGJQyFgBfhHjvyMWPLdac="
     },
-    "gradle-8.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/8.7.3/gradle-8.7.3.pom",
-      "hash": "sha256-wQoZM9ibEaV1k9KGUw1/uYhPYq7Rr8Y5ChF7qmu3vkw="
+    "gradle-8.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/8.13.2/gradle-8.13.2.pom",
+      "hash": "sha256-/H7bqTxbkc5yZ/p7/cH6SUIu/GM6wnmjY+AusP0pvK0="
     }
   },
-  "com.android.tools.build:gradle-api:8.7.3": {
-    "gradle-api-8.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle-api/8.7.3/gradle-api-8.7.3.jar",
-      "hash": "sha256-hprfdeqPW+dneFD05w8iGkB+fvKJNMWLHY0esh1/ukU="
+  "com.android.tools.build:gradle-api:8.13.2": {
+    "gradle-api-8.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle-api/8.13.2/gradle-api-8.13.2.jar",
+      "hash": "sha256-qNzcbxM49wVfaxvCZTF+FNZYM+bH9yshAsVWjh3015I="
     },
-    "gradle-api-8.7.3.module": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle-api/8.7.3/gradle-api-8.7.3.module",
-      "hash": "sha256-OepMCIspW44jS5K3k2t3dlDnH7wg2ofe94LZiC43nX8="
+    "gradle-api-8.13.2.module": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle-api/8.13.2/gradle-api-8.13.2.module",
+      "hash": "sha256-G+ABgWcGZoc80BKOnexu6ZzSriB7q5CezBH/DPcpvF0="
     },
-    "gradle-api-8.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle-api/8.7.3/gradle-api-8.7.3.pom",
-      "hash": "sha256-HIaQJiRJI7kZvi/yI0ViZ6oFbYuUwmA8VZ9TS8bmSyM="
+    "gradle-api-8.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle-api/8.13.2/gradle-api-8.13.2.pom",
+      "hash": "sha256-B6fxsnM2mtT8EjpMy0f7Hg2WixGjjHPNRchTPWTOx4s="
     }
   },
-  "com.android.tools.build:gradle-settings-api:8.7.3": {
-    "gradle-settings-api-8.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle-settings-api/8.7.3/gradle-settings-api-8.7.3.jar",
-      "hash": "sha256-iocRuifg6LclvUuSsWsI0Oo2QTM2T90v2ba+BfKqhDg="
+  "com.android.tools.build:gradle-common-api:8.13.2": {
+    "gradle-common-api-8.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle-common-api/8.13.2/gradle-common-api-8.13.2.jar",
+      "hash": "sha256-/N6AX81XOa7WB6nNwyUxb0IvoFpG4UCikdLyTso6Wf4="
     },
-    "gradle-settings-api-8.7.3.module": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle-settings-api/8.7.3/gradle-settings-api-8.7.3.module",
-      "hash": "sha256-MYEyOZi0ef+3B9x3tSpRxNiC3dHrRUcN34OTcDjMrk8="
+    "gradle-common-api-8.13.2.module": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle-common-api/8.13.2/gradle-common-api-8.13.2.module",
+      "hash": "sha256-nm7c2Vn27YeiJzuF3g9O+sJufNy/S9ako/TgXI5+fBw="
     },
-    "gradle-settings-api-8.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle-settings-api/8.7.3/gradle-settings-api-8.7.3.pom",
-      "hash": "sha256-ZNLS4K6Z8yIA0Hlvd2SsPes2fC7YhuuA5D+4D8T9gHI="
+    "gradle-common-api-8.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle-common-api/8.13.2/gradle-common-api-8.13.2.pom",
+      "hash": "sha256-DTY2ikCNkKt/cEhkHezZ6ALoIZdYV1651CGKRmNlUVg="
     }
   },
-  "com.android.tools.build:manifest-merger:31.7.3": {
-    "manifest-merger-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/manifest-merger/31.7.3/manifest-merger-31.7.3.jar",
-      "hash": "sha256-8ablatvVV9a/NER6Yv9GgGQseZw5ekvBSoEla9lh5qs="
+  "com.android.tools.build:gradle-settings-api:8.13.2": {
+    "gradle-settings-api-8.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle-settings-api/8.13.2/gradle-settings-api-8.13.2.jar",
+      "hash": "sha256-NwQ4vPd4LYxbQHNwNlsEe/Bj+Zp3ReH18YUxgzmNB6Y="
     },
-    "manifest-merger-31.7.3.module": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/manifest-merger/31.7.3/manifest-merger-31.7.3.module",
-      "hash": "sha256-93zlOCbQOzqLzZQPDDqyx+XcTfQE8EhY/Icksmr+dhw="
+    "gradle-settings-api-8.13.2.module": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle-settings-api/8.13.2/gradle-settings-api-8.13.2.module",
+      "hash": "sha256-5crHmMEyNO6kOtsITFyBwgrRw2zEtbV/OSLZH07AJNY="
     },
-    "manifest-merger-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/manifest-merger/31.7.3/manifest-merger-31.7.3.pom",
-      "hash": "sha256-P5EszR/cRhV/9beBBi5ZfrrBQ66t/li8NFYiaSYE/vk="
+    "gradle-settings-api-8.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle-settings-api/8.13.2/gradle-settings-api-8.13.2.pom",
+      "hash": "sha256-iJlOxc2yOO23vY51Rx2NCXkvtSUEa3hBNabN6+DUwz8="
+    }
+  },
+  "com.android.tools.build:manifest-merger:31.13.2": {
+    "manifest-merger-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/manifest-merger/31.13.2/manifest-merger-31.13.2.jar",
+      "hash": "sha256-QNJfWUDC5Qv34Y4yX3+7nIbPRdtahdHO+O+YVAQieh8="
+    },
+    "manifest-merger-31.13.2.module": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/manifest-merger/31.13.2/manifest-merger-31.13.2.module",
+      "hash": "sha256-S9nUffB7eBdKcvqpJCOTWvKdF8mJaoS2WLkh9vGpI0g="
+    },
+    "manifest-merger-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/manifest-merger/31.13.2/manifest-merger-31.13.2.pom",
+      "hash": "sha256-cEzxt4bSDIBGo7Ml/DKQ+pgulwlfZK0hmHzz7jN53bI="
     }
   },
   "com.android.tools.build:transform-api:2.0.0-deprecated-use-gradle-api": {
@@ -2639,328 +2653,280 @@
       "hash": "sha256-M7F/OWmJQEpJF0dIVpvI7fTjmmKkKjXOk9ylwOS6CEI="
     }
   },
-  "com.android.tools.ddms:ddmlib:31.7.3": {
-    "ddmlib-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/ddms/ddmlib/31.7.3/ddmlib-31.7.3.jar",
-      "hash": "sha256-DX71OCP2ohuAfzmPDQOaXd4YS1jFWJYlYmykqj1hCO0="
+  "com.android.tools.ddms:ddmlib:31.13.2": {
+    "ddmlib-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/ddms/ddmlib/31.13.2/ddmlib-31.13.2.jar",
+      "hash": "sha256-g5lX+WEQBxPqDu1iioaEzDmqR5Yxw2JJeT5t9+DNY9g="
     },
-    "ddmlib-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/ddms/ddmlib/31.7.3/ddmlib-31.7.3.pom",
-      "hash": "sha256-0+dYGViVu1uhe0Br5b39hbk0V528U2szLRer/SgKmgY="
+    "ddmlib-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/ddms/ddmlib/31.13.2/ddmlib-31.13.2.pom",
+      "hash": "sha256-mohLOgztXxl+011f8o3UQIJK62qMQh/GgnbrgZIq0MA="
     }
   },
-  "com.android.tools.emulator:proto:31.7.3": {
-    "proto-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/emulator/proto/31.7.3/proto-31.7.3.jar",
-      "hash": "sha256-4MM8l4XF1CXcpocNjPSPupqKF+Oqvap3XHlXcikxrsg="
+  "com.android.tools.emulator:proto:31.13.2": {
+    "proto-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/emulator/proto/31.13.2/proto-31.13.2.jar",
+      "hash": "sha256-t3+BzAdR15OT7EsusEb5ENIavNdgi1sPWh7+obMkO0g="
     },
-    "proto-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/emulator/proto/31.7.3/proto-31.7.3.pom",
-      "hash": "sha256-SfhwgFB//mPEqwxzDjyHIBSJAROQVpwvJ76NT563kXg="
+    "proto-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/emulator/proto/31.13.2/proto-31.13.2.pom",
+      "hash": "sha256-NPBZInrVOOvI7RkjRJDO1YpuKUhFpyy6sRTrV6MRNWo="
     }
   },
-  "com.android.tools.layoutlib:layoutlib-api:31.7.3": {
-    "layoutlib-api-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/layoutlib/layoutlib-api/31.7.3/layoutlib-api-31.7.3.jar",
-      "hash": "sha256-mLrjb/BR4RTdTu9e/6gPvl5VKUT0IzzokhYNos2e6u0="
+  "com.android.tools.layoutlib:layoutlib-api:31.13.2": {
+    "layoutlib-api-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/layoutlib/layoutlib-api/31.13.2/layoutlib-api-31.13.2.jar",
+      "hash": "sha256-0GvGUCR2MqSk5llrhzEgGfRekAJnxUdsR6W/puP9MTI="
     },
-    "layoutlib-api-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/layoutlib/layoutlib-api/31.7.3/layoutlib-api-31.7.3.pom",
-      "hash": "sha256-s9ld8hNWzmZtc826aillJMmv/zm9H/kVD9GdtYn5phI="
+    "layoutlib-api-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/layoutlib/layoutlib-api/31.13.2/layoutlib-api-31.13.2.pom",
+      "hash": "sha256-ttE1l7KS5SNcEe3gBH/c5wjtnwreawOcXwJ3C6jWEFM="
     }
   },
-  "com.android.tools.lint:lint-model:31.7.3": {
-    "lint-model-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/lint/lint-model/31.7.3/lint-model-31.7.3.jar",
-      "hash": "sha256-n0wIehmRdFIdG8e4/wX/FIT3cPRRi3/Z9trmwmGILb0="
+  "com.android.tools.lint:lint-model:31.13.2": {
+    "lint-model-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/lint/lint-model/31.13.2/lint-model-31.13.2.jar",
+      "hash": "sha256-nuVdj9ACc27ZXul/sF9N964B9Pl29zj7837Kt5Xlkxk="
     },
-    "lint-model-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/lint/lint-model/31.7.3/lint-model-31.7.3.pom",
-      "hash": "sha256-Lqpa42GJupKb53yniPVFmZQChfJdDBQiQa2Nf91EEio="
+    "lint-model-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/lint/lint-model/31.13.2/lint-model-31.13.2.pom",
+      "hash": "sha256-kmFkH147W3zkzc07dddGebywrMb65cyAh99QGJOVm4E="
     }
   },
-  "com.android.tools.lint:lint-typedef-remover:31.7.3": {
-    "lint-typedef-remover-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/lint/lint-typedef-remover/31.7.3/lint-typedef-remover-31.7.3.jar",
-      "hash": "sha256-W09IUhXKTYbvIxn8OYtfIlHmL1RGvF/Q4AZTZI3d4xg="
+  "com.android.tools.lint:lint-typedef-remover:31.13.2": {
+    "lint-typedef-remover-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/lint/lint-typedef-remover/31.13.2/lint-typedef-remover-31.13.2.jar",
+      "hash": "sha256-Sjujur/Xnm/Ge872R/tOz+r1m0gbEI98LrpNHFxt6o4="
     },
-    "lint-typedef-remover-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/lint/lint-typedef-remover/31.7.3/lint-typedef-remover-31.7.3.pom",
-      "hash": "sha256-ErBrHJ2XeHgf4jNo5yMXb2bw6XZBklWAougNL4cNLOk="
+    "lint-typedef-remover-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/lint/lint-typedef-remover/31.13.2/lint-typedef-remover-31.13.2.pom",
+      "hash": "sha256-VSFuggl5u3yVA/fqPBApj3xBj/O8cvsp+v7VQdn45CE="
     }
   },
-  "com.android.tools.utp:android-device-provider-ddmlib:31.7.3": {
-    "android-device-provider-ddmlib-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-ddmlib/31.7.3/android-device-provider-ddmlib-31.7.3.jar",
-      "hash": "sha256-YM9mawV6Ozu1Bj4p4ibiEbjgzEVaViXN+JhAADT1lHg="
+  "com.android.tools.utp:android-device-provider-ddmlib:31.13.2": {
+    "android-device-provider-ddmlib-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-ddmlib/31.13.2/android-device-provider-ddmlib-31.13.2.jar",
+      "hash": "sha256-sW6/71tjsDuAPq0KXhlO404N02HB4ZFVfZmPAVNHRP8="
     },
-    "android-device-provider-ddmlib-31.7.3.module": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-ddmlib/31.7.3/android-device-provider-ddmlib-31.7.3.module",
-      "hash": "sha256-g0GybAt6SebuDUUzXehR71eReao48/MrbM33Wo8RHKg="
+    "android-device-provider-ddmlib-31.13.2.module": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-ddmlib/31.13.2/android-device-provider-ddmlib-31.13.2.module",
+      "hash": "sha256-FXRXBPuVGjYpsaJjWsbiEIWw9uYyWWbUdyXlDDpfrFs="
     },
-    "android-device-provider-ddmlib-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-ddmlib/31.7.3/android-device-provider-ddmlib-31.7.3.pom",
-      "hash": "sha256-KTEQVkIL72lc7tYny4eIjcHqbOFl6huwUWDjok8vaic="
+    "android-device-provider-ddmlib-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-ddmlib/31.13.2/android-device-provider-ddmlib-31.13.2.pom",
+      "hash": "sha256-0+eBcTpLa9BjVD3ktUfc3DtADzM/uSHo64fOyXihxc4="
     }
   },
-  "com.android.tools.utp:android-device-provider-ddmlib-proto:31.7.3": {
-    "android-device-provider-ddmlib-proto-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-ddmlib-proto/31.7.3/android-device-provider-ddmlib-proto-31.7.3.jar",
-      "hash": "sha256-2p8/Pa4mVEyQZoVJWEdl1YVKh8Ql0s/ld80002AOoJc="
+  "com.android.tools.utp:android-device-provider-ddmlib-proto:31.13.2": {
+    "android-device-provider-ddmlib-proto-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-ddmlib-proto/31.13.2/android-device-provider-ddmlib-proto-31.13.2.jar",
+      "hash": "sha256-BHrs3WbhBhN/d6UsRC8bg9t9boSWiZgAJR8gbH853mU="
     },
-    "android-device-provider-ddmlib-proto-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-ddmlib-proto/31.7.3/android-device-provider-ddmlib-proto-31.7.3.pom",
-      "hash": "sha256-TKEqyOBl5PQAKdpLZoLIGZBEZOhStTqoF8yGhEJ5rko="
+    "android-device-provider-ddmlib-proto-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-ddmlib-proto/31.13.2/android-device-provider-ddmlib-proto-31.13.2.pom",
+      "hash": "sha256-QRYjc/qmac/XQQEHfsKc8oUiLpMbqInFPmD/YOz2Yx4="
     }
   },
-  "com.android.tools.utp:android-device-provider-gradle:31.7.3": {
-    "android-device-provider-gradle-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-gradle/31.7.3/android-device-provider-gradle-31.7.3.jar",
-      "hash": "sha256-SBobM+IAg+WnCCTsNABrFo0HDEqFE3g5KyS1KgGMGrg="
+  "com.android.tools.utp:android-device-provider-profile:31.13.2": {
+    "android-device-provider-profile-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-profile/31.13.2/android-device-provider-profile-31.13.2.jar",
+      "hash": "sha256-lWDCWFnJwVx3FEy7WDcLrTlIguzDFp/V5Ym31OUuhm8="
     },
-    "android-device-provider-gradle-31.7.3.module": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-gradle/31.7.3/android-device-provider-gradle-31.7.3.module",
-      "hash": "sha256-LXuyFlqjpHm4P1vPkn6Rca5UT7kYlYBQhNvE14X9iyk="
+    "android-device-provider-profile-31.13.2.module": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-profile/31.13.2/android-device-provider-profile-31.13.2.module",
+      "hash": "sha256-fM5ga+y1hTIhypALdUDQ5su4we1MKt8LBu45w20OTek="
     },
-    "android-device-provider-gradle-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-gradle/31.7.3/android-device-provider-gradle-31.7.3.pom",
-      "hash": "sha256-1ROk9mb6YuyoDp4/wXSglDnpqz/c0mTBJ5NkeNs13ag="
+    "android-device-provider-profile-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-profile/31.13.2/android-device-provider-profile-31.13.2.pom",
+      "hash": "sha256-smVzfBte/3zXQm9ii2gr4a79CsR1oRk/0eQIQOEj9Nc="
     }
   },
-  "com.android.tools.utp:android-device-provider-gradle-proto:31.7.3": {
-    "android-device-provider-gradle-proto-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-gradle-proto/31.7.3/android-device-provider-gradle-proto-31.7.3.jar",
-      "hash": "sha256-rSNCux1vlVY0AKMiST6hwinLk985RPEmG3OZ9xhJQEk="
+  "com.android.tools.utp:android-device-provider-profile-proto:31.13.2": {
+    "android-device-provider-profile-proto-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-profile-proto/31.13.2/android-device-provider-profile-proto-31.13.2.jar",
+      "hash": "sha256-PnsJj24+yuMbb3kJw0O07AmqGNion0G/kgd7pLBW9FM="
     },
-    "android-device-provider-gradle-proto-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-gradle-proto/31.7.3/android-device-provider-gradle-proto-31.7.3.pom",
-      "hash": "sha256-89rOHUayZc2PgmTKeGFhIHPI22KZyZq9zmurrDn/dao="
+    "android-device-provider-profile-proto-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-profile-proto/31.13.2/android-device-provider-profile-proto-31.13.2.pom",
+      "hash": "sha256-1VV0td2msIt2qxCpJklZNMfdwQ9hfTNud5tgO1Vem6I="
     }
   },
-  "com.android.tools.utp:android-device-provider-profile:31.7.3": {
-    "android-device-provider-profile-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-profile/31.7.3/android-device-provider-profile-31.7.3.jar",
-      "hash": "sha256-OsOIy9bczBxT9fO36FXRnz+IG8QmlxsIdVMYbK9KBQQ="
+  "com.android.tools.utp:android-test-plugin-host-additional-test-output:31.13.2": {
+    "android-test-plugin-host-additional-test-output-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-additional-test-output/31.13.2/android-test-plugin-host-additional-test-output-31.13.2.jar",
+      "hash": "sha256-+q5CoWz3bXUptZsbmk2/nLG+3KWBGOuoJP3bgxLcdlU="
     },
-    "android-device-provider-profile-31.7.3.module": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-profile/31.7.3/android-device-provider-profile-31.7.3.module",
-      "hash": "sha256-vM2oS9Pc+2WNv5IUtJ4x3Wyf5CgWz4z1qAf5wI/mz3U="
+    "android-test-plugin-host-additional-test-output-31.13.2.module": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-additional-test-output/31.13.2/android-test-plugin-host-additional-test-output-31.13.2.module",
+      "hash": "sha256-sKPFs1jWtiZ0SOtqv+r2rQJasfB8s7ZQr1L9cCut/AU="
     },
-    "android-device-provider-profile-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-profile/31.7.3/android-device-provider-profile-31.7.3.pom",
-      "hash": "sha256-ChPXKTXeibVylQ+qNFXhQWv5xgEKMOp6E6H54QEhF6c="
+    "android-test-plugin-host-additional-test-output-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-additional-test-output/31.13.2/android-test-plugin-host-additional-test-output-31.13.2.pom",
+      "hash": "sha256-NGdCkqoA/jQOWfcLoOYplspdjKRkns2gsqTGjvOwTzg="
     }
   },
-  "com.android.tools.utp:android-device-provider-profile-proto:31.7.3": {
-    "android-device-provider-profile-proto-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-profile-proto/31.7.3/android-device-provider-profile-proto-31.7.3.jar",
-      "hash": "sha256-ENEAztXQg3FMHGi7uxC7N16FRvkqsOQhnA5KX/KYEV4="
+  "com.android.tools.utp:android-test-plugin-host-additional-test-output-proto:31.13.2": {
+    "android-test-plugin-host-additional-test-output-proto-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-additional-test-output-proto/31.13.2/android-test-plugin-host-additional-test-output-proto-31.13.2.jar",
+      "hash": "sha256-a6fmrCII10wbtfHRRkq6/GpF2HELIEVaLcAq34cmvIM="
     },
-    "android-device-provider-profile-proto-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-device-provider-profile-proto/31.7.3/android-device-provider-profile-proto-31.7.3.pom",
-      "hash": "sha256-ibF1CEo3zG84da9WhciII3T1bLbjvY3ET4l/XNxhQ+k="
+    "android-test-plugin-host-additional-test-output-proto-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-additional-test-output-proto/31.13.2/android-test-plugin-host-additional-test-output-proto-31.13.2.pom",
+      "hash": "sha256-ryqLvOmjdsDe9Kryh6GdzoUgLxJ7UjJC/+H4BB4U3yg="
     }
   },
-  "com.android.tools.utp:android-test-plugin-host-additional-test-output:31.7.3": {
-    "android-test-plugin-host-additional-test-output-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-additional-test-output/31.7.3/android-test-plugin-host-additional-test-output-31.7.3.jar",
-      "hash": "sha256-IsVteKEpJpOZaWFy8pJgb6MFpf6ogqTSJGmxGTMoXvM="
+  "com.android.tools.utp:android-test-plugin-host-apk-installer:31.13.2": {
+    "android-test-plugin-host-apk-installer-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-apk-installer/31.13.2/android-test-plugin-host-apk-installer-31.13.2.jar",
+      "hash": "sha256-lJxvZRIhKdPs1ZsImYYOjiTpaCzsHACNHxGlzJM2b2Q="
     },
-    "android-test-plugin-host-additional-test-output-31.7.3.module": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-additional-test-output/31.7.3/android-test-plugin-host-additional-test-output-31.7.3.module",
-      "hash": "sha256-duYopujuNCzCzMJbxPPt4zb5AeE9IhKRecJ+H+/RIdY="
+    "android-test-plugin-host-apk-installer-31.13.2.module": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-apk-installer/31.13.2/android-test-plugin-host-apk-installer-31.13.2.module",
+      "hash": "sha256-rklFwRAtyPUwdfYeuooPZmx0N//r4rn7FnGWjMRUcxM="
     },
-    "android-test-plugin-host-additional-test-output-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-additional-test-output/31.7.3/android-test-plugin-host-additional-test-output-31.7.3.pom",
-      "hash": "sha256-f7h7uoKV7cuSTMZ2Vxd8fdQjWriKNbKuTrxTv2j6Yv4="
+    "android-test-plugin-host-apk-installer-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-apk-installer/31.13.2/android-test-plugin-host-apk-installer-31.13.2.pom",
+      "hash": "sha256-bXJmUtjrmRGvrvVsYdgwhw0Nc/f2FIz+OdMHHS96owk="
     }
   },
-  "com.android.tools.utp:android-test-plugin-host-additional-test-output-proto:31.7.3": {
-    "android-test-plugin-host-additional-test-output-proto-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-additional-test-output-proto/31.7.3/android-test-plugin-host-additional-test-output-proto-31.7.3.jar",
-      "hash": "sha256-OEUGlN5jKMLEy6aW+cBOzdXOaVI1X2jDoi+VQdHWVG8="
+  "com.android.tools.utp:android-test-plugin-host-apk-installer-proto:31.13.2": {
+    "android-test-plugin-host-apk-installer-proto-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-apk-installer-proto/31.13.2/android-test-plugin-host-apk-installer-proto-31.13.2.jar",
+      "hash": "sha256-TythBULpGjWjlrBDaKeEA25CuHhwIUYFULmjSVu4JFs="
     },
-    "android-test-plugin-host-additional-test-output-proto-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-additional-test-output-proto/31.7.3/android-test-plugin-host-additional-test-output-proto-31.7.3.pom",
-      "hash": "sha256-qodWHuOIALsRktVqPtxgRl2sbb+nOjRajMsUsPTolEc="
+    "android-test-plugin-host-apk-installer-proto-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-apk-installer-proto/31.13.2/android-test-plugin-host-apk-installer-proto-31.13.2.pom",
+      "hash": "sha256-qL1ZxNO6Howe4EJm9q8qRtKonyCeXllrFjdZwb1IDyo="
     }
   },
-  "com.android.tools.utp:android-test-plugin-host-apk-installer:31.7.3": {
-    "android-test-plugin-host-apk-installer-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-apk-installer/31.7.3/android-test-plugin-host-apk-installer-31.7.3.jar",
-      "hash": "sha256-nW81z66ivOUWd2HGgMXkSYykbb2LKwJxWM1LDiyBgWA="
+  "com.android.tools.utp:android-test-plugin-host-coverage:31.13.2": {
+    "android-test-plugin-host-coverage-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-coverage/31.13.2/android-test-plugin-host-coverage-31.13.2.jar",
+      "hash": "sha256-SZOpUEnlLE0xR+nE38aWzFp2r4MDpCBrtgwr+rxWOuk="
     },
-    "android-test-plugin-host-apk-installer-31.7.3.module": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-apk-installer/31.7.3/android-test-plugin-host-apk-installer-31.7.3.module",
-      "hash": "sha256-/F/+oAQX8HmSs/gl/UgYI1gkBfuVI/dMYuyanHqErVk="
+    "android-test-plugin-host-coverage-31.13.2.module": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-coverage/31.13.2/android-test-plugin-host-coverage-31.13.2.module",
+      "hash": "sha256-2vHyeSUp3ETOxol/l/yEXbqmP+wtaTnJfifC/upNs/Y="
     },
-    "android-test-plugin-host-apk-installer-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-apk-installer/31.7.3/android-test-plugin-host-apk-installer-31.7.3.pom",
-      "hash": "sha256-AtYPijR5LGe89zJufPxfuxQJwSzfVOzIgv30h1dE6I0="
+    "android-test-plugin-host-coverage-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-coverage/31.13.2/android-test-plugin-host-coverage-31.13.2.pom",
+      "hash": "sha256-KZZUgBQenSuZYfNzTD+5rdkKS63o11oHur7udP6OnQ0="
     }
   },
-  "com.android.tools.utp:android-test-plugin-host-apk-installer-proto:31.7.3": {
-    "android-test-plugin-host-apk-installer-proto-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-apk-installer-proto/31.7.3/android-test-plugin-host-apk-installer-proto-31.7.3.jar",
-      "hash": "sha256-VD62yNcrLtdFH46TnV2AiQVm8UvCa335yDR1BrJY164="
+  "com.android.tools.utp:android-test-plugin-host-coverage-proto:31.13.2": {
+    "android-test-plugin-host-coverage-proto-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-coverage-proto/31.13.2/android-test-plugin-host-coverage-proto-31.13.2.jar",
+      "hash": "sha256-+oZxmj3F3kZffgwCMYRBTCf4/VOjT9VXKJwL9t80AkQ="
     },
-    "android-test-plugin-host-apk-installer-proto-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-apk-installer-proto/31.7.3/android-test-plugin-host-apk-installer-proto-31.7.3.pom",
-      "hash": "sha256-C40e2YLnqzbpWKY7yXXlsxqY9sa6b5L8r8IsaSu0oI8="
+    "android-test-plugin-host-coverage-proto-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-coverage-proto/31.13.2/android-test-plugin-host-coverage-proto-31.13.2.pom",
+      "hash": "sha256-5W3OG2cA6f1KG5tPXK2q0IZNOYLuZJM5IrXU4MCKp0U="
     }
   },
-  "com.android.tools.utp:android-test-plugin-host-coverage:31.7.3": {
-    "android-test-plugin-host-coverage-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-coverage/31.7.3/android-test-plugin-host-coverage-31.7.3.jar",
-      "hash": "sha256-qP48S7UTdP7umw9NbzAJ7WDa+maccwjaaxhjOyISmFU="
+  "com.android.tools.utp:android-test-plugin-host-device-info:31.13.2": {
+    "android-test-plugin-host-device-info-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-device-info/31.13.2/android-test-plugin-host-device-info-31.13.2.jar",
+      "hash": "sha256-pTufdk2AvtKeDy4O5iV23Am4c4Zgi7Yu8UU9Ay+XaWg="
     },
-    "android-test-plugin-host-coverage-31.7.3.module": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-coverage/31.7.3/android-test-plugin-host-coverage-31.7.3.module",
-      "hash": "sha256-CjtHQTwUyegiVmZazazNMuG81YTeVjNApHT0sjH2ZZU="
+    "android-test-plugin-host-device-info-31.13.2.module": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-device-info/31.13.2/android-test-plugin-host-device-info-31.13.2.module",
+      "hash": "sha256-bBIiuD/k1MxYT29EGfak6Vcj3KpFPHoyRp/yTAgJ4qA="
     },
-    "android-test-plugin-host-coverage-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-coverage/31.7.3/android-test-plugin-host-coverage-31.7.3.pom",
-      "hash": "sha256-5sfm+2Z6kJVCGi50PfC6rKCovhP84YXC/eJV9PRL0iE="
+    "android-test-plugin-host-device-info-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-device-info/31.13.2/android-test-plugin-host-device-info-31.13.2.pom",
+      "hash": "sha256-O3fGvofJKUpgp6jiqEo/Sa0jIJy7fIG7WF3lRySXSzY="
     }
   },
-  "com.android.tools.utp:android-test-plugin-host-coverage-proto:31.7.3": {
-    "android-test-plugin-host-coverage-proto-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-coverage-proto/31.7.3/android-test-plugin-host-coverage-proto-31.7.3.jar",
-      "hash": "sha256-77TXAUqqc1UkagfC5DeiIx+yUlQP8bzmhyyI3I2onRI="
+  "com.android.tools.utp:android-test-plugin-host-device-info-proto:31.13.2": {
+    "android-test-plugin-host-device-info-proto-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-device-info-proto/31.13.2/android-test-plugin-host-device-info-proto-31.13.2.jar",
+      "hash": "sha256-loOsdkinpBvpoTSfaYFZKUT2JxZImMPIkloL7t6LuLs="
     },
-    "android-test-plugin-host-coverage-proto-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-coverage-proto/31.7.3/android-test-plugin-host-coverage-proto-31.7.3.pom",
-      "hash": "sha256-TdzGtt9MkgcQNa4T+YDgX5vS5uO2zAU+CecLHVNzsbM="
+    "android-test-plugin-host-device-info-proto-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-device-info-proto/31.13.2/android-test-plugin-host-device-info-proto-31.13.2.pom",
+      "hash": "sha256-KtC5oodv9I1QsPQIPQfj2/1Dp8Gn1sjRcKn0+uyTlR4="
     }
   },
-  "com.android.tools.utp:android-test-plugin-host-device-info:31.7.3": {
-    "android-test-plugin-host-device-info-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-device-info/31.7.3/android-test-plugin-host-device-info-31.7.3.jar",
-      "hash": "sha256-qudgAGHu/V/FIXJ4sA25sv11AFzNZPbxnNyyUjvI68U="
+  "com.android.tools.utp:android-test-plugin-host-emulator-control:31.13.2": {
+    "android-test-plugin-host-emulator-control-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-emulator-control/31.13.2/android-test-plugin-host-emulator-control-31.13.2.jar",
+      "hash": "sha256-cwIsKid57qz7/OZ92nz7sh47PPVhClTjX8MNj8yGCTA="
     },
-    "android-test-plugin-host-device-info-31.7.3.module": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-device-info/31.7.3/android-test-plugin-host-device-info-31.7.3.module",
-      "hash": "sha256-p3D7Sg/bBvIwmxKz+pRwqPIM2Mk5FIJLfK0clrhhYq4="
+    "android-test-plugin-host-emulator-control-31.13.2.module": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-emulator-control/31.13.2/android-test-plugin-host-emulator-control-31.13.2.module",
+      "hash": "sha256-AZYRJVaOGMsxJEbw4cTt/TZp/IqQxFn/UFcp7+Lgc84="
     },
-    "android-test-plugin-host-device-info-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-device-info/31.7.3/android-test-plugin-host-device-info-31.7.3.pom",
-      "hash": "sha256-ceCRLG7Mm4R9YORCpt2Wa78MNZoC63wpFn1Hubj6R04="
+    "android-test-plugin-host-emulator-control-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-emulator-control/31.13.2/android-test-plugin-host-emulator-control-31.13.2.pom",
+      "hash": "sha256-dUbsbfAjTkabNh4PLA/Lr2N4BEX4VOsqxMJ2sHyZ8o4="
     }
   },
-  "com.android.tools.utp:android-test-plugin-host-device-info-proto:31.7.3": {
-    "android-test-plugin-host-device-info-proto-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-device-info-proto/31.7.3/android-test-plugin-host-device-info-proto-31.7.3.jar",
-      "hash": "sha256-T17MwdR6mBs/8SDpij3gmIIUEI/p3HsGjpWmtoatpJU="
+  "com.android.tools.utp:android-test-plugin-host-emulator-control-proto:31.13.2": {
+    "android-test-plugin-host-emulator-control-proto-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-emulator-control-proto/31.13.2/android-test-plugin-host-emulator-control-proto-31.13.2.jar",
+      "hash": "sha256-pPNKrg+f+gJtv3FRQ23XrlO+y3JiK0DyxHnKyJQ9kxk="
     },
-    "android-test-plugin-host-device-info-proto-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-device-info-proto/31.7.3/android-test-plugin-host-device-info-proto-31.7.3.pom",
-      "hash": "sha256-jotaXgjVhXRSBzoOM5XrM61eAhxfH7dsCpXjGLDdlIs="
+    "android-test-plugin-host-emulator-control-proto-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-emulator-control-proto/31.13.2/android-test-plugin-host-emulator-control-proto-31.13.2.pom",
+      "hash": "sha256-jxTna0jka6UmSo+PpNmPgIWrZUxPF1p+BPQPrGAZ15Q="
     }
   },
-  "com.android.tools.utp:android-test-plugin-host-emulator-control:31.7.3": {
-    "android-test-plugin-host-emulator-control-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-emulator-control/31.7.3/android-test-plugin-host-emulator-control-31.7.3.jar",
-      "hash": "sha256-6Iedi8WuWA2QWX8CsYq/SSUGQUvz/W/YjfG0hTCcZEo="
+  "com.android.tools.utp:android-test-plugin-host-logcat:31.13.2": {
+    "android-test-plugin-host-logcat-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-logcat/31.13.2/android-test-plugin-host-logcat-31.13.2.jar",
+      "hash": "sha256-9Vm3xUTimsNUczmAXF6Y2TjionZGkddOur6zbh/KD7o="
     },
-    "android-test-plugin-host-emulator-control-31.7.3.module": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-emulator-control/31.7.3/android-test-plugin-host-emulator-control-31.7.3.module",
-      "hash": "sha256-6IMVdc5XLZxU+dMJAXWEcZREyVQTMJDkMLNGp9ixc7g="
+    "android-test-plugin-host-logcat-31.13.2.module": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-logcat/31.13.2/android-test-plugin-host-logcat-31.13.2.module",
+      "hash": "sha256-3z0on/um/yj6iHVGJHfZEfAJzAlMfKVZc7lrMdoCaek="
     },
-    "android-test-plugin-host-emulator-control-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-emulator-control/31.7.3/android-test-plugin-host-emulator-control-31.7.3.pom",
-      "hash": "sha256-b9UGv08RrKiBed4bQi9pbIuqYJabWrSBX1FR+LhHDWM="
+    "android-test-plugin-host-logcat-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-logcat/31.13.2/android-test-plugin-host-logcat-31.13.2.pom",
+      "hash": "sha256-La4mMDSObLGhRR4gJCAjk9RWErRUZmdxn6msE9gfglE="
     }
   },
-  "com.android.tools.utp:android-test-plugin-host-emulator-control-proto:31.7.3": {
-    "android-test-plugin-host-emulator-control-proto-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-emulator-control-proto/31.7.3/android-test-plugin-host-emulator-control-proto-31.7.3.jar",
-      "hash": "sha256-rt7F7EYn2JjMzfQtgDjbIOukSVdTxT0bCzeHNEkcr18="
+  "com.android.tools.utp:android-test-plugin-host-logcat-proto:31.13.2": {
+    "android-test-plugin-host-logcat-proto-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-logcat-proto/31.13.2/android-test-plugin-host-logcat-proto-31.13.2.jar",
+      "hash": "sha256-wfbrus2tVZtu/k6qKVYVUrMxVjlfBpzZcD/aCcRi3qY="
     },
-    "android-test-plugin-host-emulator-control-proto-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-emulator-control-proto/31.7.3/android-test-plugin-host-emulator-control-proto-31.7.3.pom",
-      "hash": "sha256-ontLxj8vc/eltbV3XTgQg/rdHSD7/uBxKnEwuINJrt0="
+    "android-test-plugin-host-logcat-proto-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-logcat-proto/31.13.2/android-test-plugin-host-logcat-proto-31.13.2.pom",
+      "hash": "sha256-/zDRtJGIKYz5JqMKkU21ZWm+AuRFqm0DVlIHUKyYxag="
     }
   },
-  "com.android.tools.utp:android-test-plugin-host-logcat:31.7.3": {
-    "android-test-plugin-host-logcat-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-logcat/31.7.3/android-test-plugin-host-logcat-31.7.3.jar",
-      "hash": "sha256-pmuEb+RX8y/KXsKvXF3kpGUCkAF/hoWUgbzS7kQYktQ="
+  "com.android.tools.utp:android-test-plugin-result-listener-gradle:31.13.2": {
+    "android-test-plugin-result-listener-gradle-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-result-listener-gradle/31.13.2/android-test-plugin-result-listener-gradle-31.13.2.jar",
+      "hash": "sha256-9e057Np3aEcwsmFtES1p+S9Qnj1sOIKKvGqGPvd/4OU="
     },
-    "android-test-plugin-host-logcat-31.7.3.module": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-logcat/31.7.3/android-test-plugin-host-logcat-31.7.3.module",
-      "hash": "sha256-nrPAVpfSaymF/1CibOiFjNM4M24N0o3WDULoHriGNVA="
+    "android-test-plugin-result-listener-gradle-31.13.2.module": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-result-listener-gradle/31.13.2/android-test-plugin-result-listener-gradle-31.13.2.module",
+      "hash": "sha256-aJrPHlaZS/50AVIYvYlZXVf+wUFXxc5mocdcfgEfiJ8="
     },
-    "android-test-plugin-host-logcat-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-logcat/31.7.3/android-test-plugin-host-logcat-31.7.3.pom",
-      "hash": "sha256-+alhxB55AOw9mr28ryf7SQ+D2qJsX5BB/IyTKcqugc8="
+    "android-test-plugin-result-listener-gradle-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-result-listener-gradle/31.13.2/android-test-plugin-result-listener-gradle-31.13.2.pom",
+      "hash": "sha256-aWdAHML+nRizUOPlQuf2l45UxA4UDLEbgrDPEDmkv9k="
     }
   },
-  "com.android.tools.utp:android-test-plugin-host-logcat-proto:31.7.3": {
-    "android-test-plugin-host-logcat-proto-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-logcat-proto/31.7.3/android-test-plugin-host-logcat-proto-31.7.3.jar",
-      "hash": "sha256-kSkCS9jjg1O8o+sm39jjYo4FjVfW6dhFH/w18BZ1HmM="
+  "com.android.tools.utp:android-test-plugin-result-listener-gradle-proto:31.13.2": {
+    "android-test-plugin-result-listener-gradle-proto-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-result-listener-gradle-proto/31.13.2/android-test-plugin-result-listener-gradle-proto-31.13.2.jar",
+      "hash": "sha256-1Cm5MS3/oFAzgdHuGxipmb2QHnRWYSsvtIxqXVosr4g="
     },
-    "android-test-plugin-host-logcat-proto-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-logcat-proto/31.7.3/android-test-plugin-host-logcat-proto-31.7.3.pom",
-      "hash": "sha256-GuVOX5PNbg0Pj0/i5BzP7rP57Zlswh6ndJQg6/miPYM="
+    "android-test-plugin-result-listener-gradle-proto-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-result-listener-gradle-proto/31.13.2/android-test-plugin-result-listener-gradle-proto-31.13.2.pom",
+      "hash": "sha256-NURycXV95NFmjrHctNobh2pLlEQHYky9661bHttESPo="
     }
   },
-  "com.android.tools.utp:android-test-plugin-host-retention:31.7.3": {
-    "android-test-plugin-host-retention-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-retention/31.7.3/android-test-plugin-host-retention-31.7.3.jar",
-      "hash": "sha256-epRKAWMVr1Q5STTGPfzBi9ZJGFM47YgLg3nrCjtXH7g="
+  "com.android.tools.utp:utp-common:31.13.2": {
+    "utp-common-31.13.2.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/utp-common/31.13.2/utp-common-31.13.2.jar",
+      "hash": "sha256-zeZ4pksTBBzdLMna0WhZkKHQkPsE/12iJh/3WoNZgQY="
     },
-    "android-test-plugin-host-retention-31.7.3.module": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-retention/31.7.3/android-test-plugin-host-retention-31.7.3.module",
-      "hash": "sha256-DHLwPqcki5zzFG/XjI3EAo59On9aEY6ZE1cWCfj6lxc="
-    },
-    "android-test-plugin-host-retention-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-retention/31.7.3/android-test-plugin-host-retention-31.7.3.pom",
-      "hash": "sha256-Ny6dSEmWGrh+rhGzm58g+2vmOlaJ9W2GDLkfkGRdWfg="
-    }
-  },
-  "com.android.tools.utp:android-test-plugin-host-retention-proto:31.7.3": {
-    "android-test-plugin-host-retention-proto-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-retention-proto/31.7.3/android-test-plugin-host-retention-proto-31.7.3.jar",
-      "hash": "sha256-PbjtOO9JtpTK6kZq4i47Ns7clVezWJ0OB8DN2DKUWRw="
-    },
-    "android-test-plugin-host-retention-proto-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-host-retention-proto/31.7.3/android-test-plugin-host-retention-proto-31.7.3.pom",
-      "hash": "sha256-02L49Q+9HN7o3JL3ny6QGrgpcNXU4JoZrheUbFbAiEw="
-    }
-  },
-  "com.android.tools.utp:android-test-plugin-result-listener-gradle:31.7.3": {
-    "android-test-plugin-result-listener-gradle-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-result-listener-gradle/31.7.3/android-test-plugin-result-listener-gradle-31.7.3.jar",
-      "hash": "sha256-v1WMHj9vP22YAPllxP5L85VT7CVUcxIiEd4SKPWJes8="
-    },
-    "android-test-plugin-result-listener-gradle-31.7.3.module": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-result-listener-gradle/31.7.3/android-test-plugin-result-listener-gradle-31.7.3.module",
-      "hash": "sha256-903tNHZgohwM+zzVMiQJyhv7TKqmIhzu++VmvqzlZl0="
-    },
-    "android-test-plugin-result-listener-gradle-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-result-listener-gradle/31.7.3/android-test-plugin-result-listener-gradle-31.7.3.pom",
-      "hash": "sha256-46xLFw8CCOc51Q8u2CodMGoJ3pM8qK2sI6usO5CErGU="
-    }
-  },
-  "com.android.tools.utp:android-test-plugin-result-listener-gradle-proto:31.7.3": {
-    "android-test-plugin-result-listener-gradle-proto-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-result-listener-gradle-proto/31.7.3/android-test-plugin-result-listener-gradle-proto-31.7.3.jar",
-      "hash": "sha256-y99xvKYOFMMOeyz0uQ8PCj6ME498rdh0sNnArgguAnQ="
-    },
-    "android-test-plugin-result-listener-gradle-proto-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/android-test-plugin-result-listener-gradle-proto/31.7.3/android-test-plugin-result-listener-gradle-proto-31.7.3.pom",
-      "hash": "sha256-Y+Uvd4WIRAvG2qmqMVia6fUrP6WyittRDHOfD/S40rw="
-    }
-  },
-  "com.android.tools.utp:utp-common:31.7.3": {
-    "utp-common-31.7.3.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/utp-common/31.7.3/utp-common-31.7.3.jar",
-      "hash": "sha256-WVcC+4C81Dc6G5tDjll3aHy6PF+6b6Gik2vu95sT7p0="
-    },
-    "utp-common-31.7.3.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/utp-common/31.7.3/utp-common-31.7.3.pom",
-      "hash": "sha256-UrPMrbkSav1zWcfHtlmSK90FZBH/oXrpzHb92AIF+j8="
+    "utp-common-31.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/utp/utp-common/31.13.2/utp-common-31.13.2.pom",
+      "hash": "sha256-su8omyDL3HUwfnQc8RXaFVRZ4aWLXQwuCh/aPK0TtnE="
     }
   },
   "com.google.android:annotations:4.1.1.4": {
@@ -2969,18 +2935,38 @@
       "hash": "sha256-unNOHoTAnWFa9qCdMwNLTwRC+Hct7BIO+zdthqVlrhU="
     },
     "annotations-4.1.1.4.pom": {
-      "url": "https://plugins.gradle.org/m2/com/google/android/annotations/4.1.1.4/annotations-4.1.1.4.pom",
+      "url": "https://repo.maven.apache.org/maven2/com/google/android/annotations/4.1.1.4/annotations-4.1.1.4.pom",
       "hash": "sha256-5LtUdTw2onoOXXAVSlA0/t2P6sQoIpUDS/1IPWx6rng="
+    }
+  },
+  "com.google.api.grpc:proto-google-common-protos:2.48.0": {
+    "proto-google-common-protos-2.48.0.jar": {
+      "url": "https://plugins.gradle.org/m2/com/google/api/grpc/proto-google-common-protos/2.48.0/proto-google-common-protos-2.48.0.jar",
+      "hash": "sha256-Q+x4B0WaqkAS6Dihvk7y1ZDPIzMF2mCvW1TwjsjPIwI="
+    },
+    "proto-google-common-protos-2.48.0.pom": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/api/grpc/proto-google-common-protos/2.48.0/proto-google-common-protos-2.48.0.pom",
+      "hash": "sha256-ReuSeyJoX8Eb+rac5q07Q59y2Bajp95GvSP07Rm/icM="
     }
   },
   "com.google.api.grpc:proto-google-common-protos:2.17.0": {
     "proto-google-common-protos-2.17.0.jar": {
-      "url": "https://plugins.gradle.org/m2/com/google/api/grpc/proto-google-common-protos/2.17.0/proto-google-common-protos-2.17.0.jar",
+      "url": "https://repo.maven.apache.org/maven2/com/google/api/grpc/proto-google-common-protos/2.17.0/proto-google-common-protos-2.17.0.jar",
       "hash": "sha256-TvH+DDJ/wVIdHXU7CxxKh1pUvRTr3tOv/wyjlTILbqk="
     },
     "proto-google-common-protos-2.17.0.pom": {
-      "url": "https://plugins.gradle.org/m2/com/google/api/grpc/proto-google-common-protos/2.17.0/proto-google-common-protos-2.17.0.pom",
+      "url": "https://repo.maven.apache.org/maven2/com/google/api/grpc/proto-google-common-protos/2.17.0/proto-google-common-protos-2.17.0.pom",
       "hash": "sha256-PwKBU6WFxZ9Viz5Dp8mAmmAai7XpEGHWxlj/+iTLjiY="
+    }
+  },
+  "com.google.auto:auto-common:1.2.1": {
+    "auto-common-1.2.1.jar": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/auto/auto-common/1.2.1/auto-common-1.2.1.jar",
+      "hash": "sha256-9D8p/ipuuvBLJZjN7sMqTjRtSalATpkPX8GcGfOijQ4="
+    },
+    "auto-common-1.2.1.pom": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/auto/auto-common/1.2.1/auto-common-1.2.1.pom",
+      "hash": "sha256-E7S1AGKUn4sTQ5J8WBU207sFG4r+pQmqb5AvTeKLwbI="
     }
   },
   "com.google.auto:auto-common:0.11": {
@@ -3003,6 +2989,32 @@
     "auto-parent-6.pom": {
       "url": "https://plugins.gradle.org/m2/com/google/auto/auto-parent/6/auto-parent-6.pom",
       "hash": "sha256-BfdAxmSBZdsAz2GN1WwgDEcl41jm1U9YU+C+wVc06go="
+    }
+  },
+  "com.google.auto.service:auto-service:1.1.1": {
+    "auto-service-1.1.1.jar": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/auto/service/auto-service/1.1.1/auto-service-1.1.1.jar",
+      "hash": "sha256-H0j0UVA+Yj2rp9ntNozKD4Hh44FWU6RWARPhLAEp69U="
+    },
+    "auto-service-1.1.1.pom": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/auto/service/auto-service/1.1.1/auto-service-1.1.1.pom",
+      "hash": "sha256-DFPC+HlJs76PHIxnu3bAjtT0vrjbqkdcMrpZPUYXYxc="
+    }
+  },
+  "com.google.auto.service:auto-service-aggregator:1.1.1": {
+    "auto-service-aggregator-1.1.1.pom": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/auto/service/auto-service-aggregator/1.1.1/auto-service-aggregator-1.1.1.pom",
+      "hash": "sha256-4tw+JjpdsMyBcvsuubzSMqzs/clugXED6rPI2fGQDGo="
+    }
+  },
+  "com.google.auto.service:auto-service-annotations:1.1.1": {
+    "auto-service-annotations-1.1.1.jar": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/auto/service/auto-service-annotations/1.1.1/auto-service-annotations-1.1.1.jar",
+      "hash": "sha256-Fqdt0AomUFaER/XW46niyAnZpCNn1WtFIVz7iXMfTSQ="
+    },
+    "auto-service-annotations-1.1.1.pom": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/auto/service/auto-service-annotations/1.1.1/auto-service-annotations-1.1.1.pom",
+      "hash": "sha256-Fln9CiXOqfqav7GN6517GAzOOs6rFv+eYlRhVn5Eot8="
     }
   },
   "com.google.auto.value:auto-value-annotations:1.6.3": {
@@ -3039,12 +3051,22 @@
   },
   "com.google.code.findbugs:jsr305:3.0.2": {
     "jsr305-3.0.2.jar": {
-      "url": "https://repo.maven.apache.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar",
+      "url": "https://plugins.gradle.org/m2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar",
       "hash": "sha256-dmrSoHg/JoeWLIrXTO7MOKKLn3Ki0IXuQ4t4E+ko0Mc="
     },
     "jsr305-3.0.2.pom": {
       "url": "https://repo.maven.apache.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.pom",
       "hash": "sha256-GYidvfGyVLJgGl7mRbgUepdGRIgil2hMeYr+XWPXjf4="
+    }
+  },
+  "com.google.code.gson:gson:2.11.0": {
+    "gson-2.11.0.jar": {
+      "url": "https://plugins.gradle.org/m2/com/google/code/gson/gson/2.11.0/gson-2.11.0.jar",
+      "hash": "sha256-V5KNblpu3rKr03cKj5W6RNzkXzsjt6ncKzCcWBVSp4s="
+    },
+    "gson-2.11.0.pom": {
+      "url": "https://plugins.gradle.org/m2/com/google/code/gson/gson/2.11.0/gson-2.11.0.pom",
+      "hash": "sha256-wOVHvqmYiI5uJcWIapDnYicryItSdTQ90sBd7Wyi42A="
     }
   },
   "com.google.code.gson:gson:2.10.1": {
@@ -3067,6 +3089,22 @@
       "hash": "sha256-cZDQsH8njp9MYD9E5UOUD4HPGiVZ+FHG8pjJuyvil4w="
     }
   },
+  "com.google.code.gson:gson:2.8.9": {
+    "gson-2.8.9.jar": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/code/gson/gson/2.8.9/gson-2.8.9.jar",
+      "hash": "sha256-05mSkYVd5JXJTHQ3YbirUXbP6r4oGlqw2OjUUyb9cD4="
+    },
+    "gson-2.8.9.pom": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/code/gson/gson/2.8.9/gson-2.8.9.pom",
+      "hash": "sha256-r97W5qaQ+/OtSuZa2jl/CpCl9jCzA9G3QbnJeSb91N4="
+    }
+  },
+  "com.google.code.gson:gson-parent:2.11.0": {
+    "gson-parent-2.11.0.pom": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/code/gson/gson-parent/2.11.0/gson-parent-2.11.0.pom",
+      "hash": "sha256-issfO3Km8CaRasBzW62aqwKT1Sftt7NlMn3vE6k2e3o="
+    }
+  },
   "com.google.code.gson:gson-parent:2.10.1": {
     "gson-parent-2.10.1.pom": {
       "url": "https://repo.maven.apache.org/maven2/com/google/code/gson/gson-parent/2.10.1/gson-parent-2.10.1.pom",
@@ -3077,6 +3115,12 @@
     "gson-parent-2.9.0.pom": {
       "url": "https://repo.maven.apache.org/maven2/com/google/code/gson/gson-parent/2.9.0/gson-parent-2.9.0.pom",
       "hash": "sha256-r3gcmldm/+oxGg3wU2V2pk3sxmGqEQxN5cc6yL9DRCQ="
+    }
+  },
+  "com.google.code.gson:gson-parent:2.8.9": {
+    "gson-parent-2.8.9.pom": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/code/gson/gson-parent/2.8.9/gson-parent-2.8.9.pom",
+      "hash": "sha256-sW4CbmNCfBlyrQ/GhwPsN5sVduQRuknDL6mjGrC7z/s="
     }
   },
   "com.google.crypto.tink:tink:1.7.0": {
@@ -3097,6 +3141,16 @@
     "dagger-2.52.pom": {
       "url": "https://repo.maven.apache.org/maven2/com/google/dagger/dagger/2.52/dagger-2.52.pom",
       "hash": "sha256-XLYIQ/RrvM+XvYMtVJDSarGSry5mP61+WXGWm/IPuU4="
+    }
+  },
+  "com.google.dagger:dagger:2.48": {
+    "dagger-2.48.jar": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/dagger/dagger/2.48/dagger-2.48.jar",
+      "hash": "sha256-H6Im0rSgLMgJUPpNSaSiNcyOztSZtYH8NYpVRGqD9Xk="
+    },
+    "dagger-2.48.pom": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/dagger/dagger/2.48/dagger-2.48.pom",
+      "hash": "sha256-df10hXPlgHWxMG9/rhnPWwLAsIUJCPdlExsJKhFWqUQ="
     }
   },
   "com.google.dagger:dagger:2.28.3": {
@@ -3221,7 +3275,7 @@
       "hash": "sha256-BmK25GR/54YAzR/cqEmsLj6VCGuZZ5mw0XvHK0GNw5I="
     },
     "symbol-processing-api-2.0.21-1.0.27.pom": {
-      "url": "https://plugins.gradle.org/m2/com/google/devtools/ksp/symbol-processing-api/2.0.21-1.0.27/symbol-processing-api-2.0.21-1.0.27.pom",
+      "url": "https://repo.maven.apache.org/maven2/com/google/devtools/ksp/symbol-processing-api/2.0.21-1.0.27/symbol-processing-api-2.0.21-1.0.27.pom",
       "hash": "sha256-iQQftiF4MCrBrKZihTPCGrqzkXcOGN2TTJ+bmAdKJLs="
     }
   },
@@ -3277,6 +3331,32 @@
       "hash": "sha256-Wf/f9TkYodEiGrQK4IqPUZxjHKaYiDMKz1VRSQ2dV4g="
     }
   },
+  "com.google.errorprone:error_prone_annotations:2.30.0": {
+    "error_prone_annotations-2.30.0.jar": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/errorprone/error_prone_annotations/2.30.0/error_prone_annotations-2.30.0.jar",
+      "hash": "sha256-FE86771uJ9rsVdN1OyxrE8Gv2vDPBIFs21ZFiO2S8b0="
+    },
+    "error_prone_annotations-2.30.0.pom": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/errorprone/error_prone_annotations/2.30.0/error_prone_annotations-2.30.0.pom",
+      "hash": "sha256-9xOEnCOzSVPoVFZdzoqnlcrgwUFmEbcgwhRhMix5X4Y="
+    }
+  },
+  "com.google.errorprone:error_prone_annotations:2.28.0": {
+    "error_prone_annotations-2.28.0.jar": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/errorprone/error_prone_annotations/2.28.0/error_prone_annotations-2.28.0.jar",
+      "hash": "sha256-8/yKOgpAIHBqNzsA5/V8JRLdJtH4PSjH04do+GgrIx4="
+    },
+    "error_prone_annotations-2.28.0.pom": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/errorprone/error_prone_annotations/2.28.0/error_prone_annotations-2.28.0.pom",
+      "hash": "sha256-DOkJ8TpWgUhHbl7iAPOA+Yx1ugiXGq8V2ylet3WY7zo="
+    }
+  },
+  "com.google.errorprone:error_prone_annotations:2.27.0": {
+    "error_prone_annotations-2.27.0.pom": {
+      "url": "https://plugins.gradle.org/m2/com/google/errorprone/error_prone_annotations/2.27.0/error_prone_annotations-2.27.0.pom",
+      "hash": "sha256-TKWjXWEjXhZUmsNG0eNFUc3w/ifoSqV+A8vrJV6k5do="
+    }
+  },
   "com.google.errorprone:error_prone_annotations:2.23.0": {
     "error_prone_annotations-2.23.0.jar": {
       "url": "https://repo.maven.apache.org/maven2/com/google/errorprone/error_prone_annotations/2.23.0/error_prone_annotations-2.23.0.jar",
@@ -3289,7 +3369,7 @@
   },
   "com.google.errorprone:error_prone_annotations:2.18.0": {
     "error_prone_annotations-2.18.0.jar": {
-      "url": "https://plugins.gradle.org/m2/com/google/errorprone/error_prone_annotations/2.18.0/error_prone_annotations-2.18.0.jar",
+      "url": "https://repo.maven.apache.org/maven2/com/google/errorprone/error_prone_annotations/2.18.0/error_prone_annotations-2.18.0.jar",
       "hash": "sha256-nmgUy3GBaYik/RsHqZOo8hu3BY1SLBYrHehJ4ZvqVK4="
     },
     "error_prone_annotations-2.18.0.pom": {
@@ -3297,16 +3377,28 @@
       "hash": "sha256-kgE1eX3MpZF7WlwBdkKljTQKTNG80S9W+JKlZjvXvdw="
     }
   },
-  "com.google.errorprone:error_prone_annotations:2.11.0": {
-    "error_prone_annotations-2.11.0.pom": {
-      "url": "https://plugins.gradle.org/m2/com/google/errorprone/error_prone_annotations/2.11.0/error_prone_annotations-2.11.0.pom",
-      "hash": "sha256-AmHKAfLS6awq4uznXULFYyOzhfspS2vJQ/Yu9Okt3wg="
-    }
-  },
   "com.google.errorprone:error_prone_annotations:2.3.1": {
     "error_prone_annotations-2.3.1.pom": {
       "url": "https://plugins.gradle.org/m2/com/google/errorprone/error_prone_annotations/2.3.1/error_prone_annotations-2.3.1.pom",
       "hash": "sha256-PtzmtxG6No7+Frm3qssCFPvWSEFMublllTouftiagZo="
+    }
+  },
+  "com.google.errorprone:error_prone_parent:2.30.0": {
+    "error_prone_parent-2.30.0.pom": {
+      "url": "https://plugins.gradle.org/m2/com/google/errorprone/error_prone_parent/2.30.0/error_prone_parent-2.30.0.pom",
+      "hash": "sha256-Xog0zMDl7Qxy8wbCULUY5q0Q0HWpt7kQz2lcuh7gKi0="
+    }
+  },
+  "com.google.errorprone:error_prone_parent:2.28.0": {
+    "error_prone_parent-2.28.0.pom": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/errorprone/error_prone_parent/2.28.0/error_prone_parent-2.28.0.pom",
+      "hash": "sha256-rM79u1QWzvX80t3DfbTx/LNKIZPMGlXf5ZcKExs+doM="
+    }
+  },
+  "com.google.errorprone:error_prone_parent:2.27.0": {
+    "error_prone_parent-2.27.0.pom": {
+      "url": "https://plugins.gradle.org/m2/com/google/errorprone/error_prone_parent/2.27.0/error_prone_parent-2.27.0.pom",
+      "hash": "sha256-+oGCnQSVWd9pJ/nJpv1rvQn4tQ5tRzaucsgwC2w9dlQ="
     }
   },
   "com.google.errorprone:error_prone_parent:2.23.0": {
@@ -3319,12 +3411,6 @@
     "error_prone_parent-2.18.0.pom": {
       "url": "https://repo.maven.apache.org/maven2/com/google/errorprone/error_prone_parent/2.18.0/error_prone_parent-2.18.0.pom",
       "hash": "sha256-R/Iumce/RmOR3vFvg3eYXl07pvW7z2WFNkSAVRPhX60="
-    }
-  },
-  "com.google.errorprone:error_prone_parent:2.11.0": {
-    "error_prone_parent-2.11.0.pom": {
-      "url": "https://plugins.gradle.org/m2/com/google/errorprone/error_prone_parent/2.11.0/error_prone_parent-2.11.0.pom",
-      "hash": "sha256-goPwy0TGJKedMwtv2AuLinFaaLNoXJqVHD3oN9RUBVE="
     }
   },
   "com.google.errorprone:error_prone_parent:2.3.1": {
@@ -3371,7 +3457,7 @@
   },
   "com.google.guava:failureaccess:1.0.2": {
     "failureaccess-1.0.2.jar": {
-      "url": "https://repo.maven.apache.org/maven2/com/google/guava/failureaccess/1.0.2/failureaccess-1.0.2.jar",
+      "url": "https://plugins.gradle.org/m2/com/google/guava/failureaccess/1.0.2/failureaccess-1.0.2.jar",
       "hash": "sha256-io+Bz5s1nj9t+mkaHndphcBh7y8iPJssgHU+G0WOgGQ="
     },
     "failureaccess-1.0.2.pom": {
@@ -3381,12 +3467,26 @@
   },
   "com.google.guava:failureaccess:1.0.1": {
     "failureaccess-1.0.1.jar": {
-      "url": "https://plugins.gradle.org/m2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar",
+      "url": "https://repo.maven.apache.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar",
       "hash": "sha256-oXHuTHNN0tqDfksWvp30Zhr6typBra8x64Tf2vk2yiY="
     },
     "failureaccess-1.0.1.pom": {
-      "url": "https://plugins.gradle.org/m2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.pom",
+      "url": "https://repo.maven.apache.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.pom",
       "hash": "sha256-6WBCznj+y6DaK+lkUilHyHtAopG1/TzWcqQ0kkEDxLk="
+    }
+  },
+  "com.google.guava:guava:33.3.1-jre": {
+    "guava-33.3.1-jre.jar": {
+      "url": "https://plugins.gradle.org/m2/com/google/guava/guava/33.3.1-jre/guava-33.3.1-jre.jar",
+      "hash": "sha256-S/Dixa+ORSXJbo/eF6T3MH+X+EePEcTI41oOMpiuTpA="
+    },
+    "guava-33.3.1-jre.module": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/guava/guava/33.3.1-jre/guava-33.3.1-jre.module",
+      "hash": "sha256-QYWMhHU/2WprfFESL8zvOVWMkcwIJk4IUGvPIODmNzM="
+    },
+    "guava-33.3.1-jre.pom": {
+      "url": "https://plugins.gradle.org/m2/com/google/guava/guava/33.3.1-jre/guava-33.3.1-jre.pom",
+      "hash": "sha256-MTtn/BPrOwY07acVoSKZcfXem4GIvCgHYoFbg6J18ZM="
     }
   },
   "com.google.guava:guava:33.0.0-jre": {
@@ -3413,6 +3513,12 @@
       "hash": "sha256-QsJX9/c203ezGv7u6XirJtcwzXCvYN3nZi4YI1LiSCo="
     }
   },
+  "com.google.guava:guava-parent:33.3.1-jre": {
+    "guava-parent-33.3.1-jre.pom": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/guava/guava-parent/33.3.1-jre/guava-parent-33.3.1-jre.pom",
+      "hash": "sha256-VUQdsn6Iad/v4FMFm99Hi9x+lVhWQr85HwAjNF/VYoc="
+    }
+  },
   "com.google.guava:guava-parent:33.0.0-jre": {
     "guava-parent-33.0.0-jre.pom": {
       "url": "https://repo.maven.apache.org/maven2/com/google/guava/guava-parent/33.0.0-jre/guava-parent-33.0.0-jre.pom",
@@ -3421,7 +3527,7 @@
   },
   "com.google.guava:guava-parent:32.0.1-jre": {
     "guava-parent-32.0.1-jre.pom": {
-      "url": "https://plugins.gradle.org/m2/com/google/guava/guava-parent/32.0.1-jre/guava-parent-32.0.1-jre.pom",
+      "url": "https://repo.maven.apache.org/maven2/com/google/guava/guava-parent/32.0.1-jre/guava-parent-32.0.1-jre.pom",
       "hash": "sha256-Q+0ONrNT9B5et1zXVmZ8ni35fO8G6xYGaWcVih0DTSo="
     }
   },
@@ -3433,7 +3539,7 @@
   },
   "com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava": {
     "listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar": {
-      "url": "https://plugins.gradle.org/m2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+      "url": "https://repo.maven.apache.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
       "hash": "sha256-s3KgN9QjCqV/vv/e8w/WEj+cDC24XQrO0AyRuXTzP5k="
     },
     "listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.pom": {
@@ -3451,6 +3557,16 @@
       "hash": "sha256-U4c8rya8HtilZ+psk5qyqqP0el4y1creld31CA0jI4o="
     }
   },
+  "com.google.j2objc:j2objc-annotations:3.0.0": {
+    "j2objc-annotations-3.0.0.jar": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0.jar",
+      "hash": "sha256-iCQVc0Z93KRP/U10qgTCu/0Rv3wX4MNCyUyd56cKfGQ="
+    },
+    "j2objc-annotations-3.0.0.pom": {
+      "url": "https://plugins.gradle.org/m2/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0.pom",
+      "hash": "sha256-I7PQOeForYndEUaY5t1744P0osV3uId9gsc6ZRXnShc="
+    }
+  },
   "com.google.j2objc:j2objc-annotations:2.8": {
     "j2objc-annotations-2.8.jar": {
       "url": "https://repo.maven.apache.org/maven2/com/google/j2objc/j2objc-annotations/2.8/j2objc-annotations-2.8.jar",
@@ -3459,12 +3575,6 @@
     "j2objc-annotations-2.8.pom": {
       "url": "https://repo.maven.apache.org/maven2/com/google/j2objc/j2objc-annotations/2.8/j2objc-annotations-2.8.pom",
       "hash": "sha256-N/h3mLGDhRE8kYv6nhJ2/lBzXvj6hJtYAMUZ1U2/Efg="
-    }
-  },
-  "com.google.j2objc:j2objc-annotations:1.3": {
-    "j2objc-annotations-1.3.pom": {
-      "url": "https://plugins.gradle.org/m2/com/google/j2objc/j2objc-annotations/1.3/j2objc-annotations-1.3.pom",
-      "hash": "sha256-X6yoJLoRW+5FhzAzff2y/OpGui/XdNQwTtvzD6aj8FU="
     }
   },
   "com.google.jimfs:jimfs:1.1": {
@@ -3483,96 +3593,160 @@
       "hash": "sha256-xxVVdR5X4O+RKHDorJYlrnglAqalucGcz4OyqX2LJr0="
     }
   },
+  "com.google.protobuf:protobuf-bom:3.25.5": {
+    "protobuf-bom-3.25.5.pom": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/protobuf/protobuf-bom/3.25.5/protobuf-bom-3.25.5.pom",
+      "hash": "sha256-CA4phBcyOLUOBkwiav/7sbAjNSApXHkKf9PWrkWT8GM="
+    }
+  },
+  "com.google.protobuf:protobuf-bom:3.24.4": {
+    "protobuf-bom-3.24.4.pom": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/protobuf/protobuf-bom/3.24.4/protobuf-bom-3.24.4.pom",
+      "hash": "sha256-BOz9UsUN8Hp1VR+bCeDvMGMO5CN9CRyg7KceW/t4zOU="
+    }
+  },
   "com.google.protobuf:protobuf-bom:3.22.3": {
     "protobuf-bom-3.22.3.pom": {
       "url": "https://repo.maven.apache.org/maven2/com/google/protobuf/protobuf-bom/3.22.3/protobuf-bom-3.22.3.pom",
       "hash": "sha256-E6Mt+53m/Bw8P3r1Pk1cd/130rR2uuOLdLdYHN7i5lU="
     }
   },
-  "com.google.protobuf:protobuf-java:3.22.3": {
-    "protobuf-java-3.22.3.jar": {
-      "url": "https://plugins.gradle.org/m2/com/google/protobuf/protobuf-java/3.22.3/protobuf-java-3.22.3.jar",
-      "hash": "sha256-WdOI6motLXaujv/3/U0MYMbw9GTD06ub6OWt0JKXVwg="
+  "com.google.protobuf:protobuf-java:3.25.5": {
+    "protobuf-java-3.25.5.jar": {
+      "url": "https://plugins.gradle.org/m2/com/google/protobuf/protobuf-java/3.25.5/protobuf-java-3.25.5.jar",
+      "hash": "sha256-hUAkf62eBrrvqPtF6zE4AtAZ9IXxQwDg+da1Vu2I51M="
     },
-    "protobuf-java-3.22.3.pom": {
-      "url": "https://plugins.gradle.org/m2/com/google/protobuf/protobuf-java/3.22.3/protobuf-java-3.22.3.pom",
-      "hash": "sha256-GG6nlBUPW0Kup+xgQd83PR2KioMWJPWKVd67YEPscxI="
+    "protobuf-java-3.25.5.pom": {
+      "url": "https://plugins.gradle.org/m2/com/google/protobuf/protobuf-java/3.25.5/protobuf-java-3.25.5.pom",
+      "hash": "sha256-51IDIVeno5vpvjeGaEB1RSpGzVhrKGWr0z5wdWikyK8="
+    }
+  },
+  "com.google.protobuf:protobuf-java:3.24.4": {
+    "protobuf-java-3.24.4.jar": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/protobuf/protobuf-java/3.24.4/protobuf-java-3.24.4.jar",
+      "hash": "sha256-5WVVIr4apcwfLwkqoDawRFFX8pSSju3xMyrJOMe2loY="
+    },
+    "protobuf-java-3.24.4.pom": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/protobuf/protobuf-java/3.24.4/protobuf-java-3.24.4.pom",
+      "hash": "sha256-OUEiHKZXgZ3evZX+i3QPRwr3q/MEYLE+ocmrefEPq5E="
+    }
+  },
+  "com.google.protobuf:protobuf-java-util:3.25.5": {
+    "protobuf-java-util-3.25.5.jar": {
+      "url": "https://plugins.gradle.org/m2/com/google/protobuf/protobuf-java-util/3.25.5/protobuf-java-util-3.25.5.jar",
+      "hash": "sha256-2sxYssPS+o1L3cGsuIHnjWz3wTfdeLwdZ/aspzJDao0="
+    },
+    "protobuf-java-util-3.25.5.pom": {
+      "url": "https://plugins.gradle.org/m2/com/google/protobuf/protobuf-java-util/3.25.5/protobuf-java-util-3.25.5.pom",
+      "hash": "sha256-oJ0ZDqpqeWFrxfS1QE6UsMq1WYA6mMigkMQJmWL0H5I="
+    }
+  },
+  "com.google.protobuf:protobuf-java-util:3.24.4": {
+    "protobuf-java-util-3.24.4.jar": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/protobuf/protobuf-java-util/3.24.4/protobuf-java-util-3.24.4.jar",
+      "hash": "sha256-EzySniz+OZChBdGOrMxJEistL7SStCDvAtXZ+Tfq67g="
+    },
+    "protobuf-java-util-3.24.4.pom": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/protobuf/protobuf-java-util/3.24.4/protobuf-java-util-3.24.4.pom",
+      "hash": "sha256-nwzsJ21NnVpD1uKcwrAk5GgEyThqlvpSfu/Xv3SI5/A="
     }
   },
   "com.google.protobuf:protobuf-java-util:3.22.3": {
     "protobuf-java-util-3.22.3.jar": {
-      "url": "https://plugins.gradle.org/m2/com/google/protobuf/protobuf-java-util/3.22.3/protobuf-java-util-3.22.3.jar",
+      "url": "https://repo.maven.apache.org/maven2/com/google/protobuf/protobuf-java-util/3.22.3/protobuf-java-util-3.22.3.jar",
       "hash": "sha256-xhX3aHncXDA+TfW5Smr6OVNAWMdUXbLUg/2V2fY8i/4="
     },
     "protobuf-java-util-3.22.3.pom": {
-      "url": "https://plugins.gradle.org/m2/com/google/protobuf/protobuf-java-util/3.22.3/protobuf-java-util-3.22.3.pom",
+      "url": "https://repo.maven.apache.org/maven2/com/google/protobuf/protobuf-java-util/3.22.3/protobuf-java-util-3.22.3.pom",
       "hash": "sha256-tEcBsGoGSGXsm1YUqT6eKPrdfU38S0YPIcgZ71Pb4tY="
+    }
+  },
+  "com.google.protobuf:protobuf-kotlin:3.24.4": {
+    "protobuf-kotlin-3.24.4.jar": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/protobuf/protobuf-kotlin/3.24.4/protobuf-kotlin-3.24.4.jar",
+      "hash": "sha256-UIyhPZe1D1QE6qN+tEk8sHiEFi63lxv5JNj4A9TCG7Q="
+    },
+    "protobuf-kotlin-3.24.4.pom": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/protobuf/protobuf-kotlin/3.24.4/protobuf-kotlin-3.24.4.pom",
+      "hash": "sha256-O7Hm75SmpDa9L/Zq8N1gPCPtOilDsvuJn4PZ+Hktcqk="
+    }
+  },
+  "com.google.protobuf:protobuf-parent:3.25.5": {
+    "protobuf-parent-3.25.5.pom": {
+      "url": "https://plugins.gradle.org/m2/com/google/protobuf/protobuf-parent/3.25.5/protobuf-parent-3.25.5.pom",
+      "hash": "sha256-ZMwOOtboX1rsj53Pk0HRN56VJTZP9T4j4W2NWCRnPvc="
+    }
+  },
+  "com.google.protobuf:protobuf-parent:3.24.4": {
+    "protobuf-parent-3.24.4.pom": {
+      "url": "https://repo.maven.apache.org/maven2/com/google/protobuf/protobuf-parent/3.24.4/protobuf-parent-3.24.4.pom",
+      "hash": "sha256-+37AUFh2/bnseVEKztLR6wTDuM/GkLWJBJdXypgcrbM="
     }
   },
   "com.google.protobuf:protobuf-parent:3.22.3": {
     "protobuf-parent-3.22.3.pom": {
-      "url": "https://plugins.gradle.org/m2/com/google/protobuf/protobuf-parent/3.22.3/protobuf-parent-3.22.3.pom",
+      "url": "https://repo.maven.apache.org/maven2/com/google/protobuf/protobuf-parent/3.22.3/protobuf-parent-3.22.3.pom",
       "hash": "sha256-OZEz1/b1eTTddsSxjoY0j0JFMhCNr0oByPgguGZfCSk="
     }
   },
-  "com.google.testing.platform:android-device-provider-local:0.0.9-alpha02": {
-    "android-device-provider-local-0.0.9-alpha02.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/google/testing/platform/android-device-provider-local/0.0.9-alpha02/android-device-provider-local-0.0.9-alpha02.jar",
-      "hash": "sha256-RG0Pyk43EePjchnPiI7BK03sPxSZnuQ5c1OF+3h+kUs="
+  "com.google.testing.platform:android-device-provider-local:0.0.9-alpha03": {
+    "android-device-provider-local-0.0.9-alpha03.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/google/testing/platform/android-device-provider-local/0.0.9-alpha03/android-device-provider-local-0.0.9-alpha03.jar",
+      "hash": "sha256-ZnpNNbu6h9PIb1GA36Uh/b16TvXGDZSRVLAwHz4jLhs="
     },
-    "android-device-provider-local-0.0.9-alpha02.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/google/testing/platform/android-device-provider-local/0.0.9-alpha02/android-device-provider-local-0.0.9-alpha02.pom",
-      "hash": "sha256-r9lTpB4pSmCUwCYgyOmg68mnQ6AP9EqdtbhPKUl3MLo="
+    "android-device-provider-local-0.0.9-alpha03.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/google/testing/platform/android-device-provider-local/0.0.9-alpha03/android-device-provider-local-0.0.9-alpha03.pom",
+      "hash": "sha256-kTs67pWnFYGkCQOLHMonPOg10/K48qtaYAu+12nqbf0="
     }
   },
-  "com.google.testing.platform:android-driver-instrumentation:0.0.9-alpha02": {
-    "android-driver-instrumentation-0.0.9-alpha02.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/google/testing/platform/android-driver-instrumentation/0.0.9-alpha02/android-driver-instrumentation-0.0.9-alpha02.jar",
-      "hash": "sha256-o0cx3CPq0VFErRAO+sVyan7YLC7IuIlQTVSa5y3/UCk="
+  "com.google.testing.platform:android-driver-instrumentation:0.0.9-alpha03": {
+    "android-driver-instrumentation-0.0.9-alpha03.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/google/testing/platform/android-driver-instrumentation/0.0.9-alpha03/android-driver-instrumentation-0.0.9-alpha03.jar",
+      "hash": "sha256-UHxjLsfbd7yymbVRnVmxTMYkOqxUF2fGMv2+3cYiawc="
     },
-    "android-driver-instrumentation-0.0.9-alpha02.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/google/testing/platform/android-driver-instrumentation/0.0.9-alpha02/android-driver-instrumentation-0.0.9-alpha02.pom",
-      "hash": "sha256-ci2MMRB7cbr3jxH7EOh5xxWPRoHZm6yt5yYUc2jcat4="
+    "android-driver-instrumentation-0.0.9-alpha03.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/google/testing/platform/android-driver-instrumentation/0.0.9-alpha03/android-driver-instrumentation-0.0.9-alpha03.pom",
+      "hash": "sha256-AtXBStCZWXGhCIGQdacXXRAHa9cVJ3LO00QrsZxMG1M="
     }
   },
-  "com.google.testing.platform:android-test-plugin:0.0.9-alpha02": {
-    "android-test-plugin-0.0.9-alpha02.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/google/testing/platform/android-test-plugin/0.0.9-alpha02/android-test-plugin-0.0.9-alpha02.jar",
-      "hash": "sha256-qH7Rx2bJpJjPySgMpl0MSFOHW37X+l/9iUKJBOuhwP8="
+  "com.google.testing.platform:android-test-plugin:0.0.9-alpha03": {
+    "android-test-plugin-0.0.9-alpha03.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/google/testing/platform/android-test-plugin/0.0.9-alpha03/android-test-plugin-0.0.9-alpha03.jar",
+      "hash": "sha256-1st+Em9DMDcZC808O5BLGbqELUaxew/SfDjMTM7L7JA="
     },
-    "android-test-plugin-0.0.9-alpha02.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/google/testing/platform/android-test-plugin/0.0.9-alpha02/android-test-plugin-0.0.9-alpha02.pom",
-      "hash": "sha256-cOtK0N4Ub5WOtdmb3/jXK3sHpcJ6xpDEIa5FYX4DHlQ="
+    "android-test-plugin-0.0.9-alpha03.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/google/testing/platform/android-test-plugin/0.0.9-alpha03/android-test-plugin-0.0.9-alpha03.pom",
+      "hash": "sha256-qCucEMqqjl0fPNtjhHqbA6yXOKUlswmrcNTRZh7f6iI="
     }
   },
-  "com.google.testing.platform:core:0.0.9-alpha02": {
-    "core-0.0.9-alpha02.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/google/testing/platform/core/0.0.9-alpha02/core-0.0.9-alpha02.jar",
-      "hash": "sha256-/iFavRAfKfs4hTVZLh8Uu0z4UB2m24RCK6GUWsTiaHI="
+  "com.google.testing.platform:core:0.0.9-alpha03": {
+    "core-0.0.9-alpha03.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/google/testing/platform/core/0.0.9-alpha03/core-0.0.9-alpha03.jar",
+      "hash": "sha256-bhgG0BXEFllvU6RaMQDiV0PDE6bj/E9S8k6LJX8sgs4="
     },
-    "core-0.0.9-alpha02.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/google/testing/platform/core/0.0.9-alpha02/core-0.0.9-alpha02.pom",
-      "hash": "sha256-lj4S/BqelMoJHe1arGEShNNs8OMJ7nGIKBO1qBGDCYo="
+    "core-0.0.9-alpha03.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/google/testing/platform/core/0.0.9-alpha03/core-0.0.9-alpha03.pom",
+      "hash": "sha256-nwPalZsyYcweuciIa/iu1vXWC7lbjYY4vtVUQ65iDCo="
     }
   },
-  "com.google.testing.platform:core-proto:0.0.9-alpha02": {
-    "core-proto-0.0.9-alpha02.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/google/testing/platform/core-proto/0.0.9-alpha02/core-proto-0.0.9-alpha02.jar",
-      "hash": "sha256-bYqJBndBUPQ6j60IymTiXGBww5vYpvwTslk/KJJC/pU="
+  "com.google.testing.platform:core-proto:0.0.9-alpha03": {
+    "core-proto-0.0.9-alpha03.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/google/testing/platform/core-proto/0.0.9-alpha03/core-proto-0.0.9-alpha03.jar",
+      "hash": "sha256-0AHrDMu/yMueqhk6NY5jcSl0Y5d1ZHvpSasjLCsptAc="
     },
-    "core-proto-0.0.9-alpha02.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/google/testing/platform/core-proto/0.0.9-alpha02/core-proto-0.0.9-alpha02.pom",
-      "hash": "sha256-J855WUJ6L/7kjQ/rRRKKPzbMQX7YqCKvoigiyPWliyU="
+    "core-proto-0.0.9-alpha03.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/google/testing/platform/core-proto/0.0.9-alpha03/core-proto-0.0.9-alpha03.pom",
+      "hash": "sha256-O7RSgN8d0clrmgFySmFFZrfWDTNFP81SwsdB+ZmcOk4="
     }
   },
-  "com.google.testing.platform:launcher:0.0.9-alpha02": {
-    "launcher-0.0.9-alpha02.jar": {
-      "url": "https://dl.google.com/dl/android/maven2/com/google/testing/platform/launcher/0.0.9-alpha02/launcher-0.0.9-alpha02.jar",
-      "hash": "sha256-VCPoykEPzbz7MobBi4vggOr07pvXlurZA+jIherRbsM="
+  "com.google.testing.platform:launcher:0.0.9-alpha03": {
+    "launcher-0.0.9-alpha03.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/google/testing/platform/launcher/0.0.9-alpha03/launcher-0.0.9-alpha03.jar",
+      "hash": "sha256-ABL5gKBZoMTCFtDx0AFoZ6sx64B54/j4efHwK3vjpuc="
     },
-    "launcher-0.0.9-alpha02.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/com/google/testing/platform/launcher/0.0.9-alpha02/launcher-0.0.9-alpha02.pom",
-      "hash": "sha256-DwIqMkkLdkSfdASwUG2s5FiuqpfIMAs0z9W+GvGsmSs="
+    "launcher-0.0.9-alpha03.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/google/testing/platform/launcher/0.0.9-alpha03/launcher-0.0.9-alpha03.pom",
+      "hash": "sha256-GLgPNKXp+hpe7CJQ/XHlRl8utLTQnhgZQOOPG24GRFI="
     }
   },
   "com.googlecode.juniversalchardet:juniversalchardet:1.0.3": {
@@ -3817,20 +3991,14 @@
       "hash": "sha256-wecUDR3qj981KLwePFRErAtUEpcxH0X5gGwhPsPumhA="
     }
   },
-  "commons-codec:commons-codec:1.10": {
-    "commons-codec-1.10.pom": {
-      "url": "https://plugins.gradle.org/m2/commons-codec/commons-codec/1.10/commons-codec-1.10.pom",
-      "hash": "sha256-vbjbcBLREqbj6o/bfFELMA2Z7/CBnSfd26nEM5fqTPs="
-    }
-  },
-  "commons-io:commons-io:2.13.0": {
-    "commons-io-2.13.0.jar": {
-      "url": "https://plugins.gradle.org/m2/commons-io/commons-io/2.13.0/commons-io-2.13.0.jar",
-      "hash": "sha256-Zx6qOWiNrC/6pGRbPJmAri0OokceSual2hmc0VriNmY="
+  "commons-io:commons-io:2.16.1": {
+    "commons-io-2.16.1.jar": {
+      "url": "https://repo.maven.apache.org/maven2/commons-io/commons-io/2.16.1/commons-io-2.16.1.jar",
+      "hash": "sha256-9B97qs1xaJZEes6XWGIfYsHGsKkdiazuSI2ib8R3yE8="
     },
-    "commons-io-2.13.0.pom": {
-      "url": "https://plugins.gradle.org/m2/commons-io/commons-io/2.13.0/commons-io-2.13.0.pom",
-      "hash": "sha256-2z/tZMLhd06/1rGnSQN3MrFJuREd1+a5hfCN2lVHBDk="
+    "commons-io-2.16.1.pom": {
+      "url": "https://plugins.gradle.org/m2/commons-io/commons-io/2.16.1/commons-io-2.16.1.pom",
+      "hash": "sha256-V3fSkiUceJXASkxXAVaD7Ds1OhJIbJs+cXjpsLPDj/8="
     }
   },
   "commons-logging:commons-logging:1.2": {
@@ -3843,84 +4011,210 @@
       "hash": "sha256-yRq1qlcNhvb9B8wVjsa8LFAIBAKXLukXn+JBAHOfuyA="
     }
   },
-  "io.grpc:grpc-api:1.57.0": {
-    "grpc-api-1.57.0.jar": {
-      "url": "https://plugins.gradle.org/m2/io/grpc/grpc-api/1.57.0/grpc-api-1.57.0.jar",
-      "hash": "sha256-jSw4Qpn4Tuiqf2cPAOfLJrh+IxzzCRR0MHsyt2kQ9xw="
+  "io.grpc:grpc-api:1.69.1": {
+    "grpc-api-1.69.1.jar": {
+      "url": "https://plugins.gradle.org/m2/io/grpc/grpc-api/1.69.1/grpc-api-1.69.1.jar",
+      "hash": "sha256-qNPW3McfOrYT1miEIoK0iL3ZPT6ZoO9dyn7ub6c0woM="
     },
-    "grpc-api-1.57.0.pom": {
-      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-api/1.57.0/grpc-api-1.57.0.pom",
-      "hash": "sha256-w/BUp8iGFkfQpVglsKlJ9E/PycZPR5CD2WgTgUxQJhI="
+    "grpc-api-1.69.1.pom": {
+      "url": "https://plugins.gradle.org/m2/io/grpc/grpc-api/1.69.1/grpc-api-1.69.1.pom",
+      "hash": "sha256-vq8uR11cRdBjTU0yS/hNsqjWqSkilx5vfcJ+hRxCkH8="
     }
   },
-  "io.grpc:grpc-context:1.57.0": {
-    "grpc-context-1.57.0.jar": {
-      "url": "https://plugins.gradle.org/m2/io/grpc/grpc-context/1.57.0/grpc-context-1.57.0.jar",
-      "hash": "sha256-lT/KzYL1MeabduODT1gwutTCKuhBROBY1x3ICnQwJ10="
+  "io.grpc:grpc-api:1.57.2": {
+    "grpc-api-1.57.2.jar": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-api/1.57.2/grpc-api-1.57.2.jar",
+      "hash": "sha256-QrcuZXLAhAVaw84D5u/kM+sF72ILPa9RNqQ1n8csw+E="
     },
-    "grpc-context-1.57.0.pom": {
-      "url": "https://plugins.gradle.org/m2/io/grpc/grpc-context/1.57.0/grpc-context-1.57.0.pom",
-      "hash": "sha256-qyZOgr+2q4lfYBavizzERJWryB52nDD6WprgrRa+bMY="
+    "grpc-api-1.57.2.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-api/1.57.2/grpc-api-1.57.2.pom",
+      "hash": "sha256-x99FUaZPAoKnZugJUU1COEUKdCkFX5x3GIgdFqMQoCY="
     }
   },
-  "io.grpc:grpc-core:1.57.0": {
-    "grpc-core-1.57.0.jar": {
-      "url": "https://plugins.gradle.org/m2/io/grpc/grpc-core/1.57.0/grpc-core-1.57.0.jar",
-      "hash": "sha256-O+5IxzvExbVb7Xm+DkhK3ya6Vr675XmN2/NHFO8eHOo="
+  "io.grpc:grpc-context:1.69.1": {
+    "grpc-context-1.69.1.jar": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-context/1.69.1/grpc-context-1.69.1.jar",
+      "hash": "sha256-Re+VuMFYqLW906y2e55oLvJUFLsUj0iOyEdDirZHFdQ="
     },
-    "grpc-core-1.57.0.pom": {
-      "url": "https://plugins.gradle.org/m2/io/grpc/grpc-core/1.57.0/grpc-core-1.57.0.pom",
-      "hash": "sha256-gYQEX1eR4Azyzbz16IRq/Uj1z35aTzj7W4MDx7Lv5Vs="
+    "grpc-context-1.69.1.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-context/1.69.1/grpc-context-1.69.1.pom",
+      "hash": "sha256-beKbzqslob0L4R7qhGjQ4/HAxHbQpTMhW0/eHIKEtXA="
     }
   },
-  "io.grpc:grpc-netty:1.57.0": {
-    "grpc-netty-1.57.0.jar": {
-      "url": "https://plugins.gradle.org/m2/io/grpc/grpc-netty/1.57.0/grpc-netty-1.57.0.jar",
-      "hash": "sha256-gdQ/LU7Rj6NBvYQKNzXxQDpwB0oEbhV+J/Z5tyG0ya0="
+  "io.grpc:grpc-context:1.57.2": {
+    "grpc-context-1.57.2.jar": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-context/1.57.2/grpc-context-1.57.2.jar",
+      "hash": "sha256-m4rIjZzvKBna/+1729LyJoAjfUgsbGcf4C022j8IzwA="
     },
-    "grpc-netty-1.57.0.pom": {
-      "url": "https://plugins.gradle.org/m2/io/grpc/grpc-netty/1.57.0/grpc-netty-1.57.0.pom",
-      "hash": "sha256-7Z3917HtQ1avs8XRQH3ttjTIYC+0EEebSArYwROe4Xs="
+    "grpc-context-1.57.2.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-context/1.57.2/grpc-context-1.57.2.pom",
+      "hash": "sha256-iSf3fWOB4kSHaCcIGWpspyg2i4/XzrsQT9kyS2sSSRc="
     }
   },
-  "io.grpc:grpc-protobuf:1.57.0": {
-    "grpc-protobuf-1.57.0.jar": {
-      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-protobuf/1.57.0/grpc-protobuf-1.57.0.jar",
-      "hash": "sha256-SfmG1OqxJhD9ukpokPylLV62U1mJFv24Y6Nm1eKO7Pc="
-    },
-    "grpc-protobuf-1.57.0.pom": {
-      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-protobuf/1.57.0/grpc-protobuf-1.57.0.pom",
-      "hash": "sha256-wNy4xn/QHapjJW8Pi2jTcHzrfKhc2qt6PGw/9GDhPdE="
+  "io.grpc:grpc-context:1.27.2": {
+    "grpc-context-1.27.2.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-context/1.27.2/grpc-context-1.27.2.pom",
+      "hash": "sha256-DyErFOvYNMvtm9iGml1snBeY7OtRLH/MKNqJ9vik7dg="
     }
   },
-  "io.grpc:grpc-protobuf-lite:1.57.0": {
-    "grpc-protobuf-lite-1.57.0.jar": {
-      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-protobuf-lite/1.57.0/grpc-protobuf-lite-1.57.0.jar",
-      "hash": "sha256-LFB8AtmBuEohdj1E4Jr08nmIHdPiW+MID2NhJYYH8Zg="
+  "io.grpc:grpc-core:1.69.1": {
+    "grpc-core-1.69.1.jar": {
+      "url": "https://plugins.gradle.org/m2/io/grpc/grpc-core/1.69.1/grpc-core-1.69.1.jar",
+      "hash": "sha256-UTUsra7L+aSkqkLZP28fxyjx/QGwUWgDg+0J5WMf+9A="
     },
-    "grpc-protobuf-lite-1.57.0.pom": {
-      "url": "https://plugins.gradle.org/m2/io/grpc/grpc-protobuf-lite/1.57.0/grpc-protobuf-lite-1.57.0.pom",
-      "hash": "sha256-sCO+cAiElIn2Uu7/df0P4aqckF9nHTROFtqv3fkhgZ0="
+    "grpc-core-1.69.1.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-core/1.69.1/grpc-core-1.69.1.pom",
+      "hash": "sha256-loCY9KhFG7zT17iMaoq1t6dO+A397npgUvNS//eDssU="
     }
   },
-  "io.grpc:grpc-stub:1.57.0": {
-    "grpc-stub-1.57.0.jar": {
-      "url": "https://plugins.gradle.org/m2/io/grpc/grpc-stub/1.57.0/grpc-stub-1.57.0.jar",
-      "hash": "sha256-bm7hQVOfoU2fpHn39RFgVUREPH4BHnjic8+UaKoYMGA="
+  "io.grpc:grpc-core:1.57.2": {
+    "grpc-core-1.57.2.jar": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-core/1.57.2/grpc-core-1.57.2.jar",
+      "hash": "sha256-WhAHCr/rSWbsTVgJYdzE5/afqDqyUkL5LBdl77B7hgY="
     },
-    "grpc-stub-1.57.0.pom": {
-      "url": "https://plugins.gradle.org/m2/io/grpc/grpc-stub/1.57.0/grpc-stub-1.57.0.pom",
-      "hash": "sha256-bURZSHxiHf8xUQqIgpBjYx6RXS3Md01xkoQYEW5ZqI0="
+    "grpc-core-1.57.2.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-core/1.57.2/grpc-core-1.57.2.pom",
+      "hash": "sha256-CpcgGv4Xh08DX4ol/7lwZ45Jqt8pksfZfG/5+x1dohE="
+    }
+  },
+  "io.grpc:grpc-inprocess:1.69.1": {
+    "grpc-inprocess-1.69.1.jar": {
+      "url": "https://plugins.gradle.org/m2/io/grpc/grpc-inprocess/1.69.1/grpc-inprocess-1.69.1.jar",
+      "hash": "sha256-t8asDjq/S41YJhDWMteUF7w9qBJU4aS89/Aejbe9Ve8="
+    },
+    "grpc-inprocess-1.69.1.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-inprocess/1.69.1/grpc-inprocess-1.69.1.pom",
+      "hash": "sha256-/rswpc8jgjfQdaOSPok5khg9rxcaHrQ0rPEyEUpff4o="
+    }
+  },
+  "io.grpc:grpc-netty:1.69.1": {
+    "grpc-netty-1.69.1.jar": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-netty/1.69.1/grpc-netty-1.69.1.jar",
+      "hash": "sha256-Uqhu1m94kz6D0aP7cWKtFmdIlWTEVWNmt6NXnHAkpEc="
+    },
+    "grpc-netty-1.69.1.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-netty/1.69.1/grpc-netty-1.69.1.pom",
+      "hash": "sha256-jwZlDMkUKMxRMRG/676r95mUGF1yREsC5d+so4vkNxQ="
+    }
+  },
+  "io.grpc:grpc-netty:1.57.2": {
+    "grpc-netty-1.57.2.jar": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-netty/1.57.2/grpc-netty-1.57.2.jar",
+      "hash": "sha256-mAnUwQyU0R57KUbN61sohL4goJUQKJVE83Vp8CyHeiE="
+    },
+    "grpc-netty-1.57.2.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-netty/1.57.2/grpc-netty-1.57.2.pom",
+      "hash": "sha256-ixIWHPKqz785j7Wvw7DXOiGvIGulDD2Pe/T2xLN16/g="
+    }
+  },
+  "io.grpc:grpc-protobuf:1.69.1": {
+    "grpc-protobuf-1.69.1.jar": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-protobuf/1.69.1/grpc-protobuf-1.69.1.jar",
+      "hash": "sha256-TFLvlI+4mHo7qn1GujYre/MH3TxR8pJBzVxZg5igEN8="
+    },
+    "grpc-protobuf-1.69.1.pom": {
+      "url": "https://plugins.gradle.org/m2/io/grpc/grpc-protobuf/1.69.1/grpc-protobuf-1.69.1.pom",
+      "hash": "sha256-v0ynbSrORNlpRxT7zz/XKcmO8uWGOrkgpIPAUqIvRCM="
+    }
+  },
+  "io.grpc:grpc-protobuf:1.57.2": {
+    "grpc-protobuf-1.57.2.jar": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-protobuf/1.57.2/grpc-protobuf-1.57.2.jar",
+      "hash": "sha256-MWMNip6fCKlZhiAV4wpIY5CL42gMOmhvTB8I0v/q9wY="
+    },
+    "grpc-protobuf-1.57.2.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-protobuf/1.57.2/grpc-protobuf-1.57.2.pom",
+      "hash": "sha256-xeIpKAIFOXfwRhCxcEhKmh6mrxVBwUSyfRiECsVE+p0="
+    }
+  },
+  "io.grpc:grpc-protobuf-lite:1.69.1": {
+    "grpc-protobuf-lite-1.69.1.jar": {
+      "url": "https://plugins.gradle.org/m2/io/grpc/grpc-protobuf-lite/1.69.1/grpc-protobuf-lite-1.69.1.jar",
+      "hash": "sha256-wp+Q+t88diD5NZokPAZ92FtzvXZbKPPZXfkQrC0zFVU="
+    },
+    "grpc-protobuf-lite-1.69.1.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-protobuf-lite/1.69.1/grpc-protobuf-lite-1.69.1.pom",
+      "hash": "sha256-Jj8fhE11bBXbX6uIaZZeM3IrP0/pB/4ciFqQ4EZGFzE="
+    }
+  },
+  "io.grpc:grpc-protobuf-lite:1.57.2": {
+    "grpc-protobuf-lite-1.57.2.jar": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-protobuf-lite/1.57.2/grpc-protobuf-lite-1.57.2.jar",
+      "hash": "sha256-/EkX3F1BmsgQ+z8nUjwU514f5QNyFU+rKTJCFe5qlVo="
+    },
+    "grpc-protobuf-lite-1.57.2.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-protobuf-lite/1.57.2/grpc-protobuf-lite-1.57.2.pom",
+      "hash": "sha256-YHeMHqQHo7oKfw8J3wmegnInjoq8KYIsnPUOGgUvG3U="
+    }
+  },
+  "io.grpc:grpc-services:1.57.2": {
+    "grpc-services-1.57.2.jar": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-services/1.57.2/grpc-services-1.57.2.jar",
+      "hash": "sha256-BXpDumR4M3VqsvhRusgKO5+NzgJvwawfF9TzFWSPQXI="
+    },
+    "grpc-services-1.57.2.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-services/1.57.2/grpc-services-1.57.2.pom",
+      "hash": "sha256-dHYBoDpYoYl5gZrFLO/8WGuPnGprQi4XI/Mmr0iBPrk="
+    }
+  },
+  "io.grpc:grpc-stub:1.69.1": {
+    "grpc-stub-1.69.1.jar": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-stub/1.69.1/grpc-stub-1.69.1.jar",
+      "hash": "sha256-45xjJz1TBS6+n2ONiumBdnNexWcyjZoXCSzdtvI5uMI="
+    },
+    "grpc-stub-1.69.1.pom": {
+      "url": "https://plugins.gradle.org/m2/io/grpc/grpc-stub/1.69.1/grpc-stub-1.69.1.pom",
+      "hash": "sha256-9a2BV+xA2KI0djKWXWoD0YpIrUYl8y62SzenpHDOU7s="
+    }
+  },
+  "io.grpc:grpc-stub:1.57.2": {
+    "grpc-stub-1.57.2.jar": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-stub/1.57.2/grpc-stub-1.57.2.jar",
+      "hash": "sha256-hNKvEnGRaPdjdfKv39brUTOoZe26kkTUDmuWjjrd4dM="
+    },
+    "grpc-stub-1.57.2.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-stub/1.57.2/grpc-stub-1.57.2.pom",
+      "hash": "sha256-IVnmFKh5R3XrmOLhyFg0q05ZEb4cSnXHFjqZPpyJK6w="
+    }
+  },
+  "io.grpc:grpc-util:1.69.1": {
+    "grpc-util-1.69.1.jar": {
+      "url": "https://plugins.gradle.org/m2/io/grpc/grpc-util/1.69.1/grpc-util-1.69.1.jar",
+      "hash": "sha256-3Vl71nXqoELz41eGSNkFDIE8RZXF3mhp753btEkAYDE="
+    },
+    "grpc-util-1.69.1.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/grpc/grpc-util/1.69.1/grpc-util-1.69.1.pom",
+      "hash": "sha256-0g00aMt01WvlXtPUb2PKOO5LygkY2arXJ3pEj24HpbQ="
+    }
+  },
+  "io.netty:netty-buffer:4.1.110.Final": {
+    "netty-buffer-4.1.110.Final.jar": {
+      "url": "https://repo.maven.apache.org/maven2/io/netty/netty-buffer/4.1.110.Final/netty-buffer-4.1.110.Final.jar",
+      "hash": "sha256-RtdOeRJarMBVwx8YFS/cXUpWmqjWAJEgPQuqgzlzrDw="
+    },
+    "netty-buffer-4.1.110.Final.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/netty/netty-buffer/4.1.110.Final/netty-buffer-4.1.110.Final.pom",
+      "hash": "sha256-cQrBnMAc2A32vpo/qtPCIrShoy9LVRN74HtgmdXaNWI="
     }
   },
   "io.netty:netty-buffer:4.1.93.Final": {
     "netty-buffer-4.1.93.Final.jar": {
-      "url": "https://plugins.gradle.org/m2/io/netty/netty-buffer/4.1.93.Final/netty-buffer-4.1.93.Final.jar",
+      "url": "https://repo.maven.apache.org/maven2/io/netty/netty-buffer/4.1.93.Final/netty-buffer-4.1.93.Final.jar",
       "hash": "sha256-AHx9nDeN8C05BWfQ1931Qv/dsCG3MT2/UCOSET/6uwg="
     },
     "netty-buffer-4.1.93.Final.pom": {
-      "url": "https://plugins.gradle.org/m2/io/netty/netty-buffer/4.1.93.Final/netty-buffer-4.1.93.Final.pom",
+      "url": "https://repo.maven.apache.org/maven2/io/netty/netty-buffer/4.1.93.Final/netty-buffer-4.1.93.Final.pom",
       "hash": "sha256-g/vFTitzuG1Vsgj2GNGioVaRDsFG9+zldWUAe3UK3Xg="
+    }
+  },
+  "io.netty:netty-codec:4.1.110.Final": {
+    "netty-codec-4.1.110.Final.jar": {
+      "url": "https://plugins.gradle.org/m2/io/netty/netty-codec/4.1.110.Final/netty-codec-4.1.110.Final.jar",
+      "hash": "sha256-nszOmo2Ce7jOhPnDGD/sWL0clqUQEM9xEpd0YDSvNwE="
+    },
+    "netty-codec-4.1.110.Final.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/netty/netty-codec/4.1.110.Final/netty-codec-4.1.110.Final.pom",
+      "hash": "sha256-qAa7U2uzI2Zbr/fNEiPysnKi1HF6tPmxI2EIbarl3z4="
     }
   },
   "io.netty:netty-codec:4.1.93.Final": {
@@ -3933,14 +4227,34 @@
       "hash": "sha256-Gc3tJnoHDf8avJ0Cm1UvrSYqzBq6XGxnsiePyhE6Jqs="
     }
   },
+  "io.netty:netty-codec-http:4.1.110.Final": {
+    "netty-codec-http-4.1.110.Final.jar": {
+      "url": "https://repo.maven.apache.org/maven2/io/netty/netty-codec-http/4.1.110.Final/netty-codec-http-4.1.110.Final.jar",
+      "hash": "sha256-3A1q9QVGMKcP8O81TyCqem5Gc4yfxWNu09T+d+OL1I0="
+    },
+    "netty-codec-http-4.1.110.Final.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/netty/netty-codec-http/4.1.110.Final/netty-codec-http-4.1.110.Final.pom",
+      "hash": "sha256-Ua6ZCvFKMh2209aIS5F7fUNj62Dd3A8Uk7GAIaFC560="
+    }
+  },
   "io.netty:netty-codec-http:4.1.93.Final": {
     "netty-codec-http-4.1.93.Final.jar": {
-      "url": "https://plugins.gradle.org/m2/io/netty/netty-codec-http/4.1.93.Final/netty-codec-http-4.1.93.Final.jar",
+      "url": "https://repo.maven.apache.org/maven2/io/netty/netty-codec-http/4.1.93.Final/netty-codec-http-4.1.93.Final.jar",
       "hash": "sha256-2s94znirLSlXAyXbTNJFHqWJY5gH3pWIGg+nFVqea1U="
     },
     "netty-codec-http-4.1.93.Final.pom": {
-      "url": "https://plugins.gradle.org/m2/io/netty/netty-codec-http/4.1.93.Final/netty-codec-http-4.1.93.Final.pom",
+      "url": "https://repo.maven.apache.org/maven2/io/netty/netty-codec-http/4.1.93.Final/netty-codec-http-4.1.93.Final.pom",
       "hash": "sha256-o9r/8HG20oToBj2WhD3iu4PPO4iergzJ4K22SlejG4I="
+    }
+  },
+  "io.netty:netty-codec-http2:4.1.110.Final": {
+    "netty-codec-http2-4.1.110.Final.jar": {
+      "url": "https://plugins.gradle.org/m2/io/netty/netty-codec-http2/4.1.110.Final/netty-codec-http2-4.1.110.Final.jar",
+      "hash": "sha256-tUbHVEWkh7t7zVqUd5yuzOM1gs974xuLOfwOZbHuJvw="
+    },
+    "netty-codec-http2-4.1.110.Final.pom": {
+      "url": "https://plugins.gradle.org/m2/io/netty/netty-codec-http2/4.1.110.Final/netty-codec-http2-4.1.110.Final.pom",
+      "hash": "sha256-KdL2wmw8yp/oOTZxcH/o75w+MQIKLf4GuCxCZJnCWDc="
     }
   },
   "io.netty:netty-codec-http2:4.1.93.Final": {
@@ -3953,6 +4267,16 @@
       "hash": "sha256-CEQztC1UH3rEtZKH3SUyhc/aOj1l3nLnNou37D02cnE="
     }
   },
+  "io.netty:netty-codec-socks:4.1.110.Final": {
+    "netty-codec-socks-4.1.110.Final.jar": {
+      "url": "https://plugins.gradle.org/m2/io/netty/netty-codec-socks/4.1.110.Final/netty-codec-socks-4.1.110.Final.jar",
+      "hash": "sha256-l2BSo8m7KAvG2Z86KeZARnfPlYw94FsgUJPTjABriAw="
+    },
+    "netty-codec-socks-4.1.110.Final.pom": {
+      "url": "https://plugins.gradle.org/m2/io/netty/netty-codec-socks/4.1.110.Final/netty-codec-socks-4.1.110.Final.pom",
+      "hash": "sha256-/+V7MWGR3U+WvuZsVwnBPL207KsIXAEMjbDGqoCav2w="
+    }
+  },
   "io.netty:netty-codec-socks:4.1.93.Final": {
     "netty-codec-socks-4.1.93.Final.jar": {
       "url": "https://repo.maven.apache.org/maven2/io/netty/netty-codec-socks/4.1.93.Final/netty-codec-socks-4.1.93.Final.jar",
@@ -3961,6 +4285,16 @@
     "netty-codec-socks-4.1.93.Final.pom": {
       "url": "https://repo.maven.apache.org/maven2/io/netty/netty-codec-socks/4.1.93.Final/netty-codec-socks-4.1.93.Final.pom",
       "hash": "sha256-jNgW7ZkalGBBurTLJL2cjkHuBpJRJRHy2DzvU462Bdc="
+    }
+  },
+  "io.netty:netty-common:4.1.110.Final": {
+    "netty-common-4.1.110.Final.jar": {
+      "url": "https://plugins.gradle.org/m2/io/netty/netty-common/4.1.110.Final/netty-common-4.1.110.Final.jar",
+      "hash": "sha256-mFHsZlSLng1BFkzpiUPN1LvjBfaN29JOrlLkUBoNexo="
+    },
+    "netty-common-4.1.110.Final.pom": {
+      "url": "https://plugins.gradle.org/m2/io/netty/netty-common/4.1.110.Final/netty-common-4.1.110.Final.pom",
+      "hash": "sha256-fUF/UzUwTa4eoIoGWGA4yD/orYTB01uqFe0RkhzveSA="
     }
   },
   "io.netty:netty-common:4.1.93.Final": {
@@ -3973,6 +4307,16 @@
       "hash": "sha256-QtiDsT6zjKv1SWFkYsXzMfUzO/DI/JIVdE+DwBgKT2s="
     }
   },
+  "io.netty:netty-handler:4.1.110.Final": {
+    "netty-handler-4.1.110.Final.jar": {
+      "url": "https://repo.maven.apache.org/maven2/io/netty/netty-handler/4.1.110.Final/netty-handler-4.1.110.Final.jar",
+      "hash": "sha256-1aCNfeNkkS5ChZaN5NTM4/AdpLsEjVxpN+Xyrx+OFIo="
+    },
+    "netty-handler-4.1.110.Final.pom": {
+      "url": "https://plugins.gradle.org/m2/io/netty/netty-handler/4.1.110.Final/netty-handler-4.1.110.Final.pom",
+      "hash": "sha256-TUPBPRT1Y1oviw1QlNejHFCe4PUsck66DvMM/+PqFVU="
+    }
+  },
   "io.netty:netty-handler:4.1.93.Final": {
     "netty-handler-4.1.93.Final.jar": {
       "url": "https://repo.maven.apache.org/maven2/io/netty/netty-handler/4.1.93.Final/netty-handler-4.1.93.Final.jar",
@@ -3983,20 +4327,46 @@
       "hash": "sha256-hKFSXKwLR1nvrvKZekf+Gbm1ZC+Sc/oP1YoudsegWf4="
     }
   },
+  "io.netty:netty-handler-proxy:4.1.110.Final": {
+    "netty-handler-proxy-4.1.110.Final.jar": {
+      "url": "https://repo.maven.apache.org/maven2/io/netty/netty-handler-proxy/4.1.110.Final/netty-handler-proxy-4.1.110.Final.jar",
+      "hash": "sha256-rVSrT+nEfvPnI9cSURJttT6NtUOHGtuer8lERlOe/1I="
+    },
+    "netty-handler-proxy-4.1.110.Final.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/netty/netty-handler-proxy/4.1.110.Final/netty-handler-proxy-4.1.110.Final.pom",
+      "hash": "sha256-xhPLTn4G9C76MduNiyoznti/QfAMRtONCQmkwGxlbc8="
+    }
+  },
   "io.netty:netty-handler-proxy:4.1.93.Final": {
     "netty-handler-proxy-4.1.93.Final.jar": {
-      "url": "https://plugins.gradle.org/m2/io/netty/netty-handler-proxy/4.1.93.Final/netty-handler-proxy-4.1.93.Final.jar",
+      "url": "https://repo.maven.apache.org/maven2/io/netty/netty-handler-proxy/4.1.93.Final/netty-handler-proxy-4.1.93.Final.jar",
       "hash": "sha256-KsX3+++gtz73g4iQaTRNVRVQWhSyMDvmk8UALEht8rQ="
     },
     "netty-handler-proxy-4.1.93.Final.pom": {
-      "url": "https://plugins.gradle.org/m2/io/netty/netty-handler-proxy/4.1.93.Final/netty-handler-proxy-4.1.93.Final.pom",
+      "url": "https://repo.maven.apache.org/maven2/io/netty/netty-handler-proxy/4.1.93.Final/netty-handler-proxy-4.1.93.Final.pom",
       "hash": "sha256-bcUNoOZ/WXgSh0+B6qRUBPfQdrgZnqkIiTKoXBthAkU="
+    }
+  },
+  "io.netty:netty-parent:4.1.110.Final": {
+    "netty-parent-4.1.110.Final.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/netty/netty-parent/4.1.110.Final/netty-parent-4.1.110.Final.pom",
+      "hash": "sha256-aFra83Nmb8FUJ8gQ+K/zpP4ZSpfH7XS2nQfFSPDULxw="
     }
   },
   "io.netty:netty-parent:4.1.93.Final": {
     "netty-parent-4.1.93.Final.pom": {
       "url": "https://repo.maven.apache.org/maven2/io/netty/netty-parent/4.1.93.Final/netty-parent-4.1.93.Final.pom",
       "hash": "sha256-sQnLdvN1/tuKnvdaxYBjFw3rfqLd0CT0Zv723GXN/O4="
+    }
+  },
+  "io.netty:netty-resolver:4.1.110.Final": {
+    "netty-resolver-4.1.110.Final.jar": {
+      "url": "https://plugins.gradle.org/m2/io/netty/netty-resolver/4.1.110.Final/netty-resolver-4.1.110.Final.jar",
+      "hash": "sha256-oum0rnyqkvxb10fhHR3sINgbGPwAlZVUMCJErFxWznA="
+    },
+    "netty-resolver-4.1.110.Final.pom": {
+      "url": "https://plugins.gradle.org/m2/io/netty/netty-resolver/4.1.110.Final/netty-resolver-4.1.110.Final.pom",
+      "hash": "sha256-ZV80GS6MdhizxaeeSI5NqjXe9BsNFtRfo2Ujw7TJ9kE="
     }
   },
   "io.netty:netty-resolver:4.1.93.Final": {
@@ -4009,6 +4379,16 @@
       "hash": "sha256-WzUMPJHp5V0py+aM/k7yEWzB8DKGd+v59hW6twgsefQ="
     }
   },
+  "io.netty:netty-transport:4.1.110.Final": {
+    "netty-transport-4.1.110.Final.jar": {
+      "url": "https://repo.maven.apache.org/maven2/io/netty/netty-transport/4.1.110.Final/netty-transport-4.1.110.Final.jar",
+      "hash": "sha256-pC3Wg5DKFLT/LUBiiglsdkhbStt8GWAtUokyGgZp5wQ="
+    },
+    "netty-transport-4.1.110.Final.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/netty/netty-transport/4.1.110.Final/netty-transport-4.1.110.Final.pom",
+      "hash": "sha256-MPXaDnZG8YQNYy+IYVyLnYIFSZ1oVZucRUezsEoGg80="
+    }
+  },
   "io.netty:netty-transport:4.1.93.Final": {
     "netty-transport-4.1.93.Final.jar": {
       "url": "https://repo.maven.apache.org/maven2/io/netty/netty-transport/4.1.93.Final/netty-transport-4.1.93.Final.jar",
@@ -4019,27 +4399,71 @@
       "hash": "sha256-DdYqDrPLHqABpNBCbk9cCN8ccNkmVnW/+lxYNhNCLUM="
     }
   },
+  "io.netty:netty-transport-native-unix-common:4.1.110.Final": {
+    "netty-transport-native-unix-common-4.1.110.Final.jar": {
+      "url": "https://plugins.gradle.org/m2/io/netty/netty-transport-native-unix-common/4.1.110.Final/netty-transport-native-unix-common-4.1.110.Final.jar",
+      "hash": "sha256-UXF7t0cRQZUDkMZxOkSf2xBU0H5gc37n3acIN5bN7kg="
+    },
+    "netty-transport-native-unix-common-4.1.110.Final.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-unix-common/4.1.110.Final/netty-transport-native-unix-common-4.1.110.Final.pom",
+      "hash": "sha256-6hjOBMmpesDFH045exhSKf2VmX6QsRM5rc98UZRtU9g="
+    }
+  },
   "io.netty:netty-transport-native-unix-common:4.1.93.Final": {
     "netty-transport-native-unix-common-4.1.93.Final.jar": {
-      "url": "https://plugins.gradle.org/m2/io/netty/netty-transport-native-unix-common/4.1.93.Final/netty-transport-native-unix-common-4.1.93.Final.jar",
+      "url": "https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-unix-common/4.1.93.Final/netty-transport-native-unix-common-4.1.93.Final.jar",
       "hash": "sha256-d0FlocTbqssX+cGtZms1aaallxWugo58PUdwP0eaU+c="
     },
     "netty-transport-native-unix-common-4.1.93.Final.pom": {
-      "url": "https://plugins.gradle.org/m2/io/netty/netty-transport-native-unix-common/4.1.93.Final/netty-transport-native-unix-common-4.1.93.Final.pom",
+      "url": "https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-unix-common/4.1.93.Final/netty-transport-native-unix-common-4.1.93.Final.pom",
       "hash": "sha256-Fbwltn/wpJJysnDvK4z/1iAFfKFssp3/etVmGtyirhI="
+    }
+  },
+  "io.opencensus:opencensus-api:0.31.0": {
+    "opencensus-api-0.31.0.jar": {
+      "url": "https://repo.maven.apache.org/maven2/io/opencensus/opencensus-api/0.31.0/opencensus-api-0.31.0.jar",
+      "hash": "sha256-cCulXXjznVUZXc8EH9+qt6dJCprEUBNUJIftnk06TSM="
+    },
+    "opencensus-api-0.31.0.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/opencensus/opencensus-api/0.31.0/opencensus-api-0.31.0.pom",
+      "hash": "sha256-m0eVkefD4KtFOB+gQ6kWV4Fb3Yw1k68BDHrDb0yQWRk="
+    }
+  },
+  "io.opencensus:opencensus-proto:0.2.0": {
+    "opencensus-proto-0.2.0.jar": {
+      "url": "https://repo.maven.apache.org/maven2/io/opencensus/opencensus-proto/0.2.0/opencensus-proto-0.2.0.jar",
+      "hash": "sha256-DBktRR6d106Ychsn0C8OK2vKRLUVY7Xavy4hH3o+vxM="
+    },
+    "opencensus-proto-0.2.0.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/opencensus/opencensus-proto/0.2.0/opencensus-proto-0.2.0.pom",
+      "hash": "sha256-twh5B5IPyKgVNGhrLxorMxEnr5fwFau9s3hqUfP6HlI="
+    }
+  },
+  "io.perfmark:perfmark-api:0.27.0": {
+    "perfmark-api-0.27.0.jar": {
+      "url": "https://plugins.gradle.org/m2/io/perfmark/perfmark-api/0.27.0/perfmark-api-0.27.0.jar",
+      "hash": "sha256-x7R4UD7FJOVd8ZtCTUbSfIporrgBZk+t1PBptx9S0PY="
+    },
+    "perfmark-api-0.27.0.module": {
+      "url": "https://repo.maven.apache.org/maven2/io/perfmark/perfmark-api/0.27.0/perfmark-api-0.27.0.module",
+      "hash": "sha256-n2xOamK43v0UFzrNt9spPQhjU7Ikkj7vYpP1gWGJPMo="
+    },
+    "perfmark-api-0.27.0.pom": {
+      "url": "https://repo.maven.apache.org/maven2/io/perfmark/perfmark-api/0.27.0/perfmark-api-0.27.0.pom",
+      "hash": "sha256-IsF1wsGCNmdjDITnMiV2f1lwSS2ObL/7gaZXXbpHLSY="
     }
   },
   "io.perfmark:perfmark-api:0.26.0": {
     "perfmark-api-0.26.0.jar": {
-      "url": "https://plugins.gradle.org/m2/io/perfmark/perfmark-api/0.26.0/perfmark-api-0.26.0.jar",
+      "url": "https://repo.maven.apache.org/maven2/io/perfmark/perfmark-api/0.26.0/perfmark-api-0.26.0.jar",
       "hash": "sha256-t9I+k6NFN84zJwgmmg0UBHiKW14ZSegvVTX85Rs+qVs="
     },
     "perfmark-api-0.26.0.module": {
-      "url": "https://plugins.gradle.org/m2/io/perfmark/perfmark-api/0.26.0/perfmark-api-0.26.0.module",
+      "url": "https://repo.maven.apache.org/maven2/io/perfmark/perfmark-api/0.26.0/perfmark-api-0.26.0.module",
       "hash": "sha256-MdgyMyR0zkgVD1uuADNDMZE28zav0QdqKJApMZ4+qXo="
     },
     "perfmark-api-0.26.0.pom": {
-      "url": "https://plugins.gradle.org/m2/io/perfmark/perfmark-api/0.26.0/perfmark-api-0.26.0.pom",
+      "url": "https://repo.maven.apache.org/maven2/io/perfmark/perfmark-api/0.26.0/perfmark-api-0.26.0.pom",
       "hash": "sha256-ft7khhbhe2Epfq46gutIOoXlbSVnkpN4qkbzCpUDIto="
     }
   },
@@ -4111,7 +4535,7 @@
   },
   "net.java:jvnet-parent:3": {
     "jvnet-parent-3.pom": {
-      "url": "https://repo.maven.apache.org/maven2/net/java/jvnet-parent/3/jvnet-parent-3.pom",
+      "url": "https://plugins.gradle.org/m2/net/java/jvnet-parent/3/jvnet-parent-3.pom",
       "hash": "sha256-MPV4nvo53b+WCVqto/wSYMRWH68vcUaGcXyy3FBJR1o="
     }
   },
@@ -4133,7 +4557,7 @@
   },
   "net.java.dev.jna:jna-platform:5.6.0": {
     "jna-platform-5.6.0.jar": {
-      "url": "https://plugins.gradle.org/m2/net/java/dev/jna/jna-platform/5.6.0/jna-platform-5.6.0.jar",
+      "url": "https://repo.maven.apache.org/maven2/net/java/dev/jna/jna-platform/5.6.0/jna-platform-5.6.0.jar",
       "hash": "sha256-ns6ovysbOZY5OdGLcEZO72DFCP7Ygg+dyroMNVGOq/c="
     },
     "jna-platform-5.6.0.pom": {
@@ -4167,7 +4591,7 @@
       "hash": "sha256-8mTdn3mh/eEM5ezFMiHv8kvkyTMcgwt9UvLwintjPeI="
     },
     "kxml2-2.3.0.pom": {
-      "url": "https://repo.maven.apache.org/maven2/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.pom",
+      "url": "https://plugins.gradle.org/m2/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.pom",
       "hash": "sha256-Mc5gb06VGJNimbsNJ8l4+mHhhf0d58mHT+lZpT40poU="
     }
   },
@@ -4191,15 +4615,15 @@
       "hash": "sha256-BBNTyo5k8a+g5bFPXj+6PWRwIoFPPnomKwrgReqv2EA="
     }
   },
-  "org.apache:apache:29": {
-    "apache-29.pom": {
-      "url": "https://plugins.gradle.org/m2/org/apache/apache/29/apache-29.pom",
-      "hash": "sha256-PkkDcXSCC70N9jQgqXclWIY5iVTCoGKR+mH3J6w1s3c="
+  "org.apache:apache:31": {
+    "apache-31.pom": {
+      "url": "https://repo.maven.apache.org/maven2/org/apache/apache/31/apache-31.pom",
+      "hash": "sha256-VV0MnqppwEKv+SSSe5OB6PgXQTbTVe6tRFIkRS5ikcw="
     }
   },
   "org.apache:apache:23": {
     "apache-23.pom": {
-      "url": "https://repo.maven.apache.org/maven2/org/apache/apache/23/apache-23.pom",
+      "url": "https://plugins.gradle.org/m2/org/apache/apache/23/apache-23.pom",
       "hash": "sha256-vBBiTgYj82V3+sVjnKKTbTJA7RUvttjVM6tNJwVDSRw="
     }
   },
@@ -4213,12 +4637,6 @@
     "apache-18.pom": {
       "url": "https://plugins.gradle.org/m2/org/apache/apache/18/apache-18.pom",
       "hash": "sha256-eDEwcoX9R1u8NrIK4454gvEcMVOx1ZMPhS1E7ajzPBc="
-    }
-  },
-  "org.apache:apache:15": {
-    "apache-15.pom": {
-      "url": "https://plugins.gradle.org/m2/org/apache/apache/15/apache-15.pom",
-      "hash": "sha256-NsLy+XmsZ7RQwMtIDk6br2tA86aB8iupaSKH0ROa1JQ="
     }
   },
   "org.apache:apache:13": {
@@ -4237,10 +4655,10 @@
       "hash": "sha256-Z1uwI8m+7d4yMpSZebl0Kl/qlGKApVobRi1Mp4AQiM0="
     }
   },
-  "org.apache.commons:commons-parent:58": {
-    "commons-parent-58.pom": {
-      "url": "https://repo.maven.apache.org/maven2/org/apache/commons/commons-parent/58/commons-parent-58.pom",
-      "hash": "sha256-LUsS4YiZBjq9fHUni1+pejcp2Ah4zuy2pA2UbpwNVZA="
+  "org.apache.commons:commons-parent:69": {
+    "commons-parent-69.pom": {
+      "url": "https://repo.maven.apache.org/maven2/org/apache/commons/commons-parent/69/commons-parent-69.pom",
+      "hash": "sha256-1Q2pw5vcqCPWGNG0oDtz8ZZJf8uGFv0NpyfIYjWSqbs="
     }
   },
   "org.apache.commons:commons-parent:52": {
@@ -4253,12 +4671,6 @@
     "commons-parent-42.pom": {
       "url": "https://plugins.gradle.org/m2/org/apache/commons/commons-parent/42/commons-parent-42.pom",
       "hash": "sha256-zTE0lMZwtIPsJWlyrxaYszDlmPgHACNU63ZUefYEsJw="
-    }
-  },
-  "org.apache.commons:commons-parent:35": {
-    "commons-parent-35.pom": {
-      "url": "https://plugins.gradle.org/m2/org/apache/commons/commons-parent/35/commons-parent-35.pom",
-      "hash": "sha256-cJihq4M27NTJ3CHLvKyGn4LGb2S4rE95iNQbT8tE5Jo="
     }
   },
   "org.apache.commons:commons-parent:34": {
@@ -4337,34 +4749,34 @@
       "hash": "sha256-utAkGAobRpy9lOXy2xKEG8rFRD2VRWB/Zzz95nfB2HI="
     }
   },
-  "org.bouncycastle:bcpkix-jdk18on:1.77": {
-    "bcpkix-jdk18on-1.77.jar": {
-      "url": "https://plugins.gradle.org/m2/org/bouncycastle/bcpkix-jdk18on/1.77/bcpkix-jdk18on-1.77.jar",
-      "hash": "sha256-Gsf+jv1bLzjNwWW+WgZ1c0/kSAjauScHIB8DpTXW8bg="
+  "org.bouncycastle:bcpkix-jdk18on:1.79": {
+    "bcpkix-jdk18on-1.79.jar": {
+      "url": "https://plugins.gradle.org/m2/org/bouncycastle/bcpkix-jdk18on/1.79/bcpkix-jdk18on-1.79.jar",
+      "hash": "sha256-NjmiTd+bpLfroGWbRHcOkeuoFkIYiOVx8oWq3v5TLNY="
     },
-    "bcpkix-jdk18on-1.77.pom": {
-      "url": "https://plugins.gradle.org/m2/org/bouncycastle/bcpkix-jdk18on/1.77/bcpkix-jdk18on-1.77.pom",
-      "hash": "sha256-j7CSbwLixLLcUuR+uwk/kvHTu28UnCpcyl4qZI0sSY0="
+    "bcpkix-jdk18on-1.79.pom": {
+      "url": "https://plugins.gradle.org/m2/org/bouncycastle/bcpkix-jdk18on/1.79/bcpkix-jdk18on-1.79.pom",
+      "hash": "sha256-NeSfQTTeKsMmw6UKJXYsu021bzgC+j9zDMhbZTrQmHs="
     }
   },
-  "org.bouncycastle:bcprov-jdk18on:1.77": {
-    "bcprov-jdk18on-1.77.jar": {
-      "url": "https://plugins.gradle.org/m2/org/bouncycastle/bcprov-jdk18on/1.77/bcprov-jdk18on-1.77.jar",
-      "hash": "sha256-2ruYwk1yybn1hWM9HfnFzVjZrTc9DNaBNn5qYDpJXVg="
+  "org.bouncycastle:bcprov-jdk18on:1.79": {
+    "bcprov-jdk18on-1.79.jar": {
+      "url": "https://plugins.gradle.org/m2/org/bouncycastle/bcprov-jdk18on/1.79/bcprov-jdk18on-1.79.jar",
+      "hash": "sha256-DYHswxJFNrU5vOmqP+liG3+Eyc7jcbY1pbMceLeasdo="
     },
-    "bcprov-jdk18on-1.77.pom": {
-      "url": "https://plugins.gradle.org/m2/org/bouncycastle/bcprov-jdk18on/1.77/bcprov-jdk18on-1.77.pom",
-      "hash": "sha256-rROCz80DvN2L4TkTwC9E/UadCnalPPLK71vhgK3DayM="
+    "bcprov-jdk18on-1.79.pom": {
+      "url": "https://plugins.gradle.org/m2/org/bouncycastle/bcprov-jdk18on/1.79/bcprov-jdk18on-1.79.pom",
+      "hash": "sha256-2PGgaxSddG6dmN5U4veqmy62E/s1ymfYrjls6qxmHuQ="
     }
   },
-  "org.bouncycastle:bcutil-jdk18on:1.77": {
-    "bcutil-jdk18on-1.77.jar": {
-      "url": "https://plugins.gradle.org/m2/org/bouncycastle/bcutil-jdk18on/1.77/bcutil-jdk18on-1.77.jar",
-      "hash": "sha256-lHZzvLxajd4tL6aIpbdZjQym4qdKfqMM2T8E9rOtaPg="
+  "org.bouncycastle:bcutil-jdk18on:1.79": {
+    "bcutil-jdk18on-1.79.jar": {
+      "url": "https://plugins.gradle.org/m2/org/bouncycastle/bcutil-jdk18on/1.79/bcutil-jdk18on-1.79.jar",
+      "hash": "sha256-xwuIraWJOMvC8AXUAykFQHi8+hFJ5v/APpJC62qyGDY="
     },
-    "bcutil-jdk18on-1.77.pom": {
-      "url": "https://plugins.gradle.org/m2/org/bouncycastle/bcutil-jdk18on/1.77/bcutil-jdk18on-1.77.pom",
-      "hash": "sha256-Fj36ZjL/uSinBcqDciNQys6knM1iPOc2RaXMOw+p5ug="
+    "bcutil-jdk18on-1.79.pom": {
+      "url": "https://plugins.gradle.org/m2/org/bouncycastle/bcutil-jdk18on/1.79/bcutil-jdk18on-1.79.pom",
+      "hash": "sha256-4kwftM8WBUBaaYjp5NbksuH0OT/HOompRSrmJe4xHQI="
     }
   },
   "org.checkerframework:checker-compat-qual:2.5.5": {
@@ -4375,6 +4787,20 @@
     "checker-compat-qual-2.5.5.pom": {
       "url": "https://repo.maven.apache.org/maven2/org/checkerframework/checker-compat-qual/2.5.5/checker-compat-qual-2.5.5.pom",
       "hash": "sha256-QvIevZGDvgSe5a/IIrNFQDpdp2QDeHVzSgObDW4DU74="
+    }
+  },
+  "org.checkerframework:checker-qual:3.43.0": {
+    "checker-qual-3.43.0.jar": {
+      "url": "https://plugins.gradle.org/m2/org/checkerframework/checker-qual/3.43.0/checker-qual-3.43.0.jar",
+      "hash": "sha256-P7wumPBYVMPfFt+auqlVuRsVs+ysM2IyCO1kJGQO8PY="
+    },
+    "checker-qual-3.43.0.module": {
+      "url": "https://plugins.gradle.org/m2/org/checkerframework/checker-qual/3.43.0/checker-qual-3.43.0.module",
+      "hash": "sha256-+BYzJyRauGJVMpSMcqkwVIzZfzTWw/6GD6auxaNNebQ="
+    },
+    "checker-qual-3.43.0.pom": {
+      "url": "https://plugins.gradle.org/m2/org/checkerframework/checker-qual/3.43.0/checker-qual-3.43.0.pom",
+      "hash": "sha256-kxO/U7Pv2KrKJm7qi5bjB5drZcCxZRDMbwIxn7rr7UM="
     }
   },
   "org.checkerframework:checker-qual:3.41.0": {
@@ -4397,7 +4823,7 @@
       "hash": "sha256-4xYlW7/Nn+UNFlMUuFq7KzPLKmapPEkdtkjkmKgsLeE="
     },
     "checker-qual-3.33.0.module": {
-      "url": "https://plugins.gradle.org/m2/org/checkerframework/checker-qual/3.33.0/checker-qual-3.33.0.module",
+      "url": "https://repo.maven.apache.org/maven2/org/checkerframework/checker-qual/3.33.0/checker-qual-3.33.0.module",
       "hash": "sha256-6FIddWJdQScsdn0mKhU6wWPMUFtmZEou9wX6iUn/tOU="
     },
     "checker-qual-3.33.0.pom": {
@@ -4411,20 +4837,42 @@
       "hash": "sha256-M6xqDxNBrpZkfH1EZfSqPST+l9Jpe87izq5vyLXvLDw="
     }
   },
+  "org.codehaus.mojo:animal-sniffer-annotations:1.24": {
+    "animal-sniffer-annotations-1.24.jar": {
+      "url": "https://repo.maven.apache.org/maven2/org/codehaus/mojo/animal-sniffer-annotations/1.24/animal-sniffer-annotations-1.24.jar",
+      "hash": "sha256-xyDm5by+ay9I3tdaR7zNt2Pu3nnRQzAQLg01Lj2J7ZI="
+    },
+    "animal-sniffer-annotations-1.24.pom": {
+      "url": "https://plugins.gradle.org/m2/org/codehaus/mojo/animal-sniffer-annotations/1.24/animal-sniffer-annotations-1.24.pom",
+      "hash": "sha256-iEhPYKatQjipf+us8rMz6eCMF4uPGAoFo+2/9KOKg24="
+    }
+  },
   "org.codehaus.mojo:animal-sniffer-annotations:1.23": {
     "animal-sniffer-annotations-1.23.jar": {
-      "url": "https://plugins.gradle.org/m2/org/codehaus/mojo/animal-sniffer-annotations/1.23/animal-sniffer-annotations-1.23.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/codehaus/mojo/animal-sniffer-annotations/1.23/animal-sniffer-annotations-1.23.jar",
       "hash": "sha256-n/5Sa/Q6Y0jp2LM7nNb1gKf17tDPBVkTAH7aJj3pdNA="
     },
     "animal-sniffer-annotations-1.23.pom": {
-      "url": "https://plugins.gradle.org/m2/org/codehaus/mojo/animal-sniffer-annotations/1.23/animal-sniffer-annotations-1.23.pom",
+      "url": "https://repo.maven.apache.org/maven2/org/codehaus/mojo/animal-sniffer-annotations/1.23/animal-sniffer-annotations-1.23.pom",
       "hash": "sha256-VhDbBrczZBrLx6DEioDEAGnbYnutBD+MfI16+09qPSc="
+    }
+  },
+  "org.codehaus.mojo:animal-sniffer-parent:1.24": {
+    "animal-sniffer-parent-1.24.pom": {
+      "url": "https://repo.maven.apache.org/maven2/org/codehaus/mojo/animal-sniffer-parent/1.24/animal-sniffer-parent-1.24.pom",
+      "hash": "sha256-Sd2rQ8g2HcLvDB/4fLWQ+nIxcCq59i4m1RLcGKHxzQQ="
     }
   },
   "org.codehaus.mojo:animal-sniffer-parent:1.23": {
     "animal-sniffer-parent-1.23.pom": {
-      "url": "https://plugins.gradle.org/m2/org/codehaus/mojo/animal-sniffer-parent/1.23/animal-sniffer-parent-1.23.pom",
+      "url": "https://repo.maven.apache.org/maven2/org/codehaus/mojo/animal-sniffer-parent/1.23/animal-sniffer-parent-1.23.pom",
       "hash": "sha256-a38FSrhqh/jiWZ81gIsJiZIuhrbKsTmIAhzRJkCktAQ="
+    }
+  },
+  "org.codehaus.mojo:mojo-parent:84": {
+    "mojo-parent-84.pom": {
+      "url": "https://repo.maven.apache.org/maven2/org/codehaus/mojo/mojo-parent/84/mojo-parent-84.pom",
+      "hash": "sha256-L+UQYYsvYPzV8vuCvEssLDRASNdPML5xn8uGgp7orDA="
     }
   },
   "org.codehaus.mojo:mojo-parent:74": {
@@ -4595,7 +5043,7 @@
   },
   "org.jetbrains.kotlin:kotlin-build-tools-api:2.0.21": {
     "kotlin-build-tools-api-2.0.21.jar": {
-      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-api/2.0.21/kotlin-build-tools-api-2.0.21.jar",
+      "url": "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-build-tools-api/2.0.21/kotlin-build-tools-api-2.0.21.jar",
       "hash": "sha256-j8orSvbEzyRWXZp/ZMMXhIlRjQSeEGmB22cY7yLK4Y4="
     },
     "kotlin-build-tools-api-2.0.21.pom": {
@@ -4615,7 +5063,7 @@
   },
   "org.jetbrains.kotlin:kotlin-compiler-embeddable:2.0.21": {
     "kotlin-compiler-embeddable-2.0.21.jar": {
-      "url": "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-compiler-embeddable/2.0.21/kotlin-compiler-embeddable-2.0.21.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-compiler-embeddable/2.0.21/kotlin-compiler-embeddable-2.0.21.jar",
       "hash": "sha256-n6jN0d4NzP/hVMmX1CPsa19TzW2Rd+OnepsN4D+xvIE="
     },
     "kotlin-compiler-embeddable-2.0.21.pom": {
@@ -4625,7 +5073,7 @@
   },
   "org.jetbrains.kotlin:kotlin-compiler-runner:2.0.21": {
     "kotlin-compiler-runner-2.0.21.jar": {
-      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-compiler-runner/2.0.21/kotlin-compiler-runner-2.0.21.jar",
+      "url": "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-compiler-runner/2.0.21/kotlin-compiler-runner-2.0.21.jar",
       "hash": "sha256-COYFvoEGD/YS0K65QFihm8SsmWJcNcRhxsCzAlYOkQQ="
     },
     "kotlin-compiler-runner-2.0.21.pom": {
@@ -4645,7 +5093,7 @@
   },
   "org.jetbrains.kotlin:kotlin-daemon-client:2.0.21": {
     "kotlin-daemon-client-2.0.21.jar": {
-      "url": "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-daemon-client/2.0.21/kotlin-daemon-client-2.0.21.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-daemon-client/2.0.21/kotlin-daemon-client-2.0.21.jar",
       "hash": "sha256-Nx6gjk8DaILMjgZP/PZEWZDfREKVuh7GiSjnzCtbwBU="
     },
     "kotlin-daemon-client-2.0.21.pom": {
@@ -4907,6 +5355,20 @@
       "hash": "sha256-0opI/fcJ0wz4lqL3XMbx7aA3L2r+MYdCDPigSrJCb/w="
     }
   },
+  "org.jetbrains.kotlin:kotlin-stdlib:2.2.0": {
+    "kotlin-stdlib-2.2.0.jar": {
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.2.0/kotlin-stdlib-2.2.0.jar",
+      "hash": "sha256-ZdEthaO4ZcFg25FHhRcSpksQ2t1osi7qIqlb+KhnDco="
+    },
+    "kotlin-stdlib-2.2.0.module": {
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.2.0/kotlin-stdlib-2.2.0.module",
+      "hash": "sha256-pbmP3NnbAX1ULhlyJdzuGNZYpW3h2yzEHhMZbWsXaaQ="
+    },
+    "kotlin-stdlib-2.2.0.pom": {
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.2.0/kotlin-stdlib-2.2.0.pom",
+      "hash": "sha256-jDyCEAfBNBFVhzm589U4LrgVUds4lc/7iVYeVsD03BY="
+    }
+  },
   "org.jetbrains.kotlin:kotlin-stdlib:2.0.21": {
     "kotlin-stdlib-2.0.21-all.jar": {
       "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.0.21/kotlin-stdlib-2.0.21-all.jar",
@@ -4917,7 +5379,7 @@
       "hash": "sha256-8xzFPxBafkjAk2g7vVQ3Vh0SM5IFE3dLRwgFZBvtvAk="
     },
     "kotlin-stdlib-2.0.21.module": {
-      "url": "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-stdlib/2.0.21/kotlin-stdlib-2.0.21.module",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.0.21/kotlin-stdlib-2.0.21.module",
       "hash": "sha256-gf1tGBASSH7jJG7/TiustktYxG5bWqcpcaTd8b0VQe0="
     },
     "kotlin-stdlib-2.0.21.pom": {
@@ -4949,18 +5411,14 @@
       "hash": "sha256-uc6tTCIt7pDHT28BPTFqnlD4EaApMxPDNRrssvfM7V8="
     }
   },
-  "org.jetbrains.kotlin:kotlin-stdlib:1.9.20": {
-    "kotlin-stdlib-1.9.20.jar": {
-      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/1.9.20/kotlin-stdlib-1.9.20.jar",
-      "hash": "sha256-KKNbzf9G2GT4DzRqYX5IYoSyCNFzeMQZAN+x3pWpDmw="
+  "org.jetbrains.kotlin:kotlin-stdlib:1.9.0": {
+    "kotlin-stdlib-1.9.0.jar": {
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/1.9.0/kotlin-stdlib-1.9.0.jar",
+      "hash": "sha256-Na7/vi21qkRgcs7lD87ki3+p4vxRyjfAzH19C8OdlS4="
     },
-    "kotlin-stdlib-1.9.20.module": {
-      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/1.9.20/kotlin-stdlib-1.9.20.module",
-      "hash": "sha256-3Mql0xVHD6s5IFAohru4Xy2myGECxl2cBEEFRO7bIBk="
-    },
-    "kotlin-stdlib-1.9.20.pom": {
-      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/1.9.20/kotlin-stdlib-1.9.20.pom",
-      "hash": "sha256-43IWpzLI6Bqf0FtN2JLDDKwMrXtOP9ovlmP0jogHQcA="
+    "kotlin-stdlib-1.9.0.pom": {
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/1.9.0/kotlin-stdlib-1.9.0.pom",
+      "hash": "sha256-N3UiY/Ysw+MlCFbiiO5Kc9QQLXJqd2JwNPlIBsjBCso="
     }
   },
   "org.jetbrains.kotlin:kotlin-stdlib:1.8.22": {
@@ -4973,10 +5431,30 @@
       "hash": "sha256-WW9KYvMIatmPDniz4le6WyR80xO/+pgY5QlpYhDoOjc="
     }
   },
+  "org.jetbrains.kotlin:kotlin-stdlib:1.8.21": {
+    "kotlin-stdlib-1.8.21.jar": {
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/1.8.21/kotlin-stdlib-1.8.21.jar",
+      "hash": "sha256-BCoc0ayXbNz+XrY/HY4LC4kskkjhWmnIz7pJXVRupSo="
+    },
+    "kotlin-stdlib-1.8.21.pom": {
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/1.8.21/kotlin-stdlib-1.8.21.pom",
+      "hash": "sha256-/gzZ4yGT5FMzP9Kx9XfmYvtavGkHECu5Z4F7wTEoD9c="
+    }
+  },
   "org.jetbrains.kotlin:kotlin-stdlib:1.8.20": {
     "kotlin-stdlib-1.8.20.pom": {
       "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/1.8.20/kotlin-stdlib-1.8.20.pom",
       "hash": "sha256-ycHvxLpLRsYy4qIeaTJYo+ztB+vqoAr008NG05kLIB4="
+    }
+  },
+  "org.jetbrains.kotlin:kotlin-stdlib-common:2.2.0": {
+    "kotlin-stdlib-common-2.2.0.module": {
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/2.2.0/kotlin-stdlib-common-2.2.0.module",
+      "hash": "sha256-WPwNZk/Dpn5+a+n9vq7b0hLfo+Un90T4YeeSzacsDkc="
+    },
+    "kotlin-stdlib-common-2.2.0.pom": {
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/2.2.0/kotlin-stdlib-common-2.2.0.pom",
+      "hash": "sha256-U3q0BzqEelm6dtmaZFqGCbU4L/pdJZGjVLL6MR9JlzM="
     }
   },
   "org.jetbrains.kotlin:kotlin-stdlib-common:2.0.21": {
@@ -4989,14 +5467,14 @@
       "hash": "sha256-X0As+413MZW5ZwUBJMnom1+EsXJGThiUkpeJv1xMLyk="
     }
   },
-  "org.jetbrains.kotlin:kotlin-stdlib-common:1.9.20": {
-    "kotlin-stdlib-common-1.9.20.module": {
-      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/1.9.20/kotlin-stdlib-common-1.9.20.module",
-      "hash": "sha256-hYgovFGRueYCr/oU4B1mSJ2vsIxMGNL67jy+17p9mZI="
+  "org.jetbrains.kotlin:kotlin-stdlib-common:1.9.0": {
+    "kotlin-stdlib-common-1.9.0.jar": {
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/1.9.0/kotlin-stdlib-common-1.9.0.jar",
+      "hash": "sha256-KDJ0IEvXwCB4nsRvj45yr0JE1/VQszkqV+XKAGrXqiw="
     },
-    "kotlin-stdlib-common-1.9.20.pom": {
-      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/1.9.20/kotlin-stdlib-common-1.9.20.pom",
-      "hash": "sha256-lhO7FEme9Tmr8YH5PslrGyS2i36n7Nae93o80tBPiS0="
+    "kotlin-stdlib-common-1.9.0.pom": {
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/1.9.0/kotlin-stdlib-common-1.9.0.pom",
+      "hash": "sha256-NmDTanD+s6vknxG5BjPkHTYnNXbwcbDhCdqbOg3wgqU="
     }
   },
   "org.jetbrains.kotlin:kotlin-stdlib-common:1.8.22": {
@@ -5009,10 +5487,30 @@
       "hash": "sha256-pysR3wi1Mi16Xo5iB4nuPkz+846GxDDn0RO/qeVMWB4="
     }
   },
+  "org.jetbrains.kotlin:kotlin-stdlib-common:1.8.21": {
+    "kotlin-stdlib-common-1.8.21.jar": {
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/1.8.21/kotlin-stdlib-common-1.8.21.jar",
+      "hash": "sha256-akTJ7MnXdU2elD+x41iMdNSj8Xhb5RB09J1sVyNoKnM="
+    },
+    "kotlin-stdlib-common-1.8.21.pom": {
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/1.8.21/kotlin-stdlib-common-1.8.21.pom",
+      "hash": "sha256-4ZpVd8vOqJcolw21MzyCZMjGmuci7recv0HV8LDJrmU="
+    }
+  },
   "org.jetbrains.kotlin:kotlin-stdlib-common:1.8.20": {
     "kotlin-stdlib-common-1.8.20.pom": {
       "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/1.8.20/kotlin-stdlib-common-1.8.20.pom",
       "hash": "sha256-YFWRuJs3ISfmspxpMl+i9qjEb0aMRdCUEOeOtZ/IChc="
+    }
+  },
+  "org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.2.0": {
+    "kotlin-stdlib-jdk7-2.2.0.jar": {
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/2.2.0/kotlin-stdlib-jdk7-2.2.0.jar",
+      "hash": "sha256-DRC8DUK4YF8jYpo/MeonwZzbyp3N9PU/bSLNY2aDbRg="
+    },
+    "kotlin-stdlib-jdk7-2.2.0.pom": {
+      "url": "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/2.2.0/kotlin-stdlib-jdk7-2.2.0.pom",
+      "hash": "sha256-lcIYnDXve/xIlRwyrXCEeyHzgJ0m9dCnbiNXCHmYjDA="
     }
   },
   "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.22": {
@@ -5023,16 +5521,6 @@
     "kotlin-stdlib-jdk7-1.9.22.pom": {
       "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.9.22/kotlin-stdlib-jdk7-1.9.22.pom",
       "hash": "sha256-SHnKgQKDPIraP0bHep/6+uGXDK/AvGIfUSAbatl0zp0="
-    }
-  },
-  "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.20": {
-    "kotlin-stdlib-jdk7-1.9.20.jar": {
-      "url": "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.9.20/kotlin-stdlib-jdk7-1.9.20.jar",
-      "hash": "sha256-xUUdZ6J/M6/QmRPGfhzro4l65wiEsk7w/3EVflW2CGU="
-    },
-    "kotlin-stdlib-jdk7-1.9.20.pom": {
-      "url": "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.9.20/kotlin-stdlib-jdk7-1.9.20.pom",
-      "hash": "sha256-AS4cVe1q3kF7y4JBEuvqaCrWJd++4WCFw3nM+hT68DM="
     }
   },
   "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.0": {
@@ -5065,6 +5553,16 @@
       "hash": "sha256-NiLRBleM3cwKnsIPjOgV9/Sf9UL2QCKNIUH8r4BhawY="
     }
   },
+  "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.2.0": {
+    "kotlin-stdlib-jdk8-2.2.0.jar": {
+      "url": "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/2.2.0/kotlin-stdlib-jdk8-2.2.0.jar",
+      "hash": "sha256-rcFmSNu881sNEOfsMBw110bRwv5GDGBqulnxKxF8+bA="
+    },
+    "kotlin-stdlib-jdk8-2.2.0.pom": {
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/2.2.0/kotlin-stdlib-jdk8-2.2.0.pom",
+      "hash": "sha256-I00G/b3CncvAdEfijEomq6uVmdXD2qPZKjTmrt6iNqY="
+    }
+  },
   "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22": {
     "kotlin-stdlib-jdk8-1.9.22.jar": {
       "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.9.22/kotlin-stdlib-jdk8-1.9.22.jar",
@@ -5073,16 +5571,6 @@
     "kotlin-stdlib-jdk8-1.9.22.pom": {
       "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.9.22/kotlin-stdlib-jdk8-1.9.22.pom",
       "hash": "sha256-yUBIJZxtAAdXi6r+tx74/3ut6wjy1ZQ3/DllHg+396s="
-    }
-  },
-  "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.20": {
-    "kotlin-stdlib-jdk8-1.9.20.jar": {
-      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.9.20/kotlin-stdlib-jdk8-1.9.20.jar",
-      "hash": "sha256-+DP8yU8LscMbnni9S9p+oj9Xn/NAiuGpTi61dHCGoqs="
-    },
-    "kotlin-stdlib-jdk8-1.9.20.pom": {
-      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.9.20/kotlin-stdlib-jdk8-1.9.20.pom",
-      "hash": "sha256-o7B96wkfKu1Z1lWYhPRPmc/135ufo1okvNa4sGnP9I0="
     }
   },
   "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.0": {
@@ -5177,6 +5665,16 @@
       "hash": "sha256-aIt5ABn0F87APmldZWexc7o7skGJVBZi8U/2ZEG1Pas="
     }
   },
+  "org.jetbrains.kotlinx:atomicfu:0.22.0": {
+    "atomicfu-0.22.0.module": {
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/atomicfu/0.22.0/atomicfu-0.22.0.module",
+      "hash": "sha256-XIdu9+HuB90wchxDtG6tjtojzisiJg5w+TPL4AToBgc="
+    },
+    "atomicfu-0.22.0.pom": {
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/atomicfu/0.22.0/atomicfu-0.22.0.pom",
+      "hash": "sha256-lsP4fQNiioMRHD35NOgD134Q1hNCD3vE0wBZg4bI7zc="
+    }
+  },
   "org.jetbrains.kotlinx:atomicfu:0.21.0": {
     "atomicfu-0.21.0-all.jar": {
       "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/atomicfu/0.21.0/atomicfu-0.21.0-all.jar",
@@ -5189,6 +5687,20 @@
     "atomicfu-0.21.0.pom": {
       "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/atomicfu/0.21.0/atomicfu-0.21.0.pom",
       "hash": "sha256-AfGf+DmWncLx79ggegAGJ/MkNZ/FZu39wq2+NzPpiN4="
+    }
+  },
+  "org.jetbrains.kotlinx:atomicfu-jvm:0.22.0": {
+    "atomicfu-jvm-0.22.0.jar": {
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/atomicfu-jvm/0.22.0/atomicfu-jvm-0.22.0.jar",
+      "hash": "sha256-LaBzcn86teVYTnTBLhFRnJCK4t+vausl3tQrZoIpeII="
+    },
+    "atomicfu-jvm-0.22.0.module": {
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/atomicfu-jvm/0.22.0/atomicfu-jvm-0.22.0.module",
+      "hash": "sha256-NQcPkjzmn4fG+Q5TBXIOJwRAm2miN0SSrEW+cAde5Jo="
+    },
+    "atomicfu-jvm-0.22.0.pom": {
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/atomicfu-jvm/0.22.0/atomicfu-jvm-0.22.0.pom",
+      "hash": "sha256-CSM9N5NaKWh4/H6+92ECEmT64oBb+SZCAyi3y5DWelY="
     }
   },
   "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0": {
@@ -5207,7 +5719,7 @@
   },
   "org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.9.0": {
     "kotlinx-coroutines-bom-1.9.0.pom": {
-      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-bom/1.9.0/kotlinx-coroutines-bom-1.9.0.pom",
+      "url": "https://plugins.gradle.org/m2/org/jetbrains/kotlinx/kotlinx-coroutines-bom/1.9.0/kotlinx-coroutines-bom-1.9.0.pom",
       "hash": "sha256-vqVRHpAB8sWTq1CA3xMbIZq14ghcxZec5YPqzUlG/Xg="
     }
   },
@@ -5225,7 +5737,7 @@
   },
   "org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.6.4": {
     "kotlinx-coroutines-bom-1.6.4.pom": {
-      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-bom/1.6.4/kotlinx-coroutines-bom-1.6.4.pom",
+      "url": "https://plugins.gradle.org/m2/org/jetbrains/kotlinx/kotlinx-coroutines-bom/1.6.4/kotlinx-coroutines-bom-1.6.4.pom",
       "hash": "sha256-qyYUhV+6ZqqKQlFNvj1aiEMV/+HtY/WTLnEKgAYkXOE="
     }
   },
@@ -5275,7 +5787,7 @@
   },
   "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.9.0": {
     "kotlinx-coroutines-core-jvm-1.9.0.jar": {
-      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.9.0/kotlinx-coroutines-core-jvm-1.9.0.jar",
+      "url": "https://plugins.gradle.org/m2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.9.0/kotlinx-coroutines-core-jvm-1.9.0.jar",
       "hash": "sha256-rYnCiSI15nDyItgZyz2BGIFDyxmgW1nfmImuQmn1xwo="
     },
     "kotlinx-coroutines-core-jvm-1.9.0.module": {
@@ -5283,8 +5795,22 @@
       "hash": "sha256-syGomeQNPONFcHqiz9qZg60NzGn+p0qbi/kGoWwc+Kk="
     },
     "kotlinx-coroutines-core-jvm-1.9.0.pom": {
-      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.9.0/kotlinx-coroutines-core-jvm-1.9.0.pom",
+      "url": "https://plugins.gradle.org/m2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.9.0/kotlinx-coroutines-core-jvm-1.9.0.pom",
       "hash": "sha256-GcSImUGzqgmL1XzGTwL5razGVNVxoSqVbeS1uxSMZJk="
+    }
+  },
+  "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.7.3": {
+    "kotlinx-coroutines-core-jvm-1.7.3.jar": {
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.7.3/kotlinx-coroutines-core-jvm-1.7.3.jar",
+      "hash": "sha256-GrOsw48+c1XE+dHsYhB6RvpzyJnzBw0FXl1Dc9/mfhI="
+    },
+    "kotlinx-coroutines-core-jvm-1.7.3.module": {
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.7.3/kotlinx-coroutines-core-jvm-1.7.3.module",
+      "hash": "sha256-NNbumbdqwGK1FVW0pwvhg0n+VWbaeaGQYU8XHIC2U44="
+    },
+    "kotlinx-coroutines-core-jvm-1.7.3.pom": {
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.7.3/kotlinx-coroutines-core-jvm-1.7.3.pom",
+      "hash": "sha256-dThYdT3su7I5c0PiuHHwYvaXgS6UIuQcnuRqZrk+7jA="
     }
   },
   "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.7.1": {
@@ -5303,11 +5829,11 @@
   },
   "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4": {
     "kotlinx-coroutines-core-jvm-1.6.4.jar": {
-      "url": "https://plugins.gradle.org/m2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.4/kotlinx-coroutines-core-jvm-1.6.4.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.4/kotlinx-coroutines-core-jvm-1.6.4.jar",
       "hash": "sha256-wkyLsnuzIMSpOHFQGn5eDGFgdjiQexl672dVE9TIIL4="
     },
     "kotlinx-coroutines-core-jvm-1.6.4.module": {
-      "url": "https://plugins.gradle.org/m2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.4/kotlinx-coroutines-core-jvm-1.6.4.module",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.4/kotlinx-coroutines-core-jvm-1.6.4.module",
       "hash": "sha256-DZTIpBSD58Jwfr1pPhsTV6hBUpmM6FVQ67xUykMho6c="
     },
     "kotlinx-coroutines-core-jvm-1.6.4.pom": {
@@ -5483,14 +6009,14 @@
       "hash": "sha256-7jR5kaCBWsqhbNYtCmHY402nzoN2L1BaHXPXkUKjrdE="
     }
   },
-  "org.junit:junit-bom:5.9.3": {
-    "junit-bom-5.9.3.module": {
-      "url": "https://repo.maven.apache.org/maven2/org/junit/junit-bom/5.9.3/junit-bom-5.9.3.module",
-      "hash": "sha256-tAH9JZAeWCpSSqU0PEs54ovFbiSWHBBpvytLv87ka5M="
+  "org.junit:junit-bom:5.10.2": {
+    "junit-bom-5.10.2.module": {
+      "url": "https://plugins.gradle.org/m2/org/junit/junit-bom/5.10.2/junit-bom-5.10.2.module",
+      "hash": "sha256-3iOxFLPkEZqP5usXvtWjhSgWaYus5nBxV51tkn67CAo="
     },
-    "junit-bom-5.9.3.pom": {
-      "url": "https://plugins.gradle.org/m2/org/junit/junit-bom/5.9.3/junit-bom-5.9.3.pom",
-      "hash": "sha256-TQMpzZ5y8kIOXKFXJMv+b/puX9KIg2FRYnEZD9w0Ltc="
+    "junit-bom-5.10.2.pom": {
+      "url": "https://plugins.gradle.org/m2/org/junit/junit-bom/5.10.2/junit-bom-5.10.2.pom",
+      "hash": "sha256-Fp3ZBKSw9lIM/+ZYzGIpK/6fPBSpifqSEgckzeQ6mWg="
     }
   },
   "org.junit:junit-bom:5.9.2": {
@@ -5519,54 +6045,54 @@
       "hash": "sha256-Mh3bt+5v5PU96mtM1tt0FU1r+kI5HB92OzYbn0hazwU="
     }
   },
-  "org.ow2.asm:asm:9.6": {
-    "asm-9.6.jar": {
-      "url": "https://plugins.gradle.org/m2/org/ow2/asm/asm/9.6/asm-9.6.jar",
-      "hash": "sha256-PG+sJCTbPUqFO2afTj0dnDxVIjXhmjGWc/iHCDwjA6E="
+  "org.ow2.asm:asm:9.8": {
+    "asm-9.8.jar": {
+      "url": "https://plugins.gradle.org/m2/org/ow2/asm/asm/9.8/asm-9.8.jar",
+      "hash": "sha256-h26raoPa7K1cpn65/KuwY8l7WuuM8fynqYns3hdSIFE="
     },
-    "asm-9.6.pom": {
-      "url": "https://plugins.gradle.org/m2/org/ow2/asm/asm/9.6/asm-9.6.pom",
-      "hash": "sha256-ku7iS8PIQ+SIHUbB3WUFRx7jFC+s+0ZrQoz+paVsa2A="
+    "asm-9.8.pom": {
+      "url": "https://plugins.gradle.org/m2/org/ow2/asm/asm/9.8/asm-9.8.pom",
+      "hash": "sha256-wTZ8O7OD12Gef3l+ON91E4hfLu8ErntZCPaCImV7W6o="
     }
   },
-  "org.ow2.asm:asm-analysis:9.6": {
-    "asm-analysis-9.6.jar": {
-      "url": "https://plugins.gradle.org/m2/org/ow2/asm/asm-analysis/9.6/asm-analysis-9.6.jar",
-      "hash": "sha256-2Sgy18N+3AfGDiVZrGEYsx1kLjN6ZnHty3up+uaO27s="
+  "org.ow2.asm:asm-analysis:9.8": {
+    "asm-analysis-9.8.jar": {
+      "url": "https://plugins.gradle.org/m2/org/ow2/asm/asm-analysis/9.8/asm-analysis-9.8.jar",
+      "hash": "sha256-5kBzL7zTxicZJaUE8SXjg4Roj037v5LIYi387g0J7bk="
     },
-    "asm-analysis-9.6.pom": {
-      "url": "https://plugins.gradle.org/m2/org/ow2/asm/asm-analysis/9.6/asm-analysis-9.6.pom",
-      "hash": "sha256-+j+ZUCHP9PQTkwbmz/7uoHU5EGRA0psZzAanpjahOFA="
+    "asm-analysis-9.8.pom": {
+      "url": "https://plugins.gradle.org/m2/org/ow2/asm/asm-analysis/9.8/asm-analysis-9.8.pom",
+      "hash": "sha256-xXR+JccuGwfVJjx1x4rWGmJt0kWPr8r8I/gdMlPuQu0="
     }
   },
-  "org.ow2.asm:asm-commons:9.6": {
-    "asm-commons-9.6.jar": {
-      "url": "https://plugins.gradle.org/m2/org/ow2/asm/asm-commons/9.6/asm-commons-9.6.jar",
-      "hash": "sha256-eu/Q1cCQFwHGn3UT/tp2X7a+M68s56oXxXgfyHZXxRE="
+  "org.ow2.asm:asm-commons:9.8": {
+    "asm-commons-9.8.jar": {
+      "url": "https://plugins.gradle.org/m2/org/ow2/asm/asm-commons/9.8/asm-commons-9.8.jar",
+      "hash": "sha256-MwGhwctMWfzFKSZI2sHXxa7UwPBn376IhzuM3+d0BPQ="
     },
-    "asm-commons-9.6.pom": {
-      "url": "https://plugins.gradle.org/m2/org/ow2/asm/asm-commons/9.6/asm-commons-9.6.pom",
-      "hash": "sha256-qYrkiVM0uvj/hr1mUWIQ29mgPxpuFeR92oKvz2tT13w="
+    "asm-commons-9.8.pom": {
+      "url": "https://plugins.gradle.org/m2/org/ow2/asm/asm-commons/9.8/asm-commons-9.8.pom",
+      "hash": "sha256-95PnjwH3A3F9CUcuVs3yEv4piXDIguIRbo5Un7bRQMI="
     }
   },
-  "org.ow2.asm:asm-tree:9.6": {
-    "asm-tree-9.6.jar": {
-      "url": "https://plugins.gradle.org/m2/org/ow2/asm/asm-tree/9.6/asm-tree-9.6.jar",
-      "hash": "sha256-xD7PF7U5x3fhXae1uGVTs3fi05poPeYoVWfVKDiI5+8="
+  "org.ow2.asm:asm-tree:9.8": {
+    "asm-tree-9.8.jar": {
+      "url": "https://plugins.gradle.org/m2/org/ow2/asm/asm-tree/9.8/asm-tree-9.8.jar",
+      "hash": "sha256-FLeIDLfIXu0QHicQQy/D/7gydVMqaolNxMQJXUmtWfE="
     },
-    "asm-tree-9.6.pom": {
-      "url": "https://plugins.gradle.org/m2/org/ow2/asm/asm-tree/9.6/asm-tree-9.6.pom",
-      "hash": "sha256-G8tIHX/Ba5VbtgygfIz6JCS87ni9xAW7oxx9b13C0RM="
+    "asm-tree-9.8.pom": {
+      "url": "https://plugins.gradle.org/m2/org/ow2/asm/asm-tree/9.8/asm-tree-9.8.pom",
+      "hash": "sha256-cUnn+qDhkSlvh5ru2SCciULTmPBpjSzKGpxijy4qj3c="
     }
   },
-  "org.ow2.asm:asm-util:9.6": {
-    "asm-util-9.6.jar": {
-      "url": "https://plugins.gradle.org/m2/org/ow2/asm/asm-util/9.6/asm-util-9.6.jar",
-      "hash": "sha256-xjWnQC9Kqb9msvQjDOpiAloP4c1j6HKa3vybGZT6xMM="
+  "org.ow2.asm:asm-util:9.8": {
+    "asm-util-9.8.jar": {
+      "url": "https://plugins.gradle.org/m2/org/ow2/asm/asm-util/9.8/asm-util-9.8.jar",
+      "hash": "sha256-i6BGDsso/Q4pgOXz7zQzpROkV7wHf4GlO9x1tYegjRU="
     },
-    "asm-util-9.6.pom": {
-      "url": "https://plugins.gradle.org/m2/org/ow2/asm/asm-util/9.6/asm-util-9.6.pom",
-      "hash": "sha256-UsXB01dAR3nRqZtJqFv506CFAluFFstz2+93yK40AF4="
+    "asm-util-9.8.pom": {
+      "url": "https://plugins.gradle.org/m2/org/ow2/asm/asm-util/9.8/asm-util-9.8.pom",
+      "hash": "sha256-JNCXDhceKRe4Oo8PBdUKHNtcguUIVVtS28ydM2HE8Ow="
     }
   },
   "org.slf4j:slf4j-api:1.7.30": {
@@ -5587,7 +6113,7 @@
   },
   "org.sonatype.oss:oss-parent:9": {
     "oss-parent-9.pom": {
-      "url": "https://plugins.gradle.org/m2/org/sonatype/oss/oss-parent/9/oss-parent-9.pom",
+      "url": "https://repo.maven.apache.org/maven2/org/sonatype/oss/oss-parent/9/oss-parent-9.pom",
       "hash": "sha256-+0AmX5glSCEv+C42LllzKyGH7G8NgBgohcFO8fmCgno="
     }
   },
@@ -5597,14 +6123,14 @@
       "hash": "sha256-tR+IZ8kranIkmVV/w6H96ne9+e9XRyL+kM5DailVlFQ="
     }
   },
-  "org.tensorflow:tensorflow-lite-metadata:0.1.0-rc2": {
-    "tensorflow-lite-metadata-0.1.0-rc2.jar": {
-      "url": "https://plugins.gradle.org/m2/org/tensorflow/tensorflow-lite-metadata/0.1.0-rc2/tensorflow-lite-metadata-0.1.0-rc2.jar",
-      "hash": "sha256-LComT4QkmMNtNNKnuRNCSQ2alihiyFuqwazVTsL8ptk="
+  "org.tensorflow:tensorflow-lite-metadata:0.2.0": {
+    "tensorflow-lite-metadata-0.2.0.jar": {
+      "url": "https://plugins.gradle.org/m2/org/tensorflow/tensorflow-lite-metadata/0.2.0/tensorflow-lite-metadata-0.2.0.jar",
+      "hash": "sha256-6fGLikHwF+kDPLDthciiuiMHKSzf4l6uNlkj56MdKnA="
     },
-    "tensorflow-lite-metadata-0.1.0-rc2.pom": {
-      "url": "https://plugins.gradle.org/m2/org/tensorflow/tensorflow-lite-metadata/0.1.0-rc2/tensorflow-lite-metadata-0.1.0-rc2.pom",
-      "hash": "sha256-mk9eVnQ2bBVskDkWYvA+18WXHWqmODLfdKJx2m/4LpY="
+    "tensorflow-lite-metadata-0.2.0.pom": {
+      "url": "https://plugins.gradle.org/m2/org/tensorflow/tensorflow-lite-metadata/0.2.0/tensorflow-lite-metadata-0.2.0.pom",
+      "hash": "sha256-D+MTJug7diLLzZx11GeykfAf/jzG4+dmUawFocHHo2A="
     }
   },
   "org.xerial:sqlite-jdbc:3.41.2.2": {

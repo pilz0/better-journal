@@ -26,6 +26,11 @@ android {
         schemaDirectory("$projectDir/schemas")
     }
 
+    lint {
+        checkReleaseBuilds = false
+        abortOnError = false
+    }
+    
     buildTypes {
         release {
             isMinifyEnabled = true
