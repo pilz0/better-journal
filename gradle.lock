@@ -2436,6 +2436,10 @@
     }
   },
   "com.android.tools.build:aapt2:8.7.3-12006047": {
+    "aapt2-8.7.3-12006047-linux.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/aapt2/8.7.3-12006047/aapt2-8.7.3-12006047-linux.jar",
+      "hash": "sha256-AokWoEC1jzTJyJmE4bxI+NplgWYgFPK2Y5GGDe+LnDY="
+    },
     "aapt2-8.7.3-12006047-osx.jar": {
       "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/aapt2/8.7.3-12006047/aapt2-8.7.3-12006047-osx.jar",
       "hash": "sha256-jPyo0/y4rUXPRuN4DN1KZMs4xwykW0QmVd6fPn0Z78E="
