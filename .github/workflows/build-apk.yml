@@ -1,28 +1,33 @@
 ---
-name: Build on self-hosted
-# only run on main branch to avoid running untrusted code on the self hosted runner
+name: Build and sign APK
 on:
   push:
-    branches: [ "main" ]
+  pull_request:
+env:
+  main_project_module: 'app'
 jobs:
   build:
-    runs-on: self-hosted
-    steps:
-    - uses: actions/checkout@v5
-
-    - name: build app
-      run: nix run github:tadfisher/gradle2nix/v2 -- assembleRelease --option sandbox false
-
-    - uses: actions/upload-artifact@v4
-      with:
-        name: "freaklog-unsigned.apk"
-        path: app/build/outputs/apk/release/app-release-unsigned.apk
-        if-no-files-found: error
-  sign:
-    needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Download a single artifact
+      - uses: actions/checkout@v5
+      - uses: cachix/install-nix-action@v31
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - name: build app
+        run: nix build .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: "freaklog-unsigned.apk"
+          path: result/bin/app-release-unsigned.apk
+          if-no-files-found: error
+  sign:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download unsigned APK
         if: >
           github.event_name == 'push'
         uses: actions/download-artifact@v5
@@ -53,7 +58,6 @@ jobs:
           github.event_name == 'push'
         run: |
           mv "${{ steps.sign.outputs.signedFile }}" "freaklog.apk"
-
       # Uploads to the action results if not pointed at a tag
       - uses: actions/upload-artifact@v4
         if: >
@@ -72,11 +76,23 @@ jobs:
           fail_on_unmatched_files: true
           make_latest: true
 
-      - name: upload to google play
-        uses: r0adkll/upload-google-play@v1
+  upload:
+    needs: [ sign, build ]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download APKs
+        uses: actions/download-artifact@v5
         with:
-          serviceAccountJsonPlainText: ${{ SERVICE_ACCOUNT_JSON }}
-          packageName: foo.pilz.freaklog
-          releaseFiles: app/build/outputs/bundle/release/app-release.aab
-          track: qa
-          userFraction: 1.0
+          path: apks
+
+      - name: Upload APKs to S3
+        uses: ryand56/r2-upload-action@latest
+        with:
+          r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
+          r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
+          r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          r2-bucket: ${{ secrets.R2_BUCKET }}
+          source-dir: apks
+          destination-dir: apks
+          keep-file-fresh: true
