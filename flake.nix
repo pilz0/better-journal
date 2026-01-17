@@ -52,8 +52,8 @@
               androidSdk.androidsdk
             ];
             overrides = {
-              "com.android.tools.build:aapt2:8.7.3-12006047" = {
-                "aapt2-8.7.3-12006047-linux.jar" = src: pkgs.runCommandCC src.name {
+               "com.android.tools.build:aapt2:8.13.2-14304508" = {
+                 "aapt2-8.13.2-14304508-linux.jar" = src: pkgs.runCommandCC src.name {
                   nativeBuildInputs = [ pkgs.jdk pkgs.libgcc pkgs.autoPatchelfHook ];
                   dontAutoPatchelf = true;
                 } ''
@@ -83,8 +83,8 @@
                androidSdk.androidsdk
              ];
              overrides = {
-               "com.android.tools.build:aapt2:8.7.3-12006047" = {
-                 "aapt2-8.7.3-12006047-linux.jar" = src: pkgs.runCommandCC src.name {
+               "com.android.tools.build:aapt2:8.13.2-14304508" = {
+                 "aapt2-8.13.2-14304508-linux.jar" = src: pkgs.runCommandCC src.name {
                    nativeBuildInputs = [ pkgs.jdk pkgs.libgcc pkgs.autoPatchelfHook ];
                    dontAutoPatchelf = true;
                  } ''
