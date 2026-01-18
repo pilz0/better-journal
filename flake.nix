@@ -39,16 +39,23 @@
       in
       {
         packages = {
-          default = self.packages.${system}.app;
-          app = gradle2nix.builders.${system}.buildGradlePackage {
-            pname = "app";
+          default = self.packages.${system}.apk;
+          apk = gradle2nix.builders.${system}.buildGradlePackage {
+            pname = "freaklog apk";
             version = "11.13";
             lockFile = ./gradle.lock;
             src = ./.;
             gradleBuildFlags = [ "assembleRelease" ];
             ANDROID_HOME = "${androidSdk.androidsdk}/libexec/android-sdk";
+            preBuild = ''
+              rm -f local.properties
+              export ANDROID_USER_HOME=$(mktemp -d)
+              mkdir -p $ANDROID_USER_HOME/.android
+              export GRADLE_OPTS="-Djava.io.tmpdir=$ANDROID_USER_HOME/tmp"
+              mkdir -p $ANDROID_USER_HOME/tmp
+            '';
             nativeBuildInputs = [
-             # pkgs.jetbrains.jdk
+              pkgs.jre17_minimal
               androidSdk.androidsdk
             ];
             overrides = {
@@ -72,14 +79,21 @@
             '';
           };
            aab = gradle2nix.builders.${system}.buildGradlePackage {
-             pname = "aab";
+             pname = "freaklog aab";
              version = "11.13";
              lockFile = ./gradle.lock;
              src = ./.;
              gradleBuildFlags = [ "bundle" ];
              ANDROID_HOME = "${androidSdk.androidsdk}/libexec/android-sdk";
+             preBuild = ''
+               rm -f local.properties
+               export ANDROID_USER_HOME=$(mktemp -d)
+               mkdir -p $ANDROID_USER_HOME/.android
+               export GRADLE_OPTS="-Djava.io.tmpdir=$ANDROID_USER_HOME/tmp"
+               mkdir -p $ANDROID_USER_HOME/tmp
+             '';
              nativeBuildInputs = [
-               pkgs.jetbrains.jdk
+               pkgs.jre17_minimal
                androidSdk.androidsdk
              ];
              overrides = {

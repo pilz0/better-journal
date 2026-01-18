@@ -6,7 +6,12 @@ on:
 env:
   main_project_module: 'app'
 jobs:
-  build:
+  build-apk:
+    strategy:
+      matrix:
+        app-type: [ apk, aab ]
+    concurrency:
+      group: build-${{ matrix.app-type }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -14,16 +19,18 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
-      - name: build app
-        run: nix build .
+      - name: build apk
+        run: nix build .#${{ matrix.app-type }}
 
-      - uses: actions/upload-artifact@v4
+      - name: upload unsigned apk
+        uses: actions/upload-artifact@v4
         with:
-          name: "freaklog-unsigned.apk"
+          name: freaklog-unsigned-${{ matrix.app-type }}
           path: result/bin/app-release-unsigned.apk
           if-no-files-found: error
+
   sign:
-    needs: build
+    needs: build-apk
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
@@ -32,7 +39,7 @@ jobs:
           github.event_name == 'push'
         uses: actions/download-artifact@v5
         with:
-          name: "freaklog-unsigned.apk"
+          name: freaklog-unsigned-apk
 
       - name: Setup Android SDK
         if: >
@@ -58,13 +65,14 @@ jobs:
           github.event_name == 'push'
         run: |
           mv "${{ steps.sign.outputs.signedFile }}" "freaklog.apk"
+
       # Uploads to the action results if not pointed at a tag
       - uses: actions/upload-artifact@v4
         if: >
           github.event_name == 'push'
         with:
-          name: "freaklog.apk"
-          path: "freaklog.apk"
+          name: freaklog-apk
+          path: freaklog.apk
           if-no-files-found: error
 
       # Creates a release if pointed at a tag
@@ -72,12 +80,12 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/') && github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
-          files: "freaklog.apk"
+          files: freaklog.apk
           fail_on_unmatched_files: true
           make_latest: true
 
   upload:
-    needs: [ sign, build ]
+    needs: [ sign, build-apk ]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
