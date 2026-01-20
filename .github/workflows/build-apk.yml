@@ -6,7 +6,7 @@ on:
 env:
   main_project_module: 'app'
 jobs:
-  build-apk:
+  build-app:
     strategy:
       matrix:
         app-type: [ apk, aab ]
@@ -30,7 +30,7 @@ jobs:
           if-no-files-found: error
 
   sign:
-    needs: build-apk
+    needs: build-app
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
@@ -85,7 +85,7 @@ jobs:
           make_latest: true
 
   upload:
-    needs: [ sign, build-apk ]
+    needs: [ sign, build-app ]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:

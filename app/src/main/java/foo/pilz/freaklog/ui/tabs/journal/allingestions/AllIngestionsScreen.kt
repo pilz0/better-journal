@@ -177,15 +177,6 @@ fun AllIngestionsScreenContent(
                         style = MaterialTheme.typography.headlineSmall,
                         textAlign = TextAlign.Center
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = if (searchText.isEmpty()) 
-                            "Start logging your ingestions" 
-                        else 
-                            "No ingestions match your search",
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 }
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -200,7 +191,7 @@ fun AllIngestionsScreenContent(
                                 onClick = { onIngestionClick(ingestionWithCompanion) },
                                 onDelete = { ingestionToDelete = ingestionWithCompanion }
                             )
-                            HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
+                            HorizontalDivider(modifier = Modifier.padding(start = 0.dp))
                         }
                     }
                 }
@@ -260,7 +251,7 @@ fun IngestionItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = horizontalPadding, vertical = 12.dp),
+            .padding(horizontal = horizontalPadding, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Surface(

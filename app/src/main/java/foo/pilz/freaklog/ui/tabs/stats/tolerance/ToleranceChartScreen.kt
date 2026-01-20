@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -43,6 +44,7 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -58,10 +60,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -74,6 +81,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import java.time.temporal.ChronoUnit
 
 @Composable
 fun ToleranceChartScreen(
@@ -109,12 +117,7 @@ fun ToleranceChartScreenContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Tolerance") },
-                actions = {
-                    IconButton(onClick = onAddTap) {
-                        Icon(Icons.Default.Add, contentDescription = "Add Temporary Ingestion")
-                    }
-                }
+                title = { Text("Tolerance") }
             )
         }
     ) { padding ->
@@ -173,15 +176,6 @@ fun ToleranceChartScreenContent(
                     toleranceWindows = toleranceData.toleranceWindows,
                     numberOfRows = toleranceData.numberOfSubstancesInChart,
                     isTimeRelative = isTimeRelative
-                )
-            }
-
-            if (toleranceData.substancesInIngestionsButNotChart.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Substances without tolerance data: ${toleranceData.substancesInIngestionsButNotChart.joinToString(", ")}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -246,11 +240,7 @@ fun ToleranceChart(
     val totalDuration = Duration.between(minTime, maxTime).toMillis().coerceAtLeast(1L)
 
     val substanceNames = toleranceWindows.map { it.substanceName }.distinct()
-    val rowHeight = when {
-        numberOfRows < 4 -> 55.dp
-        numberOfRows < 7 -> 50.dp
-        else -> 45.dp
-    }
+    val rowHeight = 30.dp
     val chartHeight = rowHeight * numberOfRows
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -301,13 +291,29 @@ fun ToleranceChart(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(rowHeight)
-                            .padding(start = 8.dp),
-                        contentAlignment = Alignment.CenterStart
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentAlignment = Alignment.CenterEnd
                     ) {
+                        val offset = Offset(1.0f, 1.0f,)
                         Text(
+                            modifier = Modifier.padding(5.dp),
                             text = name,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurface
+                            textAlign = TextAlign.Left,
+                            color = if (isDarkTheme) Color.LightGray else Color.Black,
+                            style = MaterialTheme.typography.labelSmall.merge(
+                                TextStyle(
+                                    shadow = Shadow(
+                                        color = Color.LightGray, offset = offset, blurRadius = 2f
+                                    ),
+                                    platformStyle = PlatformTextStyle(
+                                        includeFontPadding = false
+                                    ),
+                                    lineHeightStyle = LineHeightStyle(
+                                        alignment = LineHeightStyle.Alignment.Top,
+                                        trim = LineHeightStyle.Trim.None
+                                    )
+                                )
+                            ),
                         )
                     }
                 }
@@ -370,10 +376,26 @@ private fun getRelativeTimeLabel(time: Instant): String {
 @Preview
 @Composable
 fun ToleranceChartScreenPreview() {
+    val now = Instant.now()
+    val lsdWindow = ToleranceWindow(
+        substanceName = "Cocaine",
+        start = now.minus(10, ChronoUnit.DAYS),
+        end = now.plus(4, ChronoUnit.DAYS),
+        toleranceType = ToleranceType.FULL,
+        substanceColor = Color(0xFFFF453A) // Red-ish color
+    )
+    val mushroomsWindow = ToleranceWindow(
+        substanceName = "Mephedrone",
+        start = now.minus(2, ChronoUnit.DAYS),
+        end = now.plus(5, ChronoUnit.DAYS),
+        toleranceType = ToleranceType.HALF,
+        substanceColor = Color(0xFF32D74B) // Green-ish color
+    )
+
     ToleranceChartScreenContent(
         toleranceData = ToleranceData(
-            toleranceWindows = emptyList(),
-            numberOfSubstancesInChart = 0,
+            toleranceWindows = listOf(lsdWindow,mushroomsWindow),
+            numberOfSubstancesInChart = 2,
             substancesInIngestionsButNotChart = listOf("DMT", "2C-B"),
             substanceCompanions = emptyList()
         ),

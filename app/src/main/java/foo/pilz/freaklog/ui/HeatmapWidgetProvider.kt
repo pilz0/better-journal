@@ -243,12 +243,12 @@ class HeatmapWidgetWorker(
 
         val maxCount = counts.values.maxOrNull() ?: 1
 
-        // Colors - purple gradient like GitHub
-        val emptyColor = if (isDarkMode) Color.rgb(33, 38, 45) else Color.rgb(235, 237, 240)
-        val level1 = if (isDarkMode) Color.rgb(76, 65, 93) else Color.rgb(214, 204, 232)
-        val level2 = if (isDarkMode) Color.rgb(113, 85, 150) else Color.rgb(177, 152, 214)
-        val level3 = if (isDarkMode) Color.rgb(150, 100, 200) else Color.rgb(137, 96, 193)
-        val level4 = if (isDarkMode) Color.rgb(180, 130, 230) else Color.rgb(103, 71, 169)
+        // Colors - green gradient like GitHub
+        val emptyColor = if (isDarkMode) Color.rgb(22, 27, 34) else Color.rgb(235, 237, 240)
+        val level1 = if (isDarkMode) Color.rgb(14, 68, 41) else Color.rgb(155, 233, 168)
+        val level2 = if (isDarkMode) Color.rgb(0, 109, 50) else Color.rgb(64, 196, 99)
+        val level3 = if (isDarkMode) Color.rgb(38, 166, 65) else Color.rgb(48, 161, 78)
+        val level4 = if (isDarkMode) Color.rgb(57, 211, 83) else Color.rgb(33, 110, 57)
 
         fun getColorForCount(count: Int): Int {
             if (count == 0) return emptyColor
