@@ -103,7 +103,6 @@ jobs:
           destination-dir: ${{ matrix.app-type }}s
           keep-file-fresh: true
 
-
   upload-google-play:
     needs: [ sign, build-app ]
     if: github.ref == 'refs/heads/main'
@@ -112,19 +111,19 @@ jobs:
       - name: Download a single artifact
         uses: actions/download-artifact@v5
         with:
-          name: freaklog.aab
+          path: app
 
       - name: upload to google play
         uses: r0adkll/upload-google-play@v1.1.3
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: foo.pilz.freaklog
-          releaseFiles: freaklog.aab/freaklog.aab
+          releaseFiles: app/freaklog-aab/freaklog.aab
           track: internal
 
   create_release:
-    needs: [ sign, build-app, upload-s3 ]
-    if: github.ref == 'refs/heads/main'
+    needs: [ sign, build-app ]
+    if: startsWith(github.ref, 'refs/tags/') && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Download files
@@ -137,9 +136,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            freaklog.apk/freaklog.apk
-            freaklog.aab/freaklog.aab
-            freaklog-unsigned.apk/freaklog-unsigned.apk
-            freaklog-unsigned.aab/freaklog-unsigned.aab
+            freaklog-apk/freaklog.apk
+            freaklog-aab/freaklog.aab
+            freaklog-unsigned-apk/freaklog-unsigned.apk
+            freaklog-unsigned-aab/freaklog-unsigned.aab
           fail_on_unmatched_files: true
           make_latest: true
