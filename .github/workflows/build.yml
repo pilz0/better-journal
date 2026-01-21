@@ -26,20 +26,23 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: freaklog-unsigned-${{ matrix.app-type }}
-          path: result/bin/app-release-unsigned.apk
+          path: result/bin/app-release-unsigned.{{ matrix.app-type }}
           if-no-files-found: error
 
   sign:
     needs: build-app
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app-type: [ apk, aab ]
     steps:
-      - name: Download unsigned APK
+      - name: Download unsigned file
         if: >
           github.event_name == 'push'
         uses: actions/download-artifact@v5
         with:
-          name: freaklog-unsigned-apk
+          name: freaklog-unsigned-${{ matrix.app-type }}
 
       - name: Setup Android SDK
         if: >
@@ -60,47 +63,83 @@ jobs:
           keyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
           buildToolsVersion: 35.0.0
 
-      - name: Rename signed APK
+      - name: Rename signed file
         if: >
           github.event_name == 'push'
         run: |
-          mv "${{ steps.sign.outputs.signedFile }}" "freaklog.apk"
+          mv "${{ steps.sign.outputs.signedFile }}" "freaklog.${{ matrix.app-type }}"
 
       # Uploads to the action results if not pointed at a tag
       - uses: actions/upload-artifact@v4
         if: >
           github.event_name == 'push'
         with:
-          name: freaklog-apk
-          path: freaklog.apk
+          name: freaklog-${{ matrix.app-type }}
+          path: freaklog.${{ matrix.app-type }}
           if-no-files-found: error
 
-      # Creates a release if pointed at a tag
-      - name: Create release
-        if: startsWith(github.ref, 'refs/tags/') && github.event_name == 'push'
-        uses: softprops/action-gh-release@v2
-        with:
-          files: freaklog.apk
-          fail_on_unmatched_files: true
-          make_latest: true
 
-  upload:
+  upload-s3:
     needs: [ sign, build-app ]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app-type: [ apk, aab ]
     steps:
-      - name: Download APKs
+      - name: Download files
         uses: actions/download-artifact@v5
         with:
-          path: apks
+          path: ${{ matrix.app-type }}s
 
-      - name: Upload APKs to S3
+      - name: Upload ${{ matrix.app-type }}s to S3
         uses: ryand56/r2-upload-action@latest
         with:
           r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
           r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
           r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           r2-bucket: ${{ secrets.R2_BUCKET }}
-          source-dir: apks
-          destination-dir: apks
+          source-dir: ${{ matrix.app-type }}s
+          destination-dir: ${{ matrix.app-type }}s
           keep-file-fresh: true
+
+
+  upload-google-play:
+    needs: [ sign, build-app ]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download a single artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: freaklog.aab
+
+      - name: upload to google play
+        uses: r0adkll/upload-google-play@v1.1.3
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+          packageName: foo.pilz.freaklog
+          releaseFiles: freaklog.aab/freaklog.aab
+          track: qa
+
+  create_release:
+    needs: [ sign, build-app, upload-s3 ]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download files
+        uses: actions/download-artifact@v5
+        with:
+          path: .
+
+      - name: Create release
+        if: startsWith(github.ref, 'refs/tags/') && github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            freaklog.apk/freaklog.apk
+            freaklog.aab/freaklog.aab
+            freaklog-unsigned.apk/freaklog-unsigned.apk
+            freaklog-unsigned.aab/freaklog-unsigned.aab
+          fail_on_unmatched_files: true
+          make_latest: true
