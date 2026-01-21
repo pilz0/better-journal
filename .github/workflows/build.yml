@@ -31,30 +31,26 @@ jobs:
 
   sign:
     needs: build-app
-    if: github.ref == 'refs/heads/main'
+    if: |
+      github.ref == 'refs/heads/main'
+      github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     strategy:
       matrix:
         app-type: [ apk, aab ]
     steps:
       - name: Download unsigned file
-        if: >
-          github.event_name == 'push'
         uses: actions/download-artifact@v5
         with:
           name: freaklog-unsigned-${{ matrix.app-type }}
 
       - name: Setup Android SDK
-        if: >
-          github.event_name == 'push'
         run: |
           ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager "build-tools;35.0.0"
 
       - name: Sign app APK
         uses: ilharp/sign-android-release@nightly
         id: sign
-        if: >
-          github.event_name == 'push'
         with:
           releaseDir: .
           signingKey: ${{ secrets.KEYSTORE }}
@@ -64,15 +60,10 @@ jobs:
           buildToolsVersion: 35.0.0
 
       - name: Rename signed file
-        if: >
-          github.event_name == 'push'
         run: |
           mv "${{ steps.sign.outputs.signedFile }}" "freaklog.${{ matrix.app-type }}"
 
-      # Uploads to the action results if not pointed at a tag
       - uses: actions/upload-artifact@v4
-        if: >
-          github.event_name == 'push'
         with:
           name: freaklog-${{ matrix.app-type }}
           path: freaklog.${{ matrix.app-type }}
@@ -121,7 +112,7 @@ jobs:
           releaseFiles: app/freaklog-aab/freaklog.aab
           track: internal
 
-  create_release:
+  create-release:
     needs: [ sign, build-app ]
     if: startsWith(github.ref, 'refs/tags/') && github.event_name == 'push'
     runs-on: ubuntu-latest
