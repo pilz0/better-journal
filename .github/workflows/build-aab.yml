@@ -99,4 +99,4 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: foo.pilz.freaklog
           releaseFiles: aabs/freaklog.aab/freaklog.aab
-          track: qa
+          track: internal
