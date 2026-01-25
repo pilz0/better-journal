@@ -32,10 +32,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import foo.pilz.freaklog.data.room.experiences.relations.CustomRecipeWithComponents
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -192,8 +194,9 @@ fun CustomRecipeCard(
             )
 
             recipe.recipe.lastUsedDate?.let { lastUsed ->
+                val formatter = DateTimeFormatter.ofPattern("MMM d, yyyy")
                 Text(
-                    text = "Last used: ${lastUsed.format(DateTimeFormatter.ofPattern("MMM d, yyyy"))}",
+                    text = "Last used: ${lastUsed.atZone(ZoneId.systemDefault()).format(formatter)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
