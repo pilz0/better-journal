@@ -33,7 +33,8 @@ data class JournalExport(
     val experiences: List<ExperienceSerializable> = emptyList(),
     val substanceCompanions: List<SubstanceCompanion> = emptyList(),
     val customSubstances: List<CustomSubstance> = emptyList(),
-    val customUnits: List<CustomUnitSerializable> = emptyList()
+    val customUnits: List<CustomUnitSerializable> = emptyList(),
+    val customRecipes: List<CustomRecipeSerializable> = emptyList()
 )
 
 @Serializable
@@ -104,4 +105,27 @@ data class TimedNoteSerializable(
     var note: String,
     var color: AdaptiveColor,
     var isPartOfTimeline: Boolean
+)
+
+@Serializable
+data class CustomRecipeSerializable(
+    val id: Int,
+    val name: String,
+    @Serializable(with= InstantSerializer::class) val creationDate: Instant,
+    @Serializable(with= InstantSerializer::class) val lastUsedDate: Instant? = null,
+    val isArchived: Boolean,
+    val note: String,
+    val components: List<CustomRecipeComponentSerializable> = emptyList()
+)
+
+@Serializable
+data class CustomRecipeComponentSerializable(
+    val substanceName: String,
+    val dose: Double?,
+    val isDoseAnEstimate: Boolean,
+    val estimatedDoseStandardDeviation: Double?,
+    val units: String?,
+    val administrationRoute: AdministrationRoute,
+    val customUnitId: Int? = null,
+    val componentOrder: Int
 )
