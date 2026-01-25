@@ -41,7 +41,7 @@ import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestion
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanion
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithExperienceAndCustomUnit
-import foo.pilz.freaklog.ui.tabs.settings.JournalExport
+import foo.pilz.freaklog.data.export.JournalExport
 import kotlinx.coroutines.flow.Flow
 import java.time.Instant
 
