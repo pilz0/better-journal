@@ -22,7 +22,10 @@ import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import foo.pilz.freaklog.data.room.experiences.CustomRecipeDao
 import foo.pilz.freaklog.data.room.experiences.ExperienceDao
+import foo.pilz.freaklog.data.room.experiences.entities.CustomRecipe
+import foo.pilz.freaklog.data.room.experiences.entities.CustomRecipeComponent
 import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.room.experiences.entities.Experience
@@ -38,7 +41,7 @@ import foo.pilz.freaklog.data.room.SprayDao
 
 @TypeConverters(InstantConverter::class)
 @Database(
-    version = 12,
+    version = 14,
     entities = [
         Experience::class,
         Ingestion::class,
@@ -48,7 +51,9 @@ import foo.pilz.freaklog.data.room.SprayDao
         TimedNote::class,
         CustomUnit::class,
         Spray::class,
-        Reminder::class
+        Reminder::class,
+        CustomRecipe::class,
+        CustomRecipeComponent::class
     ],
     autoMigrations = [
         AutoMigration (from = 1, to = 2),
@@ -62,10 +67,13 @@ import foo.pilz.freaklog.data.room.SprayDao
         AutoMigration (from = 9, to = 10),
         AutoMigration (from = 10, to = 11),
         AutoMigration (from = 11, to = 12),
+        AutoMigration (from = 12, to = 13),
+        AutoMigration (from = 13, to = 14),
     ]
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun experienceDao(): ExperienceDao
     abstract fun sprayDao(): SprayDao
     abstract fun reminderDao(): ReminderDao
+    abstract fun customRecipeDao(): CustomRecipeDao
 }
