@@ -24,3 +24,7 @@ fun Double.toReadableString(): String {
     val df = DecimalFormat("#.###")
     return df.format(this)
 }
+
+fun Double.toPreservedString(): String {
+    return this.toString()
+}
