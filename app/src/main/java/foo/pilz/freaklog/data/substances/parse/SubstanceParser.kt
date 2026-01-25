@@ -31,11 +31,15 @@ import javax.inject.Singleton
 class SubstanceParser @Inject constructor() : SubstanceParserInterface {
 
     override fun parseSubstanceFile(string: String): SubstanceFile {
-        val wholeFile = JSONObject(string)
-        return SubstanceFile(
-            categories = parseCategories(wholeFile),
-            substances = parseSubstances(wholeFile)
-        )
+        return try {
+            val wholeFile = JSONObject(string)
+            SubstanceFile(
+                categories = parseCategories(wholeFile),
+                substances = parseSubstances(wholeFile)
+            )
+        } catch (e: Exception) {
+            SubstanceFile(emptyList(), emptyList())
+        }
     }
 
     override fun extractSubstanceString(string: String): String? {

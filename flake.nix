@@ -42,7 +42,7 @@
           default = self.packages.${system}.apk;
           apk = gradle2nix.builders.${system}.buildGradlePackage {
             pname = "freaklog apk release";
-            version = "11.13";
+            version = "11.14";
             lockFile = ./gradle.lock;
             src = ./.;
             gradleBuildFlags = [ "assembleRelease" ];
@@ -60,17 +60,22 @@
             ];
             overrides = {
                "com.android.tools.build:aapt2:8.13.2-14304508" = {
-                 "aapt2-8.13.2-14304508-linux.jar" = src: pkgs.runCommandCC src.name {
-                  nativeBuildInputs = [ pkgs.jdk pkgs.libgcc pkgs.autoPatchelfHook ];
-                  dontAutoPatchelf = true;
-                } ''
-                  cp ${src} aapt2.jar
-                  jar xf aapt2.jar aapt2
-                  chmod +x aapt2
-                  autoPatchelf aapt2
-                  jar uf aapt2.jar aapt2
-                  cp aapt2.jar $out
-                '';
+                 "aapt2-8.13.2-14304508-linux.jar" = src:
+                  if pkgs.stdenv.isLinux then
+                    pkgs.runCommandCC src.name
+                      {
+                        nativeBuildInputs = [ pkgs.jdk pkgs.libgcc pkgs.autoPatchelfHook ];
+                        dontAutoPatchelf = true;
+                      } ''
+                      cp ${src} aapt2.jar
+                      jar xf aapt2.jar aapt2
+                      chmod +x aapt2
+                      autoPatchelf aapt2
+                      jar uf aapt2.jar aapt2
+                      cp aapt2.jar $out
+                    ''
+                  else
+                    src;
               };
             };
             installPhase = ''
@@ -80,7 +85,7 @@
           };
            aab = gradle2nix.builders.${system}.buildGradlePackage {
              pname = "freaklog android app bundle";
-             version = "11.13";
+             version = "11.14";
              lockFile = ./gradle.lock;
              src = ./.;
              gradleBuildFlags = [ "bundle" ];
@@ -98,17 +103,22 @@
              ];
              overrides = {
                "com.android.tools.build:aapt2:8.13.2-14304508" = {
-                 "aapt2-8.13.2-14304508-linux.jar" = src: pkgs.runCommandCC src.name {
-                   nativeBuildInputs = [ pkgs.jdk pkgs.libgcc pkgs.autoPatchelfHook ];
-                   dontAutoPatchelf = true;
-                 } ''
-                   cp ${src} aapt2.jar
-                   jar xf aapt2.jar aapt2
-                   chmod +x aapt2
-                   autoPatchelf aapt2
-                   jar uf aapt2.jar aapt2
-                   cp aapt2.jar $out
-                 '';
+                 "aapt2-8.13.2-14304508-linux.jar" = src:
+                    if pkgs.stdenv.isLinux then
+                      pkgs.runCommandCC src.name
+                        {
+                          nativeBuildInputs = [ pkgs.jdk pkgs.libgcc pkgs.autoPatchelfHook ];
+                          dontAutoPatchelf = true;
+                        } ''
+                        cp ${src} aapt2.jar
+                        jar xf aapt2.jar aapt2
+                        chmod +x aapt2
+                        autoPatchelf aapt2
+                        jar uf aapt2.jar aapt2
+                        cp aapt2.jar $out
+                      ''
+                    else
+                      src;
                };
              };
              installPhase = ''
@@ -121,7 +131,7 @@
 
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
-            jetbrains.jdk
+            pkgs.jdk17
             androidSdk.androidsdk
           ];
         };

@@ -14,10 +14,10 @@ android {
 
     defaultConfig {
         applicationId = "foo.pilz.freaklog"
-        minSdk = 31
+        minSdk = 27
         targetSdk = 36
-        versionCode = 65
-        versionName = "11.13"
+        versionCode = 66
+        versionName = "11.14"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -93,6 +93,7 @@ dependencies {
     implementation(libs.androidx.glance.material3)
 
     testImplementation(libs.junit)
+    testImplementation("org.json:json:20240303")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

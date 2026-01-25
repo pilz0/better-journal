@@ -31,6 +31,7 @@ import foo.pilz.freaklog.ui.tabs.settings.combinations.CombinationSettingsScreen
 import foo.pilz.freaklog.ui.tabs.settings.customunits.CustomUnitsScreen
 import foo.pilz.freaklog.ui.tabs.settings.customunits.archive.CustomUnitArchiveScreen
 import foo.pilz.freaklog.ui.tabs.settings.customunits.edit.EditCustomUnitScreen
+import foo.pilz.freaklog.ui.tabs.settings.reminders.RemindersScreen
 import kotlinx.serialization.Serializable
 
 fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
@@ -54,7 +55,13 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
                 navigateToWebhook = {
                   navController.navigate(WebhookSettingsScreenRoute)
                 },
+                navigateToReminders = {
+                    navController.navigate(RemindersScreenRoute)
+                }
             )
+        }
+        composableWithTransitions<RemindersScreenRoute> {
+            RemindersScreen(navigateBack = navController::popBackStack)
         }
         composableWithTransitions<FAQRoute> { FAQScreen() }
         composableWithTransitions<CombinationSettingsRoute> { CombinationSettingsScreen() }
@@ -105,6 +112,9 @@ object CustomUnitsRoute
 
 @Serializable
 object WebhookSettingsScreenRoute
+
+@Serializable
+object RemindersScreenRoute
 
 @Serializable
 data class EditCustomUnitRoute(val customUnitId: Int)

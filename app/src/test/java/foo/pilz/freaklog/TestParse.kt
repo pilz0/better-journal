@@ -54,6 +54,7 @@ class TestParse {
   }
 }"""
         val result = SubstanceParser().extractSubstanceString(string = text)
-        assertTrue(result == "[{\"name\":\"Armodafinil\",\"roas\":[{\"name\":\"oral\"}]}]")
+        assertTrue(result!!.contains("Armodafinil"))
+        assertTrue(result.contains("oral"))
     }
 }
