@@ -27,6 +27,7 @@ import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
 import foo.pilz.freaklog.data.room.AppDatabase
+import foo.pilz.freaklog.data.room.experiences.CustomRecipeDao
 import foo.pilz.freaklog.data.room.SprayDao
 import foo.pilz.freaklog.data.room.experiences.ExperienceDao
 import dagger.Module
@@ -49,6 +50,11 @@ object AppModule {
     @Provides
     fun provideSprayDao(appDatabase: AppDatabase): SprayDao =
         appDatabase.sprayDao()
+
+    @Singleton
+    @Provides
+    fun provideCustomRecipeDao(appDatabase: AppDatabase): CustomRecipeDao =
+        appDatabase.customRecipeDao()
 
     @Singleton
     @Provides
