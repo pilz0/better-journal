@@ -34,7 +34,7 @@ import java.time.Instant
 @Dao
 interface CustomRecipeDao {
     
-    @Query("SELECT * FROM CustomRecipe WHERE isArchived = 0 ORDER BY lastUsedDate DESC NULLS LAST, creationDate DESC")
+    @Query("SELECT * FROM CustomRecipe WHERE isArchived = 0 ORDER BY CASE WHEN lastUsedDate IS NULL THEN 1 ELSE 0 END, lastUsedDate DESC, creationDate DESC")
     fun getActiveRecipesFlow(): Flow<List<CustomRecipe>>
     
     @Query("SELECT * FROM CustomRecipe WHERE isArchived = 1 ORDER BY creationDate DESC")
@@ -45,7 +45,7 @@ interface CustomRecipeDao {
     suspend fun getRecipeWithComponents(recipeId: Int): CustomRecipeWithComponents?
     
     @Transaction
-    @Query("SELECT * FROM CustomRecipe WHERE isArchived = 0 ORDER BY lastUsedDate DESC NULLS LAST, creationDate DESC")
+    @Query("SELECT * FROM CustomRecipe WHERE isArchived = 0 ORDER BY CASE WHEN lastUsedDate IS NULL THEN 1 ELSE 0 END, lastUsedDate DESC, creationDate DESC")
     fun getActiveRecipesWithComponentsFlow(): Flow<List<CustomRecipeWithComponents>>
     
     @Transaction
