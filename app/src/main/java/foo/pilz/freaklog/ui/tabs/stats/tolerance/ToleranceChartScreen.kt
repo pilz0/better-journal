@@ -59,8 +59,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -175,7 +177,8 @@ fun ToleranceChartScreenContent(
                 ToleranceChart(
                     toleranceWindows = toleranceData.toleranceWindows,
                     numberOfRows = toleranceData.numberOfSubstancesInChart,
-                    isTimeRelative = isTimeRelative
+                    isTimeRelative = isTimeRelative,
+                    sinceDate = sinceDate
                 )
             }
 
@@ -228,16 +231,21 @@ fun ToleranceChartScreenContent(
 fun ToleranceChart(
     toleranceWindows: List<ToleranceWindow>,
     numberOfRows: Int,
-    isTimeRelative: Boolean
+    isTimeRelative: Boolean,
+    sinceDate: Instant
 ) {
     val isDarkTheme = isSystemInDarkTheme()
 
     if (toleranceWindows.isEmpty()) return
 
     val now = Instant.now()
-    val minTime = toleranceWindows.minOfOrNull { it.start } ?: now
-    val maxTime = toleranceWindows.maxOfOrNull { it.end } ?: now
+    val minTime = sinceDate
+    val maxTimeInWindows = toleranceWindows.maxOfOrNull { it.end } ?: now
+    val maxTime = if (maxTimeInWindows > now) maxTimeInWindows else now
+    
     val totalDuration = Duration.between(minTime, maxTime).toMillis().coerceAtLeast(1L)
+    val nowMillis = now.toEpochMilli()
+    val minTimeMillis = minTime.toEpochMilli()
 
     val substanceNames = toleranceWindows.map { it.substanceName }.distinct()
     val rowHeight = 30.dp
@@ -256,24 +264,49 @@ fun ToleranceChart(
                 val canvasHeight = size.height
                 val singleRowHeight = canvasHeight / numberOfRows
 
+                // Draw vertical grid lines (every 7 days)
+                val oneWeekMillis = Duration.ofDays(7).toMillis()
+                // Find start of first week after minTime
+                // Simple approach: start from minTime and go forward
+                var currentGridTime = minTimeMillis
+                while (currentGridTime <= maxTime.toEpochMilli()) {
+                     val gridX = ((currentGridTime - minTimeMillis).toFloat() / totalDuration) * canvasWidth
+                     if (gridX in 0f..canvasWidth) {
+                         drawLine(
+                            color = if (isDarkTheme) Color.White.copy(alpha = 0.1f) else Color.Black.copy(alpha = 0.1f),
+                            start = Offset(gridX, 0f),
+                            end = Offset(gridX, canvasHeight),
+                            strokeWidth = 1f
+                         )
+                     }
+                     currentGridTime += oneWeekMillis
+                }
+
                 toleranceWindows.forEach { window ->
                     val substanceIndex = substanceNames.indexOf(window.substanceName)
                     if (substanceIndex >= 0) {
-                        val startX = ((window.start.toEpochMilli() - minTime.toEpochMilli()).toFloat() / totalDuration) * canvasWidth
-                        val endX = ((window.end.toEpochMilli() - minTime.toEpochMilli()).toFloat() / totalDuration) * canvasWidth
-                        val topY = substanceIndex * singleRowHeight
-                        val barWidth = (endX - startX).coerceAtLeast(1f)
+                        val startMillis = window.start.toEpochMilli().coerceAtLeast(minTimeMillis)
+                        val endMillis = window.end.toEpochMilli()
+                        
+                        // Only draw if the window (or part of it) is visible
+                        if (endMillis > minTimeMillis) {
+                            val startX = ((startMillis - minTimeMillis).toFloat() / totalDuration) * canvasWidth
+                            val endX = ((endMillis - minTimeMillis).toFloat() / totalDuration) * canvasWidth
+                            val topY = substanceIndex * singleRowHeight
+                            val barWidth = (endX - startX).coerceAtLeast(1f)
 
-                        drawRect(
-                            color = window.barColor,
-                            topLeft = Offset(startX, topY + 4),
-                            size = Size(barWidth, singleRowHeight - 8)
-                        )
+                            drawRoundRect(
+                                color = window.barColor,
+                                topLeft = Offset(startX, topY + 4),
+                                size = Size(barWidth, singleRowHeight - 8),
+                                cornerRadius = CornerRadius(10f, 10f)
+                            )
+                        }
                     }
                 }
 
                 // Draw current time line
-                val nowX = ((now.toEpochMilli() - minTime.toEpochMilli()).toFloat() / totalDuration) * canvasWidth
+                val nowX = ((nowMillis - minTimeMillis).toFloat() / totalDuration) * canvasWidth
                 if (nowX in 0f..canvasWidth) {
                     drawLine(
                         color = if (isDarkTheme) Color.White else Color.Black,
@@ -321,12 +354,12 @@ fun ToleranceChart(
         }
 
         // Time labels
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(top = 4.dp)
         ) {
+            // Start Label
             Text(
                 text = if (isTimeRelative) {
                     getRelativeTimeLabel(minTime)
@@ -334,13 +367,25 @@ fun ToleranceChart(
                     minTime.getStringOfPattern("MMM d")
                 },
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.align(Alignment.CenterStart)
             )
-            Text(
-                text = if (isTimeRelative) "Now" else now.getStringOfPattern("MMM d"),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+
+            // Now Label
+            // We use a custom layout logic or BiasAlignment
+            // Calculate bias: 0 is minTime, 1 is maxTime -> map to -1..1
+            val nowFraction = (nowMillis - minTimeMillis).toDouble() / totalDuration
+            if (nowFraction in 0.0..1.0) {
+                val bias = (nowFraction * 2) - 1
+                Text(
+                    text = if (isTimeRelative) "Now" else now.getStringOfPattern("MMM d"),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.align(BiasAlignment(bias.toFloat(), 0f))
+                )
+            }
+
+            // End Label
             Text(
                 text = if (isTimeRelative) {
                     getRelativeTimeLabel(maxTime)
@@ -348,7 +393,8 @@ fun ToleranceChart(
                     maxTime.getStringOfPattern("MMM d")
                 },
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.align(Alignment.CenterEnd)
             )
         }
     }

@@ -21,7 +21,16 @@ package foo.pilz.freaklog.ui.tabs.search.substance.roa
 import java.text.DecimalFormat
 
 fun Double.toReadableString(): String {
-    val df = DecimalFormat("#.###")
+    val absValue = kotlin.math.abs(this)
+    val df = when {
+        absValue >= 100 -> DecimalFormat("#")
+        absValue >= 10 -> DecimalFormat("#.#")
+        absValue >= 1 -> DecimalFormat("#.##")
+        else -> DecimalFormat("#.###")
+    }
+    // Ensure we use dot as decimal separator regardless of locale
+    val symbols = java.text.DecimalFormatSymbols(java.util.Locale.US)
+    df.decimalFormatSymbols = symbols
     return df.format(this)
 }
 

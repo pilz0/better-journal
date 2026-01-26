@@ -36,6 +36,8 @@ import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import foo.pilz.freaklog.ui.utils.getInstant
 import foo.pilz.freaklog.ui.utils.getLocalDateTime
 import dagger.hilt.android.lifecycle.HiltViewModel
+import foo.pilz.freaklog.di.ApplicationScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -55,6 +57,7 @@ class EditIngestionViewModel @Inject constructor(
     private val experienceRepo: ExperienceRepository,
     private val userPreferences: UserPreferences,
     private val webhookService: foo.pilz.freaklog.data.webhook.WebhookService,
+    @ApplicationScope private val externalScope: CoroutineScope,
     state: SavedStateHandle
 ) : ViewModel() {
     private var ingestionFlow: MutableStateFlow<Ingestion?> = MutableStateFlow(null)
@@ -225,8 +228,10 @@ class EditIngestionViewModel @Inject constructor(
                 it.administrationSite = administrationSite.ifBlank { null }
                 experienceRepo.update(it)
                 
-                // Send webhook edit notification
-                editWebhookForIngestion(it)
+                // Send webhook edit notification in background
+                externalScope.launch {
+                    editWebhookForIngestion(it)
+                }
             }
         }
     }
@@ -234,8 +239,10 @@ class EditIngestionViewModel @Inject constructor(
     fun deleteIngestion() {
         viewModelScope.launch {
             ingestion?.let {
-                // Delete webhook message if it exists
-                deleteWebhookForIngestion(it)
+                // Delete webhook message if it exists (in background)
+                externalScope.launch {
+                    deleteWebhookForIngestion(it)
+                }
                 experienceRepo.delete(ingestion = it)
             }
         }
@@ -290,6 +297,64 @@ class EditIngestionViewModel @Inject constructor(
         } catch (e: Exception) {
             // Silently fail - don't block ingestion deletion if webhook fails
             android.util.Log.w("EditIngestionViewModel", "Webhook delete failed", e)
+        }
+    }
+
+    fun resendWebhook() {
+        viewModelScope.launch {
+            val currentIngestion = ingestion ?: return@launch
+            
+            // Launch in external scope to ensure it completes even if screen closes
+            externalScope.launch {
+                val webhookURL = userPreferences.readWebhookURL().first()
+                if (webhookURL.isBlank()) {
+                    return@launch
+                }
+
+                val webhookName = userPreferences.readWebhookName().first()
+                val webhookTemplate = userPreferences.readWebhookTemplate().first().ifBlank {
+                    foo.pilz.freaklog.data.webhook.WebhookService.DEFAULT_TEMPLATE
+                }
+
+                val user = webhookName.ifBlank { "User" }
+                val route = currentIngestion.administrationRoute.displayText
+
+                try {
+                    var displayDose = currentIngestion.dose
+                    var displayUnits = currentIngestion.units
+                    
+                    val customUnitId = currentIngestion.customUnitId
+                    if (customUnitId != null) {
+                        val customUnit = experienceRepo.getCustomUnit(customUnitId)
+                        if (customUnit != null && customUnit.dose != null && currentIngestion.dose != null) {
+                           displayDose = currentIngestion.dose!! * customUnit.dose!!
+                           displayUnits = customUnit.originalUnit
+                        }
+                    }
+
+                    // Treat Resend as sending a NEW webhook, which matches user intent of "sending again"
+                    val result = webhookService.sendWebhook(
+                        url = webhookURL,
+                        user = user,
+                        substance = currentIngestion.substanceName,
+                        dose = displayDose,
+                        units = displayUnits,
+                        isEstimate = currentIngestion.isDoseAnEstimate,
+                        route = route,
+                        site = currentIngestion.administrationSite,
+                        note = currentIngestion.notes,
+                        template = webhookTemplate,
+                        isHyperlinked = true
+                    )
+
+                    if (result.success && result.messageId != null) {
+                        currentIngestion.webhookMessageId = result.messageId
+                        experienceRepo.update(currentIngestion)
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.d("EditIngestionViewModel", "Resend webhook failed", e)
+                }
+            }
         }
     }
 }

@@ -28,6 +28,7 @@ import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
 import foo.pilz.freaklog.data.room.AppDatabase
 import foo.pilz.freaklog.data.room.experiences.CustomRecipeDao
+import foo.pilz.freaklog.data.room.reminders.ReminderDao
 import foo.pilz.freaklog.data.room.SprayDao
 import foo.pilz.freaklog.data.room.experiences.ExperienceDao
 import dagger.Module
@@ -35,7 +36,11 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Qualifier
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -58,6 +63,11 @@ object AppModule {
 
     @Singleton
     @Provides
+    fun provideReminderDao(appDatabase: AppDatabase): ReminderDao =
+        appDatabase.reminderDao()
+
+    @Singleton
+    @Provides
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase =
         Room.databaseBuilder(
             context,
@@ -75,4 +85,13 @@ object AppModule {
             produceFile = { appContext.preferencesDataStoreFile("user_preferences") }
         )
     }
+
+    @Singleton
+    @Provides
+    @ApplicationScope
+    fun providesCoroutineScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 }
+
+@Retention(AnnotationRetention.RUNTIME)
+@Qualifier
+annotation class ApplicationScope

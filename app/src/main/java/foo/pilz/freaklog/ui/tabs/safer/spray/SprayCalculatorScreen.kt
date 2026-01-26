@@ -35,6 +35,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.outlined.SwapVert
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
@@ -129,9 +130,18 @@ fun SprayCalculatorScreenContent(
     onDeleteSpray: (Spray) -> Unit,
     onAddSpray: () -> Unit
 ) {
+    var showInfoDialog by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Spray Calculator") })
+            TopAppBar(
+                title = { Text("Spray Calculator") },
+                actions = {
+                    IconButton(onClick = { showInfoDialog = true }) {
+                        Icon(Icons.Default.Info, contentDescription = "Info")
+                    }
+                }
+            )
         }
     ) { padding ->
         Column(
@@ -141,60 +151,52 @@ fun SprayCalculatorScreenContent(
                 .padding(horizontal = horizontalPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Weight per spray section
-            CardWithTitle(title = "Solute weight per spray") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedTextField(
-                        value = weightPerSpray,
-                        onValueChange = onSetWeightPerSpray,
-                        label = { Text("Weight per Spray") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.weight(1f)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    WeightUnitDropdown(
-                        selectedUnit = weightUnit,
-                        onUnitSelected = onSetWeightUnit
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Spray size section
-            CardWithTitle(title = "Spray Size") {
-                if (sprays.isEmpty()) {
-                    Text(
-                        text = "No sprays added yet",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                } else {
-                    sprays.forEach { spray ->
-                        SprayItem(
-                            spray = spray,
-                            isSelected = spray.id == selectedSprayId,
-                            onSelect = { onSelectSpray(spray.id) },
-                            onDelete = { onDeleteSpray(spray) }
+            // Calculator Section
+            CardWithTitle(title = "Calculator") {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    
+                    // Spray Selection
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        SpraySelectionDropdown(
+                            sprays = sprays,
+                            selectedSprayId = selectedSprayId,
+                            onSelectSpray = onSelectSpray,
+                            onDeleteSpray = onDeleteSpray,
+                            modifier = Modifier.weight(1f)
                         )
-                        HorizontalDivider()
+                        Spacer(modifier = Modifier.width(8.dp))
+                        IconButton(onClick = onAddSpray) {
+                            Icon(Icons.Default.Add, contentDescription = "Add Spray")
+                        }
                     }
-                }
-                TextButton(onClick = onAddSpray) {
-                    Icon(Icons.Default.Add, contentDescription = "Add Spray")
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Add Spray")
-                }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                    HorizontalDivider()
 
-            // Result section
-            CardWithTitle(title = "Result") {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // Target Strength
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            value = weightPerSpray,
+                            onValueChange = onSetWeightPerSpray,
+                            label = { Text("Target Strength / Spray") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            modifier = Modifier.weight(1f)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        WeightUnitDropdown(
+                            selectedUnit = weightUnit,
+                            onUnitSelected = onSetWeightUnit
+                        )
+                    }
+
+                    HorizontalDivider()
+
+                    // Bidirectional Calculation
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -216,7 +218,7 @@ fun SprayCalculatorScreenContent(
                     ) {
                         Icon(
                             Icons.Outlined.SwapVert,
-                            contentDescription = "Swap",
+                            contentDescription = "Linked",
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -228,7 +230,7 @@ fun SprayCalculatorScreenContent(
                         OutlinedTextField(
                             value = totalWeight,
                             onValueChange = onSetTotalWeight,
-                            label = { Text("Solute Weight") },
+                            label = { Text("Total API 202") },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             modifier = Modifier.weight(1f)
                         )
@@ -236,103 +238,137 @@ fun SprayCalculatorScreenContent(
                         Text(weightUnit.displayName, style = MaterialTheme.typography.titleMedium)
                     }
 
+                    // Purity Adjustment
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("↓", style = MaterialTheme.typography.titleMedium)
-                        Spacer(modifier = Modifier.width(8.dp))
                         OutlinedTextField(
                             value = purityInPercent,
                             onValueChange = onSetPurityInPercent,
-                            label = { Text("Purity") },
+                            label = { Text("Purity (%)") },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             modifier = Modifier.weight(1f)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("%", style = MaterialTheme.typography.titleMedium)
                     }
 
                     if (doseAdjustedToPurity != null) {
-                        Text(
-                            text = "Pure substance needed:",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = "${doseAdjustedToPurity.toReadableString()} ${weightUnit.displayName}",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                        ElevatedCard(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                           Column(modifier = Modifier.padding(16.dp)) {
+                               Text(
+                                   text = "Pure substance needed:",
+                                   style = MaterialTheme.typography.labelMedium,
+                                   color = MaterialTheme.colorScheme.onSurfaceVariant
+                               )
+                               Text(
+                                   text = "${doseAdjustedToPurity.toReadableString()} ${weightUnit.displayName}",
+                                   style = MaterialTheme.typography.headlineSmall,
+                                   color = MaterialTheme.colorScheme.primary
+                               )
+                           }
+                        }
                     }
                 }
             }
-
+            
             Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
 
-            // Info section
-            ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = """Oral or nasal sprays can be used for dosing substances volumetrically.
+    if (showInfoDialog) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showInfoDialog = false },
+            confirmButton = {
+                TextButton(onClick = { showInfoDialog = false }) {
+                    Text("Close")
+                }
+            },
+            title = { Text("Information") },
+            text = {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    Text(
+                        text = """Oral or nasal sprays can be used for dosing substances volumetrically.
 Note that substances are the most stable in their salt form and degrade more quickly if dissolved in liquid, which might be relevant to you if you plan on storing it for months or years.
 Don't use tap water because it can become stale and the chlorine inside it breaks down some substances (e.g. LSD). Use distilled water instead.
 Look up the solubility of the substance you want to dissolve in water/ethanol to make sure it will dissolve fully. Most if not all common substances in their salt form are more than soluble enough.
 To prevent degradation by temperature use ethanol or a water/ethanol mix as the solvent such that it can be put in the freezer without freezing. However don't use ethanol for nasal sprays as this can damage the nasal mucosa.
 Powders for nasal delivery have higher bioavailability than liquids because of increased stability and residence time on nasal mucosa.""",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(16.dp)
-                )
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-        }
+        )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SprayItem(
-    spray: Spray,
-    isSelected: Boolean,
-    onSelect: () -> Unit,
-    onDelete: () -> Unit
+fun SpraySelectionDropdown(
+    sprays: List<Spray>,
+    selectedSprayId: Int?,
+    onSelectSpray: (Int) -> Unit,
+    onDeleteSpray: (Spray) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onSelect)
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+    var expanded by remember { mutableStateOf(false) }
+    val selectedSpray = sprays.find { it.id == selectedSprayId }
+    
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = modifier
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.weight(1f)
+        OutlinedTextField(
+            value = selectedSpray?.name ?: if (sprays.isEmpty()) "No sprays" else "Select spray",
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Spray Bottle") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
         ) {
-            Column {
-                Text(
-                    text = spray.name,
-                    style = MaterialTheme.typography.titleSmall
+            if (sprays.isEmpty()) {
+                DropdownMenuItem(
+                    text = { Text("No sprays added") },
+                    onClick = { expanded = false }
                 )
-                Text(
-                    text = "${spray.contentInMl.toReadableString()} ml = ${spray.numSprays.toReadableString()} sprays",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            } else {
+                sprays.forEach { spray ->
+                    DropdownMenuItem(
+                        text = { 
+                             Column {
+                                 Text(spray.name)
+                                 Text(
+                                     "${spray.contentInMl.toReadableString()}ml / ${spray.numSprays.toReadableString()} sprays",
+                                     style = MaterialTheme.typography.bodySmall,
+                                     color = MaterialTheme.colorScheme.onSurfaceVariant
+                                 )
+                             }
+                        },
+                        trailingIcon = {
+                             IconButton(onClick = { 
+                                 onDeleteSpray(spray) 
+                                 // Don't close menu immediately upon delete to allow multiple deletes? 
+                                 // Or close it. Let's close for simplicity/safety.
+                                 expanded = false
+                             }) {
+                                 Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+                             }
+                        },
+                        onClick = {
+                            onSelectSpray(spray.id)
+                            expanded = false
+                        }
+                    )
+                }
             }
-        }
-        if (isSelected) {
-            Icon(
-                Icons.Default.Check,
-                contentDescription = "Selected",
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
-        IconButton(onClick = onDelete) {
-            Icon(
-                Icons.Default.Delete,
-                contentDescription = "Delete",
-                tint = MaterialTheme.colorScheme.error
-            )
         }
     }
 }
@@ -386,11 +422,11 @@ fun SprayCalculatorScreenPreview() {
         sprays = sampleSprays,
         selectedSprayId = 1,
         weightUnit = WeightUnit.MG,
-        weightPerSpray = "",
-        liquidAmountInMl = "",
-        totalWeight = "",
+        weightPerSpray = "1.5",
+        liquidAmountInMl = "10",
+        totalWeight = "300",
         purityInPercent = "90",
-        doseAdjustedToPurity = 211.0,
+        doseAdjustedToPurity = 333.3,
         onSelectSpray = {},
         onSetWeightUnit = {},
         onSetWeightPerSpray = {},

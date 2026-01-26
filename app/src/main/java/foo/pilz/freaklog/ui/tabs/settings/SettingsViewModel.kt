@@ -151,7 +151,8 @@ class SettingsViewModel @Inject constructor(
                             notes = ingestion.notes,
                             stomachFullness = ingestion.stomachFullness,
                             consumerName = ingestion.consumerName,
-                            customUnitId = ingestion.customUnitId
+                            customUnitId = ingestion.customUnitId,
+                            administrationSite = ingestion.administrationSite
                         )
                     },
                     location = if (location != null) {
@@ -202,7 +203,8 @@ class SettingsViewModel @Inject constructor(
                 experiences = experiencesSerializable,
                 substanceCompanions = experienceRepository.getAllSubstanceCompanions(),
                 customSubstances = experienceRepository.getAllCustomSubstances(),
-                customUnits = customUnitsSerializable
+                customUnits = customUnitsSerializable,
+                reminders = experienceRepository.getAllReminders()
             )
             try {
                 val jsonList = Json.encodeToString(journalExport)

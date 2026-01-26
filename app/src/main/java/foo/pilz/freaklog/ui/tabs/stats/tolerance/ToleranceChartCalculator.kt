@@ -42,18 +42,13 @@ object ToleranceChartCalculator {
 
     private fun removeMultipleSubstancesInADay(substanceAndDays: List<SubstanceAndDay>): List<SubstanceAndDay> {
         return substanceAndDays
-            .groupBy { pair ->
-                val localDate = pair.day.atZone(ZoneId.systemDefault()).toLocalDate()
-                localDate
-            }
-            .flatMap { (day, substances) ->
-                val substanceNames = substances.map { it.substanceName }.toSet()
-                substanceNames.map { name ->
-                    SubstanceAndDay(
-                        substanceName = name,
-                        day = day.atStartOfDay(ZoneId.systemDefault()).toInstant()
-                    )
-                }
+            .groupBy { it.day.atZone(ZoneId.systemDefault()).toLocalDate() }
+            .flatMap { (_, daySubstances) ->
+                daySubstances
+                    .groupBy { it.substanceName }
+                    .map { (_, sameSubstanceList) ->
+                        sameSubstanceList.minByOrNull { it.day }!!
+                    }
             }
     }
 

@@ -142,7 +142,8 @@ fun EditIngestionScreen(
         showSiteSelection = viewModel.showSiteSelection,
         siteOptions = viewModel.siteOptions,
         administrationSite = viewModel.administrationSite,
-        onChangeOfAdministrationSite = viewModel::onChangeAdministrationSite
+        onChangeOfAdministrationSite = viewModel::onChangeAdministrationSite,
+        onResendWebhook = viewModel::resendWebhook
     )
 }
 
@@ -185,7 +186,8 @@ fun EditIngestionScreenPreview() {
             showSiteSelection = true,
             siteOptions = listOf("Left nostril", "Right nostril", "Both nostrils"),
             administrationSite = "Left nostril",
-            onChangeOfAdministrationSite = {}
+            onChangeOfAdministrationSite = {},
+            onResendWebhook = {}
         )
     }
 }
@@ -226,8 +228,10 @@ fun EditIngestionScreen(
     addIngestionWithClonedTime: () -> Unit,
     showSiteSelection: Boolean,
     siteOptions: List<String>,
+
     administrationSite: String,
-    onChangeOfAdministrationSite: (String) -> Unit
+    onChangeOfAdministrationSite: (String) -> Unit,
+    onResendWebhook: () -> Unit
 ) {
     var isPresentingBottomSheet by rememberSaveable { mutableStateOf(false) }
     val skipPartiallyExpanded by remember { mutableStateOf(false) }
@@ -570,6 +574,22 @@ fun EditIngestionScreen(
                         )
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                         Text(text = "Add ingestion at same time")
+                    }
+                }
+            }
+            ElevatedCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(
+                        horizontal = horizontalPadding,
+                        vertical = 3.dp
+                    )
+                ) {
+                    TextButton(onClick = onResendWebhook) {
+                        Text(text = "Resend Webhook")
                     }
                 }
             }

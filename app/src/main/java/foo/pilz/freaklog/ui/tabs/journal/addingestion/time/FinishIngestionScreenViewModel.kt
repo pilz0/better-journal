@@ -38,6 +38,8 @@ import foo.pilz.freaklog.ui.utils.getInstant
 import foo.pilz.freaklog.ui.utils.getLocalDateTime
 import foo.pilz.freaklog.ui.utils.getStringOfPattern
 import dagger.hilt.android.lifecycle.HiltViewModel
+import foo.pilz.freaklog.di.ApplicationScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -67,6 +69,7 @@ class FinishIngestionScreenViewModel @Inject constructor(
     private val experienceRepo: ExperienceRepository,
     private val userPreferences: UserPreferences,
     private val webhookService: foo.pilz.freaklog.data.webhook.WebhookService,
+    @ApplicationScope private val externalScope: CoroutineScope,
     state: SavedStateHandle
 ) : ViewModel() {
     var substanceName by mutableStateOf("")
@@ -320,8 +323,10 @@ class FinishIngestionScreenViewModel @Inject constructor(
             )
         }
         
-        // Send webhook notification
-        sendWebhookForIngestion(newIngestion)
+        // Send webhook notification in background
+        externalScope.launch {
+            sendWebhookForIngestion(newIngestion)
+        }
     }
 
     private suspend fun createNewIngestion(experienceId: Int): Ingestion {

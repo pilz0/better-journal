@@ -23,6 +23,7 @@ import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
 import foo.pilz.freaklog.data.room.experiences.entities.ShulginRatingOption
 import foo.pilz.freaklog.data.room.experiences.entities.StomachFullness
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
+import foo.pilz.freaklog.data.room.reminders.entities.Reminder
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.ui.tabs.settings.ShulginRatingOptionSerializer
 import kotlinx.serialization.Serializable
@@ -34,7 +35,8 @@ data class JournalExport(
     val substanceCompanions: List<SubstanceCompanion> = emptyList(),
     val customSubstances: List<CustomSubstance> = emptyList(),
     val customUnits: List<CustomUnitSerializable> = emptyList(),
-    val customRecipes: List<CustomRecipeSerializable> = emptyList()
+    val customRecipes: List<CustomRecipeSerializable> = emptyList(),
+    val reminders: List<Reminder> = emptyList()
 )
 
 @Serializable
@@ -88,7 +90,8 @@ data class IngestionSerializable(
     var notes: String? = null,
     var stomachFullness: StomachFullness? = null,
     var consumerName: String? = null,
-    var customUnitId: Int? = null
+    var customUnitId: Int? = null,
+    var administrationSite: String? = null
 )
 
 @Serializable

@@ -33,6 +33,8 @@ import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestion
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanion
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithExperienceAndCustomUnit
 import foo.pilz.freaklog.data.export.JournalExport
+import foo.pilz.freaklog.data.room.reminders.ReminderDao
+import foo.pilz.freaklog.data.room.reminders.entities.Reminder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.conflate
@@ -42,7 +44,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class ExperienceRepository @Inject constructor(private val experienceDao: ExperienceDao) {
+class ExperienceRepository @Inject constructor(
+    private val experienceDao: ExperienceDao,
+    private val reminderDao: ReminderDao
+) {
     suspend fun insert(rating: ShulginRating) = experienceDao.insert(rating)
     suspend fun insert(customUnit: CustomUnit) = experienceDao.insert(customUnit).toInt()
     suspend fun insert(timedNote: TimedNote) = experienceDao.insert(timedNote)
@@ -66,7 +71,10 @@ class ExperienceRepository @Inject constructor(private val experienceDao: Experi
 
     suspend fun insertEverything(
         journalExport: JournalExport
-    ) = experienceDao.insertEverything(journalExport)
+    ) {
+        experienceDao.insertEverything(journalExport)
+        journalExport.reminders.forEach { reminderDao.insert(it) }
+    }
 
     suspend fun insertIngestionAndCompanion(
         ingestion: Ingestion,
@@ -76,7 +84,10 @@ class ExperienceRepository @Inject constructor(private val experienceDao: Experi
         substanceCompanion
     )
 
-    suspend fun deleteEverything() = experienceDao.deleteEverything()
+    suspend fun deleteEverything() {
+        experienceDao.deleteEverything()
+        reminderDao.deleteAll()
+    }
 
     suspend fun delete(ingestion: Ingestion) = experienceDao.delete(ingestion)
     suspend fun delete(customUnit: CustomUnit) = experienceDao.delete(customUnit)
@@ -259,4 +270,6 @@ class ExperienceRepository @Inject constructor(private val experienceDao: Experi
         experienceDao.getSubstanceCompanionFlow(substanceName)
             .flowOn(Dispatchers.IO)
             .conflate()
+
+    suspend fun getAllReminders(): List<Reminder> = reminderDao.getAllReminders()
 }
