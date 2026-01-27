@@ -134,6 +134,9 @@
             pkgs.jdk17
             androidSdk.androidsdk
           ];
+          shellHook = ''
+            export JAVA_HOME=${pkgs.jdk17.home}
+          '';
         };
         formatter = pkgs.nixpkgs-fmt;
       }

@@ -41,7 +41,15 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.time.Instant
+import java.time.LocalDateTime
+import java.time.Period
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+
 import javax.inject.Inject
 
 @HiltViewModel
@@ -73,9 +81,40 @@ class SubstanceCompanionViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000)
         )
 
+    private val _selectedTimeRange = MutableStateFlow(DosageTimeRange.WEEKS_26)
+    val selectedTimeRange = _selectedTimeRange.asStateFlow()
+
+    private val _showAverage = MutableStateFlow(false)
+    val showAverage = _showAverage.asStateFlow()
+
+    fun setTimeRange(range: DosageTimeRange) {
+        viewModelScope.launch { _selectedTimeRange.emit(range) }
+    }
+
+    fun toggleShowAverage(show: Boolean) {
+        viewModelScope.launch { _showAverage.emit(show) }
+    }
+
+    // Source of all ingestions for this substance/consumer
+    private val allIngestionsFlow = experienceRepo.getSortedIngestionsWithExperienceAndCustomUnitFlow(substanceName)
+        .map { list -> list.filter { it.ingestion.consumerName == consumerName } }
+
+    val dosageChartDataFlow: StateFlow<List<DosageBucket>> = 
+        combine(allIngestionsFlow, selectedTimeRange, currentTimeFlow) { ingestions, timeRange, currentTime ->
+             // Convert to easier format
+             val mappedIngestions = ingestions.map { 
+                 IngestionsBurst.IngestionAndCustomUnit(it.ingestion, it.customUnit) 
+             }
+             
+             getDosageBuckets(mappedIngestions, timeRange, currentTime.atZone(ZoneId.systemDefault()).minus(timeRange.period).toInstant(), currentTime)
+        }.stateIn(
+            initialValue = emptyList(),
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000)
+        )
+
     val ingestionBurstsFlow: StateFlow<List<IngestionsBurst>> =
-        experienceRepo.getSortedIngestionsWithExperienceAndCustomUnitFlow(substanceName)
-            .map { list -> list.filter { it.ingestion.consumerName == consumerName } }
+        allIngestionsFlow
             .combine(currentTimeFlow) { sortedIngestionsWithExperiences, currentTime ->
                 val experiencesWithIngestions =
                     sortedIngestionsWithExperiences.groupBy { it.ingestion.experienceId }
@@ -102,12 +141,115 @@ class SubstanceCompanionViewModel @Inject constructor(
                     )
                     lastDate = experienceStart
                 }
-                return@combine allIngestionBursts
-            }.stateIn(
-                initialValue = emptyList(),
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000)
-            )
+                allIngestionBursts
+
+        }.stateIn(
+            initialValue = emptyList(),
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000)
+        )
+
+    private fun getDosageBuckets(
+        ingestions: List<IngestionsBurst.IngestionAndCustomUnit>,
+        timeRange: DosageTimeRange,
+        start: Instant,
+        end: Instant
+    ): List<DosageBucket> {
+        val buckets = mutableListOf<DosageBucket>()
+        val zoneId = ZoneId.systemDefault()
+        
+        var currentStart = start
+        // Align start to the beginning of the period (e.g., start of day) for cleaner buckets
+        // For simplicity, we just iterate by adding the bucket period.
+        
+        // Better approach: working backwards from 'end' (Now) or forwards from 'start'?
+        // The screenshot shows "Last 26 Weeks" with bars.
+        // Let's create fixed number of buckets if possible, or dynamic.
+        // 30D -> 30 buckets (Days)
+        // 26W -> 26 buckets (Weeks)
+        // 12M -> 12 buckets (Months)
+        // Y -> 12 buckets (Months) or 1 (Year)? Screenshot 'Y' often implies Year view. 
+        // If Y is "This Year" or "Last Year", usually broken down by Month. 
+        // Let's assume Y means "1 Year" broken by month (same as 12M?) or maybe "All Years".
+        // Given 12M is already there, Y might be Multi-Year or All Time.
+        // However, standard patterns: D, W, M, Y usually means "Day view", "Week view", "Month view", "Year view".
+        // But 30D, 26W, 12M implies "Last X". 
+        // Let's assume 'Y' is "Last Year" (broken by month) which makes it duplicate of 12M? 
+        // Or maybe 'Y' is "Since beginning of this year"? 
+        // Let's stick to "1 Year" broken by month for now, similar to 12M. 
+        // Actually, let's look at the label "Last 26 Weeks". 
+        // If I select "Y", it might say "Last 1 Year" or "2025".
+        // Let's implement Y as "1 Year" broken by months (12 buckets).
+        
+        val bucketCount = when(timeRange) {
+            DosageTimeRange.DAYS_30 -> 30
+            DosageTimeRange.WEEKS_26 -> 26
+            DosageTimeRange.MONTHS_12 -> 12
+            DosageTimeRange.YEAR -> 12 // Assume 12 months for Year view
+        }
+
+        val step = when(timeRange) {
+            DosageTimeRange.DAYS_30 -> Period.ofDays(1)
+            DosageTimeRange.WEEKS_26 -> Period.ofWeeks(1)
+            DosageTimeRange.MONTHS_12 -> Period.ofMonths(1)
+            DosageTimeRange.YEAR -> Period.ofMonths(1)
+        }
+
+        // We want the last bucket to end at 'end' (Now).
+        // So we calculate bucket starts backwards.
+        
+        val calculatedBuckets = mutableListOf<DosageBucket>()
+        var bucketEnd = end.atZone(zoneId)
+        
+        for (i in 0 until bucketCount) {
+            val bucketStart = bucketEnd.minus(step)
+            
+            val bucketStartInstant = bucketStart.toInstant()
+            val bucketEndInstant = bucketEnd.toInstant()
+            
+            val initialUnit = ingestions.firstOrNull()?.ingestion?.units ?: "mg"
+            
+            // Filter ingestions in this bucket
+            val ingestionsInBucket = ingestions.filter { 
+                it.ingestion.time >= bucketStartInstant && it.ingestion.time < bucketEndInstant 
+            }
+            
+            // Sum dose. We need to handle mixed units? For now assume same unit or just sum pure values if possible.
+            // Ingestion entity has 'dose' (Double) and 'units' (String).
+            // We should filter for the main unit or try to convert. 
+            // Simplified: Sum only matching units or assume they match.
+            val totalDose = ingestionsInBucket.sumOf { it.ingestion.dose ?: 0.0 }
+            
+            // Label
+            // val date = LocalDateTime.ofInstant(bucketStart, zoneId) // No longer needed
+            val label = when(timeRange) {
+                DosageTimeRange.DAYS_30 -> DateTimeFormatter.ofPattern("dd").format(bucketStart)
+                DosageTimeRange.WEEKS_26 -> {
+                    // Week number or start date? Screenshot shows just bars.
+                    // Let's use Month name if it changes, or simple ticks.
+                    // For specific chart logic:
+                    // If first of month, show Month. 
+                    // Let's just return a date label.
+                    DateTimeFormatter.ofPattern("dd.MM").format(bucketStart)
+                }
+                DosageTimeRange.MONTHS_12, DosageTimeRange.YEAR -> DateTimeFormatter.ofPattern("MMM").format(bucketStart)
+            }
+             val fullDate = DateTimeFormatter.ofPattern("dd MMM yyyy").format(bucketStart)
+
+            calculatedBuckets.add(0, DosageBucket(label, fullDate, totalDose, initialUnit))
+            
+            bucketEnd = bucketStart
+        }
+        
+        return calculatedBuckets
+    }
+}
+
+enum class DosageTimeRange(val displayText: String, val title: String, val period: Period) {
+    DAYS_30("30D", "Last 30 Days", Period.ofDays(30)),
+    WEEKS_26("26W", "Last 26 Weeks", Period.ofWeeks(26)),
+    MONTHS_12("12M", "Last 12 Months", Period.ofMonths(12)),
+    YEAR("Y", "Last Year", Period.ofYears(1))
 }
 
 data class IngestionsBurst(

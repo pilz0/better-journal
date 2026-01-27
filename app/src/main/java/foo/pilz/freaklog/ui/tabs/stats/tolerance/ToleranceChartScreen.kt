@@ -20,6 +20,7 @@ package foo.pilz.freaklog.ui.tabs.stats.tolerance
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -38,6 +39,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -115,12 +117,22 @@ fun ToleranceChartScreenContent(
     onAddTap: () -> Unit
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
+    var showLimitationsSheet by remember { mutableStateOf(false) }
+    var showInfoSheet by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Tolerance") }
-            )
+           // If we want a large title, we might put it in the scrollable content or use LargeTopAppBar.
+           // For now keeping TopAppBar but maybe we should center or customize.
+           // User screenshot shows "Tolerance" as a large header.
+           TopAppBar(
+               title = {
+                   Text(
+                       text = "Tolerance",
+                       style = MaterialTheme.typography.displaySmall // Larger title
+                   )
+               }
+           )
         }
     ) { padding ->
         Column(
@@ -130,31 +142,46 @@ fun ToleranceChartScreenContent(
                 .padding(horizontal = horizontalPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            CardWithTitle(title = "Chart Settings") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Start Date")
-                    TextButton(onClick = { showDatePicker = true }) {
-                        val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-                        val localDate = sinceDate.atZone(ZoneId.systemDefault()).toLocalDate()
-                        Text(localDate.format(dateFormatter))
-                    }
-                }
+            // Settings Area
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable { showDatePicker = true }
+                    .padding(vertical = 8.dp, horizontal = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Start Date",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                val dateFormatter = DateTimeFormatter.ofPattern("dd. MM. yyyy")
+                val localDate = sinceDate.atZone(ZoneId.systemDefault()).toLocalDate()
+                Text(
+                    text = localDate.format(dateFormatter),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Relative time")
-                    Switch(
-                        checked = isTimeRelative,
-                        onCheckedChange = onChangeIsTimeRelative
-                    )
-                }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+                    .padding(horizontal = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Relative time",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Switch(
+                    checked = isTimeRelative,
+                    onCheckedChange = onChangeIsTimeRelative
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -176,7 +203,6 @@ fun ToleranceChartScreenContent(
             } else {
                 ToleranceChart(
                     toleranceWindows = toleranceData.toleranceWindows,
-                    numberOfRows = toleranceData.numberOfSubstancesInChart,
                     isTimeRelative = isTimeRelative,
                     sinceDate = sinceDate
                 )
@@ -184,17 +210,27 @@ fun ToleranceChartScreenContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            CardWithTitle(title = "Chart Limitations") {
-                Text(
-                    text = "This chart shows estimated tolerance windows based on general guidelines. " +
-                            "Individual tolerance varies significantly based on genetics, frequency of use, " +
-                            "and other factors. The data is approximate and should not be used as medical advice.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            Text(
+                text = "Excluding 2C-B, Bupropion, Ibuprofen, Progesterone, Methylphenidate, 4-MMC, 5-Hydroxytryptophan, Paracetamol, Ketamine, N-Acetylcysteine, and Lisdexamfetamine because of missing tolerance info",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+
+            InfoRow(
+                title = "Chart Limitations",
+                onClick = { showLimitationsSheet = true }
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            InfoRow(
+                title = "Tolerance Info",
+                onClick = { showInfoSheet = true }
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 
@@ -225,12 +261,58 @@ fun ToleranceChartScreenContent(
             DatePicker(state = datePickerState)
         }
     }
+    
+    if (showLimitationsSheet) {
+        ChartLimitationsSheet(
+            onDismissRequest = { showLimitationsSheet = false }
+        )
+    }
+
+    if (showInfoSheet) {
+        ToleranceInfoSheet(
+            onDismissRequest = { showInfoSheet = false }
+        )
+    }
+}
+
+@Composable
+fun InfoRow(
+    title: String,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .clickable(onClick = onClick)
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Default.Info, // Or a specific icon if needed
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
 }
 
 @Composable
 fun ToleranceChart(
     toleranceWindows: List<ToleranceWindow>,
-    numberOfRows: Int,
     isTimeRelative: Boolean,
     sinceDate: Instant
 ) {
@@ -247,156 +329,138 @@ fun ToleranceChart(
     val nowMillis = now.toEpochMilli()
     val minTimeMillis = minTime.toEpochMilli()
 
-    val substanceNames = toleranceWindows.map { it.substanceName }.distinct()
-    val rowHeight = 30.dp
+    // Distinct substances, sorted if needed. The input list toleranceWindows contains all windows.
+    // We need to know which substance goes to which row.
+    // The view model seems to provide them sorted by name or so.
+    val substanceNames = toleranceWindows.map { it.substanceName }.distinct().sorted()
+    val numberOfRows = substanceNames.size
+    
+    val rowHeight = 32.dp
     val chartHeight = rowHeight * numberOfRows
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        // Chart
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(chartHeight)
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-        ) {
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                val canvasWidth = size.width
-                val canvasHeight = size.height
-                val singleRowHeight = canvasHeight / numberOfRows
-
-                // Draw vertical grid lines (every 7 days)
-                val oneWeekMillis = Duration.ofDays(7).toMillis()
-                // Find start of first week after minTime
-                // Simple approach: start from minTime and go forward
-                var currentGridTime = minTimeMillis
-                while (currentGridTime <= maxTime.toEpochMilli()) {
-                     val gridX = ((currentGridTime - minTimeMillis).toFloat() / totalDuration) * canvasWidth
-                     if (gridX in 0f..canvasWidth) {
-                         drawLine(
-                            color = if (isDarkTheme) Color.White.copy(alpha = 0.1f) else Color.Black.copy(alpha = 0.1f),
-                            start = Offset(gridX, 0f),
-                            end = Offset(gridX, canvasHeight),
-                            strokeWidth = 1f
-                         )
-                     }
-                     currentGridTime += oneWeekMillis
-                }
-
-                toleranceWindows.forEach { window ->
-                    val substanceIndex = substanceNames.indexOf(window.substanceName)
-                    if (substanceIndex >= 0) {
-                        val startMillis = window.start.toEpochMilli().coerceAtLeast(minTimeMillis)
-                        val endMillis = window.end.toEpochMilli()
-                        
-                        // Only draw if the window (or part of it) is visible
-                        if (endMillis > minTimeMillis) {
-                            val startX = ((startMillis - minTimeMillis).toFloat() / totalDuration) * canvasWidth
-                            val endX = ((endMillis - minTimeMillis).toFloat() / totalDuration) * canvasWidth
-                            val topY = substanceIndex * singleRowHeight
-                            val barWidth = (endX - startX).coerceAtLeast(1f)
-
-                            drawRoundRect(
-                                color = window.barColor,
-                                topLeft = Offset(startX, topY + 4),
-                                size = Size(barWidth, singleRowHeight - 8),
-                                cornerRadius = CornerRadius(10f, 10f)
-                            )
-                        }
+        
+        Row(modifier = Modifier.fillMaxWidth()) {
+            // Substance Labels Column
+            Column(
+                modifier = Modifier
+                    .width(100.dp) // Fixed width for labels
+                    .padding(end = 8.dp)
+            ) {
+                substanceNames.forEach { name ->
+                    Box(
+                        modifier = Modifier.height(rowHeight),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Text(
+                            text = name,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1
+                        )
                     }
-                }
-
-                // Draw current time line
-                val nowX = ((nowMillis - minTimeMillis).toFloat() / totalDuration) * canvasWidth
-                if (nowX in 0f..canvasWidth) {
-                    drawLine(
-                        color = if (isDarkTheme) Color.White else Color.Black,
-                        start = Offset(nowX, 0f),
-                        end = Offset(nowX, canvasHeight),
-                        strokeWidth = 2f
-                    )
                 }
             }
 
-            // Substance labels
-            Column(modifier = Modifier.fillMaxSize()) {
-                substanceNames.forEach { name ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(rowHeight)
-                            .clip(RoundedCornerShape(8.dp)),
-                        contentAlignment = Alignment.CenterEnd
-                    ) {
-                        val offset = Offset(1.0f, 1.0f,)
-                        Text(
-                            modifier = Modifier.padding(5.dp),
-                            text = name,
-                            textAlign = TextAlign.Left,
-                            color = if (isDarkTheme) Color.LightGray else Color.Black,
-                            style = MaterialTheme.typography.labelSmall.merge(
-                                TextStyle(
-                                    shadow = Shadow(
-                                        color = Color.LightGray, offset = offset, blurRadius = 2f
-                                    ),
-                                    platformStyle = PlatformTextStyle(
-                                        includeFontPadding = false
-                                    ),
-                                    lineHeightStyle = LineHeightStyle(
-                                        alignment = LineHeightStyle.Alignment.Top,
-                                        trim = LineHeightStyle.Trim.None
-                                    )
+            // Chart Area
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(chartHeight)
+            ) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val canvasWidth = size.width
+                    val canvasHeight = size.height
+                    val singleRowHeight = canvasHeight / numberOfRows
+
+                    // Draw vertical grid lines (every 7 days? Or monthly?)
+                    // Screenshot shows monthly/weekly lines. Let's stick to weekly for now or calculate roughly.
+                    val oneWeekMillis = Duration.ofDays(7).toMillis()
+                    var currentGridTime = minTimeMillis
+                    
+                    // Alleviate start offset to align with week boundaries if possible, but simple fixed step is fine for now
+                    while (currentGridTime <= maxTime.toEpochMilli()) {
+                         val gridX = ((currentGridTime - minTimeMillis).toFloat() / totalDuration) * canvasWidth
+                         if (gridX in 0f..canvasWidth) {
+                             drawLine(
+                                color = if (isDarkTheme) Color.White.copy(alpha = 0.1f) else Color.Black.copy(alpha = 0.1f),
+                                start = Offset(gridX, 0f),
+                                end = Offset(gridX, canvasHeight),
+                                strokeWidth = 1f
+                             )
+                         }
+                         currentGridTime += oneWeekMillis
+                    }
+
+                    toleranceWindows.forEach { window ->
+                        val substanceIndex = substanceNames.indexOf(window.substanceName)
+                        if (substanceIndex >= 0) {
+                            val startMillis = window.start.toEpochMilli().coerceAtLeast(minTimeMillis)
+                            val endMillis = window.end.toEpochMilli()
+                            
+                            if (endMillis > minTimeMillis) {
+                                val startX = ((startMillis - minTimeMillis).toFloat() / totalDuration) * canvasWidth
+                                val endX = ((endMillis - minTimeMillis).toFloat() / totalDuration) * canvasWidth
+                                val topY = substanceIndex * singleRowHeight
+                                val barWidth = (endX - startX).coerceAtLeast(2f) // Minimum visible width
+
+                                // Bar height slightly smaller than row
+                                val barHeight = singleRowHeight.toDp().toPx() * 0.6f
+                                val barTopOffset = (singleRowHeight - barHeight) / 2
+
+                                drawRoundRect(
+                                    color = window.barColor,
+                                    topLeft = Offset(startX, topY + barTopOffset),
+                                    size = Size(barWidth, barHeight),
+                                    cornerRadius = CornerRadius(4.dp.toPx(), 4.dp.toPx())
                                 )
-                            ),
+                            }
+                        }
+                    }
+
+                    // Draw current time line
+                    val nowX = ((nowMillis - minTimeMillis).toFloat() / totalDuration) * canvasWidth
+                    if (nowX in 0f..canvasWidth) {
+                        drawLine(
+                            color = Color.White, // Strong white as in screenshot
+                            start = Offset(nowX, 0f),
+                            end = Offset(nowX, canvasHeight),
+                            strokeWidth = 2f
                         )
                     }
                 }
             }
         }
 
-        // Time labels
-        Box(
+        // Time labels below chart
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 4.dp)
+                .padding(start = 100.dp) // Align with chart start
         ) {
-            // Start Label
-            Text(
-                text = if (isTimeRelative) {
-                    getRelativeTimeLabel(minTime)
-                } else {
-                    minTime.getStringOfPattern("MMM d")
-                },
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.align(Alignment.CenterStart)
-            )
+              Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(top = 4.dp)
+                ) {
+                    Text(
+                        text = if (isTimeRelative) getRelativeTimeLabel(minTime) else minTime.getStringOfPattern("MMM d"),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.align(Alignment.CenterStart)
+                    )
 
-            // Now Label
-            // We use a custom layout logic or BiasAlignment
-            // Calculate bias: 0 is minTime, 1 is maxTime -> map to -1..1
-            val nowFraction = (nowMillis - minTimeMillis).toDouble() / totalDuration
-            if (nowFraction in 0.0..1.0) {
-                val bias = (nowFraction * 2) - 1
-                Text(
-                    text = if (isTimeRelative) "Now" else now.getStringOfPattern("MMM d"),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.align(BiasAlignment(bias.toFloat(), 0f))
-                )
-            }
-
-            // End Label
-            Text(
-                text = if (isTimeRelative) {
-                    getRelativeTimeLabel(maxTime)
-                } else {
-                    maxTime.getStringOfPattern("MMM d")
-                },
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.align(Alignment.CenterEnd)
-            )
+                    // We could add more intermediate labels if needed
+                    
+                    Text(
+                        text = if (isTimeRelative) getRelativeTimeLabel(maxTime) else maxTime.getStringOfPattern("MMM d"),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.align(Alignment.CenterEnd)
+                    )
+                }
         }
+
     }
 }
 

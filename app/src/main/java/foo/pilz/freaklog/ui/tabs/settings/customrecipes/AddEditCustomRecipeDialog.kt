@@ -229,7 +229,7 @@ fun RecipeComponentEditor(
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .menuAnchor(),
+                        .menuAnchor(MenuAnchorType.PrimaryEditable, true),
                     colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
                 )
 

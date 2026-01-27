@@ -55,6 +55,14 @@ import foo.pilz.freaklog.ui.theme.JournalTheme
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import foo.pilz.freaklog.ui.utils.getDateWithWeekdayText
 import foo.pilz.freaklog.ui.utils.getShortTimeText
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Switch
+import androidx.compose.ui.draw.scale
 
 @Composable
 fun SubstanceCompanionScreen(
@@ -72,7 +80,12 @@ fun SubstanceCompanionScreen(
             ingestionBursts = viewModel.ingestionBurstsFlow.collectAsState().value,
             tolerance = viewModel.tolerance,
             crossTolerances = viewModel.crossTolerances,
-            consumerName = viewModel.consumerName
+            consumerName = viewModel.consumerName,
+            dosageBuckets = viewModel.dosageChartDataFlow.collectAsState().value,
+            selectedTimeRange = viewModel.selectedTimeRange.collectAsState().value,
+            onTimeRangeSelected = viewModel::setTimeRange,
+            showAverage = viewModel.showAverage.collectAsState().value,
+            onToggleShowAverage = viewModel::toggleShowAverage
         )
     }
 }
@@ -104,7 +117,12 @@ fun SubstanceCompanionScreen(
     ingestionBursts: List<IngestionsBurst>,
     tolerance: Tolerance?,
     crossTolerances: List<String>,
-    consumerName: String? = null
+    consumerName: String? = null,
+    dosageBuckets: List<DosageBucket> = emptyList(),
+    selectedTimeRange: DosageTimeRange = DosageTimeRange.WEEKS_26,
+    onTimeRangeSelected: (DosageTimeRange) -> Unit = {},
+    showAverage: Boolean = false,
+    onToggleShowAverage: (Boolean) -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -123,6 +141,95 @@ fun SubstanceCompanionScreen(
                 .padding(horizontal = horizontalPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Dosage Stats Section
+            item {
+                ElevatedCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        // Time Range Selector
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    MaterialTheme.colorScheme.surfaceVariant,
+                                    RoundedCornerShape(8.dp)
+                                )
+                                .padding(4.dp),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            DosageTimeRange.values().forEach { range ->
+                                val isSelected = range == selectedTimeRange
+                                val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
+                                val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .background(backgroundColor, RoundedCornerShape(6.dp))
+                                        .clickable { onTimeRangeSelected(range) }
+                                        .padding(vertical = 6.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = range.displayText,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = contentColor
+                                    )
+                                }
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        Text(
+                            text = "Dosage by week", // Dynamic based on selection? "Dosage by " + logic
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        
+                        Text(
+                            text = selectedTimeRange.title,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        DosageBarChart(
+                            buckets = dosageBuckets,
+                            barColor = substanceCompanion.color.getComposeColor(isSystemInDarkTheme()),
+                            showAverage = showAverage,
+                            height = 200.dp
+                        )
+                    }
+                    
+                    // Show Average Toggle Section
+                    HorizontalDivider()
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onToggleShowAverage(!showAverage) }
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Show Average",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Switch(
+                            checked = showAverage,
+                            onCheckedChange = onToggleShowAverage,
+                            modifier = Modifier.scale(0.8f)
+                        )
+                    }
+                }
+            }
+
             item {
                 if (tolerance != null || crossTolerances.isNotEmpty()) {
                     CardWithTitle(title = "Tolerance", modifier = Modifier.fillMaxWidth()) {
