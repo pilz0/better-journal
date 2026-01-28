@@ -307,6 +307,9 @@ fun ChooseDoseScreen(
                     OptionalDosageUnitDisclaimer(substanceName)
                 }
             }
+            if (substanceName == "Alcohol") {
+                AlcoholCalculator(onApplyDose = onChangeDoseText)
+            }
             ElevatedCard(
                 modifier = Modifier.padding(
                     horizontal = horizontalPadding,
