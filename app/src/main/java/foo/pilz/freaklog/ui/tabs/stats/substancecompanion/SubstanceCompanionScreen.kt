@@ -186,8 +186,15 @@ fun SubstanceCompanionScreen(
                         
                         Spacer(modifier = Modifier.height(16.dp))
                         
+                        val chartTitle = when (selectedTimeRange) {
+                            DosageTimeRange.DAYS_30 -> "Dosage by day"
+                            DosageTimeRange.WEEKS_26 -> "Dosage by week"
+                            DosageTimeRange.MONTHS_12 -> "Dosage by month"
+                            DosageTimeRange.YEAR -> "Dosage by month"
+                        }
+                        
                         Text(
-                            text = "Dosage by week", // Dynamic based on selection? "Dosage by " + logic
+                            text = chartTitle,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

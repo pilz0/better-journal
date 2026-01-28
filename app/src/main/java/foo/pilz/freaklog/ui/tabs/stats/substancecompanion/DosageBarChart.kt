@@ -45,7 +45,7 @@ fun DosageBarChart(
     val labelStyle = MaterialTheme.typography.labelSmall
     val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
     val gridColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-    val averageColor = Color.White.copy(alpha = 0.8f) // Or specific color from design
+    val averageColor = Color.White.copy(alpha = 0.8f)
 
     Box(
         modifier = modifier
@@ -54,52 +54,78 @@ fun DosageBarChart(
             .padding(16.dp)
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
-            val width = size.width
-            val height = size.height
-            val bottomPadding = 24.dp.toPx() // Space for X-axis labels
-            val chartHeight = height - bottomPadding
-
+            val totalWidth = size.width
+            val totalHeight = size.height
+            
+            // Calculate Y-Axis range
             val maxDose = buckets.maxOfOrNull { it.totalDose }?.takeIf { it > 0 } ?: 1.0
-            // Add some headroom
             val yMax = maxDose * 1.2
+            val gridLines = 4 // Increased grid lines for better readability
 
-            // Draw Grid Lines (Horizontal)
-            val gridLines = 3
+            // Measure widest text for Y-Axis labels to reserve space
+            // We measure the largest value we might display
+            val yAxisLabelSample = textMeasurer.measure(
+                text = yMax.toInt().toString(), // Approximate widest label
+                style = labelStyle
+            )
+            val yAxisLabelWidth = yAxisLabelSample.size.width + 8.dp.toPx() // Label width + padding
+            val bottomPadding = 24.dp.toPx()
+            
+            val chartWidth = totalWidth - yAxisLabelWidth
+            val chartHeight = totalHeight - bottomPadding
+
+            // Draw Y-Axis Labels & Grid Lines
             for (i in 0..gridLines) {
-                val y = chartHeight - (chartHeight * (i.toFloat() / gridLines))
-                drawLine(
-                    color = gridColor,
-                    start = Offset(0f, y),
-                    end = Offset(width, y),
-                    strokeWidth = 1.dp.toPx()
-                )
-                
-                // Y-Axis Labels
-                if (i > 0) {
-                     val value = (yMax * (i.toFloat() / gridLines)).toInt() // Simplified integer labels for now
+                 val fraction = i.toFloat() / gridLines
+                 val y = chartHeight - (chartHeight * fraction)
+                 val value = (yMax * fraction).toInt()
+                 
+                 // Grid line
+                 // Only draw if not the bottom-most line (0), or draw all? Usually cleaner to draw all or skip 0 if it overlaps X-axis.
+                 // Let's draw horizontal lines across the chart area
+                 drawLine(
+                     color = gridColor,
+                     start = Offset(yAxisLabelWidth, y),
+                     end = Offset(totalWidth, y),
+                     strokeWidth = 1.dp.toPx()
+                 )
+
+                 // Y-Axis Label
+                 // We only draw labels for non-zero values to keep it clean, or all.
+                 // Let's skip 0 if it interferes with X-axis labels to some extent, but 0 is usually fine.
+                 if (i >= 0) {
                      val textLayoutResult = textMeasurer.measure(
                          text = value.toString(),
                          style = labelStyle.copy(color = labelColor)
                      )
+                     // Right-align text within the yAxisLabelWidth area
                      drawText(
                          textLayoutResult = textLayoutResult,
-                         topLeft = Offset(width - textLayoutResult.size.width, y - textLayoutResult.size.height - 4.dp.toPx())
+                         topLeft = Offset(
+                             x = yAxisLabelWidth - textLayoutResult.size.width - 6.dp.toPx(), // padding from line
+                             y = y - textLayoutResult.size.height / 2 // Center vertically on the line
+                         )
                      )
-                }
+                 }
             }
 
             // Draw Bars
             val barCount = buckets.size
-            val barSpacing = width / barCount
-            // We want some gap between bars. let's say 20% gap.
-            val barWidth = barSpacing * 0.7f
-            val gap = barSpacing * 0.15f // half gap on each side
+            // Use available chart width
+            val barSpacing = chartWidth / barCount
+            val barWidth = barSpacing * 0.6f
+            val gap = barSpacing * 0.2f 
 
             buckets.forEachIndexed { index, bucket ->
-                val x = (index * barSpacing) + gap
+                // x relative to chart start
+                val xOffset = index * barSpacing + gap + ((barSpacing - 2*gap - barWidth)/2) // Center bar in slot
+                // absolute x
+                val x = yAxisLabelWidth + xOffset
+                
                 val barHeight = (bucket.totalDose / yMax) * chartHeight
                 val top = chartHeight - barHeight.toFloat()
 
+                // Draw bar
                 drawRoundRect(
                     color = barColor,
                     topLeft = Offset(x, top.toFloat()),
@@ -107,20 +133,20 @@ fun DosageBarChart(
                     cornerRadius = CornerRadius(4.dp.toPx(), 4.dp.toPx())
                 )
 
-                // Draw X-Axis Labels (every nth label to avoid overcrowding if many buckets)
-                // For simplified version, let's try to draw meaningful ones, e.g. first, middle, last or if few enough, all.
-                // Logic can be refined. For now, draw if it fits or modulo.
-                val skip = if(barCount > 15) barCount / 6 else 1
+                // X-Axis Labels
+                val skip = if(barCount > 10) barCount / 5 else 1
                 if (index % skip == 0) {
                     val textLayoutResult = textMeasurer.measure(
                         text = bucket.label,
                         style = labelStyle.copy(color = labelColor)
                     )
-                    // Center text below bar
-                    val textX = x + (barWidth - textLayoutResult.size.width) / 2
+                    // Center text below the bar slot
+                    val slotCenter = yAxisLabelWidth + (index * barSpacing) + (barSpacing / 2)
+                    val textX = slotCenter - (textLayoutResult.size.width / 2)
+                    
                     drawText(
                         textLayoutResult = textLayoutResult,
-                        topLeft = Offset(textX, height - textLayoutResult.size.height)
+                        topLeft = Offset(textX, chartHeight + 6.dp.toPx())
                     )
                 }
             }
@@ -128,12 +154,12 @@ fun DosageBarChart(
             // Draw Average Line
             if (showAverage) {
                 val averageDose = buckets.map { it.totalDose }.average()
-                if (averageDose > 0) {
+                if (averageDose > 0 && averageDose <= yMax) {
                     val avgY = chartHeight - ((averageDose / yMax) * chartHeight).toFloat()
                     drawLine(
                         color = averageColor,
-                        start = Offset(0f, avgY),
-                        end = Offset(width, avgY),
+                        start = Offset(yAxisLabelWidth, avgY),
+                        end = Offset(totalWidth, avgY),
                         strokeWidth = 2.dp.toPx(),
                         pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
                     )
