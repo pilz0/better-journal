@@ -129,8 +129,8 @@ class DoseClassTest {
     @Test
     fun testAllDoseClasses_haveDifferentColors() {
         val darkColors = DoseClass.entries.map { it.getComposeColor(isDarkTheme = true) }
-        // Each dose class should have a distinct color
-        assertEquals(5, darkColors.toSet().size)
+        // Each dose class should have a distinct color - set size should equal enum size
+        assertEquals(DoseClass.entries.size, darkColors.toSet().size)
     }
 
     @Test

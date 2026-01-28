@@ -82,10 +82,10 @@ class DateUtilsTest {
     fun testGetDateWithWeekdayText_format() {
         val instant = getInstant(2022, 9, 23, 12, 0)!!
         val result = instant.getDateWithWeekdayText()
-        // Should be in format "EEE dd MMM yyyy" like "Fri 23 Sep 2022"
+        // Should be in format "EEE dd MMM yyyy" which includes day of month and year
         assertNotNull(result)
         assertTrue(result.contains("23"))
-        assertTrue(result.contains("Sep") || result.contains("September") || result.contains("2022"))
+        assertTrue(result.contains("2022"))
     }
 
     @Test
