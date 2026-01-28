@@ -173,7 +173,7 @@ Many substances can be inhaled to achieve an altered state of consciousness, how
      * Returns true if site selection (nostril or injection location) is relevant for this route.
      */
     val showSiteSelection: Boolean
-        get() = this in listOf(INSUFFLATED, INTRAVENOUS, INTRAMUSCULAR, SUBCUTANEOUS)
+        get() = this in listOf(INSUFFLATED, INTRAVENOUS, INTRAMUSCULAR, SUBCUTANEOUS, TRANSDERMAL)
 
     /**
      * Returns the appropriate site options for this administration route.
@@ -184,6 +184,7 @@ Many substances can be inhaled to achieve an altered state of consciousness, how
         get() = when (this) {
             INSUFFLATED -> NOSTRIL_OPTIONS
             INTRAVENOUS, INTRAMUSCULAR, SUBCUTANEOUS -> INJECTION_SITE_OPTIONS
+            TRANSDERMAL -> TRANSDERMAL_OPTIONS
             else -> emptyList()
         }
 
@@ -205,6 +206,14 @@ Many substances can be inhaled to achieve an altered state of consciousness, how
             "Right Basilic",
             "Right Dorsal Hand",
             "Right Median Antebrachial",
+        )
+        val TRANSDERMAL_OPTIONS = listOf(
+            "Left arm",
+            "Right arm",
+            "Chest",
+            "Back",
+            "Left thigh",
+            "Right thigh",
         )
     }
 }
