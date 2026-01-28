@@ -39,7 +39,7 @@ fun AddEditReminderDialog(
     var title by remember { mutableStateOf(reminderToEdit?.title ?: "") }
     
     var intervalValue by remember { mutableStateOf(reminderToEdit?.intervalValue?.toString() ?: "1") }
-    var intervalUnit by remember { mutableStateOf(reminderToEdit?.intervalUnit ?: "DAYS") }
+    var intervalUnit by remember { mutableStateOf(reminderToEdit?.intervalUnit ?: "Days") }
     var expanded by remember { mutableStateOf(false) }
 
     AlertDialog(
@@ -70,7 +70,7 @@ fun AddEditReminderDialog(
                              Text(intervalUnit)
                          }
                          DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                             listOf("MINUTES", "HOURS", "DAYS").forEach { unit ->
+                             listOf("Minutes", "Hours", "Days").forEach { unit ->
                                  DropdownMenuItem(
                                      text = { Text(unit) },
                                      onClick = {

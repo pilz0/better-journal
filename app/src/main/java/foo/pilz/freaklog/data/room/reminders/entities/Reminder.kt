@@ -18,5 +18,5 @@ data class Reminder(
     @ColumnInfo(defaultValue = "1")
     val intervalValue: Int = 1,
     @ColumnInfo(defaultValue = "DAYS")
-    val intervalUnit: String = "DAYS"
+    val intervalUnit: String = "Days"
 )

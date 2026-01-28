@@ -70,7 +70,7 @@ class NotificationScheduler @Inject constructor(
             // For now, let's keep it simple: if strict daily was "add 1 day",
             // flexible is "add interval until in future"
             
-            val intervalMillis = when (reminder.intervalUnit) {
+            val intervalMillis = when (reminder.intervalUnit.uppercase()) {
                 "MINUTES" -> reminder.intervalValue * 60 * 1000L
                 "HOURS" -> reminder.intervalValue * 60 * 60 * 1000L
                 "DAYS" -> reminder.intervalValue * 24 * 60 * 60 * 1000L

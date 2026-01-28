@@ -122,14 +122,10 @@ fun ToleranceChartScreenContent(
 
     Scaffold(
         topBar = {
-           // If we want a large title, we might put it in the scrollable content or use LargeTopAppBar.
-           // For now keeping TopAppBar but maybe we should center or customize.
-           // User screenshot shows "Tolerance" as a large header.
            TopAppBar(
                title = {
                    Text(
                        text = "Tolerance",
-                       style = MaterialTheme.typography.displaySmall // Larger title
                    )
                }
            )
