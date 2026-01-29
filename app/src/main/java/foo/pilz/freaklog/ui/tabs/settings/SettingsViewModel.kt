@@ -60,6 +60,26 @@ class SettingsViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000)
     )
 
+    fun saveIsStatsHidden(value: Boolean) = viewModelScope.launch {
+        userPreferences.saveIsStatsHidden(value)
+    }
+
+    val isStatsHiddenFlow = userPreferences.isStatsHiddenFlow.stateIn(
+        initialValue = false,
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000)
+    )
+
+    fun saveIsDrugsHidden(value: Boolean) = viewModelScope.launch {
+        userPreferences.saveIsDrugsHidden(value)
+    }
+
+    val isDrugsHiddenFlow = userPreferences.isDrugsHiddenFlow.stateIn(
+        initialValue = false,
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000)
+    )
+
     val areSubstanceHeightsIndependentFlow =
         userPreferences.areSubstanceHeightsIndependentFlow.stateIn(
             initialValue = false,

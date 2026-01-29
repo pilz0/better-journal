@@ -99,6 +99,8 @@ fun MainScreen(
         }
 
         val hideSafer = viewModel.activateSaferFlow.collectAsState().value
+        val hideStats = viewModel.isStatsHiddenFlow.collectAsState().value
+        val hideDrugs = viewModel.isDrugsHiddenFlow.collectAsState().value
 
         HapticFeedbackProvider(isEnabled = isHapticEnabled) {
             val performHaptic = rememberHaptic()
@@ -106,7 +108,7 @@ fun MainScreen(
             NavigationSuiteScaffold(
                 navigationSuiteItems = {
                     val currentDestination = navBackStackEntry?.destination
-                    topLevelRoutes(hideSafer).forEach { topLevelRoute ->
+                    topLevelRoutes(hideSafer, hideStats, hideDrugs).forEach { topLevelRoute ->
                         val selected =
                             currentDestination?.hierarchy?.any { it.hasRoute(topLevelRoute.route::class) } == true
                         item(
@@ -122,7 +124,7 @@ fun MainScreen(
                                 performHaptic(HapticType.CLICK)
                                 if (selected) {
                                     val isAlreadyOnTopOfTab =
-                                        topLevelRoutes(hideSafer).any { it.route == currentDestination?.route }
+                                        topLevelRoutes(hideSafer, hideStats, hideDrugs).any { it.route == currentDestination?.route }
                                     if (!isAlreadyOnTopOfTab) {
                                         navController.popBackStack()
                                     }

@@ -46,11 +46,13 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.QuestionAnswer
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material.icons.outlined.Webhook
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -112,6 +114,10 @@ fun SettingsPreview() {
         activateSafer = true,
         saveActivateSafer = {},
         isHapticFeedbackEnabled = true,
+        isStatsHidden = false,
+        saveIsStatsHidden = {},
+        isDrugsHidden = false,
+        saveIsDrugsHidden = {},
         saveHapticFeedbackEnabled = {},
         )
 }
@@ -143,6 +149,10 @@ fun SettingsScreen(
         saveIsTimelineHidden = viewModel::saveIsTimelineHidden,
         areSubstanceHeightsIndependent = viewModel.areSubstanceHeightsIndependentFlow.collectAsState().value,
         saveAreSubstanceHeightsIndependent = viewModel::saveAreSubstanceHeightsIndependent,
+        isStatsHidden = viewModel.isStatsHiddenFlow.collectAsState().value,
+        saveIsStatsHidden = viewModel::saveIsStatsHidden,
+        isDrugsHidden = viewModel.isDrugsHiddenFlow.collectAsState().value,
+        saveIsDrugsHidden = viewModel::saveIsDrugsHidden,
         activateSafer = viewModel.activateSaferFlow.collectAsState().value,
         saveActivateSafer = viewModel::saveActivateSafer,
         isHapticFeedbackEnabled = viewModel.isHapticFeedbackEnabledFlow.collectAsState().value,
@@ -169,6 +179,10 @@ fun SettingsScreen(
     saveIsTimelineHidden: (Boolean) -> Unit,
     areSubstanceHeightsIndependent: Boolean,
     saveAreSubstanceHeightsIndependent: (Boolean) -> Unit,
+    isStatsHidden: Boolean,
+    saveIsStatsHidden: (Boolean) -> Unit,
+    isDrugsHidden: Boolean,
+    saveIsDrugsHidden: (Boolean) -> Unit,
     activateSafer: Boolean,
     saveActivateSafer: (Boolean) -> Unit,
     isHapticFeedbackEnabled: Boolean,
@@ -222,6 +236,84 @@ fun SettingsScreen(
                 ) {
                     performHaptic(HapticType.CLICK)
                     navigateToReminders()
+                }
+                HorizontalDivider()
+                var isShowingVisibleTabsDialog by remember { mutableStateOf(false) }
+                SettingsButton(
+                    imageVector = Icons.Outlined.Visibility,
+                    text = "Visible tabs"
+                ) {
+                    performHaptic(HapticType.CLICK)
+                    isShowingVisibleTabsDialog = true
+                }
+                AnimatedVisibility(visible = isShowingVisibleTabsDialog) {
+                    AlertDialog(
+                        onDismissRequest = { isShowingVisibleTabsDialog = false },
+                        title = { Text("Visible tabs") },
+                        text = {
+                            Column {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            performHaptic(HapticType.TOGGLE)
+                                            saveIsStatsHidden(!isStatsHidden)
+                                        }
+                                ) {
+                                    Checkbox(
+                                        checked = !isStatsHidden,
+                                        onCheckedChange = {
+                                            performHaptic(HapticType.TOGGLE)
+                                            saveIsStatsHidden(!it)
+                                        }
+                                    )
+                                    Text("Stats")
+                                }
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            performHaptic(HapticType.TOGGLE)
+                                            saveIsDrugsHidden(!isDrugsHidden)
+                                        }
+                                ) {
+                                    Checkbox(
+                                        checked = !isDrugsHidden,
+                                        onCheckedChange = {
+                                            performHaptic(HapticType.TOGGLE)
+                                            saveIsDrugsHidden(!it)
+                                        }
+                                    )
+                                    Text("Drugs")
+                                }
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            performHaptic(HapticType.TOGGLE)
+                                            saveActivateSafer(!activateSafer)
+                                        }
+                                ) {
+                                    Checkbox(
+                                        checked = !activateSafer,
+                                        onCheckedChange = {
+                                            performHaptic(HapticType.TOGGLE)
+                                            saveActivateSafer(!it)
+                                        }
+                                    )
+                                    Text("Safer Use")
+                                }
+                            }
+                        },
+                        confirmButton = {
+                            TextButton(onClick = { isShowingVisibleTabsDialog = false }) {
+                                Text("Done")
+                            }
+                        }
+                    )
                 }
                 HorizontalDivider()
                 Row(
@@ -311,22 +403,7 @@ fun SettingsScreen(
                     )
                 }
                 HorizontalDivider()
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = horizontalPadding),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = "Hide Safer page")
-                    Switch(
-                        checked = activateSafer,
-                        onCheckedChange = { 
-                            performHaptic(HapticType.TOGGLE)
-                            saveActivateSafer(it)
-                        }
-                    )
-                }
+
                 HorizontalDivider()
                 Row(
                     modifier = Modifier

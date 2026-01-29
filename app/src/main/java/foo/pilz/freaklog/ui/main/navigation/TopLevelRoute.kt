@@ -20,13 +20,17 @@ data class TopLevelRoute<T : Any>(
     val filledIcon: ImageVector,
     val outlinedIcon: ImageVector,
 )
-fun topLevelRoutes(hideSafer: Boolean = false) = listOf(
+fun topLevelRoutes(hideSafer: Boolean = false, hideStats: Boolean = false, hideDrugs: Boolean = false) = listOf(
     TopLevelRoute("Stats", StatsTopLevelRoute, Icons.Filled.BarChart, Icons.Outlined.BarChart),
     TopLevelRoute("Journal", JournalTopLevelRoute, Icons.Filled.Book, Icons.Outlined.Book),
     TopLevelRoute("Drugs", DrugsTopLevelRoute, Icons.Filled.Medication, Icons.Outlined.Medication),
     TopLevelRoute("Safer", SaferUseTopLevelRoute, Icons.Filled.HealthAndSafety, Icons.Outlined.HealthAndSafety),
     TopLevelRoute("Settings", SettingsTopLevelRoute, Icons.Filled.Settings, Icons.Outlined.Settings)
-).filter { !hideSafer || it.route != SaferUseTopLevelRoute }
+).filter {
+    (!hideSafer || it.route != SaferUseTopLevelRoute) &&
+            (!hideStats || it.route != StatsTopLevelRoute) &&
+            (!hideDrugs || it.route != DrugsTopLevelRoute)
+}
 
 @Serializable
 object StatsTopLevelRoute

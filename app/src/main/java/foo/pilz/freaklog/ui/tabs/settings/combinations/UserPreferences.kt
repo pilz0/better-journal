@@ -49,6 +49,8 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
         val KEY_ARE_SUBSTANCE_HEIGHTS_INDEPENDENT = booleanPreferencesKey("KEY_ARE_SUBSTANCE_HEIGHTS_INDEPENDENT")
         val KEY_IS_TIMELINE_HIDDEN = booleanPreferencesKey("KEY_IS_TIMELINE_HIDDEN")
         val KEY_HIDE_SAFER = booleanPreferencesKey("KEY_HIDE_SAFER")
+        val KEY_HIDE_STATS = booleanPreferencesKey("KEY_HIDE_STATS")
+        val KEY_HIDE_DRUGS = booleanPreferencesKey("KEY_HIDE_DRUGS")
         val KEY_HAPTIC_FEEDBACK_ENABLED = booleanPreferencesKey("KEY_HAPTIC_FEEDBACK_ENABLED")
 
         val WEBHOOK_URL = stringPreferencesKey("webhook_url")
@@ -153,6 +155,26 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
     suspend fun saveActivateSafer(value: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.KEY_HIDE_SAFER] = value
+        }
+    }
+
+    val isStatsHiddenFlow: Flow<Boolean> = dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.KEY_HIDE_STATS] ?: false
+        }
+    suspend fun saveIsStatsHidden(value: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.KEY_HIDE_STATS] = value
+        }
+    }
+
+    val isDrugsHiddenFlow: Flow<Boolean> = dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.KEY_HIDE_DRUGS] ?: false
+        }
+    suspend fun saveIsDrugsHidden(value: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.KEY_HIDE_DRUGS] = value
         }
     }
 

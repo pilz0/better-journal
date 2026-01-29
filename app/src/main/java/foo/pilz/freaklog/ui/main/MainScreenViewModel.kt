@@ -56,6 +56,18 @@ class MainScreenViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000)
     )
 
+    val isStatsHiddenFlow = userPreferences.isStatsHiddenFlow.stateIn(
+        initialValue = false,
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000)
+    )
+
+    val isDrugsHiddenFlow = userPreferences.isDrugsHiddenFlow.stateIn(
+        initialValue = false,
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000)
+    )
+
     val isHapticFeedbackEnabledFlow = userPreferences.isHapticFeedbackEnabledFlow.stateIn(
         initialValue = true,
         scope = viewModelScope,
