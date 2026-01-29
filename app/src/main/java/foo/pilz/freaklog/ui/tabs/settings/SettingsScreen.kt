@@ -566,7 +566,7 @@ fun SettingsScreen(
             }
             CardWithTitle(title = "App", innerPaddingHorizontal = 0.dp) {
                 SettingsButton(imageVector = Icons.Outlined.Code, text = "Source Code") {
-                    uriHandler.openUri("https://woof.rip/pilz0/better-journal")
+                    uriHandler.openUri("https://woof.rip/FreakLog/FreakLog-Android")
                 }
                 HorizontalDivider()
                 LocalContext.current
