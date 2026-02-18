@@ -4133,6 +4133,142 @@
       ]
     },
     {
+      "name": "2-MMC",
+      "commonNames": [
+        "2-MMC",
+        "2-methylmethcathinone",
+        "Ortomephedrone"
+      ],
+      "url": "https://en.wikipedia.org/wiki/2-Methylmethcathinone",
+      "isApproved": false,
+      "tolerance": {
+        "full": "develops with prolonged and repeated use",
+        "half": "3 - 7 days",
+        "zero": "1 - 2 weeks"
+      },
+      "crossTolerances": [
+        "dopamine",
+        "stimulant"
+      ],
+      "addictionPotential": "extremely addictive with a high potential for abuse",
+      "toxicities": [],
+      "categories": [
+        "entactogen",
+        "stimulant",
+        "habit-forming",
+        "research-chemical"
+      ],
+      "summary": "A slightly less euphoric stimulant compared to mephedrone/metaphedrone. Never gained the same popularity. Less potent.",
+      "interactions": {
+        "dangerous": [
+          "25x-NBOMe",
+          "25x-NBOH",
+          "Tramadol",
+          "SNRIs",
+          "MAOI",
+          "Serotonin releasers",
+          "SSRIs",
+          "5-Hydroxytryptophan"
+        ],
+        "unsafe": [
+          "Dextromethorphan",
+          "MDMA",
+          "Stimulants"
+        ],
+        "uncertain": [
+          "Alcohol",
+          "Methoxetamine",
+          "Dissociatives"
+        ]
+      },
+      "roas": [
+        {
+          "name": "insufflated",
+          "dose": {
+            "units": "mg",
+            "lightMin": 20,
+            "commonMin": 30,
+            "strongMin": 50,
+            "heavyMin": 80
+          },
+          "duration": {
+            "onset": {
+              "min": 5,
+              "max": 10,
+              "units": "minutes"
+            },
+            "comeup": {
+              "min": 10,
+              "max": 20,
+              "units": "minutes"
+            },
+            "peak": {
+              "min": 1,
+              "max": 1.5,
+              "units": "hours"
+            },
+            "offset": {
+              "min": 1,
+              "max": 2,
+              "units": "hours"
+            },
+            "total": {
+              "min": 2.5,
+              "max": 4.5,
+              "units": "hours"
+            },
+            "afterglow": {
+              "min": 1,
+              "max": 1.5,
+              "units": "hours"
+            }
+          }
+        },
+        {
+          "name": "oral",
+          "dose": {
+            "units": "mg",
+            "lightMin": 50,
+            "commonMin": 100,
+            "strongMin": 150,
+            "heavyMin": 200
+          },
+          "duration": {
+            "onset": {
+              "min": 10,
+              "max": 30,
+              "units": "minutes"
+            },
+            "comeup": {
+              "min": 30,
+              "max": 60,
+              "units": "minutes"
+            },
+            "peak": {
+              "min": 2,
+              "max": 3,
+              "units": "hours"
+            },
+            "offset": {
+              "min": 1,
+              "max": 1.5,
+              "units": "hours"
+            },
+            "total": {
+              "min": 4,
+              "max": 6,
+              "units": "hours"
+            },
+            "afterglow": {
+              "min": 2,
+              "max": 4,
+              "units": "hours"
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "3,4-CTMP",
       "commonNames": [
         "3,4-CTMP"
