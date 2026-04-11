@@ -58,6 +58,9 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
         val WEBHOOK_NAME = stringPreferencesKey("webhook_name")
 
         val WEBHOOK_TEMPLATE = stringPreferencesKey("webhook_template")
+
+        val AI_API_KEY = stringPreferencesKey("ai_api_key")
+        val AI_MODEL_NAME = stringPreferencesKey("ai_model_name")
     }
 
     suspend fun saveTimeDisplayOption(value: SavedTimeDisplayOption) {
@@ -216,6 +219,28 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
     suspend fun saveHapticFeedbackEnabled(value: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.KEY_HAPTIC_FEEDBACK_ENABLED] = value
+        }
+    }
+
+    val aiApiKeyFlow: Flow<String> = dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.AI_API_KEY] ?: ""
+        }
+
+    suspend fun saveAiApiKey(value: String) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.AI_API_KEY] = value
+        }
+    }
+
+    val aiModelNameFlow: Flow<String> = dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.AI_MODEL_NAME] ?: "gemini-1.5-flash"
+        }
+
+    suspend fun saveAiModelName(value: String) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.AI_MODEL_NAME] = value
         }
     }
 }

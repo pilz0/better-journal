@@ -119,6 +119,10 @@ fun SettingsPreview() {
         isDrugsHidden = false,
         saveIsDrugsHidden = {},
         saveHapticFeedbackEnabled = {},
+        aiApiKey = "",
+        saveAiApiKey = {},
+        aiModelName = "gemini-1.5-flash",
+        saveAiModelName = {},
         )
 }
 
@@ -157,6 +161,10 @@ fun SettingsScreen(
         saveActivateSafer = viewModel::saveActivateSafer,
         isHapticFeedbackEnabled = viewModel.isHapticFeedbackEnabledFlow.collectAsState().value,
         saveHapticFeedbackEnabled = viewModel::saveHapticFeedbackEnabled,
+        aiApiKey = viewModel.aiApiKeyFlow.collectAsState().value,
+        saveAiApiKey = viewModel::saveAiApiKey,
+        aiModelName = viewModel.aiModelNameFlow.collectAsState().value,
+        saveAiModelName = viewModel::saveAiModelName,
     )
 }
 
@@ -187,6 +195,10 @@ fun SettingsScreen(
     saveActivateSafer: (Boolean) -> Unit,
     isHapticFeedbackEnabled: Boolean,
     saveHapticFeedbackEnabled: (Boolean) -> Unit,
+    aiApiKey: String,
+    saveAiApiKey: (String) -> Unit,
+    aiModelName: String,
+    saveAiModelName: (String) -> Unit,
 ) {
     val performHaptic = rememberHaptic()
     
@@ -421,6 +433,22 @@ fun SettingsScreen(
                         }
                     )
                 }
+            }
+            CardWithTitle(title = "AI Chatbot", innerPaddingHorizontal = horizontalPadding) {
+                androidx.compose.material3.OutlinedTextField(
+                    value = aiApiKey,
+                    onValueChange = saveAiApiKey,
+                    label = { Text("Gemini API Key") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                )
+                androidx.compose.material3.OutlinedTextField(
+                    value = aiModelName,
+                    onValueChange = saveAiModelName,
+                    label = { Text("Gemini Model Name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                )
             }
             CardWithTitle(title = "App data", innerPaddingHorizontal = 0.dp) {
                 var isShowingExportDialog by remember { mutableStateOf(false) }

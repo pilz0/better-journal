@@ -44,6 +44,7 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.ExposurePlus2
+import androidx.compose.material.icons.outlined.SmartToy
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.AlertDialog
@@ -127,6 +128,7 @@ fun ExperienceScreen(
     val experience = viewModel.experienceFlow.collectAsState().value
     val isFavorite = viewModel.isFavoriteFlow.collectAsState().value
     val oneExperienceScreenModel = OneExperienceScreenModel(
+        id = experience?.id ?: 0,
         isFavorite = isFavorite,
         title = experience?.title ?: "",
         firstIngestionTime = ingestionsWithCompanions.minOfOrNull { it.ingestion.time }
@@ -143,6 +145,16 @@ fun ExperienceScreen(
         consumersWithIngestions = viewModel.consumersWithIngestionsFlow.collectAsState().value,
         dataForEffectLines = viewModel.dataForEffectTimelinesFlow.collectAsState().value
     )
+    
+    var showAiChat by remember { mutableStateOf(false) }
+
+    if (showAiChat) {
+        foo.pilz.freaklog.ui.tabs.journal.experience.recommendations.AiChatBottomSheet(
+            experienceId = experience?.id ?: 0,
+            onDismiss = { showAiChat = false }
+        )
+    }
+
     ExperienceScreen(
         oneExperienceScreenModel = oneExperienceScreenModel,
         timelineDisplayOption = viewModel.timelineDisplayOptionFlow.collectAsState().value,
@@ -160,6 +172,7 @@ fun ExperienceScreen(
         navigateToAddTimedNoteScreen = navigateToAddTimedNoteScreen,
         navigateBack = navigateBack,
         saveIsFavorite = viewModel::saveIsFavorite,
+        openAiChat = { showAiChat = true },
         navigateToEditRatingScreen = navigateToEditRatingScreen,
         navigateToEditTimedNoteScreen = navigateToEditTimedNoteScreen,
         savedTimeDisplayOption = viewModel.savedTimeDisplayOption.collectAsState().value,
@@ -194,6 +207,7 @@ fun ExperienceScreenPreview(
             navigateToAddTimedNoteScreen = {},
             navigateBack = {},
             saveIsFavorite = {},
+            openAiChat = {},
             navigateToEditRatingScreen = {},
             navigateToEditTimedNoteScreen = {},
             savedTimeDisplayOption = SavedTimeDisplayOption.RELATIVE_TO_START,
@@ -221,6 +235,7 @@ fun ExperienceScreen(
     navigateToAddTimedNoteScreen: () -> Unit,
     navigateBack: () -> Unit,
     saveIsFavorite: (Boolean) -> Unit,
+    openAiChat: () -> Unit,
     navigateToEditRatingScreen: (ratingId: Int) -> Unit,
     navigateToEditTimedNoteScreen: (timedNoteId: Int) -> Unit,
     savedTimeDisplayOption: SavedTimeDisplayOption,
@@ -238,6 +253,7 @@ fun ExperienceScreen(
                 savedTimeDisplayOption = savedTimeDisplayOption,
                 deleteExperience = deleteExperience,
                 navigateBack = navigateBack,
+                openAiChat = openAiChat,
                 navigateToEditExperienceScreen = navigateToEditExperienceScreen,
                 saveIsFavorite = saveIsFavorite,
                 navigateToAddTimedNoteScreen = navigateToAddTimedNoteScreen,
@@ -757,6 +773,7 @@ private fun ExperienceTopBar(
     savedTimeDisplayOption: SavedTimeDisplayOption,
     deleteExperience: () -> Unit,
     navigateBack: () -> Unit,
+    openAiChat: () -> Unit,
     navigateToEditExperienceScreen: () -> Unit,
     saveIsFavorite: (Boolean) -> Unit,
     navigateToAddTimedNoteScreen: () -> Unit,
@@ -766,6 +783,12 @@ private fun ExperienceTopBar(
     TopAppBar(
         title = { Text(oneExperienceScreenModel.title) },
         actions = {
+            IconButton(onClick = openAiChat) {
+                Icon(
+                    androidx.compose.material.icons.Icons.Outlined.SmartToy,
+                    contentDescription = "AI Recommendations"
+                )
+            }
             var areTimeOptionsExpanded by remember { mutableStateOf(false) }
             IconButton(onClick = { areTimeOptionsExpanded = true }) {
                 Icon(Icons.Outlined.Timer, contentDescription = "Time display option")

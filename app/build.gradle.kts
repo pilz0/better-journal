@@ -14,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId = "foo.pilz.freaklog"
-        minSdk = 27
+        minSdk = 31
         targetSdk = 36
         versionCode = 70
         versionName = "11.17"
@@ -99,6 +99,9 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    implementation(libs.google.generativeai)
+    implementation(libs.compose.markdown)
 
     coreLibraryDesugaring(libs.android.desugarJdkLibs)
 }

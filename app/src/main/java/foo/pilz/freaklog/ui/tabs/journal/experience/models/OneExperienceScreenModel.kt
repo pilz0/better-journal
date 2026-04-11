@@ -25,6 +25,7 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.components.DataForOneEffectL
 import java.time.Instant
 
 data class OneExperienceScreenModel(
+    val id: Int,
     val isFavorite: Boolean,
     val title: String,
     val firstIngestionTime: Instant,
