@@ -453,6 +453,9 @@ interface ExperienceDao {
     @Query("SELECT * FROM ingestion WHERE substanceName = :substanceName ORDER BY time DESC LIMIT 1")
     suspend fun getLastIngestion(substanceName: String): Ingestion?
 
+    @Query("SELECT * FROM ingestion WHERE substanceName IN (:substanceNames) AND time > :since ORDER BY time DESC")
+    suspend fun getIngestionsSince(substanceNames: List<String>, since: Instant): List<Ingestion>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(substanceCompanion: SubstanceCompanion)
 
