@@ -66,11 +66,11 @@ class GetTimeDifferenceTextTest {
 
     @Test
     fun testExactlyThreeHours() {
-        // hours > 3 check uses > 3 (not >=3), so exactly 3 hours = 180 minutes = 3.0h
-        // 3.0 is NOT > 3, so should fall into the minutes branch
+        // hours > 3 check uses strict >, so exactly 3.0h is NOT > 3 → falls into the minutes branch
         val from = Instant.parse("2024-01-01T12:00:00Z")
         val to = Instant.parse("2024-01-01T15:00:00Z")
         val result = getTimeDifferenceText(from, to)
-        assertTrue(result.contains("minutes") || result.contains("hours"))
+        assertTrue(result.contains("minutes"))
+        assertTrue(result.contains("180"))
     }
 }

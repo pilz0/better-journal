@@ -175,6 +175,8 @@ jobs:
     needs: [ sign, build-app ]
     if: startsWith(github.ref, 'refs/tags/') && github.event_name == 'push'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Download files
         uses: actions/download-artifact@v5
