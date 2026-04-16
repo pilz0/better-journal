@@ -17,5 +17,24 @@ nix build .#aab
 ```
 The unsigned app bundle should be under `result/bin/`
 
+## Building with Gradle
+
+```bash
+# Run unit tests
+./gradlew testDebugUnitTest --no-daemon
+
+# Build unsigned APK
+./gradlew assembleRelease --no-daemon
+
+# Build unsigned AAB
+./gradlew bundleRelease --no-daemon
+```
+
 ## features added
-todo: write this
+- Discord webhook integration for logging ingestions
+- AI chatbot (Google Generative AI) for harm-reduction guidance
+- Tolerance calculator with exponential decay model
+- Custom substance recipes
+- Home screen widget (Glance AppWidget)
+- Improved timeline visualization
+- Spray calculator for volumetric dosing
