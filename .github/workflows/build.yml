@@ -3,12 +3,16 @@ name: Build and sign
 on:
   push:
   pull_request:
+permissions:
+  contents: read
 env:
   main_project_module: 'app'
 jobs:
   test:
     name: Run Unit Tests (${{ matrix.test-suite }})
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         include:
@@ -42,6 +46,8 @@ jobs:
 
   build-app:
     needs: [ test ]
+    permissions:
+      contents: read
     strategy:
       matrix:
         app-type: [ apk, aab ]
