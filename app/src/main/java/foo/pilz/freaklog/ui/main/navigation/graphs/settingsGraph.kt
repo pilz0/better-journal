@@ -31,6 +31,7 @@ import foo.pilz.freaklog.ui.tabs.settings.combinations.CombinationSettingsScreen
 import foo.pilz.freaklog.ui.tabs.settings.customunits.CustomUnitsScreen
 import foo.pilz.freaklog.ui.tabs.settings.customunits.archive.CustomUnitArchiveScreen
 import foo.pilz.freaklog.ui.tabs.settings.customunits.edit.EditCustomUnitScreen
+import foo.pilz.freaklog.ui.tabs.settings.funny.AchievementsScreen
 import foo.pilz.freaklog.ui.tabs.settings.reminders.RemindersScreen
 import kotlinx.serialization.Serializable
 
@@ -57,6 +58,9 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
                 },
                 navigateToReminders = {
                     navController.navigate(RemindersScreenRoute)
+                },
+                navigateToAchievements = {
+                    navController.navigate(AchievementsRoute)
                 }
             )
         }
@@ -64,6 +68,7 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
             RemindersScreen(navigateBack = navController::popBackStack)
         }
         composableWithTransitions<FAQRoute> { FAQScreen() }
+        composableWithTransitions<AchievementsRoute> { AchievementsScreen() }
         composableWithTransitions<CombinationSettingsRoute> { CombinationSettingsScreen() }
         composableWithTransitions<SubstanceColorsRoute> { SubstanceColorsScreen() }
         composableWithTransitions<WebhookSettingsScreenRoute> { WebhookSettingsScreen(navController) }
@@ -115,6 +120,9 @@ object WebhookSettingsScreenRoute
 
 @Serializable
 object RemindersScreenRoute
+
+@Serializable
+object AchievementsRoute
 
 @Serializable
 data class EditCustomUnitRoute(val customUnitId: Int)

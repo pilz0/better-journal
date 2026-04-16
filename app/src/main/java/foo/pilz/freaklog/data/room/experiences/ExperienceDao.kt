@@ -25,6 +25,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import androidx.room.Upsert
 import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.room.experiences.entities.Experience
@@ -458,6 +459,9 @@ interface ExperienceDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(substanceCompanion: SubstanceCompanion)
+
+    @Upsert
+    suspend fun upsert(substanceCompanion: SubstanceCompanion)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(customSubstance: CustomSubstance): Long

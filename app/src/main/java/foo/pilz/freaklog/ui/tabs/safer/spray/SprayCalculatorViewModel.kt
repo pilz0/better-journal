@@ -168,4 +168,20 @@ class SprayCalculatorViewModel @Inject constructor(
         if (purityValue <= 0) return null
         return totalWeightValue * 100 / purityValue
     }
+
+    fun getConcentrationPerMl(): Double? {
+        val totalWeightValue = _totalWeight.value.toDoubleOrNull() ?: return null
+        val liquidMl = _liquidAmountInMl.value.toDoubleOrNull() ?: return null
+        if (liquidMl <= 0) return null
+        return totalWeightValue / liquidMl
+    }
+
+    fun getNumberOfSprays(): Double? {
+        val liquidMl = _liquidAmountInMl.value.toDoubleOrNull() ?: return null
+        val sprays = spraysFlow.value
+        val selectedId = _selectedSprayId.value ?: return null
+        val selectedSpray = sprays.find { it.id == selectedId } ?: return null
+        if (selectedSpray.contentInMl <= 0) return null
+        return liquidMl * selectedSpray.numSprays / selectedSpray.contentInMl
+    }
 }

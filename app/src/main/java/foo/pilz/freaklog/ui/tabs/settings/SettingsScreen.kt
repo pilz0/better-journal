@@ -38,6 +38,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ContactSupport
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.DeleteForever
+import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material.icons.outlined.Info
@@ -135,6 +136,7 @@ fun SettingsScreen(
     navigateToSubstanceColors: () -> Unit,
     navigateToCustomUnits: () -> Unit,
     navigateToReminders: () -> Unit,
+    navigateToAchievements: () -> Unit = {},
 ) {
     SettingsScreen(
         navigateToFAQ = navigateToFAQ,
@@ -143,6 +145,7 @@ fun SettingsScreen(
         navigateToSubstanceColors = navigateToSubstanceColors,
         navigateToCustomUnits = navigateToCustomUnits,
         navigateToReminders = navigateToReminders,
+        navigateToAchievements = navigateToAchievements,
         deleteEverything = viewModel::deleteEverything,
         importFile = viewModel::importFile,
         exportFile = viewModel::exportFile,
@@ -177,6 +180,7 @@ fun SettingsScreen(
     navigateToSubstanceColors: () -> Unit,
     navigateToCustomUnits: () -> Unit,
     navigateToReminders: () -> Unit,
+    navigateToAchievements: () -> Unit = {},
     deleteEverything: () -> Unit,
     importFile: (uri: Uri) -> Unit,
     exportFile: (uri: Uri) -> Unit,
@@ -248,6 +252,14 @@ fun SettingsScreen(
                 ) {
                     performHaptic(HapticType.CLICK)
                     navigateToReminders()
+                }
+                HorizontalDivider()
+                SettingsButton(
+                    imageVector = Icons.Outlined.EmojiEvents,
+                    text = "Achievements"
+                ) {
+                    performHaptic(HapticType.CLICK)
+                    navigateToAchievements()
                 }
                 HorizontalDivider()
                 var isShowingVisibleTabsDialog by remember { mutableStateOf(false) }

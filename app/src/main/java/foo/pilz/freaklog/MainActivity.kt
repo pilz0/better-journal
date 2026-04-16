@@ -22,9 +22,13 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.lifecycle.lifecycleScope
@@ -50,6 +54,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
         handleIntent(intent)
 
@@ -67,14 +72,16 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             JournalTheme {
-                MainScreen(
-                    shouldNavigateToAddIngestion = shouldNavigateToAddIngestion,
-                    onAddIngestionNavigated = ::onAddIngestionNavigated,
-                    shouldNavigateToJournalScreen = shouldNavigateToJournalScreen,
-                    onJournalScreenNavigated = ::onJournalScreenNavigated,
-                    shouldNavigateToExperienceId = shouldNavigateToExperienceId,
-                    onExperienceNavigated = ::onExperienceNavigated
-                )
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    MainScreen(
+                        shouldNavigateToAddIngestion = shouldNavigateToAddIngestion,
+                        onAddIngestionNavigated = ::onAddIngestionNavigated,
+                        shouldNavigateToJournalScreen = shouldNavigateToJournalScreen,
+                        onJournalScreenNavigated = ::onJournalScreenNavigated,
+                        shouldNavigateToExperienceId = shouldNavigateToExperienceId,
+                        onExperienceNavigated = ::onExperienceNavigated
+                    )
+                }
             }
         }
     }
