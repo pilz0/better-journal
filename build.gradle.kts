@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.compose) apply false
-    id("com.google.dagger.hilt.android") version "2.52" apply false
+    id("com.google.dagger.hilt.android") version "2.54" apply false
     id("androidx.room") version libs.versions.roomRuntime apply false
     id("com.google.devtools.ksp") version "2.0.21-1.0.27" apply false
     id ("nl.littlerobots.version-catalog-update") version "1.0.1"
