@@ -33,6 +33,7 @@ import foo.pilz.freaklog.ui.tabs.safer.SaferUseScreen
 import foo.pilz.freaklog.ui.tabs.safer.VolumetricDosingScreen
 import foo.pilz.freaklog.ui.tabs.safer.spray.AddSprayScreen
 import foo.pilz.freaklog.ui.tabs.safer.spray.SprayCalculatorScreen
+import foo.pilz.freaklog.ui.tabs.safer.tolerance.ToleranceScreen
 import foo.pilz.freaklog.ui.tabs.search.substance.SaferStimulantsScreen
 import kotlinx.serialization.Serializable
 
@@ -65,6 +66,9 @@ fun NavGraphBuilder.saferGraph(navController: NavHostController) {
                 },
                 navigateToSprayCalculatorScreen = {
                     navController.navigate(SprayCalculatorRoute)
+                },
+                navigateToToleranceCalculatorScreen = {
+                    navController.navigate(ToleranceCalculatorRoute)
                 }
             )
         }
@@ -105,6 +109,9 @@ fun NavGraphBuilder.saferGraph(navController: NavHostController) {
                 }
             )
         }
+        composableWithTransitions<ToleranceCalculatorRoute> {
+            ToleranceScreen(navigateBack = { navController.popBackStack() })
+        }
     }
 }
 
@@ -141,3 +148,6 @@ object SprayCalculatorRoute
 
 @Serializable
 object AddSprayRoute
+
+@Serializable
+object ToleranceCalculatorRoute

@@ -1,0 +1,200 @@
+[
+  {
+    "id": "first_time",
+    "title": "First Timer",
+    "description": "Log your first experience",
+    "condition": "min_experiences(1)"
+  },
+  {
+    "id": "good_flight",
+    "title": "Good Flight",
+    "description": "Combine 2C-B and cannabis in one session",
+    "condition": "combo(2C-B, Cannabis)"
+  },
+  {
+    "id": "need_to_cook",
+    "title": "We need to cook",
+    "description": "Log a Methamphetamine ingestion",
+    "condition": "substance(Methamphetamine)"
+  },
+  {
+    "id": "heroic_dose",
+    "title": "Heroic Dose",
+    "description": "Take a heavy dose of Psilocybin mushrooms",
+    "condition": "dose_substance(Psilocybin mushrooms, heavy)"
+  },
+  {
+    "id": "researcher",
+    "title": "Researcher",
+    "description": "Try 10 different substances",
+    "condition": "min_substances(10)"
+  },
+  {
+    "id": "connoisseur",
+    "title": "Connoisseur",
+    "description": "Try 25 different substances",
+    "condition": "min_substances(25)"
+  },
+  {
+    "id": "dedicated",
+    "title": "Dedicated",
+    "description": "Log 100 ingestions",
+    "condition": "min_ingestions(100)"
+  },
+  {
+    "id": "journalist",
+    "title": "Journalist",
+    "description": "Add a note to an ingestion",
+    "condition": "has_note()"
+  },
+  {
+    "id": "cartographer",
+    "title": "Cartographer",
+    "description": "Add a location to an experience",
+    "condition": "has_location()"
+  },
+  {
+    "id": "polyroute",
+    "title": "All Roads Lead to Rome",
+    "description": "Use 4 different routes of administration",
+    "condition": "min_routes(4)"
+  },
+  {
+    "id": "dmt",
+    "title": "Breakthrough",
+    "description": "Take a heavy dose of DMT",
+    "condition": "dose_substance(DMT, heavy)"
+  },
+  {
+    "id": "salvia",
+    "title": "Why Would You Do This",
+    "description": "Take Salvia divinorum",
+    "condition": "substance(Salvinorin A)"
+  },
+  {
+    "id": "holing_up",
+    "title": "Holing Up",
+    "description": "Take a heavy dose of any dissociative",
+    "condition": "category(dissociative) & dose(heavy)"
+  },
+  {
+    "id": "dangerous_combo",
+    "title": "Living Dangerously",
+    "description": "Combine substances with a dangerous interaction",
+    "condition": "interaction(dangerous)"
+  },
+  {
+    "id": "mischkonsum",
+    "title": "Miku Miku Mischkonsum",
+    "description": "Get 10 different interaction warnings in one experience",
+    "condition": "min_interactions(10, any)"
+  },
+  {
+    "id": "nitrous",
+    "title": "Whippets",
+    "description": "Take Nitrous Oxide",
+    "condition": "substance(Nitrous Oxide)"
+  },
+  {
+    "id": "caffeine_log",
+    "title": "Overachiever",
+    "description": "Log caffeine like it matters",
+    "condition": "substance(Caffeine)"
+  },
+  {
+    "id": "speedfreak",
+    "title": "Speed Freak",
+    "description": "Take a heavy dose of Amphetamine",
+    "condition": "dose_substance(Amphetamine, heavy)"
+  },
+  {
+    "id": "fear_and_loathing",
+    "title": "Fear and Loathing",
+    "description": "Combine a stimulant and a psychedelic in one session",
+    "condition": "in_experience(category(stimulant) & category(psychedelic))"
+  },
+  {
+    "id": "bicycle_day",
+    "title": "Bicycle Day",
+    "description": "Take LSD",
+    "condition": "substance(LSD)"
+  },
+  {
+    "id": "doors_of_perception",
+    "title": "Doors of Perception",
+    "description": "Take Mescaline",
+    "condition": "substance(Mescaline)"
+  },
+  {
+    "id": "electric_kool_aid",
+    "title": "Electric Kool-Aid",
+    "description": "Combine LSD and MDMA in one session",
+    "condition": "combo(LSD, MDMA)"
+  },
+  {
+    "id": "drink_me",
+    "title": "Drink Me",
+    "description": "Log an oral ingestion",
+    "condition": "route(ORAL)"
+  },
+  {
+    "id": "lizard_king",
+    "title": "I Am the Lizard King",
+    "description": "Take both Psilocybin mushrooms and Mescaline",
+    "condition": "substance(Psilocybin mushrooms) & substance(Mescaline)"
+  },
+  {
+    "id": "jedi_flip",
+    "title": "Jedi Flip",
+    "description": "Combine LSD, MDMA, and Psilocybin mushrooms in one session",
+    "condition": "combo(LSD, MDMA, Psilocybin mushrooms)"
+  },
+  {
+    "id": "hippie_flip",
+    "title": "Hippie Flip",
+    "description": "Combine MDMA and Psilocybin mushrooms in one session",
+    "condition": "combo(MDMA, Psilocybin mushrooms)"
+  },
+  {
+    "id": "nexus_flip",
+    "title": "Nexus Flip",
+    "description": "Combine MDMA and 2C-B in one session",
+    "condition": "combo(MDMA, 2C-B)"
+  },
+  {
+    "id": "kitty_flip",
+    "title": "Kitty Flip",
+    "description": "Combine MDMA and Ketamine in one session",
+    "condition": "combo(MDMA, Ketamine)"
+  },
+  {
+    "id": "k_hole",
+    "title": "K-Hole",
+    "description": "Take a heavy dose of Ketamine",
+    "condition": "dose_substance(Ketamine, heavy)"
+  },
+  {
+    "id": "ego_death",
+    "title": "Ego Death",
+    "description": "Take a heavy dose of any psychedelic",
+    "condition": "category(psychedelic) & dose(heavy)"
+  },
+  {
+    "id": "sweet_dreams",
+    "title": "Sweet Dreams",
+    "description": "Take a benzodiazepine",
+    "condition": "category(benzodiazepine)"
+  },
+  {
+    "id": "chasing_the_dragon",
+    "title": "Chasing the Dragon",
+    "description": "Smoke an opioid",
+    "condition": "in_experience(category(opioid) & route(SMOKED))"
+  },
+  {
+    "id": "da_joose",
+    "title": "Da joose is loose",
+    "description": "Take a heavy dose of Phenazepam",
+    "condition": "dose_substance(Phenazepam, heavy)"
+  }
+]

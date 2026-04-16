@@ -83,6 +83,8 @@ fun SprayCalculatorScreen(
     val totalWeight by viewModel.totalWeight.collectAsState()
     val purityInPercent by viewModel.purityInPercent.collectAsState()
     val doseAdjustedToPurity = viewModel.getDoseAdjustedToPurity()
+    val concentrationPerMl = viewModel.getConcentrationPerMl()
+    val numberOfSprays = viewModel.getNumberOfSprays()
 
     DisposableEffect(Unit) {
         onDispose {
@@ -99,6 +101,8 @@ fun SprayCalculatorScreen(
         totalWeight = totalWeight,
         purityInPercent = purityInPercent,
         doseAdjustedToPurity = doseAdjustedToPurity,
+        concentrationPerMl = concentrationPerMl,
+        numberOfSprays = numberOfSprays,
         onSelectSpray = viewModel::selectSpray,
         onSetWeightUnit = viewModel::setWeightUnit,
         onSetWeightPerSpray = viewModel::setWeightPerSpray,
@@ -121,6 +125,8 @@ fun SprayCalculatorScreenContent(
     totalWeight: String,
     purityInPercent: String,
     doseAdjustedToPurity: Double?,
+    concentrationPerMl: Double?,
+    numberOfSprays: Double?,
     onSelectSpray: (Int) -> Unit,
     onSetWeightUnit: (WeightUnit) -> Unit,
     onSetWeightPerSpray: (String) -> Unit,
@@ -230,7 +236,7 @@ fun SprayCalculatorScreenContent(
                         OutlinedTextField(
                             value = totalWeight,
                             onValueChange = onSetTotalWeight,
-                            label = { Text("Total API 202") },
+                            label = { Text("Total Weight") },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             modifier = Modifier.weight(1f)
                         )
@@ -268,6 +274,57 @@ fun SprayCalculatorScreenContent(
                                    color = MaterialTheme.colorScheme.primary
                                )
                            }
+                        }
+                    }
+
+                    // Results Summary
+                    if (concentrationPerMl != null || numberOfSprays != null) {
+                        HorizontalDivider()
+                        ElevatedCard(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = "Results",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                if (concentrationPerMl != null) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            text = "Concentration",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Text(
+                                            text = "${concentrationPerMl.toReadableString()} ${weightUnit.displayName}/ml",
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                    }
+                                }
+                                if (numberOfSprays != null) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            text = "Total sprays",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Text(
+                                            text = numberOfSprays.toReadableString(),
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -427,6 +484,8 @@ fun SprayCalculatorScreenPreview() {
         totalWeight = "300",
         purityInPercent = "90",
         doseAdjustedToPurity = 333.3,
+        concentrationPerMl = 30.0,
+        numberOfSprays = 200.0,
         onSelectSpray = {},
         onSetWeightUnit = {},
         onSetWeightPerSpray = {},
