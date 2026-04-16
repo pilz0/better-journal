@@ -45,7 +45,6 @@ jobs:
           path: app/build/reports/tests/
 
   build-app:
-    needs: [ test ]
     permissions:
       contents: read
     strategy:
