@@ -43,6 +43,8 @@ class ChooseDoseViewModel @Inject constructor(
     val substance: Substance = repository.getSubstance(chooseDoseRoute.substanceName)!!
     val administrationRoute: AdministrationRoute = chooseDoseRoute.administrationRoute
     val roaDose: RoaDose? = substance.getRoa(administrationRoute)?.roaDose
+    val roaDuration: foo.pilz.freaklog.data.substances.classes.roa.RoaDuration? =
+        substance.getRoa(administrationRoute)?.roaDuration
     var isEstimate by mutableStateOf(false)
     var doseText by mutableStateOf("")
     var estimatedDoseStandardDeviationText by mutableStateOf("")

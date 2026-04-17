@@ -19,6 +19,7 @@
 package foo.pilz.freaklog.ui.tabs.journal
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -63,6 +64,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -222,6 +224,19 @@ fun JournalScreen(
         },
         floatingActionButton = {
             if (!isSearchEnabled) {
+                val infiniteTransition = androidx.compose.animation.core.rememberInfiniteTransition(label = "fab-pulse")
+                val scale by infiniteTransition.animateFloat(
+                    initialValue = 1f,
+                    targetValue = 1.06f,
+                    animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+                        animation = androidx.compose.animation.core.tween(
+                            durationMillis = 1600,
+                            easing = androidx.compose.animation.core.FastOutSlowInEasing
+                        ),
+                        repeatMode = androidx.compose.animation.core.RepeatMode.Reverse
+                    ),
+                    label = "fab-pulse-scale"
+                )
                 ExtendedFloatingActionButton(
                     onClick = { 
                         performHaptic(HapticType.HEAVY_CLICK)
@@ -234,6 +249,10 @@ fun JournalScreen(
                         )
                     },
                     text = { Text("Ingestion") },
+                    modifier = Modifier.graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                    }
                 )
             }
         },

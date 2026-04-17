@@ -401,6 +401,7 @@ private fun ConsumerSection(
     isTimelineHidden: Boolean
 ) {
     ElevatedCard(modifier = Modifier.padding(vertical = verticalCardPadding)) {
+        val redoseChipState by foo.pilz.freaklog.ui.tabs.journal.experience.redose.rememberRedoseChipState()
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -459,6 +460,12 @@ private fun ConsumerSection(
                     allTimesSortedMap = consumerWithIngestions.ingestionElements.map { it.ingestionWithCompanionAndCustomUnit.ingestion.time }
                 )
             }
+            foo.pilz.freaklog.ui.tabs.journal.experience.redose.RedoseChip(
+                ingestionTime = ingestionElement.ingestionWithCompanionAndCustomUnit.ingestion.time,
+                roaDuration = ingestionElement.roaDuration,
+                state = redoseChipState,
+                modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 2.dp)
+            )
             if (index < consumerWithIngestions.ingestionElements.size - 1) {
                 HorizontalDivider()
             }
@@ -619,6 +626,7 @@ private fun MyIngestionList(
     timeDisplayOption: TimeDisplayOption
 ) {
     ElevatedCard(modifier = Modifier.padding(vertical = verticalCardPadding)) {
+        val redoseChipState by foo.pilz.freaklog.ui.tabs.journal.experience.redose.rememberRedoseChipState()
         CardTitle(
             title = oneExperienceScreenModel.firstIngestionTime.getDateWithWeekdayText()
         )
@@ -645,6 +653,12 @@ private fun MyIngestionList(
                     allTimesSortedMap = oneExperienceScreenModel.ingestionElements.map { it.ingestionWithCompanionAndCustomUnit.ingestion.time }
                 )
             }
+            foo.pilz.freaklog.ui.tabs.journal.experience.redose.RedoseChip(
+                ingestionTime = ingestionElement.ingestionWithCompanionAndCustomUnit.ingestion.time,
+                roaDuration = ingestionElement.roaDuration,
+                state = redoseChipState,
+                modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 2.dp)
+            )
             val isLastIngestion =
                 index == oneExperienceScreenModel.ingestionElements.size - 1
             if (isLastIngestion) {

@@ -33,6 +33,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import foo.pilz.freaklog.ui.main.navigation.graphs.ExperienceRoute
+import foo.pilz.freaklog.ui.main.navigation.graphs.inventoryGraph
 import foo.pilz.freaklog.ui.main.navigation.graphs.journalGraph
 import foo.pilz.freaklog.ui.main.navigation.graphs.saferGraph
 import foo.pilz.freaklog.ui.main.navigation.graphs.searchGraph
@@ -101,6 +102,7 @@ fun MainScreen(
         val hideSafer = viewModel.activateSaferFlow.collectAsState().value
         val hideStats = viewModel.isStatsHiddenFlow.collectAsState().value
         val hideDrugs = viewModel.isDrugsHiddenFlow.collectAsState().value
+        val showInventory = viewModel.isInventoryEnabledFlow.collectAsState().value
 
         HapticFeedbackProvider(isEnabled = isHapticEnabled) {
             val performHaptic = rememberHaptic()
@@ -108,7 +110,7 @@ fun MainScreen(
             NavigationSuiteScaffold(
                 navigationSuiteItems = {
                     val currentDestination = navBackStackEntry?.destination
-                    topLevelRoutes(hideSafer, hideStats, hideDrugs).forEach { topLevelRoute ->
+                    topLevelRoutes(hideSafer, hideStats, hideDrugs, showInventory).forEach { topLevelRoute ->
                         val selected =
                             currentDestination?.hierarchy?.any { it.hasRoute(topLevelRoute.route::class) } == true
                         item(
@@ -124,7 +126,7 @@ fun MainScreen(
                                 performHaptic(HapticType.CLICK)
                                 if (selected) {
                                     val isAlreadyOnTopOfTab =
-                                        topLevelRoutes(hideSafer, hideStats, hideDrugs).any { it.route == currentDestination?.route }
+                                        topLevelRoutes(hideSafer, hideStats, hideDrugs, showInventory).any { it.route == currentDestination?.route }
                                     if (!isAlreadyOnTopOfTab) {
                                         navController.popBackStack()
                                     }
@@ -156,6 +158,9 @@ fun MainScreen(
                     statsGraph(navController)
                     searchGraph(navController)
                     saferGraph(navController)
+                    if (showInventory) {
+                        inventoryGraph(navController)
+                    }
                     settingsGraph(navController)
                 }
             }

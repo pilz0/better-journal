@@ -130,7 +130,8 @@ fun ChooseDoseScreen(
         isShowingUnitsField = viewModel.roaDose?.units?.isBlank() ?: true,
         units = viewModel.units,
         onChangeOfUnits = { viewModel.units = it },
-        navigateToCreateCustomUnit = navigateToCreateCustomUnit
+        navigateToCreateCustomUnit = navigateToCreateCustomUnit,
+        roaDuration = viewModel.roaDuration,
     )
 }
 
@@ -225,6 +226,7 @@ fun ChooseDoseScreen(
     units: String,
     onChangeOfUnits: (units: String) -> Unit,
     navigateToCreateCustomUnit: () -> Unit,
+    roaDuration: foo.pilz.freaklog.data.substances.classes.roa.RoaDuration? = null,
 ) {
     Scaffold(
         topBar = {
@@ -290,6 +292,10 @@ fun ChooseDoseScreen(
                     Spacer(modifier = Modifier.height(5.dp))
                     if (roaDose != null) {
                         RoaDoseView(roaDose = roaDose)
+                        foo.pilz.freaklog.ui.tabs.journal.experience.timeline.preview.TimelinePreview(
+                            duration = roaDuration,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
                     } else {
                         Row(
                             verticalAlignment = Alignment.CenterVertically

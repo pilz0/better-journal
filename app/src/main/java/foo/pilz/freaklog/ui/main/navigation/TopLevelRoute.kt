@@ -4,11 +4,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.HealthAndSafety
+import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.Medication
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Book
 import androidx.compose.material.icons.outlined.HealthAndSafety
+import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Medication
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -20,11 +22,19 @@ data class TopLevelRoute<T : Any>(
     val filledIcon: ImageVector,
     val outlinedIcon: ImageVector,
 )
-fun topLevelRoutes(hideSafer: Boolean = false, hideStats: Boolean = false, hideDrugs: Boolean = false) = listOf(
+fun topLevelRoutes(
+    hideSafer: Boolean = false,
+    hideStats: Boolean = false,
+    hideDrugs: Boolean = false,
+    showInventory: Boolean = false,
+) = listOfNotNull(
     TopLevelRoute("Stats", StatsTopLevelRoute, Icons.Filled.BarChart, Icons.Outlined.BarChart),
     TopLevelRoute("Journal", JournalTopLevelRoute, Icons.Filled.Book, Icons.Outlined.Book),
     TopLevelRoute("Drugs", DrugsTopLevelRoute, Icons.Filled.Medication, Icons.Outlined.Medication),
     TopLevelRoute("Safer", SaferUseTopLevelRoute, Icons.Filled.HealthAndSafety, Icons.Outlined.HealthAndSafety),
+    if (showInventory) {
+        TopLevelRoute("Inventory", InventoryTopLevelRoute, Icons.Filled.Inventory2, Icons.Outlined.Inventory2)
+    } else null,
     TopLevelRoute("Settings", SettingsTopLevelRoute, Icons.Filled.Settings, Icons.Outlined.Settings)
 ).filter {
     (!hideSafer || it.route != SaferUseTopLevelRoute) &&
@@ -43,6 +53,9 @@ object DrugsTopLevelRoute
 
 @Serializable
 object SaferUseTopLevelRoute
+
+@Serializable
+object InventoryTopLevelRoute
 
 @Serializable
 object SettingsTopLevelRoute
