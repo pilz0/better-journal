@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.inset
 import androidx.compose.ui.graphics.nativeCanvas
@@ -163,6 +164,23 @@ fun BarChart(buckets: List<List<ColorCount>>, startDateText: String) {
                                     )
                                 )
                                 yStart = yEnd
+                            }
+                        }
+
+                        // Draw average line
+                        val totalCount = buckets.sumOf { bucket -> bucket.sumOf { it.count } }
+                        val nonEmptyBuckets = buckets.count { it.isNotEmpty() }
+                        if (nonEmptyBuckets > 0) {
+                            val average = totalCount.toFloat() / buckets.size
+                            if (average > 0 && average <= maxCount) {
+                                val avgY = canvasHeightInner - ((average / maxCount) * canvasHeightInner)
+                                drawLine(
+                                    color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.6f),
+                                    start = Offset(0f, avgY),
+                                    end = Offset(canvasWidthWithoutLabel, avgY),
+                                    strokeWidth = 2f,
+                                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
+                                )
                             }
                         }
                     }
