@@ -56,6 +56,9 @@ class StatsViewModel @Inject constructor(
 
     private val consumerFlow = MutableStateFlow<String?>(null)
 
+    private val _chartModeFlow = MutableStateFlow(ChartMode.INGESTION_COUNT)
+    val chartModeFlow = _chartModeFlow.asStateFlow()
+
     fun onTapOption(timePickerOption: TimePickerOption) {
         viewModelScope.launch {
             _optionFlow.emit(timePickerOption)
@@ -65,6 +68,12 @@ class StatsViewModel @Inject constructor(
     fun onChangeConsumer(consumerName: String?) {
         viewModelScope.launch {
             consumerFlow.emit(consumerName)
+        }
+    }
+
+    fun onChangeChartMode(chartMode: ChartMode) {
+        viewModelScope.launch {
+            _chartModeFlow.emit(chartMode)
         }
     }
 
@@ -115,7 +124,7 @@ class StatsViewModel @Inject constructor(
             Pair(buckets, consumerName)
         }.combine(companionFlow) { pair, companions ->
             return@combine pair.first.map { experiencesInBucket ->
-                return@map getColorCountsForExperiences(
+                return@map getIngestionColorCounts(
                     experiencesInBucket,
                     companions,
                     pair.second
@@ -142,6 +151,27 @@ class StatsViewModel @Inject constructor(
                     count = sameNames.size
                 )
             }.sortedByDescending { it.count }
+    }
+
+    private fun getIngestionColorCounts(
+        experiences: List<ExperienceWithIngestionsAndCompanions>,
+        companions: List<SubstanceCompanion>,
+        consumerName: String?
+    ): List<ColorCount> {
+        val ingestions = experiences.flatMap { experience ->
+            experience.ingestionsWithCompanionAndCustomUnit.filter { it.ingestion.consumerName == consumerName }
+        }
+        return ingestions
+            .groupBy { it.ingestion.substanceName }
+            .mapNotNull { (substanceName, ingestionsForSubstance) ->
+                val companion = companions.firstOrNull { it.substanceName == substanceName }
+                    ?: return@mapNotNull null
+                ColorCount(
+                    color = companion.color,
+                    count = ingestionsForSubstance.size
+                )
+            }
+            .sortedByDescending { it.count }
     }
 
     private val statsFlowItem: Flow<List<StatItem>> = combine(
@@ -249,6 +279,17 @@ data class ColorCount(
     val count: Int
 )
 
+data class ColorDose(
+    val color: AdaptiveColor,
+    val dose: Double,
+    val unit: String
+)
+
+data class ChartBucket(
+    val colorCounts: List<ColorCount>,
+    val colorDoses: List<ColorDose>
+)
+
 data class StatItem(
     val substanceName: String,
     val color: AdaptiveColor,
@@ -303,14 +344,6 @@ enum class TimePickerOption {
         override val bucketCount = 12
         override val oneBucketSize: Period = Period.ofDays(30)
         override val allBucketSizes: Period = Period.ofDays(30 * bucketCount)
-    },
-    YEARS_10 {
-        override val displayText = "10Y"
-        override val longDisplayText = "10 years"
-        override val tabIndex = 4
-        override val bucketCount = 10
-        override val oneBucketSize: Period = Period.ofDays(365)
-        override val allBucketSizes: Period = Period.ofDays(365 * bucketCount)
     };
 
     abstract val displayText: String
@@ -319,6 +352,17 @@ enum class TimePickerOption {
     abstract val bucketCount: Int
     abstract val oneBucketSize: Period
     abstract val allBucketSizes: Period
+}
+
+enum class ChartMode {
+    INGESTION_COUNT,
+    DOSAGE;
+
+    val displayText: String
+        get() = when (this) {
+            INGESTION_COUNT -> "Count"
+            DOSAGE -> "Dosage"
+        }
 }
 
 fun Instant.getEndOfDay(): Instant {

@@ -213,12 +213,12 @@ fun StatsScreen(
                     val isDarkTheme = isSystemInDarkTheme()
                     Column {
                         Text(
-                            text = "Experiences since ${statsModel.startDateText}",
+                            text = "Ingestions since ${statsModel.startDateText}",
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(start = 10.dp, top = 5.dp)
                         )
                         Text(
-                            text = "Substance counted once per experience",
+                            text = "Showing all substance ingestions",
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.padding(
                                 start = 10.dp,
@@ -265,10 +265,9 @@ fun StatsScreen(
                                                 text = subStat.substanceName,
                                                 style = MaterialTheme.typography.titleMedium
                                             )
-                                            val addOn =
-                                                if (subStat.experienceCount == 1) " experience" else " experiences"
                                             Text(
-                                                text = subStat.experienceCount.toString() + addOn,
+                                                text = "${subStat.ingestionCount} ingestion${if (subStat.ingestionCount != 1) "s" else ""} across ${subStat.experienceCount} experience${if (subStat.experienceCount != 1) "s" else ""}",
+                                                style = MaterialTheme.typography.bodyMedium
                                             )
                                         }
                                         Spacer(modifier = Modifier.weight(1f))
