@@ -459,6 +459,11 @@ private fun ConsumerSection(
                     allTimesSortedMap = consumerWithIngestions.ingestionElements.map { it.ingestionWithCompanionAndCustomUnit.ingestion.time }
                 )
             }
+            foo.pilz.freaklog.ui.tabs.journal.experience.redose.RedoseChip(
+                ingestionTime = ingestionElement.ingestionWithCompanionAndCustomUnit.ingestion.time,
+                roaDuration = ingestionElement.roaDuration,
+                modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 2.dp)
+            )
             if (index < consumerWithIngestions.ingestionElements.size - 1) {
                 HorizontalDivider()
             }
@@ -645,6 +650,11 @@ private fun MyIngestionList(
                     allTimesSortedMap = oneExperienceScreenModel.ingestionElements.map { it.ingestionWithCompanionAndCustomUnit.ingestion.time }
                 )
             }
+            foo.pilz.freaklog.ui.tabs.journal.experience.redose.RedoseChip(
+                ingestionTime = ingestionElement.ingestionWithCompanionAndCustomUnit.ingestion.time,
+                roaDuration = ingestionElement.roaDuration,
+                modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 2.dp)
+            )
             val isLastIngestion =
                 index == oneExperienceScreenModel.ingestionElements.size - 1
             if (isLastIngestion) {

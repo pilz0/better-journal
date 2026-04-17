@@ -196,5 +196,191 @@
     "title": "Da joose is loose",
     "description": "Take a heavy dose of Phenazepam",
     "condition": "dose_substance(Phenazepam, heavy)"
+  },
+  {
+    "id": "ingestions_bronze",
+    "title": "Getting Started",
+    "description": "Log 10 ingestions",
+    "condition": "min_ingestions(10)",
+    "tier": "BRONZE"
+  },
+  {
+    "id": "ingestions_silver",
+    "title": "In the Swing",
+    "description": "Log 50 ingestions",
+    "condition": "min_ingestions(50)",
+    "tier": "SILVER"
+  },
+  {
+    "id": "ingestions_gold",
+    "title": "Veteran Logger",
+    "description": "Log 200 ingestions",
+    "condition": "min_ingestions(200)",
+    "tier": "GOLD"
+  },
+  {
+    "id": "ingestions_platinum",
+    "title": "Lifer",
+    "description": "Log 1000 ingestions",
+    "condition": "min_ingestions(1000)",
+    "tier": "GOLD"
+  },
+  {
+    "id": "routes_bronze",
+    "title": "Route Sampler",
+    "description": "Use 3 different routes of administration",
+    "condition": "min_routes(3)",
+    "tier": "BRONZE"
+  },
+  {
+    "id": "routes_silver",
+    "title": "Route Explorer",
+    "description": "Use 5 different routes of administration",
+    "condition": "min_routes(5)",
+    "tier": "SILVER"
+  },
+  {
+    "id": "routes_gold",
+    "title": "Every Which Way",
+    "description": "Use 7 different routes of administration",
+    "condition": "min_routes(7)",
+    "tier": "GOLD"
+  },
+  {
+    "id": "notes_bronze",
+    "title": "Note to Self",
+    "description": "Add notes to 10 ingestions",
+    "condition": "min_notes(10)",
+    "tier": "BRONZE"
+  },
+  {
+    "id": "notes_silver",
+    "title": "Field Researcher",
+    "description": "Add notes to 50 ingestions",
+    "condition": "min_notes(50)",
+    "tier": "SILVER"
+  },
+  {
+    "id": "ratings_first",
+    "title": "First Review",
+    "description": "Give your first Shulgin rating",
+    "condition": "min_ratings(1)"
+  },
+  {
+    "id": "ratings_gold",
+    "title": "Critic",
+    "description": "Log 10 Shulgin ratings",
+    "condition": "min_ratings(10)",
+    "tier": "GOLD"
+  },
+  {
+    "id": "timednotes_first",
+    "title": "Real-Time Reporter",
+    "description": "Log your first timed note",
+    "condition": "min_timed_notes(1)"
+  },
+  {
+    "id": "timednotes_silver",
+    "title": "Chronicler",
+    "description": "Log 50 timed notes",
+    "condition": "min_timed_notes(50)",
+    "tier": "SILVER"
+  },
+  {
+    "id": "customunits_first",
+    "title": "Unit Crafter",
+    "description": "Create your first custom unit",
+    "condition": "min_custom_units(1)"
+  },
+  {
+    "id": "customunits_silver",
+    "title": "Unit Obsessed",
+    "description": "Create 5 custom units",
+    "condition": "min_custom_units(5)",
+    "tier": "SILVER"
+  },
+  {
+    "id": "recipe_user",
+    "title": "Mise en Place",
+    "description": "Create a custom recipe",
+    "condition": "has_custom_recipe()",
+    "tier": "BRONZE"
+  },
+  {
+    "id": "redose_aware",
+    "title": "Redose Aware",
+    "description": "Redose within the peak window of an earlier ingestion",
+    "condition": "has_redose_in_peak()",
+    "tier": "BRONZE"
+  },
+  {
+    "id": "transdermal_explorer",
+    "title": "Patch Work",
+    "description": "Log a transdermal ingestion with a specific site",
+    "condition": "has_transdermal_site()",
+    "tier": "BRONZE"
+  },
+  {
+    "id": "injection_site_picker",
+    "title": "Know Your Veins",
+    "description": "Record an administration site for an ingestion",
+    "condition": "has_site()",
+    "tier": "BRONZE"
+  },
+  {
+    "id": "sober_week",
+    "title": "Take a Breather",
+    "description": "Go 7 days between ingestions",
+    "condition": "sober_streak(7)",
+    "tier": "BRONZE"
+  },
+  {
+    "id": "sober_month",
+    "title": "Tolerance Reset",
+    "description": "Go 30 days between ingestions",
+    "condition": "sober_streak(30)",
+    "tier": "SILVER"
+  },
+  {
+    "id": "sober_year",
+    "title": "Hiatus",
+    "description": "Go 365 days between ingestions",
+    "condition": "sober_streak(365)",
+    "tier": "GOLD"
+  },
+  {
+    "id": "streak_week",
+    "title": "Daily Ritual",
+    "description": "Log ingestions on 7 consecutive days",
+    "condition": "streak(7)",
+    "tier": "BRONZE"
+  },
+  {
+    "id": "streak_month",
+    "title": "Marathoner",
+    "description": "Log ingestions on 30 consecutive days",
+    "condition": "streak(30)",
+    "tier": "SILVER"
+  },
+  {
+    "id": "span_month",
+    "title": "First Month",
+    "description": "Journal spans over 30 days",
+    "condition": "journal_span_days(30)",
+    "tier": "BRONZE"
+  },
+  {
+    "id": "span_halfyear",
+    "title": "Half a Year",
+    "description": "Journal spans over 180 days",
+    "condition": "journal_span_days(180)",
+    "tier": "SILVER"
+  },
+  {
+    "id": "span_year",
+    "title": "Anniversary",
+    "description": "Journal spans over a full year",
+    "condition": "journal_span_days(365)",
+    "tier": "GOLD"
   }
 ]

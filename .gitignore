@@ -12,6 +12,9 @@ release
 .kotlin
 result
 
+# Upstream source archive (not tracked; fetched ad-hoc when porting)
+android-main.zip
+
 # Devenv
 .devenv*
 devenv.local.nix

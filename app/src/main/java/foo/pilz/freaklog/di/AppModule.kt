@@ -68,6 +68,11 @@ object AppModule {
 
     @Singleton
     @Provides
+    fun provideInventoryDao(appDatabase: AppDatabase): foo.pilz.freaklog.data.room.inventory.InventoryDao =
+        appDatabase.inventoryDao()
+
+    @Singleton
+    @Provides
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase =
         Room.databaseBuilder(
             context,

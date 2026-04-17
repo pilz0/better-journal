@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -60,6 +61,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -114,6 +116,14 @@ fun SettingsPreview() {
         saveAreSubstanceHeightsIndependent = {},
         activateSafer = true,
         saveActivateSafer = {},
+        isInventoryEnabled = false,
+        saveIsInventoryEnabled = {},
+        isRedoseShown = true,
+        saveRedoseShown = {},
+        redoseOnsetFraction = 1.0f,
+        redoseComeupFraction = 1.0f,
+        redosePeakFraction = 0.5f,
+        saveRedoseFractions = { _, _, _ -> },
         isHapticFeedbackEnabled = true,
         isStatsHidden = false,
         saveIsStatsHidden = {},
@@ -162,6 +172,14 @@ fun SettingsScreen(
         saveIsDrugsHidden = viewModel::saveIsDrugsHidden,
         activateSafer = viewModel.activateSaferFlow.collectAsState().value,
         saveActivateSafer = viewModel::saveActivateSafer,
+        isInventoryEnabled = viewModel.isInventoryEnabledFlow.collectAsState().value,
+        saveIsInventoryEnabled = viewModel::saveIsInventoryEnabled,
+        isRedoseShown = viewModel.isRedoseShownFlow.collectAsState().value,
+        saveRedoseShown = viewModel::saveRedoseShown,
+        redoseOnsetFraction = viewModel.redoseOnsetFractionFlow.collectAsState().value,
+        redoseComeupFraction = viewModel.redoseComeupFractionFlow.collectAsState().value,
+        redosePeakFraction = viewModel.redosePeakFractionFlow.collectAsState().value,
+        saveRedoseFractions = viewModel::saveRedoseFractions,
         isHapticFeedbackEnabled = viewModel.isHapticFeedbackEnabledFlow.collectAsState().value,
         saveHapticFeedbackEnabled = viewModel::saveHapticFeedbackEnabled,
         aiApiKey = viewModel.aiApiKeyFlow.collectAsState().value,
@@ -197,6 +215,14 @@ fun SettingsScreen(
     saveIsDrugsHidden: (Boolean) -> Unit,
     activateSafer: Boolean,
     saveActivateSafer: (Boolean) -> Unit,
+    isInventoryEnabled: Boolean,
+    saveIsInventoryEnabled: (Boolean) -> Unit,
+    isRedoseShown: Boolean,
+    saveRedoseShown: (Boolean) -> Unit,
+    redoseOnsetFraction: Float,
+    redoseComeupFraction: Float,
+    redosePeakFraction: Float,
+    saveRedoseFractions: (Float, Float, Float) -> Unit,
     isHapticFeedbackEnabled: Boolean,
     saveHapticFeedbackEnabled: (Boolean) -> Unit,
     aiApiKey: String,
@@ -330,6 +356,24 @@ fun SettingsScreen(
                                     )
                                     Text("Safer Use")
                                 }
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            performHaptic(HapticType.TOGGLE)
+                                            saveIsInventoryEnabled(!isInventoryEnabled)
+                                        }
+                                ) {
+                                    Checkbox(
+                                        checked = isInventoryEnabled,
+                                        onCheckedChange = {
+                                            performHaptic(HapticType.TOGGLE)
+                                            saveIsInventoryEnabled(it)
+                                        }
+                                    )
+                                    Text("Inventory")
+                                }
                             }
                         },
                         confirmButton = {
@@ -371,6 +415,31 @@ fun SettingsScreen(
                             performHaptic(HapticType.TOGGLE)
                             saveIsTimelineHidden(it)
                         }
+                    )
+                }
+                HorizontalDivider()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = horizontalPadding),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = "Show redose recommendation")
+                    Switch(
+                        checked = isRedoseShown,
+                        onCheckedChange = {
+                            performHaptic(HapticType.TOGGLE)
+                            saveRedoseShown(it)
+                        }
+                    )
+                }
+                if (isRedoseShown) {
+                    RedoseFractionsSection(
+                        onsetFraction = redoseOnsetFraction,
+                        comeupFraction = redoseComeupFraction,
+                        peakFraction = redosePeakFraction,
+                        onSave = saveRedoseFractions
                     )
                 }
                 HorizontalDivider()
@@ -645,5 +714,51 @@ fun SettingsButton(imageVector: ImageVector, text: String, onClick: () -> Unit) 
         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
         Text(text)
         Spacer(modifier = Modifier.weight(1f))
+    }
+}
+@Composable
+private fun RedoseFractionsSection(
+    onsetFraction: Float,
+    comeupFraction: Float,
+    peakFraction: Float,
+    onSave: (Float, Float, Float) -> Unit
+) {
+    // These are expressed as percentages in the UI (0–300%) for readability.
+    // Internally they are multipliers on the average duration of each phase.
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = horizontalPadding, vertical = 4.dp)
+    ) {
+        Text(
+            text = "Redose recommendation formula",
+            style = MaterialTheme.typography.titleSmall
+        )
+        Text(
+            text = "redoseAt = ingestionTime + onset×${"%.2f".format(onsetFraction)} + comeup×${"%.2f".format(comeupFraction)} + peak×${"%.2f".format(peakFraction)}",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        RedoseFractionSlider("Onset", onsetFraction) { onSave(it, comeupFraction, peakFraction) }
+        RedoseFractionSlider("Comeup", comeupFraction) { onSave(onsetFraction, it, peakFraction) }
+        RedoseFractionSlider("Peak", peakFraction) { onSave(onsetFraction, comeupFraction, it) }
+        TextButton(onClick = { onSave(1.0f, 1.0f, 0.5f) }) {
+            Text("Reset to defaults")
+        }
+    }
+}
+
+@Composable
+private fun RedoseFractionSlider(label: String, value: Float, onChange: (Float) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(text = label, modifier = Modifier.width(70.dp))
+        Slider(
+            value = value.coerceIn(0f, 3f),
+            onValueChange = onChange,
+            valueRange = 0f..3f,
+            steps = 29,
+            modifier = Modifier.weight(1f)
+        )
+        Text(text = "%.2f".format(value), modifier = Modifier.width(48.dp))
     }
 }

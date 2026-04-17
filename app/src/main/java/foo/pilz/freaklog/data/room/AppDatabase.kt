@@ -35,13 +35,15 @@ import foo.pilz.freaklog.data.room.experiences.entities.ShulginRating
 import foo.pilz.freaklog.data.room.experiences.entities.Spray
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
 import foo.pilz.freaklog.data.room.experiences.entities.TimedNote
+import foo.pilz.freaklog.data.room.inventory.InventoryDao
+import foo.pilz.freaklog.data.room.inventory.InventoryItem
 import foo.pilz.freaklog.data.room.reminders.ReminderDao
 import foo.pilz.freaklog.data.room.reminders.entities.Reminder
 import foo.pilz.freaklog.data.room.SprayDao
 
 @TypeConverters(InstantConverter::class)
 @Database(
-    version = 15,
+    version = 16,
     entities = [
         Experience::class,
         Ingestion::class,
@@ -53,7 +55,8 @@ import foo.pilz.freaklog.data.room.SprayDao
         Spray::class,
         Reminder::class,
         CustomRecipe::class,
-        CustomRecipeComponent::class
+        CustomRecipeComponent::class,
+        InventoryItem::class
     ],
     autoMigrations = [
         AutoMigration (from = 1, to = 2),
@@ -69,6 +72,7 @@ import foo.pilz.freaklog.data.room.SprayDao
         AutoMigration (from = 11, to = 12),
         AutoMigration (from = 12, to = 14),
         AutoMigration (from = 14, to = 15),
+        AutoMigration (from = 15, to = 16),
     ]
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -76,4 +80,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun sprayDao(): SprayDao
     abstract fun reminderDao(): ReminderDao
     abstract fun customRecipeDao(): CustomRecipeDao
+    abstract fun inventoryDao(): InventoryDao
 }

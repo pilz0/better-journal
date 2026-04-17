@@ -61,6 +61,13 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
 
         val AI_API_KEY = stringPreferencesKey("ai_api_key")
         val AI_MODEL_NAME = stringPreferencesKey("ai_model_name")
+
+        val KEY_INVENTORY_ENABLED = booleanPreferencesKey("key_inventory_enabled")
+
+        val KEY_REDOSE_ONSET_FRACTION = stringPreferencesKey("key_redose_onset_fraction")
+        val KEY_REDOSE_COMEUP_FRACTION = stringPreferencesKey("key_redose_comeup_fraction")
+        val KEY_REDOSE_PEAK_FRACTION = stringPreferencesKey("key_redose_peak_fraction")
+        val KEY_REDOSE_SHOW = booleanPreferencesKey("key_redose_show")
     }
 
     suspend fun saveTimeDisplayOption(value: SavedTimeDisplayOption) {
@@ -241,6 +248,46 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
     suspend fun saveAiModelName(value: String) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.AI_MODEL_NAME] = value
+        }
+    }
+
+    // ---- Inventory tab ----
+
+    val isInventoryEnabledFlow: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.KEY_INVENTORY_ENABLED] ?: false
+    }
+
+    suspend fun saveInventoryEnabled(value: Boolean) {
+        dataStore.edit { prefs -> prefs[PreferencesKeys.KEY_INVENTORY_ENABLED] = value }
+    }
+
+    // ---- Redose recommendation ----
+
+    val isRedoseShownFlow: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.KEY_REDOSE_SHOW] ?: true
+    }
+
+    suspend fun saveRedoseShown(value: Boolean) {
+        dataStore.edit { prefs -> prefs[PreferencesKeys.KEY_REDOSE_SHOW] = value }
+    }
+
+    val redoseOnsetFractionFlow: Flow<Float> = dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.KEY_REDOSE_ONSET_FRACTION]?.toFloatOrNull() ?: 1.0f
+    }
+
+    val redoseComeupFractionFlow: Flow<Float> = dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.KEY_REDOSE_COMEUP_FRACTION]?.toFloatOrNull() ?: 1.0f
+    }
+
+    val redosePeakFractionFlow: Flow<Float> = dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.KEY_REDOSE_PEAK_FRACTION]?.toFloatOrNull() ?: 0.5f
+    }
+
+    suspend fun saveRedoseFractions(onset: Float, comeup: Float, peak: Float) {
+        dataStore.edit { prefs ->
+            prefs[PreferencesKeys.KEY_REDOSE_ONSET_FRACTION] = onset.toString()
+            prefs[PreferencesKeys.KEY_REDOSE_COMEUP_FRACTION] = comeup.toString()
+            prefs[PreferencesKeys.KEY_REDOSE_PEAK_FRACTION] = peak.toString()
         }
     }
 }

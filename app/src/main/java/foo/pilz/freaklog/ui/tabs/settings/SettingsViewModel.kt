@@ -104,6 +104,48 @@ class SettingsViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000)
     )
 
+    val isInventoryEnabledFlow = userPreferences.isInventoryEnabledFlow.stateIn(
+        initialValue = false,
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000)
+    )
+
+    fun saveIsInventoryEnabled(value: Boolean) = viewModelScope.launch {
+        userPreferences.saveInventoryEnabled(value)
+    }
+
+    val isRedoseShownFlow = userPreferences.isRedoseShownFlow.stateIn(
+        initialValue = true,
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000)
+    )
+
+    fun saveRedoseShown(value: Boolean) = viewModelScope.launch {
+        userPreferences.saveRedoseShown(value)
+    }
+
+    val redoseOnsetFractionFlow = userPreferences.redoseOnsetFractionFlow.stateIn(
+        initialValue = 1.0f,
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000)
+    )
+
+    val redoseComeupFractionFlow = userPreferences.redoseComeupFractionFlow.stateIn(
+        initialValue = 1.0f,
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000)
+    )
+
+    val redosePeakFractionFlow = userPreferences.redosePeakFractionFlow.stateIn(
+        initialValue = 0.5f,
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000)
+    )
+
+    fun saveRedoseFractions(onset: Float, comeup: Float, peak: Float) = viewModelScope.launch {
+        userPreferences.saveRedoseFractions(onset, comeup, peak)
+    }
+
     fun saveHapticFeedbackEnabled(value: Boolean) = viewModelScope.launch {
         userPreferences.saveHapticFeedbackEnabled(value)
     }
