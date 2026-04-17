@@ -130,7 +130,7 @@ private fun avg(range: DurationRange?): Float {
 private fun formatRange(min: Float?, max: Float?): String {
     fun secToHuman(s: Float): String {
         val minutes = (s / 60f).toInt()
-        return if (minutes < 60) "${minutes}m" else "%.1fh".format(minutes / 60f)
+        return if (minutes < 60) "${minutes}m" else "%.1fh".format(s / 3600f)
     }
     return when {
         min != null && max != null -> "${secToHuman(min)}–${secToHuman(max)}"

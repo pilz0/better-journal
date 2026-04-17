@@ -4,6 +4,7 @@
  */
 package foo.pilz.freaklog.ui.tabs.inventory
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -206,7 +207,12 @@ private fun AddInventoryDialog(
                 )
                 suggestions.take(5).forEach { s ->
                     Card(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                name = s.name
+                                isCustom = s.isCustom
+                            }
                     ) {
                         Text(
                             text = s.name + if (s.isCustom) "  (custom)" else "",
@@ -230,7 +236,10 @@ private fun AddInventoryDialog(
                 enabled = name.isNotBlank(),
                 onClick = {
                     val match = suggestions.firstOrNull { it.name.equals(name.trim(), ignoreCase = true) }
-                    onAdd(name.trim(), match?.isCustom ?: isCustom, notes.trim())
+                    // If the user typed a name that matches no known PW or custom substance,
+                    // treat it as a brand-new custom entry rather than silently mis-categorising it.
+                    val resolvedIsCustom = match?.isCustom ?: true
+                    onAdd(name.trim(), resolvedIsCustom, notes.trim())
                 }
             ) { Text("Add") }
         },

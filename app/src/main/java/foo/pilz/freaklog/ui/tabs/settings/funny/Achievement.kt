@@ -17,6 +17,9 @@ import java.time.temporal.ChronoUnit
 
 enum class AchievementTier { BRONZE, SILVER, GOLD }
 
+private val PREDICATE_REGEX = Regex("""^(\w+)\((.*)\)$""")
+
+
 data class AchievementDef(
     val id: String,
     val title: String,
@@ -127,7 +130,7 @@ fun evaluateAchievement(condition: String, ctx: AchievementContext): Boolean {
         }
     }
 
-    val match = Regex("""^(\w+)\((.*)\)$""").matchEntire(condition.trim()) ?: return false
+    val match = PREDICATE_REGEX.matchEntire(condition.trim()) ?: return false
     val func = match.groupValues[1]
     val args = match.groupValues[2]
 

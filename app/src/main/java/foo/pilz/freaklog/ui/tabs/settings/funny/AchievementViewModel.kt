@@ -51,9 +51,15 @@ class AchievementViewModel @Inject constructor(
         customRecipeRepository.getActiveRecipesFlow(),
     ) { experiences, customUnits, recipes ->
         Triple(experiences, customUnits, recipes)
-    }.distinctUntilChanged { (a1, b1, c1), (a2, b2, c2) ->
-        achievementsContentHash(a1, b1, c1) == achievementsContentHash(a2, b2, c2)
-    }.map { (experiences, customUnits, customRecipes) ->
+    }.map { triple ->
+        // Attach the content hash up-front so distinctUntilChanged doesn't
+        // recompute it on both sides of every comparison.
+        val (experiences, customUnits, recipes) = triple
+        triple to achievementsContentHash(experiences, customUnits, recipes)
+    }.distinctUntilChanged { old, new ->
+        old.second == new.second
+    }.map { (triple, _) ->
+        val (experiences, customUnits, customRecipes) = triple
         val allIngestions = experiences.flatMap { it.ingestions }
         val allTimedNotes = experiences.flatMap { it.timedNotes }
         val allRatings = experiences.flatMap { it.ratings }
