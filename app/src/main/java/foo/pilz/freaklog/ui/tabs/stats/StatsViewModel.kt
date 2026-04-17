@@ -234,13 +234,24 @@ class StatsViewModel @Inject constructor(
         }.combine(consumerFlow) { pair, consumerName ->
             return@combine Pair(first = pair, second = consumerName)
         }.combine(experienceChartBucketsFlow) { pair, chartBuckets ->
+            return@combine Pair(first = pair, second = chartBuckets)
+        }.combine(relevantExperiencesSortedFlow) { pair, experiences ->
+            val statItems = pair.first.first.first.second
+            val totalExperiences = experiences.size
+            val totalIngestions = statItems.sumOf { it.ingestionCount }
+            val mostUsed = statItems.maxByOrNull { it.ingestionCount }
+
             return@combine StatsModel(
-                areThereAnyIngestions = pair.first.second,
-                selectedOption = pair.first.first.first.first,
-                startDateText = pair.first.first.first.second,
-                statItems = pair.first.first.second,
-                chartBuckets = chartBuckets,
-                consumerName = pair.second
+                areThereAnyIngestions = pair.first.first.second,
+                selectedOption = pair.first.first.first.first.first,
+                startDateText = pair.first.first.first.first.second,
+                statItems = statItems,
+                chartBuckets = pair.second,
+                consumerName = pair.first.second,
+                totalExperiences = totalExperiences,
+                totalIngestions = totalIngestions,
+                mostUsedSubstance = mostUsed?.substanceName,
+                mostUsedSubstanceCount = mostUsed?.ingestionCount ?: 0
             )
         }.stateIn(
             initialValue = StatsModel(
@@ -249,7 +260,11 @@ class StatsViewModel @Inject constructor(
                 startDateText = "",
                 statItems = emptyList(),
                 chartBuckets = emptyList(),
-                consumerName = null
+                consumerName = null,
+                totalExperiences = 0,
+                totalIngestions = 0,
+                mostUsedSubstance = null,
+                mostUsedSubstanceCount = 0
             ),
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000)
@@ -271,7 +286,11 @@ data class StatsModel(
     val startDateText: String,
     val statItems: List<StatItem>,
     val chartBuckets: List<List<ColorCount>>,
-    val consumerName: String?
+    val consumerName: String?,
+    val totalExperiences: Int,
+    val totalIngestions: Int,
+    val mostUsedSubstance: String?,
+    val mostUsedSubstanceCount: Int
 )
 
 data class ColorCount(
