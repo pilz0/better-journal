@@ -40,10 +40,14 @@ fun AchievementsScreen(
     val unlocked = achievements.filter { it.unlocked }
     val locked = achievements.filter { !it.unlocked }
 
+    val unlockedIds = unlocked.map { it.def.id }.toSet()
+
     // Mark all currently-unlocked achievements as "seen" once the user opens
-    // the list — this clears the unseen badge elsewhere.
-    LaunchedEffect(unlocked.size) {
-        if (unlocked.isNotEmpty()) viewModel.markAllUnlockedAsSeen()
+    // the list — this clears the unseen badge elsewhere. Keyed on the full
+    // ID set so edits that swap one unlock for another still trigger the
+    // mark-as-seen pass.
+    LaunchedEffect(unlockedIds) {
+        if (unlockedIds.isNotEmpty()) viewModel.markAllUnlockedAsSeen()
     }
 
     Scaffold(

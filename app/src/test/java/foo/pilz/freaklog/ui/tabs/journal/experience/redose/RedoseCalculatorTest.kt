@@ -69,8 +69,16 @@ class RedoseCalculatorTest {
     fun `parameters clamp into legal range`() {
         val p = RedoseParameters.sanitize(-1f, 100f, 0.25f)
         assertEquals(0f, p.onsetFraction, 0.0001f)
-        assertEquals(5f, p.comeupFraction, 0.0001f)
+        assertEquals(3f, p.comeupFraction, 0.0001f)
         assertEquals(0.25f, p.peakFraction, 0.0001f)
+    }
+
+    @Test
+    fun `parameters fall back to defaults on NaN or infinity`() {
+        val p = RedoseParameters.sanitize(Float.NaN, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY)
+        assertEquals(RedoseParameters.Default.onsetFraction, p.onsetFraction, 0.0001f)
+        assertEquals(RedoseParameters.Default.comeupFraction, p.comeupFraction, 0.0001f)
+        assertEquals(RedoseParameters.Default.peakFraction, p.peakFraction, 0.0001f)
     }
 
     @Test

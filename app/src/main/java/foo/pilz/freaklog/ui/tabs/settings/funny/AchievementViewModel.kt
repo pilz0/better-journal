@@ -42,8 +42,13 @@ class AchievementViewModel @Inject constructor(
 
     /**
      * Combines all the journal data the evaluator needs into a single flow,
-     * and uses distinctUntilChanged (via a compact content hash) to avoid
-     * re-running the whole evaluator on every meaningless tick.
+     * and uses [distinctUntilChanged] to skip re-running the whole evaluator
+     * when the underlying entity lists are structurally equal between
+     * emissions. Room's `Flow` queries already emit only on real changes, so
+     * this is mostly a guard against rapid duplicate emissions; using the
+     * default structural-equality check is safe because achievement
+     * predicates inspect many non-ID fields (notes, administrationRoute,
+     * time, location, isFavorite, ...) that a cheap ID-only hash would miss.
      */
     val achievementsFlow: StateFlow<List<UnlockedAchievement>> = combine(
         experienceRepo.getAllExperiencesWithIngestionsTimedNotesAndRatingsFlow(),
@@ -51,15 +56,7 @@ class AchievementViewModel @Inject constructor(
         customRecipeRepository.getActiveRecipesFlow(),
     ) { experiences, customUnits, recipes ->
         Triple(experiences, customUnits, recipes)
-    }.map { triple ->
-        // Attach the content hash up-front so distinctUntilChanged doesn't
-        // recompute it on both sides of every comparison.
-        val (experiences, customUnits, recipes) = triple
-        triple to achievementsContentHash(experiences, customUnits, recipes)
-    }.distinctUntilChanged { old, new ->
-        old.second == new.second
-    }.map { (triple, _) ->
-        val (experiences, customUnits, customRecipes) = triple
+    }.distinctUntilChanged().map { (experiences, customUnits, customRecipes) ->
         val allIngestions = experiences.flatMap { it.ingestions }
         val allTimedNotes = experiences.flatMap { it.timedNotes }
         val allRatings = experiences.flatMap { it.ratings }
@@ -113,31 +110,3 @@ class AchievementViewModel @Inject constructor(
         }
     }
 }
-
-/**
- * Cheap content hash: sizes + last modification timestamps. Two emissions that
- * share this hash are guaranteed to produce identical achievement results.
- */
-private fun achievementsContentHash(
-    experiences: List<foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsTimedNotesAndRatings>,
-    customUnits: List<foo.pilz.freaklog.data.room.experiences.entities.CustomUnit>,
-    recipes: List<foo.pilz.freaklog.data.room.experiences.entities.CustomRecipe>,
-): Int {
-    val ingestionIds = experiences.flatMap { it.ingestions.map { ing -> ing.id } }
-    val ratingIds = experiences.flatMap { it.ratings.map { r -> r.id } }
-    val timedNoteIds = experiences.flatMap { it.timedNotes.map { n -> n.id } }
-    return listOf(
-        experiences.size,
-        ingestionIds.sum(),
-        ingestionIds.size,
-        ratingIds.sum(),
-        ratingIds.size,
-        timedNoteIds.sum(),
-        timedNoteIds.size,
-        customUnits.size,
-        customUnits.sumOf { it.id },
-        recipes.size,
-        recipes.sumOf { it.id },
-    ).hashCode()
-}
-

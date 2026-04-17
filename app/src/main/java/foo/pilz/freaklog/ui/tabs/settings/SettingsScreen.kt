@@ -750,15 +750,19 @@ private fun RedoseFractionsSection(
 
 @Composable
 private fun RedoseFractionSlider(label: String, value: Float, onChange: (Float) -> Unit) {
+    // Sanitise the incoming value once so the label, slider, and onSave
+    // callback all operate on the same in-range float (guards against
+    // out-of-range or NaN values that may linger in preferences).
+    val safe = if (value.isFinite()) value.coerceIn(0f, 3f) else 0f
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(text = label, modifier = Modifier.width(70.dp))
         Slider(
-            value = value.coerceIn(0f, 3f),
-            onValueChange = onChange,
+            value = safe,
+            onValueChange = { onChange(it.coerceIn(0f, 3f)) },
             valueRange = 0f..3f,
             steps = 29,
             modifier = Modifier.weight(1f)
         )
-        Text(text = "%.2f".format(value), modifier = Modifier.width(48.dp))
+        Text(text = "%.2f".format(safe), modifier = Modifier.width(48.dp))
     }
 }

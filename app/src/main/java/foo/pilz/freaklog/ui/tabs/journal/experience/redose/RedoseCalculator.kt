@@ -30,11 +30,21 @@ data class RedoseParameters(
             peakFraction = 0.5f
         )
 
+        /**
+         * Clamp a single fraction into the UI-supported range (0..3). Any
+         * non-finite input (NaN, ±Inf — which `toFloatOrNull()` happily
+         * produces from stored string prefs) falls back to the default.
+         */
+        private fun sanitizeFraction(value: Float, fallback: Float): Float {
+            if (!value.isFinite()) return fallback
+            return value.coerceIn(0f, 3f)
+        }
+
         /** Clamp parameters into a sensible range to avoid NaN/weird UI. */
         fun sanitize(onset: Float, comeup: Float, peak: Float) = RedoseParameters(
-            onsetFraction = onset.coerceIn(0f, 5f),
-            comeupFraction = comeup.coerceIn(0f, 5f),
-            peakFraction = peak.coerceIn(0f, 5f)
+            onsetFraction = sanitizeFraction(onset, Default.onsetFraction),
+            comeupFraction = sanitizeFraction(comeup, Default.comeupFraction),
+            peakFraction = sanitizeFraction(peak, Default.peakFraction)
         )
     }
 }
