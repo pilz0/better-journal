@@ -39,8 +39,24 @@ data class WebhookResult(
     val error: Exception?
 )
 
+/** Minimal logger seam so unit tests can avoid the Android framework. */
+internal fun interface WebhookLogger {
+    fun warn(tag: String, message: String)
+}
+
+private object AndroidWebhookLogger : WebhookLogger {
+    override fun warn(tag: String, message: String) {
+        android.util.Log.w(tag, message)
+    }
+}
+
 @Singleton
-class WebhookService @Inject constructor() {
+class WebhookService internal constructor(
+    private val logger: WebhookLogger,
+    private val delayMillis: suspend (Long) -> Unit,
+) {
+
+    @Inject constructor() : this(AndroidWebhookLogger, ::delay)
 
     companion object {
         const val DEFAULT_TEMPLATE = "{user}: [{dose} {units} ]{substance} via {route}[ at {site}][\n> {note}]"
@@ -190,7 +206,7 @@ class WebhookService @Inject constructor() {
 
         for (attempt in 0 until MAX_RETRIES) {
             try {
-                android.util.Log.w("WebhookService", "Attempting to send webhook")
+                logger.warn("WebhookService", "Attempting to send webhook")
                 val result = performWebhookRequest(
                     url = url,
                     payload = payload,
@@ -199,11 +215,11 @@ class WebhookService @Inject constructor() {
                 )
                 return WebhookResult(success = true, messageId = result, error = null)
             } catch (e: Exception) {
-                android.util.Log.w("WebhookService", "Got error: $e")
+                logger.warn("WebhookService", "Got error: $e")
                 lastError = e
                 if (attempt < MAX_RETRIES - 1) {
                     val delayMs = (1L shl attempt) * 1000L // Exponential backoff: 1s, 2s, 4s
-                    delay(delayMs)
+                    delayMillis(delayMs)
                 }
             }
         }
@@ -242,7 +258,7 @@ class WebhookService @Inject constructor() {
         val responseCode = connection.responseCode
         if (responseCode !in 200..299) {
             connection.disconnect()
-            android.util.Log.w("WebhookService", "HTTP error code:$responseCode")
+            logger.warn("WebhookService", "HTTP error code:$responseCode")
             throw IOException("HTTP error code: $responseCode")
         }
 

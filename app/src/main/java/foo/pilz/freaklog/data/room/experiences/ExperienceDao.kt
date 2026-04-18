@@ -323,7 +323,7 @@ interface ExperienceDao {
     suspend fun deleteAllCustomSubstances()
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(ingestion: Ingestion)
+    suspend fun insert(ingestion: Ingestion): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(rating: ShulginRating)
@@ -339,10 +339,11 @@ interface ExperienceDao {
         ingestion: Ingestion,
         experience: Experience,
         substanceCompanion: SubstanceCompanion
-    ) {
-        insert(ingestion)
+    ): Long {
+        val ingestionId = insert(ingestion)
         insert(experience)
         insert(substanceCompanion)
+        return ingestionId
     }
 
     @Transaction
@@ -436,9 +437,10 @@ interface ExperienceDao {
     suspend fun insertIngestionAndCompanion(
         ingestion: Ingestion,
         substanceCompanion: SubstanceCompanion
-    ) {
-        insert(ingestion)
+    ): Long {
+        val ingestionId = insert(ingestion)
         insert(substanceCompanion)
+        return ingestionId
     }
 
     @Transaction
