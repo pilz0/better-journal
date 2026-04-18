@@ -31,16 +31,16 @@ jobs:
             # skipped by an overly narrow filter such as `Test*`.
             test-args: '-PtestExclude=foo.pilz.freaklog.data.*,foo.pilz.freaklog.ui.*'
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
@@ -49,7 +49,7 @@ jobs:
 
       - name: Publish JUnit results
         if: always()
-        uses: mikepenz/action-junit-report@3585e9575db828022551b4231f165eb59a0e74e3 # v5
+        uses: mikepenz/action-junit-report@bccf2e31636835cf0874589931c4116687171386 # v6.4.0
         with:
           report_paths: 'app/build/test-results/testDebugUnitTest/*.xml'
           check_name: Unit Test Results (${{ matrix.test-suite }})
@@ -57,7 +57,7 @@ jobs:
 
       - name: Upload Test Results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-${{ matrix.test-suite }}
           path: |
@@ -71,16 +71,16 @@ jobs:
       contents: read
       security-events: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
@@ -89,7 +89,7 @@ jobs:
 
       - name: Upload Lint SARIF to code-scanning
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: app/build/reports/lint-results-debug.sarif
           category: android-lint
@@ -97,7 +97,7 @@ jobs:
 
       - name: Upload Lint reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: lint-reports
           path: app/build/reports/lint-results-*.*
@@ -110,16 +110,16 @@ jobs:
         app-type: [ apk, aab ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
@@ -133,7 +133,7 @@ jobs:
 
       - name: Upload unsigned APK
         if: matrix.app-type == 'apk'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: freaklog-unsigned-apk
           path: app/build/outputs/apk/release/*.apk
@@ -141,7 +141,7 @@ jobs:
 
       - name: Upload unsigned AAB
         if: matrix.app-type == 'aab'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: freaklog-unsigned-aab
           path: app/build/outputs/bundle/release/*.aab
@@ -158,7 +158,7 @@ jobs:
         app-type: [ apk, aab ]
     steps:
       - name: Download unsigned file
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: freaklog-unsigned-${{ matrix.app-type }}
 
@@ -182,7 +182,7 @@ jobs:
         run: |
           mv "${{ steps.sign.outputs.signedFile }}" "freaklog.${{ matrix.app-type }}"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: freaklog-${{ matrix.app-type }}
           path: freaklog.${{ matrix.app-type }}
@@ -200,7 +200,7 @@ jobs:
         app-type: [ apk, aab ]
     steps:
       - name: Download files
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           path: ${{ matrix.app-type }}s
 
@@ -224,7 +224,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download a single artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           path: app
 
@@ -244,13 +244,13 @@ jobs:
       contents: write
     steps:
       - name: Download files
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           path: .
 
       - name: Create release
         if: startsWith(github.ref, 'refs/tags/') && github.event_name == 'push'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             freaklog-apk/freaklog.apk

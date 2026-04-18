@@ -41,7 +41,7 @@ jobs:
         # On workflow_dispatch, use the user-supplied API level; otherwise run a fixed default set.
         api-level: ${{ github.event_name == 'workflow_dispatch' && fromJSON(format('[{0}]', inputs.api-level)) || fromJSON('[34]') }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Enable KVM group perms
         run: |
@@ -50,13 +50,13 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
@@ -71,7 +71,7 @@ jobs:
 
       - name: Upload androidTest results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-test-results-api${{ matrix.api-level }}
           path: |
