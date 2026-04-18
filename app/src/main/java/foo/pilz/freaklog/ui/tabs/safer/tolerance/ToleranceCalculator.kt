@@ -50,7 +50,8 @@ class ToleranceCalculator @Inject constructor(
             substanceName = substanceName,
             lastIngestionTime = lastIngestion?.time,
             crossToleranceContributors = contributors,
-            zeroDays = parsed.zeroDays
+            zeroDays = parsed.zeroDays,
+            halfLifeDays = parsed.halfLifeDays,
         )
     }
 

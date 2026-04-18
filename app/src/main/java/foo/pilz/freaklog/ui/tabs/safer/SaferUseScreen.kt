@@ -26,7 +26,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.TrendingUp
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.Biotech
@@ -65,7 +64,6 @@ fun SaferUsePreview() {
         navigateToRouteExplanationScreen = {},
         navigateToReagentTestingScreen = {},
         navigateToSprayCalculatorScreen = {},
-        navigateToToleranceCalculatorScreen = {},
     )
 }
 
@@ -80,7 +78,6 @@ fun SaferUseScreen(
     navigateToRouteExplanationScreen: () -> Unit,
     navigateToReagentTestingScreen: () -> Unit,
     navigateToSprayCalculatorScreen: () -> Unit,
-    navigateToToleranceCalculatorScreen: () -> Unit = {},
 ) {
     Scaffold(
         topBar = {
@@ -250,26 +247,6 @@ fun SaferUseScreen(
                     )
                     Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                     Text("Spray Calculator")
-                    Spacer(modifier = Modifier.weight(1f))
-                }
-            }
-            ElevatedCard(
-                modifier = Modifier.padding(
-                    horizontal = horizontalPadding,
-                    vertical = verticalPaddingCards
-                )
-            ) {
-                TextButton(
-                    onClick = navigateToToleranceCalculatorScreen,
-                    modifier = Modifier.padding(horizontal = horizontalPadding)
-                ) {
-                    Icon(
-                        Icons.AutoMirrored.Outlined.TrendingUp,
-                        contentDescription = "Tolerance Calculator",
-                        modifier = Modifier.size(ButtonDefaults.IconSize)
-                    )
-                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                    Text("Tolerance Calculator")
                     Spacer(modifier = Modifier.weight(1f))
                 }
             }
