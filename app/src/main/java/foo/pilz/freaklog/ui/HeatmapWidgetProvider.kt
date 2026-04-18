@@ -8,7 +8,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.util.Log
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.unit.sp
 import androidx.core.graphics.createBitmap
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -30,17 +30,10 @@ import androidx.glance.currentState
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.ContentScale
-import androidx.glance.layout.Row
-import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
-import androidx.glance.layout.fillMaxWidth
-import androidx.glance.layout.height
-import androidx.glance.layout.padding
 import androidx.glance.state.PreferencesGlanceStateDefinition
-import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
 import androidx.room.Room
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
@@ -50,19 +43,13 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import foo.pilz.freaklog.MainActivity
 import foo.pilz.freaklog.data.room.AppDatabase
-import foo.pilz.freaklog.ui.theme.md_theme_dark_primary
-import foo.pilz.freaklog.ui.theme.md_theme_light_primary
 import kotlinx.coroutines.flow.first
 import java.io.File
 import java.io.FileOutputStream
-import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
-import java.time.temporal.TemporalAdjusters
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 private object HeatmapWidgetKeys {
     val HAS_DATA = booleanPreferencesKey("heatmap_hasData")
@@ -138,7 +125,7 @@ class HeatmapAppWidget : GlanceAppWidget() {
                                         provider = ImageProvider(bitmap),
                                         contentDescription = "Activity heatmap",
                                         modifier = GlanceModifier.fillMaxSize(),
-                                        contentScale = ContentScale.FillBounds
+                                        contentScale = ContentScale.Fit
                                     )
                                 }
                             }
@@ -224,76 +211,75 @@ class HeatmapWidgetWorker(
                 android.content.res.Configuration.UI_MODE_NIGHT_MASK
         val isDarkMode = nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES
 
-        val width = 650
-        val height = 95
+        val zone = ZoneId.systemDefault()
+        val today = LocalDate.now(zone)
+        val model = WidgetHeatmapModel.build(
+            today = today,
+            ingestionDates = ingestionTimes.map { it.atZone(zone).toLocalDate() },
+            weeks = 53,
+        )
+
+        // Render at higher resolution; Glance scales to widget size.
+        val width = 1300
+        val monthLabelHeight = 28f
+        val cellSize = 22f
+        val cellGap = 4f
+        val leftPadding = 12f
+        val topPadding = monthLabelHeight + 4f
+        val gridHeight = topPadding + 7 * cellSize + 6 * cellGap + 8f
+        val height = gridHeight.toInt().coerceAtLeast(180)
         val bitmap = createBitmap(width, height)
         val canvas = Canvas(bitmap)
 
-        // Calculate date range (52 weeks, starting from the Sunday of the current week going back)
-        val today = LocalDate.now()
-        val endOfWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SATURDAY))
-        val startDate = endOfWeek.minusWeeks(52)
-
-        // Count ingestions per day
-        val counts = mutableMapOf<LocalDate, Int>()
-        ingestionTimes.forEach { instant ->
-            val date = instant.atZone(ZoneId.systemDefault()).toLocalDate()
-            counts[date] = (counts[date] ?: 0) + 1
-        }
-
-        val maxCount = counts.values.maxOrNull() ?: 1
-
-        // Colors - green gradient like GitHub
+        // Color palette: empty + INTENSITY_BUCKETS shades of green (GitHub-style).
         val emptyColor = if (isDarkMode) Color.rgb(22, 27, 34) else Color.rgb(235, 237, 240)
-        val level1 = if (isDarkMode) Color.rgb(14, 68, 41) else Color.rgb(155, 233, 168)
-        val level2 = if (isDarkMode) Color.rgb(0, 109, 50) else Color.rgb(64, 196, 99)
-        val level3 = if (isDarkMode) Color.rgb(38, 166, 65) else Color.rgb(48, 161, 78)
-        val level4 = if (isDarkMode) Color.rgb(57, 211, 83) else Color.rgb(33, 110, 57)
-
-        fun getColorForCount(count: Int): Int {
-            if (count == 0) return emptyColor
-            val ratio = count.toFloat() / maxCount
-            return when {
-                ratio <= 0.25f -> level1
-                ratio <= 0.5f -> level2
-                ratio <= 0.75f -> level3
-                else -> level4
-            }
-        }
-
-        val cellSize = 10f
-        val cellGap = 2f
-        val leftPadding = 5f
-        val topPadding = 5f
+        val palette = if (isDarkMode) intArrayOf(
+            Color.rgb(14, 68, 41),
+            Color.rgb(0, 109, 50),
+            Color.rgb(38, 166, 65),
+            Color.rgb(57, 211, 83),
+        ) else intArrayOf(
+            Color.rgb(155, 233, 168),
+            Color.rgb(64, 196, 99),
+            Color.rgb(48, 161, 78),
+            Color.rgb(33, 110, 57),
+        )
 
         val paint = Paint().apply {
             style = Paint.Style.FILL
             isAntiAlias = true
         }
 
-        // Draw cells - 7 rows (days of week), 53 columns (weeks)
-        var currentDate = startDate
-        var weekIndex = 0
-        
-        while (!currentDate.isAfter(endOfWeek) && weekIndex < 53) {
-            val dayOfWeek = currentDate.dayOfWeek.value % 7 // 0 = Sunday, 6 = Saturday
-            
-            val x = leftPadding + weekIndex * (cellSize + cellGap)
-            val y = topPadding + dayOfWeek * (cellSize + cellGap)
-            
-            val count = counts[currentDate] ?: 0
-            paint.color = getColorForCount(count)
-            
+        // Draw cells
+        for (cell in model.cells) {
+            val x = leftPadding + cell.column * (cellSize + cellGap)
+            val y = topPadding + cell.row * (cellSize + cellGap)
+            paint.color = if (cell.intensity == 0) {
+                emptyColor
+            } else {
+                palette[(cell.intensity - 1).coerceIn(0, palette.size - 1)]
+            }
             canvas.drawRoundRect(
                 RectF(x, y, x + cellSize, y + cellSize),
-                2f, 2f,
+                3f, 3f,
                 paint
             )
-            
-            currentDate = currentDate.plusDays(1)
-            if (currentDate.dayOfWeek == DayOfWeek.SUNDAY) {
-                weekIndex++
-            }
+        }
+
+        // Draw month labels along the top.
+        val monthPaint = Paint().apply {
+            color = if (isDarkMode) Color.argb(200, 255, 255, 255) else Color.argb(200, 0, 0, 0)
+            textSize = 22f
+            isAntiAlias = true
+            textAlign = Paint.Align.LEFT
+        }
+        for (label in model.monthLabels) {
+            val x = leftPadding + label.column * (cellSize + cellGap)
+            val text = label.month.getDisplayName(
+                java.time.format.TextStyle.SHORT,
+                java.util.Locale.getDefault()
+            )
+            canvas.drawText(text, x, monthLabelHeight - 4f, monthPaint)
         }
 
         // Save bitmap
