@@ -7,6 +7,14 @@ on:
         description: 'Android API level for the emulator'
         required: false
         default: '34'
+        type: choice
+        options:
+          - '30'
+          - '31'
+          - '32'
+          - '33'
+          - '34'
+          - '35'
   pull_request:
     types: [ labeled, synchronize ]
 
@@ -30,7 +38,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        api-level: [ 34 ]
+        # On workflow_dispatch, use the user-supplied API level; otherwise run a fixed default set.
+        api-level: ${{ github.event_name == 'workflow_dispatch' && fromJSON(format('[{0}]', inputs.api-level)) || fromJSON('[34]') }}
     steps:
       - uses: actions/checkout@v5
 
