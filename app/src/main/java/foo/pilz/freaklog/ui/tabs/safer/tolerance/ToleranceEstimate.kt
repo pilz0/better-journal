@@ -29,17 +29,18 @@ data class ToleranceEstimate(
 
     /** Days remaining until tolerance reaches baseline (0), or 0 if already cleared. */
     fun daysUntilClear(now: Instant = Instant.now()): Int {
-        val lastUse = lastIngestionTime ?: return 0
-        val elapsedDays = Duration.between(lastUse, now).seconds / 86400f
-        val remaining = (zeroDays - elapsedDays).coerceAtLeast(0f)
-        return remaining.toInt()
+        val elapsedDays = elapsedDaysSinceLastUse(now) ?: return 0
+        return (zeroDays - elapsedDays).coerceAtLeast(0f).toInt()
     }
 
     /** Days remaining until tolerance drops to roughly half, or 0 if already past that. */
     fun daysUntilHalf(now: Instant = Instant.now()): Int {
-        val lastUse = lastIngestionTime ?: return 0
-        val elapsedDays = Duration.between(lastUse, now).seconds / 86400f
-        val remaining = (halfLifeDays - elapsedDays).coerceAtLeast(0f)
-        return remaining.toInt()
+        val elapsedDays = elapsedDaysSinceLastUse(now) ?: return 0
+        return (halfLifeDays - elapsedDays).coerceAtLeast(0f).toInt()
+    }
+
+    private fun elapsedDaysSinceLastUse(now: Instant): Float? {
+        val lastUse = lastIngestionTime ?: return null
+        return Duration.between(lastUse, now).seconds / 86400f
     }
 }

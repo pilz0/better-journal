@@ -507,7 +507,7 @@ private fun ToleranceBadge(estimate: ToleranceEstimate) {
 private fun RecoveryInfoCell(
     label: String,
     value: String,
-    valueColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface,
+    valueColor: Color = MaterialTheme.colorScheme.onSurface,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -526,7 +526,7 @@ private fun RecoveryInfoCell(
 }
 
 @Composable
-private fun toleranceColor(level: Float): androidx.compose.ui.graphics.Color = when {
+private fun toleranceColor(level: Float): Color = when {
     level < 0.1f -> MaterialTheme.colorScheme.tertiary
     level < 0.3f -> Color(0xFF8BC34A)
     level < 0.6f -> Color(0xFFFFA726)
