@@ -49,6 +49,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.input.KeyboardType
@@ -131,7 +132,9 @@ fun CustomColorDialog(
                     TextField(
                         value = hexFieldText,
                         onValueChange = { input ->
-                            val cleaned = input.uppercase().filter { it in "0123456789ABCDEF" }.take(6)
+                            val cleaned = input.uppercase().filter {
+                                it in '0'..'9' || it in 'A'..'F'
+                            }.take(6)
                             hexFieldText = cleaned
                             if (cleaned.length == 6) {
                                 val parsed = cleaned.toInt(16)
@@ -215,13 +218,13 @@ private fun SaturationValuePicker(
                 color = Color.White,
                 radius = 8f,
                 center = Offset(cx, cy),
-                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3f),
+                style = Stroke(width = 3f),
             )
             drawCircle(
                 color = Color.Black,
                 radius = 8f,
                 center = Offset(cx, cy),
-                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1f),
+                style = Stroke(width = 1f),
             )
         }
     }

@@ -668,8 +668,14 @@ sealed interface AdaptiveColor {
         fun valueOf(name: String): AdaptiveColor {
             if (name.startsWith(CUSTOM_PREFIX)) {
                 val hex = name.removePrefix(CUSTOM_PREFIX)
-                val argb = hex.toLong(16).toInt()
-                return Custom(argb)
+                if (hex.length != 8 || hex.any { it !in '0'..'9' && it !in 'A'..'F' && it !in 'a'..'f' }) {
+                    throw IllegalArgumentException("Malformed custom AdaptiveColor: $name")
+                }
+                return try {
+                    Custom(hex.toLong(16).toInt())
+                } catch (e: NumberFormatException) {
+                    throw IllegalArgumentException("Malformed custom AdaptiveColor: $name", e)
+                }
             }
             return entries.firstOrNull { it.name == name }
                 ?: throw IllegalArgumentException("Unknown AdaptiveColor: $name")

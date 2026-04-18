@@ -50,7 +50,7 @@ class AdaptiveColorSerializerTest {
 
     @Test
     fun testRoundTrip_custom() {
-        val original = AdaptiveColor.Custom(0xFFABCDEFu.toInt())
+        val original = AdaptiveColor.Custom(0xFFABCDEF.toInt())
         val encoded = json.encodeToString(AdaptiveColorSerializer, original)
         val decoded = json.decodeFromString(AdaptiveColorSerializer, encoded)
         assertEquals(original, decoded)
