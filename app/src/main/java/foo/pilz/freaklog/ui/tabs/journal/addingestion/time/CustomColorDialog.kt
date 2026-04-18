@@ -39,6 +39,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -90,9 +91,13 @@ fun CustomColorDialog(
     val previewArgb = previewColor.toArgb() or 0xFF000000.toInt()
     val hexText = "%06X".format(previewArgb and 0xFFFFFF)
     var hexFieldText by remember { mutableStateOf(hexText) }
-    // Re-sync the hex field whenever HSV controls change.
-    if (hexFieldText.uppercase() != hexText) {
-        hexFieldText = hexText
+    // Re-sync the hex field only when HSV changes (e.g., user dragged the SV/hue picker),
+    // not on every recomposition. This lets the user type partial input like "1" without
+    // it being immediately overwritten by the current 6-digit value.
+    LaunchedEffect(hue, saturation, value) {
+        if (hexFieldText.uppercase() != hexText) {
+            hexFieldText = hexText
+        }
     }
 
     AlertDialog(
