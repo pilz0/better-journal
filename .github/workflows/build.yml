@@ -5,6 +5,9 @@ on:
   pull_request:
 permissions:
   contents: read
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/') }}
 env:
   main_project_module: 'app'
 jobs:
@@ -13,15 +16,20 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      checks: write
     strategy:
+      fail-fast: false
       matrix:
         include:
           - test-suite: data
-            test-filter: "foo.pilz.freaklog.data.*"
+            test-args: '--tests "foo.pilz.freaklog.data.*"'
           - test-suite: ui
-            test-filter: "foo.pilz.freaklog.ui.*"
+            test-args: '--tests "foo.pilz.freaklog.ui.*"'
           - test-suite: misc
-            test-filter: "foo.pilz.freaklog.Test*"
+            # Run everything that is NOT in the data.* or ui.* packages so that
+            # newly-added top-level (or other-package) tests are not silently
+            # skipped by an overly narrow filter such as `Test*`.
+            test-args: '-PtestExclude=foo.pilz.freaklog.data.*,foo.pilz.freaklog.ui.*'
     steps:
       - uses: actions/checkout@v5
 
@@ -30,19 +38,69 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: gradle
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Run Unit Tests
-        run: ./gradlew testDebugUnitTest --tests "${{ matrix.test-filter }}" --no-daemon
+        run: ./gradlew testDebugUnitTest ${{ matrix.test-args }} --no-daemon
+
+      - name: Publish JUnit results
+        if: always()
+        uses: mikepenz/action-junit-report@3585e9575db828022551b4231f165eb59a0e74e3 # v5
+        with:
+          report_paths: 'app/build/test-results/testDebugUnitTest/*.xml'
+          check_name: Unit Test Results (${{ matrix.test-suite }})
+          require_tests: true
 
       - name: Upload Test Results
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results-${{ matrix.test-suite }}
-          path: app/build/reports/tests/
+          path: |
+            app/build/reports/tests/
+            app/build/test-results/
+
+  lint:
+    name: Android Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Run Android Lint
+        run: ./gradlew :app:lintDebug --no-daemon
+
+      - name: Upload Lint SARIF to code-scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: app/build/reports/lint-results-debug.sarif
+          category: android-lint
+        continue-on-error: true
+
+      - name: Upload Lint reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-reports
+          path: app/build/reports/lint-results-*.*
 
   build-app:
     permissions:
@@ -59,10 +117,11 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: gradle
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Build APK
         if: matrix.app-type == 'apk'
@@ -108,7 +167,8 @@ jobs:
           ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager "build-tools;35.0.0"
 
       - name: Sign app APK
-        uses: ilharp/sign-android-release@nightly
+        # Pinned to a specific commit (rather than @nightly) for supply-chain safety.
+        uses: ilharp/sign-android-release@13dd52242698526f951aa8bb8696204f6fea702a # v2.0.0
         id: sign
         with:
           releaseDir: .
@@ -145,7 +205,8 @@ jobs:
           path: ${{ matrix.app-type }}s
 
       - name: Upload ${{ matrix.app-type }}s to S3
-        uses: ryand56/r2-upload-action@latest
+        # Pinned to a specific commit (rather than @latest) for supply-chain safety.
+        uses: ryand56/r2-upload-action@b801a390acbdeb034c5e684ff5e1361c06639e7c # v1.4
         with:
           r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
           r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
