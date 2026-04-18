@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,14 +21,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.TrendingUp
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -47,7 +45,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -120,14 +117,14 @@ fun ToleranceScreen(
             } else if (recentTolerances.isNotEmpty() && searchedTolerance == null) {
                 item {
                     Text(
-                        text = "Recent substances",
+                        text = "Recently used substances",
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = horizontalPadding)
-                            .padding(top = 16.dp, bottom = 4.dp)
+                            .padding(top = 16.dp, bottom = 8.dp)
                     )
                 }
                 items(recentTolerances) { estimate ->
@@ -188,7 +185,7 @@ fun ToleranceScreen(
 
             item {
                 Text(
-                    text = "Estimates based on PsychonautWiki data and an exponential decay model. Individual tolerance varies significantly.",
+                    text = "Estimate based on PsychonautWiki data. Individual tolerance varies.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 16.dp)
@@ -270,82 +267,35 @@ private fun ToleranceSummaryCard(
     estimate: ToleranceEstimate,
     modifier: Modifier = Modifier
 ) {
-    val now = remember { Instant.now() }
-    val daysLeft = estimate.daysUntilClear(now)
-    val isCleared = estimate.toleranceLevel < 0.05f
-
     ElevatedCard(modifier = modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
                     text = estimate.substanceName,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.titleSmall
                 )
-                ToleranceBadge(estimate)
+                Text(
+                    text = "${estimate.percentage}% — ${estimate.label}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
             LinearProgressIndicator(
                 progress = { estimate.toleranceLevel },
-                modifier = Modifier.fillMaxWidth(),
-                color = toleranceColor(estimate.toleranceLevel),
-                trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                strokeCap = StrokeCap.Round,
+                modifier = Modifier.fillMaxWidth()
             )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (estimate.lastIngestionTime != null) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            Icons.Outlined.Schedule,
-                            contentDescription = null,
-                            modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = "Last use: ${formatTimeSince(estimate.lastIngestionTime)}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-                if (isCleared) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            Icons.Outlined.CheckCircle,
-                            contentDescription = null,
-                            modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.tertiary
-                        )
-                        Text(
-                            text = "Cleared",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.tertiary,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                } else if (daysLeft > 0) {
-                    Text(
-                        text = "Clears in ~$daysLeft day${if (daysLeft != 1) "s" else ""}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+            if (estimate.lastIngestionTime != null) {
+                Text(
+                    text = "Last use: ${formatTimeSince(estimate.lastIngestionTime)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
@@ -356,182 +306,40 @@ private fun ToleranceDetailCard(
     estimate: ToleranceEstimate,
     modifier: Modifier = Modifier
 ) {
-    val now = remember { Instant.now() }
-    val daysLeft = estimate.daysUntilClear(now)
-    val isCleared = estimate.toleranceLevel < 0.05f
-
     ElevatedCard(modifier = modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = estimate.substanceName,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                ToleranceBadge(estimate)
-            }
-
+            Text(
+                text = estimate.substanceName,
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = "${estimate.percentage}% — ${estimate.label}",
+                style = MaterialTheme.typography.bodyLarge
+            )
             LinearProgressIndicator(
                 progress = { estimate.toleranceLevel },
-                modifier = Modifier.fillMaxWidth(),
-                color = toleranceColor(estimate.toleranceLevel),
-                trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                strokeCap = StrokeCap.Round,
+                modifier = Modifier.fillMaxWidth()
             )
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-
-            // Recovery info grid
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                RecoveryInfoCell(
-                    label = "Status",
-                    value = if (isCleared) "✓ Cleared" else estimate.label.replaceFirstChar { it.uppercase() },
-                    valueColor = if (isCleared) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f)
-                )
-                if (estimate.halfLifeDays > 0f) {
-                    RecoveryInfoCell(
-                        label = "Half-life",
-                        value = formatDays(estimate.halfLifeDays),
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                if (estimate.zeroDays > 0f) {
-                    RecoveryInfoCell(
-                        label = "Full clearance",
-                        value = formatDays(estimate.zeroDays),
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-
             if (estimate.lastIngestionTime != null) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Icon(
-                        Icons.Outlined.Schedule,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Column {
-                        Text(
-                            text = "Last use: ${formatTimeSince(estimate.lastIngestionTime)}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        if (!isCleared && daysLeft > 0) {
-                            Text(
-                                text = "Estimated full clearance in ~$daysLeft day${if (daysLeft != 1) "s" else ""}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = FontWeight.Medium
-                            )
-                        } else if (isCleared) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Icon(
-                                    Icons.Outlined.CheckCircle,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(14.dp),
-                                    tint = MaterialTheme.colorScheme.tertiary
-                                )
-                                Text(
-                                    text = "Tolerance has fully cleared",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.tertiary,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            }
-                        }
-                    }
-                }
+                Text(
+                    text = "Last use: ${formatTimeSince(estimate.lastIngestionTime)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
-
             if (estimate.crossToleranceContributors.isNotEmpty()) {
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(
-                        text = "Cross-tolerance from:",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = estimate.crossToleranceContributors.joinToString(", "),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Cross-tolerance from: ${estimate.crossToleranceContributors.joinToString(", ")}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
-}
-
-@Composable
-private fun ToleranceBadge(estimate: ToleranceEstimate) {
-    val isCleared = estimate.toleranceLevel < 0.05f
-    Surface(
-        shape = RoundedCornerShape(8.dp),
-        color = if (isCleared)
-            MaterialTheme.colorScheme.tertiaryContainer
-        else
-            toleranceColor(estimate.toleranceLevel).copy(alpha = 0.15f),
-    ) {
-        Text(
-            text = if (isCleared) "Cleared" else "${estimate.percentage}%",
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = if (isCleared)
-                MaterialTheme.colorScheme.onTertiaryContainer
-            else
-                toleranceColor(estimate.toleranceLevel),
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        )
-    }
-}
-
-@Composable
-private fun RecoveryInfoCell(
-    label: String,
-    value: String,
-    valueColor: Color = MaterialTheme.colorScheme.onSurface,
-    modifier: Modifier = Modifier
-) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium,
-            color = valueColor
-        )
-    }
-}
-
-@Composable
-private fun toleranceColor(level: Float): Color = when {
-    level < 0.1f -> MaterialTheme.colorScheme.tertiary
-    level < 0.3f -> Color(0xFF8BC34A)
-    level < 0.6f -> Color(0xFFFFA726)
-    level < 0.85f -> Color(0xFFEF5350)
-    else -> Color(0xFFB71C1C)
 }
 
 private fun formatTimeSince(instant: Instant): String {
@@ -542,13 +350,5 @@ private fun formatTimeSince(instant: Instant): String {
         days > 0 -> "$days day${if (days != 1L) "s" else ""} ago"
         hours > 0 -> "$hours hour${if (hours != 1L) "s" else ""} ago"
         else -> "just now"
-    }
-}
-
-private fun formatDays(days: Float): String {
-    return when {
-        days < 1f -> "${(days * 24).toInt()}h"
-        days < 2f -> "1 day"
-        else -> "${days.toInt()} days"
     }
 }

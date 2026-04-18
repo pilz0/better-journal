@@ -67,6 +67,9 @@ fun NavGraphBuilder.saferGraph(navController: NavHostController) {
                 navigateToSprayCalculatorScreen = {
                     navController.navigate(SprayCalculatorRoute)
                 },
+                navigateToToleranceCalculatorScreen = {
+                    navController.navigate(ToleranceCalculatorRoute)
+                }
             )
         }
         composableWithTransitions<SaferHallucinogensRoute> { SaferHallucinogensScreen() }
