@@ -8,8 +8,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import dagger.hilt.android.AndroidEntryPoint
-import foo.pilz.freaklog.data.room.reminders.RemindersRepository
-import foo.pilz.freaklog.scheduled.NotificationScheduler.Companion.EXTRA_REMINDER_ID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -17,27 +15,33 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * Receives the alarm broadcast for a reminder, posts the user-visible notification via
- * [NotificationScheduler], then enqueues the next firing.
+ * Reschedules every enabled reminder when:
+ *  - the device boots (BOOT_COMPLETED)
+ *  - the app is updated (MY_PACKAGE_REPLACED)
+ *  - the system clock or timezone changes
+ *
+ * AlarmManager forgets all alarms on reboot, so without this receiver the user's reminders
+ * silently stop firing after restarting their phone.
  */
 @AndroidEntryPoint
-class ReminderReceiver : BroadcastReceiver() {
+class BootCompletedReceiver : BroadcastReceiver() {
 
     @Inject lateinit var notificationScheduler: NotificationScheduler
-    @Inject lateinit var remindersRepository: RemindersRepository
 
     override fun onReceive(context: Context, intent: Intent) {
-        val reminderId = intent.getIntExtra(EXTRA_REMINDER_ID, -1)
-        if (reminderId == -1) return
-
+        when (intent.action) {
+            Intent.ACTION_BOOT_COMPLETED,
+            Intent.ACTION_MY_PACKAGE_REPLACED,
+            Intent.ACTION_LOCKED_BOOT_COMPLETED,
+            Intent.ACTION_TIME_CHANGED,
+            Intent.ACTION_TIMEZONE_CHANGED -> Unit
+            else -> return
+        }
         val pendingResult = goAsync()
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             try {
-                val reminder = remindersRepository.getReminderById(reminderId) ?: return@launch
-                notificationScheduler.postReminderNotification(reminder)
-                if (reminder.isEnabled) {
-                    notificationScheduler.scheduleReminder(reminder)
-                }
+                NotificationScheduler.ensureNotificationChannel(context)
+                notificationScheduler.rescheduleAll()
             } finally {
                 pendingResult.finish()
             }
