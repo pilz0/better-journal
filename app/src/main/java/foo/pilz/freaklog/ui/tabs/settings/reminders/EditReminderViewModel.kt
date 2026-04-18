@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
-import java.time.Instant
 import java.time.LocalTime
 import javax.inject.Inject
 
@@ -175,7 +174,4 @@ class EditReminderViewModel @Inject constructor(
         units = units.orEmpty(),
         notes = notes,
     )
-
-    @Suppress("unused")
-    private fun nowMs(): Long = Instant.now().toEpochMilli()
 }

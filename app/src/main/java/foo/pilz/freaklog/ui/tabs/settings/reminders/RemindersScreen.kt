@@ -363,7 +363,7 @@ private fun doseSummary(reminder: Reminder): String {
     return parts.joinToString(" · ")
 }
 
-internal fun humanizeCountdown(deltaMillis: Long): String {
+private fun humanizeCountdown(deltaMillis: Long): String {
     if (deltaMillis < 0) return "due now"
     val totalMinutes = deltaMillis / 60_000L
     if (totalMinutes < 1) return "in <1 min"
