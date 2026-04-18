@@ -220,12 +220,14 @@ class HeatmapWidgetWorker(
         )
 
         // Render at higher resolution; Glance scales to widget size.
-        val width = 1300
         val monthLabelHeight = 28f
         val cellSize = 22f
         val cellGap = 4f
         val leftPadding = 12f
+        val rightPadding = 12f
         val topPadding = monthLabelHeight + 4f
+        val gridWidth = model.weeks * cellSize + (model.weeks - 1).coerceAtLeast(0) * cellGap
+        val width = kotlin.math.ceil((leftPadding + gridWidth + rightPadding).toDouble()).toInt()
         val gridHeight = topPadding + 7 * cellSize + 6 * cellGap + 8f
         val height = gridHeight.toInt().coerceAtLeast(180)
         val bitmap = createBitmap(width, height)

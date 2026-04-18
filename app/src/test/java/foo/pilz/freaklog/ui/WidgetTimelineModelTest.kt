@@ -17,8 +17,6 @@ import foo.pilz.freaklog.data.substances.classes.roa.DurationUnits
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Duration
@@ -180,15 +178,24 @@ class WidgetTimelineModelTest {
         val doubleGroup = doubleModel.groups.single()
         // There must be 2 ingestion dots.
         assertEquals(2, doubleGroup.ingestionDotsSecondsFromStart.size)
-        // The two-dose curve must have a higher count of "peak" samples (height==1)
-        // than the single-dose one because two ramps overlap on the peak.
+        // Both models normalise their max height to 1.0. With a single dose the
+        // entire peak phase is at the normalised max. With two overlapping doses
+        // the un-overlapped portions only reach height 0.5 after normalising
+        // against the summed max — so the count of plateau samples (~1.0)
+        // *shrinks* with stacking, while the curve gains samples near 0.5.
+        // This is what genuinely proves the stacking math worked.
         val singlePeakCount = singleModel.groups.single().points.count { it.height >= 0.99f }
         val doublePeakCount = doubleGroup.points.count { it.height >= 0.99f }
         assertTrue(
-            "two-dose graph should still have at least as many peak samples as single-dose, " +
+            "two-dose plateau should be narrower than single-dose plateau " +
+                    "after normalising against the stacked maximum, " +
                     "single=$singlePeakCount, double=$doublePeakCount",
-            doublePeakCount >= 1,
+            doublePeakCount < singlePeakCount,
         )
+        // Two-dose curve must contain a "single-dose shoulder" at ~0.5 height
+        // that the single-dose curve never has on its plateau.
+        val doubleHasShoulder = doubleGroup.points.any { it.height in 0.45f..0.55f }
+        assertTrue("two-dose curve should expose a half-height shoulder", doubleHasShoulder)
         assertTrue(singlePeakCount >= 1)
     }
 

@@ -266,7 +266,11 @@ data class WidgetTimelineModel(
 
     /** A line segment in (x = seconds from window start, y = height) space. */
     internal data class LineSegment(val x0: Float, val y0: Float, val x1: Float, val y1: Float) {
-        fun contains(x: Float): Boolean = x in x0..x1 && x1 > x0
+        /**
+         * Half-open on the right so adjacent segments sharing an endpoint
+         * (e.g. comeup→peak) don't double-count at that x and create a 2x spike.
+         */
+        fun contains(x: Float): Boolean = x1 > x0 && x >= x0 && x < x1
         fun heightAt(x: Float): Float {
             val span = x1 - x0
             if (span <= 0f) return 0f
