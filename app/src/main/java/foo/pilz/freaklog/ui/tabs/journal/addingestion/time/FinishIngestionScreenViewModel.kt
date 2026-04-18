@@ -296,7 +296,7 @@ class FinishIngestionScreenViewModel @Inject constructor(
             color = selectedColor
         )
         val oldIdToUse = selectedExperienceFlow.firstOrNull()?.experience?.id
-        val newIngestion: Ingestion
+        var newIngestion: Ingestion
         if (oldIdToUse == null) {
             val newIdToUse = newExperienceIdToUseFlow.firstOrNull() ?: 1
             val ingestionTime =
@@ -310,17 +310,19 @@ class FinishIngestionScreenViewModel @Inject constructor(
                 location = null // todo: allow to add real location
             )
             newIngestion = createNewIngestion(newExperience.id)
-            experienceRepo.insertIngestionExperienceAndCompanion(
+            val insertedId = experienceRepo.insertIngestionExperienceAndCompanion(
                 ingestion = newIngestion,
                 experience = newExperience,
                 substanceCompanion = substanceCompanion
             )
+            newIngestion = newIngestion.copy(id = insertedId.toInt())
         } else {
             newIngestion = createNewIngestion(oldIdToUse)
-            experienceRepo.insertIngestionAndCompanion(
+            val insertedId = experienceRepo.insertIngestionAndCompanion(
                 ingestion = newIngestion,
                 substanceCompanion = substanceCompanion
             )
+            newIngestion = newIngestion.copy(id = insertedId.toInt())
         }
         
         // Send webhook notification in background
