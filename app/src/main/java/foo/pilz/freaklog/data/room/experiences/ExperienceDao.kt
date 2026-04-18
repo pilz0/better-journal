@@ -143,6 +143,22 @@ interface ExperienceDao {
     @Query("SELECT * FROM experience WHERE id =:id")
     suspend fun getExperience(id: Int): Experience?
 
+    @Query(
+        "SELECT * FROM experience" +
+                " WHERE title LIKE '%' || :query || '%'" +
+                " OR text LIKE '%' || :query || '%'" +
+                " ORDER BY sortDate DESC LIMIT :limit"
+    )
+    suspend fun searchExperiences(query: String, limit: Int): List<Experience>
+
+    @Query(
+        "SELECT DISTINCT e.* FROM experience e" +
+                " INNER JOIN ingestion i ON i.experienceId = e.id" +
+                " WHERE i.substanceName LIKE '%' || :substanceName || '%'" +
+                " ORDER BY e.sortDate DESC LIMIT :limit"
+    )
+    suspend fun searchExperiencesBySubstance(substanceName: String, limit: Int): List<Experience>
+
     @Transaction
     @Query("SELECT * FROM experience WHERE id =:id")
     suspend fun getExperienceWithIngestionsCompanionsAndRatings(id: Int): ExperienceWithIngestionsCompanionsAndRatings?
