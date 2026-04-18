@@ -43,7 +43,7 @@ import foo.pilz.freaklog.data.room.SprayDao
 
 @TypeConverters(InstantConverter::class)
 @Database(
-    version = 16,
+    version = 17,
     entities = [
         Experience::class,
         Ingestion::class,
@@ -73,6 +73,7 @@ import foo.pilz.freaklog.data.room.SprayDao
         AutoMigration (from = 12, to = 14),
         AutoMigration (from = 14, to = 15),
         AutoMigration (from = 15, to = 16),
+        AutoMigration (from = 16, to = 17),
     ]
 )
 abstract class AppDatabase : RoomDatabase() {

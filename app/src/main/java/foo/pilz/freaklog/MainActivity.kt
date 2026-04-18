@@ -41,6 +41,8 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+    @javax.inject.Inject lateinit var notificationScheduler: foo.pilz.freaklog.scheduled.NotificationScheduler
+
     companion object {
         const val ACTION_ADD_INGESTION = ".ADD_INGESTION"
         const val ACTION_JOURNAL_SCREEN = ".JOURNAL_SCREEN"
@@ -68,6 +70,13 @@ class MainActivity : ComponentActivity() {
                     appWidgetId = manager.getAppWidgetId(glanceId)
                 )
             }
+        }
+
+        // Re-arm all reminder alarms on each launch. AlarmManager forgets alarms across
+        // process death/reboot, and BootCompletedReceiver is the first line of defence;
+        // this catches the cases where the receiver was disabled (e.g. force-stopped app).
+        lifecycleScope.launch {
+            notificationScheduler.rescheduleAll()
         }
 
         setContent {
