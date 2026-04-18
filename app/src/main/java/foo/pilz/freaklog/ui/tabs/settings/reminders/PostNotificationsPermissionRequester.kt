@@ -61,9 +61,9 @@ private object RequestState {
     var alreadyAskedThisProcess: Boolean = false
 
     /**
-     * True once the user has been prompted at least once for this app install.
-     * Persisted only in process memory: a fresh process will retry once on first entry,
-     * which is the same behaviour as a typical first-launch flow.
+     * True once the user has been prompted at least once in the current app session
+     * (process lifetime). Not persisted: a fresh process will retry once on first entry,
+     * which matches typical first-launch behaviour.
      */
     var hasEverAsked: Boolean = false
 }

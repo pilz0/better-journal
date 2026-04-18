@@ -408,10 +408,11 @@ private fun EndDatePicker(endEpochMillis: Long?, onChange: (Long?) -> Unit) {
             },
         ) {
             val label = endEpochMillis?.let {
-                // Display the human-meaningful end date (one day before the cutoff).
+                // The cutoff is the start of the day after the chosen end date, so subtract
+                // one day's worth of millis to get the human-meaningful "end day".
                 DateTimeFormatter.ofPattern("yyyy-MM-dd")
                     .withZone(ZoneId.systemDefault())
-                    .format(Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).minusDays(1).toInstant())
+                    .format(Instant.ofEpochMilli(it - 86_400_000L))
             } ?: "No end"
             Text(label)
         }

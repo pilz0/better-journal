@@ -86,8 +86,9 @@ object ReminderSchedule {
         }
         // Skip forward until the day is allowed. Use a time-based horizon (8 days) instead
         // of a fixed step count so short intervals across a weekend mask still find the
-        // next allowed slot. Hard cap the iteration count so a degenerate mask can never
-        // loop forever.
+        // next allowed slot. Hard cap the iteration count (100k steps is plenty for any
+        // realistic interval; only a sub-second-interval misconfiguration could exceed it,
+        // and we'd rather bail than spin) so a degenerate interval can never loop forever.
         val horizon = next + 8L * 24L * 60L * 60_000L
         val maxSteps = (8L * 24L * 60L * 60_000L / intervalMs + 8L).coerceAtMost(100_000L).toInt()
         repeat(maxSteps) {
