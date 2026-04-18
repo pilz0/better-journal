@@ -43,6 +43,7 @@ import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -202,9 +203,9 @@ fun StatsScreen(
                         Tab(
                             text = { Text(option.displayText) },
                             selected = statsModel.selectedOption.tabIndex == index,
-                            onClick = { 
+                            onClick = {
                                 performHaptic(HapticType.SELECTION)
-                                onTapOption(option) 
+                                onTapOption(option)
                             }
                         )
                     }
@@ -212,13 +213,87 @@ fun StatsScreen(
                 if (statsModel.statItems.isNotEmpty()) {
                     val isDarkTheme = isSystemInDarkTheme()
                     Column {
+                        // Summary Cards
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = horizontalPadding, vertical = 10.dp),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            ElevatedCard(
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(12.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        text = statsModel.totalExperiences.toString(),
+                                        style = MaterialTheme.typography.headlineMedium
+                                    )
+                                    Text(
+                                        text = "Experiences",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                            ElevatedCard(
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(12.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        text = statsModel.totalIngestions.toString(),
+                                        style = MaterialTheme.typography.headlineMedium
+                                    )
+                                    Text(
+                                        text = "Ingestions",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                        if (statsModel.mostUsedSubstance != null) {
+                            ElevatedCard(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = horizontalPadding, vertical = 0.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = "Most Used",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Text(
+                                            text = statsModel.mostUsedSubstance,
+                                            style = MaterialTheme.typography.titleMedium
+                                        )
+                                    }
+                                    Text(
+                                        text = "${statsModel.mostUsedSubstanceCount}x",
+                                        style = MaterialTheme.typography.headlineSmall
+                                    )
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(5.dp))
                         Text(
-                            text = "Experiences since ${statsModel.startDateText}",
+                            text = "Ingestions since ${statsModel.startDateText}",
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(start = 10.dp, top = 5.dp)
                         )
                         Text(
-                            text = "Substance counted once per experience",
+                            text = "Showing all substance ingestions",
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.padding(
                                 start = 10.dp,
@@ -265,10 +340,9 @@ fun StatsScreen(
                                                 text = subStat.substanceName,
                                                 style = MaterialTheme.typography.titleMedium
                                             )
-                                            val addOn =
-                                                if (subStat.experienceCount == 1) " experience" else " experiences"
                                             Text(
-                                                text = subStat.experienceCount.toString() + addOn,
+                                                text = "${subStat.ingestionCount} ingestion${if (subStat.ingestionCount != 1) "s" else ""} across ${subStat.experienceCount} experience${if (subStat.experienceCount != 1) "s" else ""}",
+                                                style = MaterialTheme.typography.bodyMedium
                                             )
                                         }
                                         Spacer(modifier = Modifier.weight(1f))

@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.inset
 import androidx.compose.ui.graphics.nativeCanvas
@@ -41,26 +42,33 @@ import androidx.compose.ui.unit.dp
 fun BarChart(buckets: List<List<ColorCount>>, startDateText: String) {
     Column {
         val isDarkTheme = isSystemInDarkTheme()
-        val tickColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.20f)
-        val labelStyle = MaterialTheme.typography.labelMedium.fontSize
+        val tickColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)
+        val gridLineColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+        val labelStyle = MaterialTheme.typography.labelSmall.fontSize
         val labelHeight = with(LocalDensity.current) { labelStyle.toPx() }
         Canvas(
             modifier = Modifier
                 .padding(horizontal = 10.dp)
                 .fillMaxWidth()
-                .height(150.dp)
+                .height(200.dp)
         ) {
             val canvasHeightOuter = size.height
             if (canvasHeightOuter > 0) { // for unknown reason canvasHeight can be 0 and then the app crashes
                 val maxCount = buckets.maxOf { bucket ->
                     bucket.sumOf { it.count }
-                }
-                val half = maxCount / 2
+                }.coerceAtLeast(1)
+
+                // Calculate nice grid values
+                val gridSteps = 4
+                val stepValue = maxCount / gridSteps
+                val half = stepValue * (gridSteps / 2)
                 val halfLineHeight = half.toFloat() * canvasHeightOuter / maxCount
                 val halfLabelHeight = labelHeight / 2
                 val numLettersInLabel = maxCount.toString().length
                 val labelWidth = (numLettersInLabel + 1) * labelHeight * 0.6f
                 val spaceBetweenLabelAndChart = labelHeight * 0.5f
+
+                // Draw Y-axis labels
                 drawContext.canvas.nativeCanvas.apply {
                     drawText(
                         half.toString(),
@@ -83,20 +91,22 @@ fun BarChart(buckets: List<List<ColorCount>>, startDateText: String) {
                         }
                     )
                 }
+
                 inset(left = labelWidth, right = 0f, top = 0f, bottom = 0f) {
-                    val horizontalLinesWidth = 4f
+                    val horizontalLinesWidth = 3f
                     val canvasWidthWithoutLabel = size.width
-                    // top line
+
+                    // top grid line
                     drawLine(
-                        color = tickColor,
+                        color = gridLineColor,
                         start = Offset(x = 0f, y = 0f),
                         end = Offset(x = canvasWidthWithoutLabel, y = 0f),
                         strokeWidth = horizontalLinesWidth / 2,
                         cap = StrokeCap.Round
                     )
-                    // half line
+                    // middle grid line
                     drawLine(
-                        color = tickColor,
+                        color = gridLineColor,
                         start = Offset(x = 0f, y = canvasHeightOuter - halfLineHeight),
                         end = Offset(
                             x = canvasWidthWithoutLabel,
@@ -105,7 +115,7 @@ fun BarChart(buckets: List<List<ColorCount>>, startDateText: String) {
                         strokeWidth = horizontalLinesWidth / 2,
                         cap = StrokeCap.Round
                     )
-                    // bottom line
+                    // bottom line (X-axis)
                     val tickHeight = 6f
                     val numBuckets = buckets.size
                     val spaceBetweenTicks = canvasWidthWithoutLabel / numBuckets
@@ -120,7 +130,7 @@ fun BarChart(buckets: List<List<ColorCount>>, startDateText: String) {
                         strokeWidth = horizontalLinesWidth,
                         cap = StrokeCap.Round
                     )
-                    // ticks
+                    // ticks on X-axis
                     for (index in 0 until numSpacers) {
                         val xSpacer = index * spaceBetweenTicks
                         drawLine(
@@ -131,7 +141,7 @@ fun BarChart(buckets: List<List<ColorCount>>, startDateText: String) {
                             cap = StrokeCap.Round
                         )
                     }
-                    val percentageOfBucketWidthToSpaceBetweenTicks = 0.7f
+                    val percentageOfBucketWidthToSpaceBetweenTicks = 0.75f
                     val bucketWidth =
                         spaceBetweenTicks * percentageOfBucketWidthToSpaceBetweenTicks
                     val spaceWidth = spaceBetweenTicks - bucketWidth
@@ -143,7 +153,7 @@ fun BarChart(buckets: List<List<ColorCount>>, startDateText: String) {
                             colorCounts.forEach { colorCount ->
                                 val yLength = colorCount.count * canvasHeightInner / maxCount
                                 val yEnd = yStart - yLength
-                                val cornerRadius = bucketWidth / 6
+                                val cornerRadius = bucketWidth / 8
                                 drawRoundRect(
                                     color = colorCount.color.getComposeColor(isDarkTheme),
                                     topLeft = Offset(x = xBucket - (bucketWidth / 2), y = yEnd),
@@ -154,6 +164,23 @@ fun BarChart(buckets: List<List<ColorCount>>, startDateText: String) {
                                     )
                                 )
                                 yStart = yEnd
+                            }
+                        }
+
+                        // Draw average line
+                        val totalCount = buckets.sumOf { bucket -> bucket.sumOf { it.count } }
+                        val nonEmptyBuckets = buckets.count { it.isNotEmpty() }
+                        if (nonEmptyBuckets > 0) {
+                            val average = totalCount.toFloat() / buckets.size
+                            if (average > 0 && average <= maxCount) {
+                                val avgY = canvasHeightInner - ((average / maxCount) * canvasHeightInner)
+                                drawLine(
+                                    color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.6f),
+                                    start = Offset(0f, avgY),
+                                    end = Offset(canvasWidthWithoutLabel, avgY),
+                                    strokeWidth = 2f,
+                                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
+                                )
                             }
                         }
                     }
