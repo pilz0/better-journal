@@ -2,10 +2,10 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("com.google.dagger.hilt.android")
-    id("androidx.room")
-    kotlin("plugin.serialization") version "2.0.21"
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.androidx.room)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -26,8 +26,15 @@ android {
     }
 
     lint {
-        checkReleaseBuilds = false
+        checkReleaseBuilds = true
         abortOnError = false
+        sarifReport = true
+    }
+    
+    testOptions {
+        unitTests {
+            isReturnDefaultValues = true
+        }
     }
     
     buildTypes {
@@ -53,6 +60,25 @@ android {
     buildFeatures {
         compose = true
     }
+}
+
+kotlin {
+    jvmToolchain(17)
+}
+
+tasks.withType<Test>().configureEach {
+    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
+    testLogging {
+        events("failed", "skipped")
+        showStandardStreams = false
+    }
+    // Allow excluding test patterns from the command line for sharded CI runs:
+    //   ./gradlew testDebugUnitTest -PtestExclude=foo.pilz.freaklog.data.*,foo.pilz.freaklog.ui.*
+    providers.gradleProperty("testExclude").orNull
+        ?.split(",")
+        ?.map { it.trim() }
+        ?.filter { it.isNotEmpty() }
+        ?.forEach { filter.excludeTestsMatching(it) }
 }
 
 dependencies {
