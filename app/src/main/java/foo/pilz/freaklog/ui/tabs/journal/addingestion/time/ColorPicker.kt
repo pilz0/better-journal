@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -80,6 +81,9 @@ fun ColorPicker(
     var isColorPickerVisible by remember {
         mutableStateOf(false)
     }
+    var isCustomColorPickerVisible by remember {
+        mutableStateOf(false)
+    }
     val shape = RoundedCornerShape(8.dp)
     Surface(
         shape = shape,
@@ -100,7 +104,22 @@ fun ColorPicker(
             dismiss = { isColorPickerVisible = false },
             onChangeOfColor = onChangeOfColor,
             alreadyUsedColors = alreadyUsedColors,
-            otherColors = otherColors
+            otherColors = otherColors,
+            currentSelectedColor = selectedColor,
+            onPickCustom = {
+                isColorPickerVisible = false
+                isCustomColorPickerVisible = true
+            }
+        )
+    }
+    if (isCustomColorPickerVisible) {
+        CustomColorDialog(
+            initialColor = selectedColor as? AdaptiveColor.Custom,
+            onDismiss = { isCustomColorPickerVisible = false },
+            onPick = { custom ->
+                isCustomColorPickerVisible = false
+                onChangeOfColor(custom)
+            },
         )
     }
 }
@@ -125,8 +144,11 @@ fun ColorDialog(
     dismiss: () -> Unit,
     onChangeOfColor: (AdaptiveColor) -> Unit,
     alreadyUsedColors: List<AdaptiveColor>,
-    otherColors: List<AdaptiveColor>
+    otherColors: List<AdaptiveColor>,
+    currentSelectedColor: AdaptiveColor? = null,
+    onPickCustom: (() -> Unit)? = null,
 ) {
+    val isDarkTheme = isSystemInDarkTheme()
     AlertDialog(
         onDismissRequest = dismiss,
         title = {
@@ -153,6 +175,36 @@ fun ColorDialog(
                     CircleColorButtons(colors = alreadyUsedColors) {
                         onChangeOfColor(it)
                         dismiss()
+                    }
+                }
+                if (onPickCustom != null) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    val currentCustom = currentSelectedColor as? AdaptiveColor.Custom
+                    val customSwatchColor = currentCustom?.getComposeColor(isDarkTheme)
+                        ?: MaterialTheme.colorScheme.surfaceVariant
+                    val customLabel = if (currentCustom != null) {
+                        "Edit custom color"
+                    } else {
+                        "Pick a custom color"
+                    }
+                    Row(
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable(onClick = onPickCustom)
+                            .padding(vertical = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = customSwatchColor,
+                            modifier = Modifier.size(32.dp),
+                        ) {}
+                        Text(
+                            text = customLabel,
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
                     }
                 }
             }

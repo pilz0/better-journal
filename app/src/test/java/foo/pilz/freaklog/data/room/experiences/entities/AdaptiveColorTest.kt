@@ -197,4 +197,49 @@ class AdaptiveColorTest {
         // Dark theme blue should have RGB(10, 132, 255)
         assertNotNull(color)
     }
+
+    // ===== Custom color tests =====
+
+    @Test
+    fun testCustomColor_isNotPreferred() {
+        val custom = AdaptiveColor.Custom(0xFF00AAFF.toInt())
+        assertFalse(custom.isPreferred)
+    }
+
+    @Test
+    fun testCustomColor_nameRoundTripsThroughValueOf() {
+        val argb = 0xFF22AAFF.toInt()
+        val custom = AdaptiveColor.Custom(argb)
+        val parsed = AdaptiveColor.valueOf(custom.name)
+        assertEquals(custom, parsed)
+    }
+
+    @Test
+    fun testCustomColor_namePreservesAllChannels() {
+        val argb = 0x80123456.toInt() // includes a non-opaque alpha
+        val custom = AdaptiveColor.Custom(argb)
+        assertEquals("CUSTOM_80123456", custom.name)
+        val parsed = AdaptiveColor.valueOf(custom.name) as AdaptiveColor.Custom
+        assertEquals(argb, parsed.argb)
+    }
+
+    @Test
+    fun testValueOf_presetByName() {
+        assertEquals(AdaptiveColor.RED, AdaptiveColor.valueOf("RED"))
+        assertEquals(AdaptiveColor.MAROON, AdaptiveColor.valueOf("MAROON"))
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun testValueOf_unknownNameThrows() {
+        AdaptiveColor.valueOf("NOT_A_REAL_COLOR")
+    }
+
+    @Test
+    fun testEntries_doesNotContainCustomVariants() {
+        // entries should expose only the preset singletons, never Custom values.
+        AdaptiveColor.entries.forEach { color ->
+            assertFalse("entries should not contain Custom: $color",
+                color is AdaptiveColor.Custom)
+        }
+    }
 }

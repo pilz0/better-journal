@@ -28,6 +28,7 @@ import foo.pilz.freaklog.data.room.experiences.CustomRecipeDao
 import foo.pilz.freaklog.data.room.experiences.ExperienceDao
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRecipe
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRecipeComponent
+import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColorConverter
 import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.room.experiences.entities.Experience
@@ -43,7 +44,7 @@ import foo.pilz.freaklog.data.room.reminders.ReminderDao
 import foo.pilz.freaklog.data.room.reminders.entities.Reminder
 import foo.pilz.freaklog.data.room.SprayDao
 
-@TypeConverters(InstantConverter::class)
+@TypeConverters(InstantConverter::class, AdaptiveColorConverter::class)
 @Database(
     version = 17,
     entities = [
