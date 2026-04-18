@@ -6,8 +6,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import org.json.JSONArray
 import org.json.JSONObject
 import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -21,9 +19,6 @@ import javax.inject.Singleton
 class AiTools @Inject constructor(
     private val experienceDao: ExperienceDao
 ) {
-
-    private val dateFormatter: DateTimeFormatter =
-        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneId.systemDefault())
 
     suspend fun execute(name: String, args: Map<String, Any?>): JSONObject {
         return try {
@@ -67,7 +62,7 @@ class AiTools @Inject constructor(
                 JSONObject()
                     .put("experience_id", row.experience.id)
                     .put("title", row.experience.title)
-                    .put("date", dateFormatter.format(row.experience.sortDate))
+                    .put("date", AI_DATE_FORMATTER.format(row.experience.sortDate))
                     .put("is_favorite", row.experience.isFavorite)
                     .put("ingestion_count", row.ingestions.size)
                     .put(
@@ -88,7 +83,7 @@ class AiTools @Inject constructor(
                 JSONObject()
                     .put("experience_id", exp.id)
                     .put("title", exp.title)
-                    .put("date", dateFormatter.format(exp.sortDate))
+                    .put("date", AI_DATE_FORMATTER.format(exp.sortDate))
                     .put("is_favorite", exp.isFavorite)
                     .put("notes_excerpt", exp.text.take(240))
             )
@@ -105,7 +100,7 @@ class AiTools @Inject constructor(
                 JSONObject()
                     .put("experience_id", exp.id)
                     .put("title", exp.title)
-                    .put("date", dateFormatter.format(exp.sortDate))
+                    .put("date", AI_DATE_FORMATTER.format(exp.sortDate))
                     .put("is_favorite", exp.isFavorite)
             )
         }
@@ -121,7 +116,7 @@ class AiTools @Inject constructor(
             val ing = ic.ingestion
             ingestions.put(
                 JSONObject()
-                    .put("time", dateFormatter.format(ing.time))
+                    .put("time", AI_DATE_FORMATTER.format(ing.time))
                     .put("substance", ing.substanceName)
                     .put("dose", ing.dose ?: JSONObject.NULL)
                     .put("units", ing.units ?: JSONObject.NULL)
@@ -134,7 +129,7 @@ class AiTools @Inject constructor(
         exp.ratings.forEach { rating ->
             ratings.put(
                 JSONObject()
-                    .put("time", rating.time?.let { dateFormatter.format(it) } ?: "overall")
+                    .put("time", rating.time?.let { AI_DATE_FORMATTER.format(it) } ?: "overall")
                     .put("rating", rating.option.name)
             )
         }
@@ -142,7 +137,7 @@ class AiTools @Inject constructor(
             .put("status", "success")
             .put("experience_id", exp.experience.id)
             .put("title", exp.experience.title)
-            .put("date", dateFormatter.format(exp.experience.sortDate))
+            .put("date", AI_DATE_FORMATTER.format(exp.experience.sortDate))
             .put("is_favorite", exp.experience.isFavorite)
             .put("notes", exp.experience.text)
             .put("ingestions", ingestions)
@@ -161,7 +156,7 @@ class AiTools @Inject constructor(
         filtered.forEach { ing ->
             arr.put(
                 JSONObject()
-                    .put("time", dateFormatter.format(ing.time))
+                    .put("time", AI_DATE_FORMATTER.format(ing.time))
                     .put("substance", ing.substanceName)
                     .put("dose", ing.dose ?: JSONObject.NULL)
                     .put("units", ing.units ?: JSONObject.NULL)
@@ -190,8 +185,8 @@ class AiTools @Inject constructor(
                     JSONObject()
                         .put("substance", name)
                         .put("times_logged", list.size)
-                        .put("first_time", list.minByOrNull { it.time }?.time?.let { dateFormatter.format(it) })
-                        .put("last_time", list.maxByOrNull { it.time }?.time?.let { dateFormatter.format(it) })
+                        .put("first_time", list.minByOrNull { it.time }?.time?.let { AI_DATE_FORMATTER.format(it) })
+                        .put("last_time", list.maxByOrNull { it.time }?.time?.let { AI_DATE_FORMATTER.format(it) })
                 )
             }
         return JSONObject()

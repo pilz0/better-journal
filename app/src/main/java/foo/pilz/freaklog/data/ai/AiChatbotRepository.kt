@@ -10,8 +10,6 @@ import com.google.ai.client.generativeai.type.defineFunction
 import foo.pilz.freaklog.data.room.experiences.ExperienceDao
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import kotlinx.coroutines.flow.firstOrNull
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,9 +28,6 @@ class AiChatbotRepository @Inject constructor(
         const val DEFAULT_MODEL_NAME = "gemini-2.5-flash"
         private const val TAG = "AiChatbotRepository"
     }
-
-    private val dateFormatter: DateTimeFormatter =
-        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneId.systemDefault())
 
     /** Result of a model-construction attempt, exposing the resolved model name to the UI. */
     data class ReadyModel(val model: GenerativeModel, val modelName: String)
@@ -84,7 +79,7 @@ class AiChatbotRepository @Inject constructor(
             if (current != null) {
                 sb.append("## Current session\n")
                 sb.append("- Title: ${current.experience.title}\n")
-                sb.append("- Date: ${dateFormatter.format(current.experience.sortDate)}\n")
+                sb.append("- Date: ${AI_DATE_FORMATTER.format(current.experience.sortDate)}\n")
                 sb.append("- Experience id (for tools): ${current.experience.id}\n")
                 if (current.ingestionsWithCompanions.isEmpty()) {
                     sb.append("- No ingestions logged in this session yet.\n")
@@ -96,7 +91,7 @@ class AiChatbotRepository @Inject constructor(
                             val ing = ic.ingestion
                             val dose = ing.dose?.let { "$it ${ing.units.orEmpty()}".trim() } ?: "unknown dose"
                             sb.append(
-                                "    - ${dateFormatter.format(ing.time)} • ${ing.substanceName} • $dose • ${ing.administrationRoute.name}\n"
+                                "    - ${AI_DATE_FORMATTER.format(ing.time)} • ${ing.substanceName} • $dose • ${ing.administrationRoute.name}\n"
                             )
                         }
                 }
