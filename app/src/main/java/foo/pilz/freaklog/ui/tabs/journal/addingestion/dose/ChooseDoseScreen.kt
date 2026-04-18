@@ -72,21 +72,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.substances.classes.roa.DoseClass
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
-import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
 import foo.pilz.freaklog.ui.DOSE_DISCLAIMER
-import foo.pilz.freaklog.ui.tabs.journal.experience.components.DataForOneEffectLine
-import foo.pilz.freaklog.ui.tabs.journal.experience.components.TimeDisplayOption
-import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.AllTimelines
-import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.AllTimelinesModel
-import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.WeightedLine
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.dose.RoaDosePreviewProvider
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.dose.RoaDoseView
 import foo.pilz.freaklog.ui.theme.horizontalPadding
-import java.time.Instant
 
 @Composable
 fun ChooseDoseScreen(
@@ -300,10 +292,8 @@ fun ChooseDoseScreen(
                     Spacer(modifier = Modifier.height(5.dp))
                     if (roaDose != null) {
                         RoaDoseView(roaDose = roaDose)
-                        ProjectedTimeline(
-                            substanceName = substanceName,
-                            administrationRoute = administrationRoute,
-                            roaDuration = roaDuration,
+                        foo.pilz.freaklog.ui.tabs.journal.experience.timeline.preview.TimelinePreview(
+                            duration = roaDuration,
                             modifier = Modifier.padding(top = 8.dp)
                         )
                     } else {
@@ -579,56 +569,5 @@ fun ChooseDoseScreen(
                 }
             }
         }
-    }
-}
-
-/**
- * Shows the projected experience curve using the real AllTimelines graph.
- * Builds a single-ingestion [AllTimelinesModel] starting at the current time,
- * giving the user an accurate picture of how the experience will unfold.
- */
-@Composable
-private fun ProjectedTimeline(
-    substanceName: String,
-    administrationRoute: AdministrationRoute,
-    roaDuration: RoaDuration?,
-    modifier: Modifier = Modifier,
-) {
-    if (roaDuration == null) return
-    val startTime = remember { Instant.now() }
-    val model = remember(roaDuration, substanceName, administrationRoute) {
-        AllTimelinesModel(
-            dataForLines = listOf(
-                DataForOneEffectLine(
-                    substanceName = substanceName,
-                    route = administrationRoute,
-                    roaDuration = roaDuration,
-                    height = 1f,
-                    horizontalWeight = 1f,
-                    color = AdaptiveColor.BLUE,
-                    startTime = startTime,
-                    endTime = null,
-                )
-            ),
-            dataForRatings = emptyList(),
-            timedNotes = emptyList(),
-            areSubstanceHeightsIndependent = false,
-        )
-    }
-    Column(modifier = modifier) {
-        Text(
-            text = "Projected timeline",
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        AllTimelines(
-            model = model,
-            isShowingCurrentTime = true,
-            timeDisplayOption = TimeDisplayOption.RELATIVE_TO_START,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(130.dp)
-                .padding(top = 4.dp),
-        )
     }
 }
