@@ -23,6 +23,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 
 /**
  * Tests the HTTP send / delete behaviour of [WebhookService].
@@ -32,10 +33,10 @@ import org.junit.Test
  * extracts the message id from Discord's `wait=true` response and reuses it
  * verbatim for delete (and edit). These tests pin that behaviour:
  *
- *  * [sendWebhook_ returnsMessageIdFromWaitTrueResponse] — the value the fix
+ *  * [sendWebhook_returnsMessageIdFromWaitTrueResponse] — the value the fix
  *    now stores in `Ingestion.webhookMessageId`.
- *  * [deleteWebhookMessage_ usesDeleteOnMessagesIdEndpoint] — what runs once a
- *    message id is stored.
+ *  * [deleteWebhookMessage_issuesDeleteOnMessagesIdEndpointAndReturnsTrueOn204]
+ *    — what runs once a message id is stored.
  *
  * `editWebhook` is intentionally NOT covered here: it issues a `PATCH`, which
  * the JDK's `HttpURLConnection.setRequestMethod` rejects with a
@@ -47,7 +48,17 @@ class WebhookServiceHttpTest {
 
     private lateinit var server: MockWebServer
     private lateinit var baseUrl: String
-    private val service = WebhookService()
+
+    /**
+     * Built with a no-op logger (so the real `android.util.Log` calls don't
+     * blow up under JVM tests without needing the global
+     * `unitTests.isReturnDefaultValues` Gradle flag) and a no-op delay (so the
+     * exponential-backoff retry tests don't sleep in real time).
+     */
+    private val service = WebhookService(
+        logger = WebhookLogger { _, _ -> },
+        delayMillis = { /* no-op: skip exponential backoff in tests */ },
+    )
 
     @Before
     fun setUp() {
@@ -67,7 +78,15 @@ class WebhookServiceHttpTest {
         server.enqueue(MockResponse().setResponseCode(status).setBody(body))
     }
 
-    private fun takeRequest(): RecordedRequest = server.takeRequest()
+    /**
+     * Bounded `takeRequest` so a regression that prevents the HTTP request
+     * from being sent fails fast instead of hanging the whole test run.
+     */
+    private fun takeRequest(): RecordedRequest {
+        val req = server.takeRequest(5, TimeUnit.SECONDS)
+        assertNotNull("expected an HTTP request to MockWebServer within 5s", req)
+        return req!!
+    }
 
     // ---------------------------------------------------------------------
     // sendWebhook
@@ -351,17 +370,12 @@ class WebhookServiceHttpTest {
 
     @Test
     fun deleteWebhookMessage_returnsFalseWhenConnectionCannotBeEstablished() = runBlocking {
-        // Bind a server only long enough to reserve a free port, then release
-        // it. The port is now (statistically) unused, so the connect attempt
-        // must fail and `deleteWebhookMessage` must swallow the exception and
-        // return false.
-        val tmp = MockWebServer()
-        tmp.start()
-        val deadPort = tmp.port
-        tmp.shutdown()
-
+        // Port 1 on the loopback address has no listener: the kernel
+        // immediately replies with RST (connection refused) without any DNS
+        // lookup. This deterministically exercises the `catch` branch in
+        // `deleteWebhookMessage`, which must return `false` on any IO error.
         val ok = service.deleteWebhookMessage(
-            "http://127.0.0.1:$deadPort/webhooks/abc/token",
+            "http://127.0.0.1:1/webhooks/abc/token",
             "anything",
         )
 
