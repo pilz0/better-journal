@@ -9,6 +9,7 @@ import android.app.TimePickerDialog
 import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -237,7 +238,7 @@ private fun ScheduleTypePicker(current: String, onChange: (String) -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun TimesOfDayEditor(
     times: List<LocalTime>,
@@ -255,7 +256,12 @@ private fun TimesOfDayEditor(
             InputChip(
                 selected = true,
                 onClick = {
-                    showTimePicker(context, is24h, time) { picked -> onAdd(picked); onRemove(time) }
+                    showTimePicker(context, is24h, time) { picked ->
+                        if (picked != time) {
+                            onAdd(picked)
+                            onRemove(time)
+                        }
+                    }
                 },
                 label = { Text("%02d:%02d".format(time.hour, time.minute)) },
                 trailingIcon = {
@@ -342,7 +348,7 @@ private fun UnitDropdown(current: String, onChange: (String) -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun DaysOfWeekEditor(mask: Int, onToggle: (DayOfWeek) -> Unit) {
     SectionLabel("Days")
@@ -377,14 +383,20 @@ private fun EndDatePicker(endEpochMillis: Long?, onChange: (Long?) -> Unit) {
         OutlinedButton(
             onClick = {
                 val cal = Calendar.getInstance().apply {
-                    if (endEpochMillis != null) timeInMillis = endEpochMillis
+                    if (endEpochMillis != null) {
+                        // endEpochMillis is the start of the day AFTER the chosen end date,
+                        // so subtract a millisecond to land on the chosen day.
+                        timeInMillis = endEpochMillis - 1
+                    }
                 }
                 DatePickerDialog(
                     context,
                     { _, year, month, day ->
+                        // Store the cutoff as the start of the day AFTER the selected one
+                        // so the entire chosen day is included by the (inclusive) scheduler.
                         val picked = LocalDate.of(year, month + 1, day)
-                            .atTime(23, 59)
-                            .atZone(ZoneId.systemDefault())
+                            .plusDays(1)
+                            .atStartOfDay(ZoneId.systemDefault())
                             .toInstant()
                             .toEpochMilli()
                         onChange(picked)
@@ -396,9 +408,10 @@ private fun EndDatePicker(endEpochMillis: Long?, onChange: (Long?) -> Unit) {
             },
         ) {
             val label = endEpochMillis?.let {
+                // Display the human-meaningful end date (one day before the cutoff).
                 DateTimeFormatter.ofPattern("yyyy-MM-dd")
                     .withZone(ZoneId.systemDefault())
-                    .format(Instant.ofEpochMilli(it))
+                    .format(Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).minusDays(1).toInstant())
             } ?: "No end"
             Text(label)
         }

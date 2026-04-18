@@ -22,6 +22,8 @@ import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.AutoMigrationSpec
+import androidx.sqlite.db.SupportSQLiteDatabase
 import foo.pilz.freaklog.data.room.experiences.CustomRecipeDao
 import foo.pilz.freaklog.data.room.experiences.ExperienceDao
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRecipe
@@ -73,7 +75,7 @@ import foo.pilz.freaklog.data.room.SprayDao
         AutoMigration (from = 12, to = 14),
         AutoMigration (from = 14, to = 15),
         AutoMigration (from = 15, to = 16),
-        AutoMigration (from = 16, to = 17),
+        AutoMigration (from = 16, to = 17, spec = AppDatabase.ReminderV16To17::class),
     ]
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -82,4 +84,16 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun reminderDao(): ReminderDao
     abstract fun customRecipeDao(): CustomRecipeDao
     abstract fun inventoryDao(): InventoryDao
+
+    /**
+     * Legacy reminders (schema ≤ 16) only had interval-based scheduling. The v17 schema adds
+     * a `scheduleType` column whose default is `DAILY_AT_TIMES`, but applying that default
+     * to existing rows would silently disable them (no `timesOfDay` set). Force-update legacy
+     * rows to keep their interval semantics.
+     */
+    class ReminderV16To17 : AutoMigrationSpec {
+        override fun onPostMigrate(db: SupportSQLiteDatabase) {
+            db.execSQL("UPDATE reminder SET scheduleType = 'INTERVAL'")
+        }
+    }
 }

@@ -88,7 +88,11 @@ class EditReminderViewModel @Inject constructor(
     }
 
     fun toggleDay(day: DayOfWeek) = _state.update {
-        it.copy(daysOfWeekMask = ReminderSchedule.toggleDay(it.daysOfWeekMask, day))
+        val newMask = ReminderSchedule.toggleDay(it.daysOfWeekMask, day)
+        // Refuse to toggle off the last selected day; saving an all-zero mask would silently
+        // be turned into "every day" by the storage layer, which is surprising. The user must
+        // explicitly enable another day before deselecting the current one.
+        if (newMask == 0) it else it.copy(daysOfWeekMask = newMask)
     }
 
     fun canScheduleExactAlarms(): Boolean = notificationScheduler.canScheduleExactAlarms()
@@ -110,19 +114,11 @@ class EditReminderViewModel @Inject constructor(
     }
 
     fun test() {
-        viewModelScope.launch {
-            val reminder = _state.value.toReminder().copy(id = if (isNew) -1 else _state.value.id)
-            // For new reminders, we use a transient id of -1; persist quickly so the receiver
-            // can look it up.
-            if (isNew) {
-                val id = remindersRepository.insert(reminder.copy(id = 0, title = reminder.title.ifBlank { "(Test)" })).toInt()
-                _state.update { it.copy(id = id) }
-                notificationScheduler.testNotification(reminder.copy(id = id))
-            } else {
-                remindersRepository.update(reminder)
-                notificationScheduler.testNotification(reminder)
-            }
-        }
+        // Post the notification directly from the form state, without persisting anything.
+        // Earlier versions inserted a draft row so the broadcast receiver could look it up;
+        // that left orphan reminders behind for new (unsaved) reminders.
+        val reminder = _state.value.toReminder()
+        notificationScheduler.testNotification(reminder)
     }
 
     private fun ReminderFormState.toReminder(): Reminder {
@@ -142,6 +138,8 @@ class EditReminderViewModel @Inject constructor(
             intervalUnit = intervalUnit,
             scheduleType = scheduleType,
             timesOfDay = ReminderSchedule.formatTimesOfDay(timesOfDay),
+            // Mask is guaranteed non-zero by toggleDay above, but keep a defensive coercion
+            // so legacy callers (e.g. import) can't smuggle in a zero mask.
             daysOfWeekMask = daysOfWeekMask.takeIf { it != 0 } ?: 127,
             startEpochMillis = anchorMs,
             endEpochMillis = endEpochMillis,

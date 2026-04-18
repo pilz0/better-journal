@@ -47,23 +47,23 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import foo.pilz.freaklog.data.room.reminders.entities.Reminder
 import foo.pilz.freaklog.scheduled.ReminderSchedule
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,12 +75,18 @@ fun RemindersScreen(
     val reminders by viewModel.reminders.collectAsState()
     val context = LocalContext.current
     var canExact by remember { mutableStateOf(viewModel.canScheduleExactAlarms()) }
-    LaunchedEffect(Unit) {
-        // Re-check on each resume so the banner clears once the user grants the permission.
-        while (true) {
-            canExact = viewModel.canScheduleExactAlarms()
-            delay(2000)
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        // Re-check the exact-alarm permission whenever the screen resumes (e.g. after the
+        // user comes back from the system settings page) so the banner clears without a
+        // wasteful polling loop.
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                canExact = viewModel.canScheduleExactAlarms()
+            }
         }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     PostNotificationsPermissionRequester()
@@ -280,8 +286,9 @@ private fun ReminderRow(
                         )
                     }
                     if (reminder.isEnabled) {
-                        val nextFire = ReminderSchedule.nextFireAt(reminder, System.currentTimeMillis())
-                        val countdown = nextFire?.let { humanizeCountdown(it - System.currentTimeMillis()) }
+                        val now = System.currentTimeMillis()
+                        val nextFire = ReminderSchedule.nextFireAt(reminder, now)
+                        val countdown = nextFire?.let { humanizeCountdown(it - now) }
                             ?: "No upcoming fire"
                         Spacer(Modifier.height(4.dp))
                         Text(

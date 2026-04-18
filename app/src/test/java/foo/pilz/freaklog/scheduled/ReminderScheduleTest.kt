@@ -256,4 +256,35 @@ class ReminderScheduleTest {
         assertNotNull(next)
         assertTrue("expected $next to be > $now", next!! > now)
     }
+
+    @Test
+    fun nextFireAt_intervalEveryHour_skipsAcrossWeekendToWeekday() {
+        // Saturday 2026-01-10 18:00, mask = Mon-Fri only.
+        val now = millis(LocalDate.of(2026, 1, 10), LocalTime.of(18, 0))
+        val anchor = millis(LocalDate.of(2026, 1, 5), LocalTime.of(0, 0)) // Mon midnight anchor
+        val r = reminder(
+            scheduleType = ReminderSchedule.SCHEDULE_TYPE_INTERVAL,
+            intervalValue = 1,
+            intervalUnit = "Hours",
+            startEpochMillis = anchor,
+            daysMask = 0b0011111, // Mon-Fri
+        )
+        val expected = millis(LocalDate.of(2026, 1, 12), LocalTime.of(0, 0)) // Monday 00:00
+        val next = ReminderSchedule.nextFireAt(r, now, zone)
+        assertEquals(expected, next)
+    }
+
+    @Test
+    fun nextFireAt_endDateInclusiveAtCutoff() {
+        // End-date stored as start-of-next-day (00:00 of day+1) so the entire end day is
+        // included. A reminder that fires at 23:59 on the end day must still fire.
+        val end = millis(LocalDate.of(2026, 1, 11), LocalTime.of(0, 0)) // start of Jan 11 = end of Jan 10
+        val now = millis(LocalDate.of(2026, 1, 10), LocalTime.of(23, 0))
+        val r = reminder(
+            times = "23:59",
+            endEpochMillis = end,
+        )
+        val expected = millis(LocalDate.of(2026, 1, 10), LocalTime.of(23, 59))
+        assertEquals(expected, ReminderSchedule.nextFireAt(r, now, zone))
+    }
 }

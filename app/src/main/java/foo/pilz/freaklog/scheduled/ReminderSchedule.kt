@@ -34,13 +34,13 @@ object ReminderSchedule {
     ): Long? {
         if (!reminder.isEnabled) return null
         val end = reminder.endEpochMillis
-        if (end != null && fromMillis >= end) return null
+        if (end != null && fromMillis > end) return null
 
         val candidate = when (reminder.scheduleType) {
             SCHEDULE_TYPE_INTERVAL -> nextIntervalFire(reminder, fromMillis, zone)
             else -> nextDailyAtTimesFire(reminder, fromMillis, zone)
         }
-        return candidate?.takeIf { end == null || it < end }
+        return candidate?.takeIf { end == null || it <= end }
     }
 
     private fun nextDailyAtTimesFire(reminder: Reminder, fromMillis: Long, zone: ZoneId): Long? {
@@ -84,8 +84,14 @@ object ReminderSchedule {
             // (diff / intervalMs) + 1 intervals past the anchor.
             anchor + ((diff / intervalMs) + 1) * intervalMs
         }
-        // Skip forward until the day is allowed.
-        repeat(8) {
+        // Skip forward until the day is allowed. Use a time-based horizon (8 days) instead
+        // of a fixed step count so short intervals across a weekend mask still find the
+        // next allowed slot. Hard cap the iteration count so a degenerate mask can never
+        // loop forever.
+        val horizon = next + 8L * 24L * 60L * 60_000L
+        val maxSteps = (8L * 24L * 60L * 60_000L / intervalMs + 8L).coerceAtMost(100_000L).toInt()
+        repeat(maxSteps) {
+            if (next > horizon) return null
             val day = Instant.ofEpochMilli(next).atZone(zone).dayOfWeek
             if (isDayAllowedForFiring(day, mask)) return next
             next += intervalMs

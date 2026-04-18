@@ -4,14 +4,21 @@
  */
 package foo.pilz.freaklog.scheduled
 
+import android.Manifest
 import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
+import foo.pilz.freaklog.MainActivity
+import foo.pilz.freaklog.R
 import foo.pilz.freaklog.data.room.reminders.RemindersRepository
 import foo.pilz.freaklog.data.room.reminders.entities.Reminder
 import javax.inject.Inject
@@ -98,14 +105,95 @@ class NotificationScheduler @Inject constructor(
     }
 
     /**
-     * Sends an immediate broadcast that mimics a real reminder firing, used by the "Test" button
-     * in the Edit screen.
+     * Sends an immediate notification for [reminder] without persisting anything or going
+     * through AlarmManager / a broadcast. Used by the "Test" button in the Edit screen.
+     * The action buttons are omitted because, for an unsaved reminder, there is no row for
+     * `ReminderActionReceiver` to act on.
      */
     fun testNotification(reminder: Reminder) {
-        val intent = makeFireIntent(reminder.id).apply {
-            putExtra(EXTRA_IS_TEST, true)
+        postReminderNotification(reminder, includeActions = false, notificationId = TEST_NOTIFICATION_ID)
+    }
+
+    /**
+     * Posts the user-visible notification for [reminder]. Shared between the alarm path
+     * (via [ReminderReceiver]) and the synchronous test path.
+     */
+    fun postReminderNotification(
+        reminder: Reminder,
+        includeActions: Boolean = true,
+        notificationId: Int = reminder.id,
+    ) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
         }
-        context.sendBroadcast(intent)
+        ensureNotificationChannel(context)
+
+        val openIntent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val openPending = PendingIntent.getActivity(
+            context,
+            notificationId,
+            openIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val title = reminder.title.ifBlank { "Reminder" }
+        val body = buildBody(reminder)
+
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setContentIntent(openPending)
+            .setAutoCancel(true)
+
+        if (includeActions) {
+            // "Take" only makes sense if a substance + route are configured.
+            if (!reminder.substanceName.isNullOrBlank() && !reminder.administrationRoute.isNullOrBlank()) {
+                builder.addAction(
+                    0,
+                    "Take",
+                    ReminderActionReceiver.takePendingIntent(context, reminder.id)
+                )
+            }
+            builder.addAction(
+                0,
+                "Snooze 15 min",
+                ReminderActionReceiver.snoozePendingIntent(context, reminder.id, snoozeMinutes = 15)
+            )
+            builder.addAction(
+                0,
+                "Skip",
+                ReminderActionReceiver.skipPendingIntent(context, reminder.id)
+            )
+        }
+
+        NotificationManagerCompat.from(context).notify(notificationId, builder.build())
+    }
+
+    private fun buildBody(reminder: Reminder): String {
+        val parts = mutableListOf<String>()
+        val dose = reminder.dose
+        val units = reminder.units
+        val substance = reminder.substanceName
+        if (dose != null && !substance.isNullOrBlank()) {
+            val doseText = if (dose == dose.toLong().toDouble()) dose.toLong().toString() else dose.toString()
+            val unitsText = units?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
+            parts += "Take $doseText$unitsText $substance"
+        } else if (!substance.isNullOrBlank()) {
+            parts += "Take $substance"
+        }
+        if (reminder.notes.isNotBlank()) parts += reminder.notes
+        return if (parts.isEmpty()) "Time for your scheduled reminder." else parts.joinToString("\n")
     }
 
     private fun makeFirePendingIntent(reminder: Reminder): PendingIntent {
@@ -129,7 +217,8 @@ class NotificationScheduler @Inject constructor(
         const val CHANNEL_ID = "ingestion_reminders"
         const val ACTION_FIRE_REMINDER = "foo.pilz.freaklog.action.FIRE_REMINDER"
         const val EXTRA_REMINDER_ID = "REMINDER_ID"
-        const val EXTRA_IS_TEST = "IS_TEST"
+        /** Stable id for the notification posted by [testNotification]. */
+        private const val TEST_NOTIFICATION_ID = -1
 
         fun ensureNotificationChannel(context: Context) {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
