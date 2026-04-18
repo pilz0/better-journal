@@ -242,7 +242,7 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
 
     val aiModelNameFlow: Flow<String> = dataStore.data
         .map { preferences ->
-            preferences[PreferencesKeys.AI_MODEL_NAME] ?: "gemini-1.5-flash"
+            preferences[PreferencesKeys.AI_MODEL_NAME] ?: "gemini-2.5-flash"
         }
 
     suspend fun saveAiModelName(value: String) {

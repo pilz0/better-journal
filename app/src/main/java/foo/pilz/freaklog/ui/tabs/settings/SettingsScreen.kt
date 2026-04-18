@@ -132,7 +132,7 @@ fun SettingsPreview() {
         saveHapticFeedbackEnabled = {},
         aiApiKey = "",
         saveAiApiKey = {},
-        aiModelName = "gemini-1.5-flash",
+        aiModelName = "gemini-2.5-flash",
         saveAiModelName = {},
         )
 }
@@ -527,6 +527,7 @@ fun SettingsScreen(
                     value = aiModelName,
                     onValueChange = saveAiModelName,
                     label = { Text("Gemini Model Name") },
+                    supportingText = { Text("Recommended: gemini-2.5-flash (fast) or gemini-2.5-pro (smartest)") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
                 )
