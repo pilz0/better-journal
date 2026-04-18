@@ -45,7 +45,7 @@ class AddTimedNoteViewModel @Inject constructor(
     state: SavedStateHandle
 ) : ViewModel() {
     var note by mutableStateOf("")
-    var color by mutableStateOf(AdaptiveColor.BLUE)
+    var color: AdaptiveColor by mutableStateOf(AdaptiveColor.BLUE)
     var isPartOfTimeline by mutableStateOf(true)
     val experienceId = state.toRoute<AddTimedNoteRoute>().experienceId
     var localDateTimeFlow = MutableStateFlow(LocalDateTime.now())

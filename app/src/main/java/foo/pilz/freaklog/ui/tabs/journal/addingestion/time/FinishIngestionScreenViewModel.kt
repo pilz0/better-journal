@@ -101,7 +101,7 @@ class FinishIngestionScreenViewModel @Inject constructor(
 
     var isLoadingColor by mutableStateOf(true)
     var isShowingColorPicker by mutableStateOf(false)
-    var selectedColor by mutableStateOf(AdaptiveColor.BLUE)
+    var selectedColor: AdaptiveColor by mutableStateOf(AdaptiveColor.BLUE)
     var note by mutableStateOf("")
     var administrationSite by mutableStateOf("")
     private var hasTitleBeenChanged = false
