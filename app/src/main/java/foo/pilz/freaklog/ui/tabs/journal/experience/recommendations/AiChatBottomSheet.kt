@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -56,6 +57,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -333,12 +335,14 @@ private fun InputBar(
 ) {
     var textState by remember { mutableStateOf(TextFieldValue("")) }
     val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     val send: () -> Unit = {
         val text = textState.text.trim()
         if (text.isNotBlank() && enabled) {
             onSend(text)
             textState = TextFieldValue("")
+            keyboardController?.hide()
         }
     }
 
@@ -356,7 +360,8 @@ private fun InputBar(
                 .focusRequester(focusRequester),
             placeholder = { Text("Ask about your journal…") },
             maxLines = 4,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send)
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+            keyboardActions = KeyboardActions(onSend = { send() })
         )
         Spacer(Modifier.width(4.dp))
         if (!enabled) {

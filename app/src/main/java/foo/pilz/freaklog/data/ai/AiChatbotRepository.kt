@@ -15,9 +15,11 @@ import javax.inject.Singleton
 
 /**
  * Builds [GenerativeModel] instances configured with a journal-aware system
- * instruction and the function-calling tools declared by [AiTools]. The model
- * itself is recreated on demand so settings changes (api key, model name) take
- * effect immediately.
+ * instruction and the function-calling tools declared by [AiTools]. A fresh
+ * model is created on every call to [getGenerativeModelReady], so settings
+ * changes (api key, model name) are picked up by any newly created model or
+ * chat session — existing chat sessions continue to use the model they were
+ * started with until the caller starts a new chat.
  */
 @Singleton
 class AiChatbotRepository @Inject constructor(
@@ -141,9 +143,16 @@ class AiChatbotRepository @Inject constructor(
             defineFunction(
                 name = "get_experience_details",
                 description = "Fetch the full details of one past experience: notes, every ingestion, and Shulgin ratings. " +
-                    "Call this after `search_experiences` or `list_recent_experiences` when more detail is needed.",
+                    "Call this after `search_experiences` or `list_recent_experiences` when more detail is needed. " +
+                    "The `notes` field is capped (default 2000 chars); the response sets `notes_truncated` and " +
+                    "`notes_total_chars` so you can decide whether to ask for a larger excerpt.",
                 parameters = listOf(
-                    Schema.int("experience_id", "The experience id returned by another tool.")
+                    Schema.int("experience_id", "The experience id returned by another tool."),
+                    Schema.int(
+                        "max_notes_chars",
+                        "Optional cap on how many characters of the free-text notes to include " +
+                            "(default 2000, max 8000). Use a smaller value for quick lookups."
+                    )
                 ),
                 requiredParameters = listOf("experience_id")
             ),

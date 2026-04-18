@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.google.ai.client.generativeai.Chat
 import com.google.ai.client.generativeai.type.Content
 import com.google.ai.client.generativeai.type.FunctionResponsePart
+import com.google.ai.client.generativeai.type.Part
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -71,6 +73,13 @@ class AiChatViewModel @Inject constructor(
     private var chatSession: Chat? = null
     private var activeJob: Job? = null
 
+    /**
+     * Monotonically increasing token incremented every time we start a new chat. UI updates from
+     * an in-flight turn are gated on this so a turn that's cancelled by [clearChat] cannot race
+     * with the fresh state set up by [startNewChat].
+     */
+    private var sessionToken: Int = 0
+
     fun initialize(expId: Int) {
         if (experienceId == expId && chatSession != null) return
         experienceId = expId
@@ -83,6 +92,8 @@ class AiChatViewModel @Inject constructor(
     }
 
     private fun startNewChat(showWelcome: Boolean) {
+        sessionToken++
+        val token = sessionToken
         viewModelScope.launch {
             _uiState.update {
                 it.copy(
@@ -93,6 +104,7 @@ class AiChatViewModel @Inject constructor(
                 )
             }
             val ready = repository.getGenerativeModelReady(experienceId)
+            if (token != sessionToken) return@launch
             if (ready == null) {
                 _uiState.update {
                     it.copy(
@@ -140,15 +152,17 @@ class AiChatViewModel @Inject constructor(
             )
         }
         val placeholderId = assistantPlaceholder.id
+        val token = sessionToken
 
         activeJob = viewModelScope.launch {
             try {
                 var response = chat.sendMessage(text)
                 while (true) {
-                    val functionCall = response.functionCalls.firstOrNull()
-                    if (functionCall == null) {
+                    if (token != sessionToken) return@launch
+                    val functionCalls = response.functionCalls
+                    if (functionCalls.isEmpty()) {
                         val finalText = response.text?.takeIf { it.isNotBlank() }
-                            ?: "(The assistant returned an empty response.)"
+                            ?: "The assistant returned an empty response."
                         replaceMessage(placeholderId) {
                             it.copy(text = finalText, isLoading = false)
                         }
@@ -156,32 +170,43 @@ class AiChatViewModel @Inject constructor(
                         return@launch
                     }
 
-                    val toolEvent = ChatItem.ToolEvent(
-                        toolName = functionCall.name,
-                        args = functionCall.args
-                    )
-                    insertBefore(placeholderId, toolEvent)
-                    _uiState.update { it.copy(statusMessage = "Running ${functionCall.name}…") }
-
-                    val toolResult = tools.execute(functionCall.name, functionCall.args)
-                    val isError = toolResult.optString("status") == "error"
-                    updateToolEvent(toolEvent.id) {
-                        it.copy(
-                            status = if (isError) ChatItem.ToolEvent.Status.Error else ChatItem.ToolEvent.Status.Success,
-                            resultSummary = summariseToolResult(functionCall.name, toolResult)
+                    // The Gemini SDK can return multiple function calls per turn; execute every
+                    // call and reply with one FunctionResponsePart per call before asking for the
+                    // next assistant message, otherwise the model keeps waiting on the missing
+                    // tool responses.
+                    val responseParts = mutableListOf<Part>()
+                    for (functionCall in functionCalls) {
+                        if (token != sessionToken) return@launch
+                        val toolEvent = ChatItem.ToolEvent(
+                            toolName = functionCall.name,
+                            args = functionCall.args
                         )
+                        insertBefore(placeholderId, toolEvent)
+                        _uiState.update { it.copy(statusMessage = "Running ${functionCall.name}…") }
+
+                        val toolResult = tools.execute(functionCall.name, functionCall.args)
+                        val isError = toolResult.optString("status") == "error"
+                        updateToolEvent(toolEvent.id) {
+                            it.copy(
+                                status = if (isError) ChatItem.ToolEvent.Status.Error else ChatItem.ToolEvent.Status.Success,
+                                resultSummary = summariseToolResult(functionCall.name, toolResult)
+                            )
+                        }
+                        responseParts += FunctionResponsePart(functionCall.name, toolResult)
                     }
 
+                    if (token != sessionToken) return@launch
                     _uiState.update { it.copy(statusMessage = "Thinking…") }
                     response = chat.sendMessage(
-                        Content(
-                            role = "function",
-                            parts = listOf(FunctionResponsePart(functionCall.name, toolResult))
-                        )
+                        Content(role = "function", parts = responseParts)
                     )
                 }
+            } catch (ce: CancellationException) {
+                // Cancellation is a control-flow signal, not an error: do not surface it as one.
+                throw ce
             } catch (t: Throwable) {
                 Log.e("AiChatViewModel", "Chat turn failed", t)
+                if (token != sessionToken) return@launch
                 replaceMessage(placeholderId) {
                     it.copy(
                         text = "Error: ${t.message ?: t::class.java.simpleName}",

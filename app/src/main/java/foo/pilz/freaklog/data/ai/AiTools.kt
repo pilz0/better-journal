@@ -2,7 +2,6 @@ package foo.pilz.freaklog.data.ai
 
 import android.util.Log
 import foo.pilz.freaklog.data.room.experiences.ExperienceDao
-import kotlinx.coroutines.flow.firstOrNull
 import org.json.JSONArray
 import org.json.JSONObject
 import java.time.Instant
@@ -20,6 +19,14 @@ class AiTools @Inject constructor(
     private val experienceDao: ExperienceDao
 ) {
 
+    companion object {
+        /** Default cap on the size of any single notes blob returned to the model. */
+        const val DEFAULT_MAX_NOTES_CHARS = 2000
+
+        /** Hard cap on the size of any single notes blob returned to the model. */
+        const val ABSOLUTE_MAX_NOTES_CHARS = 8000
+    }
+
     suspend fun execute(name: String, args: Map<String, Any?>): JSONObject {
         return try {
             when (name) {
@@ -35,7 +42,9 @@ class AiTools @Inject constructor(
                     limit = (args["limit"] as? Number)?.toInt() ?: 10
                 )
                 "get_experience_details" -> getExperienceDetails(
-                    experienceId = (args["experience_id"] as? Number)?.toInt() ?: -1
+                    experienceId = (args["experience_id"] as? Number)?.toInt() ?: -1,
+                    maxNotesChars = (args["max_notes_chars"] as? Number)?.toInt()
+                        ?: DEFAULT_MAX_NOTES_CHARS
                 )
                 "get_recent_ingestions" -> getRecentIngestions(
                     daysBack = (args["days_back"] as? Number)?.toInt() ?: 30,
@@ -53,9 +62,9 @@ class AiTools @Inject constructor(
     }
 
     private suspend fun listRecentExperiences(limit: Int): JSONObject {
-        val rows = experienceDao.getAllExperiencesWithIngestionsTimedNotesAndRatingsSorted()
-            .sortedByDescending { it.experience.sortDate }
-            .take(limit.coerceIn(1, 50))
+        val safeLimit = limit.coerceIn(1, 50)
+        val rows = experienceDao
+            .getRecentExperiencesWithIngestionsTimedNotesAndRatingsSorted(safeLimit)
         val arr = JSONArray()
         rows.forEach { row ->
             arr.put(
@@ -107,7 +116,7 @@ class AiTools @Inject constructor(
         return JSONObject().put("status", "success").put("matches", arr)
     }
 
-    private suspend fun getExperienceDetails(experienceId: Int): JSONObject {
+    private suspend fun getExperienceDetails(experienceId: Int, maxNotesChars: Int): JSONObject {
         if (experienceId < 0) return errorResult("Parameter 'experience_id' is required.")
         val exp = experienceDao.getExperienceWithIngestionsCompanionsAndRatings(experienceId)
             ?: return errorResult("No experience found with id $experienceId.")
@@ -122,7 +131,7 @@ class AiTools @Inject constructor(
                     .put("units", ing.units ?: JSONObject.NULL)
                     .put("route", ing.administrationRoute.name)
                     .put("is_estimate", ing.isDoseAnEstimate)
-                    .put("notes", ing.notes ?: "")
+                    .put("notes", (ing.notes ?: "").take(500))
             )
         }
         val ratings = JSONArray()
@@ -133,13 +142,19 @@ class AiTools @Inject constructor(
                     .put("rating", rating.option.name)
             )
         }
+        val notesCap = maxNotesChars.coerceIn(0, ABSOLUTE_MAX_NOTES_CHARS)
+        val originalNotes = exp.experience.text
+        val notes = originalNotes.take(notesCap)
+        val notesTruncated = originalNotes.length > notes.length
         return JSONObject()
             .put("status", "success")
             .put("experience_id", exp.experience.id)
             .put("title", exp.experience.title)
             .put("date", AI_DATE_FORMATTER.format(exp.experience.sortDate))
             .put("is_favorite", exp.experience.isFavorite)
-            .put("notes", exp.experience.text)
+            .put("notes", notes)
+            .put("notes_truncated", notesTruncated)
+            .put("notes_total_chars", originalNotes.length)
             .put("ingestions", ingestions)
             .put("ratings", ratings)
     }
@@ -147,11 +162,12 @@ class AiTools @Inject constructor(
     private suspend fun getRecentIngestions(daysBack: Int, substanceFilter: String?): JSONObject {
         val clampedDays = daysBack.coerceIn(1, 365 * 2)
         val from = Instant.now().minusSeconds(clampedDays * 24L * 60 * 60)
-        val all = experienceDao.getSortedIngestionsFlow().firstOrNull().orEmpty()
-        val filtered = all
-            .filter { it.time.isAfter(from) }
-            .filter { substanceFilter.isNullOrBlank() || it.substanceName.contains(substanceFilter, ignoreCase = true) }
-            .take(100)
+        val resultLimit = 100
+        val filtered = if (substanceFilter.isNullOrBlank()) {
+            experienceDao.getIngestionsSince(from, resultLimit)
+        } else {
+            experienceDao.getIngestionsSinceFiltered(from, substanceFilter.trim(), resultLimit)
+        }
         val arr = JSONArray()
         filtered.forEach { ing ->
             arr.put(
@@ -174,8 +190,9 @@ class AiTools @Inject constructor(
     private suspend fun getSubstanceUsageStats(daysBack: Int): JSONObject {
         val clampedDays = daysBack.coerceIn(1, 365 * 5)
         val from = Instant.now().minusSeconds(clampedDays * 24L * 60 * 60)
-        val all = experienceDao.getSortedIngestionsFlow().firstOrNull().orEmpty()
-            .filter { it.time.isAfter(from) }
+        // We need every ingestion in the window for grouping; cap the SQL fetch defensively at
+        // 10k rows (5 years of ~5/day) so a runaway journal can't OOM the client.
+        val all = experienceDao.getIngestionsSince(from, 10_000)
         val grouped = all.groupBy { it.substanceName }
         val arr = JSONArray()
         grouped.entries

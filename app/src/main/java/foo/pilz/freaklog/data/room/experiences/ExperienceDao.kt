@@ -46,6 +46,16 @@ import foo.pilz.freaklog.data.export.JournalExport
 import kotlinx.coroutines.flow.Flow
 import java.time.Instant
 
+/**
+ * Escapes the wildcard characters in a parameter being used with a `LIKE ... ESCAPE '\'` clause,
+ * so that user-supplied input containing `%`, `_` or `\` is matched literally.
+ */
+internal fun escapeLikeParameter(value: String): String =
+    value
+        .replace("\\", "\\\\")
+        .replace("%", "\\%")
+        .replace("_", "\\_")
+
 @Dao
 interface ExperienceDao {
 
@@ -145,19 +155,59 @@ interface ExperienceDao {
 
     @Query(
         "SELECT * FROM experience" +
-                " WHERE title LIKE '%' || :query || '%'" +
-                " OR text LIKE '%' || :query || '%'" +
+                " WHERE title LIKE '%' || :escapedQuery || '%' ESCAPE '\\'" +
+                " OR text LIKE '%' || :escapedQuery || '%' ESCAPE '\\'" +
                 " ORDER BY sortDate DESC LIMIT :limit"
     )
-    suspend fun searchExperiences(query: String, limit: Int): List<Experience>
+    suspend fun searchExperiencesEscaped(escapedQuery: String, limit: Int): List<Experience>
+
+    suspend fun searchExperiences(query: String, limit: Int): List<Experience> =
+        searchExperiencesEscaped(escapeLikeParameter(query), limit)
 
     @Query(
         "SELECT DISTINCT e.* FROM experience e" +
                 " INNER JOIN ingestion i ON i.experienceId = e.id" +
-                " WHERE i.substanceName LIKE '%' || :substanceName || '%'" +
+                " WHERE i.substanceName LIKE '%' || :escapedSubstanceName || '%' ESCAPE '\\'" +
                 " ORDER BY e.sortDate DESC LIMIT :limit"
     )
-    suspend fun searchExperiencesBySubstance(substanceName: String, limit: Int): List<Experience>
+    suspend fun searchExperiencesBySubstanceEscaped(
+        escapedSubstanceName: String,
+        limit: Int
+    ): List<Experience>
+
+    suspend fun searchExperiencesBySubstance(substanceName: String, limit: Int): List<Experience> =
+        searchExperiencesBySubstanceEscaped(escapeLikeParameter(substanceName), limit)
+
+    @Transaction
+    @Query("SELECT * FROM experience ORDER BY sortDate DESC LIMIT :limit")
+    suspend fun getRecentExperiencesWithIngestionsTimedNotesAndRatingsSorted(
+        limit: Int
+    ): List<ExperienceWithIngestionsTimedNotesAndRatings>
+
+    @Query("SELECT * FROM ingestion WHERE time > :fromInstant ORDER BY time DESC LIMIT :limit")
+    suspend fun getIngestionsSince(fromInstant: Instant, limit: Int): List<Ingestion>
+
+    @Query(
+        "SELECT * FROM ingestion" +
+                " WHERE time > :fromInstant" +
+                " AND substanceName LIKE '%' || :escapedSubstance || '%' ESCAPE '\\'" +
+                " ORDER BY time DESC LIMIT :limit"
+    )
+    suspend fun getIngestionsSinceFilteredEscaped(
+        fromInstant: Instant,
+        escapedSubstance: String,
+        limit: Int
+    ): List<Ingestion>
+
+    suspend fun getIngestionsSinceFiltered(
+        fromInstant: Instant,
+        substance: String,
+        limit: Int
+    ): List<Ingestion> = getIngestionsSinceFilteredEscaped(
+        fromInstant,
+        escapeLikeParameter(substance),
+        limit
+    )
 
     @Transaction
     @Query("SELECT * FROM experience WHERE id =:id")
