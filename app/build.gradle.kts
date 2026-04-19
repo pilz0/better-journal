@@ -10,7 +10,7 @@ plugins {
 
 android {
     namespace = "foo.pilz.freaklog"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "foo.pilz.freaklog"
