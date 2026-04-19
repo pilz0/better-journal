@@ -31,6 +31,7 @@ import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.ContentScale
 import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.fillMaxWidth
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -43,9 +44,13 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import foo.pilz.freaklog.MainActivity
 import foo.pilz.freaklog.data.room.AppDatabase
-import kotlinx.coroutines.flow.first
+import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
+import foo.pilz.freaklog.data.substances.AdministrationRoute
+import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
+import foo.pilz.freaklog.data.substances.parse.SubstanceParser
 import java.io.File
 import java.io.FileOutputStream
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -54,6 +59,7 @@ import java.time.temporal.ChronoUnit
 private object HeatmapWidgetKeys {
     val HAS_DATA = booleanPreferencesKey("heatmap_hasData")
     val HEATMAP_IMAGE_PATH = stringPreferencesKey("heatmap_imagePath")
+    val TIMELINE_IMAGE_PATH = stringPreferencesKey("heatmap_timelineImagePath")
     val IS_LOADING = booleanPreferencesKey("heatmap_isLoading")
     val INGESTION_COUNT = stringPreferencesKey("heatmap_ingestionCount")
 }
@@ -88,6 +94,7 @@ class HeatmapAppWidget : GlanceAppWidget() {
             val hasData = prefs[HeatmapWidgetKeys.HAS_DATA] ?: false
             val isLoading = prefs[HeatmapWidgetKeys.IS_LOADING] ?: true
             val heatmapImagePath = prefs[HeatmapWidgetKeys.HEATMAP_IMAGE_PATH]
+            val timelineImagePath = prefs[HeatmapWidgetKeys.TIMELINE_IMAGE_PATH]
             val ingestionCount = prefs[HeatmapWidgetKeys.INGESTION_COUNT] ?: "0"
 
             val openAppIntent = Intent(context, MainActivity::class.java).apply {
@@ -117,6 +124,21 @@ class HeatmapAppWidget : GlanceAppWidget() {
                         )
                     }
                     else -> {
+                        // Timeline graph for substances currently ingested.
+                        // Shown above the heatmap so it mirrors the experience-view graph.
+                        if (timelineImagePath != null) {
+                            val timelineFile = File(timelineImagePath)
+                            if (timelineFile.exists()) {
+                                android.graphics.BitmapFactory.decodeFile(timelineImagePath)?.let { bitmap ->
+                                    Image(
+                                        provider = ImageProvider(bitmap),
+                                        contentDescription = "Active ingestions timeline",
+                                        modifier = GlanceModifier.fillMaxWidth(),
+                                        contentScale = ContentScale.Fit
+                                    )
+                                }
+                            }
+                        }
                         if (heatmapImagePath != null) {
                             val file = File(heatmapImagePath)
                             if (file.exists()) {
@@ -174,6 +196,50 @@ class HeatmapWidgetWorker(
                 Triple(false, null, "0")
             }
 
+            // Build the experience-view timeline graph for substances currently
+            // ingested. We fetch a wider window (48h back, 12h forward) so even
+            // long-acting substances are not silently dropped before the model
+            // can decide whether their effect overlaps "now".
+            val nightModeFlags = applicationContext.resources.configuration.uiMode and
+                    android.content.res.Configuration.UI_MODE_NIGHT_MASK
+            val isDarkMode = nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES
+
+            val timelineImagePath = try {
+                val fetchStart = now.minus(Duration.ofHours(48))
+                val fetchEnd = now.plus(Duration.ofHours(12))
+                val recent = experienceDao.getIngestionsWithCompanions(
+                    fromInstant = fetchStart,
+                    toInstant = fetchEnd,
+                )
+                if (recent.isEmpty()) {
+                    null
+                } else {
+                    val durations = loadSubstanceDurations(applicationContext)
+                    val modelInputs = recent.map { iwc ->
+                        WidgetTimelineModel.IngestionInput(
+                            substanceName = iwc.ingestion.substanceName,
+                            route = iwc.ingestion.administrationRoute,
+                            time = iwc.ingestion.time,
+                            color = iwc.substanceCompanion?.color ?: AdaptiveColor.BLUE,
+                        )
+                    }
+                    val timelineModel = WidgetTimelineModel.build(
+                        now = now,
+                        ingestions = modelInputs,
+                        durationsBySubstance = durations,
+                    )
+                    renderWidgetTimelineToFile(
+                        context = applicationContext,
+                        model = timelineModel,
+                        fileName = "heatmap_widget_timeline_$appWidgetId.png",
+                        isDarkMode = isDarkMode,
+                    )
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to render timeline for heatmap widget", e)
+                null
+            }
+
             val manager = GlanceAppWidgetManager(applicationContext)
             val glanceId = manager.getGlanceIdBy(appWidgetId)
 
@@ -189,6 +255,11 @@ class HeatmapWidgetWorker(
                     if (imagePath != null) {
                         this[HeatmapWidgetKeys.HEATMAP_IMAGE_PATH] = imagePath
                     }
+                    if (timelineImagePath != null) {
+                        this[HeatmapWidgetKeys.TIMELINE_IMAGE_PATH] = timelineImagePath
+                    } else {
+                        this.remove(HeatmapWidgetKeys.TIMELINE_IMAGE_PATH)
+                    }
                 }
             }
 
@@ -198,6 +269,24 @@ class HeatmapWidgetWorker(
         } catch (t: Throwable) {
             Log.e(TAG, "Error updating heatmap widget", t)
             Result.retry()
+        }
+    }
+
+    private fun loadSubstanceDurations(
+        context: Context
+    ): Map<String, Map<AdministrationRoute, RoaDuration?>> {
+        return try {
+            val fileContent = context.assets.open("Substances.json").bufferedReader().use { it.readText() }
+            val parser = SubstanceParser()
+            val substanceFile = parser.parseSubstanceFile(fileContent)
+            substanceFile.substances.associate { substance ->
+                substance.name to substance.roas.associate { roa ->
+                    roa.route to roa.roaDuration
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to load substance durations", e)
+            emptyMap()
         }
     }
 
