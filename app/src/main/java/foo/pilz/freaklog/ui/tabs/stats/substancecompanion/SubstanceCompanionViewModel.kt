@@ -274,9 +274,10 @@ class SubstanceCompanionViewModel @Inject constructor(
         val fullDateFmt = DateTimeFormatter.ofPattern("dd MMM yyyy")
         val initialUnit = ingestions.firstOrNull()?.ingestion?.units ?: "mg"
 
-        // Build an ascending array of bucket-boundary epoch-millis for binary search.
-        // Entry [i] is the start of bucket i; entry [bucketCount] is `end`.
-        // This lets us assign each ingestion to its bucket in O(log m) instead of O(m).
+        // Build an ascending array of bucket-boundary epoch-millis for O(log m) binary search.
+        // Bucket i spans [boundaryMillis[i], boundaryMillis[i+1]).
+        // The array is built backwards from `end`: boundaryMillis[bucketCount] = end,
+        // boundaryMillis[bucketCount-1] = end - 1×step, …, boundaryMillis[0] = end - bucketCount×step.
         val boundaryMillis = LongArray(bucketCount + 1)
         var tBoundary = end.atZone(zoneId)
         for (i in bucketCount downTo 0) {
@@ -288,16 +289,27 @@ class SubstanceCompanionViewModel @Inject constructor(
         val bucketTotals   = DoubleArray(bucketCount) { 0.0 }
         val bucketSessions = Array(bucketCount) { mutableSetOf<Int>() }
 
-        // Single pass: binary-search each ingestion into its bucket
+        // Pre-computed range limits to guard against out-of-range ingestions
+        val rangeStart = boundaryMillis[0]
+        val rangeEnd   = boundaryMillis[bucketCount]
+
+        // Single pass: binary-search each ingestion into its bucket.
+        // Ingestions outside [rangeStart, rangeEnd) are skipped rather than coerced
+        // into an edge bucket, which would inflate those buckets with out-of-range data.
         for (ing in ingestions) {
             val millis = ing.ingestion.time.toEpochMilli()
-            var pos = boundaryMillis.binarySearch(millis)
+            if (millis < rangeStart || millis >= rangeEnd) continue
+
+            val pos = boundaryMillis.binarySearch(millis)
             val bucketIdx = if (pos >= 0) {
-                // Exact hit on a boundary → start of that bucket
-                pos.coerceIn(0, bucketCount - 1)
+                // Exact hit on a boundary → this is the start of that bucket.
+                // Clamp to bucketCount-1 in the (theoretical) case pos == bucketCount,
+                // which cannot actually occur given the rangeEnd guard above.
+                pos.coerceAtMost(bucketCount - 1)
             } else {
                 // pos = -(insertion_point) - 1  →  insertion_point = -pos - 1
-                (-pos - 2).coerceIn(0, bucketCount - 1)
+                // The ingestion falls in bucket (insertion_point - 1).
+                (-pos - 2) // already ≥ 0 because millis >= rangeStart was checked
             }
             bucketTotals[bucketIdx]   += ing.ingestion.dose ?: 0.0
             bucketSessions[bucketIdx].add(ing.ingestion.experienceId)
