@@ -190,7 +190,6 @@ fun SubstanceCompanionScreen(
                             DosageTimeRange.DAYS_30 -> "Dosage by day"
                             DosageTimeRange.WEEKS_26 -> "Dosage by week"
                             DosageTimeRange.MONTHS_12 -> "Dosage by month"
-                            DosageTimeRange.YEAR -> "Dosage by month"
                         }
                         
                         Text(

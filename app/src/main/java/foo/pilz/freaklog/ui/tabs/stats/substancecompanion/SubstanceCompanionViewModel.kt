@@ -185,14 +185,12 @@ class SubstanceCompanionViewModel @Inject constructor(
             DosageTimeRange.DAYS_30 -> 30
             DosageTimeRange.WEEKS_26 -> 26
             DosageTimeRange.MONTHS_12 -> 12
-            DosageTimeRange.YEAR -> 12 // Assume 12 months for Year view
         }
 
         val step = when(timeRange) {
             DosageTimeRange.DAYS_30 -> Period.ofDays(1)
             DosageTimeRange.WEEKS_26 -> Period.ofWeeks(1)
             DosageTimeRange.MONTHS_12 -> Period.ofMonths(1)
-            DosageTimeRange.YEAR -> Period.ofMonths(1)
         }
 
         // We want the last bucket to end at 'end' (Now).
@@ -224,15 +222,8 @@ class SubstanceCompanionViewModel @Inject constructor(
             // val date = LocalDateTime.ofInstant(bucketStart, zoneId) // No longer needed
             val label = when(timeRange) {
                 DosageTimeRange.DAYS_30 -> DateTimeFormatter.ofPattern("dd").format(bucketStart)
-                DosageTimeRange.WEEKS_26 -> {
-                    // Week number or start date? Screenshot shows just bars.
-                    // Let's use Month name if it changes, or simple ticks.
-                    // For specific chart logic:
-                    // If first of month, show Month. 
-                    // Let's just return a date label.
-                    DateTimeFormatter.ofPattern("dd.MM").format(bucketStart)
-                }
-                DosageTimeRange.MONTHS_12, DosageTimeRange.YEAR -> DateTimeFormatter.ofPattern("MMM").format(bucketStart)
+                DosageTimeRange.WEEKS_26 -> DateTimeFormatter.ofPattern("dd.MM").format(bucketStart)
+                DosageTimeRange.MONTHS_12 -> DateTimeFormatter.ofPattern("MMM").format(bucketStart)
             }
              val fullDate = DateTimeFormatter.ofPattern("dd MMM yyyy").format(bucketStart)
 
@@ -248,8 +239,7 @@ class SubstanceCompanionViewModel @Inject constructor(
 enum class DosageTimeRange(val displayText: String, val title: String, val period: Period) {
     DAYS_30("30D", "Last 30 Days", Period.ofDays(30)),
     WEEKS_26("26W", "Last 26 Weeks", Period.ofWeeks(26)),
-    MONTHS_12("12M", "Last 12 Months", Period.ofMonths(12)),
-    YEAR("Y", "Last Year", Period.ofYears(1))
+    MONTHS_12("12M", "Last 12 Months", Period.ofMonths(12))
 }
 
 data class IngestionsBurst(
