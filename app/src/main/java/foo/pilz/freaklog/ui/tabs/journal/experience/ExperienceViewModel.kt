@@ -58,6 +58,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
@@ -381,7 +382,7 @@ class ExperienceViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000)
     )
 
-    val matchedAchievementsFlow: kotlinx.coroutines.flow.StateFlow<List<AchievementDef>> = combine(
+    val matchedAchievementsFlow: StateFlow<List<AchievementDef>> = combine(
         ingestionsWithCompanionsFlow,
         ratingsFlow,
         timedNotesSortedFlow,

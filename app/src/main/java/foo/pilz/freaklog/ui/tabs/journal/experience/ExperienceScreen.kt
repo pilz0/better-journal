@@ -252,7 +252,7 @@ fun ExperienceScreen(
     navigateToTimelineScreen: (consumerName: String) -> Unit,
     areDosageDotsHidden: Boolean,
     isTimelineHidden: Boolean,
-    matchedAchievements: List<foo.pilz.freaklog.ui.tabs.settings.funny.AchievementDef> = emptyList(),
+    matchedAchievements: List<AchievementDef> = emptyList(),
 ) {
     Scaffold(
         topBar = {
