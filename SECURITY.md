@@ -43,9 +43,7 @@ also relevant to security researchers:
   generated via `actions/attest-build-provenance`.
 - The repository runs:
   - **CodeQL** for `java-kotlin` and the `actions` workflow language.
-  - **OSV-Scanner** against the dependency graph.
   - **OpenSSF Scorecard** for repository-level supply-chain hygiene.
-  - **gitleaks** for accidental secret commits.
   - **Detekt** + **Android Lint** with SARIF uploaded to code scanning.
   - **Dependency Review** on every pull request.
   - **`step-security/harden-runner`** on every job.

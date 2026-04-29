@@ -134,8 +134,6 @@ Workflows live in `.github/workflows/`:
 | `codeql.yml` | CodeQL analysis for `java-kotlin` and `actions` languages with the `security-extended` query pack. |
 | `instrumented-tests.yml` | Connected Android tests on emulators (API 31/34/35). Triggered by the `run-instrumented-tests` PR label, `workflow_dispatch`, or nightly schedule. |
 | `scorecard.yml` | OpenSSF Scorecard supply-chain analysis (uploaded as SARIF + published to scorecard.dev). |
-| `osv-scanner.yml` | OSV-Scanner vulnerability scan against the dependency graph (SARIF upload). |
-| `gitleaks.yml` | Pre-merge secret scanning. |
 | `dependency-review.yml` | Blocks PRs that introduce known-vulnerable or AGPL dependencies. |
 
 ```
