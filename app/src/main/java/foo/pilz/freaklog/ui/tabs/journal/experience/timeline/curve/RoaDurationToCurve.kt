@@ -21,8 +21,9 @@ import kotlin.math.ln
 import kotlin.math.max
 
 /**
- * Threshold (fraction of peak) used by [BatemanCurve] to decide where the visual tail of the
- * curve ends.
+ * Threshold (fraction of peak) used in this file to derive `ke` from the requested total
+ * duration. The same value is forwarded to [BatemanCurve.tailEpsilon] so the renderer agrees
+ * on where the visual tail ends.
  */
 private const val TAIL_EPSILON = 0.05
 
@@ -91,6 +92,10 @@ fun RoaDuration.toIngestionCurve(
     val phaseCount = listOf(onsetSec, comeupSec, peakSec, offsetSec).count { it != null }
     val isCertain = phaseCount >= 3
 
+    // Cap on how far past the nominal total the renderer is allowed to draw the tail. We allow
+    // a small overshoot so the dotted tail visibly approaches zero rather than being clipped at
+    // exactly TAIL_EPSILON. The fallback (no `total`) gets a larger multiplier because the
+    // estimated total is itself less reliable.
     val maxLength = totalSec?.let { (it * 1.2f).toFloat() }
         ?: ((targetTotal * 1.5f).toFloat())
 

@@ -42,7 +42,7 @@ class RoaDurationToCurveTest {
         val sampled = (1..curve.curveEndSec.toInt())
             .maxByOrNull { curve.valueAt(it.toFloat()) }!!
             .toFloat()
-        assertTrue("tmax sample $sampled should be within an hour of 52 min", sampled in 1500f..4500f)
+        assertTrue("tmax sample $sampled should be within ~25 min of 52 min", sampled in 1500f..4500f)
         assertTrue("curve should end after total min", curve.curveEndSec >= 6 * 3600f * 0.95f)
     }
 
