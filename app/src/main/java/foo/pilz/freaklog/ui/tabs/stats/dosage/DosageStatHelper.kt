@@ -34,7 +34,7 @@ enum class DosageStatRange(
     DAYS_30("30D", "Last 30 days", Period.ofDays(30), 30, Period.ofDays(1), "dd"),
     WEEKS_26("26W", "Last 26 weeks", Period.ofWeeks(26), 26, Period.ofWeeks(1), "dd.MM"),
     MONTHS_12("12M", "Last 12 months", Period.ofMonths(12), 12, Period.ofMonths(1), "MMM"),
-    YEARS("Y", "All years", Period.ofYears(50), 12, Period.ofYears(1), "yyyy"),
+    YEARS("Y", "Last 12 years", Period.ofYears(12), 12, Period.ofYears(1), "yyyy"),
 }
 
 /**
