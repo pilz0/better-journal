@@ -2,8 +2,8 @@
 
 ## Supported versions
 
-Only the most recent release on the [GitHub releases page](https://github.com/pilz0/better-journal/releases)
-and the current `main` branch are supported. Older versions do not receive
+Only the most recent release on the [GitHub releases page](../../releases)
+and the current default branch are supported. Older versions do not receive
 security fixes.
 
 ## Reporting a vulnerability
@@ -13,7 +13,8 @@ or pull requests.**
 
 Instead, use GitHub's private vulnerability reporting:
 
-1. Open <https://github.com/pilz0/better-journal/security/advisories/new>.
+1. Open a new private vulnerability advisory via the **Security** tab of this
+   repository on GitHub (`Security → Advisories → Report a vulnerability`).
 2. Fill in a clear description of the issue, including reproduction steps,
    the affected component (e.g. webhook, AI chatbot, Room database, signing,
    release pipeline), the version where the issue was discovered, and the
@@ -36,7 +37,8 @@ also relevant to security researchers:
 - Pull-request builds **never** receive secrets. Signing, Cloudflare R2
   uploads, Google Play uploads, and GitHub release creation all live in
   `.github/workflows/release.yml`, which only runs from successful builds
-  on `main` or tagged commits and is gated through GitHub Environments.
+  on the default branch or tagged commits and is gated through GitHub
+  Environments.
 - Build artifacts are signed and an SLSA build provenance attestation is
   generated via `actions/attest-build-provenance`.
 - The repository runs:

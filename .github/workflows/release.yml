@@ -18,11 +18,18 @@ on:
   workflow_run:
     workflows: [ "Build and test" ]
     types: [ completed ]
-    branches: [ main ]
+    # Note: do NOT use `branches:` here. The `branches` filter only matches
+    # the upstream run's `head_branch` against branch names — for tag pushes,
+    # `head_branch` is the tag short name (e.g. `v1.2.3`), not a branch, so a
+    # `branches: [ main ]` filter would silently drop every tag release. The
+    # `preconditions` job below performs the actual gating using the API.
   workflow_dispatch:
     inputs:
-      ref:
-        description: "Git ref to publish (must already have built artifacts)"
+      upstream-run-id:
+        description: >-
+          Run ID of the `Build and test` workflow whose unsigned artifacts
+          should be signed and released. Find it in the URL of the run page
+          (e.g. https://github.com/<owner>/<repo>/actions/runs/<RUN_ID>).
         required: true
         type: string
 
@@ -30,11 +37,14 @@ on:
 permissions: {}
 
 concurrency:
-  group: release-${{ github.workflow }}-${{ github.event.workflow_run.head_sha || github.ref }}
+  group: release-${{ github.workflow }}-${{ github.event.workflow_run.head_sha || inputs.upstream-run-id }}
   cancel-in-progress: false
 
 jobs:
-  # Re-run the release pipeline only when the upstream build was successful.
+  # Re-run the release pipeline only when the upstream build was successful
+  # AND the build was for the default branch or a tag. We have to look the
+  # upstream run up via the API because the `workflow_run` payload doesn't
+  # tell us whether `head_branch` is a branch name or a tag name.
   preconditions:
     name: Check preconditions
     runs-on: ubuntu-latest
@@ -43,10 +53,9 @@ jobs:
       actions: read
     if: |
       github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' &&
-       (github.event.workflow_run.head_branch == 'main' ||
-        startsWith(github.event.workflow_run.head_branch, 'refs/tags/')))
+      github.event.workflow_run.conclusion == 'success'
     outputs:
+      upstream-run-id: ${{ steps.resolve.outputs.upstream-run-id }}
       head-sha: ${{ steps.resolve.outputs.head-sha }}
       is-tag: ${{ steps.resolve.outputs.is-tag }}
     steps:
@@ -56,26 +65,63 @@ jobs:
           egress-policy: audit
 
       - id: resolve
-        name: Resolve commit + tag context
+        name: Resolve upstream run + tag context
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
           EVENT_NAME: ${{ github.event_name }}
-          RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
-          RUN_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
-          INPUT_REF: ${{ inputs.ref }}
+          DISPATCH_RUN_ID: ${{ inputs.upstream-run-id }}
+          WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
         run: |
+          set -euo pipefail
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
-            echo "head-sha=$INPUT_REF" >> "$GITHUB_OUTPUT"
-            case "$INPUT_REF" in
-              refs/tags/*) echo "is-tag=true" >> "$GITHUB_OUTPUT" ;;
-              *) echo "is-tag=false" >> "$GITHUB_OUTPUT" ;;
-            esac
+            run_id="$DISPATCH_RUN_ID"
           else
-            echo "head-sha=$RUN_HEAD_SHA" >> "$GITHUB_OUTPUT"
-            case "$RUN_HEAD_BRANCH" in
-              refs/tags/*) echo "is-tag=true" >> "$GITHUB_OUTPUT" ;;
-              *) echo "is-tag=false" >> "$GITHUB_OUTPUT" ;;
-            esac
+            run_id="$WORKFLOW_RUN_ID"
           fi
+
+          # Pull the canonical run metadata via the API. `head_branch` is the
+          # ref short name (branch *or* tag); `head_sha` is the commit SHA.
+          run_json="$(gh api "/repos/$GH_REPO/actions/runs/$run_id")"
+          head_branch="$(jq -r '.head_branch' <<<"$run_json")"
+          head_sha="$(jq -r '.head_sha' <<<"$run_json")"
+          conclusion="$(jq -r '.conclusion' <<<"$run_json")"
+
+          if [ "$conclusion" != "success" ]; then
+            echo "::error::Upstream run $run_id did not succeed (conclusion=$conclusion)" >&2
+            exit 1
+          fi
+
+          # Fetch the repository's default branch so we don't hard-code `main`.
+          default_branch="$(gh api "/repos/$GH_REPO" --jq .default_branch)"
+
+          # Detect whether `head_branch` names a tag at `head_sha`. If so this
+          # is a tag release; otherwise it must be the default branch.
+          is_tag=false
+          if gh api "/repos/$GH_REPO/git/refs/tags/$head_branch" >/dev/null 2>&1; then
+            tag_sha="$(gh api "/repos/$GH_REPO/git/refs/tags/$head_branch" --jq .object.sha)"
+            # Lightweight tags point straight at the commit; annotated tags
+            # point at a tag object whose `.object.sha` is the commit.
+            if [ "$tag_sha" = "$head_sha" ]; then
+              is_tag=true
+            else
+              tag_obj="$(gh api "/repos/$GH_REPO/git/tags/$tag_sha" 2>/dev/null || true)"
+              if [ -n "$tag_obj" ] && [ "$(jq -r '.object.sha' <<<"$tag_obj")" = "$head_sha" ]; then
+                is_tag=true
+              fi
+            fi
+          fi
+
+          if [ "$is_tag" != "true" ] && [ "$head_branch" != "$default_branch" ]; then
+            echo "::error::Refusing to release: head_branch=$head_branch is neither the default branch ($default_branch) nor a tag." >&2
+            exit 1
+          fi
+
+          {
+            echo "upstream-run-id=$run_id"
+            echo "head-sha=$head_sha"
+            echo "is-tag=$is_tag"
+          } >> "$GITHUB_OUTPUT"
 
   sign:
     name: Sign (${{ matrix.app-type }})
@@ -101,8 +147,10 @@ jobs:
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
           name: freaklog-unsigned-${{ matrix.app-type }}
-          # Pull from the upstream `Build and test` workflow run.
-          run-id: ${{ github.event.workflow_run.id }}
+          # Pull from the upstream `Build and test` workflow run resolved by
+          # the preconditions job. This works for both `workflow_run` and
+          # `workflow_dispatch` events.
+          run-id: ${{ needs.preconditions.outputs.upstream-run-id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Android SDK build-tools

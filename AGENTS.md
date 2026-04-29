@@ -315,8 +315,11 @@ All ViewModels use `@HiltViewModel` + `@Inject constructor`. Repositories and DA
 
 ## Testing conventions
 
-- Unit tests: `app/src/test/java/foo/pilz/freaklog/` — mirrors the main source tree.
-- Android instrumented tests: `app/src/androidTest/` (require emulator/device or Robolectric).
+- JVM unit tests: `app/src/test/java/foo/pilz/freaklog/` — run on the host JVM
+  (optionally with Robolectric for tests that need a real Android runtime).
+- Android instrumented tests: `app/src/androidTest/java/foo/pilz/freaklog/` —
+  run on a device/emulator via `connectedDebugAndroidTest` (Robolectric is
+  not used here; these need real Android).
 - Frameworks available:
   - **JUnit 4** (`@Test`, `assertEquals`, `assertNull`, `assertTrue`, …) — primary.
   - **AssertK** (`assertk.assertThat(...).isEqualTo(...)`) — preferred for new code.

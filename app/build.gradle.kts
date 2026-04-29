@@ -107,7 +107,8 @@ tasks.withType<Test>().configureEach {
     systemProperty("user.timezone", "UTC")
     systemProperty("user.language", "en")
     systemProperty("user.country", "US")
-    // Robolectric uses this property to look up the Android SDK jars cache.
+    // Send Robolectric's internal log output to stdout so failures show
+    // diagnostic context in the test report instead of being swallowed.
     systemProperty("robolectric.logging", "stdout")
 
     testLogging {
