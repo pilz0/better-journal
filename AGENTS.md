@@ -183,7 +183,7 @@ To upgrade: edit version strings in `libs.versions.toml` (and root `build.gradle
 
 ### Room database (`data/room/AppDatabase.kt`)
 
-Current schema version: **15**. All migrations from v1 to v15 are handled by `@AutoMigration`.
+Current schema version: **17**. All migrations from v1 to v17 are handled by `@AutoMigration`.
 
 **Entities:**
 
@@ -236,10 +236,23 @@ SubstanceFile
 ### Webhook (`data/webhook/WebhookService.kt`)
 
 Sends Discord webhook messages on ingestion log. Supports:
-- Template-based message formatting: `{user}: [{dose} {units} ]{substance} via {route}`
+- Template-based message formatting: `{user}: [{dose} {units} ]{substance} via {route}[ at {site}][\n> {note}]`
 - Optional blocks in `[…]` are omitted when any enclosed placeholder is empty
 - Exponential-backoff retry (up to 3 attempts)
 - `sendWebhook` / `editWebhook` / `deleteWebhookMessage`
+- Returns `WebhookResult(success, messageId, error)` for all operations
+
+**Message ID storage:** Each `Ingestion` entity has a nullable `webhookMessageId` field that stores the Discord message ID. This ID enables editing and deleting webhook messages when ingestions are modified or removed.
+
+**Custom unit handling:** When sending or editing webhooks, custom units are automatically converted to their base units. For example, if a user logs "1 tab" and the custom unit defines "1 tab = 100 µg LSD", the webhook will display "100 µg LSD".
+
+**Per-ingestion webhook toggle:** Users can disable webhook notifications for individual ingestions during creation via a toggle in `FinishIngestionScreen`. The toggle only appears when a webhook URL is configured in Settings. Defaults to enabled for backward compatibility.
+
+**Webhook operations:**
+- **Send** (`FinishIngestionScreenViewModel.sendWebhookForIngestion`): Creates new Discord message on ingestion creation, stores message ID
+- **Edit** (`EditIngestionViewModel.editWebhookForIngestion`): Updates existing Discord message when ingestion is modified, preserves message ID
+- **Delete** (`EditIngestionViewModel.deleteWebhookForIngestion`): Removes Discord message when ingestion is deleted
+- **Resend** (`EditIngestionViewModel.resendWebhook`): Sends a new webhook message and updates the stored message ID
 
 ### AI chatbot (`data/ai/`)
 
@@ -354,4 +367,5 @@ All ViewModels use `@HiltViewModel` + `@Inject constructor`. Repositories and DA
 - AAB files from Gradle are named `app-release.aab` (NOT `app-release-unsigned.aab`) — the release workflow reflects this
 - The AI chatbot requires a Google AI (Gemini) API key configured by the user in Settings
 - There is no schema version 13 — the migration jumps directly from 12 to 14 (`AutoMigration(from = 12, to = 14)`)
+- The `webhookMessageId` field in the `Ingestion` entity stores Discord message IDs for webhook operations (send, edit, delete)
 - `@Keep` annotation on `AdministrationRoute` is a workaround for an AGP/R8 bug stripping enum metadata used in Navigation Compose serialized routes (see issue tracker link in the source file)

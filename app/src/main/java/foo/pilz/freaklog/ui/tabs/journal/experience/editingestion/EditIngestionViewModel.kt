@@ -276,7 +276,7 @@ class EditIngestionViewModel @Inject constructor(
                 }
             }
 
-            webhookService.editWebhook(
+            val result = webhookService.editWebhook(
                 url = webhookURL,
                 messageId = ingestion.webhookMessageId!!,
                 user = user,
@@ -290,9 +290,15 @@ class EditIngestionViewModel @Inject constructor(
                 template = webhookTemplate,
                 isHyperlinked = true
             )
+
+            if (result.success) {
+                android.util.Log.d("EditIngestionViewModel", "Webhook edited successfully for message ID: ${ingestion.webhookMessageId}")
+            } else {
+                android.util.Log.w("EditIngestionViewModel", "Webhook edit failed: ${result.error?.message ?: "Unknown error"}")
+            }
         } catch (e: Exception) {
             // Silently fail - don't block ingestion update if webhook fails
-            android.util.Log.w("EditIngestionViewModel", "Webhook edit failed", e)
+            android.util.Log.w("EditIngestionViewModel", "Webhook edit exception: ${e.message}", e)
         }
     }
 
@@ -303,13 +309,18 @@ class EditIngestionViewModel @Inject constructor(
         }
 
         try {
-            webhookService.deleteWebhookMessage(
+            val success = webhookService.deleteWebhookMessage(
                 url = webhookURL,
                 messageId = ingestion.webhookMessageId!!
             )
+            if (success) {
+                android.util.Log.d("EditIngestionViewModel", "Webhook message deleted successfully: ${ingestion.webhookMessageId}")
+            } else {
+                android.util.Log.w("EditIngestionViewModel", "Webhook message deletion failed for ID: ${ingestion.webhookMessageId}")
+            }
         } catch (e: Exception) {
             // Silently fail - don't block ingestion deletion if webhook fails
-            android.util.Log.w("EditIngestionViewModel", "Webhook delete failed", e)
+            android.util.Log.w("EditIngestionViewModel", "Webhook delete exception: ${e.message}", e)
         }
     }
 
@@ -361,11 +372,14 @@ class EditIngestionViewModel @Inject constructor(
                     )
 
                     if (result.success && result.messageId != null) {
+                        android.util.Log.d("EditIngestionViewModel", "Webhook resent successfully. New message ID: ${result.messageId}")
                         currentIngestion.webhookMessageId = result.messageId
                         experienceRepo.update(currentIngestion)
+                    } else {
+                        android.util.Log.w("EditIngestionViewModel", "Webhook resend failed: ${result.error?.message ?: "Unknown error"}")
                     }
                 } catch (e: Exception) {
-                    android.util.Log.d("EditIngestionViewModel", "Resend webhook failed", e)
+                    android.util.Log.w("EditIngestionViewModel", "Resend webhook exception: ${e.message}", e)
                 }
             }
         }

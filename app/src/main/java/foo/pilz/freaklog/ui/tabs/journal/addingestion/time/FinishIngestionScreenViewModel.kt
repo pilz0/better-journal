@@ -419,13 +419,15 @@ class FinishIngestionScreenViewModel @Inject constructor(
 
             // If webhook was successful, update ingestion with message ID
             if (result.success && result.messageId != null) {
-                android.util.Log.d("FinishIngestionScreenViewModel:", "Webhook send correctly." + result.toString())
+                android.util.Log.d("FinishIngestionScreenViewModel", "Webhook sent successfully. Message ID: ${result.messageId}")
                 ingestion.webhookMessageId = result.messageId
                 experienceRepo.update(ingestion)
+            } else {
+                android.util.Log.w("FinishIngestionScreenViewModel", "Webhook send failed: ${result.error?.message ?: "Unknown error"}")
             }
         } catch (e: Exception) {
             // Silently fail - don't block ingestion creation if webhook fails
-            android.util.Log.d("FinishIngestionViewModel", "Webhook send failed", e)
+            android.util.Log.w("FinishIngestionScreenViewModel", "Webhook send exception: ${e.message}", e)
         }
     }
 }
