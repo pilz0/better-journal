@@ -1,19 +1,46 @@
 ---
-name: Build and sign
+name: Build and test
 on:
   push:
   pull_request:
-permissions:
-  contents: read
+
+# Deny all permissions by default; each job grants the minimum required.
+permissions: {}
+
 concurrency:
   group: build-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/') }}
+
 env:
   main_project_module: 'app'
+  # Deterministic JVM defaults for tests.
+  TZ: 'UTC'
+  LANG: 'en_US.UTF-8'
+
 jobs:
+  wrapper-validation:
+    name: Validate Gradle wrapper
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.13.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.1.0
+        with:
+          persist-credentials: false
+
+      # The wrapper validation lives inside the gradle/actions monorepo since v3.
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@0b6dd653ba04f4f93bf581ec31e66cbd7dcb644d # v4.4.4
+
   test:
     name: Run Unit Tests (${{ matrix.test-suite }})
     runs-on: ubuntu-latest
+    needs: [ wrapper-validation ]
     permissions:
       contents: read
       checks: write
@@ -31,16 +58,23 @@ jobs:
             # skipped by an overly narrow filter such as `Test*`.
             test-args: '-PtestExclude=foo.pilz.freaklog.data.*,foo.pilz.freaklog.ui.*'
     steps:
-      - uses: actions/checkout@v5
+      - name: Harden the runner
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.13.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.1.0
+        with:
+          persist-credentials: false
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.7.1
         with:
           java-version: '17'
           distribution: 'temurin'
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@0b6dd653ba04f4f93bf581ec31e66cbd7dcb644d # v4.4.4
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
@@ -49,7 +83,7 @@ jobs:
 
       - name: Publish JUnit results
         if: always()
-        uses: mikepenz/action-junit-report@3585e9575db828022551b4231f165eb59a0e74e3 # v5
+        uses: mikepenz/action-junit-report@3585e9575db828022551b4231f165eb59a0e74e3 # v5.6.2
         with:
           report_paths: 'app/build/test-results/testDebugUnitTest/*.xml'
           check_name: Unit Test Results (${{ matrix.test-suite }})
@@ -57,39 +91,137 @@ jobs:
 
       - name: Upload Test Results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: test-results-${{ matrix.test-suite }}
           path: |
             app/build/reports/tests/
             app/build/test-results/
 
-  lint:
-    name: Android Lint
+  coverage:
+    name: Coverage report
     runs-on: ubuntu-latest
+    needs: [ wrapper-validation ]
     permissions:
       contents: read
-      security-events: write
     steps:
-      - uses: actions/checkout@v5
+      - name: Harden the runner
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.13.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.1.0
+        with:
+          persist-credentials: false
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.7.1
         with:
           java-version: '17'
           distribution: 'temurin'
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@0b6dd653ba04f4f93bf581ec31e66cbd7dcb644d # v4.4.4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Generate Kover XML + HTML reports
+        run: ./gradlew :app:koverXmlReportDebug :app:koverHtmlReportDebug --no-daemon
+
+      # Fail the job if coverage falls below the threshold defined in app/build.gradle.kts.
+      - name: Verify coverage thresholds
+        run: ./gradlew :app:koverVerifyDebug --no-daemon
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: coverage-report
+          path: |
+            app/build/reports/kover/
+            app/build/reports/kover/htmlDebug/
+
+  detekt:
+    name: Detekt
+    runs-on: ubuntu-latest
+    needs: [ wrapper-validation ]
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.13.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.1.0
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.7.1
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@0b6dd653ba04f4f93bf581ec31e66cbd7dcb644d # v4.4.4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Run Detekt
+        run: ./gradlew detekt --no-daemon
+        continue-on-error: true
+
+      - name: Upload Detekt SARIF to code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@865f5f5c36632f18690a3d569fa0a764f2da0c3e # v3.30.9
+        with:
+          sarif_file: app/build/reports/detekt/detekt.sarif
+          category: detekt
+        continue-on-error: true
+
+      - name: Upload Detekt reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: detekt-reports
+          path: app/build/reports/detekt/
+
+  lint:
+    name: Android Lint
+    runs-on: ubuntu-latest
+    needs: [ wrapper-validation ]
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.13.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.1.0
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.7.1
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@0b6dd653ba04f4f93bf581ec31e66cbd7dcb644d # v4.4.4
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Run Android Lint
         run: ./gradlew :app:lintDebug --no-daemon
 
-      - name: Upload Lint SARIF to code-scanning
+      - name: Upload Lint SARIF to code scanning
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@865f5f5c36632f18690a3d569fa0a764f2da0c3e # v3.30.9
         with:
           sarif_file: app/build/reports/lint-results-debug.sarif
           category: android-lint
@@ -97,29 +229,38 @@ jobs:
 
       - name: Upload Lint reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: lint-reports
           path: app/build/reports/lint-results-*.*
 
   build-app:
+    name: Build (${{ matrix.app-type }})
+    runs-on: ubuntu-latest
+    needs: [ wrapper-validation ]
     permissions:
       contents: read
     strategy:
       matrix:
         app-type: [ apk, aab ]
-    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - name: Harden the runner
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.13.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.1.0
+        with:
+          persist-credentials: false
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.7.1
         with:
           java-version: '17'
           distribution: 'temurin'
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@0b6dd653ba04f4f93bf581ec31e66cbd7dcb644d # v4.4.4
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
@@ -133,7 +274,7 @@ jobs:
 
       - name: Upload unsigned APK
         if: matrix.app-type == 'apk'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: freaklog-unsigned-apk
           path: app/build/outputs/apk/release/*.apk
@@ -141,121 +282,24 @@ jobs:
 
       - name: Upload unsigned AAB
         if: matrix.app-type == 'aab'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: freaklog-unsigned-aab
           path: app/build/outputs/bundle/release/*.aab
           if-no-files-found: error
 
-  sign:
-    needs: [ build-app, test ]
-    if: |
-      github.ref == 'refs/heads/main' ||
-      github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+  # Aggregator job whose status can be used as a single required check in
+  # branch protection.
+  ci-passed:
+    name: CI passed
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        app-type: [ apk, aab ]
+    needs: [ wrapper-validation, test, coverage, detekt, lint, build-app ]
+    if: always()
+    permissions: {}
     steps:
-      - name: Download unsigned file
-        uses: actions/download-artifact@v5
-        with:
-          name: freaklog-unsigned-${{ matrix.app-type }}
-
-      - name: Setup Android SDK
+      - name: Verify all upstream jobs succeeded
         run: |
-          ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager "build-tools;35.0.0"
-
-      - name: Sign app APK
-        # Pinned to a specific commit (rather than @nightly) for supply-chain safety.
-        uses: ilharp/sign-android-release@13dd52242698526f951aa8bb8696204f6fea702a # v2.0.0
-        id: sign
-        with:
-          releaseDir: .
-          signingKey: ${{ secrets.KEYSTORE }}
-          keyAlias: ${{ secrets.SIGNING_KEY_ALIAS }}
-          keyStorePassword: ${{ secrets.SIGNING_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
-          buildToolsVersion: 35.0.0
-
-      - name: Rename signed file
-        run: |
-          mv "${{ steps.sign.outputs.signedFile }}" "freaklog.${{ matrix.app-type }}"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: freaklog-${{ matrix.app-type }}
-          path: freaklog.${{ matrix.app-type }}
-          if-no-files-found: error
-
-
-  upload-s3:
-    needs: [ sign, build-app ]
-    if: |
-      github.ref == 'refs/heads/main' ||
-      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        app-type: [ apk, aab ]
-    steps:
-      - name: Download files
-        uses: actions/download-artifact@v5
-        with:
-          path: ${{ matrix.app-type }}s
-
-      - name: Upload ${{ matrix.app-type }}s to S3
-        # Pinned to a specific commit (rather than @latest) for supply-chain safety.
-        uses: ryand56/r2-upload-action@b801a390acbdeb034c5e684ff5e1361c06639e7c # v1.4
-        with:
-          r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
-          r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
-          r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          r2-bucket: ${{ secrets.R2_BUCKET }}
-          source-dir: ${{ matrix.app-type }}s
-          destination-dir: ${{ matrix.app-type }}s
-          keep-file-fresh: true
-
-  upload-google-play:
-    needs: [ sign, build-app ]
-    if: |
-      github.ref == 'refs/heads/main' ||
-      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download a single artifact
-        uses: actions/download-artifact@v5
-        with:
-          path: app
-
-      - name: upload to google play
-        uses: r0adkll/upload-google-play@v1.1.3
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
-          packageName: foo.pilz.freaklog
-          releaseFiles: app/freaklog-aab/freaklog.aab
-          track: internal
-
-  create-release:
-    needs: [ sign, build-app ]
-    if: startsWith(github.ref, 'refs/tags/') && github.event_name == 'push'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Download files
-        uses: actions/download-artifact@v5
-        with:
-          path: .
-
-      - name: Create release
-        if: startsWith(github.ref, 'refs/tags/') && github.event_name == 'push'
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            freaklog-apk/freaklog.apk
-            freaklog-aab/freaklog.aab
-            freaklog-unsigned-apk/app-release-unsigned.apk
-            freaklog-unsigned-aab/app-release.aab
-          fail_on_unmatched_files: true
-          make_latest: true
+          if [ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" = "true" ]; then
+            echo "One or more required jobs failed or were cancelled."
+            exit 1
+          fi

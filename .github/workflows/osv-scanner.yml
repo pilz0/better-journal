@@ -1,0 +1,58 @@
+---
+name: OSV-Scanner
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Weekly run, Wednesday 05:23 UTC
+    - cron: '23 5 * * 3'
+
+# Deny all permissions by default; each job grants the minimum required.
+permissions: {}
+
+concurrency:
+  group: osv-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  scan:
+    name: Scan dependencies
+    runs-on: ubuntu-latest
+    permissions:
+      # Required to upload SARIF results to code scanning.
+      security-events: write
+      contents: read
+      actions: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.13.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.1.0
+        with:
+          persist-credentials: false
+
+      - name: Run OSV-Scanner
+        uses: google/osv-scanner-action/osv-scanner-action@98b584ee2ed2da3935ccce10e06739d54cdcd20b # v2.3.5
+        with:
+          # Recurse into all Gradle modules. The scanner reads `gradle/libs.versions.toml`,
+          # `*.gradle.kts`, lockfiles, etc.
+          scan-args: |-
+            --recursive
+            --skip-git
+            --format=sarif
+            --output=osv-results.sarif
+            ./
+        # Continue so that we still upload partial results on failure.
+        continue-on-error: true
+
+      - name: Upload SARIF results to code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@865f5f5c36632f18690a3d569fa0a764f2da0c3e # v3.30.9
+        with:
+          sarif_file: osv-results.sarif
+          category: osv-scanner

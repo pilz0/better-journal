@@ -1,0 +1,100 @@
+# Detekt configuration.
+#
+# Built by extending the upstream defaults (`buildUponDefaultConfig = true`
+# in `app/build.gradle.kts`). Only override values that need to differ from
+# the default ruleset; the full default config is documented at
+# https://detekt.dev/docs/rules/.
+build:
+  maxIssues: 0
+  excludeCorrectable: false
+
+console-reports:
+  active: true
+
+complexity:
+  active: true
+  LongMethod:
+    threshold: 80
+  LongParameterList:
+    functionThreshold: 8
+    constructorThreshold: 10
+  ComplexCondition:
+    threshold: 6
+  CyclomaticComplexMethod:
+    threshold: 25
+  TooManyFunctions:
+    active: false
+  NestedBlockDepth:
+    threshold: 6
+  MethodOverloading:
+    active: false
+
+style:
+  active: true
+  MagicNumber:
+    # Compose code uses many magic numbers (durations, dp values, indices) that
+    # would be noisy to suppress one by one.
+    active: false
+  ReturnCount:
+    max: 6
+  WildcardImport:
+    active: true
+  UnusedPrivateMember:
+    active: true
+  UnusedImports:
+    active: true
+  MaxLineLength:
+    maxLineLength: 140
+    excludePackageStatements: true
+    excludeImportStatements: true
+  ForbiddenComment:
+    active: false
+
+naming:
+  active: true
+  FunctionNaming:
+    # @Composable functions are PascalCase by convention.
+    ignoreAnnotated:
+      - 'Composable'
+  TopLevelPropertyNaming:
+    constantPattern: '[A-Z][_A-Z0-9]*'
+
+empty-blocks:
+  active: true
+
+exceptions:
+  active: true
+  TooGenericExceptionCaught:
+    active: false
+  SwallowedException:
+    active: false
+
+formatting:
+  active: true
+  android: true
+  autoCorrect: false
+  MaximumLineLength:
+    maxLineLength: 140
+  Indentation:
+    active: true
+    indentSize: 4
+  NoWildcardImports:
+    active: true
+  ArgumentListWrapping:
+    active: false
+  TrailingCommaOnCallSite:
+    active: false
+  TrailingCommaOnDeclarationSite:
+    active: false
+
+potential-bugs:
+  active: true
+  UnsafeCast:
+    active: true
+
+performance:
+  active: true
+
+# Compose-specific advice — built-ins from Detekt 1.23.x are enabled via the
+# default config; for stricter Compose linting consider adding the
+# `io.nlopez.compose.rules:detekt` ruleset in a follow-up.

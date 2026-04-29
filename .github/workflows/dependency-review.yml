@@ -1,0 +1,40 @@
+---
+name: Dependency Review
+on:
+  pull_request:
+
+# Deny all permissions by default; each job grants the minimum required.
+permissions: {}
+
+concurrency:
+  group: dep-review-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: Review new dependencies
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.13.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.1.0
+        with:
+          persist-credentials: false
+
+      - name: Dependency review
+        uses: actions/dependency-review-action@4901385134134e04cec5fbe5ddfe3b2c5bd5d976 # v4.7.3
+        with:
+          # Fail on any new dependency that has a known vulnerability of moderate
+          # or higher severity.
+          fail-on-severity: moderate
+          # Reject GPL-incompatible licenses being introduced; the project itself
+          # is GPL-3.0.
+          deny-licenses: 'AGPL-1.0-only, AGPL-1.0-or-later, AGPL-3.0-only, AGPL-3.0-or-later'
+          comment-summary-in-pr: on-failure

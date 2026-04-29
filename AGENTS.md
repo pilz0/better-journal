@@ -113,7 +113,11 @@ app/src/main/java/foo/pilz/freaklog/
 # Run tests by package (mirrors the CI matrix shards)
 ./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.data.*" --no-daemon
 ./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.ui.*" --no-daemon
-./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.Test*" --no-daemon
+./gradlew testDebugUnitTest -PtestExclude=foo.pilz.freaklog.data.*,foo.pilz.freaklog.ui.* --no-daemon
+
+# Static analysis (Detekt) and coverage (Kover) — see "Static analysis & coverage" below.
+./gradlew detekt --no-daemon
+./gradlew :app:koverHtmlReportDebug :app:koverXmlReportDebug :app:koverVerifyDebug --no-daemon
 ```
 
 > **Important:** The Gradle AAB output is `app-release.aab`, **not** `app-release-unsigned.aab`.
@@ -121,33 +125,49 @@ app/src/main/java/foo/pilz/freaklog/
 
 ## CI/CD (GitHub Actions)
 
-Workflow file: `.github/workflows/build.yml`
+Workflows live in `.github/workflows/`:
+
+| Workflow file | Purpose |
+|---------------|---------|
+| `build.yml` | Wrapper validation, unit tests (3 shards), Detekt, Android Lint, Kover coverage gate, unsigned APK + AAB builds. Runs on every push/PR. |
+| `release.yml` | **Secret-handling.** Sign + Cloudflare R2 + Google Play + GitHub release + SLSA build provenance. Triggered by `workflow_run` on a successful `Build and test` run on `main` / tags, or `workflow_dispatch`. Pull-request events never reach this workflow. |
+| `codeql.yml` | CodeQL analysis for `java-kotlin` and `actions` languages with the `security-extended` query pack. |
+| `instrumented-tests.yml` | Connected Android tests on emulators (API 31/34/35). Triggered by the `run-instrumented-tests` PR label, `workflow_dispatch`, or nightly schedule. |
+| `scorecard.yml` | OpenSSF Scorecard supply-chain analysis (uploaded as SARIF + published to scorecard.dev). |
+| `osv-scanner.yml` | OSV-Scanner vulnerability scan against the dependency graph (SARIF upload). |
+| `gitleaks.yml` | Pre-merge secret scanning. |
+| `dependency-review.yml` | Blocks PRs that introduce known-vulnerable or AGPL dependencies. |
 
 ```
-push/PR
-  ├─► test (matrix: data | ui | misc)   ← 3 shards in parallel
-  └─► build-app (matrix: apk | aab)     ← runs in parallel with test
-        (sign needs both test AND build-app)
-        └─► sign                        ← only on main/tags
-              ├─► upload-s3             ← only on main
-              ├─► upload-google-play    ← only on main
-              └─► create-release        ← only on tags
+push/PR  ──► build.yml
+              ├─ wrapper-validation
+              ├─ test  (matrix: data | ui | misc)
+              ├─ coverage  (Kover, hard-gated minimum)
+              ├─ detekt    (SARIF → code scanning)
+              ├─ lint      (SARIF → code scanning)
+              ├─ build-app (matrix: apk | aab — unsigned)
+              └─ ci-passed (aggregator status check)
+
+main/tag ──► build.yml succeeds ──workflow_run──► release.yml
+                                                    ├─ sign           (env: signing)
+                                                    ├─ attest         (SLSA provenance)
+                                                    ├─ upload-s3      (env: production)
+                                                    ├─ upload-google-play (env: internal-track)
+                                                    └─ create-release (tags only, env: production)
 ```
 
-| Job | Trigger | Description |
-|-----|---------|-------------|
-| `test` (matrix: data/ui/misc) | push/PR | Unit tests sharded by package |
-| `build-app` (matrix: apk/aab) | push/PR | Build unsigned APK and AAB |
-| `sign` (matrix: apk/aab) | main branch / tags | Sign with release keystore |
-| `upload-s3` | main branch | Upload signed artifacts to Cloudflare R2 |
-| `upload-google-play` | main branch | Upload AAB to Google Play internal track |
-| `create-release` | tags | Create GitHub release with all artifacts |
+### Permissions & supply-chain model
 
-### Permissions model
-
-- Default workflow permission: `contents: read`
-- `create-release` overrides to `contents: write` (required by `softprops/action-gh-release`)
-- All other jobs inherit the read-only default
+- Every workflow declares `permissions: {}` (deny-all) at the top, with each
+  job granting the minimum it needs.
+- Every third-party action is pinned to a **full commit SHA** with the
+  human-readable tag in a comment. Dependabot will edit these in place.
+- Every job starts with **`step-security/harden-runner`** (audit mode).
+- The Gradle wrapper is validated on every PR.
+- Secrets only exist in `release.yml` and are scoped to GitHub Environments
+  (`signing`, `internal-track`, `production`). PR builds cannot read them.
+- Build artifacts are signed and an **SLSA build provenance** attestation is
+  produced via `actions/attest-build-provenance`.
 
 ### Required secrets for CI
 
@@ -295,12 +315,44 @@ All ViewModels use `@HiltViewModel` + `@Inject constructor`. Repositories and DA
 
 ## Testing conventions
 
-- Unit tests: `app/src/test/java/foo/pilz/freaklog/` — mirrors the main source tree
-- Android instrumented tests: `app/src/androidTest/` (require emulator/device)
-- Framework: **JUnit 4** (`@Test`, `assertEquals`, `assertNull`, `assertTrue`, …)
-- **No mocking framework** — tests use plain data classes and pure functions
-- JSON parsing tests use `org.json:json` from `testImplementation` (already present)
-- CI splits tests into 3 shards: `data.*`, `ui.*`, `Test*` (root-level tests)
+- Unit tests: `app/src/test/java/foo/pilz/freaklog/` — mirrors the main source tree.
+- Android instrumented tests: `app/src/androidTest/` (require emulator/device or Robolectric).
+- Frameworks available:
+  - **JUnit 4** (`@Test`, `assertEquals`, `assertNull`, `assertTrue`, …) — primary.
+  - **AssertK** (`assertk.assertThat(...).isEqualTo(...)`) — preferred for new code.
+  - **MockK** + **MockK-android** for Kotlin-idiomatic mocks (suspend, top-level).
+  - **Turbine** for `Flow`/`StateFlow` assertions.
+  - **kotlinx-coroutines-test** (`runTest`) for coroutine-driven tests.
+  - **Robolectric** when a real Android runtime is needed on the JVM.
+  - **MockWebServer** for HTTP testing.
+  - **androidx.room:room-testing** + `MigrationTestHelper` for Room schema tests.
+- JSON parsing tests use `org.json:json` from `testImplementation`.
+- Test fixture builders live in `app/src/test/java/foo/pilz/freaklog/testing/`
+  (`EntityBuilders.experience(...)`, `EntityBuilders.ingestion(...)`).
+  Reuse them rather than constructing entities by hand.
+- Test JVMs run with **`-Duser.timezone=UTC`** and **`-Duser.language=en`**
+  (set in `app/build.gradle.kts`); never assume the host TZ/locale.
+- CI splits tests into 3 shards: `data.*`, `ui.*`, and **everything else** (via
+  `-PtestExclude` to exclude the first two patterns) — see `.github/workflows/build.yml`.
+- The legacy `isReturnDefaultValues = true` shim is **still on** for backwards
+  compatibility, but new tests that touch Android SDK classes should
+  `@RunWith(RobolectricTestRunner::class)` instead.
+- Room migration tests live in
+  `app/src/androidTest/java/foo/pilz/freaklog/data/room/AppDatabaseMigrationTest.kt`
+  and exercise every registered `AutoMigration`. When you add a new schema
+  version, also add the corresponding `from -> to` pair in `migrationPairs`.
+
+### Static analysis & coverage
+
+- **Detekt**: `./gradlew detekt`. Config in `config/detekt/detekt.yml`,
+  baseline in `config/detekt/baseline.xml`. SARIF uploaded to code scanning.
+- **Android Lint**: `./gradlew :app:lintDebug`. `checkDependencies = true`.
+  SARIF uploaded to code scanning. `abortOnError = false` while we're
+  cleaning up legacy issues; flip to `true` once clean.
+- **Kover (coverage)**: `./gradlew :app:koverHtmlReportDebug
+  :app:koverXmlReportDebug :app:koverVerifyDebug`. CI fails if coverage
+  drops below the floor configured in `app/build.gradle.kts`. Ratchet
+  upward as the suite grows.
 
 ### Test file locations
 

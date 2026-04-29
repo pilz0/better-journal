@@ -1,0 +1,263 @@
+---
+# Sign and publish release artifacts.
+#
+# This workflow is intentionally split from `build.yml` so that pull-request
+# builds (which do NOT receive secrets) cannot ever execute steps that handle
+# the signing key, Cloudflare R2 credentials, or the Google Play service
+# account. It is only ever triggered by:
+#   1. A successful `Build and test` workflow run on `refs/heads/main`, or a
+#      tagged push (handled by the `workflow_run` trigger), AND
+#   2. Manually via `workflow_dispatch`.
+#
+# Secret-consuming jobs are pinned to GitHub Environments (`internal-track`,
+# `production`) so that the repository owner can require manual approval and
+# scope secrets per environment.
+name: Sign and publish
+
+on:
+  workflow_run:
+    workflows: [ "Build and test" ]
+    types: [ completed ]
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref to publish (must already have built artifacts)"
+        required: true
+        type: string
+
+# Deny all permissions by default; each job grants the minimum required.
+permissions: {}
+
+concurrency:
+  group: release-${{ github.workflow }}-${{ github.event.workflow_run.head_sha || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # Re-run the release pipeline only when the upstream build was successful.
+  preconditions:
+    name: Check preconditions
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       (github.event.workflow_run.head_branch == 'main' ||
+        startsWith(github.event.workflow_run.head_branch, 'refs/tags/')))
+    outputs:
+      head-sha: ${{ steps.resolve.outputs.head-sha }}
+      is-tag: ${{ steps.resolve.outputs.is-tag }}
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.13.1
+        with:
+          egress-policy: audit
+
+      - id: resolve
+        name: Resolve commit + tag context
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          INPUT_REF: ${{ inputs.ref }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "head-sha=$INPUT_REF" >> "$GITHUB_OUTPUT"
+            case "$INPUT_REF" in
+              refs/tags/*) echo "is-tag=true" >> "$GITHUB_OUTPUT" ;;
+              *) echo "is-tag=false" >> "$GITHUB_OUTPUT" ;;
+            esac
+          else
+            echo "head-sha=$RUN_HEAD_SHA" >> "$GITHUB_OUTPUT"
+            case "$RUN_HEAD_BRANCH" in
+              refs/tags/*) echo "is-tag=true" >> "$GITHUB_OUTPUT" ;;
+              *) echo "is-tag=false" >> "$GITHUB_OUTPUT" ;;
+            esac
+          fi
+
+  sign:
+    name: Sign (${{ matrix.app-type }})
+    needs: [ preconditions ]
+    runs-on: ubuntu-latest
+    # Secrets are scoped to the `signing` environment, which can be configured
+    # in the repo settings to require manual approval for tagged releases.
+    environment: signing
+    permissions:
+      contents: read
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        app-type: [ apk, aab ]
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.13.1
+        with:
+          egress-policy: audit
+
+      - name: Download unsigned file from upstream build
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        with:
+          name: freaklog-unsigned-${{ matrix.app-type }}
+          # Pull from the upstream `Build and test` workflow run.
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Android SDK build-tools
+        run: |
+          ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager "build-tools;35.0.0"
+
+      - name: Sign artifact
+        # Pinned to a specific commit (rather than @nightly) for supply-chain safety.
+        uses: ilharp/sign-android-release@13dd52242698526f951aa8bb8696204f6fea702a # v2.0.0
+        id: sign
+        with:
+          releaseDir: .
+          signingKey: ${{ secrets.KEYSTORE }}
+          keyAlias: ${{ secrets.SIGNING_KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          buildToolsVersion: 35.0.0
+
+      - name: Rename signed file
+        run: |
+          mv "${{ steps.sign.outputs.signedFile }}" "freaklog.${{ matrix.app-type }}"
+
+      - name: Upload signed artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: freaklog-${{ matrix.app-type }}
+          path: freaklog.${{ matrix.app-type }}
+          if-no-files-found: error
+
+  attest:
+    name: Attest build provenance
+    needs: [ preconditions, sign ]
+    runs-on: ubuntu-latest
+    permissions:
+      # Required by `actions/attest-build-provenance` to mint OIDC tokens
+      # and write the attestation to the repository.
+      id-token: write
+      contents: read
+      attestations: write
+      actions: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.13.1
+        with:
+          egress-policy: audit
+
+      - name: Download signed artifacts
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        with:
+          path: signed
+          pattern: freaklog-*
+
+      - name: Generate SLSA build provenance
+        uses: actions/attest-build-provenance@96b4a1ef7235a096b17240c259729fdd70c83d45 # v2.4.1
+        with:
+          subject-path: |
+            signed/freaklog-apk/freaklog.apk
+            signed/freaklog-aab/freaklog.aab
+
+  upload-s3:
+    name: Upload to Cloudflare R2 (${{ matrix.app-type }})
+    needs: [ preconditions, sign ]
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      actions: read
+    strategy:
+      matrix:
+        app-type: [ apk, aab ]
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.13.1
+        with:
+          egress-policy: audit
+
+      - name: Download signed artifact
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        with:
+          name: freaklog-${{ matrix.app-type }}
+          path: ${{ matrix.app-type }}s
+
+      - name: Upload to R2
+        # Pinned to a specific commit (rather than @latest) for supply-chain safety.
+        uses: ryand56/r2-upload-action@b801a390acbdeb034c5e684ff5e1361c06639e7c # v1.4
+        with:
+          r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
+          r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
+          r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          r2-bucket: ${{ secrets.R2_BUCKET }}
+          source-dir: ${{ matrix.app-type }}s
+          destination-dir: ${{ matrix.app-type }}s
+          keep-file-fresh: true
+
+  upload-google-play:
+    name: Upload to Google Play
+    needs: [ preconditions, sign ]
+    runs-on: ubuntu-latest
+    # `internal-track` should be configured to NOT require approval; promotion
+    # to a `production` track environment can be added later for staged
+    # rollout.
+    environment: internal-track
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.13.1
+        with:
+          egress-policy: audit
+
+      - name: Download signed AAB
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        with:
+          name: freaklog-aab
+          path: app
+
+      - name: Upload to Google Play (internal track)
+        uses: r0adkll/upload-google-play@935ef9c68bb393a8e6116b1575626a7f5be3a7fb # v1.1.3
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+          packageName: foo.pilz.freaklog
+          releaseFiles: app/freaklog.aab
+          track: internal
+
+  create-release:
+    name: Create GitHub release
+    needs: [ preconditions, sign, attest ]
+    if: needs.preconditions.outputs.is-tag == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.13.1
+        with:
+          egress-policy: audit
+
+      - name: Download signed artifacts
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        with:
+          path: .
+          pattern: freaklog-*
+
+      - name: Create release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.4.0
+        with:
+          # Only ship the signed, attested artifacts. Unsigned APK/AAB are
+          # available as workflow artifacts on the upstream build run for
+          # debugging but are not published to end users.
+          files: |
+            freaklog-apk/freaklog.apk
+            freaklog-aab/freaklog.aab
+          fail_on_unmatched_files: true
+          make_latest: true
+          generate_release_notes: true
