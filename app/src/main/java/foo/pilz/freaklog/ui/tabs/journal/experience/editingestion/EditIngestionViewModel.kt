@@ -263,18 +263,7 @@ class EditIngestionViewModel @Inject constructor(
         val route = ingestion.administrationRoute.displayText
 
         try {
-            // Calculate display values from custom units
-            var displayDose = ingestion.dose
-            var displayUnits = ingestion.units
-
-            val customUnitId = ingestion.customUnitId
-            if (customUnitId != null) {
-                val customUnit = experienceRepo.getCustomUnit(customUnitId)
-                if (customUnit != null && customUnit.dose != null && ingestion.dose != null) {
-                   displayDose = ingestion.dose!! * customUnit.dose!!
-                   displayUnits = customUnit.originalUnit
-                }
-            }
+            val (displayDose, displayUnits) = experienceRepo.getWebhookDisplayValues(ingestion)
 
             val result = webhookService.editWebhook(
                 url = webhookURL,
@@ -344,17 +333,7 @@ class EditIngestionViewModel @Inject constructor(
                 val route = currentIngestion.administrationRoute.displayText
 
                 try {
-                    var displayDose = currentIngestion.dose
-                    var displayUnits = currentIngestion.units
-                    
-                    val customUnitId = currentIngestion.customUnitId
-                    if (customUnitId != null) {
-                        val customUnit = experienceRepo.getCustomUnit(customUnitId)
-                        if (customUnit != null && customUnit.dose != null && currentIngestion.dose != null) {
-                           displayDose = currentIngestion.dose!! * customUnit.dose!!
-                           displayUnits = customUnit.originalUnit
-                        }
-                    }
+                    val (displayDose, displayUnits) = experienceRepo.getWebhookDisplayValues(currentIngestion)
 
                     // Treat Resend as sending a NEW webhook, which matches user intent of "sending again"
                     val result = webhookService.sendWebhook(

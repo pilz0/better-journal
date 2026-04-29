@@ -60,6 +60,8 @@ import javax.inject.Inject
 
 const val hourLimitToSeparateIngestions: Long = 12
 
+private const val TAG = "FinishIngestionScreenViewModel"
+
 enum class IngestionTimePickerOption {
     POINT_IN_TIME, TIME_RANGE
 }
@@ -370,19 +372,19 @@ class FinishIngestionScreenViewModel @Inject constructor(
 
     private suspend fun sendWebhookForIngestion(ingestion: Ingestion) {
         if (!sendWebhook) {
-            android.util.Log.d("FinishIngestionScreenViewModel", "Webhook disabled for this ingestion")
+            android.util.Log.d(TAG, "Webhook disabled for this ingestion")
             return
         }
 
         val webhookURL = userPreferences.readWebhookURL().first()
         if (webhookURL.isBlank()) {
-            android.util.Log.d("FinishIngestionScreenViewModel:", "Webhook is blank, skipping")
+            android.util.Log.d(TAG, "Webhook is blank, skipping")
             return // Webhook not configured, skip
         }
 
         val webhookName = userPreferences.readWebhookName().first()
         val webhookTemplate = userPreferences.readWebhookTemplate().first().ifBlank {
-            android.util.Log.d("FinishIngestionScreenViewModel:", "Webhook template is blank, using default")
+            android.util.Log.d(TAG, "Webhook template is blank, using default")
             foo.pilz.freaklog.data.webhook.WebhookService.DEFAULT_TEMPLATE 
         }
 
@@ -390,18 +392,8 @@ class FinishIngestionScreenViewModel @Inject constructor(
         val route = ingestion.administrationRoute.displayText
 
         try {
-            android.util.Log.d("FinishIngestionScreenViewModel:", "Trying to send webhook")
-            var displayDose = ingestion.dose
-            var displayUnits = ingestion.units
-            
-            val customUnitId = ingestion.customUnitId
-            if (customUnitId != null) {
-                val customUnit = experienceRepo.getCustomUnit(customUnitId)
-                if (customUnit != null && customUnit.dose != null && ingestion.dose != null) {
-                   displayDose = ingestion.dose!! * customUnit.dose!!
-                   displayUnits = customUnit.originalUnit
-                }
-            }
+            android.util.Log.d(TAG, "Trying to send webhook")
+            val (displayDose, displayUnits) = experienceRepo.getWebhookDisplayValues(ingestion)
 
             val result = webhookService.sendWebhook(
                 url = webhookURL,
@@ -419,15 +411,15 @@ class FinishIngestionScreenViewModel @Inject constructor(
 
             // If webhook was successful, update ingestion with message ID
             if (result.success && result.messageId != null) {
-                android.util.Log.d("FinishIngestionScreenViewModel", "Webhook sent successfully. Message ID: ${result.messageId}")
+                android.util.Log.d(TAG, "Webhook sent successfully. Message ID: ${result.messageId}")
                 ingestion.webhookMessageId = result.messageId
                 experienceRepo.update(ingestion)
             } else {
-                android.util.Log.w("FinishIngestionScreenViewModel", "Webhook send failed: ${result.error?.message ?: "Unknown error"}")
+                android.util.Log.w(TAG, "Webhook send failed: ${result.error?.message ?: "Unknown error"}")
             }
         } catch (e: Exception) {
             // Silently fail - don't block ingestion creation if webhook fails
-            android.util.Log.w("FinishIngestionScreenViewModel", "Webhook send exception: ${e.message}", e)
+            android.util.Log.w(TAG, "Webhook send exception: ${e.message}", e)
         }
     }
 }

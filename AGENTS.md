@@ -240,7 +240,7 @@ Sends Discord webhook messages on ingestion log. Supports:
 - Optional blocks in `[…]` are omitted when any enclosed placeholder is empty
 - Exponential-backoff retry (up to 3 attempts)
 - `sendWebhook` / `editWebhook` / `deleteWebhookMessage`
-- Returns `WebhookResult(success, messageId, error)` for all operations
+- `sendWebhook` and `editWebhook` return `WebhookResult(success, messageId, error)`; `deleteWebhookMessage` returns `Boolean` and handles failures internally
 
 **Message ID storage:** Each `Ingestion` entity has a nullable `webhookMessageId` field that stores the Discord message ID. This ID enables editing and deleting webhook messages when ingestions are modified or removed.
 
