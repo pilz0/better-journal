@@ -1,0 +1,386 @@
+[
+  {
+    "id": "first_time",
+    "title": "First Timer",
+    "description": "Log your first experience",
+    "condition": "min_experiences(1)"
+  },
+  {
+    "id": "good_flight",
+    "title": "Good Flight",
+    "description": "Combine 2C-B and cannabis in one session",
+    "condition": "combo(2C-B, Cannabis)"
+  },
+  {
+    "id": "need_to_cook",
+    "title": "We need to cook",
+    "description": "Log a Methamphetamine ingestion",
+    "condition": "substance(Methamphetamine)"
+  },
+  {
+    "id": "heroic_dose",
+    "title": "Heroic Dose",
+    "description": "Take a heavy dose of Psilocybin mushrooms",
+    "condition": "dose_substance(Psilocybin mushrooms, heavy)"
+  },
+  {
+    "id": "researcher",
+    "title": "Researcher",
+    "description": "Try 10 different substances",
+    "condition": "min_substances(10)"
+  },
+  {
+    "id": "connoisseur",
+    "title": "Connoisseur",
+    "description": "Try 25 different substances",
+    "condition": "min_substances(25)"
+  },
+  {
+    "id": "dedicated",
+    "title": "Dedicated",
+    "description": "Log 100 ingestions",
+    "condition": "min_ingestions(100)"
+  },
+  {
+    "id": "journalist",
+    "title": "Journalist",
+    "description": "Add a note to an ingestion",
+    "condition": "has_note()"
+  },
+  {
+    "id": "cartographer",
+    "title": "Cartographer",
+    "description": "Add a location to an experience",
+    "condition": "has_location()"
+  },
+  {
+    "id": "polyroute",
+    "title": "All Roads Lead to Rome",
+    "description": "Use 4 different routes of administration",
+    "condition": "min_routes(4)"
+  },
+  {
+    "id": "dmt",
+    "title": "Breakthrough",
+    "description": "Take a heavy dose of DMT",
+    "condition": "dose_substance(DMT, heavy)"
+  },
+  {
+    "id": "salvia",
+    "title": "Why Would You Do This",
+    "description": "Take Salvia divinorum",
+    "condition": "substance(Salvinorin A)"
+  },
+  {
+    "id": "holing_up",
+    "title": "Holing Up",
+    "description": "Take a heavy dose of any dissociative",
+    "condition": "category(dissociative) & dose(heavy)"
+  },
+  {
+    "id": "dangerous_combo",
+    "title": "Living Dangerously",
+    "description": "Combine substances with a dangerous interaction",
+    "condition": "interaction(dangerous)"
+  },
+  {
+    "id": "mischkonsum",
+    "title": "Miku Miku Mischkonsum",
+    "description": "Get 10 different interaction warnings in one experience",
+    "condition": "min_interactions(10, any)"
+  },
+  {
+    "id": "nitrous",
+    "title": "Whippets",
+    "description": "Take Nitrous Oxide",
+    "condition": "substance(Nitrous Oxide)"
+  },
+  {
+    "id": "caffeine_log",
+    "title": "Overachiever",
+    "description": "Log caffeine like it matters",
+    "condition": "substance(Caffeine)"
+  },
+  {
+    "id": "speedfreak",
+    "title": "Speed Freak",
+    "description": "Take a heavy dose of Amphetamine",
+    "condition": "dose_substance(Amphetamine, heavy)"
+  },
+  {
+    "id": "fear_and_loathing",
+    "title": "Fear and Loathing",
+    "description": "Combine a stimulant and a psychedelic in one session",
+    "condition": "in_experience(category(stimulant) & category(psychedelic))"
+  },
+  {
+    "id": "bicycle_day",
+    "title": "Bicycle Day",
+    "description": "Take LSD",
+    "condition": "substance(LSD)"
+  },
+  {
+    "id": "doors_of_perception",
+    "title": "Doors of Perception",
+    "description": "Take Mescaline",
+    "condition": "substance(Mescaline)"
+  },
+  {
+    "id": "electric_kool_aid",
+    "title": "Electric Kool-Aid",
+    "description": "Combine LSD and MDMA in one session",
+    "condition": "combo(LSD, MDMA)"
+  },
+  {
+    "id": "drink_me",
+    "title": "Drink Me",
+    "description": "Log an oral ingestion",
+    "condition": "route(ORAL)"
+  },
+  {
+    "id": "lizard_king",
+    "title": "I Am the Lizard King",
+    "description": "Take both Psilocybin mushrooms and Mescaline",
+    "condition": "substance(Psilocybin mushrooms) & substance(Mescaline)"
+  },
+  {
+    "id": "jedi_flip",
+    "title": "Jedi Flip",
+    "description": "Combine LSD, MDMA, and Psilocybin mushrooms in one session",
+    "condition": "combo(LSD, MDMA, Psilocybin mushrooms)"
+  },
+  {
+    "id": "hippie_flip",
+    "title": "Hippie Flip",
+    "description": "Combine MDMA and Psilocybin mushrooms in one session",
+    "condition": "combo(MDMA, Psilocybin mushrooms)"
+  },
+  {
+    "id": "nexus_flip",
+    "title": "Nexus Flip",
+    "description": "Combine MDMA and 2C-B in one session",
+    "condition": "combo(MDMA, 2C-B)"
+  },
+  {
+    "id": "kitty_flip",
+    "title": "Kitty Flip",
+    "description": "Combine MDMA and Ketamine in one session",
+    "condition": "combo(MDMA, Ketamine)"
+  },
+  {
+    "id": "k_hole",
+    "title": "K-Hole",
+    "description": "Take a heavy dose of Ketamine",
+    "condition": "dose_substance(Ketamine, heavy)"
+  },
+  {
+    "id": "ego_death",
+    "title": "Ego Death",
+    "description": "Take a heavy dose of any psychedelic",
+    "condition": "category(psychedelic) & dose(heavy)"
+  },
+  {
+    "id": "sweet_dreams",
+    "title": "Sweet Dreams",
+    "description": "Take a benzodiazepine",
+    "condition": "category(benzodiazepine)"
+  },
+  {
+    "id": "chasing_the_dragon",
+    "title": "Chasing the Dragon",
+    "description": "Smoke an opioid",
+    "condition": "in_experience(category(opioid) & route(SMOKED))"
+  },
+  {
+    "id": "da_joose",
+    "title": "Da joose is loose",
+    "description": "Take a heavy dose of Phenazepam",
+    "condition": "dose_substance(Phenazepam, heavy)"
+  },
+  {
+    "id": "ingestions_bronze",
+    "title": "Getting Started",
+    "description": "Log 10 ingestions",
+    "condition": "min_ingestions(10)",
+    "tier": "BRONZE"
+  },
+  {
+    "id": "ingestions_silver",
+    "title": "In the Swing",
+    "description": "Log 50 ingestions",
+    "condition": "min_ingestions(50)",
+    "tier": "SILVER"
+  },
+  {
+    "id": "ingestions_gold",
+    "title": "Veteran Logger",
+    "description": "Log 200 ingestions",
+    "condition": "min_ingestions(200)",
+    "tier": "GOLD"
+  },
+  {
+    "id": "ingestions_platinum",
+    "title": "Lifer",
+    "description": "Log 1000 ingestions",
+    "condition": "min_ingestions(1000)",
+    "tier": "GOLD"
+  },
+  {
+    "id": "routes_bronze",
+    "title": "Route Sampler",
+    "description": "Use 3 different routes of administration",
+    "condition": "min_routes(3)",
+    "tier": "BRONZE"
+  },
+  {
+    "id": "routes_silver",
+    "title": "Route Explorer",
+    "description": "Use 5 different routes of administration",
+    "condition": "min_routes(5)",
+    "tier": "SILVER"
+  },
+  {
+    "id": "routes_gold",
+    "title": "Every Which Way",
+    "description": "Use 7 different routes of administration",
+    "condition": "min_routes(7)",
+    "tier": "GOLD"
+  },
+  {
+    "id": "notes_bronze",
+    "title": "Note to Self",
+    "description": "Add notes to 10 ingestions",
+    "condition": "min_notes(10)",
+    "tier": "BRONZE"
+  },
+  {
+    "id": "notes_silver",
+    "title": "Field Researcher",
+    "description": "Add notes to 50 ingestions",
+    "condition": "min_notes(50)",
+    "tier": "SILVER"
+  },
+  {
+    "id": "ratings_first",
+    "title": "First Review",
+    "description": "Give your first Shulgin rating",
+    "condition": "min_ratings(1)"
+  },
+  {
+    "id": "ratings_gold",
+    "title": "Critic",
+    "description": "Log 10 Shulgin ratings",
+    "condition": "min_ratings(10)",
+    "tier": "GOLD"
+  },
+  {
+    "id": "timednotes_first",
+    "title": "Real-Time Reporter",
+    "description": "Log your first timed note",
+    "condition": "min_timed_notes(1)"
+  },
+  {
+    "id": "timednotes_silver",
+    "title": "Chronicler",
+    "description": "Log 50 timed notes",
+    "condition": "min_timed_notes(50)",
+    "tier": "SILVER"
+  },
+  {
+    "id": "customunits_first",
+    "title": "Unit Crafter",
+    "description": "Create your first custom unit",
+    "condition": "min_custom_units(1)"
+  },
+  {
+    "id": "customunits_silver",
+    "title": "Unit Obsessed",
+    "description": "Create 5 custom units",
+    "condition": "min_custom_units(5)",
+    "tier": "SILVER"
+  },
+  {
+    "id": "recipe_user",
+    "title": "Mise en Place",
+    "description": "Create a custom recipe",
+    "condition": "has_custom_recipe()",
+    "tier": "BRONZE"
+  },
+  {
+    "id": "redose_aware",
+    "title": "Redose Aware",
+    "description": "Redose within the peak window of an earlier ingestion",
+    "condition": "has_redose_in_peak()",
+    "tier": "BRONZE"
+  },
+  {
+    "id": "transdermal_explorer",
+    "title": "Patch Work",
+    "description": "Log a transdermal ingestion with a specific site",
+    "condition": "has_transdermal_site()",
+    "tier": "BRONZE"
+  },
+  {
+    "id": "injection_site_picker",
+    "title": "Know Your Veins",
+    "description": "Record an administration site for an ingestion",
+    "condition": "has_site()",
+    "tier": "BRONZE"
+  },
+  {
+    "id": "sober_week",
+    "title": "Take a Breather",
+    "description": "Go 7 days between ingestions",
+    "condition": "sober_streak(7)",
+    "tier": "BRONZE"
+  },
+  {
+    "id": "sober_month",
+    "title": "Tolerance Reset",
+    "description": "Go 30 days between ingestions",
+    "condition": "sober_streak(30)",
+    "tier": "SILVER"
+  },
+  {
+    "id": "sober_year",
+    "title": "Hiatus",
+    "description": "Go 365 days between ingestions",
+    "condition": "sober_streak(365)",
+    "tier": "GOLD"
+  },
+  {
+    "id": "streak_week",
+    "title": "Daily Ritual",
+    "description": "Log ingestions on 7 consecutive days",
+    "condition": "streak(7)",
+    "tier": "BRONZE"
+  },
+  {
+    "id": "streak_month",
+    "title": "Marathoner",
+    "description": "Log ingestions on 30 consecutive days",
+    "condition": "streak(30)",
+    "tier": "SILVER"
+  },
+  {
+    "id": "span_month",
+    "title": "First Month",
+    "description": "Journal spans over 30 days",
+    "condition": "journal_span_days(30)",
+    "tier": "BRONZE"
+  },
+  {
+    "id": "span_halfyear",
+    "title": "Half a Year",
+    "description": "Journal spans over 180 days",
+    "condition": "journal_span_days(180)",
+    "tier": "SILVER"
+  },
+  {
+    "id": "span_year",
+    "title": "Anniversary",
+    "description": "Journal spans over a full year",
+    "condition": "journal_span_days(365)",
+    "tier": "GOLD"
+  }
+]

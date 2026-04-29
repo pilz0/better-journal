@@ -1,0 +1,261 @@
+---
+name: Build and sign
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/') }}
+env:
+  main_project_module: 'app'
+jobs:
+  test:
+    name: Run Unit Tests (${{ matrix.test-suite }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - test-suite: data
+            test-args: '--tests "foo.pilz.freaklog.data.*"'
+          - test-suite: ui
+            test-args: '--tests "foo.pilz.freaklog.ui.*"'
+          - test-suite: misc
+            # Run everything that is NOT in the data.* or ui.* packages so that
+            # newly-added top-level (or other-package) tests are not silently
+            # skipped by an overly narrow filter such as `Test*`.
+            test-args: '-PtestExclude=foo.pilz.freaklog.data.*,foo.pilz.freaklog.ui.*'
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Run Unit Tests
+        run: ./gradlew testDebugUnitTest ${{ matrix.test-args }} --no-daemon
+
+      - name: Publish JUnit results
+        if: always()
+        uses: mikepenz/action-junit-report@3585e9575db828022551b4231f165eb59a0e74e3 # v5
+        with:
+          report_paths: 'app/build/test-results/testDebugUnitTest/*.xml'
+          check_name: Unit Test Results (${{ matrix.test-suite }})
+          require_tests: true
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.test-suite }}
+          path: |
+            app/build/reports/tests/
+            app/build/test-results/
+
+  lint:
+    name: Android Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Run Android Lint
+        run: ./gradlew :app:lintDebug --no-daemon
+
+      - name: Upload Lint SARIF to code-scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: app/build/reports/lint-results-debug.sarif
+          category: android-lint
+        continue-on-error: true
+
+      - name: Upload Lint reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-reports
+          path: app/build/reports/lint-results-*.*
+
+  build-app:
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        app-type: [ apk, aab ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Build APK
+        if: matrix.app-type == 'apk'
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Build AAB
+        if: matrix.app-type == 'aab'
+        run: ./gradlew bundleRelease --no-daemon
+
+      - name: Upload unsigned APK
+        if: matrix.app-type == 'apk'
+        uses: actions/upload-artifact@v4
+        with:
+          name: freaklog-unsigned-apk
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+
+      - name: Upload unsigned AAB
+        if: matrix.app-type == 'aab'
+        uses: actions/upload-artifact@v4
+        with:
+          name: freaklog-unsigned-aab
+          path: app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
+
+  sign:
+    needs: [ build-app, test ]
+    if: |
+      github.ref == 'refs/heads/main' ||
+      github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app-type: [ apk, aab ]
+    steps:
+      - name: Download unsigned file
+        uses: actions/download-artifact@v5
+        with:
+          name: freaklog-unsigned-${{ matrix.app-type }}
+
+      - name: Setup Android SDK
+        run: |
+          ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager "build-tools;35.0.0"
+
+      - name: Sign app APK
+        # Pinned to a specific commit (rather than @nightly) for supply-chain safety.
+        uses: ilharp/sign-android-release@13dd52242698526f951aa8bb8696204f6fea702a # v2.0.0
+        id: sign
+        with:
+          releaseDir: .
+          signingKey: ${{ secrets.KEYSTORE }}
+          keyAlias: ${{ secrets.SIGNING_KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          buildToolsVersion: 35.0.0
+
+      - name: Rename signed file
+        run: |
+          mv "${{ steps.sign.outputs.signedFile }}" "freaklog.${{ matrix.app-type }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: freaklog-${{ matrix.app-type }}
+          path: freaklog.${{ matrix.app-type }}
+          if-no-files-found: error
+
+
+  upload-s3:
+    needs: [ sign, build-app ]
+    if: |
+      github.ref == 'refs/heads/main' ||
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app-type: [ apk, aab ]
+    steps:
+      - name: Download files
+        uses: actions/download-artifact@v5
+        with:
+          path: ${{ matrix.app-type }}s
+
+      - name: Upload ${{ matrix.app-type }}s to S3
+        # Pinned to a specific commit (rather than @latest) for supply-chain safety.
+        uses: ryand56/r2-upload-action@b801a390acbdeb034c5e684ff5e1361c06639e7c # v1.4
+        with:
+          r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
+          r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
+          r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          r2-bucket: ${{ secrets.R2_BUCKET }}
+          source-dir: ${{ matrix.app-type }}s
+          destination-dir: ${{ matrix.app-type }}s
+          keep-file-fresh: true
+
+  upload-google-play:
+    needs: [ sign, build-app ]
+    if: |
+      github.ref == 'refs/heads/main' ||
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download a single artifact
+        uses: actions/download-artifact@v5
+        with:
+          path: app
+
+      - name: upload to google play
+        uses: r0adkll/upload-google-play@v1.1.3
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+          packageName: foo.pilz.freaklog
+          releaseFiles: app/freaklog-aab/freaklog.aab
+          track: internal
+
+  create-release:
+    needs: [ sign, build-app ]
+    if: startsWith(github.ref, 'refs/tags/') && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download files
+        uses: actions/download-artifact@v5
+        with:
+          path: .
+
+      - name: Create release
+        if: startsWith(github.ref, 'refs/tags/') && github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            freaklog-apk/freaklog.apk
+            freaklog-aab/freaklog.aab
+            freaklog-unsigned-apk/app-release-unsigned.apk
+            freaklog-unsigned-aab/app-release.aab
+          fail_on_unmatched_files: true
+          make_latest: true
