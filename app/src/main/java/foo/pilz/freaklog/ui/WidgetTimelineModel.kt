@@ -32,7 +32,7 @@ import java.time.Instant
  *    fixed -2h..+3h window;
  *  * **sums overlapping doses of the same substance** so two doses an hour
  *    apart produce one taller curve, mirroring the in-app
- *    [foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.FullTimelines];
+ *    [foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.IngestionCurveDrawable];
  *  * uses the substance's actual min/max [RoaDuration] ranges (with
  *    `horizontalWeight = 0.5`) instead of hard-coded fallback values, only
  *    falling back to a total-duration triangle when full RoA data is
