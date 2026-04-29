@@ -29,10 +29,6 @@ class StatsPreviewProvider : PreviewParameterProvider<StatsModel> {
             areThereAnyIngestions = true,
             startDateText = "22. June 2022",
             consumerName = null,
-            totalExperiences = 7,
-            totalIngestions = 23,
-            mostUsedSubstance = "MDMA",
-            mostUsedSubstanceCount = 8,
             statItems = listOf(
                 StatItem(
                     substanceName = "LSD",
