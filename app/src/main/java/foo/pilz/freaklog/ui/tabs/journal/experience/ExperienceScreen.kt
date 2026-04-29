@@ -19,8 +19,10 @@
 package foo.pilz.freaklog.ui.tabs.journal.experience
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -31,6 +33,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.NoteAdd
@@ -74,7 +77,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.Dp
@@ -101,6 +106,8 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.models.ConsumerWithIngestion
 import foo.pilz.freaklog.ui.tabs.journal.experience.models.CumulativeDose
 import foo.pilz.freaklog.ui.tabs.journal.experience.models.OneExperienceScreenModel
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.AllTimelines
+import foo.pilz.freaklog.ui.tabs.settings.funny.AchievementDef
+import foo.pilz.freaklog.ui.tabs.settings.funny.AchievementTier
 import foo.pilz.freaklog.ui.theme.JournalTheme
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import foo.pilz.freaklog.ui.utils.HapticType
@@ -180,7 +187,8 @@ fun ExperienceScreen(
         onChangeTimeDisplayOption = viewModel::saveTimeDisplayOption,
         navigateToTimelineScreen = navigateToTimelineScreen,
         areDosageDotsHidden = viewModel.areDosageDotsHiddenFlow.collectAsState().value,
-        isTimelineHidden = viewModel.isTimelineHiddenFlow.collectAsState().value
+        isTimelineHidden = viewModel.isTimelineHiddenFlow.collectAsState().value,
+        matchedAchievements = viewModel.matchedAchievementsFlow.collectAsState().value
     )
 }
 
@@ -244,6 +252,7 @@ fun ExperienceScreen(
     navigateToTimelineScreen: (consumerName: String) -> Unit,
     areDosageDotsHidden: Boolean,
     isTimelineHidden: Boolean,
+    matchedAchievements: List<foo.pilz.freaklog.ui.tabs.settings.funny.AchievementDef> = emptyList(),
 ) {
     Scaffold(
         topBar = {
@@ -344,6 +353,12 @@ fun ExperienceScreen(
                     oneExperienceScreenModel = oneExperienceScreenModel
                 )
             }
+            AnimatedVisibility(visible = matchedAchievements.isNotEmpty()) {
+                ExperienceAchievementsSection(
+                    verticalCardPadding = verticalCardPadding,
+                    matchedAchievements = matchedAchievements
+                )
+            }
             Spacer(modifier = Modifier.height(60.dp))
         }
     }
@@ -385,6 +400,69 @@ private fun ExperienceInteractionsSection(
                     },
                     label = { Text(it.name) }
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ExperienceAchievementsSection(
+    verticalCardPadding: Dp,
+    matchedAchievements: List<AchievementDef>
+) {
+    ElevatedCard(
+        modifier = Modifier
+            .padding(vertical = verticalCardPadding)
+            .fillMaxWidth()
+    ) {
+        CardTitle(title = "Achievements")
+        HorizontalDivider()
+        matchedAchievements.forEachIndexed { index, achievement ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = horizontalPadding, vertical = 10.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    Text(
+                        text = achievement.title,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = achievement.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                val tier = achievement.tier
+                if (tier != null) {
+                    val (bg, label) = when (tier) {
+                        AchievementTier.BRONZE -> Color(0xFFCD7F32) to "Bronze"
+                        AchievementTier.SILVER -> Color(0xFFB0B0B0) to "Silver"
+                        AchievementTier.GOLD -> Color(0xFFD4AF37) to "Gold"
+                    }
+                    Box(
+                        modifier = Modifier
+                            .background(bg, RoundedCornerShape(8.dp))
+                            .padding(horizontal = 8.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.Black,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+            if (index < matchedAchievements.size - 1) {
+                HorizontalDivider()
             }
         }
     }

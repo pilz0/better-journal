@@ -18,12 +18,14 @@
 
 package foo.pilz.freaklog.ui.tabs.journal.experience
 
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
+import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsTimedNotesAndRatings
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit
 import foo.pilz.freaklog.data.substances.classes.Substance
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
@@ -46,7 +48,12 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.DataForOneRating
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.DataForOneTimedNote
 import foo.pilz.freaklog.ui.tabs.settings.combinations.CombinationSettingsStorage
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
+import foo.pilz.freaklog.ui.tabs.settings.funny.AchievementContext
+import foo.pilz.freaklog.ui.tabs.settings.funny.AchievementDef
+import foo.pilz.freaklog.ui.tabs.settings.funny.evaluateAchievement
+import foo.pilz.freaklog.ui.tabs.settings.funny.loadAchievements
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -70,8 +77,11 @@ class ExperienceViewModel @Inject constructor(
     private val interactionChecker: InteractionChecker,
     private val userPreferences: UserPreferences,
     combinationSettingsStorage: CombinationSettingsStorage,
-    state: SavedStateHandle
+    state: SavedStateHandle,
+    @ApplicationContext context: Context,
 ) : ViewModel() {
+
+    private val achievementDefs = loadAchievements(context)
 
     private val areSubstanceHeightsIndependentFlow =
         userPreferences.areSubstanceHeightsIndependentFlow.stateIn(
@@ -370,6 +380,38 @@ class ExperienceViewModel @Inject constructor(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000)
     )
+
+    val matchedAchievementsFlow: kotlinx.coroutines.flow.StateFlow<List<AchievementDef>> = combine(
+        ingestionsWithCompanionsFlow,
+        ratingsFlow,
+        timedNotesSortedFlow,
+        experienceFlow
+    ) { ingestionWithComps, ratings, timedNotes, experience ->
+        if (experience == null) return@combine emptyList()
+        val ingestions = ingestionWithComps.map { it.ingestion }
+        val expWithData = ExperienceWithIngestionsTimedNotesAndRatings(
+            experience = experience,
+            ingestions = ingestions,
+            timedNotes = timedNotes,
+            ratings = ratings
+        )
+        val ctx = AchievementContext(
+            experiences = listOf(expWithData),
+            allIngestions = ingestions,
+            allTimedNotes = timedNotes,
+            allRatings = ratings,
+            customUnits = emptyList(),
+            customRecipes = emptyList(),
+            substanceRepo = substanceRepo,
+            interactionChecker = interactionChecker
+        )
+        achievementDefs.filter { evaluateAchievement(it.condition, ctx) }
+    }.flowOn(Dispatchers.Default)
+        .stateIn(
+            initialValue = emptyList(),
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000)
+        )
 
     fun deleteExperience() {
         viewModelScope.launch {
