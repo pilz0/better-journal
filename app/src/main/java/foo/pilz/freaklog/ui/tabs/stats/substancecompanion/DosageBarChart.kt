@@ -23,6 +23,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -133,10 +134,12 @@ fun DosageBarChart(
     val unit = buckets.first().unit
     val showUnit = metric != DosageMetric.SESSION_COUNT && unit.isNotEmpty()
 
-    // Compute y-axis label width once (textMeasurer.measure is safe outside DrawScope)
+    // Compute y-axis label width once (textMeasurer.measure is safe outside DrawScope).
+    // Use density-aware padding so spacing looks correct on high-DPI screens.
+    val density = LocalDensity.current
     val yAxisSample = formatSiValue(yMax) + if (showUnit) " $unit" else ""
-    val yAxisLabelWidth: Float = remember(yAxisSample, labelStyle) {
-        textMeasurer.measure(yAxisSample, labelStyle).size.width.toFloat() + 12f
+    val yAxisLabelWidth: Float = remember(yAxisSample, labelStyle, density) {
+        with(density) { textMeasurer.measure(yAxisSample, labelStyle).size.width.toFloat() + 12.dp.toPx() }
     }
 
     // Canvas size tracked for tap geometry

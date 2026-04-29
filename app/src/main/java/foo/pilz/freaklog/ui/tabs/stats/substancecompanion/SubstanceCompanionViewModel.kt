@@ -166,23 +166,20 @@ class SubstanceCompanionViewModel @Inject constructor(
                 }.maxOrNull()
             } else null
 
-            // Current streak: consecutive weeks going backwards from now with ≥1 session
+            // Current streak: consecutive weeks going backwards from now with ≥1 session.
+            // Precompute a set of sliding-week indices (0 = current week, 1 = previous, …)
+            // that contain at least one in-range session for O(1) per-iteration lookup.
+            val currentEpochMs = currentTime.toEpochMilli()
+            val weekMs = 7L * 24 * 60 * 60 * 1000
+            val sessionWeekIndices: Set<Int> = inRange
+                .map { it.ingestion.time.toEpochMilli() }
+                .filter { it <= currentEpochMs }
+                .map { ((currentEpochMs - it) / weekMs).toInt() }
+                .toHashSet()
             var streakWeeks = 0
-            var weekEnd = currentTime.atZone(zoneId)
-            var keepGoing = true
-            var iterations = 0
             // Cap at 104 weeks (2 years) to prevent excessive computation
-            while (keepGoing && iterations < 104) {
-                val weekStart = weekEnd.minusWeeks(1)
-                val ws = weekStart.toInstant()
-                val we = weekEnd.toInstant()
-                if (ingestions.any { it.ingestion.time >= ws && it.ingestion.time < we }) {
-                    streakWeeks++
-                    weekEnd = weekStart
-                } else {
-                    keepGoing = false
-                }
-                iterations++
+            for (weekIdx in 0 until 104) {
+                if (weekIdx in sessionWeekIndices) streakWeeks++ else break
             }
 
             ChartSummary(totalSessions, longestGapDays, streakWeeks)
@@ -245,10 +242,13 @@ class SubstanceCompanionViewModel @Inject constructor(
             DosageTimeRange.DAYS_30  -> BucketConfig(Period.ofDays(1),    "dd")
             DosageTimeRange.WEEKS_26 -> BucketConfig(Period.ofWeeks(1),   "dd.MM")
             DosageTimeRange.MONTHS_12 -> BucketConfig(Period.ofMonths(1), "MMM")
-            DosageTimeRange.ALL -> when {
-                spanDays <= 60  -> BucketConfig(Period.ofDays(1),    "dd.MM")
-                spanDays <= 546 -> BucketConfig(Period.ofWeeks(1),   "dd.MM")
-                else            -> BucketConfig(Period.ofMonths(1),  "MMM yy")
+            DosageTimeRange.ALL -> {
+                val spanMonths = ChronoUnit.MONTHS.between(start.atZone(zoneId), end.atZone(zoneId))
+                when {
+                    spanDays <= 60  -> BucketConfig(Period.ofDays(1),   "dd.MM")
+                    spanMonths <= 18 -> BucketConfig(Period.ofWeeks(1), "dd.MM")
+                    else             -> BucketConfig(Period.ofMonths(1), "MMM yy")
+                }
             }
         }
 
@@ -274,26 +274,49 @@ class SubstanceCompanionViewModel @Inject constructor(
         val fullDateFmt = DateTimeFormatter.ofPattern("dd MMM yyyy")
         val initialUnit = ingestions.firstOrNull()?.ingestion?.units ?: "mg"
 
+        // Build an ascending array of bucket-boundary epoch-millis for binary search.
+        // Entry [i] is the start of bucket i; entry [bucketCount] is `end`.
+        // This lets us assign each ingestion to its bucket in O(log m) instead of O(m).
+        val boundaryMillis = LongArray(bucketCount + 1)
+        var tBoundary = end.atZone(zoneId)
+        for (i in bucketCount downTo 0) {
+            boundaryMillis[i] = tBoundary.toInstant().toEpochMilli()
+            if (i > 0) tBoundary = tBoundary.minus(config.step)
+        }
+
+        // Accumulators – one slot per bucket
+        val bucketTotals   = DoubleArray(bucketCount) { 0.0 }
+        val bucketSessions = Array(bucketCount) { mutableSetOf<Int>() }
+
+        // Single pass: binary-search each ingestion into its bucket
+        for (ing in ingestions) {
+            val millis = ing.ingestion.time.toEpochMilli()
+            var pos = boundaryMillis.binarySearch(millis)
+            val bucketIdx = if (pos >= 0) {
+                // Exact hit on a boundary → start of that bucket
+                pos.coerceIn(0, bucketCount - 1)
+            } else {
+                // pos = -(insertion_point) - 1  →  insertion_point = -pos - 1
+                (-pos - 2).coerceIn(0, bucketCount - 1)
+            }
+            bucketTotals[bucketIdx]   += ing.ingestion.dose ?: 0.0
+            bucketSessions[bucketIdx].add(ing.ingestion.experienceId)
+        }
+
+        // Build the result list using pre-generated bucket-start times
         val result = mutableListOf<DosageBucket>()
         var bucketEnd = end.atZone(zoneId)
 
         for (i in 0 until bucketCount) {
             val bucketStart = bucketEnd.minus(config.step)
-            val bsi = bucketStart.toInstant()
-            val bei = bucketEnd.toInstant()
-
-            val inBucket = ingestions.filter { it.ingestion.time >= bsi && it.ingestion.time < bei }
-
-            val totalDose    = inBucket.sumOf { it.ingestion.dose ?: 0.0 }
-            val sessionCount = inBucket.map { it.ingestion.experienceId }.distinct().size
 
             result.add(
                 0,
                 DosageBucket(
                     label        = labelFmt.format(bucketStart),
                     fullDateText = fullDateFmt.format(bucketStart),
-                    totalDose    = totalDose,
-                    sessionCount = sessionCount,
+                    totalDose    = bucketTotals[i],
+                    sessionCount = bucketSessions[i].size,
                     unit         = initialUnit
                 )
             )

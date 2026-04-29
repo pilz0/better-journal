@@ -38,6 +38,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -142,6 +143,9 @@ fun SubstanceCompanionScreen(
 ) {
     // Tracks which bar the user last tapped; null = none selected
     var tappedIndex by remember { mutableStateOf<Int?>(null) }
+    // Clear the selection whenever the time range changes so the info card
+    // doesn't display stale data from a different bucket at the same index.
+    LaunchedEffect(selectedTimeRange) { tappedIndex = null }
 
     Scaffold(
         topBar = {
