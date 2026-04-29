@@ -171,6 +171,7 @@ class SubstanceCompanionViewModel @Inject constructor(
             var weekEnd = currentTime.atZone(zoneId)
             var keepGoing = true
             var iterations = 0
+            // Cap at 104 weeks (2 years) to prevent excessive computation
             while (keepGoing && iterations < 104) {
                 val weekStart = weekEnd.minusWeeks(1)
                 val ws = weekStart.toInstant()
@@ -257,7 +258,8 @@ class SubstanceCompanionViewModel @Inject constructor(
             DosageTimeRange.WEEKS_26  -> 26
             DosageTimeRange.MONTHS_12 -> 12
             DosageTimeRange.ALL -> {
-                // Count steps needed to cover start→end
+                // Count steps needed to cover start→end; capped at 200 to avoid rendering
+                // an unreasonable number of bars if the dataset is extremely long.
                 var count = 0
                 var t = end.atZone(zoneId)
                 while (t.toInstant().isAfter(start) && count < 200) {

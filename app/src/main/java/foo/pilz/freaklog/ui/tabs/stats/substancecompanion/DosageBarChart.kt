@@ -64,6 +64,9 @@ data class ChartSummary(
     val currentStreakWeeks: Int
 )
 
+/** Used for drawing horizontal dose-threshold lines inside [DosageBarChart]. */
+private data class ThresholdEntry(val name: String, val value: Double?, val color: Color)
+
 // ── Private helpers ───────────────────────────────────────────────────────────
 
 internal fun formatSiValue(v: Double): String = when {
@@ -243,7 +246,6 @@ fun DosageBarChart(
             if (metric != DosageMetric.SESSION_COUNT && doseThresholds != null
                 && doseThresholds.unit == unit
             ) {
-                data class ThresholdEntry(val name: String, val value: Double?, val color: Color)
                 listOf(
                     ThresholdEntry("light",  doseThresholds.lightMin,  lightCol),
                     ThresholdEntry("common", doseThresholds.commonMin, commonCol),
