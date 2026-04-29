@@ -294,7 +294,7 @@ fun SettingsScreen(
                 HorizontalDivider()
                 SettingsButton(
                     imageVector = Icons.Outlined.Code,
-                    text = "FreakQuery shell"
+                    text = "FreakQuery Shell"
                 ) {
                     performHaptic(HapticType.CLICK)
                     navigateToFreakQueryShell()

@@ -24,6 +24,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Switch
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -40,6 +45,12 @@ fun WebhookSettingsScreen(
         onChangedWebhookName = { viewModel.webhookName = it },
         webhookTemplate = viewModel.webhookTemplate,
         onChangedWebhookTemplate = { viewModel.webhookTemplate = it },
+        useFreakQuery = viewModel.useFreakQuery,
+        onChangedUseFreakQuery = { viewModel.useFreakQuery = it },
+        freakQuerySeparator = viewModel.freakQuerySeparator,
+        onChangedFreakQuerySeparator = { viewModel.freakQuerySeparator = it },
+        freakQueryParens = viewModel.freakQueryParens,
+        onChangedFreakQueryParens = { viewModel.freakQueryParens = it },
         onDoneTap = {
             viewModel.onDoneTap(navController)
         }
@@ -56,6 +67,12 @@ fun WebhookSettingsContent(
     onChangedWebhookName: (String) -> Unit,
     webhookTemplate: String,
     onChangedWebhookTemplate: (String) -> Unit,
+    useFreakQuery: Boolean,
+    onChangedUseFreakQuery: (Boolean) -> Unit,
+    freakQuerySeparator: String,
+    onChangedFreakQuerySeparator: (String) -> Unit,
+    freakQueryParens: Boolean,
+    onChangedFreakQueryParens: (Boolean) -> Unit,
     onDoneTap: () -> Unit)
 {
     Scaffold(
@@ -77,7 +94,8 @@ fun WebhookSettingsContent(
             modifier = Modifier
                 .padding(padding)
                 .padding(10.dp)
-                .fillMaxSize(),
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
@@ -92,6 +110,17 @@ fun WebhookSettingsContent(
                     Text(
                         text = "Paste your Discord Webhook URL below. The 'Webhook Name' will be used as the name for ingestion's.",
                         style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = "Template variables: {user}, {substance}, {dose}, {units}, {route}, {site}, {note}. Use [optional text] to hide blocks if variables are empty.",
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                    Text(
+                        text = "FreakQuery tags: {{today|substance=A-PVP|sum=dose}}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(top = 2.dp)
                     )
                 }
             }
@@ -121,7 +150,8 @@ fun WebhookSettingsContent(
             OutlinedTextField(
                 value = webhookTemplate,
                 onValueChange = onChangedWebhookTemplate,
-                singleLine = true,
+                singleLine = false,
+                minLines = 3,
                 label = { Text(text = "Webhook Template") },
                 keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
                 keyboardOptions = KeyboardOptions.Default.copy(
@@ -129,6 +159,42 @@ fun WebhookSettingsContent(
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
+
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "FreakQuery Configuration",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(text = "Enable FreakQuery tags", modifier = Modifier.weight(1f))
+                        Switch(checked = useFreakQuery, onCheckedChange = onChangedUseFreakQuery)
+                    }
+
+                    if (useFreakQuery) {
+                        OutlinedTextField(
+                            value = freakQuerySeparator,
+                            onValueChange = onChangedFreakQuerySeparator,
+                            singleLine = true,
+                            label = { Text(text = "List Separator") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                        ) {
+                            Text(text = "Show parentheses in results", modifier = Modifier.weight(1f))
+                            Switch(checked = freakQueryParens, onCheckedChange = onChangedFreakQueryParens)
+                        }
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.padding(20.dp))
         }
     }
 }
@@ -142,6 +208,12 @@ fun EditWebhookSettingsScreenPreview() {
         onChangedWebhookName = { },
         webhookTemplate = "foobar",
         onChangedWebhookTemplate = { },
+        useFreakQuery = true,
+        onChangedUseFreakQuery = { },
+        freakQuerySeparator = ", ",
+        onChangedFreakQuerySeparator = { },
+        freakQueryParens = true,
+        onChangedFreakQueryParens = { },
         onDoneTap = { }
     )
 }

@@ -82,7 +82,7 @@ fun FreakQueryShellScreenContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("FreakQuery shell") },
+                title = { Text("FreakQuery Shell") },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")

@@ -82,7 +82,7 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    implementation(project(":android-freakquery"))
+    implementation(project(":freakquery-android"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

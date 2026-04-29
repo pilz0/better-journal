@@ -30,6 +30,10 @@ class WebhookSettingsScreenViewmodel @Inject constructor(
     var webhookName by mutableStateOf("")
     var webhookTemplate by mutableStateOf("")
 
+    var useFreakQuery by mutableStateOf(true)
+    var freakQuerySeparator by mutableStateOf(", ")
+    var freakQueryParens by mutableStateOf(true)
+
     init {
         loadSettings()
     }
@@ -39,6 +43,9 @@ class WebhookSettingsScreenViewmodel @Inject constructor(
             webhookURL = userPreferences.readWebhookURL().first()
             webhookName = userPreferences.readWebhookName().first()
             webhookTemplate = userPreferences.readWebhookTemplate().first()
+            useFreakQuery = userPreferences.webhookUseFreakQueryFlow.first()
+            freakQuerySeparator = userPreferences.webhookFreakQuerySeparatorFlow.first()
+            freakQueryParens = userPreferences.webhookFreakQueryParensFlow.first()
         }
     }
 
@@ -49,6 +56,9 @@ class WebhookSettingsScreenViewmodel @Inject constructor(
             userPreferences.writeWebhookURL(webhookURL)
             userPreferences.writeWebhookName(webhookName)
             userPreferences.writeWebhookTemplate(webhookTemplate)
+            userPreferences.saveWebhookUseFreakQuery(useFreakQuery)
+            userPreferences.saveWebhookFreakQuerySeparator(freakQuerySeparator)
+            userPreferences.saveWebhookFreakQueryParens(freakQueryParens)
             navController.popBackStack()
         }
 

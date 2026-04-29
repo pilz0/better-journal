@@ -18,8 +18,12 @@
 
 package foo.pilz.freaklog.data.webhook
 
+import com.ndm4.freakquery.FreakQueryConfig
+import foo.pilz.freaklog.data.freakquery.FreakQueryRepository
+import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -52,11 +56,16 @@ private object AndroidWebhookLogger : WebhookLogger {
 
 @Singleton
 class WebhookService internal constructor(
+    private val freakQueryRepository: FreakQueryRepository?,
+    private val userPreferences: UserPreferences?,
     private val logger: WebhookLogger,
     private val delayMillis: suspend (Long) -> Unit,
 ) {
 
-    @Inject constructor() : this(AndroidWebhookLogger, ::delay)
+    @Inject constructor(
+        freakQueryRepository: FreakQueryRepository,
+        userPreferences: UserPreferences
+    ) : this(freakQueryRepository, userPreferences, AndroidWebhookLogger, ::delay)
 
     companion object {
         const val DEFAULT_TEMPLATE = "{user}: [{dose} {units} ]{substance} via {route}[ at {site}][\n> {note}]"
@@ -198,8 +207,19 @@ class WebhookService internal constructor(
         )
 
         val content = processTemplate(template, values)
+        
+        val freakQueryContent = if (userPreferences != null && userPreferences.webhookUseFreakQueryFlow.first()) {
+            val config = FreakQueryConfig(
+                renderSeparator = userPreferences.webhookFreakQuerySeparatorFlow.first(),
+                renderParens = userPreferences.webhookFreakQueryParensFlow.first()
+            )
+            freakQueryRepository?.renderFlow(content, config)?.first() ?: content
+        } else {
+            content
+        }
+
         val payload = buildJsonObject {
-            put("content", content)
+            put("content", freakQueryContent)
         }
 
         var lastError: Exception? = null

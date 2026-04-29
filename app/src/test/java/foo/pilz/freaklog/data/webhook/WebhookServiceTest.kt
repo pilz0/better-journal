@@ -23,7 +23,7 @@ import org.junit.Test
 
 class WebhookServiceTest {
 
-    private val webhookService = WebhookService()
+    private val webhookService = WebhookService(null, null, { _, _ -> }, { })
 
     @Test
     fun testProcessTemplate_allValuesPresent() {

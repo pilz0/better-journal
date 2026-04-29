@@ -1,6 +1,7 @@
 package foo.pilz.freaklog.data.freakquery
 
 import com.ndm4.freakquery.FreakQuery
+import com.ndm4.freakquery.FreakQueryConfig
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.entities.Experience
 import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
@@ -31,20 +32,20 @@ class FreakQueryRepository @Inject constructor(
                 experiences.toFreakQueryRows()
             }
 
-    suspend fun query(tag: String): String =
-        FreakQuery.query(tag, getLogs())
+    suspend fun query(tag: String, config: FreakQueryConfig = FreakQueryConfig()): String =
+        FreakQuery.query(tag, getLogs(), config)
 
-    fun queryFlow(tag: String): Flow<String> =
+    fun queryFlow(tag: String, config: FreakQueryConfig = FreakQueryConfig()): Flow<String> =
         getLogsFlow().map { logs ->
-            FreakQuery.query(tag, logs)
+            FreakQuery.query(tag, logs, config)
         }
 
-    suspend fun render(template: String): String =
-        FreakQuery.render(template, getLogs())
+    suspend fun render(template: String, config: FreakQueryConfig = FreakQueryConfig()): String =
+        FreakQuery.render(template, getLogs(), config)
 
-    fun renderFlow(template: String): Flow<String> =
+    fun renderFlow(template: String, config: FreakQueryConfig = FreakQueryConfig()): Flow<String> =
         getLogsFlow().map { logs ->
-            FreakQuery.render(template, logs)
+            FreakQuery.render(template, logs, config)
         }
 }
 

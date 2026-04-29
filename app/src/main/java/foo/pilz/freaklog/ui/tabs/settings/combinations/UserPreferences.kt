@@ -62,6 +62,10 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
         val AI_API_KEY = stringPreferencesKey("ai_api_key")
         val AI_MODEL_NAME = stringPreferencesKey("ai_model_name")
 
+        val WEBHOOK_USE_FREAKQUERY = booleanPreferencesKey("webhook_use_freakquery")
+        val WEBHOOK_FREAKQUERY_SEPARATOR = stringPreferencesKey("webhook_freakquery_separator")
+        val WEBHOOK_FREAKQUERY_PARENS = booleanPreferencesKey("webhook_freakquery_parens")
+
         val KEY_INVENTORY_ENABLED = booleanPreferencesKey("key_inventory_enabled")
 
         val KEY_REDOSE_ONSET_FRACTION = stringPreferencesKey("key_redose_onset_fraction")
@@ -217,6 +221,15 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
             preferences[PreferencesKeys.WEBHOOK_TEMPLATE] = value
         }
     }
+
+    val webhookUseFreakQueryFlow: Flow<Boolean> = dataStore.data.map { it[PreferencesKeys.WEBHOOK_USE_FREAKQUERY] ?: true }
+    suspend fun saveWebhookUseFreakQuery(value: Boolean) = dataStore.edit { it[PreferencesKeys.WEBHOOK_USE_FREAKQUERY] = value }
+
+    val webhookFreakQuerySeparatorFlow: Flow<String> = dataStore.data.map { it[PreferencesKeys.WEBHOOK_FREAKQUERY_SEPARATOR] ?: ", " }
+    suspend fun saveWebhookFreakQuerySeparator(value: String) = dataStore.edit { it[PreferencesKeys.WEBHOOK_FREAKQUERY_SEPARATOR] = value }
+
+    val webhookFreakQueryParensFlow: Flow<Boolean> = dataStore.data.map { it[PreferencesKeys.WEBHOOK_FREAKQUERY_PARENS] ?: true }
+    suspend fun saveWebhookFreakQueryParens(value: Boolean) = dataStore.edit { it[PreferencesKeys.WEBHOOK_FREAKQUERY_PARENS] = value }
 
     val isHapticFeedbackEnabledFlow: Flow<Boolean> = dataStore.data
         .map { preferences ->
