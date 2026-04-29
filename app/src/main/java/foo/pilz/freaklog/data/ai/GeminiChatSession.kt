@@ -7,7 +7,9 @@ import org.json.JSONObject
 /** A single function call that the model wants the app to execute. */
 data class FunctionCallResult(
     val name: String,
-    /** Typed arguments extracted from the JSON — values are String, Number, Boolean, or null. */
+    /** Arguments extracted from the JSON. Primitive values are String, Number, or Boolean;
+     *  `null` maps to Kotlin null. Nested objects/arrays are preserved as JSONObject/JSONArray
+     *  so that all argument data is available without loss. */
     val args: Map<String, Any?>
 )
 

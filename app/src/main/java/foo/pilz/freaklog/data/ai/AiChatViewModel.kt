@@ -100,7 +100,7 @@ class AiChatViewModel @Inject constructor(
                     statusMessage = null
                 )
             }
-            val ready = repository.getGenerativeModelReady(experienceId)
+            val ready = repository.createChatSession(experienceId)
             if (token != sessionToken) return@launch
             if (ready == null) {
                 _uiState.update {

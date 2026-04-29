@@ -13,7 +13,7 @@ import javax.inject.Singleton
  * Builds [GeminiChatSession] instances configured with a journal-aware system instruction
  * and the function-calling tools the model may invoke.
  *
- * A fresh session is created on every call to [getGenerativeModelReady] so that settings
+ * A fresh session is created on every call to [createChatSession] so that settings
  * changes (API key, model name) are picked up immediately.
  *
  * ### Why we no longer use the `generative-ai-android` SDK
@@ -36,7 +36,7 @@ class AiChatbotRepository @Inject constructor(
     /** Result of a successful session initialisation, exposing the resolved model name to the UI. */
     data class ReadySession(val session: GeminiChatSession, val modelName: String)
 
-    suspend fun getGenerativeModelReady(experienceId: Int?): ReadySession? {
+    suspend fun createChatSession(experienceId: Int?): ReadySession? {
         val apiKey = userPreferences.aiApiKeyFlow.firstOrNull().orEmpty()
         val configuredName = userPreferences.aiModelNameFlow.firstOrNull().orEmpty()
         val modelName = configuredName.ifBlank { DEFAULT_MODEL_NAME }

@@ -46,10 +46,10 @@ object GeminiRestClient {
 
             val responseCode = conn.responseCode
             val responseText = if (responseCode in 200..299) {
-                conn.inputStream.bufferedReader(Charsets.UTF_8).readText()
+                conn.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
             } else {
                 Log.w(TAG, "HTTP $responseCode from Gemini API")
-                conn.errorStream?.bufferedReader(Charsets.UTF_8)?.readText()
+                conn.errorStream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }
                     ?: """{"error":{"code":$responseCode,"message":"HTTP $responseCode","status":"HTTP_ERROR"}}"""
             }
 
