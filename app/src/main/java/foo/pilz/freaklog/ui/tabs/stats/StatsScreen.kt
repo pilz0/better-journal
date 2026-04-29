@@ -64,6 +64,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
@@ -335,7 +336,7 @@ fun StatsScreen(
                                                 .width(11.dp)
                                                 .fillMaxHeight()
                                         ) {}
-                                        Column {
+                                        Column(modifier = Modifier.weight(1f)) {
                                             Text(
                                                 text = subStat.substanceName,
                                                 style = MaterialTheme.typography.titleMedium
@@ -345,26 +346,42 @@ fun StatsScreen(
                                                 style = MaterialTheme.typography.bodyMedium
                                             )
                                         }
-                                        Spacer(modifier = Modifier.weight(1f))
                                         Column(horizontalAlignment = Alignment.End) {
                                             val cumulativeDose = subStat.totalDose
                                             if (cumulativeDose != null) {
                                                 if (cumulativeDose.isEstimate) {
                                                     if (cumulativeDose.estimatedDoseStandardDeviation != null) {
-                                                        Text(text = "total ${cumulativeDose.dose.toReadableString()}±${cumulativeDose.estimatedDoseStandardDeviation.toReadableString()} ${cumulativeDose.units}")
+                                                        Text(
+                                                            text = "total ${cumulativeDose.dose.toReadableString()}±${cumulativeDose.estimatedDoseStandardDeviation.toReadableString()} ${cumulativeDose.units}",
+                                                            maxLines = 1,
+                                                            overflow = TextOverflow.Ellipsis,
+                                                        )
                                                     } else {
-                                                        Text(text = "total ~${cumulativeDose.dose.toReadableString()} ${cumulativeDose.units}")
+                                                        Text(
+                                                            text = "total ~${cumulativeDose.dose.toReadableString()} ${cumulativeDose.units}",
+                                                            maxLines = 1,
+                                                            overflow = TextOverflow.Ellipsis,
+                                                        )
                                                     }
                                                 } else {
-                                                    Text(text = "total ${cumulativeDose.dose.toReadableString()} ${cumulativeDose.units}")
-
+                                                    Text(
+                                                        text = "total ${cumulativeDose.dose.toReadableString()} ${cumulativeDose.units}",
+                                                        maxLines = 1,
+                                                        overflow = TextOverflow.Ellipsis,
+                                                    )
                                                 }
                                             } else {
-                                                Text(text = "total dose unknown")
+                                                Text(
+                                                    text = "total dose unknown",
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                )
                                             }
                                             subStat.routeCounts.forEach {
                                                 Text(
-                                                    text = "${it.administrationRoute.displayText.lowercase()} ${it.count}x ",
+                                                    text = "${it.administrationRoute.displayText.lowercase()} ${it.count}x",
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis,
                                                 )
                                             }
                                         }
