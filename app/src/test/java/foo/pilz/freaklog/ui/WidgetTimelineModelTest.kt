@@ -313,6 +313,79 @@ class WidgetTimelineModelTest {
     }
 
     @Test
+    fun `ingestion expired beyond total duration plus grace is filtered out`() {
+        // Pregabalin-like scenario: taken 10 days ago with ~6h default total duration.
+        // Total + grace = 6h + 30min = 6.5h — far shorter than 10 days.
+        val expired = WidgetTimelineModel.IngestionInput(
+            substanceName = "Pregabalin",
+            route = AdministrationRoute.ORAL,
+            time = now.minus(Duration.ofDays(10)),
+            color = AdaptiveColor.BLUE,
+        )
+        val model = WidgetTimelineModel.build(
+            now = now,
+            ingestions = listOf(expired),
+            // No RoA data → falls back to DEFAULT_TOTAL_DURATION_SECONDS (6h)
+            durationsBySubstance = emptyMap(),
+        )
+        assertTrue("10-day-old ingestion must be filtered out", model.groups.isEmpty())
+        assertFalse("hasContent must be false when no active ingestion exists", model.hasContent)
+    }
+
+    @Test
+    fun `resolveIngestionPhase returns Finished for 10-day-old ingestion with no roa`() {
+        val elapsedSeconds = Duration.ofDays(10).seconds.toFloat()
+        val phase = WidgetTimelineModel.resolveIngestionPhase(elapsedSeconds, roa = null)
+        assertTrue("10-day-old ingestion must report Finished", phase is IngestionPhase.Finished)
+    }
+
+    @Test
+    fun `resolveIngestionPhase returns correct phase for MDMA ingested 30 minutes ago`() {
+        // MDMA onset median = 30 min → at exactly 30 min elapsed we should still
+        // be in onset or just entering comeup.
+        val elapsedSeconds = Duration.ofMinutes(30).seconds.toFloat()
+        val phase = WidgetTimelineModel.resolveIngestionPhase(elapsedSeconds, mdmaOral)
+        assertTrue(
+            "30 min in should be onset or comeup, got $phase",
+            phase is IngestionPhase.Onset || phase is IngestionPhase.Comeup,
+        )
+    }
+
+    @Test
+    fun `resolveIngestionPhase returns Peak during MDMA peak window`() {
+        // MDMA median onset=30m, comeup=22.5m → peak starts ~52.5m after ingestion.
+        val elapsedSeconds = Duration.ofMinutes(90).seconds.toFloat() // well into peak
+        val phase = WidgetTimelineModel.resolveIngestionPhase(elapsedSeconds, mdmaOral)
+        assertTrue("90 min in should be peak, got $phase", phase is IngestionPhase.Peak)
+    }
+
+    @Test
+    fun `resolveIngestionPhase returns NotStarted for future ingestion`() {
+        val phase = WidgetTimelineModel.resolveIngestionPhase(elapsedSeconds = -60f, roa = null)
+        assertEquals(IngestionPhase.NotStarted, phase)
+    }
+
+    @Test
+    fun `resolveIngestionPhase with total-only roa returns Active while within window`() {
+        // totalOnly has 4-6h total → median 5h. At 3h elapsed it should still be Active.
+        val phase = WidgetTimelineModel.resolveIngestionPhase(
+            elapsedSeconds = Duration.ofHours(3).seconds.toFloat(),
+            roa = totalOnly,
+        )
+        assertTrue("Should be Active for total-only within window, got $phase", phase is IngestionPhase.Active)
+    }
+
+    @Test
+    fun `resolveIngestionPhase with total-only roa returns Finished well past window`() {
+        // totalOnly median = 5h. At 8h elapsed (> 5h + 30min grace) → Finished.
+        val phase = WidgetTimelineModel.resolveIngestionPhase(
+            elapsedSeconds = Duration.ofHours(8).seconds.toFloat(),
+            roa = totalOnly,
+        )
+        assertEquals(IngestionPhase.Finished, phase)
+    }
+
+    @Test
     fun `all heights are in 0 to 1 range`() {
         val a = WidgetTimelineModel.IngestionInput("A", AdministrationRoute.ORAL, now, AdaptiveColor.RED)
         val b = WidgetTimelineModel.IngestionInput("A", AdministrationRoute.ORAL, now.plusSeconds(1800), AdaptiveColor.RED)
