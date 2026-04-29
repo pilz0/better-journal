@@ -68,6 +68,11 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
         val KEY_REDOSE_COMEUP_FRACTION = stringPreferencesKey("key_redose_comeup_fraction")
         val KEY_REDOSE_PEAK_FRACTION = stringPreferencesKey("key_redose_peak_fraction")
         val KEY_REDOSE_SHOW = booleanPreferencesKey("key_redose_show")
+
+        // App lock (biometric)
+        val KEY_LOCK_ENABLED = booleanPreferencesKey("key_lock_enabled")
+        val KEY_LOCK_TIME_OPTION = stringPreferencesKey("key_lock_time_option")
+        val KEY_LOCK_LAST_ACTIVE = longPreferencesKey("key_lock_last_active_epoch_seconds")
     }
 
     suspend fun saveTimeDisplayOption(value: SavedTimeDisplayOption) {
@@ -289,5 +294,38 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
             prefs[PreferencesKeys.KEY_REDOSE_COMEUP_FRACTION] = comeup.toString()
             prefs[PreferencesKeys.KEY_REDOSE_PEAK_FRACTION] = peak.toString()
         }
+    }
+
+    // ---- App lock (biometric) ----
+
+    val isLockEnabledFlow: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.KEY_LOCK_ENABLED] ?: false
+    }
+
+    suspend fun saveLockEnabled(value: Boolean) {
+        dataStore.edit { prefs -> prefs[PreferencesKeys.KEY_LOCK_ENABLED] = value }
+    }
+
+    val lockTimeOptionFlow: Flow<foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption> =
+        dataStore.data.map { prefs ->
+            foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption.fromName(
+                prefs[PreferencesKeys.KEY_LOCK_TIME_OPTION]
+            )
+        }
+
+    suspend fun saveLockTimeOption(value: foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption) {
+        dataStore.edit { prefs -> prefs[PreferencesKeys.KEY_LOCK_TIME_OPTION] = value.name }
+    }
+
+    /**
+     * Last time the app was foregrounded, expressed as epoch seconds. 0 means "unknown",
+     * which is treated as "needs to lock" by [foo.pilz.freaklog.ui.tabs.settings.lock.shouldLockNow].
+     */
+    val lastActiveEpochSecondsFlow: Flow<Long> = dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.KEY_LOCK_LAST_ACTIVE] ?: 0L
+    }
+
+    suspend fun saveLastActiveEpochSeconds(value: Long) {
+        dataStore.edit { prefs -> prefs[PreferencesKeys.KEY_LOCK_LAST_ACTIVE] = value }
     }
 }

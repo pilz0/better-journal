@@ -130,6 +130,7 @@ dependencies {
 
     implementation(libs.google.generativeai)
     implementation(libs.compose.markdown)
+    implementation(libs.androidx.biometric)
 
     coreLibraryDesugaring(libs.android.desugarJdkLibs)
 }

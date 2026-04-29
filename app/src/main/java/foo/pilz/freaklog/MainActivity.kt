@@ -20,7 +20,6 @@ package foo.pilz.freaklog
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,18 +29,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.fragment.app.FragmentActivity
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import foo.pilz.freaklog.ui.MyAppWidget
 import foo.pilz.freaklog.ui.main.MainScreen
+import foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthManager
 import foo.pilz.freaklog.ui.theme.JournalTheme
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
 
     @javax.inject.Inject lateinit var notificationScheduler: foo.pilz.freaklog.scheduled.NotificationScheduler
+
+    @javax.inject.Inject lateinit var biometricAuthManager: BiometricAuthManager
 
     companion object {
         const val ACTION_ADD_INGESTION = ".ADD_INGESTION"
@@ -82,17 +85,32 @@ class MainActivity : ComponentActivity() {
         setContent {
             JournalTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    MainScreen(
-                        shouldNavigateToAddIngestion = shouldNavigateToAddIngestion,
-                        onAddIngestionNavigated = ::onAddIngestionNavigated,
-                        shouldNavigateToJournalScreen = shouldNavigateToJournalScreen,
-                        onJournalScreenNavigated = ::onJournalScreenNavigated,
-                        shouldNavigateToExperienceId = shouldNavigateToExperienceId,
-                        onExperienceNavigated = ::onExperienceNavigated
-                    )
+                    foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthWrapper(
+                        manager = biometricAuthManager,
+                        activity = this@MainActivity,
+                    ) {
+                        MainScreen(
+                            shouldNavigateToAddIngestion = shouldNavigateToAddIngestion,
+                            onAddIngestionNavigated = ::onAddIngestionNavigated,
+                            shouldNavigateToJournalScreen = shouldNavigateToJournalScreen,
+                            onJournalScreenNavigated = ::onJournalScreenNavigated,
+                            shouldNavigateToExperienceId = shouldNavigateToExperienceId,
+                            onExperienceNavigated = ::onExperienceNavigated
+                        )
+                    }
                 }
             }
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        biometricAuthManager.onAppPaused()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        biometricAuthManager.onAppResumed()
     }
 
     override fun onNewIntent(intent: Intent) {
