@@ -3,10 +3,6 @@ package foo.pilz.freaklog.data.ai
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.ai.client.generativeai.Chat
-import com.google.ai.client.generativeai.type.Content
-import com.google.ai.client.generativeai.type.FunctionResponsePart
-import com.google.ai.client.generativeai.type.Part
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -15,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import javax.inject.Inject
 
 /** A single bubble shown in the chat transcript. */
@@ -70,7 +67,7 @@ class AiChatViewModel @Inject constructor(
     val uiState: StateFlow<AiChatUiState> = _uiState.asStateFlow()
 
     private var experienceId: Int? = null
-    private var chatSession: Chat? = null
+    private var chatSession: GeminiChatSession? = null
     private var activeJob: Job? = null
 
     /**
@@ -115,7 +112,7 @@ class AiChatViewModel @Inject constructor(
                 }
                 return@launch
             }
-            chatSession = ready.model.startChat()
+            chatSession = ready.session
             val initial = if (showWelcome) {
                 listOf(
                     ChatItem.Message(
@@ -156,53 +153,62 @@ class AiChatViewModel @Inject constructor(
 
         activeJob = viewModelScope.launch {
             try {
-                var response = chat.sendMessage(text)
+                var chatResponse: ChatResponse = chat.sendUserMessage(text)
                 while (true) {
                     if (token != sessionToken) return@launch
-                    val functionCalls = response.functionCalls
-                    if (functionCalls.isEmpty()) {
-                        val finalText = response.text?.takeIf { it.isNotBlank() }
-                            ?: "The assistant returned an empty response."
-                        replaceMessage(placeholderId) {
-                            it.copy(text = finalText, isLoading = false)
+                    val current = chatResponse  // local val enables smart casts inside when branches
+                    when (current) {
+                        is ChatResponse.ErrorResponse -> {
+                            replaceMessage(placeholderId) {
+                                it.copy(
+                                    text = "Error: ${current.message}",
+                                    isLoading = false,
+                                    isError = true
+                                )
+                            }
+                            _uiState.update { it.copy(isAssistantBusy = false, statusMessage = null) }
+                            return@launch
                         }
-                        _uiState.update { it.copy(isAssistantBusy = false, statusMessage = null) }
-                        return@launch
-                    }
-
-                    // The Gemini SDK can return multiple function calls per turn; execute every
-                    // call and reply with one FunctionResponsePart per call before asking for the
-                    // next assistant message, otherwise the model keeps waiting on the missing
-                    // tool responses.
-                    val responseParts = mutableListOf<Part>()
-                    for (functionCall in functionCalls) {
-                        if (token != sessionToken) return@launch
-                        val toolEvent = ChatItem.ToolEvent(
-                            toolName = functionCall.name,
-                            args = functionCall.args
-                        )
-                        insertBefore(placeholderId, toolEvent)
-                        _uiState.update { it.copy(statusMessage = "Running ${functionCall.name}…") }
-
-                        val toolResult = tools.execute(functionCall.name, functionCall.args)
-                        val isError = toolResult.optString("status") == "error"
-                        updateToolEvent(toolEvent.id) {
-                            it.copy(
-                                status = if (isError) ChatItem.ToolEvent.Status.Error else ChatItem.ToolEvent.Status.Success,
-                                resultSummary = summariseToolResult(functionCall.name, toolResult)
-                            )
+                        is ChatResponse.TextResponse -> {
+                            val finalText = current.text.takeIf { it.isNotBlank() }
+                                ?: "The assistant returned an empty response."
+                            replaceMessage(placeholderId) {
+                                it.copy(text = finalText, isLoading = false)
+                            }
+                            _uiState.update { it.copy(isAssistantBusy = false, statusMessage = null) }
+                            return@launch
                         }
-                        responseParts += FunctionResponsePart(functionCall.name, toolResult)
-                    }
+                        is ChatResponse.FunctionCallsResponse -> {
+                            // Execute every requested tool call, then send all results back together.
+                            val functionResults = mutableListOf<Pair<String, JSONObject>>()
+                            for (functionCall in current.calls) {
+                                if (token != sessionToken) return@launch
+                                val toolEvent = ChatItem.ToolEvent(
+                                    toolName = functionCall.name,
+                                    args = functionCall.args
+                                )
+                                insertBefore(placeholderId, toolEvent)
+                                _uiState.update { it.copy(statusMessage = "Running ${functionCall.name}…") }
 
-                    if (token != sessionToken) return@launch
-                    _uiState.update { it.copy(statusMessage = "Thinking…") }
-                    response = chat.sendMessage(
-                        Content(role = "function", parts = responseParts)
-                    )
+                                val toolResult = tools.execute(functionCall.name, functionCall.args)
+                                val isError = toolResult.optString("status") == "error"
+                                updateToolEvent(toolEvent.id) {
+                                    it.copy(
+                                        status = if (isError) ChatItem.ToolEvent.Status.Error
+                                        else ChatItem.ToolEvent.Status.Success,
+                                        resultSummary = summariseToolResult(functionCall.name, toolResult)
+                                    )
+                                }
+                                functionResults += functionCall.name to toolResult
+                            }
+
+                            if (token != sessionToken) return@launch
+                            _uiState.update { it.copy(statusMessage = "Thinking…") }
+                            chatResponse = chat.sendFunctionResults(functionResults)
+                        }
+                    }
                 }
             } catch (ce: CancellationException) {
-                // Cancellation is a control-flow signal, not an error: do not surface it as one.
                 throw ce
             } catch (t: Throwable) {
                 Log.e("AiChatViewModel", "Chat turn failed", t)
