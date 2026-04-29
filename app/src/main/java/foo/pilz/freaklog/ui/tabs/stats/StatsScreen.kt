@@ -38,6 +38,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.Insights
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.ButtonDefaults
@@ -80,11 +81,13 @@ import foo.pilz.freaklog.ui.utils.rememberHaptic
 fun StatsScreen(
     viewModel: StatsViewModel = hiltViewModel(),
     navigateToSubstanceCompanion: (substanceName: String, consumerName: String?) -> Unit,
-    navigateToToleranceChart: () -> Unit = {}
+    navigateToToleranceChart: () -> Unit = {},
+    navigateToMoreCharts: () -> Unit = {},
 ) {
     StatsScreen(
         navigateToSubstanceCompanion = navigateToSubstanceCompanion,
         navigateToToleranceChart = navigateToToleranceChart,
+        navigateToMoreCharts = navigateToMoreCharts,
         onTapOption = viewModel::onTapOption,
         statsModel = viewModel.statsModelFlow.collectAsState().value,
         onChangeConsumerName = viewModel::onChangeConsumer,
@@ -103,6 +106,7 @@ fun StatsPreview(
         StatsScreen(
             navigateToSubstanceCompanion = { _, _ -> },
             navigateToToleranceChart = {},
+            navigateToMoreCharts = {},
             onTapOption = {},
             statsModel = statsModel,
             onChangeConsumerName = {},
@@ -116,6 +120,7 @@ fun StatsPreview(
 fun StatsScreen(
     navigateToSubstanceCompanion: (substanceName: String, consumerName: String?) -> Unit,
     navigateToToleranceChart: () -> Unit = {},
+    navigateToMoreCharts: () -> Unit = {},
     onTapOption: (option: TimePickerOption) -> Unit,
     statsModel: StatsModel,
     onChangeConsumerName: (String?) -> Unit,
@@ -183,6 +188,15 @@ fun StatsScreen(
                         navigateToToleranceChart()
                     }) {
                         Icon(Icons.Outlined.Schedule, contentDescription = "Tolerance")
+                    }
+                    IconButton(onClick = {
+                        performHaptic(HapticType.CLICK)
+                        navigateToMoreCharts()
+                    }) {
+                        Icon(
+                            Icons.Outlined.Insights,
+                            contentDescription = "More charts"
+                        )
                     }
                 }
             )

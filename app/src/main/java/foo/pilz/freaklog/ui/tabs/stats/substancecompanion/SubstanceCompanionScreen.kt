@@ -85,7 +85,9 @@ fun SubstanceCompanionScreen(
             selectedTimeRange = viewModel.selectedTimeRange.collectAsState().value,
             onTimeRangeSelected = viewModel::setTimeRange,
             showAverage = viewModel.showAverage.collectAsState().value,
-            onToggleShowAverage = viewModel::toggleShowAverage
+            onToggleShowAverage = viewModel::toggleShowAverage,
+            frequency = viewModel.frequencyFlow.collectAsState().value,
+            hasMixedUnits = viewModel.hasMixedUnitsFlow.collectAsState().value,
         )
     }
 }
@@ -122,7 +124,9 @@ fun SubstanceCompanionScreen(
     selectedTimeRange: DosageTimeRange = DosageTimeRange.WEEKS_26,
     onTimeRangeSelected: (DosageTimeRange) -> Unit = {},
     showAverage: Boolean = false,
-    onToggleShowAverage: (Boolean) -> Unit = {}
+    onToggleShowAverage: (Boolean) -> Unit = {},
+    frequency: SubstanceFrequency = SubstanceFrequency(0, 0, 0),
+    hasMixedUnits: Boolean = false,
 ) {
     Scaffold(
         topBar = {
@@ -141,6 +145,27 @@ fun SubstanceCompanionScreen(
                 .padding(horizontal = horizontalPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Usage frequency section
+            item {
+                SubstanceFrequencySection(frequency = frequency)
+            }
+            if (hasMixedUnits) {
+                item {
+                    ElevatedCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                    ) {
+                        Text(
+                            text = "Heads-up: ingestions for this substance use multiple unit strings " +
+                                "(e.g. mg vs µg). The dosage chart sums them together — interpret with care.",
+                            modifier = Modifier.padding(12.dp),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            }
             // Dosage Stats Section
             item {
                 ElevatedCard(
