@@ -82,7 +82,7 @@ class ExperienceViewModel @Inject constructor(
     @ApplicationContext context: Context,
 ) : ViewModel() {
 
-    private val achievementDefs = loadAchievements(context)
+    private val achievementDefsFlow = MutableStateFlow<List<AchievementDef>>(emptyList())
 
     private val areSubstanceHeightsIndependentFlow =
         userPreferences.areSubstanceHeightsIndependentFlow.stateIn(
@@ -139,6 +139,9 @@ class ExperienceViewModel @Inject constructor(
             val experience = experienceRepo.getExperience(expId)
             val isFavorite = experience?.isFavorite ?: false
             localIsFavoriteFlow.emit(isFavorite)
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            achievementDefsFlow.value = runCatching { loadAchievements(context) }.getOrElse { emptyList() }
         }
     }
 
@@ -386,9 +389,10 @@ class ExperienceViewModel @Inject constructor(
         ingestionsWithCompanionsFlow,
         ratingsFlow,
         timedNotesSortedFlow,
-        experienceFlow
-    ) { ingestionWithComps, ratings, timedNotes, experience ->
-        if (experience == null) return@combine emptyList()
+        experienceFlow,
+        achievementDefsFlow
+    ) { ingestionWithComps, ratings, timedNotes, experience, defs ->
+        if (experience == null || defs.isEmpty()) return@combine emptyList()
         val ingestions = ingestionWithComps.map { it.ingestion }
         val expWithData = ExperienceWithIngestionsTimedNotesAndRatings(
             experience = experience,
@@ -406,7 +410,7 @@ class ExperienceViewModel @Inject constructor(
             substanceRepo = substanceRepo,
             interactionChecker = interactionChecker
         )
-        achievementDefs.filter { evaluateAchievement(it.condition, ctx) }
+        defs.filter { evaluateAchievement(it.condition, ctx) }
     }.flowOn(Dispatchers.Default)
         .stateIn(
             initialValue = emptyList(),

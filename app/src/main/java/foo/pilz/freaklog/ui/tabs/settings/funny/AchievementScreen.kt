@@ -159,7 +159,7 @@ private fun AchievementCard(
 }
 
 @Composable
-private fun TierBadge(tier: AchievementTier, isLocked: Boolean) {
+internal fun TierBadge(tier: AchievementTier, isLocked: Boolean = false) {
     val (bg, label) = when (tier) {
         AchievementTier.BRONZE -> Color(0xFFCD7F32) to "Bronze"
         AchievementTier.SILVER -> Color(0xFFB0B0B0) to "Silver"
