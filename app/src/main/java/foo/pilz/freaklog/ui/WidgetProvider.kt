@@ -433,10 +433,14 @@ class TimelineWidgetWorker(
             val sortedRecent = allRecentIngestionsWithCompanions
                 .sortedByDescending { it.ingestion.time }
 
+            // The UI renders at most 20 lines; stop collecting once we have that many.
+            val maxLines = 20
             val colorsMap = mutableMapOf<String, Int>()
             val lines = mutableListOf<String>()
 
             for (iwc in sortedRecent) {
+                if (lines.size >= maxLines) break
+
                 val ingestion = iwc.ingestion
                 val elapsedSeconds = Duration.between(ingestion.time, now).seconds.toFloat()
                 val roa = substanceDurations[ingestion.substanceName]?.get(ingestion.administrationRoute)
@@ -449,7 +453,7 @@ class TimelineWidgetWorker(
                     is IngestionPhase.Onset      -> "onset • peak in ${formatSecondsToTime(phase.peakInSeconds.toLong())}"
                     is IngestionPhase.Comeup     -> "↑ comeup • peak in ${formatSecondsToTime(phase.peakInSeconds.toLong())}"
                     is IngestionPhase.Peak       -> "peak • ${formatSecondsToTime(phase.remainingSeconds.toLong())} left"
-                    is IngestionPhase.Offset     -> "↓ offset • ${formatSecondsToTime(phase.remainingSeconds.toLong())} left"
+                    is IngestionPhase.Offset     -> if (phase.remainingSeconds > 0) "↓ offset • ${formatSecondsToTime(phase.remainingSeconds.toLong())} left" else "↓ offset • finishing"
                     is IngestionPhase.Active     -> if (phase.remainingSeconds > 0) "${formatSecondsToTime(phase.remainingSeconds.toLong())} left" else "finishing"
                     is IngestionPhase.Finished   -> "finished"  // unreachable; filtered above
                 }
@@ -481,8 +485,18 @@ class TimelineWidgetWorker(
 
             // hasData is true only when there is something current to display.
             val hasData = timelineModel.hasContent || lines.isNotEmpty()
-            // The most recent experience from the active list (first = newest).
-            val mostRecentExperienceId = sortedRecent.firstOrNull()?.ingestion?.experienceId
+            // Derive the deep-link experience ID from the first non-Finished ingestion so
+            // the widget doesn't open a finished/stale experience when hasData is false.
+            val mostRecentExperienceId = if (hasData) {
+                sortedRecent.firstOrNull { iwc ->
+                    val ingestion = iwc.ingestion
+                    val elapsedSeconds = Duration.between(ingestion.time, now).seconds.toFloat()
+                    val roa = substanceDurations[ingestion.substanceName]?.get(ingestion.administrationRoute)
+                    WidgetTimelineModel.resolveIngestionPhase(elapsedSeconds, roa) !is IngestionPhase.Finished
+                }?.ingestion?.experienceId
+            } else {
+                null
+            }
 
             val ingestionsText = lines.joinToString("\n")
 
