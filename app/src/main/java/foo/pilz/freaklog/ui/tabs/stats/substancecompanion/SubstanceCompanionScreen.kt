@@ -66,7 +66,8 @@ import androidx.compose.ui.draw.scale
 
 @Composable
 fun SubstanceCompanionScreen(
-    viewModel: SubstanceCompanionViewModel = hiltViewModel()
+    viewModel: SubstanceCompanionViewModel = hiltViewModel(),
+    navigateToDosageStat: (substanceName: String, consumerName: String?) -> Unit = { _, _ -> },
 ) {
     val companion = viewModel.thisCompanionFlow.collectAsState().value
     if (companion == null) {
@@ -88,6 +89,9 @@ fun SubstanceCompanionScreen(
             onToggleShowAverage = viewModel::toggleShowAverage,
             frequency = viewModel.frequencyFlow.collectAsState().value,
             hasMixedUnits = viewModel.hasMixedUnitsFlow.collectAsState().value,
+            onOpenDosageStat = {
+                navigateToDosageStat(companion.substanceName, viewModel.consumerName)
+            },
         )
     }
 }
@@ -127,6 +131,7 @@ fun SubstanceCompanionScreen(
     onToggleShowAverage: (Boolean) -> Unit = {},
     frequency: SubstanceFrequency = SubstanceFrequency(0, 0, 0),
     hasMixedUnits: Boolean = false,
+    onOpenDosageStat: () -> Unit = {},
 ) {
     Scaffold(
         topBar = {
@@ -135,7 +140,14 @@ fun SubstanceCompanionScreen(
             } else {
                 "${substanceCompanion.substanceName} ($consumerName)"
             }
-            TopAppBar(title = { Text(title) })
+            TopAppBar(
+                title = { Text(title) },
+                actions = {
+                    androidx.compose.material3.TextButton(onClick = onOpenDosageStat) {
+                        Text("Dosage stats")
+                    }
+                },
+            )
         }
     ) { padding ->
         LazyColumn(
