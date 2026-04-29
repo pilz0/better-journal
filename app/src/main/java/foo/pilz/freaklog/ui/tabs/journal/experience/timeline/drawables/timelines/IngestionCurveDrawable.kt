@@ -33,8 +33,8 @@ import kotlin.math.min
  * points" bug of the previous polygonal renderer. The path is drawn with the existing rounded
  * stroke (which already implies smooth corners through `cornerPathEffect`).
  *
- * The stroke is dotted when none of the contributing curves are "certain" (i.e. PsychonautWiki
- * data was incomplete), matching the convention of the previous renderer.
+ * The stroke is dotted when any of the contributing curves is not "certain" (i.e. PsychonautWiki
+ * data was incomplete for at least one ingestion), matching the convention of the previous renderer.
  */
 data class IngestionCurveDrawable(
     val curves: List<IngestionCurve>,

@@ -87,10 +87,14 @@ class RoaDurationToCurveTest {
         )
         val curve = rd.toIngestionCurve(wl, origin)
         assertNotNull(curve)
-        // Numerically scan for the peak and ensure it sits *after* the infusion start (ingestion).
+        // Numerically scan for the peak and ensure it sits after the ingestion mid-point.
         val tPeak = (1..curve!!.curveEndSec.toInt())
             .maxByOrNull { curve.valueAt(it.toFloat()) }!!
-        assertTrue("infusion peak ($tPeak s) should be after ingestion start", tPeak > 0)
+        val ingestionMidPointSec = ((start.epochSecond + end.epochSecond) / 2) - origin.epochSecond
+        assertTrue(
+            "infusion peak ($tPeak s) should be after ingestion mid-point ($ingestionMidPointSec s)",
+            tPeak.toLong() > ingestionMidPointSec
+        )
     }
 
     private fun range(min: Float, max: Float, units: DurationUnits) =

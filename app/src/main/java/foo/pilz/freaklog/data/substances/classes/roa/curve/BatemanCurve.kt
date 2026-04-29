@@ -66,7 +66,7 @@ data class BatemanCurve(
         // Sample numerically: the analytical peak of the convolution depends on T and has no
         // closed form, but the curve is smooth and unimodal so a coarse scan + refinement is
         // robust and cheap.
-        findInfusionPeak(infusionDurationSec)
+        findMaxInfusionShapeValue(infusionDurationSec)
     }
 
     private val scale: Double = if (unscaledPeak > 0.0) peakHeight / unscaledPeak else 0.0
@@ -106,7 +106,11 @@ data class BatemanCurve(
         }
     }
 
-    private fun findInfusionPeak(t: Double): Double {
+    /**
+     * Returns the maximum *value* (not time) of [infusionShape] for an infusion of duration [t].
+     * Used internally to normalise [scale] so the rendered peak equals [peakHeight].
+     */
+    private fun findMaxInfusionShapeValue(t: Double): Double {
         // Coarse scan over [0, T + 4/ke], then golden-section refinement.
         val end = t + 4.0 / ke
         val steps = 200

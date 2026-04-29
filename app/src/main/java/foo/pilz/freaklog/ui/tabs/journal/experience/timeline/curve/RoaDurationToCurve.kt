@@ -96,8 +96,8 @@ fun RoaDuration.toIngestionCurve(
     // a small overshoot so the dotted tail visibly approaches zero rather than being clipped at
     // exactly TAIL_EPSILON. The fallback (no `total`) gets a larger multiplier because the
     // estimated total is itself less reliable.
-    val maxLength = totalSec?.let { (it * 1.2f).toFloat() }
-        ?: ((targetTotal * 1.5f).toFloat())
+    val maxLength = totalSec?.let { (it * 1.2).toFloat() }
+        ?: ((targetTotal * 1.5).toFloat())
 
     return BatemanCurve(
         ka = ka,
