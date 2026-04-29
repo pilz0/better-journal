@@ -81,6 +81,15 @@ class FinishIngestionScreenViewModel @Inject constructor(
     var enteredTitle by mutableStateOf(LocalDateTime.now().getStringOfPattern("dd MMMM yyyy"))
     val isEnteredTitleOk get() = enteredTitle.isNotEmpty()
     var consumerName by mutableStateOf("")
+    var sendWebhook by mutableStateOf(true)
+
+    val isWebhookConfiguredFlow: StateFlow<Boolean> =
+        userPreferences.readWebhookURL().map { it.isNotBlank() }
+            .stateIn(
+                initialValue = false,
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000)
+            )
 
 
     fun onChangeTimePickerOption(ingestionTimePickerOption: IngestionTimePickerOption) =
@@ -360,6 +369,11 @@ class FinishIngestionScreenViewModel @Inject constructor(
     }
 
     private suspend fun sendWebhookForIngestion(ingestion: Ingestion) {
+        if (!sendWebhook) {
+            android.util.Log.d("FinishIngestionScreenViewModel", "Webhook disabled for this ingestion")
+            return
+        }
+
         val webhookURL = userPreferences.readWebhookURL().first()
         if (webhookURL.isBlank()) {
             android.util.Log.d("FinishIngestionScreenViewModel:", "Webhook is blank, skipping")

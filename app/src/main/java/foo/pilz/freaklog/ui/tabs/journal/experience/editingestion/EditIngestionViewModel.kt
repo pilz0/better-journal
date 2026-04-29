@@ -255,21 +255,34 @@ class EditIngestionViewModel @Inject constructor(
         }
 
         val webhookName = userPreferences.readWebhookName().first()
-        val webhookTemplate = userPreferences.readWebhookTemplate().first().ifBlank { 
-            foo.pilz.freaklog.data.webhook.WebhookService.DEFAULT_TEMPLATE 
+        val webhookTemplate = userPreferences.readWebhookTemplate().first().ifBlank {
+            foo.pilz.freaklog.data.webhook.WebhookService.DEFAULT_TEMPLATE
         }
 
         val user = webhookName.ifBlank { "User" }
         val route = ingestion.administrationRoute.displayText
 
         try {
+            // Calculate display values from custom units
+            var displayDose = ingestion.dose
+            var displayUnits = ingestion.units
+
+            val customUnitId = ingestion.customUnitId
+            if (customUnitId != null) {
+                val customUnit = experienceRepo.getCustomUnit(customUnitId)
+                if (customUnit != null && customUnit.dose != null && ingestion.dose != null) {
+                   displayDose = ingestion.dose!! * customUnit.dose!!
+                   displayUnits = customUnit.originalUnit
+                }
+            }
+
             webhookService.editWebhook(
                 url = webhookURL,
                 messageId = ingestion.webhookMessageId!!,
                 user = user,
                 substance = ingestion.substanceName,
-                dose = ingestion.dose,
-                units = ingestion.units,
+                dose = displayDose,
+                units = displayUnits,
                 isEstimate = ingestion.isDoseAnEstimate,
                 route = route,
                 site = ingestion.administrationSite,
