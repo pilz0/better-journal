@@ -33,6 +33,7 @@ class AllTimelinesModel(
     val dataForRatings: List<DataForOneRating>,
     val timedNotes: List<DataForOneTimedNote>,
     areSubstanceHeightsIndependent: Boolean,
+    useBatemanCurve: Boolean = false,
 ) {
     val startTime: Instant
     val widthInSeconds: Float
@@ -76,7 +77,8 @@ class AllTimelinesModel(
                 color = group.color,
                 roaDuration = group.roaDuration,
                 weightedLines = group.weightedLines,
-                areSubstanceHeightsIndependent = areSubstanceHeightsIndependent
+                areSubstanceHeightsIndependent = areSubstanceHeightsIndependent,
+                useBatemanCurve = useBatemanCurve,
             )
         }
         val overallMaxHeight = groupDrawables.maxOfOrNull { it.nonNormalisedHeight } ?: 1f

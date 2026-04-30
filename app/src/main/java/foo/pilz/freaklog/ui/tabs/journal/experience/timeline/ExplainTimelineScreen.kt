@@ -75,19 +75,19 @@ fun ExplainTimelineScreen() {
                         "Taking twice the dose will give twice the effect.",
                         "Duration ranges from PsychonautWiki can be applied for all kinds of dosages.",
                         "Oral ingestions are always on an empty stomach and therefore not delayed (by up to 4 hours).",
-                        "Every substance follows simple two-compartment (one-absorption-rate, one-elimination-rate) pharmacokinetics, regardless of the actual metabolic pathway.",
                     )
                 )
             }
             CardWithTitle(title = "Understanding the timeline") {
                 BulletPoints(
                     points = listOf(
-                        "Each ingestion is plotted as a smooth pharmacokinetic absorption/elimination curve (a Bateman function) instead of a polygon. The curve has no vertical spike at ingestion, a single rounded peak, and an exponential tail.",
-                        "The peak time of the curve (tmax) is taken from PsychonautWiki's onset and comeup durations. The tail length is taken from the total duration when defined, otherwise estimated from onset+comeup+peak+offset.",
-                        "Ingestions of the same substance via the same route are stacked on a shared sample grid, so two overlapping doses produce a single taller combined curve.",
-                        "Different substances or administration routes are always drawn as separate curves, even if they overlap in time.",
-                        "When PsychonautWiki data is incomplete (e.g. only a total duration is known) the curve is drawn with a dotted stroke to signal that its shape is uncertain. The location of the peak in such cases is a rough estimate.",
-                        "When a time range is given for the ingestion (an infusion), the curve is the analytical convolution of the Bateman function with that ingestion window — the rise is slower and the peak occurs later than for the equivalent point ingestion.",
+                        "The timeline is drawn based on the onset, comeup, peak and offset (and sometimes total) from PsychonautWiki.",
+                        "In the ideal case all 4 durations (onset, comeup, peak and offset) are defined and the full timeline is drawn as averageOnset -> averageComeup -> weightedPeak -> weightedOffset, where \"weighted\" means that the given range has been linearly interpolated with the dose, so if a threshold dose was taken it takes the minimum of the range, if a heavy dose was taken it takes the max and for everything in between it linearly interpolates.",
+                        "The timelines from ingestions with the same substance and administration route where substances have onset, comeup, peak and offset defined are combined into a cumulative timeline by simply putting the individual lines on top of each other. This is not done for ingestions where either the onset, comeup, peak or offset duration is missing.",
+                        "Different administration routes are always drawn as separate timelines even if they are of the same substance. They also take the full height of the canvas, not the height that is proportional to the dose or effect.",
+                        "If any of the 4 durations are missing but the total duration is given, then the first defined durations are drawn and as soon as a missing duration is encountered it uses the total to infer the end of the timeline and draws a dotted line to the end. If the total is not given it just stops drawing the line. So if there is no timeline or part of the timeline is missing that means that the duration is not defined in PsychonautWiki. If you add the missing durations in PsychonautWiki, the full timeline will be shown in the next update.",
+                        "The vertical trajectory of dotted lines is unknown. So if you see a dotted line that means it is not known how the effect develops over that timeframe. The only thing that is known is where the line will end.",
+                        "When a time range is given for the ingestion and all durations are defined for the route of administration then the app assumes the dosage was evenly consumed in that time frame and cumulates the curves of the infinitesimal ingestions using convolution."
                     )
                 )
             }
