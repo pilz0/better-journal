@@ -314,7 +314,7 @@ Gemini directly:
 | `GeminiRestClient.kt` | Minimal HTTP client for `https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`. Posts a raw `JSONObject`, returns a raw `JSONObject`, runs on `Dispatchers.IO`. |
 | `GeminiChatSession.kt` | Stateful chat wrapper. Stores conversation history as raw JSON `Part`s so `thoughtSignature` (and any other server-only fields) survive round-trips. |
 | `AiTools.kt` | Function-calling tool declarations the model may invoke (e.g. journal lookups). Also dispatches tool calls back to the right repository. |
-| `AiDateFormatter.kt` | Locale/TZ-stable date strings used inside the prompt and tool results. |
+| `AiDateFormatter.kt` | Locale-stable date strings (fixed `yyyy-MM-dd HH:mm` pattern) rendered in the user's system timezone (`ZoneId.systemDefault()`). |
 | `AiChatbotRepository.kt` | Builds the harm-reduction system instruction from the current experience + recent history and constructs a fresh `GeminiChatSession` per call so settings changes (API key, model name) take effect immediately. |
 | `AiChatViewModel.kt` | Exposes the conversation as a `StateFlow<List<ChatMessage>>` to the UI (`AiChatBottomSheet`). |
 
@@ -329,7 +329,7 @@ The API key and model name are user-configurable in Settings → AI and persiste
 
 ### Navigation
 
-Routes and the `NavHost` are defined in `MainActivity.kt`. All screens are reachable from the bottom navigation bar (Journal, Search, Safer Use, Stats, Settings).
+Routes and the `NavHost` are defined in `MainActivity.kt`. The bottom navigation bar exposes Journal, Search, Safer Use, Stats, Inventory and Settings — though Safer Use, Stats and Inventory are conditionally shown based on user preferences (see [Bottom navigation tabs](#bottom-navigation-tabs)).
 
 ### Bottom navigation tabs
 
@@ -342,8 +342,8 @@ Routes and the `NavHost` are defined in `MainActivity.kt`. All screens are reach
 | Inventory | `ui/tabs/inventory/` | Stash tracking — **optional**, hidden unless enabled in Settings |
 | Settings | `ui/tabs/settings/` | Preferences, webhook, export/import, reminders, AI, lock |
 
-Tabs are conditionally shown by `MainScreen` based on `MainViewModel` flags
-(`activateSaferFlow`, `isStatsHiddenFlow`, `isInventoryEnabledFlow`, drug-list flag).
+Tabs are conditionally shown by `MainScreen` based on `MainScreenViewModel` flags
+(`activateSaferFlow`, `isStatsHiddenFlow`, `isInventoryEnabledFlow`, `isDrugsHiddenFlow`).
 
 ### Timeline rendering
 
@@ -385,8 +385,13 @@ Reminder firing is split between pure logic and Android plumbing:
   net.
 
 `@ApplicationScope` (`CoroutineScope(SupervisorJob() + Dispatchers.Default)`)
-from `AppModule` is used for background work that must outlive a UI scope
-(e.g. reminder rearm and webhook send-after-dismiss).
+from `AppModule` is injected into ViewModels for fire-and-forget work that
+must outlive the UI scope — e.g. webhook send/edit/delete from
+`FinishIngestionScreenViewModel` and `EditIngestionViewModel`, and biometric
+auth bookkeeping in `BiometricAuthManager`. Note: `BootCompletedReceiver`
+currently rearms reminders on its own ad-hoc
+`CoroutineScope(SupervisorJob() + Dispatchers.IO)` and `MainActivity` rearms
+on `lifecycleScope`; neither uses the injected `@ApplicationScope` today.
 
 ## Dependency injection (Hilt)
 
@@ -500,4 +505,4 @@ All ViewModels use `@HiltViewModel` + `@Inject constructor`. Repositories and DA
 - `@Keep` annotation on `AdministrationRoute` is a workaround for an AGP/R8 bug stripping enum metadata used in Navigation Compose serialized routes (see issue tracker link in the source file)
 - `WebhookService.editWebhook` uses HTTP `PATCH`, which works on Android's okhttp-backed `HttpURLConnection` but throws `ProtocolException` on the JDK's plain `HttpURLConnection`; therefore `editWebhook` cannot be exercised by a plain JVM unit test. HTTP-level webhook tests use **MockWebServer** (`com.squareup.okhttp3:mockwebserver`).
 - The `generative-ai-android` SDK is intentionally **not** used — see [AI chatbot](#ai-chatbot-dataai). Use `GeminiRestClient` / `GeminiChatSession` instead so `thoughtSignature` is preserved.
-- `JournalExport` includes webhook configuration (full Discord webhook URLs) in plain text — treat exported journal files as sensitive credentials.
+- `JournalExport` covers experiences, ingestions, ratings, timed notes, locations, substance companions, custom substances/units/recipes and reminders. It does **not** include webhook URLs or any other settings — those are not part of the export payload.
