@@ -31,9 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -70,7 +67,10 @@ fun BiometricAuthWrapper(
 
     if (locked) {
         LockScreen(
-            availability = remember { manager.availability() },
+            // Recompute availability on each composition so the unlock button doesn't
+            // stay disabled if the user enrolls biometrics / device credentials while
+            // the lock screen is showing.
+            availability = manager.availability(),
             onUnlockClick = {
                 manager.authenticate(activity = activity)
             },

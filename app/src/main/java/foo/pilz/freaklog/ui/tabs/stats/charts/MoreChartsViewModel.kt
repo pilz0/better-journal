@@ -32,10 +32,14 @@ class MoreChartsViewModel @Inject constructor(
     experienceRepo: ExperienceRepository,
 ) : ViewModel() {
 
-    private val allIngestionsFlow = experienceRepo.getSortedExperiencesWithIngestionsAndCustomUnitsFlow()
-        .map { experiences ->
-            experiences.flatMap { it.ingestionsWithCompanionAndCustomUnit }
-        }
+    // Shared once so the four downstream StateFlows below don't each re-collect
+    // (and re-query) the same Room flow.
+    private val allIngestionsFlow: StateFlow<List<IngestionWithCompanionAndCustomUnit>> =
+        experienceRepo.getSortedExperiencesWithIngestionsAndCustomUnitsFlow()
+            .map { experiences ->
+                experiences.flatMap { it.ingestionsWithCompanionAndCustomUnit }
+            }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val dailyBuckets: StateFlow<List<List<foo.pilz.freaklog.ui.tabs.stats.ColorCount>>> =
         allIngestionsFlow.map { ExperienceStatsHelper.dailyBuckets(it, days = 30) }
@@ -53,6 +57,5 @@ class MoreChartsViewModel @Inject constructor(
         allIngestionsFlow.map { ExperienceStatsHelper.fractionalSubstanceCounts(it) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val rawIngestions: StateFlow<List<IngestionWithCompanionAndCustomUnit>> =
-        allIngestionsFlow.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val rawIngestions: StateFlow<List<IngestionWithCompanionAndCustomUnit>> = allIngestionsFlow
 }

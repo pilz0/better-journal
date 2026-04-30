@@ -79,7 +79,11 @@ class BiometricAuthManager @Inject constructor(
         userPreferences.isLockEnabledFlow,
         _isUnlocked,
     ) { enabled, unlocked -> enabled && !unlocked }
-        .stateIn(applicationScope, SharingStarted.Eagerly, initialValue = false)
+        // Default to "locked" on cold start / process death so that we don't briefly
+        // render the journal contents before DataStore emits the persisted setting.
+        // The combine flips this to false within a frame once prefs report the lock
+        // is disabled.
+        .stateIn(applicationScope, SharingStarted.Eagerly, initialValue = true)
 
     fun setLockEnabled(enabled: Boolean) {
         applicationScope.launch {
@@ -146,7 +150,12 @@ class BiometricAuthManager @Inject constructor(
     ) {
         val executor = androidx.core.content.ContextCompat.getMainExecutor(activity)
         val callback = object : BiometricPrompt.AuthenticationCallback() {
-            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+            // The journal data is not encrypted by the biometric — the app lock is a UI
+            // overlay only, so we deliberately don't tie the prompt to a CryptoObject.
+            // CodeQL flags this as "insecure local authentication" because the
+            // AuthenticationResult isn't fed into a crypto operation; that warning is
+            // accepted as the documented tradeoff for this feature.
+            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) { // lgtm[java/insecure-local-authentication]
                 _isUnlocked.value = true
                 onUnlocked()
             }

@@ -114,9 +114,13 @@ class SubstanceCompanionViewModel @Inject constructor(
         viewModelScope.launch { _selectedMetric.emit(metric) }
     }
 
-    // Source of all ingestions for this substance/consumer
+    // Source of all ingestions for this substance/consumer.
+    // Shared once via stateIn so the four downstream pipelines below
+    // (`dosageChartDataFlow`, `chartSummaryFlow`, `ingestionBurstsFlow`, `frequencyFlow`,
+    // `hasMixedUnitsFlow`) don't each re-collect (and re-query) the underlying Room flow.
     private val allIngestionsFlow = experienceRepo.getSortedIngestionsWithExperienceAndCustomUnitFlow(substanceName)
         .map { list -> list.filter { it.ingestion.consumerName == consumerName } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val dosageChartDataFlow: StateFlow<List<DosageBucket>> =
         combine(allIngestionsFlow, selectedTimeRange, currentTimeFlow) { ingestions, timeRange, currentTime ->

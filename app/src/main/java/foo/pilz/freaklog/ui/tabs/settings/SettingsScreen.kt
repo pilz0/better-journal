@@ -195,7 +195,7 @@ fun SettingsScreen(
         saveLockEnabled = viewModel::saveLockEnabled,
         lockTimeOption = viewModel.lockTimeOptionFlow.collectAsState().value,
         saveLockTimeOption = viewModel::saveLockTimeOption,
-        biometricAvailability = remember { viewModel.biometricAvailability() },
+        biometricAvailability = viewModel.biometricAvailability(),
     )
 }
 

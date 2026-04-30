@@ -70,8 +70,15 @@ object DosageStatHelper {
         zone: ZoneId = ZoneId.systemDefault(),
         estimatedUnknownDose: Double? = null,
     ): DosageStatResult {
-        val unitsUsed = ingestions.mapNotNull { it.units?.takeIf { u -> u.isNotBlank() } }.toSet()
-        val unknownCount = ingestions.count { it.dose == null }
+        // Diagnostics ("Estimate unknown doses" hint and mixed-units warning) only describe
+        // the visible time window — otherwise the warnings can fire for ancient ingestions
+        // that aren't in the current chart at all.
+        val windowStart = now.atZone(zone).minus(range.period).toInstant()
+        val ingestionsInWindow = ingestions.filter { it.time >= windowStart && it.time < now }
+        val unitsUsed = ingestionsInWindow
+            .mapNotNull { it.units?.takeIf { u -> u.isNotBlank() } }
+            .toSet()
+        val unknownCount = ingestionsInWindow.count { it.dose == null }
 
         val buckets = ArrayDeque<DosageBucket>()
         var bucketEnd = now.atZone(zone)

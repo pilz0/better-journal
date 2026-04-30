@@ -60,7 +60,9 @@ fun LockSettingsSection(
         ) {
             Text("Lock journal")
             Switch(
-                checked = isLockEnabled && canUseBiometrics,
+                // Reflect the persisted setting verbatim so the UI doesn't lie if
+                // biometrics become unavailable while the lock is enabled in prefs.
+                checked = isLockEnabled,
                 enabled = canUseBiometrics,
                 onCheckedChange = onLockEnabledChange,
             )
@@ -73,7 +75,7 @@ fun LockSettingsSection(
                 color = MaterialTheme.colorScheme.error,
             )
         }
-        AnimatedVisibility(visible = isLockEnabled && canUseBiometrics) {
+        AnimatedVisibility(visible = isLockEnabled) {
             Column(modifier = Modifier.padding(top = 8.dp)) {
                 Text(
                     text = "Lock after",
