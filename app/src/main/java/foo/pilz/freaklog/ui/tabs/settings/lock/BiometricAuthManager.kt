@@ -166,10 +166,7 @@ class BiometricAuthManager @Inject constructor(
     ) {
         val cryptoObject = try {
             createCryptoObject()
-        } catch (e: GeneralSecurityException) {
-            onError("Biometric authentication could not be prepared.")
-            return
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             onError("Biometric authentication could not be prepared.")
             return
         }
@@ -204,6 +201,7 @@ class BiometricAuthManager @Inject constructor(
             .setTitle("Unlock Journal")
             .setSubtitle("Authenticate to view your journal")
             .setAllowedAuthenticators(STRONG_BIOMETRIC_AUTHENTICATOR)
+            .setNegativeButtonText("Cancel")
             .build()
         prompt.authenticate(info, cryptoObject)
     }
@@ -268,9 +266,9 @@ class BiometricAuthManager @Inject constructor(
                 deleteEntry(AUTH_KEY_ALIAS)
             }
         } catch (e: GeneralSecurityException) {
-            throw GeneralSecurityException("Failed to delete invalid biometric authentication key.", e)
+            throw GeneralSecurityException("Failed to delete biometric authentication key.", e)
         } catch (e: IOException) {
-            throw GeneralSecurityException("Failed to delete invalid biometric authentication key.", e)
+            throw GeneralSecurityException("Failed to delete biometric authentication key.", e)
         }
     }
 }
