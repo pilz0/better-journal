@@ -43,6 +43,12 @@ jobs:
         with:
           persist-credentials: false
 
+      # Validate the Gradle wrapper before invoking it, mirroring the
+      # `wrapper-validation` job in build.yml. This mitigates wrapper-tampering
+      # risk before any `./gradlew` command runs below.
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@0b6dd653ba04f4f93bf581ec31e66cbd7dcb644d # v4.4.4
+
       - name: Set up JDK 17
         uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.7.1
         with:
@@ -57,9 +63,10 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@0b6dd653ba04f4f93bf581ec31e66cbd7dcb644d # v4.4.4
         with:
-          # Populate the Gradle cache during setup so the agent's first build
-          # is fast.
-          cache-read-only: false
+          # Only allow cache writes from the trusted default branch, matching
+          # build.yml. Untrusted PR runs use the cache read-only to avoid
+          # cache-poisoning from forks.
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
       # Warm Gradle's dependency caches so the agent's first build/test/lint
       # invocation does not have to download Hilt, Compose, Room,
