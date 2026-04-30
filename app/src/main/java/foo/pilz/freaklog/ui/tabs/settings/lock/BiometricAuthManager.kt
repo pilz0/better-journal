@@ -84,7 +84,7 @@ class BiometricAuthManager @Inject constructor(
         const val STRONG_BIOMETRIC_AUTHENTICATOR = BiometricManager.Authenticators.BIOMETRIC_STRONG
     }
 
-    private val secureRandom = SecureRandom()
+    private val secureRandom: SecureRandom by lazy { SecureRandom() }
 
     val isLockEnabledFlow: Flow<Boolean> = userPreferences.isLockEnabledFlow
     val lockTimeOptionFlow: Flow<LockTimeOption> = userPreferences.lockTimeOptionFlow
@@ -188,7 +188,11 @@ class BiometricAuthManager @Inject constructor(
                     return
                 }
                 try {
-                    cipher.doFinal(challenge)
+                    val proof = cipher.doFinal(challenge)
+                    if (proof.isEmpty()) {
+                        onError("Biometric authentication could not be verified.")
+                        return
+                    }
                     _isUnlocked.value = true
                     onUnlocked()
                 } catch (e: GeneralSecurityException) {
@@ -236,11 +240,11 @@ class BiometricAuthManager @Inject constructor(
     }
 
     private fun getOrCreateSecretKey(): SecretKey {
-        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
+        val keyStore = loadKeyStore()
         val existingKey = try {
             keyStore.getKey(AUTH_KEY_ALIAS, null) as? SecretKey
         } catch (e: GeneralSecurityException) {
-            Log.w(TAG, "Failed to read biometric authentication key; regenerating it.", e)
+            Log.d(TAG, "Failed to read biometric authentication key; regenerating it.")
             keyStore.deleteEntry(AUTH_KEY_ALIAS)
             null
         }
@@ -266,16 +270,15 @@ class BiometricAuthManager @Inject constructor(
 
     private fun deleteSecretKey() {
         try {
-            KeyStore.getInstance(ANDROID_KEYSTORE).apply {
-                load(null)
-                deleteEntry(AUTH_KEY_ALIAS)
-            }
+            loadKeyStore().deleteEntry(AUTH_KEY_ALIAS)
         } catch (e: GeneralSecurityException) {
             throw GeneralSecurityException("Failed to delete biometric authentication key.", e)
         } catch (e: IOException) {
             throw GeneralSecurityException("Failed to delete biometric authentication key.", e)
         }
     }
+
+    private fun loadKeyStore(): KeyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
 
     private fun preparationErrorMessage(error: Exception): String = when (error) {
         is IOException -> "Biometric keystore is unavailable."
