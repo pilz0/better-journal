@@ -19,6 +19,15 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.WeightedLine
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.curve.toIngestionCurve
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawTimeRange
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.IngestionCurveDrawable
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.NoTimeline
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.toFullTimelines
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.toOnsetComeupPeakTimeline
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.toOnsetComeupPeakTotalTimeline
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.toOnsetComeupTimeline
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.toOnsetComeupTotalTimeline
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.toOnsetTimeline
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.toOnsetTotalTimeline
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.toTotalTimeline
 import java.time.Duration
 import java.time.Instant
 import kotlin.math.max
@@ -26,20 +35,27 @@ import kotlin.math.max
 /**
  * One drawable per (substance, route) group.
  *
- * Time-ranged ingestions (`endTime != null`) are visualised both:
- * - as a horizontal "duration bar" at the bottom of the chart ([TimeRangeDrawable]) and
- * - as a continuous infusion curve in the projected timeline (via [IngestionCurveDrawable]).
+ * Two rendering modes are supported:
+ * - [useBatemanCurve] = true: each ingestion is rendered as a smooth Bateman pharmacokinetic
+ *   curve via [IngestionCurveDrawable]. Used by the ingestion logging screen.
+ * - [useBatemanCurve] = false (default): the legacy piecewise-linear trapezoid timelines are
+ *   used (onset/comeup/peak/offset polygons with progressive fallbacks). Used by the
+ *   experience view, substance screen, and stand-alone timeline screen.
  *
- * Point ingestions are visualised only as a curve.
+ * Time-ranged ingestions (`endTime != null`) are visualised as a horizontal "duration bar"
+ * at the bottom of the chart ([TimeRangeDrawable]) in both modes.
  */
+@Suppress("LongParameterList", "ComplexMethod", "NestedBlockDepth")
 class GroupDrawable(
     val startTimeGraph: Instant,
     val color: AdaptiveColor,
     roaDuration: RoaDuration?,
     weightedLines: List<WeightedLine>,
     val areSubstanceHeightsIndependent: Boolean,
+    private val useBatemanCurve: Boolean = false,
 ) : TimelineDrawable {
-    private val curveDrawable: IngestionCurveDrawable
+    private val timelineDrawables: List<TimelineDrawable>
+    private val curveDrawable: IngestionCurveDrawable?
     private val timeRangeDrawables: List<TimeRangeDrawable>
     private val nonNormalisedMaxOfRoute: Float
 
@@ -71,16 +87,112 @@ class GroupDrawable(
             )
         }
 
-        // Build the projected curve(s).
-        val curves = if (roaDuration != null) {
-            weightedLines.mapNotNull { roaDuration.toIngestionCurve(it, startTimeGraph) }
+        if (useBatemanCurve) {
+            // New Bateman pharmacokinetic curve rendering (used on the ingestion logging screen).
+            val curves = if (roaDuration != null) {
+                weightedLines.mapNotNull { roaDuration.toIngestionCurve(it, startTimeGraph) }
+            } else {
+                emptyList()
+            }
+            curveDrawable = IngestionCurveDrawable(curves = curves)
+            timelineDrawables = emptyList()
+            nonNormalisedMaxOfRoute = curveDrawable.nonNormalisedHeight
+            nonNormalisedHeight = nonNormalisedMaxOfRoute
         } else {
-            emptyList()
+            // Legacy trapezoid rendering (used everywhere else, including the experience view).
+            curveDrawable = null
+            val weightedLinesForPointIngestions = weightedLines.filter { it.endTime == null }
+            timelineDrawables = if (weightedLines.isNotEmpty()) {
+                buildLegacyTimelineDrawables(roaDuration, weightedLines, weightedLinesForPointIngestions)
+            } else {
+                emptyList()
+            }
+            val pointHeights = timelineDrawables.map { it.nonNormalisedHeight }
+            nonNormalisedMaxOfRoute = pointHeights.maxOrNull() ?: 0.01f
+            nonNormalisedHeight = nonNormalisedMaxOfRoute
         }
-        curveDrawable = IngestionCurveDrawable(curves = curves)
+    }
 
-        nonNormalisedMaxOfRoute = curveDrawable.nonNormalisedHeight
-        nonNormalisedHeight = nonNormalisedMaxOfRoute
+    private fun buildLegacyTimelineDrawables(
+        roaDuration: RoaDuration?,
+        weightedLines: List<WeightedLine>,
+        weightedLinesForPointIngestions: List<WeightedLine>,
+    ): List<TimelineDrawable> {
+        val fulls = roaDuration?.toFullTimelines(
+            weightedLines = weightedLines,
+            startTimeGraph = startTimeGraph,
+        )
+        if (fulls != null) return listOf(fulls)
+        if (weightedLinesForPointIngestions.isEmpty()) return emptyList()
+        val onsetComeupPeakTotals = weightedLinesForPointIngestions.mapNotNull {
+            roaDuration?.toOnsetComeupPeakTotalTimeline(
+                peakAndTotalWeight = it.horizontalWeight,
+                ingestionTimeRelativeToStartInSeconds = getDistanceFromStartGraphInSeconds(it.startTime),
+                nonNormalisedHeight = it.height,
+            )
+        }
+        return onsetComeupPeakTotals.ifEmpty {
+            val onsetComeupTotals = weightedLinesForPointIngestions.mapNotNull {
+                roaDuration?.toOnsetComeupTotalTimeline(
+                    totalWeight = it.horizontalWeight,
+                    ingestionTimeRelativeToStartInSeconds = getDistanceFromStartGraphInSeconds(it.startTime),
+                    nonNormalisedHeight = it.height,
+                )
+            }
+            onsetComeupTotals.ifEmpty {
+                val onsetTotals = weightedLinesForPointIngestions.mapNotNull {
+                    roaDuration?.toOnsetTotalTimeline(
+                        totalWeight = it.horizontalWeight,
+                        ingestionTimeRelativeToStartInSeconds = getDistanceFromStartGraphInSeconds(it.startTime),
+                        nonNormalisedHeight = it.height,
+                    )
+                }
+                onsetTotals.ifEmpty {
+                    val totals = weightedLinesForPointIngestions.mapNotNull {
+                        roaDuration?.toTotalTimeline(
+                            totalWeight = it.horizontalWeight,
+                            ingestionTimeRelativeToStartInSeconds = getDistanceFromStartGraphInSeconds(it.startTime),
+                            nonNormalisedHeight = it.height,
+                        )
+                    }
+                    totals.ifEmpty {
+                        val onsetComeupPeaks = weightedLinesForPointIngestions.mapNotNull {
+                            roaDuration?.toOnsetComeupPeakTimeline(
+                                peakWeight = it.horizontalWeight,
+                                ingestionTimeRelativeToStartInSeconds =
+                                    getDistanceFromStartGraphInSeconds(it.startTime),
+                                nonNormalisedHeight = it.height,
+                            )
+                        }
+                        onsetComeupPeaks.ifEmpty {
+                            val onsetComeups = weightedLinesForPointIngestions.mapNotNull {
+                                roaDuration?.toOnsetComeupTimeline(
+                                    ingestionTimeRelativeToStartInSeconds =
+                                        getDistanceFromStartGraphInSeconds(it.startTime),
+                                    nonNormalisedHeight = it.height,
+                                )
+                            }
+                            onsetComeups.ifEmpty {
+                                val onsets = weightedLinesForPointIngestions.mapNotNull {
+                                    roaDuration?.toOnsetTimeline(
+                                        ingestionTimeRelativeToStartInSeconds =
+                                            getDistanceFromStartGraphInSeconds(it.startTime)
+                                    )
+                                }
+                                onsets.ifEmpty {
+                                    weightedLinesForPointIngestions.map {
+                                        NoTimeline(
+                                            ingestionTimeRelativeToStartInSeconds =
+                                                getDistanceFromStartGraphInSeconds(it.startTime)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     fun normaliseHeight(overallMaxHeight: Float) {
@@ -90,7 +202,12 @@ class GroupDrawable(
         } else {
             overallMaxHeight
         }
-        curveDrawable.referenceHeight = finalNonNormalisedMaxHeight
+        curveDrawable?.referenceHeight = finalNonNormalisedMaxHeight
+        timelineDrawables.forEach { it.referenceHeight = finalNonNormalisedMaxHeight }
+    }
+
+    private fun getDistanceFromStartGraphInSeconds(time: Instant): Float {
+        return Duration.between(startTimeGraph, time).seconds.toFloat()
     }
 
     override fun drawTimeLine(
@@ -100,13 +217,22 @@ class GroupDrawable(
         color: Color,
         density: Density
     ) {
-        curveDrawable.drawTimeLine(
+        curveDrawable?.drawTimeLine(
             drawScope = drawScope,
             canvasHeight = canvasHeight,
             pixelsPerSec = pixelsPerSec,
             color = color,
             density = density
         )
+        for (drawable in timelineDrawables) {
+            drawable.drawTimeLine(
+                drawScope = drawScope,
+                canvasHeight = canvasHeight,
+                pixelsPerSec = pixelsPerSec,
+                color = color,
+                density = density
+            )
+        }
         for (rangeDrawable in timeRangeDrawables) {
             drawScope.drawTimeRange(
                 timeRangeDrawable = rangeDrawable,
@@ -121,6 +247,10 @@ class GroupDrawable(
         get() {
             val maxWidthOfTimeRangeIngestions =
                 timeRangeDrawables.maxOfOrNull { it.ingestionEndInSeconds } ?: 0f
-            return max(maxWidthOfTimeRangeIngestions, curveDrawable.endOfLineRelativeToStartInSeconds)
+            val maxWidthOfPointIngestions = timelineDrawables.maxOfOrNull {
+                it.endOfLineRelativeToStartInSeconds
+            } ?: 0f
+            val maxWidthOfCurve = curveDrawable?.endOfLineRelativeToStartInSeconds ?: 0f
+            return max(max(maxWidthOfTimeRangeIngestions, maxWidthOfPointIngestions), maxWidthOfCurve)
         }
 }
