@@ -21,12 +21,15 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.room.webhooks.WebhookRepository
 import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
 import foo.pilz.freaklog.ui.main.navigation.graphs.WebhookEditorRoute
+import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class WebhookEditorViewModel @Inject constructor(
     private val webhookRepository: WebhookRepository,
+    private val userPreferences: UserPreferences,
     state: SavedStateHandle
 ) : ViewModel() {
 
@@ -39,12 +42,19 @@ class WebhookEditorViewModel @Inject constructor(
     var template by mutableStateOf("")
     var isHyperlinked by mutableStateOf(true)
     var isEnabled by mutableStateOf(true)
+    var useFreakQuery by mutableStateOf(true)
+    var freakQuerySeparator by mutableStateOf(", ")
+    var hyperlinkSubstances by mutableStateOf(true)
     var sortOrder: Int = 0
 
     val isExisting: Boolean get() = webhookId != null
 
     init {
         viewModelScope.launch {
+            useFreakQuery = userPreferences.webhookUseFreakQueryFlow.first()
+            freakQuerySeparator = userPreferences.webhookFreakQuerySeparatorFlow.first()
+            hyperlinkSubstances = userPreferences.webhookHyperlinkSubstancesFlow.first()
+
             val id = webhookId ?: return@launch
             val existing = webhookRepository.getById(id) ?: return@launch
             name = existing.name
@@ -73,6 +83,9 @@ class WebhookEditorViewModel @Inject constructor(
                 sortOrder = sortOrder
             )
             webhookRepository.upsert(webhook)
+            userPreferences.saveWebhookUseFreakQuery(useFreakQuery)
+            userPreferences.saveWebhookFreakQuerySeparator(freakQuerySeparator)
+            userPreferences.saveWebhookHyperlinkSubstances(hyperlinkSubstances)
             onDone()
         }
     }
