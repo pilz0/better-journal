@@ -36,14 +36,6 @@ class WebhookSeeder @Inject constructor(
     suspend fun seedIfNeeded() {
         if (userPreferences.isWebhookSeeded()) return
 
-        // Only proceed if there isn't already at least one webhook in the new
-        // table — otherwise the user has manually configured webhooks already
-        // and we should not touch them.
-        if (webhookRepository.count() > 0) {
-            userPreferences.markWebhookSeeded()
-            return
-        }
-
         val legacyUrl = userPreferences.readWebhookURL().first()
         if (legacyUrl.isBlank()) {
             // Nothing to migrate.
@@ -51,23 +43,35 @@ class WebhookSeeder @Inject constructor(
             return
         }
 
-        val legacyName = userPreferences.readWebhookName().first()
-        val legacyTemplate = userPreferences.readWebhookTemplate().first()
-
-        val seededWebhook = Webhook(
-            name = legacyName.ifBlank { "Migrated webhook" },
-            url = legacyUrl,
-            displayName = legacyName,
-            template = legacyTemplate,
-            isHyperlinked = true,
-            isEnabled = true,
-            sortOrder = 0
-        )
-        val seededId = webhookRepository.insert(seededWebhook).toInt()
+        // Find or create the seeded webhook. If the user already has webhooks
+        // (e.g. a previous run inserted the seeded row but crashed before
+        // setting WEBHOOK_SEEDED), reuse the one matching the legacy URL so
+        // we still migrate any missing link rows.
+        val existing = webhookRepository.getAll().firstOrNull { it.url == legacyUrl }
+        val seededId = existing?.id ?: run {
+            val legacyName = userPreferences.readWebhookName().first()
+            val legacyTemplate = userPreferences.readWebhookTemplate().first()
+            val seededWebhook = Webhook(
+                name = legacyName.ifBlank { "Migrated webhook" },
+                url = legacyUrl,
+                displayName = legacyName,
+                template = legacyTemplate,
+                isHyperlinked = true,
+                isEnabled = true,
+                sortOrder = 0
+            )
+            webhookRepository.insert(seededWebhook).toInt()
+        }
 
         val legacyIngestions = experienceDao.getIngestionsWithLegacyWebhookMessageId()
         for (ingestion in legacyIngestions) {
-            val msgId = ingestion.webhookMessageId ?: continue
+            val msgId = ingestion.webhookMessageId
+            // Skip ingestions without a legacy message id, or ones that
+            // already have a link row (resumed migration after a crash).
+            val alreadyLinked = msgId != null &&
+                ingestionWebhookMessageRepository
+                    .getByIngestionAndWebhook(ingestion.id, seededId) != null
+            if (msgId == null || alreadyLinked) continue
             ingestionWebhookMessageRepository.insert(
                 IngestionWebhookMessage(
                     ingestionId = ingestion.id,

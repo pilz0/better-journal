@@ -40,7 +40,12 @@ class JournalApplication : Application() {
         applicationScope.launch {
             // Migrate the legacy single-webhook configuration into the new
             // multi-webhook tables on first launch after upgrade. Idempotent.
-            webhookSeeder.seedIfNeeded()
+            // Wrap in try/catch so a failed migration cannot crash app startup.
+            try {
+                webhookSeeder.seedIfNeeded()
+            } catch (e: Exception) {
+                android.util.Log.e("JournalApplication", "Webhook seeding failed", e)
+            }
         }
     }
 }

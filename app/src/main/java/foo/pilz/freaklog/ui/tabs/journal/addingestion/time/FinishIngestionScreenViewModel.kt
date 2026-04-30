@@ -367,9 +367,13 @@ class FinishIngestionScreenViewModel @Inject constructor(
             newIngestion = newIngestion.copy(id = insertedId.toInt())
         }
         
+        // Capture the selection on the (currently main-thread) caller before
+        // launching background work — SnapshotStateMap is not safe to read
+        // from arbitrary threads.
+        val selectionSnapshot: Map<Int, Boolean> = selectedWebhookIds.toMap()
         // Send webhook notification in background
         externalScope.launch {
-            sendWebhookForIngestion(newIngestion)
+            sendWebhookForIngestion(newIngestion, selectionSnapshot)
         }
     }
 
@@ -401,7 +405,10 @@ class FinishIngestionScreenViewModel @Inject constructor(
         )
     }
 
-    private suspend fun sendWebhookForIngestion(ingestion: Ingestion) {
+    private suspend fun sendWebhookForIngestion(
+        ingestion: Ingestion,
+        selection: Map<Int, Boolean>
+    ) {
         val enabledHooks = enabledWebhooksFlow.value.ifEmpty {
             // We may be in the very-first-render race; fall back to a one-shot read.
             webhookRepository.getEnabled()
@@ -420,7 +427,7 @@ class FinishIngestionScreenViewModel @Inject constructor(
         val route = ingestion.administrationRoute.displayText
 
         for (webhook in enabledHooks) {
-            val isSelected = selectedWebhookIds[webhook.id] ?: true
+            val isSelected = selection[webhook.id] ?: true
             if (!isSelected) {
                 android.util.Log.d(TAG, "Webhook \"${webhook.name}\" deselected for this ingestion")
                 continue

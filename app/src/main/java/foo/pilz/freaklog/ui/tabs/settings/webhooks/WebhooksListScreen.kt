@@ -137,7 +137,9 @@ private fun WebhookRow(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                val host = runCatching { java.net.URI(webhook.url).host }.getOrNull().orEmpty()
+                val host = remember(webhook.url) {
+                    runCatching { java.net.URI(webhook.url).host }.getOrNull().orEmpty()
+                }
                 Text(
                     text = host.ifBlank { "(no URL)" },
                     style = MaterialTheme.typography.bodySmall,

@@ -54,6 +54,13 @@ class WebhookSeederTest {
             val ingestionId = firstArg<Int>()
             ingestionLinks.filter { it.ingestionId == ingestionId }
         }
+        coEvery { dao.getByIngestionAndWebhook(any(), any()) } answers {
+            val ingestionId = firstArg<Int>()
+            val webhookId = secondArg<Int>()
+            ingestionLinks.firstOrNull {
+                it.ingestionId == ingestionId && it.webhookId == webhookId
+            }
+        }
         IngestionWebhookMessageRepository(dao)
     }
 
@@ -143,18 +150,50 @@ class WebhookSeederTest {
     }
 
     @Test
-    fun `does not seed when the new table already has webhooks`() = runTest {
+    fun `seeds even when new table has unrelated webhooks (resilient to partial runs)`() = runTest {
         stubPrefs(
             seeded = false,
             url = "https://discord.com/api/webhooks/123/abc",
             name = "Friends"
         )
+        // Pre-existing unrelated webhook (e.g. user configured one manually).
         webhookStore += Webhook(id = 1, name = "manual", url = "https://x")
+        coEvery { experienceDao.getIngestionsWithLegacyWebhookMessageId() } returns emptyList()
+
+        seeder().seedIfNeeded()
+
+        // The legacy URL did not match the manual webhook, so we insert it
+        // alongside. This guarantees legacy data can still be migrated even
+        // if the user added other webhooks before opening the upgraded app.
+        assertEquals(2, webhookStore.size)
+        assertTrue(webhookStore.any { it.url == "https://discord.com/api/webhooks/123/abc" })
+        assertTrue(seededFlag)
+    }
+
+    @Test
+    fun `reuses pre-existing webhook with matching URL when resuming after partial run`() = runTest {
+        stubPrefs(
+            seeded = false,
+            url = "https://discord.com/api/webhooks/123/abc",
+            name = "Friends"
+        )
+        // A previous run inserted the seeded webhook but crashed before
+        // markWebhookSeeded() — the next run must reuse it and migrate the
+        // missing link rows rather than skipping them.
+        webhookStore += Webhook(
+            id = 7,
+            name = "Friends",
+            url = "https://discord.com/api/webhooks/123/abc"
+        )
+        val ing = ingestion(id = 33, msgId = "msg-ccc")
+        coEvery { experienceDao.getIngestionsWithLegacyWebhookMessageId() } returns listOf(ing)
 
         seeder().seedIfNeeded()
 
         assertEquals(1, webhookStore.size)
-        assertEquals("manual", webhookStore.single().name)
+        assertEquals(1, ingestionLinks.size)
+        assertEquals(7, ingestionLinks.single().webhookId)
+        assertEquals("msg-ccc", ingestionLinks.single().messageId)
         assertTrue(seededFlag)
     }
 

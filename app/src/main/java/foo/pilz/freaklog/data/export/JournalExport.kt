@@ -60,20 +60,39 @@ data class WebhookSerializable(
     val isEnabled: Boolean = true,
     val sortOrder: Int = 0
 ) {
-    fun toEntity(): Webhook = Webhook(
-        name = name,
-        url = url,
-        displayName = displayName,
-        template = template,
-        isHyperlinked = isHyperlinked,
-        isEnabled = isEnabled,
-        sortOrder = sortOrder
-    )
-
     companion object {
+        /**
+         * Marker substituted for the Discord webhook secret token during
+         * export. The leading slash is preserved so URI parsers still work.
+         */
+        const val REDACTED_TOKEN = "REDACTED"
+
+        /**
+         * Returns true if [url] has its secret token redacted via
+         * [redactUrl]. Imported webhooks with a redacted URL should be
+         * disabled until the user re-supplies the real URL.
+         */
+        fun isRedacted(url: String): Boolean = url.endsWith("/$REDACTED_TOKEN")
+
+        /**
+         * Discord webhook URLs have the form
+         * `https://discord.com/api/webhooks/{id}/{token}` where `{token}`
+         * is a secret. Replace the trailing token segment with
+         * [REDACTED_TOKEN] so exported journals don't leak credentials.
+         */
+        fun redactUrl(url: String): String {
+            val trimmed = url.trimEnd('/')
+            val lastSlash = trimmed.lastIndexOf('/')
+            return if (lastSlash > 0 && lastSlash < trimmed.length - 1) {
+                trimmed.substring(0, lastSlash + 1) + REDACTED_TOKEN
+            } else {
+                url
+            }
+        }
+
         fun fromEntity(webhook: Webhook): WebhookSerializable = WebhookSerializable(
             name = webhook.name,
-            url = webhook.url,
+            url = redactUrl(webhook.url),
             displayName = webhook.displayName,
             template = webhook.template,
             isHyperlinked = webhook.isHyperlinked,
@@ -81,6 +100,18 @@ data class WebhookSerializable(
             sortOrder = webhook.sortOrder
         )
     }
+
+    fun toEntity(): Webhook = Webhook(
+        name = name,
+        url = url,
+        displayName = displayName,
+        template = template,
+        isHyperlinked = isHyperlinked,
+        // Imported webhooks whose URL was redacted on export must be
+        // re-enabled by the user after they restore the secret token.
+        isEnabled = isEnabled && !isRedacted(url),
+        sortOrder = sortOrder
+    )
 }
 
 @Serializable
