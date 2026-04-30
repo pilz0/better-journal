@@ -55,8 +55,8 @@ enum class HapticType {
 
 /**
  * Manager class for handling haptic feedback using Android's Vibrator APIs.
- * Supports Android 12+ (API 31+) for vibrator access and uses predefined VibrationEffects.
- * Falls back to Compose HapticFeedback for older Android versions.
+ * Targets Android 12+ (API 31+, the app's minSdk) and uses predefined VibrationEffects.
+ * No-ops on devices without a vibrator.
  */
 class HapticFeedbackManager(
     private val context: Context,
