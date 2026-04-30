@@ -32,7 +32,7 @@ class WebhookSettingsScreenViewmodel @Inject constructor(
 
     var useFreakQuery by mutableStateOf(true)
     var freakQuerySeparator by mutableStateOf(", ")
-    var freakQueryParens by mutableStateOf(true)
+    var hyperlinkSubstances by mutableStateOf(true)
 
     init {
         loadSettings()
@@ -45,7 +45,7 @@ class WebhookSettingsScreenViewmodel @Inject constructor(
             webhookTemplate = userPreferences.readWebhookTemplate().first()
             useFreakQuery = userPreferences.webhookUseFreakQueryFlow.first()
             freakQuerySeparator = userPreferences.webhookFreakQuerySeparatorFlow.first()
-            freakQueryParens = userPreferences.webhookFreakQueryParensFlow.first()
+            hyperlinkSubstances = userPreferences.webhookHyperlinkSubstancesFlow.first()
         }
     }
 
@@ -58,7 +58,7 @@ class WebhookSettingsScreenViewmodel @Inject constructor(
             userPreferences.writeWebhookTemplate(webhookTemplate)
             userPreferences.saveWebhookUseFreakQuery(useFreakQuery)
             userPreferences.saveWebhookFreakQuerySeparator(freakQuerySeparator)
-            userPreferences.saveWebhookFreakQueryParens(freakQueryParens)
+            userPreferences.saveWebhookHyperlinkSubstances(hyperlinkSubstances)
             navController.popBackStack()
         }
 

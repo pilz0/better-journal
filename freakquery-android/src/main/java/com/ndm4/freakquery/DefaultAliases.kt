@@ -1,6 +1,6 @@
 package com.ndm4.freakquery
 
-internal object DefaultAliases {
+object DefaultAliases {
     private fun normalized(entries: Map<String, String>): Map<String, String> =
         entries.mapKeys { Aliases.norm(it.key) }
 

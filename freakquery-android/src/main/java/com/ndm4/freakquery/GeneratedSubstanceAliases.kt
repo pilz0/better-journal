@@ -1,6 +1,6 @@
 ﻿package com.ndm4.freakquery
 
-internal object GeneratedSubstanceAliases {
+object GeneratedSubstanceAliases {
     val map: Map<String, String> = mapOf(
             "1,2-Diphenylethylamine" to "1,2-Diphenylethylamine",
             "1,3-BDO" to "1,3-Butanediol",
@@ -960,7 +960,7 @@ internal object GeneratedSubstanceAliases {
             "PV7" to "A-PHP",
             "Α-PHP" to "A-PHP",
             "A-PVP" to "A-PVP",
-            "a-Pyrrolidinopentiophenone" to "A-PVP",
+            "a-Pyrrolidinopentiophenone" to "",
             "alpha-Pyrrolidinopentiophenone" to "A-PVP",
             "Apvp" to "A-PVP",
             "b-ketone-prolintane" to "A-PVP",

@@ -18,6 +18,8 @@
 
 package foo.pilz.freaklog.data.webhook
 
+import com.ndm4.freakquery.AnodyneAliases
+import com.ndm4.freakquery.DefaultAliases
 import com.ndm4.freakquery.FreakQueryConfig
 import foo.pilz.freaklog.data.freakquery.FreakQueryRepository
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
@@ -67,10 +69,12 @@ class WebhookService internal constructor(
         userPreferences: UserPreferences
     ) : this(freakQueryRepository, userPreferences, AndroidWebhookLogger, ::delay)
 
+    private val sortedSubstances = AnodyneAliases.map.keys.sortedByDescending { it.length }
+
     companion object {
         const val DEFAULT_TEMPLATE = "{user}: [{dose} {units} ]{substance} via {route}[ at {site}][\n> {note}]"
         private const val MAX_RETRIES = 3
-        private const val SUBSTANCE_INFO_URL = "https://anodyne.wiki/substance/"
+        private const val SUBSTANCE_INFO_URL = "https://anodynw.wiki/substance/"
     }
 
     suspend fun sendWebhook(
@@ -190,15 +194,9 @@ class WebhookService internal constructor(
             unitString = ""
         }
 
-        var displaySubstance = substance
-        if (isHyperlinked) {
-            val encodedSub = java.net.URLEncoder.encode(substance, "UTF-8")
-            displaySubstance = "[$substance](<$substanceInfoUrl$encodedSub>)"
-        }
-
         val values = mapOf(
             "user" to user,
-            "substance" to displaySubstance,
+            "substance" to substance,
             "dose" to doseString,
             "units" to unitString,
             "route" to route,
@@ -210,16 +208,22 @@ class WebhookService internal constructor(
         
         val freakQueryContent = if (userPreferences != null && userPreferences.webhookUseFreakQueryFlow.first()) {
             val config = FreakQueryConfig(
-                renderSeparator = userPreferences.webhookFreakQuerySeparatorFlow.first(),
-                renderParens = userPreferences.webhookFreakQueryParensFlow.first()
+                renderSeparator = userPreferences.webhookFreakQuerySeparatorFlow.first()
             )
             freakQueryRepository?.renderFlow(content, config)?.first() ?: content
         } else {
             content
         }
 
+        val hyperlinkEnabled = userPreferences?.webhookHyperlinkSubstancesFlow?.first() ?: isHyperlinked
+        val finalContent = if (hyperlinkEnabled) {
+            hyperlinkSubstancesInText(freakQueryContent, substanceInfoUrl)
+        } else {
+            freakQueryContent
+        }
+
         val payload = buildJsonObject {
-            put("content", freakQueryContent)
+            put("content", finalContent)
         }
 
         var lastError: Exception? = null
@@ -320,5 +324,25 @@ class WebhookService internal constructor(
             processed = processed.replace("{$key}", value)
         }
         return processed
+    }
+
+    private fun hyperlinkSubstancesInText(text: String, substanceInfoUrl: String): String {
+        var result = text
+        for (name in sortedSubstances) {
+            if (name.length < 3) continue // Avoid hyperlinking very short names
+            
+            val escapedName = java.util.regex.Pattern.quote(name)
+            // Match whole word, not preceded by [, /, or = (to avoid FreakQuery parameters)
+            // and not followed by ]( or > (already linked or inside URL)
+            val regex = "(?<!\\[|/|=)\\b$escapedName\\b(?!\\s*]\\(|>)".toRegex()
+            
+            result = regex.replace(result) { match ->
+                val canonicalName = AnodyneAliases.map[match.value] ?: match.value
+                val encodedSub = java.net.URLEncoder.encode(canonicalName, "UTF-8")
+                    .replace("+", "%20") // Use %20 instead of + for better compatibility in some Markdown parsers
+                "[${match.value}]($substanceInfoUrl$encodedSub)"
+            }
+        }
+        return result
     }
 }

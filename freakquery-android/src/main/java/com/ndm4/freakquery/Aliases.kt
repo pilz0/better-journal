@@ -3,7 +3,7 @@ package com.ndm4.freakquery
 import java.text.Normalizer
 import java.util.Locale
 
-internal object Aliases {
+object Aliases {
     fun norm(value: Any?): String {
         if (value == null) return ""
         var s = value.toString().trim().lowercase(Locale.ROOT)

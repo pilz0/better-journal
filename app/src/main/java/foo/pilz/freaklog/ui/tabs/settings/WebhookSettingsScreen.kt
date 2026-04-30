@@ -49,8 +49,8 @@ fun WebhookSettingsScreen(
         onChangedUseFreakQuery = { viewModel.useFreakQuery = it },
         freakQuerySeparator = viewModel.freakQuerySeparator,
         onChangedFreakQuerySeparator = { viewModel.freakQuerySeparator = it },
-        freakQueryParens = viewModel.freakQueryParens,
-        onChangedFreakQueryParens = { viewModel.freakQueryParens = it },
+        hyperlinkSubstances = viewModel.hyperlinkSubstances,
+        onChangedHyperlinkSubstances = { viewModel.hyperlinkSubstances = it },
         onDoneTap = {
             viewModel.onDoneTap(navController)
         }
@@ -71,8 +71,8 @@ fun WebhookSettingsContent(
     onChangedUseFreakQuery: (Boolean) -> Unit,
     freakQuerySeparator: String,
     onChangedFreakQuerySeparator: (String) -> Unit,
-    freakQueryParens: Boolean,
-    onChangedFreakQueryParens: (Boolean) -> Unit,
+    hyperlinkSubstances: Boolean,
+    onChangedHyperlinkSubstances: (Boolean) -> Unit,
     onDoneTap: () -> Unit)
 {
     Scaffold(
@@ -183,14 +183,14 @@ fun WebhookSettingsContent(
                             label = { Text(text = "List Separator") },
                             modifier = Modifier.fillMaxWidth()
                         )
+                    }
 
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-                        ) {
-                            Text(text = "Show parentheses in results", modifier = Modifier.weight(1f))
-                            Switch(checked = freakQueryParens, onCheckedChange = onChangedFreakQueryParens)
-                        }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                    ) {
+                        Text(text = "Hyperlink substances", modifier = Modifier.weight(1f))
+                        Switch(checked = hyperlinkSubstances, onCheckedChange = onChangedHyperlinkSubstances)
                     }
                 }
             }
@@ -212,8 +212,8 @@ fun EditWebhookSettingsScreenPreview() {
         onChangedUseFreakQuery = { },
         freakQuerySeparator = ", ",
         onChangedFreakQuerySeparator = { },
-        freakQueryParens = true,
-        onChangedFreakQueryParens = { },
+        hyperlinkSubstances = true,
+        onChangedHyperlinkSubstances = { },
         onDoneTap = { }
     )
 }

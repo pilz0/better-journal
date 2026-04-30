@@ -61,6 +61,7 @@ object FreakQuery {
     }
 
     internal fun executeTag(tag: String, data: Rows, ctx: Context): String {
+        android.util.Log.d("Query:", tag)
         val raw = tag.trim()
         if (raw.isEmpty()) return ""
 
