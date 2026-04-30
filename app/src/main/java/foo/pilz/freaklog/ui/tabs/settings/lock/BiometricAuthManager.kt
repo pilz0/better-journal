@@ -13,6 +13,7 @@ package foo.pilz.freaklog.ui.tabs.settings.lock
 import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
+import android.util.Log
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.fragment.app.FragmentActivity
@@ -74,12 +75,16 @@ class BiometricAuthManager @Inject constructor(
 ) {
 
     private companion object {
+        const val TAG = "BiometricAuthManager"
         const val ANDROID_KEYSTORE = "AndroidKeyStore"
         const val AUTH_KEY_ALIAS = "freaklog_app_lock_auth"
+        const val KEY_ALGORITHM = KeyProperties.KEY_ALGORITHM_AES
         const val CIPHER_TRANSFORMATION = "AES/CBC/PKCS7Padding"
         const val AUTH_CHALLENGE_SIZE_BYTES = 32
         const val STRONG_BIOMETRIC_AUTHENTICATOR = BiometricManager.Authenticators.BIOMETRIC_STRONG
     }
+
+    private val secureRandom = SecureRandom()
 
     val isLockEnabledFlow: Flow<Boolean> = userPreferences.isLockEnabledFlow
     val lockTimeOptionFlow: Flow<LockTimeOption> = userPreferences.lockTimeOptionFlow
@@ -167,13 +172,12 @@ class BiometricAuthManager @Inject constructor(
         val cryptoObject = try {
             createCryptoObject()
         } catch (e: Exception) {
-            onError("Biometric authentication could not be prepared.")
+            onError(preparationErrorMessage(e))
             return
         }
         // Ephemeral challenge: the ciphertext is intentionally discarded. The purpose is
         // to prove that this prompt returned an authenticated Keystore cipher operation
         // before unlocking the in-memory app-lock overlay.
-        val secureRandom = SecureRandom()
         val challenge = ByteArray(AUTH_CHALLENGE_SIZE_BYTES).also { secureRandom.nextBytes(it) }
         val executor = androidx.core.content.ContextCompat.getMainExecutor(activity)
         val callback = object : BiometricPrompt.AuthenticationCallback() {
@@ -236,12 +240,13 @@ class BiometricAuthManager @Inject constructor(
         val existingKey = try {
             keyStore.getKey(AUTH_KEY_ALIAS, null) as? SecretKey
         } catch (e: GeneralSecurityException) {
+            Log.w(TAG, "Failed to read biometric authentication key; regenerating it.", e)
             keyStore.deleteEntry(AUTH_KEY_ALIAS)
             null
         }
         existingKey?.let { return it }
 
-        val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE)
+        val keyGenerator = KeyGenerator.getInstance(KEY_ALGORITHM, ANDROID_KEYSTORE)
         val keySpec = KeyGenParameterSpec.Builder(
             AUTH_KEY_ALIAS,
             KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
@@ -270,5 +275,11 @@ class BiometricAuthManager @Inject constructor(
         } catch (e: IOException) {
             throw GeneralSecurityException("Failed to delete biometric authentication key.", e)
         }
+    }
+
+    private fun preparationErrorMessage(error: Exception): String = when (error) {
+        is IOException -> "Biometric keystore is unavailable."
+        is GeneralSecurityException -> "Biometric cryptographic verification could not be prepared."
+        else -> "Biometric authentication could not be prepared."
     }
 }
