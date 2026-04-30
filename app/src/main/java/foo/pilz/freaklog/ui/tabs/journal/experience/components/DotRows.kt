@@ -35,7 +35,7 @@ fun DotRows(numDots: Int) {
     Column {
         if (numDots==0) {
             Row(modifier = Modifier.padding(vertical = verticalPadding)) {
-                for (dot in 1..4) {
+                repeat(4) {
                     Dot(isFull = false)
                 }
             }
@@ -46,9 +46,9 @@ fun DotRows(numDots: Int) {
                 Text(text = "more than $numFullRows heavy doses", style = MaterialTheme.typography.titleSmall)
             } else {
                 if (numFullRows > 0) {
-                    for (row in 1..numFullRows) {
+                    repeat(numFullRows) {
                         Row(modifier = Modifier.padding(vertical = verticalPadding)) {
-                            for (dot in 1..4) {
+                            repeat(4) {
                                 Dot(isFull = true)
                             }
                         }
@@ -56,11 +56,11 @@ fun DotRows(numDots: Int) {
                 }
                 if (dotsInLastRow > 0) {
                     Row(modifier = Modifier.padding(vertical = verticalPadding)) {
-                        for (dot in 1..dotsInLastRow) {
+                        repeat(dotsInLastRow) {
                             Dot(isFull = true)
                         }
                         val numEmpty = 4 - dotsInLastRow
-                        for (dot in 1..numEmpty) {
+                        repeat(numEmpty) {
                             Dot(isFull = false)
                         }
                     }

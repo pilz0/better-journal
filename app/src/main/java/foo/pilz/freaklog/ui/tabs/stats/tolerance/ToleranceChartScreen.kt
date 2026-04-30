@@ -77,7 +77,6 @@ import java.time.temporal.ChronoUnit
 @Composable
 fun ToleranceChartScreen(
     viewModel: ToleranceChartViewModel = hiltViewModel(),
-    navigateToAddIngestion: () -> Unit = {}
 ) {
     val toleranceData by viewModel.toleranceDataFlow.collectAsState()
     val sinceDate by viewModel.sinceDate.collectAsState()
@@ -89,7 +88,6 @@ fun ToleranceChartScreen(
         isTimeRelative = isTimeRelative,
         onChangeSinceDate = viewModel::setSinceDate,
         onChangeIsTimeRelative = viewModel::setIsTimeRelative,
-        onAddTap = navigateToAddIngestion
     )
 }
 
@@ -101,7 +99,6 @@ fun ToleranceChartScreenContent(
     isTimeRelative: Boolean,
     onChangeSinceDate: (Instant) -> Unit,
     onChangeIsTimeRelative: (Boolean) -> Unit,
-    onAddTap: () -> Unit
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
     var showLimitationsSheet by remember { mutableStateOf(false) }
@@ -496,6 +493,5 @@ fun ToleranceChartScreenPreview() {
         isTimeRelative = false,
         onChangeSinceDate = {},
         onChangeIsTimeRelative = {},
-        onAddTap = {}
     )
 }

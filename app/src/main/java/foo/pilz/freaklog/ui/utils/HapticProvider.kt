@@ -22,7 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 
 /**
  * CompositionLocal to track whether haptic feedback is enabled.
@@ -48,8 +47,7 @@ fun HapticFeedbackProvider(
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
-    val hapticFeedback = LocalHapticFeedback.current
-    val hapticManager = HapticFeedbackManager(context, hapticFeedback)
+    val hapticManager = HapticFeedbackManager(context)
 
     CompositionLocalProvider(
         LocalHapticEnabled provides isEnabled,

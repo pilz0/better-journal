@@ -42,7 +42,6 @@ import foo.pilz.freaklog.data.room.inventory.InventoryDao
 import foo.pilz.freaklog.data.room.inventory.InventoryItem
 import foo.pilz.freaklog.data.room.reminders.ReminderDao
 import foo.pilz.freaklog.data.room.reminders.entities.Reminder
-import foo.pilz.freaklog.data.room.SprayDao
 
 @TypeConverters(InstantConverter::class, AdaptiveColorConverter::class)
 @Database(

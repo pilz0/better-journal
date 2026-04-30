@@ -68,7 +68,6 @@ import foo.pilz.freaklog.data.substances.parse.SubstanceParser
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.shapeAlpha
 import foo.pilz.freaklog.ui.theme.md_theme_dark_primary
 import foo.pilz.freaklog.ui.theme.md_theme_light_primary
-import kotlinx.coroutines.flow.first
 import java.io.File
 import java.io.FileOutputStream
 import java.time.Duration

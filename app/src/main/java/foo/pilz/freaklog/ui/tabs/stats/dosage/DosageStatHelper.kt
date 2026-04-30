@@ -82,7 +82,7 @@ object DosageStatHelper {
 
         val buckets = ArrayDeque<DosageBucket>()
         var bucketEnd = now.atZone(zone)
-        for (i in 0 until range.bucketCount) {
+        repeat(range.bucketCount) {
             val bucketStart = bucketEnd.minus(range.step)
             val startInstant = bucketStart.toInstant()
             val endInstant = bucketEnd.toInstant()
