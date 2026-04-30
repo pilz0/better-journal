@@ -88,7 +88,7 @@ object DosageStatHelper {
             val unit = inBucket.firstOrNull { !it.units.isNullOrBlank() }?.units
                 ?: ingestions.firstOrNull { !it.units.isNullOrBlank() }?.units
                 ?: ""
-            buckets.addFirst(DosageBucket(label, fullDate, totalDose, unit))
+            buckets.addFirst(DosageBucket(label, fullDate, totalDose, inBucket.size, unit))
             bucketEnd = bucketStart
         }
         return DosageStatResult(

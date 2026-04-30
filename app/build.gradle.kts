@@ -128,7 +128,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation(libs.google.generativeai)
     implementation(libs.compose.markdown)
     implementation(libs.androidx.biometric)
 

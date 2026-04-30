@@ -281,4 +281,19 @@ class ExperienceRepository @Inject constructor(
             .conflate()
 
     suspend fun getAllReminders(): List<Reminder> = reminderDao.getAllReminders()
+
+    /**
+     * Returns the (dose, units) pair to display in webhook messages for the given ingestion,
+     * converting custom-unit quantities to their base units when applicable.
+     */
+    suspend fun getWebhookDisplayValues(ingestion: Ingestion): Pair<Double?, String?> {
+        val customUnitId = ingestion.customUnitId ?: return Pair(ingestion.dose, ingestion.units)
+        val customUnit = getCustomUnit(customUnitId) ?: return Pair(ingestion.dose, ingestion.units)
+        val ingestionDose = ingestion.dose
+        val unitDose = customUnit.dose
+        if (ingestionDose != null && unitDose != null) {
+            return Pair(ingestionDose * unitDose, customUnit.originalUnit)
+        }
+        return Pair(ingestion.dose, ingestion.units)
+    }
 }
