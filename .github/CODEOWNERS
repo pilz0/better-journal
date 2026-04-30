@@ -1,0 +1,23 @@
+# Code owners for the Freaklog repository.
+#
+# These owners are automatically requested for review on every pull request
+# touching the matching paths. See
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-security/customizing-your-repository/about-code-owners
+# for the full reference.
+
+# Default owner for everything in the repo.
+*                                   @pilz0
+
+# Build, dependency catalog, and CI configuration are higher-risk surfaces;
+# they require an explicit owner review even if the rest of the PR is
+# already approved.
+/.github/                           @pilz0
+/.github/workflows/                 @pilz0
+/.github/dependabot.yml             @pilz0
+/build.gradle.kts                   @pilz0
+/settings.gradle                    @pilz0
+/gradle.properties                  @pilz0
+/gradle/                            @pilz0
+/app/build.gradle.kts               @pilz0
+/app/proguard-rules.pro             @pilz0
+/config/                            @pilz0

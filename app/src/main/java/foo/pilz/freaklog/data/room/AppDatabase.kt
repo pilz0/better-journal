@@ -97,4 +97,13 @@ abstract class AppDatabase : RoomDatabase() {
             db.execSQL("UPDATE reminder SET scheduleType = 'INTERVAL'")
         }
     }
+
+    companion object {
+        /**
+         * The current schema version. Kept in sync with the `version = ` field
+         * on the `@Database` annotation above. Exposed for migration tests so
+         * they don't have to hard-code the value.
+         */
+        const val LATEST_SCHEMA_VERSION: Int = 17
+    }
 }

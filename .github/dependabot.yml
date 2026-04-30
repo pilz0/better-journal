@@ -1,5 +1,6 @@
 version: 2
 updates:
+  # Gradle (app-level Kotlin/Java dependencies)
   - package-ecosystem: "gradle"
     directory: "/"
     schedule:
@@ -13,7 +14,16 @@ updates:
         patterns:
           - "org.jetbrains.kotlin*"
           - "org.jetbrains.kotlinx:*"
+      testing:
+        patterns:
+          - "io.mockk:*"
+          - "app.cash.turbine:*"
+          - "com.willowtreeapps.assertk:*"
+          - "org.robolectric:*"
+          - "org.junit.*"
 
+  # GitHub Actions — Dependabot edits the SHA pin in-place and includes the
+  # human-readable tag in the PR title/body.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

@@ -1,0 +1,55 @@
+---
+name: OpenSSF Scorecard
+on:
+  branch_protection_rule:
+  schedule:
+    # Weekly run, Tuesday 04:13 UTC
+    - cron: '13 4 * * 2'
+  push:
+    branches: [ main ]
+
+# Deny all permissions by default; each job grants the minimum required.
+permissions: {}
+
+concurrency:
+  group: scorecard-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  analysis:
+    name: Scorecard analysis
+    runs-on: ubuntu-latest
+    permissions:
+      # Required to upload SARIF to code scanning.
+      security-events: write
+      # Required to read repository metadata, branch protection, etc.
+      contents: read
+      # Required to fetch OIDC tokens for keyless publishing of results.
+      id-token: write
+      # Required for branch_protection_rule events.
+      actions: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.13.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.1.0
+        with:
+          persist-credentials: false
+
+      - name: Run analysis
+        uses: ossf/scorecard-action@979ba56f547dcc27b06a9ab51bc0ec3e009f8787 # v2.4.3
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          # Publish results to the OpenSSF dashboard so the badge in the README
+          # works. This requires the repository to be public.
+          publish_results: true
+
+      - name: Upload SARIF results to code scanning
+        uses: github/codeql-action/upload-sarif@865f5f5c36632f18690a3d569fa0a764f2da0c3e # v3.30.9
+        with:
+          sarif_file: results.sarif
+          category: ossf-scorecard
