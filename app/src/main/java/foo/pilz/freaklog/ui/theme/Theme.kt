@@ -117,7 +117,7 @@ fun JournalTheme(
     } else {
         if (isDarkTheme) DarkColors else LightColors
     }
-    CompositionLocalProvider(LocalSpacing provides Spacing()) {
+    CompositionLocalProvider(LocalSpacing provides DefaultSpacing) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography = JournalTypography,

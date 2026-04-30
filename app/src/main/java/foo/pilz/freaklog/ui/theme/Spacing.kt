@@ -47,7 +47,13 @@ data class Spacing(
     val xxl: Dp = 32.dp,
 )
 
-val LocalSpacing = compositionLocalOf { Spacing() }
+/**
+ * Default [Spacing] instance. Hoisted to a top-level `val` so the Compose
+ * theme doesn't allocate a new `Spacing` on every recomposition.
+ */
+val DefaultSpacing: Spacing = Spacing()
+
+val LocalSpacing = compositionLocalOf { DefaultSpacing }
 
 /**
  * Convenience accessor so callers can write `MaterialTheme.spacing.lg`
