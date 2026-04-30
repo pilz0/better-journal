@@ -12,7 +12,6 @@ package foo.pilz.freaklog.ui.tabs.settings.lock
 
 import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
-import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
@@ -32,6 +31,7 @@ import java.io.IOException
 import java.security.GeneralSecurityException
 import java.security.InvalidKeyException
 import java.security.KeyStore
+import java.security.SecureRandom
 import java.time.Instant
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -77,7 +77,7 @@ class BiometricAuthManager @Inject constructor(
         const val ANDROID_KEYSTORE = "AndroidKeyStore"
         const val AUTH_KEY_ALIAS = "freaklog_app_lock_auth"
         const val CIPHER_TRANSFORMATION = "AES/CBC/PKCS7Padding"
-        const val AUTH_CHALLENGE = "freaklog-app-lock"
+        const val AUTH_CHALLENGE_SIZE_BYTES = 32
         const val STRONG_BIOMETRIC_AUTHENTICATOR = BiometricManager.Authenticators.BIOMETRIC_STRONG
     }
 
@@ -173,6 +173,7 @@ class BiometricAuthManager @Inject constructor(
             onError("Biometric authentication could not be prepared.")
             return
         }
+        val challenge = ByteArray(AUTH_CHALLENGE_SIZE_BYTES).also { SecureRandom().nextBytes(it) }
         val executor = androidx.core.content.ContextCompat.getMainExecutor(activity)
         val callback = object : BiometricPrompt.AuthenticationCallback() {
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
@@ -182,7 +183,7 @@ class BiometricAuthManager @Inject constructor(
                     return
                 }
                 try {
-                    cipher.doFinal(AUTH_CHALLENGE.encodeToByteArray())
+                    cipher.doFinal(challenge)
                     _isUnlocked.value = true
                     onUnlocked()
                 } catch (e: GeneralSecurityException) {
@@ -211,9 +212,6 @@ class BiometricAuthManager @Inject constructor(
     private fun createCryptoObject(): BiometricPrompt.CryptoObject {
         val cipher = Cipher.getInstance(CIPHER_TRANSFORMATION)
         try {
-            cipher.init(Cipher.ENCRYPT_MODE, getOrCreateSecretKey())
-        } catch (e: KeyPermanentlyInvalidatedException) {
-            deleteSecretKey()
             cipher.init(Cipher.ENCRYPT_MODE, getOrCreateSecretKey())
         } catch (e: InvalidKeyException) {
             deleteSecretKey()
