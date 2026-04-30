@@ -18,7 +18,10 @@
 
 package foo.pilz.freaklog.ui.theme
 
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -45,3 +48,13 @@ data class Spacing(
 )
 
 val LocalSpacing = compositionLocalOf { Spacing() }
+
+/**
+ * Convenience accessor so callers can write `MaterialTheme.spacing.lg`
+ * alongside the standard `MaterialTheme.colorScheme` / `.typography` /
+ * `.shapes` accessors.
+ */
+val MaterialTheme.spacing: Spacing
+    @Composable
+    @ReadOnlyComposable
+    get() = LocalSpacing.current
