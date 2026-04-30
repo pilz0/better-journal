@@ -24,7 +24,7 @@ roomRuntime = "2.6.1"
 workRuntimeKtx = "2.10.0"
 desugar_jdk_libs = "2.1.4"
 
-composeMarkdown = "0.5.4"
+composeMarkdown = "0.7.2"
 ksp = "2.0.21-1.0.27"
 biometric = "1.1.0"
 
