@@ -18,7 +18,6 @@
 
 package foo.pilz.freaklog.ui.tabs.settings.combinations
 
-import android.R
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey

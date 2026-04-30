@@ -19,7 +19,6 @@
 package foo.pilz.freaklog.data.substances.classes.roa
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test

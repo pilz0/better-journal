@@ -42,7 +42,6 @@ import foo.pilz.freaklog.data.room.inventory.InventoryDao
 import foo.pilz.freaklog.data.room.inventory.InventoryItem
 import foo.pilz.freaklog.data.room.reminders.ReminderDao
 import foo.pilz.freaklog.data.room.reminders.entities.Reminder
-import foo.pilz.freaklog.data.room.SprayDao
 import foo.pilz.freaklog.data.room.webhooks.IngestionWebhookMessageDao
 import foo.pilz.freaklog.data.room.webhooks.WebhookDao
 import foo.pilz.freaklog.data.room.webhooks.entities.IngestionWebhookMessage

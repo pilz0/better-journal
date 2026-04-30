@@ -23,7 +23,6 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
-import androidx.compose.ui.hapticfeedback.HapticFeedback
 
 /**
  * Enum representing different types of haptic feedback effects.
@@ -56,12 +55,11 @@ enum class HapticType {
 
 /**
  * Manager class for handling haptic feedback using Android's Vibrator APIs.
- * Supports Android 12+ (API 31+) for vibrator access and uses predefined VibrationEffects.
- * Falls back to Compose HapticFeedback for older Android versions.
+ * Targets Android 12+ (API 31+, the app's minSdk) and uses predefined VibrationEffects.
+ * No-ops on devices without a vibrator.
  */
 class HapticFeedbackManager(
     private val context: Context,
-    hapticFeedback: HapticFeedback,
 ) {
     private val vibrator: Vibrator? by lazy {
         val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

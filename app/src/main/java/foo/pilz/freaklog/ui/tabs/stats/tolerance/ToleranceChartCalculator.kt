@@ -23,7 +23,6 @@ import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import java.time.Duration
 import java.time.Instant
-import java.time.LocalDate
 import java.time.ZoneId
 
 object ToleranceChartCalculator {
