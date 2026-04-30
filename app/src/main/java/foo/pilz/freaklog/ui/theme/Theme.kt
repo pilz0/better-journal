@@ -27,6 +27,7 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 
@@ -96,7 +97,11 @@ private val DarkColors = darkColorScheme(
     scrim = md_theme_dark_scrim,
 )
 
-val horizontalPadding = 10.dp
+// Default screen-edge padding. Bumped from the upstream 10.dp to the
+// Material 3 standard 16.dp so list and card content no longer feels
+// pinched against the edge of the screen. Prefer `MaterialTheme.spacing.lg`
+// in new code; this constant remains for backwards compatibility.
+val horizontalPadding = 16.dp
 val verticalPaddingCards = 4.dp
 val minimumTouchTargetHeight = 48.dp
 
@@ -112,8 +117,12 @@ fun JournalTheme(
     } else {
         if (isDarkTheme) DarkColors else LightColors
     }
-    MaterialTheme(
-        colorScheme = colorScheme,
-        content = content
-    )
+    CompositionLocalProvider(LocalSpacing provides DefaultSpacing) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = JournalTypography,
+            shapes = JournalShapes,
+            content = content
+        )
+    }
 }
