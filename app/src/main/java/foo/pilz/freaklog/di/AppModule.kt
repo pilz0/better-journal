@@ -73,6 +73,18 @@ object AppModule {
 
     @Singleton
     @Provides
+    fun provideWebhookDao(appDatabase: AppDatabase): foo.pilz.freaklog.data.room.webhooks.WebhookDao =
+        appDatabase.webhookDao()
+
+    @Singleton
+    @Provides
+    fun provideIngestionWebhookMessageDao(
+        appDatabase: AppDatabase
+    ): foo.pilz.freaklog.data.room.webhooks.IngestionWebhookMessageDao =
+        appDatabase.ingestionWebhookMessageDao()
+
+    @Singleton
+    @Provides
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase =
         Room.databaseBuilder(
             context,

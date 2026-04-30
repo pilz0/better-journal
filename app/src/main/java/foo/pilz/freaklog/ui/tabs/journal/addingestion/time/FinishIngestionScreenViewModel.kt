@@ -19,8 +19,10 @@
 package foo.pilz.freaklog.ui.tabs.journal.addingestion.time
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -31,6 +33,10 @@ import foo.pilz.freaklog.data.room.experiences.entities.Experience
 import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestions
+import foo.pilz.freaklog.data.room.webhooks.IngestionWebhookMessageRepository
+import foo.pilz.freaklog.data.room.webhooks.WebhookRepository
+import foo.pilz.freaklog.data.room.webhooks.entities.IngestionWebhookMessage
+import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.ui.main.navigation.graphs.FinishIngestionRoute
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
@@ -71,6 +77,8 @@ class FinishIngestionScreenViewModel @Inject constructor(
     private val experienceRepo: ExperienceRepository,
     private val userPreferences: UserPreferences,
     private val webhookService: foo.pilz.freaklog.data.webhook.WebhookService,
+    private val webhookRepository: WebhookRepository,
+    private val ingestionWebhookMessageRepository: IngestionWebhookMessageRepository,
     @ApplicationScope private val externalScope: CoroutineScope,
     state: SavedStateHandle
 ) : ViewModel() {
@@ -83,15 +91,38 @@ class FinishIngestionScreenViewModel @Inject constructor(
     var enteredTitle by mutableStateOf(LocalDateTime.now().getStringOfPattern("dd MMMM yyyy"))
     val isEnteredTitleOk get() = enteredTitle.isNotEmpty()
     var consumerName by mutableStateOf("")
-    var sendWebhook by mutableStateOf(true)
 
-    val isWebhookConfiguredFlow: StateFlow<Boolean> =
-        userPreferences.readWebhookURL().map { it.isNotBlank() }
+    /**
+     * Mutable map of webhook-id -> "should send to this webhook" for the
+     * current ingestion. Initialised to all enabled webhooks pre-selected.
+     */
+    val selectedWebhookIds: SnapshotStateMap<Int, Boolean> = mutableStateMapOf()
+
+    val enabledWebhooksFlow: StateFlow<List<Webhook>> =
+        webhookRepository.getEnabledFlow()
             .stateIn(
-                initialValue = false,
+                initialValue = emptyList(),
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000)
             )
+
+    init {
+        viewModelScope.launch {
+            // Pre-select every enabled webhook by default. We only mutate
+            // entries that the user hasn't already touched.
+            enabledWebhooksFlow.collect { hooks ->
+                for (hook in hooks) {
+                    if (!selectedWebhookIds.containsKey(hook.id)) {
+                        selectedWebhookIds[hook.id] = true
+                    }
+                }
+            }
+        }
+    }
+
+    fun setWebhookSelected(webhookId: Int, selected: Boolean) {
+        selectedWebhookIds[webhookId] = selected
+    }
 
 
     fun onChangeTimePickerOption(ingestionTimePickerOption: IngestionTimePickerOption) =
@@ -336,9 +367,13 @@ class FinishIngestionScreenViewModel @Inject constructor(
             newIngestion = newIngestion.copy(id = insertedId.toInt())
         }
         
+        // Capture the selection on the (currently main-thread) caller before
+        // launching background work — SnapshotStateMap is not safe to read
+        // from arbitrary threads.
+        val selectionSnapshot: Map<Int, Boolean> = selectedWebhookIds.toMap()
         // Send webhook notification in background
         externalScope.launch {
-            sendWebhookForIngestion(newIngestion)
+            sendWebhookForIngestion(newIngestion, selectionSnapshot)
         }
     }
 
@@ -370,56 +405,71 @@ class FinishIngestionScreenViewModel @Inject constructor(
         )
     }
 
-    private suspend fun sendWebhookForIngestion(ingestion: Ingestion) {
-        if (!sendWebhook) {
-            android.util.Log.d(TAG, "Webhook disabled for this ingestion")
+    private suspend fun sendWebhookForIngestion(
+        ingestion: Ingestion,
+        selection: Map<Int, Boolean>
+    ) {
+        val enabledHooks = enabledWebhooksFlow.value.ifEmpty {
+            // We may be in the very-first-render race; fall back to a one-shot read.
+            webhookRepository.getEnabled()
+        }
+        if (enabledHooks.isEmpty()) {
+            android.util.Log.d(TAG, "No enabled webhooks configured, skipping")
             return
         }
 
-        val webhookURL = userPreferences.readWebhookURL().first()
-        if (webhookURL.isBlank()) {
-            android.util.Log.d(TAG, "Webhook is blank, skipping")
-            return // Webhook not configured, skip
+        val (displayDose, displayUnits) = try {
+            experienceRepo.getWebhookDisplayValues(ingestion)
+        } catch (e: Exception) {
+            android.util.Log.w(TAG, "Failed to compute webhook display values: ${e.message}", e)
+            Pair(ingestion.dose, ingestion.units)
         }
-
-        val webhookName = userPreferences.readWebhookName().first()
-        val webhookTemplate = userPreferences.readWebhookTemplate().first().ifBlank {
-            android.util.Log.d(TAG, "Webhook template is blank, using default")
-            foo.pilz.freaklog.data.webhook.WebhookService.DEFAULT_TEMPLATE 
-        }
-
-        val user = webhookName.ifBlank { "User" }
         val route = ingestion.administrationRoute.displayText
 
-        try {
-            android.util.Log.d(TAG, "Trying to send webhook")
-            val (displayDose, displayUnits) = experienceRepo.getWebhookDisplayValues(ingestion)
-
-            val result = webhookService.sendWebhook(
-                url = webhookURL,
-                user = user,
-                substance = ingestion.substanceName,
-                dose = displayDose,
-                units = displayUnits,
-                isEstimate = ingestion.isDoseAnEstimate,
-                route = route,
-                site = ingestion.administrationSite,
-                note = ingestion.notes,
-                template = webhookTemplate,
-                isHyperlinked = true
-            )
-
-            // If webhook was successful, update ingestion with message ID
-            if (result.success && result.messageId != null) {
-                android.util.Log.d(TAG, "Webhook sent successfully. Message ID: ${result.messageId}")
-                ingestion.webhookMessageId = result.messageId
-                experienceRepo.update(ingestion)
-            } else {
-                android.util.Log.w(TAG, "Webhook send failed: ${result.error?.message ?: "Unknown error"}")
+        for (webhook in enabledHooks) {
+            val isSelected = selection[webhook.id] ?: true
+            if (!isSelected) {
+                android.util.Log.d(TAG, "Webhook \"${webhook.name}\" deselected for this ingestion")
+                continue
             }
-        } catch (e: Exception) {
-            // Silently fail - don't block ingestion creation if webhook fails
-            android.util.Log.w(TAG, "Webhook send exception: ${e.message}", e)
+            val template = webhook.template.ifBlank {
+                foo.pilz.freaklog.data.webhook.WebhookService.DEFAULT_TEMPLATE
+            }
+            val user = webhook.displayName.ifBlank { "User" }
+            try {
+                android.util.Log.d(TAG, "Sending webhook \"${webhook.name}\"")
+                val result = webhookService.sendWebhook(
+                    url = webhook.url,
+                    user = user,
+                    substance = ingestion.substanceName,
+                    dose = displayDose,
+                    units = displayUnits,
+                    isEstimate = ingestion.isDoseAnEstimate,
+                    route = route,
+                    site = ingestion.administrationSite,
+                    note = ingestion.notes,
+                    template = template,
+                    isHyperlinked = webhook.isHyperlinked
+                )
+                if (result.success && result.messageId != null) {
+                    ingestionWebhookMessageRepository.insert(
+                        IngestionWebhookMessage(
+                            ingestionId = ingestion.id,
+                            webhookId = webhook.id,
+                            messageId = result.messageId
+                        )
+                    )
+                } else {
+                    android.util.Log.w(
+                        TAG,
+                        "Webhook \"${webhook.name}\" send failed: " +
+                            (result.error?.message ?: "Unknown error")
+                    )
+                }
+            } catch (e: Exception) {
+                // Silently fail - don't block ingestion creation if webhook fails
+                android.util.Log.w(TAG, "Webhook \"${webhook.name}\" exception: ${e.message}", e)
+            }
         }
     }
 }

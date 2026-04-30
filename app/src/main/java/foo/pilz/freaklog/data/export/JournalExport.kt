@@ -24,6 +24,7 @@ import foo.pilz.freaklog.data.room.experiences.entities.ShulginRatingOption
 import foo.pilz.freaklog.data.room.experiences.entities.StomachFullness
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
 import foo.pilz.freaklog.data.room.reminders.entities.Reminder
+import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.ui.tabs.settings.ShulginRatingOptionSerializer
 import kotlinx.serialization.Serializable
@@ -36,8 +37,82 @@ data class JournalExport(
     val customSubstances: List<CustomSubstance> = emptyList(),
     val customUnits: List<CustomUnitSerializable> = emptyList(),
     val customRecipes: List<CustomRecipeSerializable> = emptyList(),
-    val reminders: List<Reminder> = emptyList()
+    val reminders: List<Reminder> = emptyList(),
+    /**
+     * Multi-webhook configuration. Backwards-compatible default ensures older
+     * exports (which lacked this field) still decode cleanly.
+     */
+    val webhooks: List<WebhookSerializable> = emptyList()
 )
+
+/**
+ * Serializable representation of [Webhook] for journal export/import. Older
+ * exports lack the `webhooks` field; default values keep deserialization
+ * backwards-compatible.
+ */
+@Serializable
+data class WebhookSerializable(
+    val name: String,
+    val url: String,
+    val displayName: String = "",
+    val template: String = "",
+    val isHyperlinked: Boolean = true,
+    val isEnabled: Boolean = true,
+    val sortOrder: Int = 0
+) {
+    companion object {
+        /**
+         * Marker substituted for the Discord webhook secret token during
+         * export. The leading slash is preserved so URI parsers still work.
+         */
+        const val REDACTED_TOKEN = "REDACTED"
+
+        /**
+         * Returns true if [url] has its secret token redacted via
+         * [redactUrl]. Imported webhooks with a redacted URL should be
+         * disabled until the user re-supplies the real URL.
+         */
+        fun isRedacted(url: String): Boolean = url.endsWith("/$REDACTED_TOKEN")
+
+        /**
+         * Discord webhook URLs have the form
+         * `https://discord.com/api/webhooks/{id}/{token}` where `{token}`
+         * is a secret. Replace the trailing token segment with
+         * [REDACTED_TOKEN] so exported journals don't leak credentials.
+         */
+        fun redactUrl(url: String): String {
+            val trimmed = url.trimEnd('/')
+            val lastSlash = trimmed.lastIndexOf('/')
+            return if (lastSlash > 0 && lastSlash < trimmed.length - 1) {
+                trimmed.substring(0, lastSlash + 1) + REDACTED_TOKEN
+            } else {
+                url
+            }
+        }
+
+        fun fromEntity(webhook: Webhook): WebhookSerializable = WebhookSerializable(
+            name = webhook.name,
+            url = redactUrl(webhook.url),
+            displayName = webhook.displayName,
+            template = webhook.template,
+            isHyperlinked = webhook.isHyperlinked,
+            isEnabled = webhook.isEnabled,
+            sortOrder = webhook.sortOrder
+        )
+    }
+
+    fun toEntity(): Webhook = Webhook(
+        name = name,
+        url = url,
+        displayName = displayName,
+        template = template,
+        isHyperlinked = isHyperlinked,
+        // Imported webhooks whose URL was redacted on export must be
+        // re-enabled by the user after they restore the secret token.
+        isEnabled = isEnabled && !isRedacted(url),
+        sortOrder = sortOrder
+    )
+}
 
 @Serializable
 data class ExperienceSerializable(

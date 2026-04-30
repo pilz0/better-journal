@@ -47,6 +47,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -78,6 +79,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestions
+import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
 import foo.pilz.freaklog.ui.YOU
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.AdministrationSitePicker
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
@@ -128,9 +130,9 @@ fun FinishIngestionScreen(
         siteOptions = viewModel.siteOptions,
         administrationSite = viewModel.administrationSite,
         onChangeOfAdministrationSite = viewModel::changeAdministrationSite,
-        isWebhookConfigured = viewModel.isWebhookConfiguredFlow.collectAsState().value,
-        sendWebhook = viewModel.sendWebhook,
-        onSendWebhookChange = { viewModel.sendWebhook = it }
+        enabledWebhooks = viewModel.enabledWebhooksFlow.collectAsState().value,
+        isWebhookSelected = { id -> viewModel.selectedWebhookIds[id] ?: true },
+        onWebhookSelectedChange = viewModel::setWebhookSelected
     )
 }
 
@@ -175,9 +177,12 @@ fun FinishIngestionScreenPreview() {
         siteOptions = listOf("Left nostril", "Right nostril", "Both nostrils"),
         administrationSite = "",
         onChangeOfAdministrationSite = {},
-        isWebhookConfigured = true,
-        sendWebhook = true,
-        onSendWebhookChange = {}
+        enabledWebhooks = listOf(
+            Webhook(id = 1, name = "Friends", url = "https://discord.com/api/webhooks/x/y"),
+            Webhook(id = 2, name = "Personal", url = "https://discord.com/api/webhooks/a/b")
+        ),
+        isWebhookSelected = { true },
+        onWebhookSelectedChange = { _, _ -> }
     )
 }
 
@@ -214,9 +219,9 @@ fun FinishIngestionScreen(
     siteOptions: List<String>,
     administrationSite: String,
     onChangeOfAdministrationSite: (String) -> Unit,
-    isWebhookConfigured: Boolean,
-    sendWebhook: Boolean,
-    onSendWebhookChange: (Boolean) -> Unit
+    enabledWebhooks: List<Webhook>,
+    isWebhookSelected: (Int) -> Boolean,
+    onWebhookSelectedChange: (Int, Boolean) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
     Scaffold(
@@ -419,7 +424,7 @@ fun FinishIngestionScreen(
                         )
                     }
                 }
-                if (isWebhookConfigured) {
+                if (enabledWebhooks.isNotEmpty()) {
                     ElevatedCard(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -428,28 +433,31 @@ fun FinishIngestionScreen(
                         Column(
                             modifier = Modifier.padding(
                                 horizontal = horizontalPadding,
-                                vertical = 3.dp
+                                vertical = 6.dp
                             )
                         ) {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Switch(
-                                    checked = sendWebhook,
-                                    onCheckedChange = onSendWebhookChange
-                                )
-                                Text(
-                                    "Send webhook notification",
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                            }
-                            if (!sendWebhook) {
-                                Text(
-                                    "No Discord notification will be sent for this ingestion",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                            Text(
+                                "Send to",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            for (webhook in enabledWebhooks) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Checkbox(
+                                        checked = isWebhookSelected(webhook.id),
+                                        onCheckedChange = { checked ->
+                                            onWebhookSelectedChange(webhook.id, checked)
+                                        }
+                                    )
+                                    Text(
+                                        text = webhook.name.ifBlank { "Webhook" },
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
                             }
                         }
                     }

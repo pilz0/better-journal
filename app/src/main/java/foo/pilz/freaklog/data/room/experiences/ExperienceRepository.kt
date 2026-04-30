@@ -46,7 +46,9 @@ import javax.inject.Singleton
 @Singleton
 class ExperienceRepository @Inject constructor(
     private val experienceDao: ExperienceDao,
-    private val reminderDao: ReminderDao
+    private val reminderDao: ReminderDao,
+    private val webhookDao: foo.pilz.freaklog.data.room.webhooks.WebhookDao,
+    private val ingestionWebhookMessageDao: foo.pilz.freaklog.data.room.webhooks.IngestionWebhookMessageDao
 ) {
     suspend fun insert(rating: ShulginRating) = experienceDao.insert(rating)
     suspend fun insert(customUnit: CustomUnit) = experienceDao.insert(customUnit).toInt()
@@ -74,6 +76,7 @@ class ExperienceRepository @Inject constructor(
     ) {
         experienceDao.insertEverything(journalExport)
         journalExport.reminders.forEach { reminderDao.insert(it) }
+        journalExport.webhooks.forEach { webhookDao.insert(it.toEntity()) }
     }
 
     suspend fun insertIngestionAndCompanion(
@@ -87,6 +90,8 @@ class ExperienceRepository @Inject constructor(
     suspend fun deleteEverything() {
         experienceDao.deleteEverything()
         reminderDao.deleteAll()
+        ingestionWebhookMessageDao.deleteAll()
+        webhookDao.deleteAll()
     }
 
     suspend fun delete(ingestion: Ingestion) = experienceDao.delete(ingestion)
