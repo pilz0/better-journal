@@ -1,8 +1,26 @@
-package com.ndm4.freakquery
+﻿package com.ndm4.freakquery
 
 object AnodyneAliases {
     val map: Map<String, String> by lazy {
         val m = mutableMapOf<String, String>()
+        addChunk0(m)
+        addChunk1(m)
+        addChunk2(m)
+        addChunk3(m)
+        addChunk4(m)
+        addChunk5(m)
+        addChunk6(m)
+        addChunk7(m)
+        addChunk8(m)
+        addChunk9(m)
+        addChunk10(m)
+        addChunk11(m)
+        addChunk12(m)
+        addChunk13(m)
+        m
+    }
+
+    private fun addChunk0(m: MutableMap<String, String>) {
         m["1,2-Diphenylethylamine"] = "1,2-Diphenylethylamine"
         m["1,3-BDO"] = "1,3-Butanediol"
         m["1,3-Butanediol"] = "1,3-Butanediol"
@@ -253,6 +271,9 @@ object AnodyneAliases {
         m["2,5-Dimethoxy-4-methylmethamphetamine"] = "2,5-Dimethoxy-4-methylmethamphetamine"
         m["Beatrice"] = "2,5-Dimethoxy-4-methylmethamphetamine"
         m["MDO-D"] = "2,5-Dimethoxy-4-methylmethamphetamine"
+    }
+
+    private fun addChunk1(m: MutableMap<String, String>) {
         m["MDOM"] = "2,5-Dimethoxy-4-methylmethamphetamine"
         m["N-methyl-DOM"] = "2,5-Dimethoxy-4-methylmethamphetamine"
         m["2,5-Dimethoxy-4-methylphenethylamine"] = "2,5-Dimethoxy-4-methylphenethylamine"
@@ -503,6 +524,9 @@ object AnodyneAliases {
         m["3,4-Methylenedioxy-\u03b1-ethyl-N-methylbenzylamine"] = "3,4-Methylenedioxy-\u03b1-ethyl-N-methylbenzylamine"
         m["M-ALPHA"] = "3,4-Methylenedioxy-\u03b1-ethyl-N-methylbenzylamine"
         m["3,4-Methylenedioxy-\u03b1-ethylbenzylamine"] = "3,4-Methylenedioxy-\u03b1-ethylbenzylamine"
+    }
+
+    private fun addChunk2(m: MutableMap<String, String>) {
         m["ALPHA"] = "3,4-Methylenedioxy-\u03b1-ethylbenzylamine"
         m["3,4-Methylenedioxyamphetamine"] = "3,4-Methylenedioxyamphetamine"
         m["MDA"] = "3,4-Methylenedioxyamphetamine"
@@ -753,6 +777,9 @@ object AnodyneAliases {
         m["4-MPD"] = "4-Methylpentedrone"
         m["4-Methylphenmetrazine"] = "4-Methylphenmetrazine"
         m["4-MPM"] = "4-Methylphenmetrazine"
+    }
+
+    private fun addChunk3(m: MutableMap<String, String>) {
         m["4-Methylphenylpiperazine"] = "4-Methylphenylpiperazine"
         m["4-MPP"] = "4-Methylphenylpiperazine"
         m["4-Methylpregabalin"] = "4-Methylpregabalin"
@@ -1003,6 +1030,9 @@ object AnodyneAliases {
         m["Jungle juice"] = "Amyl nitrite"
         m["Poppers"] = "Amyl nitrite"
         m["Rush"] = "Amyl nitrite"
+    }
+
+    private fun addChunk4(m: MutableMap<String, String>) {
         m["Anabaseine"] = "Anabaseine"
         m["Anabasine"] = "Anabasine"
         m["Anadenanthera peregrina"] = "Anadenanthera peregrina"
@@ -1253,6 +1283,9 @@ object AnodyneAliases {
         m["Cetirizine"] = "Cetirizine"
         m["Chloral hydrate"] = "Chloral hydrate"
         m["Chlordiazepoxide"] = "Chlordiazepoxide"
+    }
+
+    private fun addChunk5(m: MutableMap<String, String>) {
         m["Librium"] = "Chlordiazepoxide"
         m["Chlorhexidine"] = "Chlorhexidine"
         m["Chloroform"] = "Chloroform"
@@ -1503,6 +1536,9 @@ object AnodyneAliases {
         m["N,N-DET"] = "Diethyltryptamine"
         m["Dieticyclidine"] = "Dieticyclidine"
         m["PCDE"] = "Dieticyclidine"
+    }
+
+    private fun addChunk6(m: MutableMap<String, String>) {
         m["Difludiazepam"] = "Difludiazepam"
         m["DFE"] = "Difluoroethane"
         m["Difluoroethane"] = "Difluoroethane"
@@ -1753,6 +1789,9 @@ object AnodyneAliases {
         m["O-PCE"] = "Eticyclidone"
         m["Opce"] = "Eticyclidone"
         m["Etilevodopa"] = "Etilevodopa"
+    }
+
+    private fun addChunk7(m: MutableMap<String, String>) {
         m["Depas"] = "Etizolam"
         m["Etilaam"] = "Etizolam"
         m["Etizest"] = "Etizolam"
@@ -2003,6 +2042,9 @@ object AnodyneAliases {
         m["IA"] = "Isopropylamphetamine"
         m["Isopropylamphetamine"] = "Isopropylamphetamine"
         m["Isopropylbenzylamine"] = "Isopropylbenzylamine"
+    }
+
+    private fun addChunk8(m: MutableMap<String, String>) {
         m["IPH"] = "Isopropylphenidate"
         m["IPPD"] = "Isopropylphenidate"
         m["IPPH"] = "Isopropylphenidate"
@@ -2253,6 +2295,9 @@ object AnodyneAliases {
         m["MPA"] = "Methiopropamine"
         m["Methitural"] = "Methitural"
         m["Methoxamine"] = "Methoxamine"
+    }
+
+    private fun addChunk9(m: MutableMap<String, String>) {
         m["3-MeO-2'-Oxo-PCE"] = "Methoxetamine"
         m["Methoxetamine"] = "Methoxetamine"
         m["Mexxy"] = "Methoxetamine"
@@ -2503,6 +2548,9 @@ object AnodyneAliases {
         m["1cP-LSD"] = "N1-(Cyclopropylmethanoyl)-lysergic acid diethylamide"
         m["N1-(Cyclopropylmethanoyl)-lysergic acid diethylamide"] = "N1-(Cyclopropylmethanoyl)-lysergic acid diethylamide"
         m["N1-Tert-butoxycarbonyldimethyltryptamine"] = "N1-Tert-butoxycarbonyldimethyltryptamine"
+    }
+
+    private fun addChunk10(m: MutableMap<String, String>) {
         m["NB-DMT"] = "N1-Tert-butoxycarbonyldimethyltryptamine"
         m["NBoc-DMT"] = "N1-Tert-butoxycarbonyldimethyltryptamine"
         m["Nalbuphine"] = "Nalbuphine"
@@ -2753,6 +2801,9 @@ object AnodyneAliases {
         m["Phe"] = "Phenylalanine"
         m["Phenylalanine"] = "Phenylalanine"
         m["Phenylbutazone"] = "Phenylbutazone"
+    }
+
+    private fun addChunk11(m: MutableMap<String, String>) {
         m["PCMo"] = "Phenylcyclohexylmorpholine"
         m["Phenylcyclohexylmorpholine"] = "Phenylcyclohexylmorpholine"
         m["Phenylephrine"] = "Phenylephrine"
@@ -3003,6 +3054,9 @@ object AnodyneAliases {
         m["Sulpiride"] = "Sulpiride"
         m["Sultopride"] = "Sultopride"
         m["Sumatriptan"] = "Sumatriptan"
+    }
+
+    private fun addChunk12(m: MutableMap<String, String>) {
         m["DM-235"] = "Sunifiram"
         m["Sunifiram"] = "Sunifiram"
         m["Suxamethonium"] = "Suxamethonium"
@@ -3253,6 +3307,9 @@ object AnodyneAliases {
         m["Alpha-Methyltryptamine"] = "\u03b1-Methyltryptamine"
         m["alpha-MT"] = "\u03b1-Methyltryptamine"
         m["AMT"] = "\u03b1-Methyltryptamine"
+    }
+
+    private fun addChunk13(m: MutableMap<String, String>) {
         m["Indopan"] = "\u03b1-Methyltryptamine"
         m["\u03b1-Methyltryptamine"] = "\u03b1-Methyltryptamine"
         m["\u03b1-MT"] = "\u03b1-Methyltryptamine"
@@ -3488,6 +3545,5 @@ object AnodyneAliases {
         m["\u0394-9-tetrahydrocannabinol"] = "\u0394-9-tetrahydrocannabinol"
         m["\u03949-THC"] = "\u0394-9-tetrahydrocannabinol"
         m["\u22069-tetrahydrocannabinol"] = "\u0394-9-tetrahydrocannabinol"
-        m
     }
 }

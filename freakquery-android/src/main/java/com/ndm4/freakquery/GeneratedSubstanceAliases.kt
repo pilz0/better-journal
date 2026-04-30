@@ -1,3410 +1,3468 @@
 ﻿package com.ndm4.freakquery
 
 object GeneratedSubstanceAliases {
-    val map: Map<String, String> = mapOf(
-            "1,2-Diphenylethylamine" to "1,2-Diphenylethylamine",
-            "1,3-BDO" to "1,3-Butanediol",
-            "1,3-Butanediol" to "1,3-Butanediol",
-            "1,3-Dimethylbutylamine" to "1,3-Dimethylbutylamine",
-            "1,3-DMBA" to "1,3-Dimethylbutylamine",
-            "1,4 Butanediol" to "1,4-Butanediol",
-            "1,4-B" to "1,4-Butanediol",
-            "1,4-BD" to "1,4-Butanediol",
-            "1,4-BDO" to "1,4-Butanediol",
-            "1,4-Butanediol" to "1,4-Butanediol",
-            "14bdo" to "1,4-Butanediol",
-            "BD" to "1,4-Butanediol",
-            "BDO" to "1,4-Butanediol",
-            "Butylene Glycol" to "1,4-Butanediol",
-            "One Comma Four" to "1,4-Butanediol",
-            "One Four B-D-O" to "1,4-Butanediol",
-            "One Four Bee" to "1,4-Butanediol",
-            "1-(2-Benzhydryloxyethyl)-4-(3-phenylpropyl)piperazine" to "1-(2-Benzhydryloxyethyl)-4-(3-phenylpropyl)piperazine",
-            "GBR-12935" to "1-(2-Benzhydryloxyethyl)-4-(3-phenylpropyl)piperazine",
-            "1-(3-(Trimethylsilyl)propionyl)-lysergic acid diethylamide" to "1-(3-(Trimethylsilyl)propionyl)-lysergic acid diethylamide",
-            "1S-LSD" to "1-(3-(Trimethylsilyl)propionyl)-lysergic acid diethylamide",
-            "1-(3-Chlorophenyl)-4-(2-phenylethyl)piperazine" to "1-(3-Chlorophenyl)-4-(2-phenylethyl)piperazine",
-            "3C-PEP" to "1-(3-Chlorophenyl)-4-(2-phenylethyl)piperazine",
-            "1-AI" to "1-Aminoindane",
-            "1-Aminoindane" to "1-Aminoindane",
-            "1-Aminomethyl-5-methoxyindane" to "1-Aminomethyl-5-methoxyindane",
-            "1-Aminotetralin" to "1-Aminotetralin",
-            "1-AT" to "1-Aminotetralin",
-            "1-Cyclohexyl-4-(1,2-diphenylethyl)piperazine" to "1-Cyclohexyl-4-(1,2-diphenylethyl)piperazine",
-            "MT-45" to "1-Cyclohexyl-4-(1,2-diphenylethyl)piperazine",
-            "1-Methyl-4-phenyl-1,2,3,6-tetrahydropyridine" to "1-Methyl-4-phenyl-1,2,3,6-tetrahydropyridine",
-            "MPP+" to "1-Methyl-4-phenyl-1,2,3,6-tetrahydropyridine",
-            "1-Methyl-4-phenylpyridinium" to "1-Methyl-4-phenylpyridinium",
-            "MPTP" to "1-Methyl-4-phenylpyridinium",
-            "1-NAP" to "1-Naphthylaminopropane",
-            "1-Naphthylaminopropane" to "1-Naphthylaminopropane",
-            "1-Naphthylmethcathinone" to "1-Naphthylmethcathinone",
-            "AMAPN" to "1-Naphthylmethcathinone",
-            "1-Propargyltheobromine" to "1-Propargyltheobromine",
-            "DMPX" to "1-Propargyltheobromine",
-            "10-Hydroxyhexahydrocannabinol" to "10-Hydroxyhexahydrocannabinol",
-            "10-OH-HHC" to "10-Hydroxyhexahydrocannabinol",
-            "11β-Chloromethylestradiol" to "11β-Chloromethylestradiol",
-            "16α-Lactone-estradiol" to "16α-Lactone-estradiol",
-            "16α-LE2" to "16α-Lactone-estradiol",
-            "17β-Dihydroequilin" to "17β-Dihydroequilin",
-            "18-MC" to "18-Methoxycoronaridine",
-            "18-Methoxycoronaridine" to "18-Methoxycoronaridine",
-            "1-Butanoyl-d-lysergic acid diethylamide" to "1B-LSD",
-            "1B-LSD" to "1B-LSD",
-            "1-Cyclopropionyl-6-allyl-6-nor-lysergic acid diethylamide" to "1cP-AL-LAD",
-            "1cP-AL-LAD" to "1cP-AL-LAD",
-            "1cP-LSD" to "1cP-LSD",
-            "N1-(Cyclopropylmethanoyl)-lysergic acid diethylamide" to "1cP-LSD",
-            "1cP-MiPLA" to "1cP-MiPLA",
-            "1-Propionyl-6-ethyl-6-nor-lysergic acid diethyamide" to "1P-ETH-LAD",
-            "1P-ETH-LAD" to "1P-ETH-LAD",
-            "1P-ETHLAD" to "1P-ETH-LAD",
-            "1PETHLAD" to "1P-ETH-LAD",
-            "1-Propanoyl-lysergic acid diethylamide" to "1P-LSD",
-            "1P-LAD" to "1P-LSD",
-            "1P-LSD" to "1P-LSD",
-            "1PLAD" to "1P-LSD",
-            "1plsd" to "1P-LSD",
-            "1-Valeryl-D-lysergic acid diethylamide" to "1V-LSD",
-            "1V-LSD" to "1V-LSD",
-            "Valerie" to "1V-LSD",
-            "2,3'-Bipyridine" to "2,3'-Bipyridine",
-            "2,3,4,5-Tetramethoxyamphetamine" to "2,3,4,5-Tetramethoxyamphetamine",
-            "2,3,4,6-TeMPEA" to "2,3,4,5-Tetramethoxyamphetamine",
-            "2,3,4,6-Tetramethoxyphenethylamine" to "2,3,4,6-Tetramethoxyphenethylamine",
-            "2,3,4,5-TeMPEA" to "2,3,5,6-Tetramethoxyphenethylamine",
-            "2,3,5,6-Tetramethoxyphenethylamine" to "2,3,5,6-Tetramethoxyphenethylamine",
-            "2,3,7,8-Tetrachlorodibenzodioxin" to "2,3,7,8-Tetrachlorodibenzodioxin",
-            "TCDD" to "2,3,7,8-Tetrachlorodibenzodioxin",
-            "2,3-Dimethylphenylpiperazine" to "2,3-Dimethylphenylpiperazine",
-            "2,3-DMPP" to "2,3-Dimethylphenylpiperazine",
-            "2,3-MDA" to "2,3-Methylenedioxyamphetamine",
-            "2,3-Methylenedioxyamphetamine" to "2,3-Methylenedioxyamphetamine",
-            "2,3-MDMA" to "2,3-Methylenedioxymethamphetamine",
-            "2,3-Methylenedioxymethamphetamine" to "2,3-Methylenedioxymethamphetamine",
-            "2,4,5-T" to "2,4,5-Trichlorophenoxyacetic acid",
-            "2,4,5-Trichlorophenoxyacetic acid" to "2,4,5-Trichlorophenoxyacetic acid",
-            "2,4,5-Triethoxyamphetamine" to "2,4,5-Triethoxyamphetamine",
-            "EEE" to "2,4,5-Triethoxyamphetamine",
-            "2,4,5-Trimethoxyphenethylamine" to "2,4,5-Trimethoxyphenethylamine",
-            "2C-O" to "2,4,5-Trimethoxyphenethylamine",
-            "2,4-Dichloroamphetamine" to "2,4-Dichloroamphetamine",
-            "2,4-D" to "2,4-Dichlorophenoxyacetic acid",
-            "2,4-Dichlorophenoxyacetic acid" to "2,4-Dichlorophenoxyacetic acid",
-            "2,4-Dinitrophenol" to "2,4-Dinitrophenol",
-            "DNP" to "2,4-Dinitrophenol",
-            "2,5-Dimethoxy-3,4-dimethylphenethylamine" to "2,5-Dimethoxy-3,4-dimethylphenethylamine",
-            "2C-G" to "2,5-Dimethoxy-3,4-dimethylphenethylamine",
-            "2,5-Dimethoxy-4-(2-fluoroethyl)amphetamine" to "2,5-Dimethoxy-4-(2-fluoroethyl)amphetamine",
-            "DOEF" to "2,5-Dimethoxy-4-(2-fluoroethyl)amphetamine",
-            "2,5-Dimethoxy-4-acetylamphetamine" to "2,5-Dimethoxy-4-acetylamphetamine",
-            "DOAc" to "2,5-Dimethoxy-4-acetylamphetamine",
-            "2,5-Dimethoxy-4-amylamphetamine" to "2,5-Dimethoxy-4-amylamphetamine",
-            "DOAM" to "2,5-Dimethoxy-4-amylamphetamine",
-            "2,5-Dimethoxy-4-bromo-N-(2-fluorobenzyl)phenethylamine" to "2,5-Dimethoxy-4-bromo-N-(2-fluorobenzyl)phenethylamine",
-            "25B-NBF" to "2,5-Dimethoxy-4-bromo-N-(2-fluorobenzyl)phenethylamine",
-            "2,5-Dimethoxy-4-bromo-N-(3-methoxybenzyl)phenethylamine" to "2,5-Dimethoxy-4-bromo-N-(3-methoxybenzyl)phenethylamine",
-            "25B-NB3OMe" to "2,5-Dimethoxy-4-bromo-N-(3-methoxybenzyl)phenethylamine",
-            "2,5-Dimethoxy-4-bromo-N-benzylphenethylamine" to "2,5-Dimethoxy-4-bromo-N-benzylphenethylamine",
-            "25B-NB" to "2,5-Dimethoxy-4-bromo-N-benzylphenethylamine",
-            "2,5-Dimethoxy-4-bromo-α-ethylphenethylamine" to "2,5-Dimethoxy-4-bromo-α-ethylphenethylamine",
-            "4C-B" to "2,5-Dimethoxy-4-bromo-α-ethylphenethylamine",
-            "2,5-dimethoxy-4-bromobenzylpiperazine" to "2,5-dimethoxy-4-bromobenzylpiperazine",
-            "2C-B-BZP" to "2,5-dimethoxy-4-bromobenzylpiperazine",
-            "2,5-Dimethoxy-4-bromophenylpiperazine" to "2,5-Dimethoxy-4-bromophenylpiperazine",
-            "2C-B-PP" to "2,5-Dimethoxy-4-bromophenylpiperazine",
-            "2,5-Dimethoxy-4-butylamphetamine" to "2,5-Dimethoxy-4-butylamphetamine",
-            "DOBU" to "2,5-Dimethoxy-4-butylamphetamine",
-            "2,5-Dimethoxy-4-chloro-N-(2-fluorobenzyl)phenethylamine" to "2,5-Dimethoxy-4-chloro-N-(2-fluorobenzyl)phenethylamine",
-            "25C-NBF" to "2,5-Dimethoxy-4-chloro-N-(2-fluorobenzyl)phenethylamine",
-            "2,5-Dimethoxy-4-chloro-N-(3-methoxybenzyl)phenethylamine" to "2,5-Dimethoxy-4-chloro-N-(3-methoxybenzyl)phenethylamine",
-            "25C-NB3OMe" to "2,5-Dimethoxy-4-chloro-N-(3-methoxybenzyl)phenethylamine",
-            "2,5-Dimethoxy-4-chloro-N-(4-methoxybenzyl)phenethylamine" to "2,5-Dimethoxy-4-chloro-N-(4-methoxybenzyl)phenethylamine",
-            "25C-NB4OMe" to "2,5-Dimethoxy-4-chloro-N-(4-methoxybenzyl)phenethylamine",
-            "2,5-Dimethoxy-4-chloro-N-benzylphenethylamine" to "2,5-Dimethoxy-4-chloro-N-benzylphenethylamine",
-            "25C-NB" to "2,5-Dimethoxy-4-chloro-N-benzylphenethylamine",
-            "2,5-Dimethoxy-4-ethoxyamphetamine" to "2,5-Dimethoxy-4-ethoxyamphetamine",
-            "MEM" to "2,5-Dimethoxy-4-ethoxyamphetamine",
-            "2,5-Dimethoxy-4-ethyl-N-(2-fluorobenzyl)phenethylamine" to "2,5-Dimethoxy-4-ethyl-N-(2-fluorobenzyl)phenethylamine",
-            "25E-NBF" to "2,5-Dimethoxy-4-ethyl-N-(2-fluorobenzyl)phenethylamine",
-            "2,5-Dimethoxy-4-ethyl-N-(2-hydroxybenzyl)phenethylamine" to "2,5-Dimethoxy-4-ethyl-N-(2-hydroxybenzyl)phenethylamine",
-            "25E-NBOH" to "2,5-Dimethoxy-4-ethyl-N-(2-hydroxybenzyl)phenethylamine",
-            "2,5-Dimethoxy-4-ethyl-N-(2-methoxybenzyl)phenethylamine" to "2,5-Dimethoxy-4-ethyl-N-(2-methoxybenzyl)phenethylamine",
-            "25E-NBOMe" to "2,5-Dimethoxy-4-ethyl-N-(2-methoxybenzyl)phenethylamine",
-            "2,5-Dimethoxy-4-ethylamphetamine" to "2,5-Dimethoxy-4-ethylamphetamine",
-            "DOET" to "2,5-Dimethoxy-4-ethylamphetamine",
-            "2,5-Dimethoxy-4-ethylthio-N-(2-methoxybenzyl)phenethylamine" to "2,5-Dimethoxy-4-ethylthio-N-(2-methoxybenzyl)phenethylamine",
-            "25T2-NBOMe" to "2,5-Dimethoxy-4-ethylthio-N-(2-methoxybenzyl)phenethylamine",
-            "2,5-Dimethoxy-4-ethylthio-α-ethylphenethylamine" to "2,5-Dimethoxy-4-ethylthio-α-ethylphenethylamine",
-            "4C-T-2" to "2,5-Dimethoxy-4-ethylthio-α-ethylphenethylamine",
-            "2,5-Dimethoxy-4-ethylthioamphetamine" to "2,5-Dimethoxy-4-ethylthioamphetamine",
-            "Aleph-2" to "2,5-Dimethoxy-4-ethylthioamphetamine",
-            "2,5-Dimethoxy-4-fluoroamphetamine" to "2,5-Dimethoxy-4-fluoroamphetamine",
-            "DOF" to "2,5-Dimethoxy-4-fluoroamphetamine",
-            "2,5-Dimethoxy-4-fluorophenethylamine" to "2,5-Dimethoxy-4-fluorophenethylamine",
-            "2C-F" to "2,5-Dimethoxy-4-fluorophenethylamine",
-            "2,5-Dimethoxy-4-iodo-N-(2-fluorobenzyl)phenethylamine" to "2,5-Dimethoxy-4-iodo-N-(2-fluorobenzyl)phenethylamine",
-            "25I-NBF" to "2,5-Dimethoxy-4-iodo-N-(2-fluorobenzyl)phenethylamine",
-            "2,5-Dimethoxy-4-iodo-N-(3-methoxybenzyl)phenethylamine" to "2,5-Dimethoxy-4-iodo-N-(3-methoxybenzyl)phenethylamine",
-            "25I-NB3OMe" to "2,5-Dimethoxy-4-iodo-N-(3-methoxybenzyl)phenethylamine",
-            "2,5-Dimethoxy-4-iodo-N-(4-methoxybenzyl)phenethylamine" to "2,5-Dimethoxy-4-iodo-N-(4-methoxybenzyl)phenethylamine",
-            "25I-NB4OMe" to "2,5-Dimethoxy-4-iodo-N-(4-methoxybenzyl)phenethylamine",
-            "2,5-Dimethoxy-4-iodo-N-benzylphenethylamine" to "2,5-Dimethoxy-4-iodo-N-benzylphenethylamine",
-            "25I-NB" to "2,5-Dimethoxy-4-iodo-N-benzylphenethylamine",
-            "2,5-Dimethoxy-4-isopropylamphetamine" to "2,5-Dimethoxy-4-isopropylamphetamine",
-            "DOIP" to "2,5-Dimethoxy-4-isopropylamphetamine",
-            "2,5-Dimethoxy-4-isopropylthio-N-(2-hydroxybenzyl)phenethylamine" to "2,5-Dimethoxy-4-isopropylthio-N-(2-hydroxybenzyl)phenethylamine",
-            "25T4-NBOH" to "2,5-Dimethoxy-4-isopropylthio-N-(2-hydroxybenzyl)phenethylamine",
-            "2,5-Dimethoxy-4-isopropylthio-N-(2-methoxybenzyl)phenethylamine" to "2,5-Dimethoxy-4-isopropylthio-N-(2-methoxybenzyl)phenethylamine",
-            "25T4-NBOMe" to "2,5-Dimethoxy-4-isopropylthio-N-(2-methoxybenzyl)phenethylamine",
-            "2,5-Dimethoxy-4-isopropylthioamphetamine" to "2,5-Dimethoxy-4-isopropylthioamphetamine",
-            "Aleph-4" to "2,5-Dimethoxy-4-isopropylthioamphetamine",
-            "2,5-Dimethoxy-4-methyl-N-(2-fluorobenzyl)phenethylamine" to "2,5-Dimethoxy-4-methyl-N-(2-fluorobenzyl)phenethylamine",
-            "25D-NBF" to "2,5-Dimethoxy-4-methyl-N-(2-fluorobenzyl)phenethylamine",
-            "2,5-Dimethoxy-4-methyl-N-(2-hydroxybenzyl)phenethylamine" to "2,5-Dimethoxy-4-methyl-N-(2-hydroxybenzyl)phenethylamine",
-            "25D-NBOH" to "2,5-Dimethoxy-4-methyl-N-(2-hydroxybenzyl)phenethylamine",
-            "2,5-Dimethoxy-4-methyl-α-ethylphenethylamine" to "2,5-Dimethoxy-4-methyl-α-ethylphenethylamine",
-            "4C-D" to "2,5-Dimethoxy-4-methyl-α-ethylphenethylamine",
-            "2,5-Dimethoxy-4-methylmethamphetamine" to "2,5-Dimethoxy-4-methylmethamphetamine",
-            "Beatrice" to "2,5-Dimethoxy-4-methylmethamphetamine",
-            "MDO-D" to "2,5-Dimethoxy-4-methylmethamphetamine",
-            "MDOM" to "2,5-Dimethoxy-4-methylmethamphetamine",
-            "N-methyl-DOM" to "2,5-Dimethoxy-4-methylmethamphetamine",
-            "2,5-Dimethoxy-4-methylphenylcyclopropylamine" to "2,5-Dimethoxy-4-methylphenylcyclopropylamine",
-            "DMCPA" to "2,5-Dimethoxy-4-methylphenylcyclopropylamine",
-            "2,5-Dimethoxy-4-methylselenophenethylamine" to "2,5-Dimethoxy-4-methylselenophenethylamine",
-            "2C-Se" to "2,5-Dimethoxy-4-methylselenophenethylamine",
-            "2,5-Dimethoxy-4-methylsulfonylamphetamine" to "2,5-Dimethoxy-4-methylsulfonylamphetamine",
-            "DOMS" to "2,5-Dimethoxy-4-methylsulfonylamphetamine",
-            "2,5-Dimethoxy-4-methylthioamphetamine" to "2,5-Dimethoxy-4-methylthioamphetamine",
-            "Aleph-1" to "2,5-Dimethoxy-4-methylthioamphetamine",
-            "2,5-Dimethoxy-4-nitroamphetamine" to "2,5-Dimethoxy-4-nitroamphetamine",
-            "DON" to "2,5-Dimethoxy-4-nitroamphetamine",
-            "2,5-Dimethoxy-4-nitrophenethylamine" to "2,5-Dimethoxy-4-nitrophenethylamine",
-            "2C-N" to "2,5-Dimethoxy-4-nitrophenethylamine",
-            "2,5-Dimethoxy-4-phenylthioamphetamine" to "2,5-Dimethoxy-4-phenylthioamphetamine",
-            "Aleph-6" to "2,5-Dimethoxy-4-phenylthioamphetamine",
-            "2,5-Dimethoxy-4-propyl-N-(2-fluorobenzyl)phenethylamine" to "2,5-Dimethoxy-4-propyl-N-(2-fluorobenzyl)phenethylamine",
-            "25P-NBF" to "2,5-Dimethoxy-4-propyl-N-(2-fluorobenzyl)phenethylamine",
-            "2,5-Dimethoxy-4-propyl-N-(2-hydroxybenzyl)phenethylamine" to "2,5-Dimethoxy-4-propyl-N-(2-hydroxybenzyl)phenethylamine",
-            "25P-NBOH" to "2,5-Dimethoxy-4-propyl-N-(2-hydroxybenzyl)phenethylamine",
-            "2,5-Dimethoxy-4-propyl-N-(2-methoxybenzyl)phenethylamine" to "2,5-Dimethoxy-4-propyl-N-(2-methoxybenzyl)phenethylamine",
-            "25P-NBOMe" to "2,5-Dimethoxy-4-propyl-N-(2-methoxybenzyl)phenethylamine",
-            "2,5-Dimethoxy-4-propylamphetamine" to "2,5-Dimethoxy-4-propylamphetamine",
-            "DOPR" to "2,5-Dimethoxy-4-propylamphetamine",
-            "2,5-Dimethoxy-4-propylthio-N-(2-hydroxybenzyl)phenethylamine" to "2,5-Dimethoxy-4-propylthio-N-(2-hydroxybenzyl)phenethylamine",
-            "25T7-NBOH" to "2,5-Dimethoxy-4-propylthio-N-(2-hydroxybenzyl)phenethylamine",
-            "2,5-Dimethoxy-4-propylthio-N-(2-methoxybenzyl)phenethylamine" to "2,5-Dimethoxy-4-propylthio-N-(2-methoxybenzyl)phenethylamine",
-            "25T7-NBOMe" to "2,5-Dimethoxy-4-propylthio-N-(2-methoxybenzyl)phenethylamine",
-            "2,5-Dimethoxy-4-propylthioamphetamine" to "2,5-Dimethoxy-4-propylthioamphetamine",
-            "Aleph-7" to "2,5-Dimethoxy-4-propylthioamphetamine",
-            "2,5-Dimethoxy-4-trifluoromethylamphetamine" to "2,5-Dimethoxy-4-trifluoromethylamphetamine",
-            "DOTFM" to "2,5-Dimethoxy-4-trifluoromethylamphetamine",
-            "2,5-Dimethoxy-4-trifluoromethylphenethylamine" to "2,5-Dimethoxy-4-trifluoromethylphenethylamine",
-            "2C-TFM" to "2,5-Dimethoxy-4-trifluoromethylphenethylamine",
-            "2,5-Dimethoxy-N-(2-fluorobenzyl)phenethylamine" to "2,5-Dimethoxy-N-(2-fluorobenzyl)phenethylamine",
-            "25H-NBF" to "2,5-Dimethoxy-N-(2-fluorobenzyl)phenethylamine",
-            "2,5-Dimethoxy-N-(2-hydroxybenzyl)phenethylamine" to "2,5-Dimethoxy-N-(2-hydroxybenzyl)phenethylamine",
-            "25H-NBOH" to "2,5-Dimethoxy-N-(2-hydroxybenzyl)phenethylamine",
-            "2,5-Dimethoxy-N-(2-methoxybenzyl)phenethylamine" to "2,5-Dimethoxy-N-(2-methoxybenzyl)phenethylamine",
-            "25H-NBOMe" to "2,5-Dimethoxy-N-(2-methoxybenzyl)phenethylamine",
-            "2,5-Dimethoxy-N-(3-methoxybenzyl)phenethylamine" to "2,5-Dimethoxy-N-(3-methoxybenzyl)phenethylamine",
-            "25H-NB3OMe" to "2,5-Dimethoxy-N-(3-methoxybenzyl)phenethylamine",
-            "2,5-Dimethoxy-N-(4-methoxybenzyl)phenethylamine" to "2,5-Dimethoxy-N-(4-methoxybenzyl)phenethylamine",
-            "25H-NB4OMe" to "2,5-Dimethoxy-N-(4-methoxybenzyl)phenethylamine",
-            "2,5-Dimethoxy-N-benzylphenethylamine" to "2,5-Dimethoxy-N-benzylphenethylamine",
-            "25H-NB" to "2,5-Dimethoxy-N-benzylphenethylamine",
-            "2,5-Dimethoxyamphetamine" to "2,5-DMA",
-            "2,5-DMA" to "2,5-DMA",
-            "DOH" to "2,5-DMA",
-            "2-(4-Bromo-2,5-dimethoxyphenyl)morpholine" to "2-(4-Bromo-2,5-dimethoxyphenyl)morpholine",
-            "2C-B-morpholine" to "2-(4-Bromo-2,5-dimethoxyphenyl)morpholine",
-            "2-ADN" to "2-Amino-1,2-dihydronaphthalene",
-            "2-Amino-1,2-dihydronaphthalene" to "2-Amino-1,2-dihydronaphthalene",
-            "2-Amino-4,5-diphenyloxazole" to "2-Amino-4,5-diphenyloxazole",
-            "2-AI" to "2-Aminoindane",
-            "2-Aminoindan" to "2-Aminoindane",
-            "2-Aminoindane" to "2-Aminoindane",
-            "2AI" to "2-Aminoindane",
-            "2-Aminotetralin" to "2-Aminotetralin",
-            "2-AT" to "2-Aminotetralin",
-            "2-Br-LSD" to "2-Bromolysergic acid diethylamide",
-            "2-Bromolysergic acid diethylamide" to "2-Bromolysergic acid diethylamide",
-            "2-EMC" to "2-Ethylmethcathinone",
-            "2-Ethylmethcathinone" to "2-Ethylmethcathinone",
-            "2-FA" to "2-FA",
-            "2-Fluoroamphetamine" to "2-FA",
-            "2fa" to "2-FA",
-            "2fluoroamphetamine" to "2-FA",
-            "2-FEA" to "2-FEA",
-            "2-Fluoroethamphetamine" to "2-FEA",
-            "2-Furylethylamine" to "2-FEA",
-            "2fea" to "2-FEA",
-            "2-FDCK" to "2-Fluorodeschloroketamine",
-            "2-FK" to "2-Fluorodeschloroketamine",
-            "2-Fl-2'-Oxo-PCM" to "2-Fluorodeschloroketamine",
-            "2-Fluorodeschloroketamine" to "2-Fluorodeschloroketamine",
-            "2-Fluoroketamine" to "2-Fluorodeschloroketamine",
-            "2-Fluro-ketamine" to "2-Fluorodeschloroketamine",
-            "2-Fluroketamine" to "2-Fluorodeschloroketamine",
-            "2f-dck" to "2-Fluorodeschloroketamine",
-            "2fdck" to "2-Fluorodeschloroketamine",
-            "Fluoroketamine" to "2-Fluorodeschloroketamine",
-            "2-Fluoromethcathinone" to "2-Fluoromethcathinone",
-            "2-FMC" to "2-Fluoromethcathinone",
-            "2-Fluoromethamphetamine" to "2-FMA",
-            "2-FMA" to "2-FMA",
-            "2fluoromethamphetamine" to "2-FMA",
-            "2fma" to "2-FMA",
-            "2-Methoxyamphetamine" to "2-Methoxyamphetamine",
-            "OMA" to "2-Methoxyamphetamine",
-            "2-Methylphenylpiperazine" to "2-Methylphenylpiperazine",
-            "oMPP" to "2-Methylphenylpiperazine",
-            "2-Methylthiophene" to "2-Methylthiophene",
-            "2-Thiotoluene" to "2-Methylthiophene",
-            "2-Naphthylamine" to "2-Naphthylamine",
-            "2-Naphthylaminopropane" to "2-Naphthylaminopropane",
-            "NAP" to "2-Naphthylaminopropane",
-            "2-Naphthylmethcathinone" to "2-Naphthylmethcathinone",
-            "BMAPN" to "2-Naphthylmethcathinone",
-            "2-Octylcyanoacrylate" to "2-Octylcyanoacrylate",
-            "Dermabond" to "2-Octylcyanoacrylate",
-            "2-Phenyl-3,5-dimethylmorpholine" to "2-Phenyl-3,5-dimethylmorpholine",
-            "3,5-DMPM" to "2-Phenyl-3,5-dimethylmorpholine",
-            "2-Phenyl-3,6-dimethylmorpholine" to "2-Phenyl-3,6-dimethylmorpholine",
-            "3,6-DMPM" to "2-Phenyl-3,6-dimethylmorpholine",
-            "2-Phenylphenol" to "2-Phenylphenol",
-            "2-NEA" to "2-Pyrrolylethylamine",
-            "2-Pyrrolylethylamine" to "2-Pyrrolylethylamine",
-            "2-Tetrahydrofurylethylamine" to "2-Tetrahydrofurylethylamine",
-            "2-THFEA" to "2-Tetrahydrofurylethylamine",
-            "2-β-Carbomethoxy-3-β-(4-fluorophenyl)tropane" to "2-β-Carbomethoxy-3-β-(4-fluorophenyl)tropane",
-            "WIN-35428" to "2-β-Carbomethoxy-3-β-(4-fluorophenyl)tropane",
-            "2,5-Dimethoxy-4-bromo-N-(2-hydroxybenzyl)phenethylamine" to "25B-NBOH",
-            "25B-NBOH" to "25B-NBOH",
-            "2C-B-NBOH" to "25B-NBOH",
-            "NBOH-2C-B" to "25B-NBOH",
-            "NBOH-2CB" to "25B-NBOH",
-            "2,5-Dimethoxy-4-bromo-N-(2-methoxybenzyl)phenethylamine" to "25B-NBOMe",
-            "25B" to "25B-NBOMe",
-            "25B-NBOMe" to "25B-NBOMe",
-            "25bnbome" to "25B-NBOMe",
-            "2C-B-NBOMe" to "25B-NBOMe",
-            "Cimbi-36" to "25B-NBOMe",
-            "NBOMe-2C-B" to "25B-NBOMe",
-            "2,5-Dimethoxy-4-chloro-N-(2-hydroxybenzyl)phenethylamine" to "25C-NBOH",
-            "25C-NBOH" to "25C-NBOH",
-            "2C-C-NBOH" to "25C-NBOH",
-            "NBOH-2C-C" to "25C-NBOH",
-            "2,5-Dimethoxy-4-chloro-N-(2-methoxybenzyl)phenethylamine" to "25C-NBOMe",
-            "25c" to "25C-NBOMe",
-            "25C-NBOMe" to "25C-NBOMe",
-            "25cnbome" to "25C-NBOMe",
-            "2C-C-NBOMe" to "25C-NBOMe",
-            "Cimbi-82" to "25C-NBOMe",
-            "NBOMe-2C-C" to "25C-NBOMe",
-            "2,5-Dimethoxy-4-methyl-N-(2-methoxybenzyl)phenethylamine" to "25D-NBOMe",
-            "25-d nbome" to "25D-NBOMe",
-            "25D-NBOMe" to "25D-NBOMe",
-            "2C-D-NBOMe" to "25D-NBOMe",
-            "NBOMe-2C-D" to "25D-NBOMe",
-            "2,5-Dimethoxy-4-iodo-N-(2-hydroxybenzyl)phenethylamine" to "25I-NBOH",
-            "25I-NBOH" to "25I-NBOH",
-            "2C-I-NBOH" to "25I-NBOH",
-            "Cimbi-27" to "25I-NBOH",
-            "NBOH-2C-I" to "25I-NBOH",
-            "2,5-Dimethoxy-4-iodo-N-(2-methoxybenzyl)phenethylamine" to "25I-NBOMe",
-            "25i" to "25I-NBOMe",
-            "25I-NBOMe" to "25I-NBOMe",
-            "25inbome" to "25I-NBOMe",
-            "2C-I-NBOMe" to "25I-NBOMe",
-            "Cimbi-5" to "25I-NBOMe",
-            "NBOMe-2C-I" to "25I-NBOMe",
-            "2,5-Dimethoxy-4-nitro-N-(2-methoxybenzyl)phenethylamine" to "25N-NBOMe",
-            "25n" to "25N-NBOMe",
-            "25N-NBOMe" to "25N-NBOMe",
-            "25nnbome" to "25N-NBOMe",
-            "2C-N-NBOMe" to "25N-NBOMe",
-            "NBOMe-2C-N" to "25N-NBOMe",
-            "25x-NBOMe" to "25x-NBOMe",
-            "N-(2-Methoxybenzyl)phenethylamine" to "25x-NBOMe",
-            "Nbomb" to "25x-NBOMe",
-            "NBOMe" to "25x-NBOMe",
-            "NBOMes" to "25x-NBOMe",
-            "2,5-Dimethoxy-4-bromophenethylamine" to "2C-B",
-            "2-cb" to "2C-B",
-            "2C-B" to "2C-B",
-            "2cb" to "2C-B",
-            "4-Bromo-2,5-dimethoxyphenethylamine" to "2C-B",
-            "BDMPEA" to "2C-B",
-            "Bees" to "2C-B",
-            "Bromodimethoxyphenethylamine" to "2C-B",
-            "Nexus" to "2C-B",
-            "2C-B-FLY" to "2C-B-FLY",
-            "2cbfly" to "2C-B-FLY",
-            "2,5-Dimethoxy-4-chlorophenethylamine" to "2C-C",
-            "2C-C" to "2C-C",
-            "2cc" to "2C-C",
-            "2,5-Dimethoxy-4-methylphenethylamine" to "2C-D",
-            "2C-D" to "2C-D",
-            "2C-M" to "2C-D",
-            "2cd" to "2C-D",
-            "LE-25" to "2C-D",
-            "2,5-Dimethoxy-4-ethylphenethylamine" to "2C-E",
-            "2C-E" to "2C-E",
-            "2CE" to "2C-E",
-            "Eternity" to "2C-E",
-            "2C-G-5" to "2C-G-5",
-            "2,5-dimethoxyphenethylamine" to "2C-H",
-            "2C-H" to "2C-H",
-            "2ch" to "2C-H",
-            "2,5-Dimethoxy-4-iodophenethylamine" to "2C-I",
-            "2C-I" to "2C-I",
-            "2ci" to "2C-I",
-            "2,5-Dimethoxy-4-propylphenethylamine" to "2C-P",
-            "2C-P" to "2C-P",
-            "2CP" to "2C-P",
-            "2,5-Dimethoxy-4-methylthiophenethylamine" to "2C-T",
-            "2C-T" to "2C-T",
-            "Tesseract" to "2C-T",
-            "2,5-Dimethoxy-4-ethylthiophenethylamine" to "2C-T-2",
-            "2C-T-2" to "2C-T-2",
-            "2ct2" to "2C-T-2",
-            "Rosy" to "2C-T-2",
-            "2C-T-21" to "2C-T-21",
-            "2ct21" to "2C-T-21",
-            "Aurora" to "2C-T-21",
-            "2-C-T-7" to "2C-T-7",
-            "2C-T-7" to "2C-T-7",
-            "2ct7" to "2C-T-7",
-            "7th Heaven" to "2C-T-7",
-            "Beautiful" to "2C-T-7",
-            "Blue Mystic" to "2C-T-7",
-            "2C-x" to "2C-x",
-            "2C-x family" to "2C-x",
-            "2Cx" to "2C-x",
-            "2-methyl-2-butanol" to "2M2B",
-            "2-Methylbutan-2-ol" to "2M2B",
-            "2M2B" to "2M2B",
-            "2methyl2butanol" to "2M2B",
-            "Amylene hydrate" to "2M2B",
-            "TAA" to "2M2B",
-            "Tert-Amyl alcohol" to "2M2B",
-            "2β-Carboisopropoxy-3β-(4-iodophenyl)tropane" to "2β-Carboisopropoxy-3β-(4-iodophenyl)tropane",
-            "RTI-121" to "2β-Carboisopropoxy-3β-(4-iodophenyl)tropane",
-            "2β-Carbomethoxy-3β-(3-methyl-4-chlorophenyl)tropane" to "2β-Carbomethoxy-3β-(3-methyl-4-chlorophenyl)tropane",
-            "RTI-112" to "2β-Carbomethoxy-3β-(3-methyl-4-chlorophenyl)tropane",
-            "2β-Propanoyl-3β-(2-naphthyl)-tropane" to "2β-Propanoyl-3β-(2-naphthyl)-tropane",
-            "WF-23" to "2β-Propanoyl-3β-(2-naphthyl)-tropane",
-            "3',4'-Dichloro-α-pyrrolidinopentiophenone" to "3',4'-Dichloro-α-pyrrolidinopentiophenone",
-            "3,4-DCPV" to "3',4'-Dichloro-α-pyrrolidinopentiophenone",
-            "DCPVP" to "3',4'-Dichloro-α-pyrrolidinopentiophenone",
-            "O-2390" to "3',4'-Dichloro-α-pyrrolidinopentiophenone",
-            "3',4'-Dimethoxy-α-pyrrolidinopentiophenone" to "3',4'-Dimethoxy-α-pyrrolidinopentiophenone",
-            "3,4-DMPV" to "3',4'-Dimethoxy-α-pyrrolidinopentiophenone",
-            "DMPV" to "3',4'-Dimethoxy-α-pyrrolidinopentiophenone",
-            "DMPVP" to "3',4'-Dimethoxy-α-pyrrolidinopentiophenone",
-            "O-2512" to "3',4'-Dimethoxy-α-pyrrolidinopentiophenone",
-            "3',4'-Ethylene-α-pyrrolidinopentiophenone" to "3',4'-Ethylene-α-pyrrolidinopentiophenone",
-            "3',4'-Methylenedioxy-α-pyrrolidinobutiophenone" to "3',4'-Methylenedioxy-α-pyrrolidinobutiophenone",
-            "MDPBP" to "3',4'-Methylenedioxy-α-pyrrolidinobutiophenone",
-            "3',4'-Methylenedioxy-α-pyrrolidinoheptaphenone" to "3',4'-Methylenedioxy-α-pyrrolidinoheptaphenone",
-            "MDPEP" to "3',4'-Methylenedioxy-α-pyrrolidinoheptaphenone",
-            "3',4'-Methylenedioxy-α-pyrrolidinohexiophenone" to "3',4'-Methylenedioxy-α-pyrrolidinohexiophenone",
-            "MDPHP" to "3',4'-Methylenedioxy-α-pyrrolidinohexiophenone",
-            "3',4'-Methylenedioxy-α-pyrrolidinoisohexanophenone" to "3',4'-Methylenedioxy-α-pyrrolidinoisohexanophenone",
-            "MDPiHP" to "3',4'-Methylenedioxy-α-pyrrolidinoisohexanophenone",
-            "3',4'-Methylenedioxy-α-pyrrolidinopropiophenone" to "3',4'-Methylenedioxy-α-pyrrolidinopropiophenone",
-            "MDPPP" to "3',4'-Methylenedioxy-α-pyrrolidinopropiophenone",
-            "3',4'-Methylenedioxyaminorex" to "3',4'-Methylenedioxyaminorex",
-            "MDAR" to "3',4'-Methylenedioxyaminorex",
-            "3',4'-Tetramethylene-α-pyrrolidinovalerophenone" to "3',4'-Tetramethylene-α-pyrrolidinovalerophenone",
-            "TH-PVP" to "3',4'-Tetramethylene-α-pyrrolidinovalerophenone",
-            "THPV" to "3',4'-Tetramethylene-α-pyrrolidinovalerophenone",
-            "3',4'-Trimethylene-α-piperidinopentiophenone" to "3',4'-Trimethylene-α-piperidinopentiophenone",
-            "3,4-Pr-PIPVP" to "3',4'-Trimethylene-α-piperidinopentiophenone",
-            "3'-Methyl-4'-Fluoro-α-Pyrrolidinovalerophenone" to "3'-Methyl-4'-Fluoro-α-Pyrrolidinovalerophenone",
-            "MFPVP" to "3'-Methyl-4'-Fluoro-α-Pyrrolidinovalerophenone",
-            "3'-Methyl-α-pyrrolidinopentiophenone" to "3'-Methyl-α-pyrrolidinopentiophenone",
-            "3-Me-PVP" to "3'-Methyl-α-pyrrolidinopentiophenone",
-            "3-Me-α-PVP" to "3'-Methyl-α-pyrrolidinopentiophenone",
-            "O-2480" to "3'-Methyl-α-pyrrolidinopentiophenone",
-            "3,3-Dimethylrolicyclidine" to "3,3-Dimethylrolicyclidine",
-            "3,3-DMe-PCPy" to "3,3-Dimethylrolicyclidine",
-            "3,3-Diphenylcyclobutanamine" to "3,3-Diphenylcyclobutanamine",
-            "3,4,5-TMA" to "3,4,5-Trimethoxyamphetamine",
-            "3,4,5-Trimethoxyamphetamine" to "3,4,5-Trimethoxyamphetamine",
-            "a-Methylmescaline" to "3,4,5-Trimethoxyamphetamine",
-            "TMA" to "3,4,5-Trimethoxyamphetamine",
-            "TMA-1" to "3,4,5-Trimethoxyamphetamine",
-            "α-Methylmescaline" to "3,4,5-Trimethoxyamphetamine",
-            "3,4,5-Trimethoxymethamphetamine" to "3,4,5-Trimethoxymethamphetamine",
-            "Methyl-TMA" to "3,4,5-Trimethoxymethamphetamine",
-            "N-methyl-TMA" to "3,4,5-Trimethoxymethamphetamine",
-            "TMMA" to "3,4,5-Trimethoxymethamphetamine",
-            "3,4,5-Trimethoxytranylcypromine" to "3,4,5-Trimethoxytranylcypromine",
-            "MCPA" to "3,4,5-Trimethoxytranylcypromine",
-            "TMT" to "3,4,5-Trimethoxytranylcypromine",
-            "3,4-CTMP" to "3,4-CTMP",
-            "3,4-DCMP" to "3,4-CTMP",
-            "3,4-Dichloromethylphenidate" to "3,4-CTMP",
-            "3,4-DCA" to "3,4-Dichloroamphetamine",
-            "3,4-Dichloroamphetamine" to "3,4-Dichloroamphetamine",
-            "3,4-Dihydroxymethcathinone" to "3,4-Dihydroxymethcathinone",
-            "HHMC" to "3,4-Dihydroxymethcathinone",
-            "3,4-Dihydroxyphenylacetaldehyde" to "3,4-Dihydroxyphenylacetaldehyde",
-            "DOPAL" to "3,4-Dihydroxyphenylacetaldehyde",
-            "3,4-Dihydroxyphenylalanine" to "3,4-Dihydroxyphenylalanine",
-            "DOPA" to "3,4-Dihydroxyphenylalanine",
-            "L-DOPA" to "3,4-Dihydroxyphenylalanine",
-            "3,4-Dimethoxyamphetamine" to "3,4-Dimethoxyamphetamine",
-            "3,4-DMA" to "3,4-Dimethoxyamphetamine",
-            "3,4-Dimethoxyphenethylamine" to "3,4-Dimethoxyphenethylamine",
-            "DMPEA" to "3,4-Dimethoxyphenethylamine",
-            "3,4-Dimethylmethcathinone" to "3,4-Dimethylmethcathinone",
-            "3,4-DMMC" to "3,4-Dimethylmethcathinone",
-            "3,4-Ethylenedioxyamphetamine" to "3,4-Ethylenedioxyamphetamine",
-            "EDA" to "3,4-Ethylenedioxyamphetamine",
-            "3,4-Ethylenedioxycathinone" to "3,4-Ethylenedioxycathinone",
-            "EDC" to "3,4-Ethylenedioxycathinone",
-            "3,4-Ethylenedioxymethamphetamine" to "3,4-Ethylenedioxymethamphetamine",
-            "EDMA" to "3,4-Ethylenedioxymethamphetamine",
-            "3,4-Ethylenedioxymethcathinone" to "3,4-Ethylenedioxymethcathinone",
-            "EDMC" to "3,4-Ethylenedioxymethcathinone",
-            "3,4-Ethylenemethcathinone" to "3,4-Ethylenemethcathinone",
-            "3,4-Ethylidenedioxyamphetamine" to "3,4-Ethylidenedioxyamphetamine",
-            "EIDA" to "3,4-Ethylidenedioxyamphetamine",
-            "3,4-Isopropylidenedioxyamphetamine" to "3,4-Isopropylidenedioxyamphetamine",
-            "IDA" to "3,4-Isopropylidenedioxyamphetamine",
-            "3,4-Methylenedioxy-3-methylaminobutane" to "3,4-Methylenedioxy-3-methylaminobutane",
-            "Homo-MDMA" to "3,4-Methylenedioxy-3-methylaminobutane",
-            "3,4-Methylenedioxy-N-methyl-α-ethylphenylethylamine" to "3,4-Methylenedioxy-N-methyl-α-ethylphenylethylamine",
-            "MBDB" to "3,4-Methylenedioxy-N-methyl-α-ethylphenylethylamine",
-            "3,4-Methylenedioxy-N-propargylamphetamine" to "3,4-Methylenedioxy-N-propargylamphetamine",
-            "MDPL" to "3,4-Methylenedioxy-N-propargylamphetamine",
-            "3,4-Methylenedioxy-α,N-dimethylbenzylamine" to "3,4-Methylenedioxy-α,N-dimethylbenzylamine",
-            "MDM1EA" to "3,4-Methylenedioxy-α,N-dimethylbenzylamine",
-            "3,4-Methylenedioxy-α,N-dipropylphenethylamine" to "3,4-Methylenedioxy-α,N-dipropylphenethylamine",
-            "MPAP" to "3,4-Methylenedioxy-α,N-dipropylphenethylamine",
-            "3,4-Methylenedioxy-α-ethyl-N-methylbenzylamine" to "3,4-Methylenedioxy-α-ethyl-N-methylbenzylamine",
-            "M-ALPHA" to "3,4-Methylenedioxy-α-ethyl-N-methylbenzylamine",
-            "3,4-Methylenedioxy-α-ethylbenzylamine" to "3,4-Methylenedioxy-α-ethylbenzylamine",
-            "ALPHA" to "3,4-Methylenedioxy-α-ethylbenzylamine",
-            "3,4-Methylenedioxybenzylpiperazine" to "3,4-Methylenedioxybenzylpiperazine",
-            "MDBZP" to "3,4-Methylenedioxybenzylpiperazine",
-            "3,4-Methylenedioxycathinone" to "3,4-Methylenedioxycathinone",
-            "MDC" to "3,4-Methylenedioxycathinone",
-            "3,4-Methylenedioxydimethylamphetamine" to "3,4-Methylenedioxydimethylamphetamine",
-            "MDDM" to "3,4-Methylenedioxydimethylamphetamine",
-            "MDDMA" to "3,4-Methylenedioxydimethylamphetamine",
-            "3,4-Methylenedioxymephenidine" to "3,4-Methylenedioxymephenidine",
-            "3,4-Methylenedioxymephentermine" to "3,4-Methylenedioxymephentermine",
-            "MDMP" to "3,4-Methylenedioxymephentermine",
-            "3,4-Methylenedioxyphenethylamine" to "3,4-Methylenedioxyphenethylamine",
-            "MDPEA" to "3,4-Methylenedioxyphenethylamine",
-            "3,4-Methylenedioxyphenmetrazine" to "3,4-Methylenedioxyphenmetrazine",
-            "3-MDPM" to "3,4-Methylenedioxyphenmetrazine",
-            "MDPM" to "3,4-Methylenedioxyphenmetrazine",
-            "3,4-Methylenedioxyphentermine" to "3,4-Methylenedioxyphentermine",
-            "MDPH" to "3,4-Methylenedioxyphentermine",
-            "3,4-Methylenedioxyphenylaminobutane" to "3,4-Methylenedioxyphenylaminobutane",
-            "Homo-MDA" to "3,4-Methylenedioxyphenylaminobutane",
-            "3,4-Methylenedioxyrolicyclidine" to "3,4-Methylenedioxyrolicyclidine",
-            "MDPCPy" to "3,4-Methylenedioxyrolicyclidine",
-            "3,4-Methylenedioxytrimethylamphetamine" to "3,4-Methylenedioxytrimethylamphetamine",
-            "MDTMA" to "3,4-Methylenedioxytrimethylamphetamine",
-            "3,5-Dimethoxy-4-allyloxyamphetamine" to "3,5-Dimethoxy-4-allyloxyamphetamine",
-            "3C-AL" to "3,5-Dimethoxy-4-allyloxyamphetamine",
-            "3C-allylescaline" to "3,5-Dimethoxy-4-allyloxyamphetamine",
-            "3,5-Dimethoxy-4-trideuteromethoxyphenethylamine" to "3,5-Dimethoxy-4-trideuteromethoxyphenethylamine",
-            "4-D" to "3,5-Dimethoxy-4-trideuteromethoxyphenethylamine",
-            "3,5-Dimethoxyphenethylamine" to "3,5-Dimethoxyphenethylamine",
-            "3,5-DMPEA" to "3,5-Dimethoxyphenethylamine",
-            "4-Desmethoxymescaline" to "3,5-Dimethoxyphenethylamine",
-            "DMPEA-6" to "3,5-Dimethoxyphenethylamine",
-            "3-(1-adamantyl)-1-(aminomethyl)-3,4-dihydro-1H-isochromene-5,6-diol" to "3-(1-adamantyl)-1-(aminomethyl)-3,4-dihydro-1H-isochromene-5,6-diol",
-            "A-77636" to "3-(1-adamantyl)-1-(aminomethyl)-3,4-dihydro-1H-isochromene-5,6-diol",
-            "alpha-77636" to "3-(1-adamantyl)-1-(aminomethyl)-3,4-dihydro-1H-isochromene-5,6-diol",
-            "3-(4-{2-[Bis(4-fluorophenyl)methoxy]ethyl}-1-piperazinyl)-1-phenylpropyl decanoate" to "3-(4-{2-[Bis(4-fluorophenyl)methoxy]ethyl}-1-piperazinyl)-1-phenylpropyl decanoate",
-            "DBL-583" to "3-(4-{2-[Bis(4-fluorophenyl)methoxy]ethyl}-1-piperazinyl)-1-phenylpropyl decanoate",
-            "3-[4-[2-[(4-Fluorophenyl)-phenylmethoxy]ethyl]piperazin-1-yl]propanoic acid" to "3-[4-[2-[(4-Fluorophenyl)-phenylmethoxy]ethyl]piperazin-1-yl]propanoic acid",
-            "S-350" to "3-[4-[2-[(4-Fluorophenyl)-phenylmethoxy]ethyl]piperazin-1-yl]propanoic acid",
-            "3-Aminopyridine" to "3-Aminopyridine",
-            "3-AP" to "3-Aminopyridine",
-            "3-Chloro-4-fluororolicyclidine" to "3-Chloro-4-fluororolicyclidine",
-            "3-Cl-4-F-PCPy" to "3-Chloro-4-fluororolicyclidine",
-            "3-Chlorophencyclidine" to "3-Chlorophencyclidine",
-            "3-Cl-PCP" to "3-Chlorophencyclidine",
-            "3-Chlorophenmetrazine" to "3-Chlorophenmetrazine",
-            "3-CPM" to "3-Chlorophenmetrazine",
-            "3-Chlorophenylpiperazine" to "3-Chlorophenylpiperazine",
-            "3-CPP" to "3-Chlorophenylpiperazine",
-            "3-Deschlorobupropion" to "3-Deschlorobupropion",
-            "N-Tert-butylcathinone" to "3-Deschlorobupropion",
-            "3-EMC" to "3-Ethylmethcathinone",
-            "3-Ethylmethcathinone" to "3-Ethylmethcathinone",
-            "3-FA" to "3-FA",
-            "3-Fluoroamphetamine" to "3-FA",
-            "3fa" to "3-FA",
-            "3fluoroamphetamine" to "3-FA",
-            "PAL-353" to "3-FA",
-            "3-FEA" to "3-FEA",
-            "3-Fluoroethamphetamine" to "3-FEA",
-            "3fea" to "3-FEA",
-            "3fluoroethamphetamine" to "3-FEA",
-            "3-FDCK" to "3-Fluorodeschloroketamine",
-            "3-Fluorodeschloroketamine" to "3-Fluorodeschloroketamine",
-            "3-F-PCP" to "3-Fluorophencyclidine",
-            "3-Fluorophencyclidine" to "3-Fluorophencyclidine",
-            "3-F-PCPy" to "3-Fluororolicyclidine",
-            "3-Fluororolicyclidine" to "3-Fluororolicyclidine",
-            "3-FMA" to "3-FMA",
-            "3-fluorophenmetrazine" to "3-FPM",
-            "3-FPM" to "3-FPM",
-            "3FPM" to "3-FPM",
-            "PAL-593" to "3-FPM",
-            "3-HO-PCE" to "3-HO-PCE",
-            "3-Hydroxyeticyclidine" to "3-HO-PCE",
-            "3hopce" to "3-HO-PCE",
-            "Hydroxyeticyclidine" to "3-HO-PCE",
-            "3-HO-PCP" to "3-HO-PCP",
-            "3-Hydroxyphencyclidine" to "3-HO-PCP",
-            "3hopcp" to "3-HO-PCP",
-            "Hydroxyphencyclidine" to "3-HO-PCP",
-            "3-Hydroxy-N,N-dimethylphenethylamine" to "3-Hydroxy-N,N-dimethylphenethylamine",
-            "3-HA" to "3-Hydroxyamphetamine",
-            "3-Hydroxyamphetamine" to "3-Hydroxyamphetamine",
-            "3-Hydroxybenzylpiperazine" to "3-Hydroxybenzylpiperazine",
-            "3-Hydroxyphenazepam" to "3-Hydroxyphenazepam",
-            "3-MeO-PCE" to "3-MeO-PCE",
-            "3-Methoxyeticyclidine" to "3-MeO-PCE",
-            "3meopce" to "3-MeO-PCE",
-            "Methoxieticyclidine" to "3-MeO-PCE",
-            "Methoxyeticyclidine" to "3-MeO-PCE",
-            "3-MeO-PCMo" to "3-MeO-PCMo",
-            "3-Methoxyphenylcyclohexylmorpholine" to "3-MeO-PCMo",
-            "3meopcmo" to "3-MeO-PCMo",
-            "3 MeO" to "3-MeO-PCP",
-            "3-MeO" to "3-MeO-PCP",
-            "3-MeO-PCP" to "3-MeO-PCP",
-            "3-Methoxyphencyclidine" to "3-MeO-PCP",
-            "3meopcp" to "3-MeO-PCP",
-            "3-Methoxy-4-methylamphetamine" to "3-Methoxy-4-methylamphetamine",
-            "MMA" to "3-Methoxy-4-methylamphetamine",
-            "3-MeO-PCPy" to "3-Methoxyrolicyclidine",
-            "3-Methoxyrolicyclidine" to "3-Methoxyrolicyclidine",
-            "3-Methoxytyramine" to "3-Methoxytyramine",
-            "3-MT" to "3-Methoxytyramine",
-            "3-MA" to "3-Methylamphetamine",
-            "3-Methylamphetamine" to "3-Methylamphetamine",
-            "3-MBZP" to "3-Methylbenzylpiperazine",
-            "3-Methylbenzylpiperazine" to "3-Methylbenzylpiperazine",
-            "3-MEC" to "3-Methylethcathinone",
-            "3-Methylethcathinone" to "3-Methylethcathinone",
-            "3-Me-PCP" to "3-Methylphencyclidine",
-            "3-Methylphencyclidine" to "3-Methylphencyclidine",
-            "3-Methylphenmetrazine" to "3-Methylphenmetrazine",
-            "3-MPM" to "3-Methylphenmetrazine",
-            "3-Methylthiophene" to "3-Methylthiophene",
-            "3-Thiotoluene" to "3-Methylthiophene",
-            "3-Methylmethcathinone" to "3-MMC",
-            "3-MMC" to "3-MMC",
-            "3MMC" to "3-MMC",
-            "Metaphedrone" to "3-MMC",
-            "3-MAM" to "3-Monoacetylmorphine",
-            "3-Monoacetylmorphine" to "3-Monoacetylmorphine",
-            "3-PNA" to "3-Pyridylnicotinamide",
-            "3-Pyridylnicotinamide" to "3-Pyridylnicotinamide",
-            "3C-E" to "3C-E",
-            "3C-Escaline" to "3C-E",
-            "3C-P" to "3C-P",
-            "4'-Chlorodeschloroalprazolam" to "4'-Chlorodeschloroalprazolam",
-            "4'-Chlorodiazepam" to "4'-Chlorodiazepam",
-            "Ro5-4864" to "4'-Chlorodiazepam",
-            "4'-Fluoro-4-methylaminorex" to "4'-Fluoro-4-methylaminorex",
-            "4-FPO" to "4'-Fluoro-4-methylaminorex",
-            "4'-Fluoro-α-piperidinopentiophenone" to "4'-Fluoro-α-piperidinopentiophenone",
-            "4-FPIPVP" to "4'-Fluoro-α-piperidinopentiophenone",
-            "4'-Fluoro-α-pyrrolidinopentiophenone" to "4'-Fluoro-α-pyrrolidinopentiophenone",
-            "FPVP" to "4'-Fluoro-α-pyrrolidinopentiophenone",
-            "O-2370" to "4'-Fluoro-α-pyrrolidinopentiophenone",
-            "4'-FAR" to "4'-Fluoroaminorex",
-            "4'-Fluoroaminorex" to "4'-Fluoroaminorex",
-            "4'-Methoxy-α-pyrrolidinopentiophenone" to "4'-Methoxy-α-pyrrolidinopentiophenone",
-            "4-MeO-α-PVP" to "4'-Methoxy-α-pyrrolidinopentiophenone",
-            "MOPVP" to "4'-Methoxy-α-pyrrolidinopentiophenone",
-            "O-2417" to "4'-Methoxy-α-pyrrolidinopentiophenone",
-            "4'-Methoxy-α-pyrrolidinopropiophenone" to "4'-Methoxy-α-pyrrolidinopropiophenone",
-            "4-MeO-α-PPP" to "4'-Methoxy-α-pyrrolidinopropiophenone",
-            "MOPPP" to "4'-Methoxy-α-pyrrolidinopropiophenone",
-            "4,4'-Dimethylaminorex" to "4,4'-Dimethylaminorex",
-            "4,4'-DMAR" to "4,4'-Dimethylaminorex",
-            "4,5-DHT" to "4,5-Dihydroxytryptamine",
-            "4,5-Dihydroxytryptamine" to "4,5-Dihydroxytryptamine",
-            "4-(2-aminopropyl)benzofuran" to "4-(2-aminopropyl)benzofuran",
-            "4-APB" to "4-(2-aminopropyl)benzofuran",
-            "4-Acetoxy-DET" to "4-AcO-DET",
-            "4-Acetoxy-N,N-diethyltryptamine" to "4-AcO-DET",
-            "4-AcO-DET" to "4-AcO-DET",
-            "4acodet" to "4-AcO-DET",
-            "Ethacetin" to "4-AcO-DET",
-            "Ipracetin" to "4-AcO-DET",
-            "4-Acetoxy-DiPT" to "4-AcO-DiPT",
-            "4-Acetoxy-N,N-diisopropyltryptamine" to "4-AcO-DiPT",
-            "4-AcO-DiPT" to "4-AcO-DiPT",
-            "4acodipt" to "4-AcO-DiPT",
-            "Aces" to "4-AcO-DiPT",
-            "4 aco dmt" to "4-AcO-DMT",
-            "4-acetoxy-dmt" to "4-AcO-DMT",
-            "4-Acetoxy-N,N-dimethyltryptamine" to "4-AcO-DMT",
-            "4-AcO-DMT" to "4-AcO-DMT",
-            "4AcetoxyDMT" to "4-AcO-DMT",
-            "4aco" to "4-AcO-DMT",
-            "4acodmt" to "4-AcO-DMT",
-            "O-Acetylpsilocin" to "4-AcO-DMT",
-            "Psilacetin" to "4-AcO-DMT",
-            "Psilocetin" to "4-AcO-DMT",
-            "Synthetic mushrooms" to "4-AcO-DMT",
-            "4-Acetoxy-MET" to "4-AcO-MET",
-            "4-Acetoxy-N-ethyl-N-methyltryptamine" to "4-AcO-MET",
-            "4-AcO-MET" to "4-AcO-MET",
-            "4acomet" to "4-AcO-MET",
-            "Azomet" to "4-AcO-MET",
-            "Metacetin" to "4-AcO-MET",
-            "O-Acetylmetocin" to "4-AcO-MET",
-            "4-Acetoxy-MiPT" to "4-AcO-MiPT",
-            "4-Acetoxy-N-methyl-N-isopropyltryptamine" to "4-AcO-MiPT",
-            "4-AcO-MiPT" to "4-AcO-MiPT",
-            "4acomipt" to "4-AcO-MiPT",
-            "Mipracetin" to "4-AcO-MiPT",
-            "O-Acetylmiprocin" to "4-AcO-MiPT",
-            "4-Aminopyridine" to "4-Aminopyridine",
-            "4-AP" to "4-Aminopyridine",
-            "4-CBC" to "4-Chlorobutylcathinone",
-            "4-Chlorobutylcathinone" to "4-Chlorobutylcathinone",
-            "4-Chlorophenylpiperazine" to "4-Chlorophenylpiperazine",
-            "4-CPP" to "4-Chlorophenylpiperazine",
-            "4-EAR" to "4-Ethylaminorex",
-            "4-Ethylaminorex" to "4-Ethylaminorex",
-            "4-EMC" to "4-Ethylmethcathinone",
-            "4-Ethylmethcathinone" to "4-Ethylmethcathinone",
-            "4-FA" to "4-FA",
-            "4-Fluoroamphetamine" to "4-FA",
-            "4-FMP" to "4-FA",
-            "4FA" to "4-FA",
-            "4fluoroamphetamine" to "4-FA",
-            "4fmp" to "4-FA",
-            "Flux" to "4-FA",
-            "PAL-303" to "4-FA",
-            "Para-fluoroamphetamine" to "4-FA",
-            "Parafluoroamphetamine" to "4-FA",
-            "4-FC" to "4-Fluorocathinone",
-            "4-Fluorocathinone" to "4-Fluorocathinone",
-            "4-FEP" to "4-Fluoroephedrine",
-            "4-Fluoroephedrine" to "4-Fluoroephedrine",
-            "4-Fluorophenylpiperazine" to "4-Fluorophenylpiperazine",
-            "4-FPP" to "4-Fluorophenylpiperazine",
-            "4-F-PCPy" to "4-Fluororolicyclidine",
-            "4-Fluororolicyclidine" to "4-Fluororolicyclidine",
-            "4-Fluoroselegiline" to "4-Fluoroselegiline",
-            "4-Fluoromethamphetamine" to "4-FMA",
-            "4-FMA" to "4-FMA",
-            "4-HO-DET" to "4-HO-DET",
-            "4-Hydroxy-N,N-diethyltryptamine" to "4-HO-DET",
-            "4hodet" to "4-HO-DET",
-            "CZ-74" to "4-HO-DET",
-            "Ethocin" to "4-HO-DET",
-            "4-HO-DiPT" to "4-HO-DiPT",
-            "4-Hydroxy-N,N-diisopropyltryptamine" to "4-HO-DiPT",
-            "4hodipt" to "4-HO-DiPT",
-            "Iprocin" to "4-HO-DiPT",
-            "4-HO-DPT" to "4-HO-DPT",
-            "4-Hydroxy-N,N-dipropyltryptamine" to "4-HO-DPT",
-            "4hodpt" to "4-HO-DPT",
-            "Deprocin" to "4-HO-DPT",
-            "Procin" to "4-HO-DPT",
-            "Psiprocin" to "4-HO-DPT",
-            "4-HO-EPT" to "4-HO-EPT",
-            "4-Hydroxy-N-ethyl-N-propyltryptamine" to "4-HO-EPT",
-            "4hoept" to "4-HO-EPT",
-            "Eprocin" to "4-HO-EPT",
-            "4-HO-MET" to "4-HO-MET",
-            "4-Hydroxy-N-methyl-N-ethyltryptamine" to "4-HO-MET",
-            "4homet" to "4-HO-MET",
-            "Colour" to "4-HO-MET",
-            "Methylcybin" to "4-HO-MET",
-            "Metocin" to "4-HO-MET",
-            "4-HO-MiPT" to "4-HO-MiPT",
-            "4-Hydroxy-N-methyl-N-isopropyltryptamine" to "4-HO-MiPT",
-            "4homipt" to "4-HO-MiPT",
-            "Miprocin" to "4-HO-MiPT",
-            "4-HO-MPT" to "4-HO-MPT",
-            "4-Hydroxy-N-methyl-N-propyltryptamine" to "4-HO-MPT",
-            "4hompt" to "4-HO-MPT",
-            "Meprocin" to "4-HO-MPT",
-            "4-HO-5-MeO-T" to "4-Hydroxy-5-methoxytryptamine",
-            "4-Hydroxy-5-methoxytryptamine" to "4-Hydroxy-5-methoxytryptamine",
-            "4-HO-αMT" to "4-Hydroxy-α-methyltryptamine",
-            "4-Hydroxy-α-methyltryptamine" to "4-Hydroxy-α-methyltryptamine",
-            "4-HA" to "4-Hydroxyamphetamine",
-            "4-Hydroxyamphetamine" to "4-Hydroxyamphetamine",
-            "4-Hydroxybenzylpiperazine" to "4-Hydroxybenzylpiperazine",
-            "4-HO-T" to "4-Hydroxytryptamine",
-            "4-Hydroxytryptamine" to "4-Hydroxytryptamine",
-            "4-MeO-PCP" to "4-MeO-PCP",
-            "4-Methoxyphencyclidine" to "4-MeO-PCP",
-            "Methoxydine" to "4-MeO-PCP",
-            "4-Methoxyphenylpiperazine" to "4-Methoxyphenylpiperazine",
-            "pMeOPP" to "4-Methoxyphenylpiperazine",
-            "4-MeO-PCPy" to "4-Methoxyrolicyclidine",
-            "4-Methoxyrolicyclidine" to "4-Methoxyrolicyclidine",
-            "4-Me-αMT" to "4-Methyl-α-methyltryptamine",
-            "4-Methyl-α-methyltryptamine" to "4-Methyl-α-methyltryptamine",
-            "4-MAR" to "4-Methylaminorex",
-            "4-Methylaminorex" to "4-Methylaminorex",
-            "4-MA" to "4-Methylamphetamine",
-            "4-Methylamphetamine" to "4-Methylamphetamine",
-            "4MA" to "4-Methylamphetamine",
-            "4-MBZP" to "4-Methylbenzylpiperazine",
-            "4-Methylbenzylpiperazine" to "4-Methylbenzylpiperazine",
-            "4-MeMABP" to "4-Methylbuphedrone",
-            "4-Methylbuphedrone" to "4-Methylbuphedrone",
-            "4-MEC" to "4-Methylethcathinone",
-            "4-Methylethcathinone" to "4-Methylethcathinone",
-            "4-Methylmethylphenidate" to "4-Methylmethylphenidate",
-            "4-MMPH" to "4-Methylmethylphenidate",
-            "4-Methylpentedrone" to "4-Methylpentedrone",
-            "4-MPD" to "4-Methylpentedrone",
-            "4-Methylphenmetrazine" to "4-Methylphenmetrazine",
-            "4-MPM" to "4-Methylphenmetrazine",
-            "4-Methylphenylpiperazine" to "4-Methylphenylpiperazine",
-            "4-MPP" to "4-Methylphenylpiperazine",
-            "4-Methylpregabalin" to "4-Methylpregabalin",
-            "4-Methylthioamphetamine" to "4-Methylthioamphetamine",
-            "4-MTA" to "4-Methylthioamphetamine",
-            "4-Nitrophenylpiperazine" to "4-Nitrophenylpiperazine",
-            "pNPP" to "4-Nitrophenylpiperazine",
-            "4-PrO-DMT" to "4-Propionoyloxy-N,N-dimethyltryptamine",
-            "4-Propionoyloxy-N,N-dimethyltryptamine" to "4-Propionoyloxy-N,N-dimethyltryptamine",
-            "4-PrO-MET" to "4-Propionyloxy-N-methyl-N-ethyltryptamine",
-            "4-Propionyloxy-N-methyl-N-ethyltryptamine" to "4-Propionyloxy-N-methyl-N-ethyltryptamine",
-            "4-PNA" to "4-Pyridylnicotinamide",
-            "4-Pyridylnicotinamide" to "4-Pyridylnicotinamide",
-            "4-FEPH" to "4F-EPH",
-            "4-Fluoroethylphenidate" to "4F-EPH",
-            "4F-EPH" to "4F-EPH",
-            "4feph" to "4F-EPH",
-            "4-Fluoromethylphenidate" to "4F-MPH",
-            "4-FMPH" to "4F-MPH",
-            "4F-MPH" to "4F-MPH",
-            "4fmph" to "4F-MPH",
-            "5,6-Benzofuranyl-2-aminoindane" to "5,6-Benzofuranyl-2-aminoindane",
-            "BFAI" to "5,6-Benzofuranyl-2-aminoindane",
-            "5,6-DHT" to "5,6-Dihydroxytryptamine",
-            "5,6-Dihydroxytryptamine" to "5,6-Dihydroxytryptamine",
-            "5,6-Methylenedioxy-N-methyl-2-aminoindane" to "5,6-Methylenedioxy-N-methyl-2-aminoindane",
-            "MDMAI" to "5,6-Methylenedioxy-N-methyl-2-aminoindane",
-            "5,6-MDDMT" to "5,6-Methylenedioxydimethyltryptamine",
-            "5,6-Methylenedioxydimethyltryptamine" to "5,6-Methylenedioxydimethyltryptamine",
-            "5,7-DHT" to "5,7-Dihydroxytryptamine",
-            "5,7-Dihydroxytryptamine" to "5,7-Dihydroxytryptamine",
-            "5-(Trifluoromethoxy)-N,N-dimethyltryptamine" to "5-(Trifluoromethoxy)-N,N-dimethyltryptamine",
-            "5-TFMO-DMT" to "5-(Trifluoromethoxy)-N,N-dimethyltryptamine",
-            "5-(Trifluoromethyl)-N,N-dimethyltryptamine" to "5-(Trifluoromethyl)-N,N-dimethyltryptamine",
-            "5-TFM-DMT" to "5-(Trifluoromethyl)-N,N-dimethyltryptamine",
-            "5-(2-Aminopropyl)benzofuran" to "5-APB",
-            "5-APB" to "5-APB",
-            "5abp" to "5-APB",
-            "5apb" to "5-APB",
-            "5-APBD" to "5-APBD",
-            "5-Bromo-DMT" to "5-Bromo-N,N-dimethyltryptamine",
-            "5-Bromo-N,N-dimethyltryptamine" to "5-Bromo-N,N-dimethyltryptamine",
-            "5-Chloro-DMT" to "5-Chloro-N,N-dimethyltryptamine",
-            "5-Chloro-N,N-dimethyltryptamine" to "5-Chloro-N,N-dimethyltryptamine",
-            "5-Chloro-α-ethyltryptamine" to "5-Chloro-α-ethyltryptamine",
-            "5-Chloro-αET" to "5-Chloro-α-ethyltryptamine",
-            "5-Chloro-α-methyltryptamine" to "5-Chloro-α-methyltryptamine",
-            "5-Chloro-αMT" to "5-Chloro-α-methyltryptamine",
-            "5-Chloro-β-keto-methiopropamine" to "5-Chloro-β-keto-methiopropamine",
-            "5-DBFPV" to "5-Dihydrobenzofuranpyrovalerone",
-            "5-Dihydrobenzofuranpyrovalerone" to "5-Dihydrobenzofuranpyrovalerone",
-            "5-Ethoxy-α-methyltryptamine" to "5-Ethoxy-α-methyltryptamine",
-            "5-EtO-αMT" to "5-Ethoxy-α-methyltryptamine",
-            "5-Fluoro-DET" to "5-Fluoro-N,N-diethyltryptamine",
-            "5-Fluoro-N,N-diethyltryptamine" to "5-Fluoro-N,N-diethyltryptamine",
-            "5-Fluoro-DMT" to "5-Fluoro-N,N-dimethyltryptamine",
-            "5-Fluoro-N,N-dimethyltryptamine" to "5-Fluoro-N,N-dimethyltryptamine",
-            "5-Fluoro-EPT" to "5-Fluoro-N-ethyl-N-propyltryptamine",
-            "5-Fluoro-N-ethyl-N-propyltryptamine" to "5-Fluoro-N-ethyl-N-propyltryptamine",
-            "5-Fluoro-T" to "5-Fluoro-tryptamine",
-            "5-Fluoro-tryptamine" to "5-Fluoro-tryptamine",
-            "5-Fluoro-α-ethyltryptamine" to "5-Fluoro-α-ethyltryptamine",
-            "5-Fluoro-αET" to "5-Fluoro-α-ethyltryptamine",
-            "5-Fluoro-α-methyltryptamine" to "5-Fluoro-α-methyltryptamine",
-            "5-Fluoro-αMT" to "5-Fluoro-α-methyltryptamine",
-            "5-HO-DET" to "5-Hydroxy-N,N-diethyltryptamine",
-            "5-Hydroxy-N,N-diethyltryptamine" to "5-Hydroxy-N,N-diethyltryptamine",
-            "5-HO-DiPT" to "5-hydroxy-N,N-diisopropyltryptamine",
-            "5-hydroxy-N,N-diisopropyltryptamine" to "5-hydroxy-N,N-diisopropyltryptamine",
-            "5-HTP" to "5-Hydroxytryptophan",
-            "5-Hydroxytryptophan" to "5-Hydroxytryptophan",
-            "Cincofarm" to "5-Hydroxytryptophan",
-            "Levothym" to "5-Hydroxytryptophan",
-            "Levotonine" to "5-Hydroxytryptophan",
-            "Oxitriptan" to "5-Hydroxytryptophan",
-            "Oxyfan" to "5-Hydroxytryptophan",
-            "Telesol" to "5-Hydroxytryptophan",
-            "Tript-OH" to "5-Hydroxytryptophan",
-            "Triptum" to "5-Hydroxytryptophan",
-            "5-IAI" to "5-Iodo-2-aminoindane",
-            "5-Iodo-2-aminoindane" to "5-Iodo-2-aminoindane",
-            "5-(2-Methylaminopropyl)benzofuran" to "5-MAPB",
-            "5-(N-methyl-2-aminopropyl)benzofuran" to "5-MAPB",
-            "5-MAPB" to "5-MAPB",
-            "5MAPB" to "5-MAPB",
-            "5-MeO-DALT" to "5-MeO-DALT",
-            "5-Methoxy-N,N-diallyltryptamine" to "5-MeO-DALT",
-            "5meodalt" to "5-MeO-DALT",
-            "Foxtrot" to "5-MeO-DALT",
-            "5-MeO-DiBF" to "5-MeO-DiBF",
-            "5-MeO-DiPT" to "5-MeO-DiPT",
-            "5-Methoxy-N,N-diisopropyltryptamine" to "5-MeO-DiPT",
-            "5meodipt" to "5-MeO-DiPT",
-            "Foxy" to "5-MeO-DiPT",
-            "Foxy Methoxy" to "5-MeO-DiPT",
-            "5-MeO-DMT" to "5-MeO-DMT",
-            "5-Methoxy-N,N-dimethyltryptamine" to "5-MeO-DMT",
-            "5meodmt" to "5-MeO-DMT",
-            "Jaguar" to "5-MeO-DMT",
-            "Mebufotenin" to "5-MeO-DMT",
-            "The God Molecule" to "5-MeO-DMT",
-            "Toad" to "5-MeO-DMT",
-            "5-MeO-MiPT" to "5-MeO-MiPT",
-            "5-Methoxy-N-methyl-N-isopropyltryptamine" to "5-MeO-MiPT",
-            "5meomipt" to "5-MeO-MiPT",
-            "Moxy" to "5-MeO-MiPT",
-            "5-Methoxy-2-aminoindane" to "5-Methoxy-2-aminoindane",
-            "5-MeO-MDA" to "5-Methoxy-3,4-Methylenedioxyamphetamine",
-            "5-Methoxy-3,4-Methylenedioxyamphetamine" to "5-Methoxy-3,4-Methylenedioxyamphetamine",
-            "5-MeO-MDMA" to "5-Methoxy-3,4-Methylenedioxymethamphetamine",
-            "5-Methoxy-3,4-Methylenedioxymethamphetamine" to "5-Methoxy-3,4-Methylenedioxymethamphetamine",
-            "5-MeO-7-F-MET" to "5-Methoxy-7-fluoro-N-methyl-N-ethyltryptamine",
-            "5-Methoxy-7-fluoro-N-methyl-N-ethyltryptamine" to "5-Methoxy-7-fluoro-N-methyl-N-ethyltryptamine",
-            "5-MeO-EiPT" to "5-Methoxy-N-ethyl-N-isopropyltryptamine",
-            "5-Methoxy-N-ethyl-N-isopropyltryptamine" to "5-Methoxy-N-ethyl-N-isopropyltryptamine",
-            "5-MeO-MALT" to "5-Methoxy-N-methyl-N-allyltryptamine",
-            "5-Methoxy-N-methyl-N-allyltryptamine" to "5-Methoxy-N-methyl-N-allyltryptamine",
-            "5-MeO-αMT" to "5-Methoxy-α-methyltryptamine",
-            "5-Methoxy-α-methyltryptamine" to "5-Methoxy-α-methyltryptamine",
-            "5-Me-MDEC" to "5-Methylethylone",
-            "5-Methylethylone" to "5-Methylethylone",
-            "5-Nitro-DMT" to "5-Nitro-N,N-dimethyltryptamine",
-            "5-Nitro-N,N-dimethyltryptamine" to "5-Nitro-N,N-dimethyltryptamine",
-            "5-Trifluoromethyl-2-aminoindane" to "5-Trifluoromethyl-2-aminoindane",
-            "TAI" to "5-Trifluoromethyl-2-aminoindane",
-            "5F-AKB-48" to "5F-AKB48",
-            "5F-AKB48" to "5F-AKB48",
-            "5F-APINACA" to "5F-AKB48",
-            "5fakb48" to "5F-AKB48",
-            "AKB-48F" to "5F-AKB48",
-            "5F-PB-22" to "5F-PB-22",
-            "5F-QUPIC" to "5F-PB-22",
-            "5fpb22" to "5F-PB-22",
-            "6,7-Methylenedioxy-2-aminotetralin" to "6,7-Methylenedioxy-2-aminotetralin",
-            "MDAT" to "6,7-Methylenedioxy-2-aminotetralin",
-            "6-AB" to "6-Amino-6,7,8,9-tetrahydro-5H-benzocycloheptene",
-            "6-Amino-6,7,8,9-tetrahydro-5H-benzocycloheptene" to "6-Amino-6,7,8,9-tetrahydro-5H-benzocycloheptene",
-            "6-(2-Aminopropyl)benzofuran" to "6-APB",
-            "6-ABP" to "6-APB",
-            "6-APB" to "6-APB",
-            "6apb" to "6-APB",
-            "Benzofuran" to "6-APB",
-            "Benzofury" to "6-APB",
-            "6-APBD" to "6-APBD",
-            "4-Desoxy-MDA" to "6-APDB",
-            "6-(2-Aminopropyl)-2,3-dihydrobenzofuran" to "6-APDB",
-            "6-APDB" to "6-APDB",
-            "6-Bromopravadoline" to "6-Bromopravadoline",
-            "WIN 54,461" to "6-Bromopravadoline",
-            "6-Chloronicotine" to "6-Chloronicotine",
-            "6-Fluoro-DET" to "6-Fluoro-N,N-diethyltryptamine",
-            "6-Fluoro-N,N-diethyltryptamine" to "6-Fluoro-N,N-diethyltryptamine",
-            "6-MeO-DMT" to "6-Methoxy-N,N-dimethyltryptamine",
-            "6-Methoxy-N,N-dimethyltryptamine" to "6-Methoxy-N,N-dimethyltryptamine",
-            "6-Methylhexahydroazepinoindoles" to "6-Methylhexahydroazepinoindoles",
-            "PNU-22394" to "6-Methylhexahydroazepinoindoles",
-            "PNU-22394A" to "6-Methylhexahydroazepinoindoles",
-            "7-AB" to "7-Amino-6,7,8,9-tetrahydro-5H-benzocycloheptene",
-            "7-Amino-6,7,8,9-tetrahydro-5H-benzocycloheptene" to "7-Amino-6,7,8,9-tetrahydro-5H-benzocycloheptene",
-            "7-Chloro-α-methyltryptamine" to "7-Chloro-α-methyltryptamine",
-            "7-Chloro-αMT" to "7-Chloro-α-methyltryptamine",
-            "7-Chloro-T" to "7-Chlorotryptamine",
-            "7-Chlorotryptamine" to "7-Chlorotryptamine",
-            "7-Hydroxymitragynine" to "7-Hydroxymitragynine",
-            "8-Bromotheophylline" to "8-Bromotheophylline",
-            "8-BTP" to "8-Bromotheophylline",
-            "8-Chlorotheophylline" to "8-Chlorotheophylline",
-            "8-CTP" to "8-Chlorotheophylline",
-            "8-Cyclopentyltheophylline" to "8-Cyclopentyltheophylline",
-            "CPX" to "8-Cyclopentyltheophylline",
-            "8-Phenyltheophylline" to "8-Phenyltheophylline",
-            "8β-VE2" to "8β-Vinylestradiol",
-            "8β-Vinylestradiol" to "8β-Vinylestradiol",
-            "9-Methyl-β-carboline" to "9-Methyl-β-carboline",
-            "A-PHP" to "A-PHP",
-            "a-Pyrrolidinohexiophenone" to "A-PHP",
-            "Alpha-Pyrrolidinohexiophenone" to "A-PHP",
-            "Aphp" to "A-PHP",
-            "PV-7" to "A-PHP",
-            "PV7" to "A-PHP",
-            "Α-PHP" to "A-PHP",
-            "A-PVP" to "A-PVP",
-            "a-Pyrrolidinopentiophenone" to "",
-            "alpha-Pyrrolidinopentiophenone" to "A-PVP",
-            "Apvp" to "A-PVP",
-            "b-ketone-prolintane" to "A-PVP",
-            "Flak" to "A-PVP",
-            "Flakka" to "A-PVP",
-            "Gravel" to "A-PVP",
-            "O-2387" to "A-PVP",
-            "Prolintanone" to "A-PVP",
-            "α-PVP" to "A-PVP",
-            "β-ketone-prolintane" to "A-PVP",
-            "Ab-fubi" to "AB-FUBINACA",
-            "AB-FUBINACA" to "AB-FUBINACA",
-            "Abfubinaca" to "AB-FUBINACA",
-            "Acetanilide" to "Acetanilide",
-            "Acetylcholine" to "Acetylcholine",
-            "ACh" to "Acetylcholine",
-            "Acetylfentanyl" to "Acetylfentanyl",
-            "Acetylsalicylic acid" to "Acetylsalicylic acid",
-            "ASA" to "Acetylsalicylic acid",
-            "Acridorex" to "Acridorex",
-            "Adenosine" to "Adenosine",
-            "Adinazolam" to "Adinazolam",
-            "Adrafinil" to "Adrafinil",
-            "Olmifon" to "Adrafinil",
-            "Adrenalone" to "Adrenalone",
-            "4-PO-TMT" to "Aeruginascin",
-            "Aeruginascin" to "Aeruginascin",
-            "Afloqualone" to "Afloqualone",
-            "Agomelatine" to "Agomelatine",
-            "AH-7921" to "AH-7921",
-            "Ajmalicine" to "Ajmalicine",
-            "1-(1,2-dimethylcyclobutanecarbonyl)-6-allyl-6-norlysergic acid diethylamide" to "AL-LAD",
-            "6-Allyl-6-norlysergic acid diethylamide" to "AL-LAD",
-            "AL-LAD" to "AL-LAD",
-            "AL-LSD" to "AL-LAD",
-            "Aladdin" to "AL-LAD",
-            "ALLAD" to "AL-LAD",
-            "Alafen" to "Alafen",
-            "Ala" to "Alanine",
-            "Alanine" to "Alanine",
-            "Alcohol" to "Alcohol",
-            "Alcohol abuse" to "Alcohol",
-            "Alcohol dependence" to "Alcohol",
-            "Alcohol use disorder" to "Alcohol",
-            "Alcoholic beverage" to "Alcohol",
-            "Alcoholism" to "Alcohol",
-            "Beer" to "Alcohol",
-            "Bevvy" to "Alcohol",
-            "Booze" to "Alcohol",
-            "Corn beer" to "Alcohol",
-            "Drink" to "Alcohol",
-            "Ethanol" to "Alcohol",
-            "Ethyl alcohol" to "Alcohol",
-            "Juice" to "Alcohol",
-            "Liquor" to "Alcohol",
-            "Moonshine" to "Alcohol",
-            "Sauce" to "Alcohol",
-            "Spirits" to "Alcohol",
-            "Vitis" to "Alcohol",
-            "Wine" to "Alcohol",
-            "1-Acetyl-LSD" to "ALD-52",
-            "1A-LAD" to "ALD-52",
-            "1A-LSD" to "ALD-52",
-            "ALD-52" to "ALD-52",
-            "Ald52" to "ALD-52",
-            "Orange Sunshine" to "ALD-52",
-            "Aldosterone" to "Aldosterone",
-            "a-Allyl-phenethylamine" to "Alfetamine",
-            "Alfetamine" to "Alfetamine",
-            "α-Allyl-phenethylamine" to "Alfetamine",
-            "Alifedrine" to "Alifedrine",
-            "Allenestrol" to "Allenestrol",
-            "Allenolic acid" to "Allenolic acid",
-            "Allobarbital" to "Allobarbital",
-            "3,5-Dimethoxy-4-allyloxyphenethylamine" to "Allylescaline",
-            "4-Allyloxy-3,5-dimethoxyphenethylamine" to "Allylescaline",
-            "AL" to "Allylescaline",
-            "Allylescaline" to "Allylescaline",
-            "a-glycerophosphocholine" to "Alpha-GPC",
-            "A-GPC" to "Alpha-GPC",
-            "Alpha GPC" to "Alpha-GPC",
-            "Alpha-GPC" to "Alpha-GPC",
-            "Choline alfoscerate" to "Alpha-GPC",
-            "L-Alpha Glycerylphosphorylcholine" to "Alpha-GPC",
-            "L-alpha-Glycerophosphocholine" to "Alpha-GPC",
-            "α-glycerophosphocholine" to "Alpha-GPC",
-            "Alphenal" to "Alphenal",
-            "Alprazolam" to "Alprazolam",
-            "Bars" to "Alprazolam",
-            "Footballs" to "Alprazolam",
-            "Hulks" to "Alprazolam",
-            "Ksalol" to "Alprazolam",
-            "Ladders" to "Alprazolam",
-            "Niravam" to "Alprazolam",
-            "Sticks" to "Alprazolam",
-            "Xanax" to "Alprazolam",
-            "Xans" to "Alprazolam",
-            "Zanax" to "Alprazolam",
-            "Zannies" to "Alprazolam",
-            "Amanita muscaria" to "Amanita muscaria",
-            "Fly agaric" to "Amanita muscaria",
-            "Fly amanita" to "Amanita muscaria",
-            "Muscimol" to "Amanita muscaria",
-            "Amastatin" to "Amastatin",
-            "Amfetaminil" to "Amfetaminil",
-            "Amifampridine" to "Amifampridine",
-            "Amiflamine" to "Amiflamine",
-            "Aminoestradiol" to "Aminoestradiol",
-            "Aminopyralid" to "Aminopyralid",
-            "Aminorex" to "Aminorex",
-            "AR" to "Aminorex",
-            "Amisulpride" to "Amisulpride",
-            "APD-403" to "Amisulpride",
-            "APD-421" to "Amisulpride",
-            "APD403" to "Amisulpride",
-            "APD421" to "Amisulpride",
-            "AST" to "Amisulpride",
-            "DAN-2163" to "Amisulpride",
-            "DAN2163" to "Amisulpride",
-            "Amlodipine" to "Amlodipine",
-            "Amobarbital" to "Amobarbital",
-            "Amoxapine" to "Amoxapine",
-            "Amoxicillin" to "Amoxicillin",
-            "Amphecloral" to "Amphecloral",
-            "Ampyrone" to "Ampyrone",
-            "Anabaseine" to "Anabaseine",
-            "Anabasine" to "Anabasine",
-            "Anadenanthera peregrina" to "Anadenanthera peregrina",
-            "Jopo" to "Anadenanthera peregrina",
-            "Yopo" to "Anadenanthera peregrina",
-            "Anatabine" to "Anatabine",
-            "Anatalline" to "Anatalline",
-            "Anatoxin-a" to "Anatoxin-a",
-            "VFDF" to "Anatoxin-a",
-            "A4" to "Androstenedione",
-            "Androstenedione" to "Androstenedione",
-            "Anethole trithione" to "Anethole trithione",
-            "Anhalamine" to "Anhalamine",
-            "Anhalidine" to "Anhalidine",
-            "Anhalinine" to "Anhalinine",
-            "Anhalonidine" to "Anhalonidine",
-            "Aniline" to "Aniline",
-            "Ampamet" to "Aniracetam",
-            "Aniracetam" to "Aniracetam",
-            "Draganon" to "Aniracetam",
-            "Memodrin" to "Aniracetam",
-            "N-anisoyl-2-pyrrolidinone" to "Aniracetam",
-            "Referan" to "Aniracetam",
-            "Sarpul" to "Aniracetam",
-            "Anordrin" to "Anordrin",
-            "Anpirtoline" to "Anpirtoline",
-            "Apafant" to "Apafant",
-            "2NE1" to "APICA",
-            "APICA" to "APICA",
-            "N-(1-Adamantyl)-1-pentyl-1H-indazole-3-carboxamide" to "APICA",
-            "SDB-001" to "APICA",
-            "APO-go" to "Apomorphine",
-            "Apomorphine" to "Apomorphine",
-            "Blue Lotus" to "Apomorphine",
-            "Dacepton" to "Apomorphine",
-            "Aporphine" to "Aporphine",
-            "Aprobarbital" to "Aprobarbital",
-            "Aptiganel" to "Aptiganel",
-            "Arbutamine" to "Arbutamine",
-            "Arg" to "Arginine",
-            "Arginine" to "Arginine",
-            "Aripiprazole" to "Aripiprazole",
-            "Armodafinil" to "Armodafinil",
-            "Artvigil" to "Armodafinil",
-            "Neoresotyl" to "Armodafinil",
-            "Nuvigil" to "Armodafinil",
-            "R-Modafinil" to "Armodafinil",
-            "R-Modawake" to "Armodafinil",
-            "Waklert" to "Armodafinil",
-            "Ascorbic acid" to "Ascorbic acid",
-            "vitamin C" to "Ascorbic acid",
-            "Asn" to "Asparagine",
-            "Asparagine" to "Asparagine",
-            "Asp" to "Aspartic acid",
-            "Aspartic acid" to "Aspartic acid",
-            "Atagabalin" to "Atagabalin",
-            "Atomoxetine" to "Atomoxetine",
-            "Avizafone" to "Avizafone",
-            "Aya" to "Ayahuasca",
-            "Ayahuasca" to "Ayahuasca",
-            "Caapi" to "Ayahuasca",
-            "Cipó" to "Ayahuasca",
-            "Hoasca" to "Ayahuasca",
-            "Natem" to "Ayahuasca",
-            "Pharmahuasca" to "Ayahuasca",
-            "Shori" to "Ayahuasca",
-            "Vegetal" to "Ayahuasca",
-            "Yagé" to "Ayahuasca",
-            "Yajé" to "Ayahuasca",
-            "Baclofen" to "Baclofen",
-            "Lioresal" to "Baclofen",
-            "4-PO-NMT" to "Baeocystin",
-            "Baeocystin" to "Baeocystin",
-            "B caapi" to "Banisteriopsis caapi",
-            "B. caapi" to "Banisteriopsis caapi",
-            "Banisteriopsis caapi" to "Banisteriopsis caapi",
-            "Barbital" to "Barbital",
-            "Batrachotoxin" to "Batrachotoxin",
-            "BTX" to "Batrachotoxin",
-            "Beclometasone" to "Beclometasone",
-            "Beclometasone dipropionate" to "Beclometasone dipropionate",
-            "Bemethyl" to "Bemethyl",
-            "Benfluorex" to "Benfluorex",
-            "Benocyclidine" to "Benocyclidine",
-            "BTCP" to "Benocyclidine",
-            "Benserazide" to "Benserazide",
-            "Bentazepam" to "Bentazepam",
-            "Benzestrol" to "Benzestrol",
-            "Benzocaine" to "Benzocaine",
-            "Benzofuranylpropylaminopentane" to "Benzofuranylpropylaminopentane",
-            "BPAP" to "Benzofuranylpropylaminopentane",
-            "Benzoylecgonine" to "Benzoylecgonine",
-            "Benzoylecgonine dimethylamide" to "Benzoylecgonine dimethylamide",
-            "RTI-160" to "Benzoylecgonine dimethylamide",
-            "Benzoylpiperazine" to "Benzoylpiperazine",
-            "BZOP" to "Benzoylpiperazine",
-            "Benzphetamine" to "Benzphetamine",
-            "3,5-Dimethoxy-4-benzyloxyphenethylamine" to "Benzscaline",
-            "4-BzlO-3,5-DMPEA" to "Benzscaline",
-            "Benzscaline" to "Benzscaline",
-            "BZ" to "Benzscaline",
-            "Benzydamine" to "Benzydamine",
-            "Difflam" to "Benzydamine",
-            "Tantum Rosa" to "Benzydamine",
-            "Tantum Verde" to "Benzydamine",
-            "Benzyl chloride" to "Benzyl chloride",
-            "a-Cresol" to "Benzylalcohol",
-            "Benzylalcohol" to "Benzylalcohol",
-            "α-Cresol" to "Benzylalcohol",
-            "Benzylamine" to "Benzylamine",
-            "Benzylpenicillin" to "Benzylpenicillin",
-            "Benzylpiperazine" to "Benzylpiperazine",
-            "BZP" to "Benzylpiperazine",
-            "Bestatin" to "Bestatin",
-            "Ubenimex" to "Bestatin",
-            "b-Carboline" to "Beta-Carboline",
-            "b-Carbolines" to "Beta-Carboline",
-            "Beta-Carboline" to "Beta-Carboline",
-            "Beta-Carbolines" to "Beta-Carboline",
-            "b-Hydroxy-3-methylfentanyl" to "Beta-Hydroxy-3-methylfentanyl",
-            "Beta-Hydroxy-3-methylfentanyl" to "Beta-Hydroxy-3-methylfentanyl",
-            "Betamethasone" to "Betamethasone",
-            "Bexlosteride" to "Bexlosteride",
-            "Bicarbonate" to "Bicarbonate",
-            "Bilastine" to "Bilastine",
-            "Biperiden" to "Biperiden",
-            "Bisphenol A" to "Bisphenol A",
-            "BPA" to "Bisphenol A",
-            "BADGE" to "Bisphenol A diglycidyl ether",
-            "Bisphenol A diglycidyl ether" to "Bisphenol A diglycidyl ether",
-            "Bisphenol AF" to "Bisphenol AF",
-            "BPAF" to "Bisphenol AF",
-            "BFDGE" to "Bisphenol F diglycidyl ether",
-            "Bisphenol F diglycidyl ether" to "Bisphenol F diglycidyl ether",
-            "Bisphenol S" to "Bisphenol S",
-            "BPS" to "Bisphenol S",
-            "Bitolterol" to "Bitolterol",
-            "Botulinum toxin" to "Botulinum toxin",
-            "Brallobarbital" to "Brallobarbital",
-            "Brasofensine" to "Brasofensine",
-            "4-BMC" to "Brephedrone",
-            "Brephedrone" to "Brephedrone",
-            "Bretazenil" to "Bretazenil",
-            "5-Fluoro-MET" to "Bretisilocin",
-            "Bretisilocin" to "Bretisilocin",
-            "Bromadoline" to "Bromadoline",
-            "U-47931E" to "Bromadoline",
-            "Bromantan" to "Bromantane",
-            "Bromantane" to "Bromantane",
-            "Ladasten" to "Bromantane",
-            "Brazepam" to "Bromazepam",
-            "Bromaze" to "Bromazepam",
-            "Bromazepam" to "Bromazepam",
-            "Brozam" to "Bromazepam",
-            "Calmepam" to "Bromazepam",
-            "Lectopam" to "Bromazepam",
-            "Lexatin" to "Bromazepam",
-            "Lexaurin" to "Bromazepam",
-            "Lexilium" to "Bromazepam",
-            "Lexomil" to "Bromazepam",
-            "Lexotan" to "Bromazepam",
-            "Lexotanil" to "Bromazepam",
-            "Rekotnil" to "Bromazepam",
-            "Somalium" to "Bromazepam",
-            "Zepam" to "Bromazepam",
-            "Bromazolam" to "Bromazolam",
-            "XLI-268" to "Bromazolam",
-            "B-DFLY" to "Bromo-DragonFLY",
-            "Bromo-DragonFLY" to "Bromo-DragonFLY",
-            "DOB-DFLY" to "Bromo-DragonFLY",
-            "DOB-DragonFLY" to "Bromo-DragonFLY",
-            "Dragonfly" to "Bromo-DragonFLY",
-            "β-DFLY" to "Bromo-DragonFLY",
-            "2-Br-2'-Oxo-PCM" to "Bromoketamine",
-            "2-Br-DCK" to "Bromoketamine",
-            "2-Bromodeschloroketamine" to "Bromoketamine",
-            "Bromoketamine" to "Bromoketamine",
-            "Bromopane" to "Bromopane",
-            "Para-Bromophenyltropane" to "Bromopane",
-            "RTI-51" to "Bromopane",
-            "3-BMC" to "Brophedrone",
-            "Brophedrone" to "Brophedrone",
-            "Brorphine" to "Brorphine",
-            "Brotizolam" to "Brotizolam",
-            "Brucine" to "Brucine",
-            "AP-237" to "Bucinnazine",
-            "Bucinnazine" to "Bucinnazine",
-            "Budesonide" to "Budesonide",
-            "5-HO-DMT" to "Bufotenin",
-            "5hodmt" to "Bufotenin",
-            "Bufotenin" to "Bufotenin",
-            "Bufotenine" to "Bufotenin",
-            "N,N-Dimethylserotonin" to "Bufotenin",
-            "Buphedrone" to "Buphedrone",
-            "MABP" to "Buphedrone",
-            "Buphenine" to "Buphenine",
-            "Addnok" to "Buprenorphine",
-            "Buprenex" to "Buprenorphine",
-            "Buprenorphine" to "Buprenorphine",
-            "Butrans" to "Buprenorphine",
-            "Cizdol" to "Buprenorphine",
-            "Subutex" to "Buprenorphine",
-            "Temgesic" to "Buprenorphine",
-            "Transtec" to "Buprenorphine",
-            "Bupropion" to "Bupropion",
-            "Buspirone" to "Buspirone",
-            "Dimethyltryptamine" to "Buspirone",
-            "Dmitri" to "Buspirone",
-            "DMT" to "Buspirone",
-            "Butabarbital" to "Butabarbital",
-            "Butaxamine" to "Butaxamine",
-            "Butestrol" to "Butestrol",
-            "Buthalital" to "Buthalital",
-            "BA" to "Butylamphetamine",
-            "Butylamphetamine" to "Butylamphetamine",
-            "BCA" to "Butylcyanoacrylate",
-            "Butylcyanoacrylate" to "Butylcyanoacrylate",
-            "B1" to "Butylone",
-            "bk-MBDB" to "Butylone",
-            "Butylone" to "Butylone",
-            "Butylscopolamine" to "Butylscopolamine",
-            "Cabergoline" to "Cabergoline",
-            "Cafedrine" to "Cafedrine",
-            "Caff" to "Caffeine",
-            "Caffeine" to "Caffeine",
-            "Coffee" to "Caffeine",
-            "Cannabidiol" to "Cannabidiol",
-            "CBD" to "Cannabidiol",
-            "Epidiolex" to "Cannabidiol",
-            "Bud" to "Cannabis",
-            "Cannabichromene" to "Cannabis",
-            "Cannabichromevarin" to "Cannabis",
-            "Cannabicyclol" to "Cannabis",
-            "Cannabidivarin" to "Cannabis",
-            "Cannabigerol" to "Cannabis",
-            "Cannabigerovarin" to "Cannabis",
-            "Cannabinol" to "Cannabis",
-            "Cannabis" to "Cannabis",
-            "Cannabivarin" to "Cannabis",
-            "CBC" to "Cannabis",
-            "CBCV" to "Cannabis",
-            "CBDV" to "Cannabis",
-            "CBG" to "Cannabis",
-            "CBGM" to "Cannabis",
-            "CBGV" to "Cannabis",
-            "CBL" to "Cannabis",
-            "CBN" to "Cannabis",
-            "CBV" to "Cannabis",
-            "Charas" to "Cannabis",
-            "d-9-tetrahydrocannabinol" to "Cannabis",
-            "delta-9-tetrahydrocannabinol" to "Cannabis",
-            "Dope" to "Cannabis",
-            "Dronabinol" to "Cannabis",
-            "Ganja" to "Cannabis",
-            "Grass" to "Cannabis",
-            "Green" to "Cannabis",
-            "Hash" to "Cannabis",
-            "Hashish" to "Cannabis",
-            "Herb" to "Cannabis",
-            "Keif" to "Cannabis",
-            "Kief" to "Cannabis",
-            "Marihuana" to "Cannabis",
-            "Marijuana" to "Cannabis",
-            "Mary Jane" to "Cannabis",
-            "Pot" to "Cannabis",
-            "Reefer" to "Cannabis",
-            "Tetrahydrocannabivarin" to "Cannabis",
-            "THC" to "Cannabis",
-            "THCV" to "Cannabis",
-            "Tree" to "Cannabis",
-            "Weed" to "Cannabis",
-            "Δ9-THC" to "Cannabis",
-            "∆9-tetrahydrocannabinol" to "Cannabis",
-            "Capsaicin" to "Capsaicin",
-            "Caramboxin" to "Caramboxin",
-            "Carbestrol" to "Carbestrol",
-            "Carbidopa" to "Carbidopa",
-            "Carbon" to "Carbon",
-            "Carbon tet" to "Carbon tetrachloride",
-            "Carbon tetrachloride" to "Carbon tetrachloride",
-            "Carfentanyl" to "Carfentanyl",
-            "Carisoprodol" to "Carisoprodol",
-            "Soma" to "Carisoprodol",
-            "CAG" to "Catharanthalog",
-            "Catharanthalog" to "Catharanthalog",
-            "Cericlamine" to "Cericlamine",
-            "Cetirizine" to "Cetirizine",
-            "Chloral hydrate" to "Chloral hydrate",
-            "Chlordiazepoxide" to "Chlordiazepoxide",
-            "Librium" to "Chlordiazepoxide",
-            "Chlorhexidine" to "Chlorhexidine",
-            "Chlorphenamine" to "Chlorphenamine",
-            "CP" to "Chlorphenamine",
-            "CPM" to "Chlorphenamine",
-            "Chlorphentermine" to "Chlorphentermine",
-            "Chlorpyrifos" to "Chlorpyrifos",
-            "Choline" to "Choline bitartrate",
-            "Choline bitartrate" to "Choline bitartrate",
-            "Ciclotizolam" to "Ciclotizolam",
-            "Ciguatoxin 1" to "Ciguatoxin 1",
-            "CTX-1" to "Ciguatoxin 1",
-            "Ciguatoxin 2" to "Ciguatoxin 2",
-            "CTX-2" to "Ciguatoxin 2",
-            "Ciguatoxin 3" to "Ciguatoxin 3",
-            "CTX-3" to "Ciguatoxin 3",
-            "Ciguatoxin 4b" to "Ciguatoxin 4b",
-            "CTX-4b" to "Ciguatoxin 4b",
-            "Cinazepam" to "Cinazepam",
-            "Cinnamedrine" to "Cinnamedrine",
-            "Cinolazepam" to "Cinolazepam",
-            "Gerodorm" to "Cinolazepam",
-            "CDP Choline" to "Citicoline",
-            "CDP-Choline" to "Citicoline",
-            "Citicoline" to "Citicoline",
-            "Citric acid" to "Citric acid",
-            "Citrulline" to "Citrulline",
-            "Classic psychedelic" to "Classical psychedelics",
-            "Classical psychedelic" to "Classical psychedelics",
-            "Classical psychedelics" to "Classical psychedelics",
-            "4-CMC" to "Clephedrone",
-            "Clephedrone" to "Clephedrone",
-            "Climazolam" to "Climazolam",
-            "Ro21-3982" to "Climazolam",
-            "Clindamycin" to "Clindamycin",
-            "4-CIC" to "Clipredrone",
-            "Clipredrone" to "Clipredrone",
-            "Clobazam" to "Clobazam",
-            "Clobenzorex" to "Clobenzorex",
-            "Cloforex" to "Cloforex",
-            "Clominorex" to "Clominorex",
-            "Clomipramine" to "Clomipramine",
-            "Clonazafone" to "Clonazafone",
-            "Clonazafone desglycyl" to "Clonazafone desglycyl",
-            "Clonazepam" to "Clonazepam",
-            "K-Pins" to "Clonazepam",
-            "Klonopin" to "Clonazepam",
-            "Rivotril" to "Clonazepam",
-            "C-lam" to "Clonazolam",
-            "Clam" to "Clonazolam",
-            "Clonazolam" to "Clonazolam",
-            "Clonitrazolam" to "Clonazolam",
-            "Catapres" to "Clonidine",
-            "Catapres-TTS" to "Clonidine",
-            "Clonidine" to "Clonidine",
-            "Kapvay" to "Clonidine",
-            "Nexiclon XR" to "Clonidine",
-            "Clonitazene" to "Clonitazene",
-            "3-CMC" to "Clophedrone",
-            "Clophedrone" to "Clophedrone",
-            "Clorazepate" to "Clorazepate",
-            "Clorgyline" to "Clorgyline",
-            "Cloroqualone" to "Cloroqualone",
-            "Clortermine" to "Clortermine",
-            "Clotiazepam" to "Clotiazepam",
-            "Clotizolam" to "Clotizolam",
-            "Cocaethylene" to "Cocaethylene",
-            "Benzoylmethylecgonine" to "Cocaine",
-            "Blow" to "Cocaine",
-            "Chari" to "Cocaine",
-            "Coca" to "Cocaine",
-            "Cocaine" to "Cocaine",
-            "Cocaine base" to "Cocaine",
-            "Cocaine freebase" to "Cocaine",
-            "Cocaine paste" to "Cocaine",
-            "Coke" to "Cocaine",
-            "Crack" to "Cocaine",
-            "Crack-cocaine" to "Cocaine",
-            "Free base cocaine" to "Cocaine",
-            "Free-base cocaine" to "Cocaine",
-            "Girl" to "Cocaine",
-            "Nose Candy" to "Cocaine",
-            "Powder" to "Cocaine",
-            "Snow" to "Cocaine",
-            "White" to "Cocaine",
-            "Yayo" to "Cocaine",
-            "Cocao" to "Cocoa",
-            "Cocoa" to "Cocoa",
-            "Cocoa powder" to "Cocoa",
-            "Cocoa solid" to "Cocoa",
-            "Cocoa solids" to "Cocoa",
-            "3-Methylmorphine" to "Codeine",
-            "Codeine" to "Codeine",
-            "Codiene" to "Codeine",
-            "Lean" to "Codeine",
-            "Purple Drank" to "Codeine",
-            "Sizzurp" to "Codeine",
-            "Syrup" to "Codeine",
-            "Codeine-6-glucuronide" to "Codeine-6-glucuronide",
-            "Codeinone" to "Codeinone",
-            "Colterol" to "Colterol",
-            "BCI-540" to "Coluracetam",
-            "Coluracetam" to "Coluracetam",
-            "MKC-231" to "Coluracetam",
-            "Corbadrine" to "Corbadrine",
-            "Cortisone" to "Cortisone",
-            "Cotinine" to "Cotinine",
-            "Creatine" to "Creatine",
-            "Methylguanidoacetic acid" to "Creatine",
-            "N-Carbamimidoyl-N-methylglycine" to "Creatine",
-            "Cumene" to "Cumene",
-            "Isopropylbenzene" to "Cumene",
-            "Cyanide" to "Cyanide",
-            "Cyclazocine" to "Cyclazocine",
-            "Cyclazodone" to "Cyclazodone",
-            "N-Cyclopropylpemoline" to "Cyclazodone",
-            "Cyclodiol" to "Cyclodiol",
-            "Cycloheptatriene-1-ethylamine" to "Cycloheptatriene-1-ethylamine",
-            "Cycloheptatriene-1-ylpropan-2-amine" to "Cycloheptatriene-1-ylpropan-2-amine",
-            "Cyclohexylamine" to "Cyclohexylamine",
-            "Cyclohexylethylamine" to "Cyclohexylethylamine",
-            "Cyclopentamine" to "Cyclopentamine",
-            "Cyclotriol" to "Cyclotriol",
-            "CPA" to "Cyproterone acetate",
-            "Cyproterone acetate" to "Cyproterone acetate",
-            "Cys" to "Cysteine",
-            "Cysteine" to "Cysteine",
-            "Daidzein" to "Daidzein",
-            "Atropine" to "Datura",
-            "Datura" to "Datura",
-            "Devil's trumpet" to "Datura",
-            "Devil's weed" to "Datura",
-            "Hell's bells" to "Datura",
-            "Hyoscine" to "Datura",
-            "Hyoscyamine" to "Datura",
-            "Jimson Weed" to "Datura",
-            "Jimsonweed" to "Datura",
-            "Moonflower" to "Datura",
-            "Scopolamine" to "Datura",
-            "Thorn-apple" to "Datura",
-            "Deoxyepinephrine" to "Deoxyepinephrine",
-            "Deprenyl" to "Deprenyl",
-            "N-Propargyl-N-methylamphetamine" to "Deprenyl",
-            "Deschloroclotizolam" to "Deschloroclotizolam",
-            "Deschloroetizolam" to "Deschloroetizolam",
-            "2'-Oxo-PCM" to "Deschloroketamine",
-            "2-Oxo-PCM" to "Deschloroketamine",
-            "DCK" to "Deschloroketamine",
-            "Deschloroketamine" to "Deschloroketamine",
-            "DXE" to "Deschloroketamine",
-            "O-PCM" to "Deschloroketamine",
-            "Desmethyldeprenyl" to "Desmethyldeprenyl",
-            "DMS" to "Desmethyldeprenyl",
-            "Desmethylflunitrazepam" to "Desmethylflunitrazepam",
-            "Desmethylprodine" to "Desmethylprodine",
-            "MPPP" to "Desmethylprodine",
-            "Desmethylsibutramine" to "Desmethylsibutramine",
-            "Crocodile" to "Desomorphine",
-            "Desomorphine" to "Desomorphine",
-            "Dihydrodesoxymorphine" to "Desomorphine",
-            "Krok" to "Desomorphine",
-            "Krokodil" to "Desomorphine",
-            "Permonid" to "Desomorphine",
-            "2-Diphenylmethylpiperidine" to "Desoxypipradrol",
-            "2-DPMP" to "Desoxypipradrol",
-            "2dpmp" to "Desoxypipradrol",
-            "Desoxypipradol" to "Desoxypipradrol",
-            "Desoxypipradrol" to "Desoxypipradrol",
-            "Ivory Wave" to "Desoxypipradrol",
-            "Desylamine" to "Desylamine",
-            "DET" to "DET",
-            "Diethyltryptamine" to "DET",
-            "N,N-DET" to "DET",
-            "Dexamethasone" to "Dexamethasone",
-            "Dexmedetomidine" to "Dexmedetomidine",
-            "Attentin" to "Dextroamphetamine",
-            "D-amphetamine" to "Dextroamphetamine",
-            "Dex" to "Dextroamphetamine",
-            "Dexamphetamine" to "Dextroamphetamine",
-            "Dexedrine" to "Dextroamphetamine",
-            "Dextroamphetamine" to "Dextroamphetamine",
-            "δ-amphetamine" to "Dextroamphetamine",
-            "Delsym" to "Dextromethorphan",
-            "DexAlone" to "Dextromethorphan",
-            "Dextromethorphan" to "Dextromethorphan",
-            "Dextrorphan" to "Dextromethorphan",
-            "DM" to "Dextromethorphan",
-            "DMO" to "Dextromethorphan",
-            "Duract" to "Dextromethorphan",
-            "DXM" to "Dextromethorphan",
-            "DXO" to "Dextromethorphan",
-            "Robitussin" to "Dextromethorphan",
-            "Robo" to "Dextromethorphan",
-            "Robotripping" to "Dextromethorphan",
-            "Triple C" to "Dextromethorphan",
-            "Darvocet" to "Dextropropoxyphene",
-            "Darvon" to "Dextropropoxyphene",
-            "Dextropropoxyphene" to "Dextropropoxyphene",
-            "Propoxyphene" to "Dextropropoxyphene",
-            "Dezocine" to "Dezocine",
-            "Diarylethylamine" to "Diarylethylamines",
-            "Diarylethylamines" to "Diarylethylamines",
-            "Diarylpropionitrile" to "Diarylpropionitrile",
-            "DPN" to "Diarylpropionitrile",
-            "Apaurin" to "Diazepam",
-            "Diastat" to "Diazepam",
-            "Diazepam" to "Diazepam",
-            "Mother's Little Helper" to "Diazepam",
-            "Valium" to "Diazepam",
-            "Vals" to "Diazepam",
-            "Valtoco" to "Diazepam",
-            "Vazepam" to "Diazepam",
-            "Zetran" to "Diazepam",
-            "DBZP" to "Dibenzylpiperazine",
-            "Dibenzylpiperazine" to "Dibenzylpiperazine",
-            "DDT" to "Dichlorodiphenyltrichloroethane",
-            "Dichlorodiphenyltrichloroethane" to "Dichlorodiphenyltrichloroethane",
-            "Dichloropane" to "Dichloropane",
-            "O-401" to "Dichloropane",
-            "RTI-111" to "Dichloropane",
-            "Chlorodiazepam" to "Diclazepam",
-            "Diclaz" to "Diclazepam",
-            "Diclazepam" to "Diclazepam",
-            "Diclofenac" to "Diclofenac",
-            "Dienestrol" to "Dienestrol",
-            "Diethylpropion" to "Diethylpropion",
-            "DES" to "Diethylstilbestrol",
-            "Diethylstilbestrol" to "Diethylstilbestrol",
-            "Dieticyclidine" to "Dieticyclidine",
-            "PCDE" to "Dieticyclidine",
-            "Difludiazepam" to "Difludiazepam",
-            "DFE" to "Difluoroethane",
-            "Difluoroethane" to "Difluoroethane",
-            "Dihydrocapsaicin" to "Dihydrocapsaicin",
-            "DHC" to "Dihydrocodeine",
-            "Dihydrocodeine" to "Dihydrocodeine",
-            "Paracodeine" to "Dihydrocodeine",
-            "Paracodin" to "Dihydrocodeine",
-            "DHE" to "Dihydroergotamine",
-            "Dihydroergotamine" to "Dihydroergotamine",
-            "Dihydrotanshinone I" to "Dihydrotanshinone I",
-            "DHT" to "Dihydrotestosterone",
-            "Dihydrotestosterone" to "Dihydrotestosterone",
-            "Dimethocaine" to "Dimethocaine",
-            "Dimethyl sulfoxide" to "Dimethyl sulfoxide",
-            "DMSO" to "Dimethyl sulfoxide",
-            "Dimethylamphetamine" to "Dimethylamphetamine",
-            "Metrotonin" to "Dimethylamphetamine",
-            "Dimethylphenylpiperazinium" to "Dimethylphenylpiperazinium",
-            "DMPP" to "Dimethylphenylpiperazinium",
-            "Dioxethedrin" to "Dioxethedrin",
-            "Dioxifedrine" to "Dioxifedrine",
-            "Dipentylone" to "Dipentylone",
-            "Aviomarin" to "Diphenhydramine",
-            "Benadryl" to "Diphenhydramine",
-            "Dimenhydrinate" to "Diphenhydramine",
-            "Diphenhydramine" to "Diphenhydramine",
-            "DMH" to "Diphenhydramine",
-            "DPH" to "Diphenhydramine",
-            "Nytol" to "Diphenhydramine",
-            "Sominex" to "Diphenhydramine",
-            "Unisom SleepMelts" to "Diphenhydramine",
-            "ZzzQuil" to "Diphenhydramine",
-            "Diphenidine" to "Diphenidine",
-            "DPD" to "Diphenidine",
-            "Diphenpipenol" to "Diphenpipenol",
-            "Diprophylline" to "Diprophylline",
-            "Dipropylcyclopentylxanthine" to "Dipropylcyclopentylxanthine",
-            "DPCPX" to "Dipropylcyclopentylxanthine",
-            "Diproqualone" to "Diproqualone",
-            "Diisopropyltryptamine" to "DiPT",
-            "DiPT" to "DiPT",
-            "N,N-Diisopropyltryptamine" to "DiPT",
-            "Disopyramide" to "Disopyramide",
-            "Disulfiram" to "Disulfiram",
-            "Ditazole" to "Ditazole",
-            "Acacia Confusa" to "DMT",
-            "Acacia confusa rootbark" to "DMT",
-            "Deems" to "DMT",
-            "Dimitri" to "DMT",
-            "Dmitry" to "DMT",
-            "Mimosa hostillis rootbark" to "DMT",
-            "N,N-Dimethyltryptamine" to "DMT",
-            "N,N-DMT" to "DMT",
-            "The Glory" to "DMT",
-            "The Spirit Molecule" to "DMT",
-            "2,5-Dimethoxy-4-bromoamphetamine" to "DOB",
-            "Brolamfetamine" to "DOB",
-            "Bromo-DMA" to "DOB",
-            "DOB" to "DOB",
-            "DOB-5-hemifly" to "DOB-5-hemifly",
-            "2,5-Dimethoxy-4-chloroamphetamine" to "DOC",
-            "DOC" to "DOC",
-            "2,5-Dimethoxy-4-iodoamphetamine" to "DOI",
-            "DOI" to "DOI",
-            "DOI-2-hemifly" to "DOI-2-hemifly",
-            "Doisynoestrol" to "Doisynoestrol",
-            "Doisynolic acid" to "Doisynolic acid",
-            "2,5-Dimethoxy-4-methylamphetamine" to "DOM",
-            "DOM" to "DOM",
-            "STP" to "DOM",
-            "STP (Serenity, Tranquility, and Peace)" to "DOM",
-            "Domoic acid" to "Domoic acid",
-            "Domperidone" to "Domperidone",
-            "DA" to "Dopamine",
-            "Dopamine" to "Dopamine",
-            "Doxycycline" to "Doxycycline",
-            "Dipropyltryptamine" to "DPT",
-            "DPT" to "DPT",
-            "N,N-Dipropyltryptamine" to "DPT",
-            "The Light" to "DPT",
-            "Drospirenone" to "Drospirenone",
-            "Duloxetine" to "Duloxetine",
-            "Dutasteride" to "Dutasteride",
-            "Efavirenz" to "Efavirenz",
-            "Sustiva" to "Efavirenz",
-            "Eletriptan" to "Eletriptan",
-            "Emetine" to "Emetine",
-            "Encyprate" to "Encyprate",
-            "MO-1255" to "Encyprate",
-            "Endomorphin-1" to "Endomorphin-1",
-            "Endomorphin-2" to "Endomorphin-2",
-            "Entacapone" to "Entacapone",
-            "Entheogen" to "Entheogen",
-            "Entheogenic" to "Entheogen",
-            "Entheogens" to "Entheogen",
-            "b-Hydroxymethamphetamine" to "Ephedrine",
-            "Ephedra" to "Ephedrine",
-            "Ephedrine" to "Ephedrine",
-            "Pseudoephedrine" to "Ephedrine",
-            "β-Hydroxymethamphetamine" to "Ephedrine",
-            "EPE" to "Ephenidine",
-            "Ephenidine" to "Ephenidine",
-            "NEDPA" to "Ephenidine",
-            "Bk-EBDP" to "Ephylone",
-            "bk-ethyl-K" to "Ephylone",
-            "Ephylone" to "Ephylone",
-            "N-Ethylpentylone" to "Ephylone",
-            "βk-EBDP" to "Ephylone",
-            "Adrenaline" to "Epinephrine",
-            "Epinephrine" to "Epinephrine",
-            "Epinine" to "Epinine",
-            "EPT" to "EPT",
-            "Ethylpropyltryptamine" to "EPT",
-            "N-Ethyl-N-propyltryptamine" to "EPT",
-            "Equilenin" to "Equilenin",
-            "Equilin" to "Equilin",
-            "Ergocornine" to "Ergocornine",
-            "Ergonovine" to "Ergonovine",
-            "Ergotamine" to "Ergotamine",
-            "Erteberel" to "Erteberel",
-            "Erythrohydrobupropion" to "Erythrohydrobupropion",
-            "3,5-Dimethoxy-4-ethoxyphenethylamine" to "Escaline",
-            "Escaline" to "Escaline",
-            "Escitalopram" to "Escitalopram",
-            "Estazolam" to "Estazolam",
-            "E4" to "Estetrol",
-            "Estetrol" to "Estetrol",
-            "E2" to "Estradiol",
-            "Estradiol" to "Estradiol",
-            "Estradiol acetate" to "Estradiol acetate",
-            "EB" to "Estradiol benzoate",
-            "Estradiol benzoate" to "Estradiol benzoate",
-            "EBB" to "Estradiol benzoate butyrate",
-            "Estradiol benzoate butyrate" to "Estradiol benzoate butyrate",
-            "EBA" to "Estradiol butyrylacetate",
-            "Estradiol butyrylacetate" to "Estradiol butyrylacetate",
-            "EC" to "Estradiol cypionate",
-            "Estradiol cypionate" to "Estradiol cypionate",
-            "EDBu" to "Estradiol dibutyrate",
-            "Estradiol dibutyrate" to "Estradiol dibutyrate",
-            "EDE" to "Estradiol dienantate",
-            "Estradiol dienantate" to "Estradiol dienantate",
-            "EDP" to "Estradiol dipropionate",
-            "Estradiol dipropionate" to "Estradiol dipropionate",
-            "Estradiol diundecylate" to "Estradiol diundecylate",
-            "Estradiol diundecylenate" to "Estradiol diundecylenate",
-            "EEN" to "Estradiol enantate",
-            "Estradiol enantate" to "Estradiol enantate",
-            "EF" to "Estradiol furoate",
-            "Estradiol furoate" to "Estradiol furoate",
-            "Estradiol hemisuccinate" to "Estradiol hemisuccinate",
-            "EHHB" to "Estradiol hexahydrobenzoate",
-            "Estradiol hexahydrobenzoate" to "Estradiol hexahydrobenzoate",
-            "Estradiol palmitate" to "Estradiol palmitate",
-            "EPP" to "Estradiol phenylpropionate",
-            "Estradiol phenylpropionate" to "Estradiol phenylpropionate",
-            "E2-TMA" to "Estradiol pivalate",
-            "Estradiol pivalate" to "Estradiol pivalate",
-            "EP" to "Estradiol propionate",
-            "Estradiol propionate" to "Estradiol propionate",
-            "EPPP" to "Estradiol propoxyphenylpropionate",
-            "Estradiol propoxyphenylpropionate" to "Estradiol propoxyphenylpropionate",
-            "E2-17-St" to "Estradiol stearate",
-            "Estradiol stearate" to "Estradiol stearate",
-            "E2MATE" to "Estradiol sulfamate",
-            "Estradiol sulfamate" to "Estradiol sulfamate",
-            "E2S" to "Estradiol sulfate",
-            "Estradiol sulfate" to "Estradiol sulfate",
-            "Estradiol undecylate" to "Estradiol undecylate",
-            "EU" to "Estradiol undecylate",
-            "Estradiol valerate" to "Estradiol valerate",
-            "EV" to "Estradiol valerate",
-            "Estramustine" to "Estramustine",
-            "E3" to "Estriol",
-            "Estriol" to "Estriol",
-            "E1" to "Estrone",
-            "Estrone" to "Estrone",
-            "Eszop" to "Eszopiclone",
-            "Eszopiclone" to "Eszopiclone",
-            "Lunesta" to "Eszopiclone",
-            "Etafedrine" to "Etafedrine",
-            "Etamicastat" to "Etamicastat",
-            "Etaqualone" to "Etaqualone",
-            "ETH-CAT" to "ETH-CAT",
-            "Ethcat" to "ETH-CAT",
-            "Ethcathinone" to "ETH-CAT",
-            "Ethylcathinone" to "ETH-CAT",
-            "Ethylpropion" to "ETH-CAT",
-            "ETH-LAD" to "ETH-LAD",
-            "Ethlad" to "ETH-LAD",
-            "EA" to "Ethamphetamine",
-            "Ethamphetamine" to "Ethamphetamine",
-            "EE" to "Ethinylestradiol",
-            "Ethinylestradiol" to "Ethinylestradiol",
-            "2-Cl-2'-Oxo-PCE" to "Ethketamine",
-            "Ethketamine" to "Ethketamine",
-            "N-Ethylnorketamine" to "Ethketamine",
-            "NENK" to "Ethketamine",
-            "Ethylbenzene" to "Ethylbenzene",
-            "EBDB" to "Ethylbenzodioxolylbutanamine",
-            "Ethylbenzodioxolylbutanamine" to "Ethylbenzodioxolylbutanamine",
-            "ECA" to "Ethylcyanoacrylate",
-            "Ethylcyanoacrylate" to "Ethylcyanoacrylate",
-            "EO" to "Ethylene oxide",
-            "Ethylene oxide" to "Ethylene oxide",
-            "Ethylketazocine" to "Ethylketazocine",
-            "Codethyline" to "Ethylmorphine",
-            "Dionine" to "Ethylmorphine",
-            "Ethylmorphine" to "Ethylmorphine",
-            "Ethylnaphthidate" to "Ethylnaphthidate",
-            "HDEP-28" to "Ethylnaphthidate",
-            "Ethylnorepinephrine" to "Ethylnorepinephrine",
-            "bk-MDEA" to "Ethylone",
-            "EDEC" to "Ethylone",
-            "Ethylone" to "Ethylone",
-            "MDEC" to "Ethylone",
-            "EPH" to "Ethylphenidate",
-            "Ethylphenidate" to "Ethylphenidate",
-            "Etilevodopa" to "Etilevodopa",
-            "Depas" to "Etizolam",
-            "Etilaam" to "Etizolam",
-            "Etizest" to "Etizolam",
-            "Etizolam" to "Etizolam",
-            "Etolorex" to "Etolorex",
-            "Etomidate" to "Etomidate",
-            "Etonitazene" to "Etonitazene",
-            "Etonitazepyne" to "Etonitazepyne",
-            "Etonogestrel" to "Etonogestrel",
-            "Eugeroic" to "Eugeroics",
-            "Eugeroics" to "Eugeroics",
-            "Eutylone" to "Eutylone",
-            "4-Fluorophenibut" to "F-Phenibut",
-            "Baflofen" to "F-Phenibut",
-            "CGP-11130" to "F-Phenibut",
-            "F-Phenibut" to "F-Phenibut",
-            "Flourobut" to "F-Phenibut",
-            "Fluorobut" to "F-Phenibut",
-            "Fluorophenibut" to "F-Phenibut",
-            "Fphenibut" to "F-Phenibut",
-            "Fabomotizole" to "Fabomotizole",
-            "Famprofazone" to "Famprofazone",
-            "Fasoracetam" to "Fasoracetam",
-            "Fenadiazole" to "Fenadiazole",
-            "Fenbutrazate" to "Fenbutrazate",
-            "Fenclonine" to "Fenclonine",
-            "PCPA" to "Fenclonine",
-            "Fenestrel" to "Fenestrel",
-            "Amfetyline" to "Fenethylline",
-            "Amphetamin​oethyl​theophylline" to "Fenethylline",
-            "Biocapton" to "Fenethylline",
-            "Captagon" to "Fenethylline",
-            "Fenethylline" to "Fenethylline",
-            "Fitton" to "Fenethylline",
-            "Phenethylline" to "Fenethylline",
-            "Fenfluramine" to "Fenfluramine",
-            "Fenmetramide" to "Fenmetramide",
-            "Fenoterol" to "Fenoterol",
-            "Fenozolone" to "Fenozolone",
-            "Fenproporex" to "Fenproporex",
-            "Abstral" to "Fentanyl",
-            "Actiq" to "Fentanyl",
-            "Duragesic" to "Fentanyl",
-            "Durogesic" to "Fentanyl",
-            "Fent" to "Fentanyl",
-            "Fentanil" to "Fentanyl",
-            "Fentanyl" to "Fentanyl",
-            "Fentora" to "Fentanyl",
-            "Haldid" to "Fentanyl",
-            "Instanyl" to "Fentanyl",
-            "Lazanda" to "Fentanyl",
-            "Matrifen" to "Fentanyl",
-            "Onsolis" to "Fentanyl",
-            "Sublimaze" to "Fentanyl",
-            "Feprosidnine" to "Feprosidnine",
-            "Fexofenadine" to "Fexofenadine",
-            "Fezolamine" to "Fezolamine",
-            "Finasteride" to "Finasteride",
-            "4-FMC" to "Flephedrone",
-            "Flephedrone" to "Flephedrone",
-            "Flmodafinil" to "Flmodafinil",
-            "3-FMC" to "Flophedrone",
-            "Flophedrone" to "Flophedrone",
-            "Flualp" to "Flualprazolam",
-            "Flualprazolam" to "Flualprazolam",
-            "Flubromazepam" to "Flubromazepam",
-            "Flubromazolam" to "Flubromazolam",
-            "Flubrotizolam" to "Flubrotizolam",
-            "Flucetorex" to "Flucetorex",
-            "Fluclotizolam" to "Fluclotizolam",
-            "Fludrocortisone" to "Fludrocortisone",
-            "Fluetizolam" to "Fluetizolam",
-            "Flumazenil" to "Flumazenil",
-            "Fluminorex" to "Fluminorex",
-            "Circles" to "Flunitrazepam",
-            "Flunitrazepam" to "Flunitrazepam",
-            "Forget Me Pill" to "Flunitrazepam",
-            "Forget Pill" to "Flunitrazepam",
-            "La Rocha" to "Flunitrazepam",
-            "Mexican Valium" to "Flunitrazepam",
-            "R2" to "Flunitrazepam",
-            "Roach 2" to "Flunitrazepam",
-            "Roches" to "Flunitrazepam",
-            "Rohypnol" to "Flunitrazepam",
-            "Roofies" to "Flunitrazepam",
-            "Rophies" to "Flunitrazepam",
-            "Ruffies" to "Flunitrazepam",
-            "Wolfies" to "Flunitrazepam",
-            "Flunitrazolam" to "Flunitrazolam",
-            "Fluorexetamine" to "Fluorexetamine",
-            "FXE" to "Fluorexetamine",
-            "2-FPPP" to "Fluorolintane",
-            "Fluorolintane" to "Fluorolintane",
-            "Fluoxetine" to "Fluoxetine",
-            "Flurazepam" to "Flurazepam",
-            "Fluvoxamine" to "Fluvoxamine",
-            "Arformoterol" to "Formoterol",
-            "Esformoterol" to "Formoterol",
-            "Formoterol" to "Formoterol",
-            "Foslevodopa" to "Foslevodopa",
-            "Gababutin" to "Gababutin",
-            "Gabapentin" to "Gabapentin",
-            "Gabarone" to "Gabapentin",
-            "Gabba" to "Gabapentin",
-            "Gabbies" to "Gabapentin",
-            "Gralise" to "Gabapentin",
-            "Neurontin" to "Gabapentin",
-            "Gaboxadol" to "Gaboxadol",
-            "Galantamine" to "Galantamine",
-            "Lycoremine" to "Galantamine",
-            "Nivalin" to "Galantamine",
-            "Razadyne" to "Galantamine",
-            "Razadyne ER" to "Galantamine",
-            "Reminyl" to "Galantamine",
-            "Gamlaphen" to "Gamlaphen",
-            "Gamofen" to "Gamofen",
-            "g-butyrolactone" to "GBL",
-            "Gamma-butyrolactone" to "GBL",
-            "GBL" to "GBL",
-            "Genistein" to "Genistein",
-            "Fantasy" to "GHB",
-            "g-Hydroxybutyric acid" to "GHB",
-            "GHB" to "GHB",
-            "Liquid ecstasy" to "GHB",
-            "Liquid G" to "GHB",
-            "Sodium oxybate" to "GHB",
-            "Xyrem" to "GHB",
-            "γ-Hydroxybutyric acid" to "GHB",
-            "Gidazepam" to "Gidazepam",
-            "Gigantine" to "Gigantine",
-            "Dextrose" to "Glucose",
-            "Glucose" to "Glucose",
-            "Levo-glucose" to "Glucose",
-            "Glu" to "Glutamic acid",
-            "Glutamic acid" to "Glutamic acid",
-            "Gln" to "Glutamine",
-            "Glutamine" to "Glutamine",
-            "Glycerol" to "Glycerol",
-            "VG" to "Glycerol",
-            "Gly" to "Glycine",
-            "Glycine" to "Glycine",
-            "Glyphosate" to "Glyphosate",
-            "Gostatin" to "Gostatin",
-            "Hallucinogen" to "Hallucinogens",
-            "Hallucinogenic" to "Hallucinogens",
-            "Hallucinogens" to "Hallucinogens",
-            "Haldol" to "Haloperidol",
-            "Haloperidol" to "Haloperidol",
-            "Harmala alkaloid" to "Harmala alkaloid",
-            "Harmala alkaloids" to "Harmala alkaloid",
-            "Harmaline" to "Harmala alkaloid",
-            "Harman" to "Harmala alkaloid",
-            "Harmane" to "Harmala alkaloid",
-            "Harmine" to "Harmala alkaloid",
-            "Tetrahydroharmine" to "Harmala alkaloid",
-            "Heparin" to "Heparin",
-            "UFH" to "Heparin",
-            "6-MAM" to "Heroin",
-            "6-Monoacetylmorphine" to "Heroin",
-            "Black tar" to "Heroin",
-            "Black tar heroin" to "Heroin",
-            "Brown" to "Heroin",
-            "China white" to "Heroin",
-            "Diacetylmorphine" to "Heroin",
-            "Diamorphine" to "Heroin",
-            "Heroin" to "Heroin",
-            "Heroine" to "Heroin",
-            "Horse" to "Heroin",
-            "Junk" to "Heroin",
-            "Skag" to "Heroin",
-            "Smack" to "Heroin",
-            "Hexahydrocannabinol" to "Hexahydrocannabinol",
-            "HHC" to "Hexahydrocannabinol",
-            "Hexane" to "Hexane",
-            "Hexapradol" to "Hexapradol",
-            "Hexedrone" to "Hexedrone",
-            "Hexestrol" to "Hexestrol",
-            "Hexetidine" to "Hexetidine",
-            "Hexolame" to "Hexolame",
-            "Hippulin" to "Hippulin",
-            "Histamine" to "Histamine",
-            "His" to "Histidine",
-            "Histidine" to "Histidine",
-            "Homarylamine" to "Homarylamine",
-            "MDMPEA" to "Homarylamine",
-            "Homatropine" to "Homatropine",
-            "Homocapsaicin" to "Homocapsaicin",
-            "Homodihydrocapsaicin" to "Homodihydrocapsaicin",
-            "Homovanillic acid" to "Homovanillic acid",
-            "Homovanillyl alcohol" to "Homovanillyl alcohol",
-            "Hordenine" to "Hordenine",
-            "HXE" to "HXE",
-            "Hydroxetamine" to "HXE",
-            "Hydrafinil" to "Hydrafinil",
-            "Hydrastinine" to "Hydrastinine",
-            "Hydrocodone" to "Hydrocodone",
-            "Hysingla" to "Hydrocodone",
-            "Lortab" to "Hydrocodone",
-            "Norco" to "Hydrocodone",
-            "Vicodin" to "Hydrocodone",
-            "Vicodin (with paracetamol)" to "Hydrocodone",
-            "Zohydro" to "Hydrocodone",
-            "Zohydro ER (extended-release)" to "Hydrocodone",
-            "Cortisol" to "Hydrocortisone",
-            "Hydrocortisone" to "Hydrocortisone",
-            "Dihydromorphinone" to "Hydromorphone",
-            "Dilaudid" to "Hydromorphone",
-            "Hydromorph" to "Hydromorphone",
-            "Hydromorphone" to "Hydromorphone",
-            "Hydrostat" to "Hydromorphone",
-            "Jurnista" to "Hydromorphone",
-            "Palladone" to "Hydromorphone",
-            "Hydroxybupropion" to "Hydroxybupropion",
-            "Hydroxylamine" to "Hydroxylamine",
-            "Hydroxyzine" to "Hydroxyzine",
-            "Henbane" to "Hyoscyamus niger (botany)",
-            "Hyoscyamus niger (botany)" to "Hyoscyamus niger (botany)",
-            "IBG" to "Ibogainalog",
-            "Ibogainalog" to "Ibogainalog",
-            "12-Methoxyibogamine" to "Ibogaine",
-            "Endabuse" to "Ibogaine",
-            "Iboga" to "Ibogaine",
-            "Ibogaine" to "Ibogaine",
-            "Tabernanthe iboga" to "Ibogaine",
-            "Ibogaminalog" to "Ibogaminalog",
-            "Ibopamine" to "Ibopamine",
-            "Ibotenic acid" to "Ibotenic acid",
-            "Ibuprofen" to "Ibuprofen",
-            "Imagabalin" to "Imagabalin",
-            "Imidazenil" to "Imidazenil",
-            "Indapyrophenidone" to "Indapyrophenidone",
-            "Indolylpropylaminopentane" to "Indolylpropylaminopentane",
-            "IPAP" to "Indolylpropylaminopentane",
-            "Acetone" to "Inhalants",
-            "Butane" to "Inhalants",
-            "Chloroform" to "Inhalants",
-            "Diethyl ether" to "Inhalants",
-            "Ether" to "Inhalants",
-            "Freon" to "Inhalants",
-            "Gasoline" to "Inhalants",
-            "Inhalants" to "Inhalants",
-            "Toluene" to "Inhalants",
-            "Xenon" to "Inhalants",
-            "Iometopane" to "Iometopane",
-            "RTI-55" to "Iometopane",
-            "Isobutane" to "Isobutane",
-            "Isobutyl nitrite" to "Isobutyl nitrite",
-            "IBMX" to "Isobutylmethylxanthine",
-            "Isobutylmethylxanthine" to "Isobutylmethylxanthine",
-            "Isocyclamine" to "Isocyclamine",
-            "Isoetarine" to "Isoetarine",
-            "Isoethcathinone" to "Isoethcathinone",
-            "Isohexylone" to "Isohexylone",
-            "Ile" to "Isoleucine",
-            "Isoleucine" to "Isoleucine",
-            "Isoniazid" to "Isoniazid",
-            "Isoprenaline" to "Isoprenaline",
-            "IPA" to "Isopropanol",
-            "Isopropanol" to "Isopropanol",
-            "Isopropyl nitrite" to "Isopropyl nitrite",
-            "IA" to "Isopropylamphetamine",
-            "Isopropylamphetamine" to "Isopropylamphetamine",
-            "Isopropylbenzylamine" to "Isopropylbenzylamine",
-            "IPH" to "Isopropylphenidate",
-            "IPPD" to "Isopropylphenidate",
-            "IPPH" to "Isopropylphenidate",
-            "Isopropylphenidate" to "Isopropylphenidate",
-            "Isopropylphenidine" to "Isopropylphenidine",
-            "NPDPA" to "Isopropylphenidine",
-            "Isotonitazene" to "Isotonitazene",
-            "Isovaleramide" to "Isovaleramide",
-            "Isoxsuprine" to "Isoxsuprine",
-            "Israpafant" to "Israpafant",
-            "JQ1" to "JQ1",
-            "1-Pentyl-3-(1-naphthoyl)indole" to "JWH-018",
-            "AM-678" to "JWH-018",
-            "JWH-018" to "JWH-018",
-            "Jwh018" to "JWH-018",
-            "JWH-073" to "JWH-073",
-            "Spice" to "JWH-073",
-            "JWH-193" to "JWH-193",
-            "JWH-198" to "JWH-198",
-            "JWH-200" to "JWH-200",
-            "2-Cl-2'-Oxo-PCM" to "Ketamine",
-            "Arketamine" to "Ketamine",
-            "Cat Tranquilizer" to "Ketamine",
-            "Esketamine" to "Ketamine",
-            "Jet" to "Ketamine",
-            "Ket" to "Ketamine",
-            "Ketalar" to "Ketamine",
-            "Ketamine" to "Ketamine",
-            "Ketanest" to "Ketamine",
-            "Ketaset" to "Ketamine",
-            "Kit Kat" to "Ketamine",
-            "Kitty" to "Ketamine",
-            "Purple" to "Ketamine",
-            "R-Ketamine" to "Ketamine",
-            "S-Ketamine" to "Ketamine",
-            "Special K" to "Ketamine",
-            "Vitamin K" to "Ketamine",
-            "Ketazocine" to "Ketazocine",
-            "Ketoprofen" to "Ketoprofen",
-            "Biak" to "Kratom",
-            "Ketum" to "Kratom",
-            "Kratom" to "Kratom",
-            "Kratum" to "Kratom",
-            "Mitragyna speciosa" to "Kratom",
-            "กระท่อม (Thai)" to "Kratom",
-            "KRM-II-81" to "KRM-II-81",
-            "Lactase" to "Lactase",
-            "Lactose" to "Lactose",
-            "LAE-32" to "LAE-32",
-            "Lefetamine" to "Lefetamine",
-            "Leu-enkephalin" to "Leu-enkephalin",
-            "Leu" to "Leucine",
-            "Leucine" to "Leucine",
-            "Levallorphan" to "Levallorphan",
-            "Levomethorphan" to "Levomethorphan",
-            "LVM" to "Levomethorphan",
-            "Levorphanol" to "Levorphanol",
-            "Lidocaine" to "Lidocaine",
-            "Elvanse" to "Lisdexamfetamine",
-            "Lis" to "Lisdexamfetamine",
-            "Lisdexamfetamine" to "Lisdexamfetamine",
-            "Lisdexamfetamine dimesylate" to "Lisdexamfetamine",
-            "Lisdexamphetamine" to "Lisdexamfetamine",
-            "Lisdextroamphetamine" to "Lisdexamfetamine",
-            "Tyvense" to "Lisdexamfetamine",
-            "Vyvanse" to "Lisdexamfetamine",
-            "Lisuride" to "Lisuride",
-            "Loperamide" to "Loperamide",
-            "Lophophine" to "Lophophine",
-            "Lopirazepam" to "Lopirazepam",
-            "Loprazolam" to "Loprazolam",
-            "Ativan" to "Lorazepam",
-            "Lorazepam" to "Lorazepam",
-            "Lorsilan" to "Lorazepam",
-            "Orfidal" to "Lorazepam",
-            "Tavor" to "Lorazepam",
-            "Temesta" to "Lorazepam",
-            "Lorcaserin" to "Lorcaserin",
-            "Lormetazepam" to "Lormetazepam",
-            "Ergine" to "LSA",
-            "Hawaiian baby woodrose" to "LSA",
-            "LA-111" to "LSA",
-            "LSA" to "LSA",
-            "Lysergic acid" to "LSA",
-            "Lysergic acid amide" to "LSA",
-            "Acid" to "LSD",
-            "Blotter" to "LSD",
-            "Cid" to "LSD",
-            "Doses" to "LSD",
-            "LSD" to "LSD",
-            "LSD-25" to "LSD",
-            "Lucy" to "LSD",
-            "Lysergic acid diethylamide" to "LSD",
-            "Microdots" to "LSD",
-            "Tabs" to "LSD",
-            "LSM-775" to "LSM-775",
-            "Lsm775" to "LSM-775",
-            "Diazedine" to "LSZ",
-            "LA-SS-Az" to "LSZ",
-            "Lambda" to "LSZ",
-            "LSZ" to "LSZ",
-            "DAM" to "Lysergic acid dimethylamide",
-            "DAM-57" to "Lysergic acid dimethylamide",
-            "Lysergic acid dimethylamide" to "Lysergic acid dimethylamide",
-            "F-LSD" to "Lysergic acid fluorodiethylamide",
-            "Lysergic acid fluorodiethylamide" to "Lysergic acid fluorodiethylamide",
-            "LAM" to "Lysergic acid methylamide",
-            "Lysergic acid methylamide" to "Lysergic acid methylamide",
-            "NM-LA" to "Lysergic acid methylamide",
-            "Lys" to "Lysine",
-            "Lysine" to "Lysine",
-            "Macromerine" to "Macromerine",
-            "Magnesium" to "Magnesium",
-            "MAO inhibitor" to "MAOI",
-            "MAOI" to "MAOI",
-            "MAOI inhibitors" to "MAOI",
-            "MAOIs" to "MAOI",
-            "Monoamine oxidase inhibitor" to "MAOI",
-            "Monoamine oxidase inhibitors" to "MAOI",
-            "MCPP" to "MCPP",
-            "Meta-Chlorophenylpiperazine" to "MCPP",
-            "3,4-Methylenedioxyamphetamine" to "MDA",
-            "MDA" to "MDA",
-            "Sally" to "MDA",
-            "Sass" to "MDA",
-            "Tenamfetamine" to "MDA",
-            "5,6-Methylenedioxy-2-aminoindane" to "MDAI",
-            "MDAI" to "MDAI",
-            "3,4-Methylenedioxy-N-ethylamphetamine" to "MDEA",
-            "3,4-Methylenedioxyethamphetamine" to "MDEA",
-            "Eve" to "MDEA",
-            "MDE" to "MDEA",
-            "MDEA" to "MDEA",
-            "3,4-Methylenedioxymethamphetamine" to "MDMA",
-            "Beans" to "MDMA",
-            "Ecstasy" to "MDMA",
-            "Emma" to "MDMA",
-            "Mandy" to "MDMA",
-            "MD" to "MDMA",
-            "MDMA" to "MDMA",
-            "Methylenedioxymethamphetamine" to "MDMA",
-            "Midomafetamine" to "MDMA",
-            "Molly" to "MDMA",
-            "Pingers" to "MDMA",
-            "Rolls" to "MDMA",
-            "XTC" to "MDMA",
-            "3',4'-Methylenedioxy-α-pyrrolidinopentiophenone" to "MDPV",
-            "Bath Salts" to "MDPV",
-            "MDPK" to "MDPV",
-            "MDPV" to "MDPV",
-            "Methylenedioxypyrovalerone" to "MDPV",
-            "NRG-1" to "MDPV",
-            "Mebroqualone" to "Mebroqualone",
-            "Meclofenoxate" to "Meclofenoxate",
-            "Meclonazepam" to "Meclonazepam",
-            "Mecloqualone" to "Mecloqualone",
-            "Mefenorex" to "Mefenorex",
-            "Melatonin" to "Melatonin",
-            "N-Acetyl-5-methoxytryptamine" to "Melatonin",
-            "Melevodopa" to "Melevodopa",
-            "both extended-release)" to "Memantine",
-            "Ebixa" to "Memantine",
-            "Memantine" to "Memantine",
-            "Memaxa" to "Memantine",
-            "Namenda" to "Memantine",
-            "Namenda XR" to "Memantine",
-            "Namzaric (with donepezil" to "Memantine",
-            "Menthol" to "Menthol",
-            "Menthyl isovalerate" to "Menthyl isovalerate",
-            "Validolum" to "Menthyl isovalerate",
-            "Mephedrene" to "Mephedrene",
-            "4-MMA" to "Mephedrine",
-            "4MMA" to "Mephedrine",
-            "Mephedrine" to "Mephedrine",
-            "4-Methylmethcathinone" to "Mephedrone",
-            "4-MMC" to "Mephedrone",
-            "4mmc" to "Mephedrone",
-            "Drone" to "Mephedrone",
-            "M-CAT" to "Mephedrone",
-            "MCAT" to "Mephedrone",
-            "Meow meow" to "Mephedrone",
-            "Meph" to "Mephedrone",
-            "Mephedrone" to "Mephedrone",
-            "Mephenaqualone" to "Mephenaqualone",
-            "Mephenidine" to "Mephenidine",
-            "N-Methyl-1,2-diphenylethylamine" to "Mephenidine",
-            "Mephentermine" to "Mephentermine",
-            "3,4,5-Trimethoxyphenethylamine" to "Mescaline",
-            "Buttons" to "Mescaline",
-            "Cactus" to "Mescaline",
-            "Mescaline" to "Mescaline",
-            "Peyote" to "Mescaline",
-            "San Pedro" to "Mescaline",
-            "TMPEA" to "Mescaline",
-            "Mesocarb" to "Mesocarb",
-            "MLR-1017" to "Mesocarb",
-            "MET" to "MET",
-            "Methionine" to "MET",
-            "Methylethyltryptamine" to "MET",
-            "N-Ethyl-N-methyltryptamine" to "MET",
-            "Met-enkephalin" to "Met-enkephalin",
-            "Meta-Hydroxynorephedrine" to "Meta-Hydroxynorephedrine",
-            "Meta-Tyramine" to "Meta-Tyramine",
-            "Meta-Xylene" to "Meta-Xylene",
-            "Metacetamol" to "Metacetamol",
-            "Metamizole" to "Metamizole",
-            "3-MMA" to "Metaphedrine",
-            "Metaphedrine" to "Metaphedrine",
-            "Metaradrine" to "Metaraminol",
-            "Metaraminol" to "Metaraminol",
-            "Metfendrazine" to "Metfendrazine",
-            "Dolophine" to "Methadone",
-            "Methadone" to "Methadone",
-            "Methadose" to "Methadone",
-            "Symoron" to "Methadone",
-            "Methallenestril" to "Methallenestril",
-            "MAL" to "Methallylescaline",
-            "Methallylescaline" to "Methallylescaline",
-            "Methamexamine" to "Methamexamine",
-            "Crank" to "Methamphetamine",
-            "Crystal" to "Methamphetamine",
-            "Crystal meth" to "Methamphetamine",
-            "d-methamphetamine" to "Methamphetamine",
-            "Desoxyn" to "Methamphetamine",
-            "Dextromethamphetamine" to "Methamphetamine",
-            "Glass" to "Methamphetamine",
-            "Ice" to "Methamphetamine",
-            "Ma" to "Methamphetamine",
-            "Meth" to "Methamphetamine",
-            "Methamphetamine" to "Methamphetamine",
-            "Shabu" to "Methamphetamine",
-            "Shard" to "Methamphetamine",
-            "Speed" to "Methamphetamine",
-            "Tina" to "Methamphetamine",
-            "Tweak" to "Methamphetamine",
-            "Yaba" to "Methamphetamine",
-            "δ-methamphetamine" to "Methamphetamine",
-            "Methanol" to "Methanol",
-            "Ludes" to "Methaqualone",
-            "Mandrax" to "Methaqualone",
-            "Methaqualone" to "Methaqualone",
-            "Quaalude" to "Methaqualone",
-            "Quaaludes" to "Methaqualone",
-            "Quack" to "Methaqualone",
-            "Quacks" to "Methaqualone",
-            "Soaper" to "Methaqualone",
-            "Sopor" to "Methaqualone",
-            "Vitamin Q" to "Methaqualone",
-            "Cat" to "Methcathinone",
-            "Ephedrone" to "Methcathinone",
-            "Jeff" to "Methcathinone",
-            "MC" to "Methcathinone",
-            "Methcat" to "Methcathinone",
-            "Methcathinone" to "Methcathinone",
-            "Methedrone" to "Methedrone",
-            "PMMC" to "Methedrone",
-            "IC-26" to "Methiodone",
-            "Methiodone" to "Methiodone",
-            "WIN 1161-3" to "Methiodone",
-            "Medroxyprogesterone acetate" to "Methiopropamine",
-            "Methiopropamine" to "Methiopropamine",
-            "MPA" to "Methiopropamine",
-            "Methitural" to "Methitural",
-            "Methoxamine" to "Methoxamine",
-            "3-MeO-2'-Oxo-PCE" to "Methoxetamine",
-            "Methoxetamine" to "Methoxetamine",
-            "Mexxy" to "Methoxetamine",
-            "MXE" to "Methoxetamine",
-            "2-MXP" to "Methoxphenidine",
-            "Methoxphenidine" to "Methoxphenidine",
-            "Methoxyphenidine" to "Methoxphenidine",
-            "MXP" to "Methoxphenidine",
-            "Methoxpropamine" to "Methoxpropamine",
-            "MXPr" to "Methoxpropamine",
-            "2-MeO-DCK" to "Methoxyketamine",
-            "2-Methoxydeschloroketamine" to "Methoxyketamine",
-            "Methoxyketamine" to "Methoxyketamine",
-            "Methoxyphenamine" to "Methoxyphenamine",
-            "OMMA" to "Methoxyphenamine",
-            "MeOP" to "Methoxypiperamide",
-            "Methoxypiperamide" to "Methoxypiperamide",
-            "MEXP" to "Methoxypiperamide",
-            "Methoxyqualone" to "Methoxyqualone",
-            "MBZOP" to "Methylbenzoylpiperazine",
-            "Methylbenzoylpiperazine" to "Methylbenzoylpiperazine",
-            "MBZP" to "Methylbenzylpiperazine",
-            "Methylbenzylpiperazine" to "Methylbenzylpiperazine",
-            "MCA" to "Methylcyanoacrylate",
-            "Methylcyanoacrylate" to "Methylcyanoacrylate",
-            "Methyldopa" to "Methyldopa",
-            "Methylenedioxymephenidine" to "Methylenedioxymephenidine",
-            "UWA-001" to "Methylenedioxymephenidine",
-            "Methylephedrine" to "Methylephedrine",
-            "Methylestradiol" to "Methylestradiol",
-            "1,3-DMAA" to "Methylhexanamine",
-            "Methylhexanamine" to "Methylhexanamine",
-            "Methylmethaqualone" to "Methylmethaqualone",
-            "MMQ" to "Methylmethaqualone",
-            "HDMP-28" to "Methylnaphthidate",
-            "Hdmp28" to "Methylnaphthidate",
-            "Methylnaphthidate" to "Methylnaphthidate",
-            "bk-MDMA" to "Methylone",
-            "Bkmdma" to "Methylone",
-            "M1" to "Methylone",
-            "MDMC" to "Methylone",
-            "Methylone" to "Methylone",
-            "Methylphenethylamine" to "Methylphenethylamine",
-            "NMPEA" to "Methylphenethylamine",
-            "Concerta" to "Methylphenidate",
-            "Dexmethylphenidate" to "Methylphenidate",
-            "Equasym XL" to "Methylphenidate",
-            "Methylin" to "Methylphenidate",
-            "Methylphenidate" to "Methylphenidate",
-            "MPD" to "Methylphenidate",
-            "MPH" to "Methylphenidate",
-            "Rita" to "Methylphenidate",
-            "Ritalin" to "Methylphenidate",
-            "Methylpseudoephedrine" to "Methylpseudoephedrine",
-            "Methyltestosterone" to "Methyltestosterone",
-            "Methyltyramine" to "Methyltyramine",
-            "NMT" to "Methyltyramine",
-            "Desmethyletizolam" to "Metizolam",
-            "Metizolam" to "Metizolam",
-            "Metoclopramide" to "Metoclopramide",
-            "Metonitazene" to "Metonitazene",
-            "Metonitazepyne" to "Metonitazepyne",
-            "4-MMC-MeO" to "Mexedrone",
-            "Mexedrone" to "Mexedrone",
-            "Mianserin" to "Mianserin",
-            "Midazolam" to "Midazolam",
-            "Versed" to "Midazolam",
-            "Mifepristone" to "Mifepristone",
-            "Minoxidil" to "Minoxidil",
-            "Lamide" to "MiPLA",
-            "Methylisopropyllysergamide" to "MiPLA",
-            "MiPLA" to "MiPLA",
-            "Methylisopropyltryptamine" to "MiPT",
-            "MiPT" to "MiPT",
-            "N-Methyl-N-isopropyltryptamine" to "MiPT",
-            "Mirogabalin" to "Mirogabalin",
-            "Avanza" to "Mirtazapine",
-            "Axit" to "Mirtazapine",
-            "Mirtaz" to "Mirtazapine",
-            "Mirtazapine" to "Mirtazapine",
-            "Mirtazon" to "Mirtazapine",
-            "Remeron" to "Mirtazapine",
-            "Zispin" to "Mirtazapine",
-            "Mitragynine" to "Mitragynine",
-            "MN-25" to "MN-25",
-            "UR-12" to "MN-25",
-            "Alertec" to "Modafinil",
-            "Moda" to "Modafinil",
-            "Modafinil" to "Modafinil",
-            "Modalert" to "Modafinil",
-            "Modavigil" to "Modafinil",
-            "Modiodal" to "Modafinil",
-            "Provigil" to "Modafinil",
-            "Monomethyltryptamine" to "Monomethyltryptamine",
-            "Morforex" to "Morforex",
-            "Avinza" to "Morphine",
-            "Duramorph" to "Morphine",
-            "Kapanol" to "Morphine",
-            "Morphine" to "Morphine",
-            "MS Contin" to "Morphine",
-            "MS-Contin" to "Morphine",
-            "Oramorph" to "Morphine",
-            "Roxanol" to "Morphine",
-            "Sevredol" to "Morphine",
-            "Statex" to "Morphine",
-            "Zomorph" to "Morphine",
-            "Morpholine" to "Morpholine",
-            "Moxaverine" to "Moxaverine",
-            "Moxestrol" to "Moxestrol",
-            "Methylpropyltryptamine" to "MPT",
-            "MPT" to "MPT",
-            "N-Methyl-N-propyltryptamine" to "MPT",
-            "Muscarine" to "Muscarine",
-            "Methoxisopropamine" to "MXiPr",
-            "MXiP" to "MXiPr",
-            "MXiPr" to "MXiPr",
-            "Myosmine" to "Myosmine",
-            "Elemicin" to "Myristicin",
-            "Myristicin" to "Myristicin",
-            "Nutmeg" to "Myristicin",
-            "DMDA" to "N,N-Dimethyldopamine",
-            "N,N-Dimethyldopamine" to "N,N-Dimethyldopamine",
-            "N,N-Dimethylphenethylamine" to "N,N-Dimethylphenethylamine",
-            "N,N-DMPEA" to "N,N-Dimethylphenethylamine",
-            "AKB48" to "N-(1-Adamantyl)-1-pentyl-1H-indazole-3-carboxamide",
-            "APINACA" to "N-(1-Adamantyl)-1-pentyl-1H-indazole-3-carboxamide",
-            "N-(2-(Dimethylamino)acetaldehyde)amphetamine" to "N-(2-(Dimethylamino)acetaldehyde)amphetamine",
-            "DSP-4" to "N-(2-Chloroethyl)-N-ethyl-2-bromobenzylamine",
-            "N-(2-Chloroethyl)-N-ethyl-2-bromobenzylamine" to "N-(2-Chloroethyl)-N-ethyl-2-bromobenzylamine",
-            "N-(2-Fluorobenzyl)phenethylamine" to "N-(2-Fluorobenzyl)phenethylamine",
-            "NBF" to "N-(2-Fluorobenzyl)phenethylamine",
-            "N-(2-Hydroxybenzyl)phenethylamine" to "N-(2-Hydroxybenzyl)phenethylamine",
-            "NBOH" to "N-(2-Hydroxybenzyl)phenethylamine",
-            "N-(2-Methoxybenzyl)-4-ethylamphetamine" to "N-(2-Methoxybenzyl)-4-ethylamphetamine",
-            "N-(2C-B)-Fentanyl" to "N-(2C-B)-Fentanyl",
-            "N-(2C-B-FLY)-Fentanyl" to "N-(2C-B-FLY)-Fentanyl",
-            "N-(3-Methoxybenzyl)phenethylamine" to "N-(3-Methoxybenzyl)phenethylamine",
-            "NB3OMe" to "N-(3-Methoxybenzyl)phenethylamine",
-            "N-(4-Methoxybenzyl)phenethylamine" to "N-(4-Methoxybenzyl)phenethylamine",
-            "NB4OMe" to "N-(4-Methoxybenzyl)phenethylamine",
-            "Lys-MDA" to "N-(L-Lysinamidyl)-3,4-methylenedioxyamphetamine",
-            "N-(L-Lysinamidyl)-3,4-methylenedioxyamphetamine" to "N-(L-Lysinamidyl)-3,4-methylenedioxyamphetamine",
-            "Lys-MDMA" to "N-(L-Lysinamidyl)-3,4-methylenedioxymethamphetamine",
-            "N-(L-Lysinamidyl)-3,4-methylenedioxymethamphetamine" to "N-(L-Lysinamidyl)-3,4-methylenedioxymethamphetamine",
-            "3',4'-methylenedioxy alpha-methyl Fentanyl" to "N-(MDA)-Fentanyl",
-            "N-(MDA)-Fentanyl" to "N-(MDA)-Fentanyl",
-            "N-(Tert-butylformate)-3,4-methylenedioxymethamphetamine" to "N-(Tert-butylformate)-3,4-methylenedioxymethamphetamine",
-            "N-t-Boc-MDMA" to "N-(Tert-butylformate)-3,4-methylenedioxymethamphetamine",
-            "N-Acetyl-2-methylamphetamine" to "N-Acetyl-2-methylamphetamine",
-            "N-Acetyl-4-fluoroamphetamine" to "N-Acetyl-4-fluoroamphetamine",
-            "N-Acetyl-4-methylamphetamine" to "N-Acetyl-4-methylamphetamine",
-            "N-Acetyl-L-tyrosine" to "N-Acetyl-L-tyrosine",
-            "NALT" to "N-Acetyl-L-tyrosine",
-            "N-Acetylamphetamine" to "N-Acetylamphetamine",
-            "Acetylcysteine" to "N-Acetylcysteine",
-            "N-Acetyl-L-cysteine" to "N-Acetylcysteine",
-            "N-Acetylcysteine" to "N-Acetylcysteine",
-            "NAC" to "N-Acetylcysteine",
-            "N-Acetylmethamphetamine" to "N-Acetylmethamphetamine",
-            "N-Arachidonoyl dopamine" to "N-Arachidonoyl dopamine",
-            "NADA" to "N-Arachidonoyl dopamine",
-            "N-Benzylethylenediamine" to "N-Benzylethylenediamine",
-            "N-Benzylmethcathinone" to "N-Benzylmethcathinone",
-            "NBMC" to "N-Benzylmethcathinone",
-            "N-Benzylphenethylamine" to "N-Benzylphenethylamine",
-            "NB" to "N-Benzylphenethylamine",
-            "N-Benzyltryptamine" to "N-Benzyltryptamine",
-            "NB-T" to "N-Benzyltryptamine",
-            "T-NB" to "N-Benzyltryptamine",
-            "N-Carbamoylamphetamine" to "N-Carbamoylamphetamine",
-            "H-LAD" to "N-desmethyllysergic acid diethylamide",
-            "N-desmethyllysergic acid diethylamide" to "N-desmethyllysergic acid diethylamide",
-            "Nor-LSD" to "N-desmethyllysergic acid diethylamide",
-            "norLSD" to "N-desmethyllysergic acid diethylamide",
-            "4-MEAP" to "N-Ethyl-4-methyl-nor-pentedrone",
-            "N-Ethyl-4-methyl-nor-pentedrone" to "N-Ethyl-4-methyl-nor-pentedrone",
-            "ETAI" to "N-Ethyl-5-trifluoromethyl-2-aminoindane",
-            "N-Ethyl-5-trifluoromethyl-2-aminoindane" to "N-Ethyl-5-trifluoromethyl-2-aminoindane",
-            "N-Ethyl-nor-heptedrone" to "N-Ethyl-nor-heptedrone",
-            "N-Ethyl-nor-heptylone" to "N-Ethyl-nor-heptylone",
-            "N-Ethyl-nor-pentylone" to "N-Ethyl-nor-pentylone",
-            "Ethyl-Hex" to "N-Ethylhexedrone",
-            "Ethyl-Hexedrone" to "N-Ethylhexedrone",
-            "Ethylhexedrone" to "N-Ethylhexedrone",
-            "Hex-en" to "N-Ethylhexedrone",
-            "Hexen" to "N-Ethylhexedrone",
-            "N-ethyl-hexedrone" to "N-Ethylhexedrone",
-            "N-Ethyl-nor-hexedrone" to "N-Ethylhexedrone",
-            "N-Ethylhexedrone" to "N-Ethylhexedrone",
-            "NEH" to "N-Ethylhexedrone",
-            "N-Formylamphetamine" to "N-Formylamphetamine",
-            "N-iPr-α-Pr-PEA" to "N-Isopropyl-α-propylphenethylamine",
-            "N-Isopropyl-α-propylphenethylamine" to "N-Isopropyl-α-propylphenethylamine",
-            "N-Methylanabasine" to "N-Methylanabasine",
-            "Dehydroxyfluorafinil" to "N-Methylbisfluoromodafinil",
-            "Modafiendz" to "N-Methylbisfluoromodafinil",
-            "N-Methyl-4,4'-difluoro-modafinil" to "N-Methylbisfluoromodafinil",
-            "N-Methylbisfluoromodafinil" to "N-Methylbisfluoromodafinil",
-            "N-Methylbupropion" to "N-Methylbupropion",
-            "N-Methylcyclazodone" to "N-Methylcyclazodone",
-            "N-Phenethyl-α-ethylphenethylamine" to "N-Phenethyl-α-ethylphenethylamine",
-            "N-PhEt-α-Et-PEA" to "N-Phenethyl-α-ethylphenethylamine",
-            "N-Phenylethanol" to "N-Phenylethanol",
-            "N-Pr-α-Bn-PEA" to "N-Propyl-α-benzylphenethylamine",
-            "N-Propyl-α-benzylphenethylamine" to "N-Propyl-α-benzylphenethylamine",
-            "N-Pr-α-Ph-PEA" to "N-Propyl-α-phenylphenethylamine",
-            "N-Propyl-α-phenylphenethylamine" to "N-Propyl-α-phenylphenethylamine",
-            "N-Trifluoroacetylamphetamine" to "N-Trifluoroacetylamphetamine",
-            "N1-Tert-butoxycarbonyldimethyltryptamine" to "N1-Tert-butoxycarbonyldimethyltryptamine",
-            "NB-DMT" to "N1-Tert-butoxycarbonyldimethyltryptamine",
-            "NBoc-DMT" to "N1-Tert-butoxycarbonyldimethyltryptamine",
-            "Nalbuphine" to "Nalbuphine",
-            "Naloxol" to "Naloxol",
-            "Evzio" to "Naloxone",
-            "Nalaxone" to "Naloxone",
-            "Nalone" to "Naloxone",
-            "Naloxone" to "Naloxone",
-            "Narcan" to "Naloxone",
-            "Narcanti" to "Naloxone",
-            "Naltrexone" to "Naltrexone",
-            "Nandrolone" to "Nandrolone",
-            "Nandrolone decanoate" to "Nandrolone decanoate",
-            "Nandrolone phenylpropionate" to "Nandrolone phenylpropionate",
-            "NPP" to "Nandrolone phenylpropionate",
-            "Naphthylmetrazine" to "Naphthylmetrazine",
-            "PAL-704" to "Naphthylmetrazine",
-            "Naphthylmorpholine" to "Naphthylmorpholine",
-            "PAL-678" to "Naphthylmorpholine",
-            "Naphyrone" to "Naphyrone",
-            "Naratriptan" to "Naratriptan",
-            "Naringenin" to "Naringenin",
-            "Nefiracetam" to "Nefiracetam",
-            "Neopinone" to "Neopinone",
-            "Neosaxitoxin" to "Neosaxitoxin",
-            "Neostigmine" to "Neostigmine",
-            "Ethyl-Pentedrone" to "NEP",
-            "Ethylpentedrone" to "NEP",
-            "N-Ethyl-(nor)-Pentedrone" to "NEP",
-            "N-Ethyl-Nor-Pentedrone" to "NEP",
-            "N-ethyl-pentedrone" to "NEP",
-            "N-Ethylpentedrone" to "NEP",
-            "NEP" to "NEP",
-            "Nepicastat" to "Nepicastat",
-            "Nevirapine" to "Nevirapine",
-            "Niacin" to "Niacin",
-            "vitamin B3" to "Niacin",
-            "Nicotinamide mononucleotide" to "Nicotinamide mononucleotide",
-            "NMN" to "Nicotinamide mononucleotide",
-            "Cigarette" to "Nicotine",
-            "Cigs" to "Nicotine",
-            "Dipping tobacco" to "Nicotine",
-            "Nic" to "Nicotine",
-            "Nicotiana rustica" to "Nicotine",
-            "Nicotine" to "Nicotine",
-            "Smokeless tobacco" to "Nicotine",
-            "Tobacco" to "Nicotine",
-            "Vape" to "Nicotine",
-            "Nifoxipam" to "Nifoxipam",
-            "Nikethamide" to "Nikethamide",
-            "Nitrazepam" to "Nitrazepam",
-            "Nitrazolam" to "Nitrazolam",
-            "NG" to "Nitroglycerine",
-            "Nitroglycerine" to "Nitroglycerine",
-            "Nitromethaqualone" to "Nitromethaqualone",
-            "Balloons" to "Nitrous",
-            "Hippy Crack" to "Nitrous",
-            "Laughing Gas" to "Nitrous",
-            "N2O" to "Nitrous",
-            "Nangs" to "Nitrous",
-            "Nitro" to "Nitrous",
-            "Nitrous" to "Nitrous",
-            "Nitrous oxide" to "Nitrous",
-            "NOS" to "Nitrous",
-            "Whippet" to "Nitrous",
-            "Whippets" to "Nitrous",
-            "Whippit" to "Nitrous",
-            "Whippits" to "Nitrous",
-            "2NMAI" to "NM-2-AI",
-            "N-methyl-2-AI" to "NM-2-AI",
-            "N-Methyl-2-aminoindane" to "NM-2-AI",
-            "NM-2-AI" to "NM-2-AI",
-            "NM2AI" to "NM-2-AI",
-            "Nonivamide" to "Nonivamide",
-            "Nonylphenol" to "Nonylphenol",
-            "4-MC" to "Nor-Mephedrone",
-            "Nor-Mephedrone" to "Nor-Mephedrone",
-            "4-PO-T" to "Norbaeocystin",
-            "Norbaeocystin" to "Norbaeocystin",
-            "Norbenzphetamine" to "Norbenzphetamine",
-            "Norcodeine" to "Norcodeine",
-            "Nordazepam" to "Nordazepam",
-            "Nordihydrocapsaicin" to "Nordihydrocapsaicin",
-            "NE" to "Norepinephrine",
-            "Norepinephrine" to "Norepinephrine",
-            "Norfluoxetine" to "Norfluoxetine",
-            "Norflurane" to "Norflurane",
-            "Norflurazepam" to "Norflurazepam",
-            "nor-IBG" to "Noribogainalog",
-            "Noribogainalog" to "Noribogainalog",
-            "Noribogaminalog" to "Noribogaminalog",
-            "Norketamine" to "Norketamine",
-            "Nornicotine" to "Nornicotine",
-            "Norpropylhexedrine" to "Norpropylhexedrine",
-            "Norpseudoephedrine" to "Norpseudoephedrine",
-            "4-HO-NMT" to "Norpsilocin",
-            "Norpsilocin" to "Norpsilocin",
-            "Noscapine" to "Noscapine",
-            "Desmetramadol" to "O-Desmethyltramadol",
-            "O-Desmethyltramadol" to "O-Desmethyltramadol",
-            "O-DSMT" to "O-Desmethyltramadol",
-            "Odsmt" to "O-Desmethyltramadol",
-            "2'-Oxo-PCE" to "O-PCE",
-            "2-Oxo-PCE" to "O-PCE",
-            "2oxopce" to "O-PCE",
-            "Eticyclidone" to "O-PCE",
-            "O-PCE" to "O-PCE",
-            "Opce" to "O-PCE",
-            "Octenidine" to "Octenidine",
-            "OCT" to "Octopamine",
-            "Octopamine" to "Octopamine",
-            "OCA" to "Octylcyanoacrylate",
-            "Octylcyanoacrylate" to "Octylcyanoacrylate",
-            "Oenethyl" to "Oenethyl",
-            "Olanzapine" to "Olanzapine",
-            "GVS-111" to "Omberacetam",
-            "N-Phenylacetyl-l-prolylglycine ethyl ester" to "Omberacetam",
-            "Noopept" to "Omberacetam",
-            "Omberacetam" to "Omberacetam",
-            "Ноопепт" to "Omberacetam",
-            "Ondansetron" to "Ondansetron",
-            "2-MA" to "Ortetamine",
-            "Ortetamine" to "Ortetamine",
-            "Ortho-Xylene" to "Ortho-Xylene",
-            "2-MMC" to "Orthophedrone",
-            "Orthophedrone" to "Orthophedrone",
-            "Ceresta" to "Oxazepam",
-            "Oxazepam" to "Oxazepam",
-            "Serax" to "Oxazepam",
-            "6-OHDA" to "Oxidopamine",
-            "Oxidopamine" to "Oxidopamine",
-            "4-HEP" to "Oxilofrine",
-            "Oxilofrine" to "Oxilofrine",
-            "ISF 2522" to "Oxiracetam",
-            "Oxiracetam" to "Oxiracetam",
-            "Codilek" to "Oxycodone",
-            "Endone" to "Oxycodone",
-            "Hillbilly heroin" to "Oxycodone",
-            "Oxecta" to "Oxycodone",
-            "Oxy" to "Oxycodone",
-            "Oxycodon" to "Oxycodone",
-            "Oxycodone" to "Oxycodone",
-            "OxyContin" to "Oxycodone",
-            "Oxydor" to "Oxycodone",
-            "Oxygesic" to "Oxycodone",
-            "OxyIR" to "Oxycodone",
-            "OxyNEO" to "Oxycodone",
-            "Oxynor" to "Oxycodone",
-            "OxyNorm" to "Oxycodone",
-            "Oxys" to "Oxycodone",
-            "Percocet" to "Oxycodone",
-            "Percodan" to "Oxycodone",
-            "Redocam" to "Oxycodone",
-            "Roxicodone" to "Oxycodone",
-            "Oxyfedrine" to "Oxyfedrine",
-            "Numorphan" to "Oxymorphone",
-            "Numorphone" to "Oxymorphone",
-            "Opana" to "Oxymorphone",
-            "Oxymorphone" to "Oxymorphone",
-            "Oxytocin" to "Oxytocin",
-            "Pabofen" to "Pabofen",
-            "Pagoclone" to "Pagoclone",
-            "Panthenol" to "Panthenol",
-            "Pantoprazole" to "Pantoprazole",
-            "Pantothenic acid" to "Pantothenic acid",
-            "vitamin B5" to "Pantothenic acid",
-            "Papaverine" to "Papaverine",
-            "2β-Carbomethoxy-3β-(4'-chlorophenyl)tropane" to "Para-Chlorophenyltropane",
-            "Para-Chlorophenyltropane" to "Para-Chlorophenyltropane",
-            "RTI-31" to "Para-Chlorophenyltropane",
-            "Para-Hydroxynorephedrine" to "Para-Hydroxynorephedrine",
-            "Para-Xylene" to "Para-Xylene",
-            "Paracetamol" to "Paracetamol",
-            "Paraquat" to "Paraquat",
-            "Paraxanthine" to "Paraxanthine",
-            "PARGY-LAD" to "PARGY-LAD",
-            "Pargylad" to "PARGY-LAD",
-            "Pargyline" to "Pargyline",
-            "Paroxetine" to "Paroxetine",
-            "Paroxypropione" to "Paroxypropione",
-            "CI-400" to "PCE",
-            "Eticyclidine" to "PCE",
-            "PCE" to "PCE",
-            "Angel Dust" to "PCP",
-            "Boat" to "PCP",
-            "Dust" to "PCP",
-            "PCP" to "PCP",
-            "Phencyclidine" to "PCP",
-            "Sernyl" to "PCP",
-            "Sherm" to "PCP",
-            "Sherman" to "PCP",
-            "Supergrass" to "PCP",
-            "Tic Tac" to "PCP",
-            "Wet" to "PCP",
-            "Zoom" to "PCP",
-            "African rue" to "Peganum harmala",
-            "Esfand" to "Peganum harmala",
-            "Harmel" to "Peganum harmala",
-            "Peganum harmala" to "Peganum harmala",
-            "Syrian Rue" to "Peganum harmala",
-            "Wild rue" to "Peganum harmala",
-            "Pellotine" to "Pellotine",
-            "Peyotline" to "Pellotine",
-            "Pemoline" to "Pemoline",
-            "Penitrem A" to "Penitrem A",
-            "Tremortin" to "Penitrem A",
-            "PeMA" to "Pentamethoxyamphetamine",
-            "Pentamethoxyamphetamine" to "Pentamethoxyamphetamine",
-            "PeMPEA" to "Pentamethoxyphenethylamine",
-            "Pentamethoxyphenethylamine" to "Pentamethoxyphenethylamine",
-            "Pentazocine" to "Pentazocine",
-            "Pentedrone" to "Pentedrone",
-            "Nembutal" to "Pentobarbital",
-            "Pentobarbital" to "Pentobarbital",
-            "pentobarbitone" to "Pentobarbital",
-            "Pentorex" to "Pentorex",
-            "Pentylenetetrazol" to "Pentylenetetrazol",
-            "Pentylone" to "Pentylone",
-            "Pepstatin" to "Pepstatin",
-            "Perfluorooctanoic acid" to "Perfluorooctanoic acid",
-            "PFOA" to "Perfluorooctanoic acid",
-            "Demerol" to "Pethidine",
-            "Dolantin" to "Pethidine",
-            "Dolcontral" to "Pethidine",
-            "Meperidine" to "Pethidine",
-            "Pethidine" to "Pethidine",
-            "PHA-57378" to "PHA-57378",
-            "Phenacylamine" to "Phenacylamine",
-            "Phenatine" to "Phenatine",
-            "Phenazepam" to "Phenazepam",
-            "Phendimetrazine" to "Phendimetrazine",
-            "Phenelzine" to "Phenelzine",
-            "PEA" to "Phenethylamine (compound)",
-            "Phenethylamine (compound)" to "Phenethylamine (compound)",
-            "Phenetrazine" to "Phenetrazine",
-            "Citrocard" to "Phenibut",
-            "Fenibut" to "Phenibut",
-            "Noofen" to "Phenibut",
-            "Pheni" to "Phenibut",
-            "Phenibut" to "Phenibut",
-            "Phenybut" to "Phenibut",
-            "PhGABA" to "Phenibut",
-            "Pheniprazine" to "Pheniprazine",
-            "Phenmetetrazine" to "Phenmetetrazine",
-            "Phenmetrazine" to "Phenmetrazine",
-            "Luminal" to "Phenobarbital",
-            "Phenobarb" to "Phenobarbital",
-            "Phenobarbital" to "Phenobarbital",
-            "Phenobarbitone" to "Phenobarbital",
-            "Phenol" to "Phenol",
-            "Phenoxymethylpenicillin" to "Phenoxymethylpenicillin",
-            "BMMPEA" to "Phenpromethamine",
-            "Phenpromethamine" to "Phenpromethamine",
-            "Phentermine" to "Phentermine",
-            "Phe" to "Phenylalanine",
-            "Phenylalanine" to "Phenylalanine",
-            "Phenylbutazone" to "Phenylbutazone",
-            "PCMo" to "Phenylcyclohexylmorpholine",
-            "Phenylcyclohexylmorpholine" to "Phenylcyclohexylmorpholine",
-            "Phenylephrine" to "Phenylephrine",
-            "Phenylethanolamine" to "Phenylethanolamine",
-            "Phenylpiperazine" to "Phenylpiperazine",
-            "PP" to "Phenylpiperazine",
-            "PP-1" to "Phenylpiperazine",
-            "Carphedon" to "Phenylpiracetam",
-            "Phenotropil" to "Phenylpiracetam",
-            "Phenylpiracetam" to "Phenylpiracetam",
-            "Phenylpropanolamine" to "Phenylpropanolamine",
-            "PPA" to "Phenylpropanolamine",
-            "Phenylpropylamine" to "Phenylpropylamine",
-            "Phenylpropylaminopentane" to "Phenylpropylaminopentane",
-            "PPAP" to "Phenylpropylaminopentane",
-            "4-HMA" to "Pholedrine",
-            "Pholedrine" to "Pholedrine",
-            "EGYT-475" to "Piberaline",
-            "Piberaline" to "Piberaline",
-            "Picamilon" to "Picamilon",
-            "Picloram" to "Picloram",
-            "Picolinic acid" to "Picolinic acid",
-            "Pinazepam" to "Pinazepam",
-            "Pinoline" to "Pinoline",
-            "Piperazine" to "Piperazine",
-            "Piperidine" to "Piperidine",
-            "Piperine" to "Piperine",
-            "Pipradrol" to "Pipradrol",
-            "Piracetam" to "Piracetam",
-            "4-Methoxyamphetamine" to "PMA",
-            "Para-Methoxyamphetamine" to "PMA",
-            "Paramethoxyamphetamine" to "PMA",
-            "PMA" to "PMA",
-            "4-Methoxymethamphetamine" to "PMMA",
-            "Para-Methoxymethamphetamine" to "PMMA",
-            "Paramethoxymethamphetamine" to "PMMA",
-            "PMMA" to "PMMA",
-            "Alkyl nitrites" to "Poppers",
-            "Amyl nitrite" to "Poppers",
-            "Jungle juice" to "Poppers",
-            "Poppers" to "Poppers",
-            "Rush" to "Poppers",
-            "Pramiracetam" to "Pramiracetam",
-            "Pramistar" to "Pramiracetam",
-            "Pravadoline" to "Pravadoline",
-            "WIN 48,098" to "Pravadoline",
-            "Prednisolone" to "Prednisolone",
-            "Lyrica" to "Pregabalin",
-            "Nervalin" to "Pregabalin",
-            "Pregab" to "Pregabalin",
-            "Pregabalin" to "Pregabalin",
-            "Prenylamine" to "Prenylamine",
-            "Primidone" to "Primidone",
-            "PRO-LAD" to "PRO-LAD",
-            "Prolad" to "PRO-LAD",
-            "Procaine" to "Procaine",
-            "Procaterol" to "Procaterol",
-            "Buccastem" to "Prochlorperazine",
-            "Compazine" to "Prochlorperazine",
-            "Phenotil" to "Prochlorperazine",
-            "Prochlorperazine" to "Prochlorperazine",
-            "Stemetil" to "Prochlorperazine",
-            "Stemzine" to "Prochlorperazine",
-            "Procyclidine" to "Procyclidine",
-            "Prodine" to "Prodine",
-            "P4" to "Progesterone",
-            "Progesterone" to "Progesterone",
-            "Pro" to "Proline",
-            "Proline" to "Proline",
-            "1-Phenyl-2-pyrrolidinylpentane" to "Prolintane",
-            "Catovit" to "Prolintane",
-            "Prolintane" to "Prolintane",
-            "Promotil" to "Prolintane",
-            "Villescon" to "Prolintane",
-            "Lergigan" to "Promethazine",
-            "Phenergan" to "Promethazine",
-            "Promethazine" to "Promethazine",
-            "Propane" to "Propane",
-            "HWA 285" to "Propentofylline",
-            "HWA-285" to "Propentofylline",
-            "Propentofylline" to "Propentofylline",
-            "Propofol" to "Propofol",
-            "Propranolol" to "Propranolol",
-            "PA" to "Propylamphetamine",
-            "Propylamphetamine" to "Propylamphetamine",
-            "Propylcathinone" to "Propylcathinone",
-            "PG" to "Propylene glycol",
-            "Propylene glycol" to "Propylene glycol",
-            "Benzedrex" to "Propylhexedrine",
-            "Obesin" to "Propylhexedrine",
-            "Propylhexedrine" to "Propylhexedrine",
-            "Propylone" to "Propylone",
-            "PPH" to "Propylphenidate",
-            "Propylphenidate" to "Propylphenidate",
-            "Propylphenidine" to "Propylphenidine",
-            "4-Propyloxy-3,5-dimethoxyphenethylamine" to "Proscaline",
-            "Proscaline" to "Proscaline",
-            "Protonitazene" to "Protonitazene",
-            "Protonitazepyne" to "Protonitazepyne",
-            "1,2,4-Trimethylbenzene" to "Pseudocumene",
-            "Pseudocumene" to "Pseudocumene",
-            "Pseudophenmetrazine" to "Pseudophenmetrazine",
-            "4-HO-DMT" to "Psilocin",
-            "4-Hydroxy-N,N-dimethyltryptamine" to "Psilocin",
-            "4-OH-DMT" to "Psilocin",
-            "4hodmt" to "Psilocin",
-            "Psilocin" to "Psilocin",
-            "Psilocine" to "Psilocin",
-            "Psilocyn" to "Psilocin",
-            "Psilotsin" to "Psilocin",
-            "4-PO-DMT" to "Psilocybin mushrooms",
-            "Boomers" to "Psilocybin mushrooms",
-            "Cubes" to "Psilocybin mushrooms",
-            "Golden teachers" to "Psilocybin mushrooms",
-            "Hallucinogenic mushrooms" to "Psilocybin mushrooms",
-            "Liberty caps" to "Psilocybin mushrooms",
-            "Magic mushroom" to "Psilocybin mushrooms",
-            "Magic mushrooms" to "Psilocybin mushrooms",
-            "Mushrooms" to "Psilocybin mushrooms",
-            "Psilocybe Mushroom" to "Psilocybin mushrooms",
-            "Psilocybin" to "Psilocybin mushrooms",
-            "Psilocybin mushroom" to "Psilocybin mushrooms",
-            "Psilocybin mushrooms" to "Psilocybin mushrooms",
-            "Psychedelic mushrooms" to "Psilocybin mushrooms",
-            "Shrooms" to "Psilocybin mushrooms",
-            "4-HO-5-MeO-DMT" to "Psilomethoxin",
-            "Psilomethoxin" to "Psilomethoxin",
-            "Pyrazolam" to "Pyrazolam",
-            "Pyridine" to "Pyridine",
-            "Pyridoxine" to "Pyridoxine",
-            "Pyridoxiphen" to "Pyridoxiphen",
-            "O-2371" to "Pyrovalerone",
-            "Pyrovalerone" to "Pyrovalerone",
-            "Pyrrolidine" to "Pyrrolidine",
-            "Quazepam" to "Quazepam",
-            "Ketipinor" to "Quetiapine",
-            "Quetiapine" to "Quetiapine",
-            "Seroquel" to "Quetiapine",
-            "Xeroquel" to "Quetiapine",
-            "QNB" to "Quinuclidinyl Benzilate",
-            "Quinuclidinyl Benzilate" to "Quinuclidinyl Benzilate",
-            "Racefemine" to "Racefemine",
-            "Racetam" to "Racetams",
-            "Racetams" to "Racetams",
-            "Radafaxine" to "Radafaxine",
-            "Rasagiline" to "Rasagiline",
-            "Remifentanil" to "Remifentanil",
-            "Resiniferatoxin" to "Resiniferatoxin",
-            "RTX" to "Resiniferatoxin",
-            "Rilmazafone" to "Rilmazafone",
-            "Rilmazolam" to "Rilmazolam",
-            "RIMA" to "RIMA",
-            "RIMAs" to "RIMA",
-            "Risperdal" to "Risperidone",
-            "Risperidone" to "Risperidone",
-            "Ritodrine" to "Ritodrine",
-            "Ro09-9212" to "Ro09-9212",
-            "Rocuronium bromide" to "Rocuronium bromide",
-            "PCPy" to "Rolicyclidine",
-            "Rolicyclidine" to "Rolicyclidine",
-            "Rosuvastatin" to "Rosuvastatin",
-            "Salbutamol" to "Salbutamol",
-            "Diviner's Sage" to "Salvinorin A",
-            "Sally D" to "Salvinorin A",
-            "Salvia" to "Salvinorin A",
-            "Salvia divinorum" to "Salvinorin A",
-            "Salvinorin A" to "Salvinorin A",
-            "Seer's Sage" to "Salvinorin A",
-            "Ska María Pastora" to "Salvinorin A",
-            "2-MMSB" to "Salvinorin B methoxymethyl ether",
-            "2-O-methoxymethylsalvinorin B" to "Salvinorin B methoxymethyl ether",
-            "Salvinorin B" to "Salvinorin B methoxymethyl ether",
-            "Salvinorin B methoxymethyl ether" to "Salvinorin B methoxymethyl ether",
-            "Ademethionine" to "SAM-e",
-            "S-Adenosyl methionine" to "SAM-e",
-            "S-Adenosyl-L-methionine" to "SAM-e",
-            "SAM-e" to "SAM-e",
-            "SAMe" to "SAM-e",
-            "Sarin" to "Sarin",
-            "Saxitoxin" to "Saxitoxin",
-            "Secbutonitazene" to "Secbutonitazene",
-            "Secobarbital" to "Secobarbital",
-            "Secobarbitone" to "Secobarbital",
-            "Seconal" to "Secobarbital",
-            "Lustral" to "Selective serotonin reuptake inhibitor",
-            "Selective serotonin re-uptake inhibitors" to "Selective serotonin reuptake inhibitor",
-            "Selective serotonin reuptake inhibitor" to "Selective serotonin reuptake inhibitor",
-            "Selective serotonin reuptake inhibitors" to "Selective serotonin reuptake inhibitor",
-            "SSRI" to "Selective serotonin reuptake inhibitor",
-            "SSRIs" to "Selective serotonin reuptake inhibitor",
-            "Zoloft" to "Selective serotonin reuptake inhibitor",
-            "Sec" to "Selenocysteine",
-            "Selenocysteine" to "Selenocysteine",
-            "Ser" to "Serine",
-            "Serine" to "Serine",
-            "Serotonergic hallucinogens" to "Serotonergic psychedelic",
-            "Serotonergic psychedelic" to "Serotonergic psychedelic",
-            "Serotonergic psychedelics" to "Serotonergic psychedelic",
-            "5-HT" to "Serotonin",
-            "5-HT receptors" to "Serotonin",
-            "5-HT2A receptor" to "Serotonin",
-            "5-Hydroxytryptamine" to "Serotonin",
-            "Serotonergic" to "Serotonin",
-            "Serotonin" to "Serotonin",
-            "Serotonin releasers" to "Serotonin",
-            "Serotonin-norepinephrine reuptake inhibitor" to "Serotonin-norepinephrine reuptake inhibitor",
-            "Serotonin-norepinephrine reuptake inhibitors" to "Serotonin-norepinephrine reuptake inhibitor",
-            "SNRI" to "Serotonin-norepinephrine reuptake inhibitor",
-            "Sertraline" to "Sertraline",
-            "Sibutramine" to "Sibutramine",
-            "Sildenafil" to "Sildenafil",
-            "Viagra" to "Sildenafil",
-            "SKA-121" to "SKA-121",
-            "Solriamfetol" to "Solriamfetol",
-            "Speciociliatine" to "Speciociliatine",
-            "Spironolactone" to "Spironolactone",
-            "Sta" to "Statine",
-            "Statine" to "Statine",
-            "Stilbestrol" to "Stilbestrol",
-            "Strychnine" to "Strychnine",
-            "5F-APICA" to "STS-135",
-            "STS-135" to "STS-135",
-            "Sts135" to "STS-135",
-            "SP" to "Substance P",
-            "Substance P" to "Substance P",
-            "Aminorexes" to "Substituted aminorexes",
-            "Substituted aminorex" to "Substituted aminorexes",
-            "Substituted aminorexes" to "Substituted aminorexes",
-            "Substituted Amphetamine" to "Substituted amphetamines",
-            "Substituted amphetamines" to "Substituted amphetamines",
-            "Substituted cathinone" to "Substituted cathinones",
-            "Substituted cathinones" to "Substituted cathinones",
-            "Morphinan" to "Substituted morphinans",
-            "Morphinans" to "Substituted morphinans",
-            "Substituted morphinan" to "Substituted morphinans",
-            "Substituted morphinans" to "Substituted morphinans",
-            "Benzeneethanamine" to "Substituted phenethylamines",
-            "Cumylpropan-2-amine" to "Substituted phenethylamines",
-            "Phenylethylamine" to "Substituted phenethylamines",
-            "Phenylethylamines" to "Substituted phenethylamines",
-            "Substituted Phenethylamine" to "Substituted phenethylamines",
-            "Substituted phenethylamines" to "Substituted phenethylamines",
-            "Phenidate" to "Substituted phenidates",
-            "Phenidates" to "Substituted phenidates",
-            "Substituted phenidate" to "Substituted phenidates",
-            "Substituted phenidates" to "Substituted phenidates",
-            "Base Tryptamines" to "Substituted tryptamines",
-            "Substituted Tryptamine" to "Substituted tryptamines",
-            "Substituted tryptamines" to "Substituted tryptamines",
-            "Chronogesic" to "Sufentanil",
-            "Dsuvia" to "Sufentanil",
-            "Sufenta" to "Sufentanil",
-            "Sufentanil" to "Sufentanil",
-            "Sufentanyl" to "Sufentanil",
-            "Suloctidil" to "Suloctidil",
-            "Sulpiride" to "Sulpiride",
-            "Sultopride" to "Sultopride",
-            "Sumatriptan" to "Sumatriptan",
-            "DM-235" to "Sunifiram",
-            "Sunifiram" to "Sunifiram",
-            "Suxamethonium" to "Suxamethonium",
-            "Synephrine" to "Synephrine",
-            "K2" to "Synthetic cannabinoid",
-            "Noid" to "Synthetic cannabinoid",
-            "Synthetic cannabinoid" to "Synthetic cannabinoid",
-            "Synthetic cannabinoids" to "Synthetic cannabinoid",
-            "Tabernanthalog" to "Tabernanthalog",
-            "TBG" to "Tabernanthalog",
-            "Tadalafil" to "Tadalafil",
-            "Talbutal" to "Talbutal",
-            "Nucynta" to "Tapentadol",
-            "Palexia" to "Tapentadol",
-            "Tapentadol" to "Tapentadol",
-            "Yantil" to "Tapentadol",
-            "Yantil SR" to "Tapentadol",
-            "Taurine" to "Taurine",
-            "TCB-2" to "TCB-2",
-            "Normison" to "Temazepam",
-            "Restoril" to "Temazepam",
-            "Temazepam" to "Temazepam",
-            "Temgicoluril" to "Temgicoluril",
-            "TBPO" to "Tert-Butyl-bicyclophosphate",
-            "Tert-Butyl-bicyclophosphate" to "Tert-Butyl-bicyclophosphate",
-            "Tesofensine" to "Tesofensine",
-            "Testosterone" to "Testosterone",
-            "Tetracaine" to "Tetracaine",
-            "Tetraethyllead" to "Tetraethyllead",
-            "Tetrafluoroethane" to "Tetrafluoroethane",
-            "Tetrahydrocannabihexol" to "Tetrahydrocannabihexol",
-            "THCH" to "Tetrahydrocannabihexol",
-            "Tetrahydrocannabiphorol" to "Tetrahydrocannabiphorol",
-            "THCP" to "Tetrahydrocannabiphorol",
-            "Tetrahydrocannabutol" to "Tetrahydrocannabutol",
-            "THCB" to "Tetrahydrocannabutol",
-            "AMPH-CR" to "Tetrahydroisoquinoline",
-            "Tetrahydroisoquinoline" to "Tetrahydroisoquinoline",
-            "THIQ" to "Tetrahydroisoquinoline",
-            "TIQ" to "Tetrahydroisoquinoline",
-            "Tetramethylenedisulfotetramine" to "Tetramethylenedisulfotetramine",
-            "TETS" to "Tetramethylenedisulfotetramine",
-            "Tetrazepam" to "Tetrazepam",
-            "Tetrodotoxin" to "Tetrodotoxin",
-            "Teacrine" to "Theacrine",
-            "Temorine" to "Theacrine",
-            "Temurin" to "Theacrine",
-            "Theacrine" to "Theacrine",
-            "L-Theanine" to "Theanine",
-            "L-γ-glutamylethylamide and N5-ethyl-L-glutamine" to "Theanine",
-            "Theanine" to "Theanine",
-            "Thebaine" to "Thebaine",
-            "Theobromine" to "Theobromine",
-            "Theodrenaline" to "Theodrenaline",
-            "Theophylline" to "Theophylline",
-            "TDMA" to "Thiadiazolylmethamphetamine",
-            "Thiadiazolylmethamphetamine" to "Thiadiazolylmethamphetamine",
-            "Thialbarbital" to "Thialbarbital",
-            "Thiamine" to "Thiamine",
-            "vitamin B1" to "Thiamine",
-            "Thiamylal" to "Thiamylal",
-            "Substituted thienodiazepine" to "Thienodiazepines",
-            "Thienodiazepine" to "Thienodiazepines",
-            "Thienodiazepines" to "Thienodiazepines",
-            "Thienzodiazepines" to "Thienodiazepines",
-            "Thiobarbital" to "Thiobarbital",
-            "Thiobutabarbital" to "Thiobutabarbital",
-            "Thioephedrine" to "Thioephedrine",
-            "Thiopental" to "Thiopental",
-            "Thiophenatine" to "Thiophenatine",
-            "Thiopropamine" to "Thiopropamine",
-            "Thiotetrabarbital" to "Thiotetrabarbital",
-            "Thiothinone" to "Thiothinone",
-            "Thj" to "THJ-018",
-            "THJ-018" to "THJ-018",
-            "Thj018" to "THJ-018",
-            "THJ-2201" to "THJ-2201",
-            "Thj2201" to "THJ-2201",
-            "Thozalinone" to "Thozalinone",
-            "Threohydrobupropion" to "Threohydrobupropion",
-            "Thr" to "Threonine",
-            "Threonine" to "Threonine",
-            "T4" to "Thyroxine",
-            "Thyroxine" to "Thyroxine",
-            "Coaxil" to "Tianeptine",
-            "Stablon" to "Tianeptine",
-            "Tatinol" to "Tianeptine",
-            "Tianeptine" to "Tianeptine",
-            "Tiflorex" to "Tiflorex",
-            "Tiletamine" to "Tiletamine",
-            "Darby" to "Tilidin",
-            "Generika" to "Tilidin",
-            "Tilidin" to "Tilidin",
-            "Tilidine" to "Tilidin",
-            "Valoron" to "Tilidin",
-            "Tinofedrine" to "Tinofedrine",
-            "2,4,5-Trimethoxyamphetamine" to "TMA-2",
-            "TMA-2" to "TMA-2",
-            "Tma2" to "TMA-2",
-            "TMA-6" to "TMA-6",
-            "Tma6" to "TMA-6",
-            "3-Me-PCPy" to "Tolicyclidine",
-            "Tolicyclidine" to "Tolicyclidine",
-            "2β-Carbomethoxy-3β-(4-tolyl)tropane" to "Tolpane",
-            "Para-Methylphenyltropane" to "Tolpane",
-            "RTI-32" to "Tolpane",
-            "Tolpane" to "Tolpane",
-            "Tomscaline" to "Tomscaline",
-            "Toxiferine" to "Toxiferine",
-            "Ralivia" to "Tramadol",
-            "Tadol" to "Tramadol",
-            "Tramacur" to "Tramadol",
-            "Tramadol" to "Tramadol",
-            "Tramal" to "Tramadol",
-            "Tramundin" to "Tramadol",
-            "Ultram" to "Tramadol",
-            "Tranylcypromine" to "Tranylcypromine",
-            "AF-1161" to "Trazodone",
-            "Trazodone" to "Trazodone",
-            "Trecadrine" to "Trecadrine",
-            "Triazolam" to "Triazolam",
-            "TCE" to "Trichloroethylene",
-            "Trichloroethylene" to "Trichloroethylene",
-            "TCCA" to "Trichloroisocyanuric acid",
-            "Trichloroisocyanuric acid" to "Trichloroisocyanuric acid",
-            "Trichocereine" to "Trichocereine",
-            "Trimethylamphetamine" to "Trimethylamphetamine",
-            "Trimipramine" to "Trimipramine",
-            "Triprolidine" to "Triprolidine",
-            "Troparil" to "Troparil",
-            "Tropicamide" to "Tropicamide",
-            "Tryptoline" to "Tryptoline",
-            "Trp" to "Tryptophan",
-            "Tryptophan" to "Tryptophan",
-            "Tyramine" to "Tyramine",
-            "4-Hydroxyphenylalanine" to "Tyrosine",
-            "L-Tyrosine" to "Tyrosine",
-            "Tyr" to "Tyrosine",
-            "Tyrosine" to "Tyrosine",
-            "Tyrothricin" to "Tyrothricin",
-            "U-47700" to "U-47700",
-            "U-48800" to "U-48800",
-            "U-49900" to "U-49900",
-            "Uric acid" to "Uric acid",
-            "Val" to "Valine",
-            "Valine" to "Valine",
-            "Valproate" to "Valproate",
-            "Varenicline" to "Varenicline",
-            "Vasopressin" to "Vasopressin",
-            "Venlafaxine" to "Venlafaxine",
-            "VX" to "VX",
-            "Warfarin" to "Warfarin",
-            "Water" to "Water",
-            "Substituted xanthine" to "Xanthines",
-            "Xanthine" to "Xanthines",
-            "Xanthines" to "Xanthines",
-            "Yohimbine" to "Yohimbine",
-            "Zamicastat" to "Zamicastat",
-            "Zapizolam" to "Zapizolam",
-            "ZDCM-04" to "ZDCM-04",
-            "Zeranol" to "Zeranol",
-            "Zolazepam" to "Zolazepam",
-            "Ambien" to "Zolpidem",
-            "Edluar" to "Zolpidem",
-            "Intermezzo" to "Zolpidem",
-            "Stilnox" to "Zolpidem",
-            "Sublinox" to "Zolpidem",
-            "Zolpidem" to "Zolpidem",
-            "Zolpimist" to "Zolpidem",
-            "Imovane" to "Zopiclone",
-            "Zimovane" to "Zopiclone",
-            "Zopiclone" to "Zopiclone",
-            "Zylofuramine" to "Zylofuramine",
-            "α,N-Dimethyl-5-bromo-β-ketotryptamine" to "α,N-Dimethyl-5-bromo-β-ketotryptamine",
-            "βk-5Br-NM-αMT" to "α,N-Dimethyl-5-bromo-β-ketotryptamine",
-            "α,N-Dimethyl-5-chloro-β-ketotryptamine" to "α,N-Dimethyl-5-chloro-β-ketotryptamine",
-            "βk-5Cl-NM-αMT" to "α,N-Dimethyl-5-chloro-β-ketotryptamine",
-            "α,N-Dimethyl-5-fluoro-β-ketotryptamine" to "α,N-Dimethyl-5-fluoro-β-ketotryptamine",
-            "βk-5F-NM-αMT" to "α,N-Dimethyl-5-fluoro-β-ketotryptamine",
-            "α,N-Dimethyl-β-ketotryptamine" to "α,N-Dimethyl-β-ketotryptamine",
-            "βk-NM-αMT" to "α,N-Dimethyl-β-ketotryptamine",
-            "NM-αMT" to "α,N-Dimethyltryptamine",
-            "α,N-Dimethyltryptamine" to "α,N-Dimethyltryptamine",
-            "a-Benzylphenethylamine" to "α-Benzylphenethylamine",
-            "a-Bn-PEA" to "α-Benzylphenethylamine",
-            "alpha-Bn-PEA" to "α-Benzylphenethylamine",
-            "α-Benzylphenethylamine" to "α-Benzylphenethylamine",
-            "a-Cyclopropyl-3,4-methylenedioxymethamphetamine" to "α-Cyclopropyl-3,4-methylenedioxymethamphetamine",
-            "UWA-101" to "α-Cyclopropyl-3,4-methylenedioxymethamphetamine",
-            "α-Cyclopropyl-3,4-methylenedioxymethamphetamine" to "α-Cyclopropyl-3,4-methylenedioxymethamphetamine",
-            "a-Endorphin" to "α-Endorphin",
-            "α-Endorphin" to "α-Endorphin",
-            "a-Et-N-Pr-PEA" to "α-Ethyl-N-propylphenethylamine",
-            "a-Ethyl-N-propylphenethylamine" to "α-Ethyl-N-propylphenethylamine",
-            "α-Et-N-Pr-PEA" to "α-Ethyl-N-propylphenethylamine",
-            "α-Ethyl-N-propylphenethylamine" to "α-Ethyl-N-propylphenethylamine",
-            "a-Et-PEA" to "α-Ethylphenethylamine",
-            "a-Ethylphenethylamine" to "α-Ethylphenethylamine",
-            "α-Et-PEA" to "α-Ethylphenethylamine",
-            "α-Ethylphenethylamine" to "α-Ethylphenethylamine",
-            "a-Ethyltryptamine" to "α-Ethyltryptamine",
-            "α-Ethyltryptamine" to "α-Ethyltryptamine",
-            "αET" to "α-Ethyltryptamine",
-            "a-He-PEA" to "α-Hexylphenethylamine",
-            "a-Hexylphenethylamine" to "α-Hexylphenethylamine",
-            "α-He-PEA" to "α-Hexylphenethylamine",
-            "α-Hexylphenethylamine" to "α-Hexylphenethylamine",
-            "a-Hydroxyetizolam" to "α-Hydroxyetizolam",
-            "α-Hydroxyetizolam" to "α-Hydroxyetizolam",
-            "a-Methyl-p-tyrosine" to "α-Methyl-p-tyrosine",
-            "AMPT" to "α-Methyl-p-tyrosine",
-            "α-Methyl-p-tyrosine" to "α-Methyl-p-tyrosine",
-            "a-Methylbenzylamine" to "α-Methylbenzylamine",
-            "a-PEA" to "α-Methylbenzylamine",
-            "α-Methylbenzylamine" to "α-Methylbenzylamine",
-            "α-PEA" to "α-Methylbenzylamine",
-            "a-Me-DA" to "α-Methyldopamine",
-            "a-Methyldopamine" to "α-Methyldopamine",
-            "α-Me-DA" to "α-Methyldopamine",
-            "α-Methyldopamine" to "α-Methyldopamine",
-            "a-Methylepinine" to "α-Methylepinine",
-            "α-Methylepinine" to "α-Methylepinine",
-            "a-Methylmethcathinone" to "α-Methylmethcathinone",
-            "α-Methylmethcathinone" to "α-Methylmethcathinone",
-            "a-PIPBP" to "α-Piperidinobutiophenone",
-            "a-Piperidinobutiophenone" to "α-Piperidinobutiophenone",
-            "alpha-PIPBP" to "α-Piperidinobutiophenone",
-            "α-Piperidinobutiophenone" to "α-Piperidinobutiophenone",
-            "a-Piperidinohexiophenone" to "α-Piperidinohexiophenone",
-            "a-PIPHP" to "α-Piperidinohexiophenone",
-            "α-Piperidinohexiophenone" to "α-Piperidinohexiophenone",
-            "α-PIPHP" to "α-Piperidinohexiophenone",
-            "a-Piperidinopropiophenone" to "α-Piperidinopropiophenone",
-            "a-PIPPP" to "α-Piperidinopropiophenone",
-            "α-Piperidinopropiophenone" to "α-Piperidinopropiophenone",
-            "α-PIPPP" to "α-Piperidinopropiophenone",
-            "a-Pr-PEA" to "α-Propylphenethylamine",
-            "a-Propylphenethylamine" to "α-Propylphenethylamine",
-            "APPEA" to "α-Propylphenethylamine",
-            "α-Pr-PEA" to "α-Propylphenethylamine",
-            "α-Propylphenethylamine" to "α-Propylphenethylamine",
-            "a-D2PV" to "α-Pyrrolidino-2-phenylacetophenone",
-            "a-Pyrrolidino-2-phenylacetophenone" to "α-Pyrrolidino-2-phenylacetophenone",
-            "α-D2PV" to "α-Pyrrolidino-2-phenylacetophenone",
-            "α-Pyrrolidino-2-phenylacetophenone" to "α-Pyrrolidino-2-phenylacetophenone",
-            "a-PBP" to "α-Pyrrolidinobutiophenone",
-            "a-Pyrrolidinobutiophenone" to "α-Pyrrolidinobutiophenone",
-            "α-PBP" to "α-Pyrrolidinobutiophenone",
-            "α-Pyrrolidinobutiophenone" to "α-Pyrrolidinobutiophenone",
-            "a-PEP" to "α-Pyrrolidinoheptaphenone",
-            "a-Pyrrolidinoheptaphenone" to "α-Pyrrolidinoheptaphenone",
-            "alpha-PEP" to "α-Pyrrolidinoheptaphenone",
-            "α-Pyrrolidinoheptaphenone" to "α-Pyrrolidinoheptaphenone",
-            "a-PiHP" to "α-Pyrrolidinoisohexanophenone",
-            "a-Pyrrolidinoisohexanophenone" to "α-Pyrrolidinoisohexanophenone",
-            "α-PiHP" to "α-Pyrrolidinoisohexanophenone",
-            "α-Pyrrolidinoisohexanophenone" to "α-Pyrrolidinoisohexanophenone",
-            "a-Pyrrolidinopentiothiophenone" to "α-Pyrrolidinopentiothiophenone",
-            "α-Pyrrolidinopentiothiophenone" to "α-Pyrrolidinopentiothiophenone",
-            "a-PPP" to "α-Pyrrolidinopropiophenone",
-            "a-Pyrrolidinopropiophenone" to "α-Pyrrolidinopropiophenone",
-            "alpha-PPP" to "α-Pyrrolidinopropiophenone",
-            "α-Pyrrolidinopropiophenone" to "α-Pyrrolidinopropiophenone",
-            "a-Methyltryptamine" to "ΑMT",
-            "a-MT" to "ΑMT",
-            "alpha-Methyltryptamine" to "ΑMT",
-            "alpha-MT" to "ΑMT",
-            "AMT" to "ΑMT",
-            "Indopan" to "ΑMT",
-            "ΑMT" to "ΑMT",
-            "DMPPA" to "β,N,N-Trimethylphenethylamine",
-            "β,N,N-Trimethylphenethylamine" to "β,N,N-Trimethylphenethylamine",
-            "b-Endorphin" to "β-Endorphin",
-            "β-Endorphin" to "β-Endorphin",
-            "b-Ethyltryptamine" to "β-Ethyltryptamine",
-            "β-Ethyltryptamine" to "β-Ethyltryptamine",
-            "βET" to "β-Ethyltryptamine",
-            "b-Hydroxy-4-bromo-2,5-dimethoxyphenylamine" to "β-Hydroxy-4-bromo-2,5-dimethoxyphenylamine",
-            "β-Hydroxy-4-bromo-2,5-dimethoxyphenylamine" to "β-Hydroxy-4-bromo-2,5-dimethoxyphenylamine",
-            "βOH-2C-B" to "β-Hydroxy-4-bromo-2,5-dimethoxyphenylamine",
-            "b-Hydroxyamphetamine" to "β-Hydroxyamphetamine",
-            "Cathine" to "β-Hydroxyamphetamine",
-            "L-Norpseudoephedrine" to "β-Hydroxyamphetamine",
-            "β-Hydroxyamphetamine" to "β-Hydroxyamphetamine",
-            "b-Methoxy-3,4-methylenedioxyphenethylamine" to "β-Methoxy-3,4-methylenedioxyphenethylamine",
-            "BOH" to "β-Methoxy-3,4-methylenedioxyphenethylamine",
-            "β-Methoxy-3,4-methylenedioxyphenethylamine" to "β-Methoxy-3,4-methylenedioxyphenethylamine",
-            "b-Methyl-N,N-dimethyltryptamine" to "β-Methyl-N,N-dimethyltryptamine",
-            "β-Methyl-N,N-dimethyltryptamine" to "β-Methyl-N,N-dimethyltryptamine",
-            "βM-DMT" to "β-Methyl-N,N-dimethyltryptamine",
-            "b-Methyl-N-methyltryptamine" to "β-Methyl-N-methyltryptamine",
-            "β-Methyl-N-methyltryptamine" to "β-Methyl-N-methyltryptamine",
-            "βM-NMT" to "β-Methyl-N-methyltryptamine",
-            "b-Methylamphetamine" to "β-Methylamphetamine",
-            "BMA" to "β-Methylamphetamine",
-            "β-Methylamphetamine" to "β-Methylamphetamine",
-            "βMA" to "β-Methylamphetamine",
-            "b-Methylphenethylamine" to "β-Methylphenethylamine",
-            "BMPEA" to "β-Methylphenethylamine",
-            "β-Methylphenethylamine" to "β-Methylphenethylamine",
-            "b-Methyltryptamine" to "β-Methyltryptamine",
-            "β-Methyltryptamine" to "β-Methyltryptamine",
-            "βMT" to "β-Methyltryptamine",
-            "b-Phenylmethamphetamine" to "β-Phenylmethamphetamine",
-            "β-Phenylmethamphetamine" to "β-Phenylmethamphetamine",
-            "b-keto 2C-B" to "Βk-2C-B",
-            "bk-2C-B" to "Βk-2C-B",
-            "Bk2cb" to "Βk-2C-B",
-            "SSk-2C-B" to "Βk-2C-B",
-            "β-keto 2C-B" to "Βk-2C-B",
-            "Βk-2C-B" to "Βk-2C-B",
-            "g-Aminobutyric acid" to "γ-Aminobutyric acid",
-            "GABA" to "γ-Aminobutyric acid",
-            "γ-Aminobutyric acid" to "γ-Aminobutyric acid",
-            "g-Endorphin" to "γ-Endorphin",
-            "γ-Endorphin" to "γ-Endorphin",
-            "g-Hydroxyvaleric acid" to "γ-Hydroxyvaleric acid",
-            "GHV" to "γ-Hydroxyvaleric acid",
-            "γ-Hydroxyvaleric acid" to "γ-Hydroxyvaleric acid",
-            "g-Valerolactone" to "γ-Valerolactone",
-            "GVL" to "γ-Valerolactone",
-            "γ-Valerolactone" to "γ-Valerolactone",
-            "d-10-Tetrahydrocannabinol" to "Δ-10-Tetrahydrocannabinol",
-            "d-10-THC" to "Δ-10-Tetrahydrocannabinol",
-            "Delta-10-THC" to "Δ-10-Tetrahydrocannabinol",
-            "Δ-10-Tetrahydrocannabinol" to "Δ-10-Tetrahydrocannabinol",
-            "d-8-Tetrahydrocannabinol" to "Δ-8-Tetrahydrocannabinol",
-            "d-8-THC" to "Δ-8-Tetrahydrocannabinol",
-            "Delta-8-THC" to "Δ-8-Tetrahydrocannabinol",
-            "Δ-8-Tetrahydrocannabinol" to "Δ-8-Tetrahydrocannabinol"
-    ).mapKeys { Aliases.norm(it.key) }
+    val map: Map<String, String> by lazy {
+        val m = mutableMapOf<String, String>()
+        addChunk0(m)
+        addChunk1(m)
+        addChunk2(m)
+        addChunk3(m)
+        addChunk4(m)
+        addChunk5(m)
+        addChunk6(m)
+        addChunk7(m)
+        addChunk8(m)
+        addChunk9(m)
+        addChunk10(m)
+        addChunk11(m)
+        addChunk12(m)
+        addChunk13(m)
+        m.mapKeys { Aliases.norm(it.key) }
+    }
+
+    private fun addChunk0(m: MutableMap<String, String>) {
+        m["1,2-Diphenylethylamine"] = "1,2-Diphenylethylamine"
+        m["1,3-BDO"] = "1,3-Butanediol"
+        m["1,3-Butanediol"] = "1,3-Butanediol"
+        m["1,3-Dimethylbutylamine"] = "1,3-Dimethylbutylamine"
+        m["1,3-DMBA"] = "1,3-Dimethylbutylamine"
+        m["1,4 Butanediol"] = "1,4-Butanediol"
+        m["1,4-B"] = "1,4-Butanediol"
+        m["1,4-BD"] = "1,4-Butanediol"
+        m["1,4-BDO"] = "1,4-Butanediol"
+        m["1,4-Butanediol"] = "1,4-Butanediol"
+        m["14bdo"] = "1,4-Butanediol"
+        m["BD"] = "1,4-Butanediol"
+        m["BDO"] = "1,4-Butanediol"
+        m["Butylene Glycol"] = "1,4-Butanediol"
+        m["One Comma Four"] = "1,4-Butanediol"
+        m["One Four B-D-O"] = "1,4-Butanediol"
+        m["One Four Bee"] = "1,4-Butanediol"
+        m["1-(2-Benzhydryloxyethyl)-4-(3-phenylpropyl)piperazine"] = "1-(2-Benzhydryloxyethyl)-4-(3-phenylpropyl)piperazine"
+        m["GBR-12935"] = "1-(2-Benzhydryloxyethyl)-4-(3-phenylpropyl)piperazine"
+        m["1-(3-(Trimethylsilyl)propionyl)-lysergic acid diethylamide"] = "1-(3-(Trimethylsilyl)propionyl)-lysergic acid diethylamide"
+        m["1S-LSD"] = "1-(3-(Trimethylsilyl)propionyl)-lysergic acid diethylamide"
+        m["1-(3-Chlorophenyl)-4-(2-phenylethyl)piperazine"] = "1-(3-Chlorophenyl)-4-(2-phenylethyl)piperazine"
+        m["3C-PEP"] = "1-(3-Chlorophenyl)-4-(2-phenylethyl)piperazine"
+        m["1-AI"] = "1-Aminoindane"
+        m["1-Aminoindane"] = "1-Aminoindane"
+        m["1-Aminomethyl-5-methoxyindane"] = "1-Aminomethyl-5-methoxyindane"
+        m["1-Aminotetralin"] = "1-Aminotetralin"
+        m["1-AT"] = "1-Aminotetralin"
+        m["1-Cyclohexyl-4-(1,2-diphenylethyl)piperazine"] = "1-Cyclohexyl-4-(1,2-diphenylethyl)piperazine"
+        m["MT-45"] = "1-Cyclohexyl-4-(1,2-diphenylethyl)piperazine"
+        m["1-Methyl-4-phenyl-1,2,3,6-tetrahydropyridine"] = "1-Methyl-4-phenyl-1,2,3,6-tetrahydropyridine"
+        m["MPP+"] = "1-Methyl-4-phenyl-1,2,3,6-tetrahydropyridine"
+        m["1-Methyl-4-phenylpyridinium"] = "1-Methyl-4-phenylpyridinium"
+        m["MPTP"] = "1-Methyl-4-phenylpyridinium"
+        m["1-NAP"] = "1-Naphthylaminopropane"
+        m["1-Naphthylaminopropane"] = "1-Naphthylaminopropane"
+        m["1-Naphthylmethcathinone"] = "1-Naphthylmethcathinone"
+        m["AMAPN"] = "1-Naphthylmethcathinone"
+        m["1-Propargyltheobromine"] = "1-Propargyltheobromine"
+        m["DMPX"] = "1-Propargyltheobromine"
+        m["10-Hydroxyhexahydrocannabinol"] = "10-Hydroxyhexahydrocannabinol"
+        m["10-OH-HHC"] = "10-Hydroxyhexahydrocannabinol"
+        m["11β-Chloromethylestradiol"] = "11β-Chloromethylestradiol"
+        m["16α-Lactone-estradiol"] = "16α-Lactone-estradiol"
+        m["16α-LE2"] = "16α-Lactone-estradiol"
+        m["17β-Dihydroequilin"] = "17β-Dihydroequilin"
+        m["18-MC"] = "18-Methoxycoronaridine"
+        m["18-Methoxycoronaridine"] = "18-Methoxycoronaridine"
+        m["1-Butanoyl-d-lysergic acid diethylamide"] = "1B-LSD"
+        m["1B-LSD"] = "1B-LSD"
+        m["1-Cyclopropionyl-6-allyl-6-nor-lysergic acid diethylamide"] = "1cP-AL-LAD"
+        m["1cP-AL-LAD"] = "1cP-AL-LAD"
+        m["1cP-LSD"] = "1cP-LSD"
+        m["N1-(Cyclopropylmethanoyl)-lysergic acid diethylamide"] = "1cP-LSD"
+        m["1cP-MiPLA"] = "1cP-MiPLA"
+        m["1-Propionyl-6-ethyl-6-nor-lysergic acid diethyamide"] = "1P-ETH-LAD"
+        m["1P-ETH-LAD"] = "1P-ETH-LAD"
+        m["1P-ETHLAD"] = "1P-ETH-LAD"
+        m["1PETHLAD"] = "1P-ETH-LAD"
+        m["1-Propanoyl-lysergic acid diethylamide"] = "1P-LSD"
+        m["1P-LAD"] = "1P-LSD"
+        m["1P-LSD"] = "1P-LSD"
+        m["1PLAD"] = "1P-LSD"
+        m["1plsd"] = "1P-LSD"
+        m["1-Valeryl-D-lysergic acid diethylamide"] = "1V-LSD"
+        m["1V-LSD"] = "1V-LSD"
+        m["Valerie"] = "1V-LSD"
+        m["2,3'-Bipyridine"] = "2,3'-Bipyridine"
+        m["2,3,4,5-Tetramethoxyamphetamine"] = "2,3,4,5-Tetramethoxyamphetamine"
+        m["2,3,4,6-TeMPEA"] = "2,3,4,5-Tetramethoxyamphetamine"
+        m["2,3,4,6-Tetramethoxyphenethylamine"] = "2,3,4,6-Tetramethoxyphenethylamine"
+        m["2,3,4,5-TeMPEA"] = "2,3,5,6-Tetramethoxyphenethylamine"
+        m["2,3,5,6-Tetramethoxyphenethylamine"] = "2,3,5,6-Tetramethoxyphenethylamine"
+        m["2,3,7,8-Tetrachlorodibenzodioxin"] = "2,3,7,8-Tetrachlorodibenzodioxin"
+        m["TCDD"] = "2,3,7,8-Tetrachlorodibenzodioxin"
+        m["2,3-Dimethylphenylpiperazine"] = "2,3-Dimethylphenylpiperazine"
+        m["2,3-DMPP"] = "2,3-Dimethylphenylpiperazine"
+        m["2,3-MDA"] = "2,3-Methylenedioxyamphetamine"
+        m["2,3-Methylenedioxyamphetamine"] = "2,3-Methylenedioxyamphetamine"
+        m["2,3-MDMA"] = "2,3-Methylenedioxymethamphetamine"
+        m["2,3-Methylenedioxymethamphetamine"] = "2,3-Methylenedioxymethamphetamine"
+        m["2,4,5-T"] = "2,4,5-Trichlorophenoxyacetic acid"
+        m["2,4,5-Trichlorophenoxyacetic acid"] = "2,4,5-Trichlorophenoxyacetic acid"
+        m["2,4,5-Triethoxyamphetamine"] = "2,4,5-Triethoxyamphetamine"
+        m["EEE"] = "2,4,5-Triethoxyamphetamine"
+        m["2,4,5-Trimethoxyphenethylamine"] = "2,4,5-Trimethoxyphenethylamine"
+        m["2C-O"] = "2,4,5-Trimethoxyphenethylamine"
+        m["2,4-Dichloroamphetamine"] = "2,4-Dichloroamphetamine"
+        m["2,4-D"] = "2,4-Dichlorophenoxyacetic acid"
+        m["2,4-Dichlorophenoxyacetic acid"] = "2,4-Dichlorophenoxyacetic acid"
+        m["2,4-Dinitrophenol"] = "2,4-Dinitrophenol"
+        m["DNP"] = "2,4-Dinitrophenol"
+        m["2,5-Dimethoxy-3,4-dimethylphenethylamine"] = "2,5-Dimethoxy-3,4-dimethylphenethylamine"
+        m["2C-G"] = "2,5-Dimethoxy-3,4-dimethylphenethylamine"
+        m["2,5-Dimethoxy-4-(2-fluoroethyl)amphetamine"] = "2,5-Dimethoxy-4-(2-fluoroethyl)amphetamine"
+        m["DOEF"] = "2,5-Dimethoxy-4-(2-fluoroethyl)amphetamine"
+        m["2,5-Dimethoxy-4-acetylamphetamine"] = "2,5-Dimethoxy-4-acetylamphetamine"
+        m["DOAc"] = "2,5-Dimethoxy-4-acetylamphetamine"
+        m["2,5-Dimethoxy-4-amylamphetamine"] = "2,5-Dimethoxy-4-amylamphetamine"
+        m["DOAM"] = "2,5-Dimethoxy-4-amylamphetamine"
+        m["2,5-Dimethoxy-4-bromo-N-(2-fluorobenzyl)phenethylamine"] = "2,5-Dimethoxy-4-bromo-N-(2-fluorobenzyl)phenethylamine"
+        m["25B-NBF"] = "2,5-Dimethoxy-4-bromo-N-(2-fluorobenzyl)phenethylamine"
+        m["2,5-Dimethoxy-4-bromo-N-(3-methoxybenzyl)phenethylamine"] = "2,5-Dimethoxy-4-bromo-N-(3-methoxybenzyl)phenethylamine"
+        m["25B-NB3OMe"] = "2,5-Dimethoxy-4-bromo-N-(3-methoxybenzyl)phenethylamine"
+        m["2,5-Dimethoxy-4-bromo-N-benzylphenethylamine"] = "2,5-Dimethoxy-4-bromo-N-benzylphenethylamine"
+        m["25B-NB"] = "2,5-Dimethoxy-4-bromo-N-benzylphenethylamine"
+        m["2,5-Dimethoxy-4-bromo-α-ethylphenethylamine"] = "2,5-Dimethoxy-4-bromo-α-ethylphenethylamine"
+        m["4C-B"] = "2,5-Dimethoxy-4-bromo-α-ethylphenethylamine"
+        m["2,5-dimethoxy-4-bromobenzylpiperazine"] = "2,5-dimethoxy-4-bromobenzylpiperazine"
+        m["2C-B-BZP"] = "2,5-dimethoxy-4-bromobenzylpiperazine"
+        m["2,5-Dimethoxy-4-bromophenylpiperazine"] = "2,5-Dimethoxy-4-bromophenylpiperazine"
+        m["2C-B-PP"] = "2,5-Dimethoxy-4-bromophenylpiperazine"
+        m["2,5-Dimethoxy-4-butylamphetamine"] = "2,5-Dimethoxy-4-butylamphetamine"
+        m["DOBU"] = "2,5-Dimethoxy-4-butylamphetamine"
+        m["2,5-Dimethoxy-4-chloro-N-(2-fluorobenzyl)phenethylamine"] = "2,5-Dimethoxy-4-chloro-N-(2-fluorobenzyl)phenethylamine"
+        m["25C-NBF"] = "2,5-Dimethoxy-4-chloro-N-(2-fluorobenzyl)phenethylamine"
+        m["2,5-Dimethoxy-4-chloro-N-(3-methoxybenzyl)phenethylamine"] = "2,5-Dimethoxy-4-chloro-N-(3-methoxybenzyl)phenethylamine"
+        m["25C-NB3OMe"] = "2,5-Dimethoxy-4-chloro-N-(3-methoxybenzyl)phenethylamine"
+        m["2,5-Dimethoxy-4-chloro-N-(4-methoxybenzyl)phenethylamine"] = "2,5-Dimethoxy-4-chloro-N-(4-methoxybenzyl)phenethylamine"
+        m["25C-NB4OMe"] = "2,5-Dimethoxy-4-chloro-N-(4-methoxybenzyl)phenethylamine"
+        m["2,5-Dimethoxy-4-chloro-N-benzylphenethylamine"] = "2,5-Dimethoxy-4-chloro-N-benzylphenethylamine"
+        m["25C-NB"] = "2,5-Dimethoxy-4-chloro-N-benzylphenethylamine"
+        m["2,5-Dimethoxy-4-ethoxyamphetamine"] = "2,5-Dimethoxy-4-ethoxyamphetamine"
+        m["MEM"] = "2,5-Dimethoxy-4-ethoxyamphetamine"
+        m["2,5-Dimethoxy-4-ethyl-N-(2-fluorobenzyl)phenethylamine"] = "2,5-Dimethoxy-4-ethyl-N-(2-fluorobenzyl)phenethylamine"
+        m["25E-NBF"] = "2,5-Dimethoxy-4-ethyl-N-(2-fluorobenzyl)phenethylamine"
+        m["2,5-Dimethoxy-4-ethyl-N-(2-hydroxybenzyl)phenethylamine"] = "2,5-Dimethoxy-4-ethyl-N-(2-hydroxybenzyl)phenethylamine"
+        m["25E-NBOH"] = "2,5-Dimethoxy-4-ethyl-N-(2-hydroxybenzyl)phenethylamine"
+        m["2,5-Dimethoxy-4-ethyl-N-(2-methoxybenzyl)phenethylamine"] = "2,5-Dimethoxy-4-ethyl-N-(2-methoxybenzyl)phenethylamine"
+        m["25E-NBOMe"] = "2,5-Dimethoxy-4-ethyl-N-(2-methoxybenzyl)phenethylamine"
+        m["2,5-Dimethoxy-4-ethylamphetamine"] = "2,5-Dimethoxy-4-ethylamphetamine"
+        m["DOET"] = "2,5-Dimethoxy-4-ethylamphetamine"
+        m["2,5-Dimethoxy-4-ethylthio-N-(2-methoxybenzyl)phenethylamine"] = "2,5-Dimethoxy-4-ethylthio-N-(2-methoxybenzyl)phenethylamine"
+        m["25T2-NBOMe"] = "2,5-Dimethoxy-4-ethylthio-N-(2-methoxybenzyl)phenethylamine"
+        m["2,5-Dimethoxy-4-ethylthio-α-ethylphenethylamine"] = "2,5-Dimethoxy-4-ethylthio-α-ethylphenethylamine"
+        m["4C-T-2"] = "2,5-Dimethoxy-4-ethylthio-α-ethylphenethylamine"
+        m["2,5-Dimethoxy-4-ethylthioamphetamine"] = "2,5-Dimethoxy-4-ethylthioamphetamine"
+        m["Aleph-2"] = "2,5-Dimethoxy-4-ethylthioamphetamine"
+        m["2,5-Dimethoxy-4-fluoroamphetamine"] = "2,5-Dimethoxy-4-fluoroamphetamine"
+        m["DOF"] = "2,5-Dimethoxy-4-fluoroamphetamine"
+        m["2,5-Dimethoxy-4-fluorophenethylamine"] = "2,5-Dimethoxy-4-fluorophenethylamine"
+        m["2C-F"] = "2,5-Dimethoxy-4-fluorophenethylamine"
+        m["2,5-Dimethoxy-4-iodo-N-(2-fluorobenzyl)phenethylamine"] = "2,5-Dimethoxy-4-iodo-N-(2-fluorobenzyl)phenethylamine"
+        m["25I-NBF"] = "2,5-Dimethoxy-4-iodo-N-(2-fluorobenzyl)phenethylamine"
+        m["2,5-Dimethoxy-4-iodo-N-(3-methoxybenzyl)phenethylamine"] = "2,5-Dimethoxy-4-iodo-N-(3-methoxybenzyl)phenethylamine"
+        m["25I-NB3OMe"] = "2,5-Dimethoxy-4-iodo-N-(3-methoxybenzyl)phenethylamine"
+        m["2,5-Dimethoxy-4-iodo-N-(4-methoxybenzyl)phenethylamine"] = "2,5-Dimethoxy-4-iodo-N-(4-methoxybenzyl)phenethylamine"
+        m["25I-NB4OMe"] = "2,5-Dimethoxy-4-iodo-N-(4-methoxybenzyl)phenethylamine"
+        m["2,5-Dimethoxy-4-iodo-N-benzylphenethylamine"] = "2,5-Dimethoxy-4-iodo-N-benzylphenethylamine"
+        m["25I-NB"] = "2,5-Dimethoxy-4-iodo-N-benzylphenethylamine"
+        m["2,5-Dimethoxy-4-isopropylamphetamine"] = "2,5-Dimethoxy-4-isopropylamphetamine"
+        m["DOIP"] = "2,5-Dimethoxy-4-isopropylamphetamine"
+        m["2,5-Dimethoxy-4-isopropylthio-N-(2-hydroxybenzyl)phenethylamine"] = "2,5-Dimethoxy-4-isopropylthio-N-(2-hydroxybenzyl)phenethylamine"
+        m["25T4-NBOH"] = "2,5-Dimethoxy-4-isopropylthio-N-(2-hydroxybenzyl)phenethylamine"
+        m["2,5-Dimethoxy-4-isopropylthio-N-(2-methoxybenzyl)phenethylamine"] = "2,5-Dimethoxy-4-isopropylthio-N-(2-methoxybenzyl)phenethylamine"
+        m["25T4-NBOMe"] = "2,5-Dimethoxy-4-isopropylthio-N-(2-methoxybenzyl)phenethylamine"
+        m["2,5-Dimethoxy-4-isopropylthioamphetamine"] = "2,5-Dimethoxy-4-isopropylthioamphetamine"
+        m["Aleph-4"] = "2,5-Dimethoxy-4-isopropylthioamphetamine"
+        m["2,5-Dimethoxy-4-methyl-N-(2-fluorobenzyl)phenethylamine"] = "2,5-Dimethoxy-4-methyl-N-(2-fluorobenzyl)phenethylamine"
+        m["25D-NBF"] = "2,5-Dimethoxy-4-methyl-N-(2-fluorobenzyl)phenethylamine"
+        m["2,5-Dimethoxy-4-methyl-N-(2-hydroxybenzyl)phenethylamine"] = "2,5-Dimethoxy-4-methyl-N-(2-hydroxybenzyl)phenethylamine"
+        m["25D-NBOH"] = "2,5-Dimethoxy-4-methyl-N-(2-hydroxybenzyl)phenethylamine"
+        m["2,5-Dimethoxy-4-methyl-α-ethylphenethylamine"] = "2,5-Dimethoxy-4-methyl-α-ethylphenethylamine"
+        m["4C-D"] = "2,5-Dimethoxy-4-methyl-α-ethylphenethylamine"
+        m["2,5-Dimethoxy-4-methylmethamphetamine"] = "2,5-Dimethoxy-4-methylmethamphetamine"
+        m["Beatrice"] = "2,5-Dimethoxy-4-methylmethamphetamine"
+        m["MDO-D"] = "2,5-Dimethoxy-4-methylmethamphetamine"
+        m["MDOM"] = "2,5-Dimethoxy-4-methylmethamphetamine"
+        m["N-methyl-DOM"] = "2,5-Dimethoxy-4-methylmethamphetamine"
+        m["2,5-Dimethoxy-4-methylphenylcyclopropylamine"] = "2,5-Dimethoxy-4-methylphenylcyclopropylamine"
+        m["DMCPA"] = "2,5-Dimethoxy-4-methylphenylcyclopropylamine"
+        m["2,5-Dimethoxy-4-methylselenophenethylamine"] = "2,5-Dimethoxy-4-methylselenophenethylamine"
+        m["2C-Se"] = "2,5-Dimethoxy-4-methylselenophenethylamine"
+        m["2,5-Dimethoxy-4-methylsulfonylamphetamine"] = "2,5-Dimethoxy-4-methylsulfonylamphetamine"
+        m["DOMS"] = "2,5-Dimethoxy-4-methylsulfonylamphetamine"
+        m["2,5-Dimethoxy-4-methylthioamphetamine"] = "2,5-Dimethoxy-4-methylthioamphetamine"
+        m["Aleph-1"] = "2,5-Dimethoxy-4-methylthioamphetamine"
+        m["2,5-Dimethoxy-4-nitroamphetamine"] = "2,5-Dimethoxy-4-nitroamphetamine"
+        m["DON"] = "2,5-Dimethoxy-4-nitroamphetamine"
+        m["2,5-Dimethoxy-4-nitrophenethylamine"] = "2,5-Dimethoxy-4-nitrophenethylamine"
+        m["2C-N"] = "2,5-Dimethoxy-4-nitrophenethylamine"
+        m["2,5-Dimethoxy-4-phenylthioamphetamine"] = "2,5-Dimethoxy-4-phenylthioamphetamine"
+        m["Aleph-6"] = "2,5-Dimethoxy-4-phenylthioamphetamine"
+        m["2,5-Dimethoxy-4-propyl-N-(2-fluorobenzyl)phenethylamine"] = "2,5-Dimethoxy-4-propyl-N-(2-fluorobenzyl)phenethylamine"
+        m["25P-NBF"] = "2,5-Dimethoxy-4-propyl-N-(2-fluorobenzyl)phenethylamine"
+        m["2,5-Dimethoxy-4-propyl-N-(2-hydroxybenzyl)phenethylamine"] = "2,5-Dimethoxy-4-propyl-N-(2-hydroxybenzyl)phenethylamine"
+        m["25P-NBOH"] = "2,5-Dimethoxy-4-propyl-N-(2-hydroxybenzyl)phenethylamine"
+        m["2,5-Dimethoxy-4-propyl-N-(2-methoxybenzyl)phenethylamine"] = "2,5-Dimethoxy-4-propyl-N-(2-methoxybenzyl)phenethylamine"
+        m["25P-NBOMe"] = "2,5-Dimethoxy-4-propyl-N-(2-methoxybenzyl)phenethylamine"
+        m["2,5-Dimethoxy-4-propylamphetamine"] = "2,5-Dimethoxy-4-propylamphetamine"
+        m["DOPR"] = "2,5-Dimethoxy-4-propylamphetamine"
+        m["2,5-Dimethoxy-4-propylthio-N-(2-hydroxybenzyl)phenethylamine"] = "2,5-Dimethoxy-4-propylthio-N-(2-hydroxybenzyl)phenethylamine"
+        m["25T7-NBOH"] = "2,5-Dimethoxy-4-propylthio-N-(2-hydroxybenzyl)phenethylamine"
+        m["2,5-Dimethoxy-4-propylthio-N-(2-methoxybenzyl)phenethylamine"] = "2,5-Dimethoxy-4-propylthio-N-(2-methoxybenzyl)phenethylamine"
+        m["25T7-NBOMe"] = "2,5-Dimethoxy-4-propylthio-N-(2-methoxybenzyl)phenethylamine"
+        m["2,5-Dimethoxy-4-propylthioamphetamine"] = "2,5-Dimethoxy-4-propylthioamphetamine"
+        m["Aleph-7"] = "2,5-Dimethoxy-4-propylthioamphetamine"
+        m["2,5-Dimethoxy-4-trifluoromethylamphetamine"] = "2,5-Dimethoxy-4-trifluoromethylamphetamine"
+        m["DOTFM"] = "2,5-Dimethoxy-4-trifluoromethylamphetamine"
+        m["2,5-Dimethoxy-4-trifluoromethylphenethylamine"] = "2,5-Dimethoxy-4-trifluoromethylphenethylamine"
+        m["2C-TFM"] = "2,5-Dimethoxy-4-trifluoromethylphenethylamine"
+        m["2,5-Dimethoxy-N-(2-fluorobenzyl)phenethylamine"] = "2,5-Dimethoxy-N-(2-fluorobenzyl)phenethylamine"
+        m["25H-NBF"] = "2,5-Dimethoxy-N-(2-fluorobenzyl)phenethylamine"
+        m["2,5-Dimethoxy-N-(2-hydroxybenzyl)phenethylamine"] = "2,5-Dimethoxy-N-(2-hydroxybenzyl)phenethylamine"
+        m["25H-NBOH"] = "2,5-Dimethoxy-N-(2-hydroxybenzyl)phenethylamine"
+        m["2,5-Dimethoxy-N-(2-methoxybenzyl)phenethylamine"] = "2,5-Dimethoxy-N-(2-methoxybenzyl)phenethylamine"
+        m["25H-NBOMe"] = "2,5-Dimethoxy-N-(2-methoxybenzyl)phenethylamine"
+        m["2,5-Dimethoxy-N-(3-methoxybenzyl)phenethylamine"] = "2,5-Dimethoxy-N-(3-methoxybenzyl)phenethylamine"
+        m["25H-NB3OMe"] = "2,5-Dimethoxy-N-(3-methoxybenzyl)phenethylamine"
+        m["2,5-Dimethoxy-N-(4-methoxybenzyl)phenethylamine"] = "2,5-Dimethoxy-N-(4-methoxybenzyl)phenethylamine"
+        m["25H-NB4OMe"] = "2,5-Dimethoxy-N-(4-methoxybenzyl)phenethylamine"
+        m["2,5-Dimethoxy-N-benzylphenethylamine"] = "2,5-Dimethoxy-N-benzylphenethylamine"
+        m["25H-NB"] = "2,5-Dimethoxy-N-benzylphenethylamine"
+        m["2,5-Dimethoxyamphetamine"] = "2,5-DMA"
+        m["2,5-DMA"] = "2,5-DMA"
+        m["DOH"] = "2,5-DMA"
+        m["2-(4-Bromo-2,5-dimethoxyphenyl)morpholine"] = "2-(4-Bromo-2,5-dimethoxyphenyl)morpholine"
+        m["2C-B-morpholine"] = "2-(4-Bromo-2,5-dimethoxyphenyl)morpholine"
+        m["2-ADN"] = "2-Amino-1,2-dihydronaphthalene"
+        m["2-Amino-1,2-dihydronaphthalene"] = "2-Amino-1,2-dihydronaphthalene"
+        m["2-Amino-4,5-diphenyloxazole"] = "2-Amino-4,5-diphenyloxazole"
+        m["2-AI"] = "2-Aminoindane"
+        m["2-Aminoindan"] = "2-Aminoindane"
+        m["2-Aminoindane"] = "2-Aminoindane"
+        m["2AI"] = "2-Aminoindane"
+        m["2-Aminotetralin"] = "2-Aminotetralin"
+        m["2-AT"] = "2-Aminotetralin"
+        m["2-Br-LSD"] = "2-Bromolysergic acid diethylamide"
+        m["2-Bromolysergic acid diethylamide"] = "2-Bromolysergic acid diethylamide"
+        m["2-EMC"] = "2-Ethylmethcathinone"
+        m["2-Ethylmethcathinone"] = "2-Ethylmethcathinone"
+        m["2-FA"] = "2-FA"
+        m["2-Fluoroamphetamine"] = "2-FA"
+        m["2fa"] = "2-FA"
+        m["2fluoroamphetamine"] = "2-FA"
+        m["2-FEA"] = "2-FEA"
+        m["2-Fluoroethamphetamine"] = "2-FEA"
+        m["2-Furylethylamine"] = "2-FEA"
+        m["2fea"] = "2-FEA"
+        m["2-FDCK"] = "2-Fluorodeschloroketamine"
+        m["2-FK"] = "2-Fluorodeschloroketamine"
+        m["2-Fl-2'-Oxo-PCM"] = "2-Fluorodeschloroketamine"
+        m["2-Fluorodeschloroketamine"] = "2-Fluorodeschloroketamine"
+        m["2-Fluoroketamine"] = "2-Fluorodeschloroketamine"
+        m["2-Fluro-ketamine"] = "2-Fluorodeschloroketamine"
+        m["2-Fluroketamine"] = "2-Fluorodeschloroketamine"
+        m["2f-dck"] = "2-Fluorodeschloroketamine"
+        m["2fdck"] = "2-Fluorodeschloroketamine"
+        m["Fluoroketamine"] = "2-Fluorodeschloroketamine"
+        m["2-Fluoromethcathinone"] = "2-Fluoromethcathinone"
+    }
+
+    private fun addChunk1(m: MutableMap<String, String>) {
+        m["2-FMC"] = "2-Fluoromethcathinone"
+        m["2-Fluoromethamphetamine"] = "2-FMA"
+        m["2-FMA"] = "2-FMA"
+        m["2fluoromethamphetamine"] = "2-FMA"
+        m["2fma"] = "2-FMA"
+        m["2-Methoxyamphetamine"] = "2-Methoxyamphetamine"
+        m["OMA"] = "2-Methoxyamphetamine"
+        m["2-Methylphenylpiperazine"] = "2-Methylphenylpiperazine"
+        m["oMPP"] = "2-Methylphenylpiperazine"
+        m["2-Methylthiophene"] = "2-Methylthiophene"
+        m["2-Thiotoluene"] = "2-Methylthiophene"
+        m["2-Naphthylamine"] = "2-Naphthylamine"
+        m["2-Naphthylaminopropane"] = "2-Naphthylaminopropane"
+        m["NAP"] = "2-Naphthylaminopropane"
+        m["2-Naphthylmethcathinone"] = "2-Naphthylmethcathinone"
+        m["BMAPN"] = "2-Naphthylmethcathinone"
+        m["2-Octylcyanoacrylate"] = "2-Octylcyanoacrylate"
+        m["Dermabond"] = "2-Octylcyanoacrylate"
+        m["2-Phenyl-3,5-dimethylmorpholine"] = "2-Phenyl-3,5-dimethylmorpholine"
+        m["3,5-DMPM"] = "2-Phenyl-3,5-dimethylmorpholine"
+        m["2-Phenyl-3,6-dimethylmorpholine"] = "2-Phenyl-3,6-dimethylmorpholine"
+        m["3,6-DMPM"] = "2-Phenyl-3,6-dimethylmorpholine"
+        m["2-Phenylphenol"] = "2-Phenylphenol"
+        m["2-NEA"] = "2-Pyrrolylethylamine"
+        m["2-Pyrrolylethylamine"] = "2-Pyrrolylethylamine"
+        m["2-Tetrahydrofurylethylamine"] = "2-Tetrahydrofurylethylamine"
+        m["2-THFEA"] = "2-Tetrahydrofurylethylamine"
+        m["2-β-Carbomethoxy-3-β-(4-fluorophenyl)tropane"] = "2-β-Carbomethoxy-3-β-(4-fluorophenyl)tropane"
+        m["WIN-35428"] = "2-β-Carbomethoxy-3-β-(4-fluorophenyl)tropane"
+        m["2,5-Dimethoxy-4-bromo-N-(2-hydroxybenzyl)phenethylamine"] = "25B-NBOH"
+        m["25B-NBOH"] = "25B-NBOH"
+        m["2C-B-NBOH"] = "25B-NBOH"
+        m["NBOH-2C-B"] = "25B-NBOH"
+        m["NBOH-2CB"] = "25B-NBOH"
+        m["2,5-Dimethoxy-4-bromo-N-(2-methoxybenzyl)phenethylamine"] = "25B-NBOMe"
+        m["25B"] = "25B-NBOMe"
+        m["25B-NBOMe"] = "25B-NBOMe"
+        m["25bnbome"] = "25B-NBOMe"
+        m["2C-B-NBOMe"] = "25B-NBOMe"
+        m["Cimbi-36"] = "25B-NBOMe"
+        m["NBOMe-2C-B"] = "25B-NBOMe"
+        m["2,5-Dimethoxy-4-chloro-N-(2-hydroxybenzyl)phenethylamine"] = "25C-NBOH"
+        m["25C-NBOH"] = "25C-NBOH"
+        m["2C-C-NBOH"] = "25C-NBOH"
+        m["NBOH-2C-C"] = "25C-NBOH"
+        m["2,5-Dimethoxy-4-chloro-N-(2-methoxybenzyl)phenethylamine"] = "25C-NBOMe"
+        m["25c"] = "25C-NBOMe"
+        m["25C-NBOMe"] = "25C-NBOMe"
+        m["25cnbome"] = "25C-NBOMe"
+        m["2C-C-NBOMe"] = "25C-NBOMe"
+        m["Cimbi-82"] = "25C-NBOMe"
+        m["NBOMe-2C-C"] = "25C-NBOMe"
+        m["2,5-Dimethoxy-4-methyl-N-(2-methoxybenzyl)phenethylamine"] = "25D-NBOMe"
+        m["25-d nbome"] = "25D-NBOMe"
+        m["25D-NBOMe"] = "25D-NBOMe"
+        m["2C-D-NBOMe"] = "25D-NBOMe"
+        m["NBOMe-2C-D"] = "25D-NBOMe"
+        m["2,5-Dimethoxy-4-iodo-N-(2-hydroxybenzyl)phenethylamine"] = "25I-NBOH"
+        m["25I-NBOH"] = "25I-NBOH"
+        m["2C-I-NBOH"] = "25I-NBOH"
+        m["Cimbi-27"] = "25I-NBOH"
+        m["NBOH-2C-I"] = "25I-NBOH"
+        m["2,5-Dimethoxy-4-iodo-N-(2-methoxybenzyl)phenethylamine"] = "25I-NBOMe"
+        m["25i"] = "25I-NBOMe"
+        m["25I-NBOMe"] = "25I-NBOMe"
+        m["25inbome"] = "25I-NBOMe"
+        m["2C-I-NBOMe"] = "25I-NBOMe"
+        m["Cimbi-5"] = "25I-NBOMe"
+        m["NBOMe-2C-I"] = "25I-NBOMe"
+        m["2,5-Dimethoxy-4-nitro-N-(2-methoxybenzyl)phenethylamine"] = "25N-NBOMe"
+        m["25n"] = "25N-NBOMe"
+        m["25N-NBOMe"] = "25N-NBOMe"
+        m["25nnbome"] = "25N-NBOMe"
+        m["2C-N-NBOMe"] = "25N-NBOMe"
+        m["NBOMe-2C-N"] = "25N-NBOMe"
+        m["25x-NBOMe"] = "25x-NBOMe"
+        m["N-(2-Methoxybenzyl)phenethylamine"] = "25x-NBOMe"
+        m["Nbomb"] = "25x-NBOMe"
+        m["NBOMe"] = "25x-NBOMe"
+        m["NBOMes"] = "25x-NBOMe"
+        m["2,5-Dimethoxy-4-bromophenethylamine"] = "2C-B"
+        m["2-cb"] = "2C-B"
+        m["2C-B"] = "2C-B"
+        m["2cb"] = "2C-B"
+        m["4-Bromo-2,5-dimethoxyphenethylamine"] = "2C-B"
+        m["BDMPEA"] = "2C-B"
+        m["Bees"] = "2C-B"
+        m["Bromodimethoxyphenethylamine"] = "2C-B"
+        m["Nexus"] = "2C-B"
+        m["2C-B-FLY"] = "2C-B-FLY"
+        m["2cbfly"] = "2C-B-FLY"
+        m["2,5-Dimethoxy-4-chlorophenethylamine"] = "2C-C"
+        m["2C-C"] = "2C-C"
+        m["2cc"] = "2C-C"
+        m["2,5-Dimethoxy-4-methylphenethylamine"] = "2C-D"
+        m["2C-D"] = "2C-D"
+        m["2C-M"] = "2C-D"
+        m["2cd"] = "2C-D"
+        m["LE-25"] = "2C-D"
+        m["2,5-Dimethoxy-4-ethylphenethylamine"] = "2C-E"
+        m["2C-E"] = "2C-E"
+        m["2CE"] = "2C-E"
+        m["Eternity"] = "2C-E"
+        m["2C-G-5"] = "2C-G-5"
+        m["2,5-dimethoxyphenethylamine"] = "2C-H"
+        m["2C-H"] = "2C-H"
+        m["2ch"] = "2C-H"
+        m["2,5-Dimethoxy-4-iodophenethylamine"] = "2C-I"
+        m["2C-I"] = "2C-I"
+        m["2ci"] = "2C-I"
+        m["2,5-Dimethoxy-4-propylphenethylamine"] = "2C-P"
+        m["2C-P"] = "2C-P"
+        m["2CP"] = "2C-P"
+        m["2,5-Dimethoxy-4-methylthiophenethylamine"] = "2C-T"
+        m["2C-T"] = "2C-T"
+        m["Tesseract"] = "2C-T"
+        m["2,5-Dimethoxy-4-ethylthiophenethylamine"] = "2C-T-2"
+        m["2C-T-2"] = "2C-T-2"
+        m["2ct2"] = "2C-T-2"
+        m["Rosy"] = "2C-T-2"
+        m["2C-T-21"] = "2C-T-21"
+        m["2ct21"] = "2C-T-21"
+        m["Aurora"] = "2C-T-21"
+        m["2-C-T-7"] = "2C-T-7"
+        m["2C-T-7"] = "2C-T-7"
+        m["2ct7"] = "2C-T-7"
+        m["7th Heaven"] = "2C-T-7"
+        m["Beautiful"] = "2C-T-7"
+        m["Blue Mystic"] = "2C-T-7"
+        m["2C-x"] = "2C-x"
+        m["2C-x family"] = "2C-x"
+        m["2Cx"] = "2C-x"
+        m["2-methyl-2-butanol"] = "2M2B"
+        m["2-Methylbutan-2-ol"] = "2M2B"
+        m["2M2B"] = "2M2B"
+        m["2methyl2butanol"] = "2M2B"
+        m["Amylene hydrate"] = "2M2B"
+        m["TAA"] = "2M2B"
+        m["Tert-Amyl alcohol"] = "2M2B"
+        m["2β-Carboisopropoxy-3β-(4-iodophenyl)tropane"] = "2β-Carboisopropoxy-3β-(4-iodophenyl)tropane"
+        m["RTI-121"] = "2β-Carboisopropoxy-3β-(4-iodophenyl)tropane"
+        m["2β-Carbomethoxy-3β-(3-methyl-4-chlorophenyl)tropane"] = "2β-Carbomethoxy-3β-(3-methyl-4-chlorophenyl)tropane"
+        m["RTI-112"] = "2β-Carbomethoxy-3β-(3-methyl-4-chlorophenyl)tropane"
+        m["2β-Propanoyl-3β-(2-naphthyl)-tropane"] = "2β-Propanoyl-3β-(2-naphthyl)-tropane"
+        m["WF-23"] = "2β-Propanoyl-3β-(2-naphthyl)-tropane"
+        m["3',4'-Dichloro-α-pyrrolidinopentiophenone"] = "3',4'-Dichloro-α-pyrrolidinopentiophenone"
+        m["3,4-DCPV"] = "3',4'-Dichloro-α-pyrrolidinopentiophenone"
+        m["DCPVP"] = "3',4'-Dichloro-α-pyrrolidinopentiophenone"
+        m["O-2390"] = "3',4'-Dichloro-α-pyrrolidinopentiophenone"
+        m["3',4'-Dimethoxy-α-pyrrolidinopentiophenone"] = "3',4'-Dimethoxy-α-pyrrolidinopentiophenone"
+        m["3,4-DMPV"] = "3',4'-Dimethoxy-α-pyrrolidinopentiophenone"
+        m["DMPV"] = "3',4'-Dimethoxy-α-pyrrolidinopentiophenone"
+        m["DMPVP"] = "3',4'-Dimethoxy-α-pyrrolidinopentiophenone"
+        m["O-2512"] = "3',4'-Dimethoxy-α-pyrrolidinopentiophenone"
+        m["3',4'-Ethylene-α-pyrrolidinopentiophenone"] = "3',4'-Ethylene-α-pyrrolidinopentiophenone"
+        m["3',4'-Methylenedioxy-α-pyrrolidinobutiophenone"] = "3',4'-Methylenedioxy-α-pyrrolidinobutiophenone"
+        m["MDPBP"] = "3',4'-Methylenedioxy-α-pyrrolidinobutiophenone"
+        m["3',4'-Methylenedioxy-α-pyrrolidinoheptaphenone"] = "3',4'-Methylenedioxy-α-pyrrolidinoheptaphenone"
+        m["MDPEP"] = "3',4'-Methylenedioxy-α-pyrrolidinoheptaphenone"
+        m["3',4'-Methylenedioxy-α-pyrrolidinohexiophenone"] = "3',4'-Methylenedioxy-α-pyrrolidinohexiophenone"
+        m["MDPHP"] = "3',4'-Methylenedioxy-α-pyrrolidinohexiophenone"
+        m["3',4'-Methylenedioxy-α-pyrrolidinoisohexanophenone"] = "3',4'-Methylenedioxy-α-pyrrolidinoisohexanophenone"
+        m["MDPiHP"] = "3',4'-Methylenedioxy-α-pyrrolidinoisohexanophenone"
+        m["3',4'-Methylenedioxy-α-pyrrolidinopropiophenone"] = "3',4'-Methylenedioxy-α-pyrrolidinopropiophenone"
+        m["MDPPP"] = "3',4'-Methylenedioxy-α-pyrrolidinopropiophenone"
+        m["3',4'-Methylenedioxyaminorex"] = "3',4'-Methylenedioxyaminorex"
+        m["MDAR"] = "3',4'-Methylenedioxyaminorex"
+        m["3',4'-Tetramethylene-α-pyrrolidinovalerophenone"] = "3',4'-Tetramethylene-α-pyrrolidinovalerophenone"
+        m["TH-PVP"] = "3',4'-Tetramethylene-α-pyrrolidinovalerophenone"
+        m["THPV"] = "3',4'-Tetramethylene-α-pyrrolidinovalerophenone"
+        m["3',4'-Trimethylene-α-piperidinopentiophenone"] = "3',4'-Trimethylene-α-piperidinopentiophenone"
+        m["3,4-Pr-PIPVP"] = "3',4'-Trimethylene-α-piperidinopentiophenone"
+        m["3'-Methyl-4'-Fluoro-α-Pyrrolidinovalerophenone"] = "3'-Methyl-4'-Fluoro-α-Pyrrolidinovalerophenone"
+        m["MFPVP"] = "3'-Methyl-4'-Fluoro-α-Pyrrolidinovalerophenone"
+        m["3'-Methyl-α-pyrrolidinopentiophenone"] = "3'-Methyl-α-pyrrolidinopentiophenone"
+        m["3-Me-PVP"] = "3'-Methyl-α-pyrrolidinopentiophenone"
+        m["3-Me-α-PVP"] = "3'-Methyl-α-pyrrolidinopentiophenone"
+        m["O-2480"] = "3'-Methyl-α-pyrrolidinopentiophenone"
+        m["3,3-Dimethylrolicyclidine"] = "3,3-Dimethylrolicyclidine"
+        m["3,3-DMe-PCPy"] = "3,3-Dimethylrolicyclidine"
+        m["3,3-Diphenylcyclobutanamine"] = "3,3-Diphenylcyclobutanamine"
+        m["3,4,5-TMA"] = "3,4,5-Trimethoxyamphetamine"
+        m["3,4,5-Trimethoxyamphetamine"] = "3,4,5-Trimethoxyamphetamine"
+        m["a-Methylmescaline"] = "3,4,5-Trimethoxyamphetamine"
+        m["TMA"] = "3,4,5-Trimethoxyamphetamine"
+        m["TMA-1"] = "3,4,5-Trimethoxyamphetamine"
+        m["α-Methylmescaline"] = "3,4,5-Trimethoxyamphetamine"
+        m["3,4,5-Trimethoxymethamphetamine"] = "3,4,5-Trimethoxymethamphetamine"
+        m["Methyl-TMA"] = "3,4,5-Trimethoxymethamphetamine"
+        m["N-methyl-TMA"] = "3,4,5-Trimethoxymethamphetamine"
+        m["TMMA"] = "3,4,5-Trimethoxymethamphetamine"
+        m["3,4,5-Trimethoxytranylcypromine"] = "3,4,5-Trimethoxytranylcypromine"
+        m["MCPA"] = "3,4,5-Trimethoxytranylcypromine"
+        m["TMT"] = "3,4,5-Trimethoxytranylcypromine"
+        m["3,4-CTMP"] = "3,4-CTMP"
+        m["3,4-DCMP"] = "3,4-CTMP"
+        m["3,4-Dichloromethylphenidate"] = "3,4-CTMP"
+        m["3,4-DCA"] = "3,4-Dichloroamphetamine"
+        m["3,4-Dichloroamphetamine"] = "3,4-Dichloroamphetamine"
+        m["3,4-Dihydroxymethcathinone"] = "3,4-Dihydroxymethcathinone"
+        m["HHMC"] = "3,4-Dihydroxymethcathinone"
+        m["3,4-Dihydroxyphenylacetaldehyde"] = "3,4-Dihydroxyphenylacetaldehyde"
+        m["DOPAL"] = "3,4-Dihydroxyphenylacetaldehyde"
+        m["3,4-Dihydroxyphenylalanine"] = "3,4-Dihydroxyphenylalanine"
+        m["DOPA"] = "3,4-Dihydroxyphenylalanine"
+        m["L-DOPA"] = "3,4-Dihydroxyphenylalanine"
+        m["3,4-Dimethoxyamphetamine"] = "3,4-Dimethoxyamphetamine"
+        m["3,4-DMA"] = "3,4-Dimethoxyamphetamine"
+        m["3,4-Dimethoxyphenethylamine"] = "3,4-Dimethoxyphenethylamine"
+        m["DMPEA"] = "3,4-Dimethoxyphenethylamine"
+        m["3,4-Dimethylmethcathinone"] = "3,4-Dimethylmethcathinone"
+        m["3,4-DMMC"] = "3,4-Dimethylmethcathinone"
+        m["3,4-Ethylenedioxyamphetamine"] = "3,4-Ethylenedioxyamphetamine"
+        m["EDA"] = "3,4-Ethylenedioxyamphetamine"
+        m["3,4-Ethylenedioxycathinone"] = "3,4-Ethylenedioxycathinone"
+        m["EDC"] = "3,4-Ethylenedioxycathinone"
+        m["3,4-Ethylenedioxymethamphetamine"] = "3,4-Ethylenedioxymethamphetamine"
+        m["EDMA"] = "3,4-Ethylenedioxymethamphetamine"
+        m["3,4-Ethylenedioxymethcathinone"] = "3,4-Ethylenedioxymethcathinone"
+        m["EDMC"] = "3,4-Ethylenedioxymethcathinone"
+        m["3,4-Ethylenemethcathinone"] = "3,4-Ethylenemethcathinone"
+        m["3,4-Ethylidenedioxyamphetamine"] = "3,4-Ethylidenedioxyamphetamine"
+        m["EIDA"] = "3,4-Ethylidenedioxyamphetamine"
+        m["3,4-Isopropylidenedioxyamphetamine"] = "3,4-Isopropylidenedioxyamphetamine"
+        m["IDA"] = "3,4-Isopropylidenedioxyamphetamine"
+        m["3,4-Methylenedioxy-3-methylaminobutane"] = "3,4-Methylenedioxy-3-methylaminobutane"
+        m["Homo-MDMA"] = "3,4-Methylenedioxy-3-methylaminobutane"
+        m["3,4-Methylenedioxy-N-methyl-α-ethylphenylethylamine"] = "3,4-Methylenedioxy-N-methyl-α-ethylphenylethylamine"
+        m["MBDB"] = "3,4-Methylenedioxy-N-methyl-α-ethylphenylethylamine"
+        m["3,4-Methylenedioxy-N-propargylamphetamine"] = "3,4-Methylenedioxy-N-propargylamphetamine"
+        m["MDPL"] = "3,4-Methylenedioxy-N-propargylamphetamine"
+        m["3,4-Methylenedioxy-α,N-dimethylbenzylamine"] = "3,4-Methylenedioxy-α,N-dimethylbenzylamine"
+        m["MDM1EA"] = "3,4-Methylenedioxy-α,N-dimethylbenzylamine"
+        m["3,4-Methylenedioxy-α,N-dipropylphenethylamine"] = "3,4-Methylenedioxy-α,N-dipropylphenethylamine"
+        m["MPAP"] = "3,4-Methylenedioxy-α,N-dipropylphenethylamine"
+        m["3,4-Methylenedioxy-α-ethyl-N-methylbenzylamine"] = "3,4-Methylenedioxy-α-ethyl-N-methylbenzylamine"
+        m["M-ALPHA"] = "3,4-Methylenedioxy-α-ethyl-N-methylbenzylamine"
+        m["3,4-Methylenedioxy-α-ethylbenzylamine"] = "3,4-Methylenedioxy-α-ethylbenzylamine"
+        m["ALPHA"] = "3,4-Methylenedioxy-α-ethylbenzylamine"
+        m["3,4-Methylenedioxybenzylpiperazine"] = "3,4-Methylenedioxybenzylpiperazine"
+        m["MDBZP"] = "3,4-Methylenedioxybenzylpiperazine"
+        m["3,4-Methylenedioxycathinone"] = "3,4-Methylenedioxycathinone"
+        m["MDC"] = "3,4-Methylenedioxycathinone"
+        m["3,4-Methylenedioxydimethylamphetamine"] = "3,4-Methylenedioxydimethylamphetamine"
+        m["MDDM"] = "3,4-Methylenedioxydimethylamphetamine"
+        m["MDDMA"] = "3,4-Methylenedioxydimethylamphetamine"
+        m["3,4-Methylenedioxymephenidine"] = "3,4-Methylenedioxymephenidine"
+        m["3,4-Methylenedioxymephentermine"] = "3,4-Methylenedioxymephentermine"
+        m["MDMP"] = "3,4-Methylenedioxymephentermine"
+        m["3,4-Methylenedioxyphenethylamine"] = "3,4-Methylenedioxyphenethylamine"
+    }
+
+    private fun addChunk2(m: MutableMap<String, String>) {
+        m["MDPEA"] = "3,4-Methylenedioxyphenethylamine"
+        m["3,4-Methylenedioxyphenmetrazine"] = "3,4-Methylenedioxyphenmetrazine"
+        m["3-MDPM"] = "3,4-Methylenedioxyphenmetrazine"
+        m["MDPM"] = "3,4-Methylenedioxyphenmetrazine"
+        m["3,4-Methylenedioxyphentermine"] = "3,4-Methylenedioxyphentermine"
+        m["MDPH"] = "3,4-Methylenedioxyphentermine"
+        m["3,4-Methylenedioxyphenylaminobutane"] = "3,4-Methylenedioxyphenylaminobutane"
+        m["Homo-MDA"] = "3,4-Methylenedioxyphenylaminobutane"
+        m["3,4-Methylenedioxyrolicyclidine"] = "3,4-Methylenedioxyrolicyclidine"
+        m["MDPCPy"] = "3,4-Methylenedioxyrolicyclidine"
+        m["3,4-Methylenedioxytrimethylamphetamine"] = "3,4-Methylenedioxytrimethylamphetamine"
+        m["MDTMA"] = "3,4-Methylenedioxytrimethylamphetamine"
+        m["3,5-Dimethoxy-4-allyloxyamphetamine"] = "3,5-Dimethoxy-4-allyloxyamphetamine"
+        m["3C-AL"] = "3,5-Dimethoxy-4-allyloxyamphetamine"
+        m["3C-allylescaline"] = "3,5-Dimethoxy-4-allyloxyamphetamine"
+        m["3,5-Dimethoxy-4-trideuteromethoxyphenethylamine"] = "3,5-Dimethoxy-4-trideuteromethoxyphenethylamine"
+        m["4-D"] = "3,5-Dimethoxy-4-trideuteromethoxyphenethylamine"
+        m["3,5-Dimethoxyphenethylamine"] = "3,5-Dimethoxyphenethylamine"
+        m["3,5-DMPEA"] = "3,5-Dimethoxyphenethylamine"
+        m["4-Desmethoxymescaline"] = "3,5-Dimethoxyphenethylamine"
+        m["DMPEA-6"] = "3,5-Dimethoxyphenethylamine"
+        m["3-(1-adamantyl)-1-(aminomethyl)-3,4-dihydro-1H-isochromene-5,6-diol"] = "3-(1-adamantyl)-1-(aminomethyl)-3,4-dihydro-1H-isochromene-5,6-diol"
+        m["A-77636"] = "3-(1-adamantyl)-1-(aminomethyl)-3,4-dihydro-1H-isochromene-5,6-diol"
+        m["alpha-77636"] = "3-(1-adamantyl)-1-(aminomethyl)-3,4-dihydro-1H-isochromene-5,6-diol"
+        m["3-(4-{2-[Bis(4-fluorophenyl)methoxy]ethyl}-1-piperazinyl)-1-phenylpropyl decanoate"] = "3-(4-{2-[Bis(4-fluorophenyl)methoxy]ethyl}-1-piperazinyl)-1-phenylpropyl decanoate"
+        m["DBL-583"] = "3-(4-{2-[Bis(4-fluorophenyl)methoxy]ethyl}-1-piperazinyl)-1-phenylpropyl decanoate"
+        m["3-[4-[2-[(4-Fluorophenyl)-phenylmethoxy]ethyl]piperazin-1-yl]propanoic acid"] = "3-[4-[2-[(4-Fluorophenyl)-phenylmethoxy]ethyl]piperazin-1-yl]propanoic acid"
+        m["S-350"] = "3-[4-[2-[(4-Fluorophenyl)-phenylmethoxy]ethyl]piperazin-1-yl]propanoic acid"
+        m["3-Aminopyridine"] = "3-Aminopyridine"
+        m["3-AP"] = "3-Aminopyridine"
+        m["3-Chloro-4-fluororolicyclidine"] = "3-Chloro-4-fluororolicyclidine"
+        m["3-Cl-4-F-PCPy"] = "3-Chloro-4-fluororolicyclidine"
+        m["3-Chlorophencyclidine"] = "3-Chlorophencyclidine"
+        m["3-Cl-PCP"] = "3-Chlorophencyclidine"
+        m["3-Chlorophenmetrazine"] = "3-Chlorophenmetrazine"
+        m["3-CPM"] = "3-Chlorophenmetrazine"
+        m["3-Chlorophenylpiperazine"] = "3-Chlorophenylpiperazine"
+        m["3-CPP"] = "3-Chlorophenylpiperazine"
+        m["3-Deschlorobupropion"] = "3-Deschlorobupropion"
+        m["N-Tert-butylcathinone"] = "3-Deschlorobupropion"
+        m["3-EMC"] = "3-Ethylmethcathinone"
+        m["3-Ethylmethcathinone"] = "3-Ethylmethcathinone"
+        m["3-FA"] = "3-FA"
+        m["3-Fluoroamphetamine"] = "3-FA"
+        m["3fa"] = "3-FA"
+        m["3fluoroamphetamine"] = "3-FA"
+        m["PAL-353"] = "3-FA"
+        m["3-FEA"] = "3-FEA"
+        m["3-Fluoroethamphetamine"] = "3-FEA"
+        m["3fea"] = "3-FEA"
+        m["3fluoroethamphetamine"] = "3-FEA"
+        m["3-FDCK"] = "3-Fluorodeschloroketamine"
+        m["3-Fluorodeschloroketamine"] = "3-Fluorodeschloroketamine"
+        m["3-F-PCP"] = "3-Fluorophencyclidine"
+        m["3-Fluorophencyclidine"] = "3-Fluorophencyclidine"
+        m["3-F-PCPy"] = "3-Fluororolicyclidine"
+        m["3-Fluororolicyclidine"] = "3-Fluororolicyclidine"
+        m["3-FMA"] = "3-FMA"
+        m["3-fluorophenmetrazine"] = "3-FPM"
+        m["3-FPM"] = "3-FPM"
+        m["3FPM"] = "3-FPM"
+        m["PAL-593"] = "3-FPM"
+        m["3-HO-PCE"] = "3-HO-PCE"
+        m["3-Hydroxyeticyclidine"] = "3-HO-PCE"
+        m["3hopce"] = "3-HO-PCE"
+        m["Hydroxyeticyclidine"] = "3-HO-PCE"
+        m["3-HO-PCP"] = "3-HO-PCP"
+        m["3-Hydroxyphencyclidine"] = "3-HO-PCP"
+        m["3hopcp"] = "3-HO-PCP"
+        m["Hydroxyphencyclidine"] = "3-HO-PCP"
+        m["3-Hydroxy-N,N-dimethylphenethylamine"] = "3-Hydroxy-N,N-dimethylphenethylamine"
+        m["3-HA"] = "3-Hydroxyamphetamine"
+        m["3-Hydroxyamphetamine"] = "3-Hydroxyamphetamine"
+        m["3-Hydroxybenzylpiperazine"] = "3-Hydroxybenzylpiperazine"
+        m["3-Hydroxyphenazepam"] = "3-Hydroxyphenazepam"
+        m["3-MeO-PCE"] = "3-MeO-PCE"
+        m["3-Methoxyeticyclidine"] = "3-MeO-PCE"
+        m["3meopce"] = "3-MeO-PCE"
+        m["Methoxieticyclidine"] = "3-MeO-PCE"
+        m["Methoxyeticyclidine"] = "3-MeO-PCE"
+        m["3-MeO-PCMo"] = "3-MeO-PCMo"
+        m["3-Methoxyphenylcyclohexylmorpholine"] = "3-MeO-PCMo"
+        m["3meopcmo"] = "3-MeO-PCMo"
+        m["3 MeO"] = "3-MeO-PCP"
+        m["3-MeO"] = "3-MeO-PCP"
+        m["3-MeO-PCP"] = "3-MeO-PCP"
+        m["3-Methoxyphencyclidine"] = "3-MeO-PCP"
+        m["3meopcp"] = "3-MeO-PCP"
+        m["3-Methoxy-4-methylamphetamine"] = "3-Methoxy-4-methylamphetamine"
+        m["MMA"] = "3-Methoxy-4-methylamphetamine"
+        m["3-MeO-PCPy"] = "3-Methoxyrolicyclidine"
+        m["3-Methoxyrolicyclidine"] = "3-Methoxyrolicyclidine"
+        m["3-Methoxytyramine"] = "3-Methoxytyramine"
+        m["3-MT"] = "3-Methoxytyramine"
+        m["3-MA"] = "3-Methylamphetamine"
+        m["3-Methylamphetamine"] = "3-Methylamphetamine"
+        m["3-MBZP"] = "3-Methylbenzylpiperazine"
+        m["3-Methylbenzylpiperazine"] = "3-Methylbenzylpiperazine"
+        m["3-MEC"] = "3-Methylethcathinone"
+        m["3-Methylethcathinone"] = "3-Methylethcathinone"
+        m["3-Me-PCP"] = "3-Methylphencyclidine"
+        m["3-Methylphencyclidine"] = "3-Methylphencyclidine"
+        m["3-Methylphenmetrazine"] = "3-Methylphenmetrazine"
+        m["3-MPM"] = "3-Methylphenmetrazine"
+        m["3-Methylthiophene"] = "3-Methylthiophene"
+        m["3-Thiotoluene"] = "3-Methylthiophene"
+        m["3-Methylmethcathinone"] = "3-MMC"
+        m["3-MMC"] = "3-MMC"
+        m["3MMC"] = "3-MMC"
+        m["Metaphedrone"] = "3-MMC"
+        m["3-MAM"] = "3-Monoacetylmorphine"
+        m["3-Monoacetylmorphine"] = "3-Monoacetylmorphine"
+        m["3-PNA"] = "3-Pyridylnicotinamide"
+        m["3-Pyridylnicotinamide"] = "3-Pyridylnicotinamide"
+        m["3C-E"] = "3C-E"
+        m["3C-Escaline"] = "3C-E"
+        m["3C-P"] = "3C-P"
+        m["4'-Chlorodeschloroalprazolam"] = "4'-Chlorodeschloroalprazolam"
+        m["4'-Chlorodiazepam"] = "4'-Chlorodiazepam"
+        m["Ro5-4864"] = "4'-Chlorodiazepam"
+        m["4'-Fluoro-4-methylaminorex"] = "4'-Fluoro-4-methylaminorex"
+        m["4-FPO"] = "4'-Fluoro-4-methylaminorex"
+        m["4'-Fluoro-α-piperidinopentiophenone"] = "4'-Fluoro-α-piperidinopentiophenone"
+        m["4-FPIPVP"] = "4'-Fluoro-α-piperidinopentiophenone"
+        m["4'-Fluoro-α-pyrrolidinopentiophenone"] = "4'-Fluoro-α-pyrrolidinopentiophenone"
+        m["FPVP"] = "4'-Fluoro-α-pyrrolidinopentiophenone"
+        m["O-2370"] = "4'-Fluoro-α-pyrrolidinopentiophenone"
+        m["4'-FAR"] = "4'-Fluoroaminorex"
+        m["4'-Fluoroaminorex"] = "4'-Fluoroaminorex"
+        m["4'-Methoxy-α-pyrrolidinopentiophenone"] = "4'-Methoxy-α-pyrrolidinopentiophenone"
+        m["4-MeO-α-PVP"] = "4'-Methoxy-α-pyrrolidinopentiophenone"
+        m["MOPVP"] = "4'-Methoxy-α-pyrrolidinopentiophenone"
+        m["O-2417"] = "4'-Methoxy-α-pyrrolidinopentiophenone"
+        m["4'-Methoxy-α-pyrrolidinopropiophenone"] = "4'-Methoxy-α-pyrrolidinopropiophenone"
+        m["4-MeO-α-PPP"] = "4'-Methoxy-α-pyrrolidinopropiophenone"
+        m["MOPPP"] = "4'-Methoxy-α-pyrrolidinopropiophenone"
+        m["4,4'-Dimethylaminorex"] = "4,4'-Dimethylaminorex"
+        m["4,4'-DMAR"] = "4,4'-Dimethylaminorex"
+        m["4,5-DHT"] = "4,5-Dihydroxytryptamine"
+        m["4,5-Dihydroxytryptamine"] = "4,5-Dihydroxytryptamine"
+        m["4-(2-aminopropyl)benzofuran"] = "4-(2-aminopropyl)benzofuran"
+        m["4-APB"] = "4-(2-aminopropyl)benzofuran"
+        m["4-Acetoxy-DET"] = "4-AcO-DET"
+        m["4-Acetoxy-N,N-diethyltryptamine"] = "4-AcO-DET"
+        m["4-AcO-DET"] = "4-AcO-DET"
+        m["4acodet"] = "4-AcO-DET"
+        m["Ethacetin"] = "4-AcO-DET"
+        m["Ipracetin"] = "4-AcO-DET"
+        m["4-Acetoxy-DiPT"] = "4-AcO-DiPT"
+        m["4-Acetoxy-N,N-diisopropyltryptamine"] = "4-AcO-DiPT"
+        m["4-AcO-DiPT"] = "4-AcO-DiPT"
+        m["4acodipt"] = "4-AcO-DiPT"
+        m["Aces"] = "4-AcO-DiPT"
+        m["4 aco dmt"] = "4-AcO-DMT"
+        m["4-acetoxy-dmt"] = "4-AcO-DMT"
+        m["4-Acetoxy-N,N-dimethyltryptamine"] = "4-AcO-DMT"
+        m["4-AcO-DMT"] = "4-AcO-DMT"
+        m["4AcetoxyDMT"] = "4-AcO-DMT"
+        m["4aco"] = "4-AcO-DMT"
+        m["4acodmt"] = "4-AcO-DMT"
+        m["O-Acetylpsilocin"] = "4-AcO-DMT"
+        m["Psilacetin"] = "4-AcO-DMT"
+        m["Psilocetin"] = "4-AcO-DMT"
+        m["Synthetic mushrooms"] = "4-AcO-DMT"
+        m["4-Acetoxy-MET"] = "4-AcO-MET"
+        m["4-Acetoxy-N-ethyl-N-methyltryptamine"] = "4-AcO-MET"
+        m["4-AcO-MET"] = "4-AcO-MET"
+        m["4acomet"] = "4-AcO-MET"
+        m["Azomet"] = "4-AcO-MET"
+        m["Metacetin"] = "4-AcO-MET"
+        m["O-Acetylmetocin"] = "4-AcO-MET"
+        m["4-Acetoxy-MiPT"] = "4-AcO-MiPT"
+        m["4-Acetoxy-N-methyl-N-isopropyltryptamine"] = "4-AcO-MiPT"
+        m["4-AcO-MiPT"] = "4-AcO-MiPT"
+        m["4acomipt"] = "4-AcO-MiPT"
+        m["Mipracetin"] = "4-AcO-MiPT"
+        m["O-Acetylmiprocin"] = "4-AcO-MiPT"
+        m["4-Aminopyridine"] = "4-Aminopyridine"
+        m["4-AP"] = "4-Aminopyridine"
+        m["4-CBC"] = "4-Chlorobutylcathinone"
+        m["4-Chlorobutylcathinone"] = "4-Chlorobutylcathinone"
+        m["4-Chlorophenylpiperazine"] = "4-Chlorophenylpiperazine"
+        m["4-CPP"] = "4-Chlorophenylpiperazine"
+        m["4-EAR"] = "4-Ethylaminorex"
+        m["4-Ethylaminorex"] = "4-Ethylaminorex"
+        m["4-EMC"] = "4-Ethylmethcathinone"
+        m["4-Ethylmethcathinone"] = "4-Ethylmethcathinone"
+        m["4-FA"] = "4-FA"
+        m["4-Fluoroamphetamine"] = "4-FA"
+        m["4-FMP"] = "4-FA"
+        m["4FA"] = "4-FA"
+        m["4fluoroamphetamine"] = "4-FA"
+        m["4fmp"] = "4-FA"
+        m["Flux"] = "4-FA"
+        m["PAL-303"] = "4-FA"
+        m["Para-fluoroamphetamine"] = "4-FA"
+        m["Parafluoroamphetamine"] = "4-FA"
+        m["4-FC"] = "4-Fluorocathinone"
+        m["4-Fluorocathinone"] = "4-Fluorocathinone"
+        m["4-FEP"] = "4-Fluoroephedrine"
+        m["4-Fluoroephedrine"] = "4-Fluoroephedrine"
+        m["4-Fluorophenylpiperazine"] = "4-Fluorophenylpiperazine"
+        m["4-FPP"] = "4-Fluorophenylpiperazine"
+        m["4-F-PCPy"] = "4-Fluororolicyclidine"
+        m["4-Fluororolicyclidine"] = "4-Fluororolicyclidine"
+        m["4-Fluoroselegiline"] = "4-Fluoroselegiline"
+        m["4-Fluoromethamphetamine"] = "4-FMA"
+        m["4-FMA"] = "4-FMA"
+        m["4-HO-DET"] = "4-HO-DET"
+        m["4-Hydroxy-N,N-diethyltryptamine"] = "4-HO-DET"
+        m["4hodet"] = "4-HO-DET"
+        m["CZ-74"] = "4-HO-DET"
+        m["Ethocin"] = "4-HO-DET"
+        m["4-HO-DiPT"] = "4-HO-DiPT"
+        m["4-Hydroxy-N,N-diisopropyltryptamine"] = "4-HO-DiPT"
+        m["4hodipt"] = "4-HO-DiPT"
+        m["Iprocin"] = "4-HO-DiPT"
+        m["4-HO-DPT"] = "4-HO-DPT"
+        m["4-Hydroxy-N,N-dipropyltryptamine"] = "4-HO-DPT"
+        m["4hodpt"] = "4-HO-DPT"
+        m["Deprocin"] = "4-HO-DPT"
+        m["Procin"] = "4-HO-DPT"
+        m["Psiprocin"] = "4-HO-DPT"
+        m["4-HO-EPT"] = "4-HO-EPT"
+        m["4-Hydroxy-N-ethyl-N-propyltryptamine"] = "4-HO-EPT"
+        m["4hoept"] = "4-HO-EPT"
+        m["Eprocin"] = "4-HO-EPT"
+        m["4-HO-MET"] = "4-HO-MET"
+        m["4-Hydroxy-N-methyl-N-ethyltryptamine"] = "4-HO-MET"
+        m["4homet"] = "4-HO-MET"
+        m["Colour"] = "4-HO-MET"
+        m["Methylcybin"] = "4-HO-MET"
+        m["Metocin"] = "4-HO-MET"
+        m["4-HO-MiPT"] = "4-HO-MiPT"
+        m["4-Hydroxy-N-methyl-N-isopropyltryptamine"] = "4-HO-MiPT"
+        m["4homipt"] = "4-HO-MiPT"
+        m["Miprocin"] = "4-HO-MiPT"
+        m["4-HO-MPT"] = "4-HO-MPT"
+        m["4-Hydroxy-N-methyl-N-propyltryptamine"] = "4-HO-MPT"
+        m["4hompt"] = "4-HO-MPT"
+        m["Meprocin"] = "4-HO-MPT"
+        m["4-HO-5-MeO-T"] = "4-Hydroxy-5-methoxytryptamine"
+        m["4-Hydroxy-5-methoxytryptamine"] = "4-Hydroxy-5-methoxytryptamine"
+        m["4-HO-αMT"] = "4-Hydroxy-α-methyltryptamine"
+        m["4-Hydroxy-α-methyltryptamine"] = "4-Hydroxy-α-methyltryptamine"
+        m["4-HA"] = "4-Hydroxyamphetamine"
+        m["4-Hydroxyamphetamine"] = "4-Hydroxyamphetamine"
+        m["4-Hydroxybenzylpiperazine"] = "4-Hydroxybenzylpiperazine"
+        m["4-HO-T"] = "4-Hydroxytryptamine"
+        m["4-Hydroxytryptamine"] = "4-Hydroxytryptamine"
+    }
+
+    private fun addChunk3(m: MutableMap<String, String>) {
+        m["4-MeO-PCP"] = "4-MeO-PCP"
+        m["4-Methoxyphencyclidine"] = "4-MeO-PCP"
+        m["Methoxydine"] = "4-MeO-PCP"
+        m["4-Methoxyphenylpiperazine"] = "4-Methoxyphenylpiperazine"
+        m["pMeOPP"] = "4-Methoxyphenylpiperazine"
+        m["4-MeO-PCPy"] = "4-Methoxyrolicyclidine"
+        m["4-Methoxyrolicyclidine"] = "4-Methoxyrolicyclidine"
+        m["4-Me-αMT"] = "4-Methyl-α-methyltryptamine"
+        m["4-Methyl-α-methyltryptamine"] = "4-Methyl-α-methyltryptamine"
+        m["4-MAR"] = "4-Methylaminorex"
+        m["4-Methylaminorex"] = "4-Methylaminorex"
+        m["4-MA"] = "4-Methylamphetamine"
+        m["4-Methylamphetamine"] = "4-Methylamphetamine"
+        m["4MA"] = "4-Methylamphetamine"
+        m["4-MBZP"] = "4-Methylbenzylpiperazine"
+        m["4-Methylbenzylpiperazine"] = "4-Methylbenzylpiperazine"
+        m["4-MeMABP"] = "4-Methylbuphedrone"
+        m["4-Methylbuphedrone"] = "4-Methylbuphedrone"
+        m["4-MEC"] = "4-Methylethcathinone"
+        m["4-Methylethcathinone"] = "4-Methylethcathinone"
+        m["4-Methylmethylphenidate"] = "4-Methylmethylphenidate"
+        m["4-MMPH"] = "4-Methylmethylphenidate"
+        m["4-Methylpentedrone"] = "4-Methylpentedrone"
+        m["4-MPD"] = "4-Methylpentedrone"
+        m["4-Methylphenmetrazine"] = "4-Methylphenmetrazine"
+        m["4-MPM"] = "4-Methylphenmetrazine"
+        m["4-Methylphenylpiperazine"] = "4-Methylphenylpiperazine"
+        m["4-MPP"] = "4-Methylphenylpiperazine"
+        m["4-Methylpregabalin"] = "4-Methylpregabalin"
+        m["4-Methylthioamphetamine"] = "4-Methylthioamphetamine"
+        m["4-MTA"] = "4-Methylthioamphetamine"
+        m["4-Nitrophenylpiperazine"] = "4-Nitrophenylpiperazine"
+        m["pNPP"] = "4-Nitrophenylpiperazine"
+        m["4-PrO-DMT"] = "4-Propionoyloxy-N,N-dimethyltryptamine"
+        m["4-Propionoyloxy-N,N-dimethyltryptamine"] = "4-Propionoyloxy-N,N-dimethyltryptamine"
+        m["4-PrO-MET"] = "4-Propionyloxy-N-methyl-N-ethyltryptamine"
+        m["4-Propionyloxy-N-methyl-N-ethyltryptamine"] = "4-Propionyloxy-N-methyl-N-ethyltryptamine"
+        m["4-PNA"] = "4-Pyridylnicotinamide"
+        m["4-Pyridylnicotinamide"] = "4-Pyridylnicotinamide"
+        m["4-FEPH"] = "4F-EPH"
+        m["4-Fluoroethylphenidate"] = "4F-EPH"
+        m["4F-EPH"] = "4F-EPH"
+        m["4feph"] = "4F-EPH"
+        m["4-Fluoromethylphenidate"] = "4F-MPH"
+        m["4-FMPH"] = "4F-MPH"
+        m["4F-MPH"] = "4F-MPH"
+        m["4fmph"] = "4F-MPH"
+        m["5,6-Benzofuranyl-2-aminoindane"] = "5,6-Benzofuranyl-2-aminoindane"
+        m["BFAI"] = "5,6-Benzofuranyl-2-aminoindane"
+        m["5,6-DHT"] = "5,6-Dihydroxytryptamine"
+        m["5,6-Dihydroxytryptamine"] = "5,6-Dihydroxytryptamine"
+        m["5,6-Methylenedioxy-N-methyl-2-aminoindane"] = "5,6-Methylenedioxy-N-methyl-2-aminoindane"
+        m["MDMAI"] = "5,6-Methylenedioxy-N-methyl-2-aminoindane"
+        m["5,6-MDDMT"] = "5,6-Methylenedioxydimethyltryptamine"
+        m["5,6-Methylenedioxydimethyltryptamine"] = "5,6-Methylenedioxydimethyltryptamine"
+        m["5,7-DHT"] = "5,7-Dihydroxytryptamine"
+        m["5,7-Dihydroxytryptamine"] = "5,7-Dihydroxytryptamine"
+        m["5-(Trifluoromethoxy)-N,N-dimethyltryptamine"] = "5-(Trifluoromethoxy)-N,N-dimethyltryptamine"
+        m["5-TFMO-DMT"] = "5-(Trifluoromethoxy)-N,N-dimethyltryptamine"
+        m["5-(Trifluoromethyl)-N,N-dimethyltryptamine"] = "5-(Trifluoromethyl)-N,N-dimethyltryptamine"
+        m["5-TFM-DMT"] = "5-(Trifluoromethyl)-N,N-dimethyltryptamine"
+        m["5-(2-Aminopropyl)benzofuran"] = "5-APB"
+        m["5-APB"] = "5-APB"
+        m["5abp"] = "5-APB"
+        m["5apb"] = "5-APB"
+        m["5-APBD"] = "5-APBD"
+        m["5-Bromo-DMT"] = "5-Bromo-N,N-dimethyltryptamine"
+        m["5-Bromo-N,N-dimethyltryptamine"] = "5-Bromo-N,N-dimethyltryptamine"
+        m["5-Chloro-DMT"] = "5-Chloro-N,N-dimethyltryptamine"
+        m["5-Chloro-N,N-dimethyltryptamine"] = "5-Chloro-N,N-dimethyltryptamine"
+        m["5-Chloro-α-ethyltryptamine"] = "5-Chloro-α-ethyltryptamine"
+        m["5-Chloro-αET"] = "5-Chloro-α-ethyltryptamine"
+        m["5-Chloro-α-methyltryptamine"] = "5-Chloro-α-methyltryptamine"
+        m["5-Chloro-αMT"] = "5-Chloro-α-methyltryptamine"
+        m["5-Chloro-β-keto-methiopropamine"] = "5-Chloro-β-keto-methiopropamine"
+        m["5-DBFPV"] = "5-Dihydrobenzofuranpyrovalerone"
+        m["5-Dihydrobenzofuranpyrovalerone"] = "5-Dihydrobenzofuranpyrovalerone"
+        m["5-Ethoxy-α-methyltryptamine"] = "5-Ethoxy-α-methyltryptamine"
+        m["5-EtO-αMT"] = "5-Ethoxy-α-methyltryptamine"
+        m["5-Fluoro-DET"] = "5-Fluoro-N,N-diethyltryptamine"
+        m["5-Fluoro-N,N-diethyltryptamine"] = "5-Fluoro-N,N-diethyltryptamine"
+        m["5-Fluoro-DMT"] = "5-Fluoro-N,N-dimethyltryptamine"
+        m["5-Fluoro-N,N-dimethyltryptamine"] = "5-Fluoro-N,N-dimethyltryptamine"
+        m["5-Fluoro-EPT"] = "5-Fluoro-N-ethyl-N-propyltryptamine"
+        m["5-Fluoro-N-ethyl-N-propyltryptamine"] = "5-Fluoro-N-ethyl-N-propyltryptamine"
+        m["5-Fluoro-T"] = "5-Fluoro-tryptamine"
+        m["5-Fluoro-tryptamine"] = "5-Fluoro-tryptamine"
+        m["5-Fluoro-α-ethyltryptamine"] = "5-Fluoro-α-ethyltryptamine"
+        m["5-Fluoro-αET"] = "5-Fluoro-α-ethyltryptamine"
+        m["5-Fluoro-α-methyltryptamine"] = "5-Fluoro-α-methyltryptamine"
+        m["5-Fluoro-αMT"] = "5-Fluoro-α-methyltryptamine"
+        m["5-HO-DET"] = "5-Hydroxy-N,N-diethyltryptamine"
+        m["5-Hydroxy-N,N-diethyltryptamine"] = "5-Hydroxy-N,N-diethyltryptamine"
+        m["5-HO-DiPT"] = "5-hydroxy-N,N-diisopropyltryptamine"
+        m["5-hydroxy-N,N-diisopropyltryptamine"] = "5-hydroxy-N,N-diisopropyltryptamine"
+        m["5-HTP"] = "5-Hydroxytryptophan"
+        m["5-Hydroxytryptophan"] = "5-Hydroxytryptophan"
+        m["Cincofarm"] = "5-Hydroxytryptophan"
+        m["Levothym"] = "5-Hydroxytryptophan"
+        m["Levotonine"] = "5-Hydroxytryptophan"
+        m["Oxitriptan"] = "5-Hydroxytryptophan"
+        m["Oxyfan"] = "5-Hydroxytryptophan"
+        m["Telesol"] = "5-Hydroxytryptophan"
+        m["Tript-OH"] = "5-Hydroxytryptophan"
+        m["Triptum"] = "5-Hydroxytryptophan"
+        m["5-IAI"] = "5-Iodo-2-aminoindane"
+        m["5-Iodo-2-aminoindane"] = "5-Iodo-2-aminoindane"
+        m["5-(2-Methylaminopropyl)benzofuran"] = "5-MAPB"
+        m["5-(N-methyl-2-aminopropyl)benzofuran"] = "5-MAPB"
+        m["5-MAPB"] = "5-MAPB"
+        m["5MAPB"] = "5-MAPB"
+        m["5-MeO-DALT"] = "5-MeO-DALT"
+        m["5-Methoxy-N,N-diallyltryptamine"] = "5-MeO-DALT"
+        m["5meodalt"] = "5-MeO-DALT"
+        m["Foxtrot"] = "5-MeO-DALT"
+        m["5-MeO-DiBF"] = "5-MeO-DiBF"
+        m["5-MeO-DiPT"] = "5-MeO-DiPT"
+        m["5-Methoxy-N,N-diisopropyltryptamine"] = "5-MeO-DiPT"
+        m["5meodipt"] = "5-MeO-DiPT"
+        m["Foxy"] = "5-MeO-DiPT"
+        m["Foxy Methoxy"] = "5-MeO-DiPT"
+        m["5-MeO-DMT"] = "5-MeO-DMT"
+        m["5-Methoxy-N,N-dimethyltryptamine"] = "5-MeO-DMT"
+        m["5meodmt"] = "5-MeO-DMT"
+        m["Jaguar"] = "5-MeO-DMT"
+        m["Mebufotenin"] = "5-MeO-DMT"
+        m["The God Molecule"] = "5-MeO-DMT"
+        m["Toad"] = "5-MeO-DMT"
+        m["5-MeO-MiPT"] = "5-MeO-MiPT"
+        m["5-Methoxy-N-methyl-N-isopropyltryptamine"] = "5-MeO-MiPT"
+        m["5meomipt"] = "5-MeO-MiPT"
+        m["Moxy"] = "5-MeO-MiPT"
+        m["5-Methoxy-2-aminoindane"] = "5-Methoxy-2-aminoindane"
+        m["5-MeO-MDA"] = "5-Methoxy-3,4-Methylenedioxyamphetamine"
+        m["5-Methoxy-3,4-Methylenedioxyamphetamine"] = "5-Methoxy-3,4-Methylenedioxyamphetamine"
+        m["5-MeO-MDMA"] = "5-Methoxy-3,4-Methylenedioxymethamphetamine"
+        m["5-Methoxy-3,4-Methylenedioxymethamphetamine"] = "5-Methoxy-3,4-Methylenedioxymethamphetamine"
+        m["5-MeO-7-F-MET"] = "5-Methoxy-7-fluoro-N-methyl-N-ethyltryptamine"
+        m["5-Methoxy-7-fluoro-N-methyl-N-ethyltryptamine"] = "5-Methoxy-7-fluoro-N-methyl-N-ethyltryptamine"
+        m["5-MeO-EiPT"] = "5-Methoxy-N-ethyl-N-isopropyltryptamine"
+        m["5-Methoxy-N-ethyl-N-isopropyltryptamine"] = "5-Methoxy-N-ethyl-N-isopropyltryptamine"
+        m["5-MeO-MALT"] = "5-Methoxy-N-methyl-N-allyltryptamine"
+        m["5-Methoxy-N-methyl-N-allyltryptamine"] = "5-Methoxy-N-methyl-N-allyltryptamine"
+        m["5-MeO-αMT"] = "5-Methoxy-α-methyltryptamine"
+        m["5-Methoxy-α-methyltryptamine"] = "5-Methoxy-α-methyltryptamine"
+        m["5-Me-MDEC"] = "5-Methylethylone"
+        m["5-Methylethylone"] = "5-Methylethylone"
+        m["5-Nitro-DMT"] = "5-Nitro-N,N-dimethyltryptamine"
+        m["5-Nitro-N,N-dimethyltryptamine"] = "5-Nitro-N,N-dimethyltryptamine"
+        m["5-Trifluoromethyl-2-aminoindane"] = "5-Trifluoromethyl-2-aminoindane"
+        m["TAI"] = "5-Trifluoromethyl-2-aminoindane"
+        m["5F-AKB-48"] = "5F-AKB48"
+        m["5F-AKB48"] = "5F-AKB48"
+        m["5F-APINACA"] = "5F-AKB48"
+        m["5fakb48"] = "5F-AKB48"
+        m["AKB-48F"] = "5F-AKB48"
+        m["5F-PB-22"] = "5F-PB-22"
+        m["5F-QUPIC"] = "5F-PB-22"
+        m["5fpb22"] = "5F-PB-22"
+        m["6,7-Methylenedioxy-2-aminotetralin"] = "6,7-Methylenedioxy-2-aminotetralin"
+        m["MDAT"] = "6,7-Methylenedioxy-2-aminotetralin"
+        m["6-AB"] = "6-Amino-6,7,8,9-tetrahydro-5H-benzocycloheptene"
+        m["6-Amino-6,7,8,9-tetrahydro-5H-benzocycloheptene"] = "6-Amino-6,7,8,9-tetrahydro-5H-benzocycloheptene"
+        m["6-(2-Aminopropyl)benzofuran"] = "6-APB"
+        m["6-ABP"] = "6-APB"
+        m["6-APB"] = "6-APB"
+        m["6apb"] = "6-APB"
+        m["Benzofuran"] = "6-APB"
+        m["Benzofury"] = "6-APB"
+        m["6-APBD"] = "6-APBD"
+        m["4-Desoxy-MDA"] = "6-APDB"
+        m["6-(2-Aminopropyl)-2,3-dihydrobenzofuran"] = "6-APDB"
+        m["6-APDB"] = "6-APDB"
+        m["6-Bromopravadoline"] = "6-Bromopravadoline"
+        m["WIN 54,461"] = "6-Bromopravadoline"
+        m["6-Chloronicotine"] = "6-Chloronicotine"
+        m["6-Fluoro-DET"] = "6-Fluoro-N,N-diethyltryptamine"
+        m["6-Fluoro-N,N-diethyltryptamine"] = "6-Fluoro-N,N-diethyltryptamine"
+        m["6-MeO-DMT"] = "6-Methoxy-N,N-dimethyltryptamine"
+        m["6-Methoxy-N,N-dimethyltryptamine"] = "6-Methoxy-N,N-dimethyltryptamine"
+        m["6-Methylhexahydroazepinoindoles"] = "6-Methylhexahydroazepinoindoles"
+        m["PNU-22394"] = "6-Methylhexahydroazepinoindoles"
+        m["PNU-22394A"] = "6-Methylhexahydroazepinoindoles"
+        m["7-AB"] = "7-Amino-6,7,8,9-tetrahydro-5H-benzocycloheptene"
+        m["7-Amino-6,7,8,9-tetrahydro-5H-benzocycloheptene"] = "7-Amino-6,7,8,9-tetrahydro-5H-benzocycloheptene"
+        m["7-Chloro-α-methyltryptamine"] = "7-Chloro-α-methyltryptamine"
+        m["7-Chloro-αMT"] = "7-Chloro-α-methyltryptamine"
+        m["7-Chloro-T"] = "7-Chlorotryptamine"
+        m["7-Chlorotryptamine"] = "7-Chlorotryptamine"
+        m["7-Hydroxymitragynine"] = "7-Hydroxymitragynine"
+        m["8-Bromotheophylline"] = "8-Bromotheophylline"
+        m["8-BTP"] = "8-Bromotheophylline"
+        m["8-Chlorotheophylline"] = "8-Chlorotheophylline"
+        m["8-CTP"] = "8-Chlorotheophylline"
+        m["8-Cyclopentyltheophylline"] = "8-Cyclopentyltheophylline"
+        m["CPX"] = "8-Cyclopentyltheophylline"
+        m["8-Phenyltheophylline"] = "8-Phenyltheophylline"
+        m["8β-VE2"] = "8β-Vinylestradiol"
+        m["8β-Vinylestradiol"] = "8β-Vinylestradiol"
+        m["9-Methyl-β-carboline"] = "9-Methyl-β-carboline"
+        m["A-PHP"] = "A-PHP"
+        m["a-Pyrrolidinohexiophenone"] = "A-PHP"
+        m["Alpha-Pyrrolidinohexiophenone"] = "A-PHP"
+        m["Aphp"] = "A-PHP"
+        m["PV-7"] = "A-PHP"
+        m["PV7"] = "A-PHP"
+        m["Α-PHP"] = "A-PHP"
+        m["A-PVP"] = "A-PVP"
+        m["a-Pyrrolidinopentiophenone"] = ""
+        m["alpha-Pyrrolidinopentiophenone"] = "A-PVP"
+        m["Apvp"] = "A-PVP"
+        m["b-ketone-prolintane"] = "A-PVP"
+        m["Flak"] = "A-PVP"
+        m["Flakka"] = "A-PVP"
+        m["Gravel"] = "A-PVP"
+        m["O-2387"] = "A-PVP"
+        m["Prolintanone"] = "A-PVP"
+        m["α-PVP"] = "A-PVP"
+        m["β-ketone-prolintane"] = "A-PVP"
+        m["Ab-fubi"] = "AB-FUBINACA"
+        m["AB-FUBINACA"] = "AB-FUBINACA"
+        m["Abfubinaca"] = "AB-FUBINACA"
+        m["Acetanilide"] = "Acetanilide"
+        m["Acetylcholine"] = "Acetylcholine"
+        m["ACh"] = "Acetylcholine"
+        m["Acetylfentanyl"] = "Acetylfentanyl"
+        m["Acetylsalicylic acid"] = "Acetylsalicylic acid"
+        m["ASA"] = "Acetylsalicylic acid"
+        m["Acridorex"] = "Acridorex"
+        m["Adenosine"] = "Adenosine"
+        m["Adinazolam"] = "Adinazolam"
+        m["Adrafinil"] = "Adrafinil"
+        m["Olmifon"] = "Adrafinil"
+        m["Adrenalone"] = "Adrenalone"
+        m["4-PO-TMT"] = "Aeruginascin"
+        m["Aeruginascin"] = "Aeruginascin"
+        m["Afloqualone"] = "Afloqualone"
+        m["Agomelatine"] = "Agomelatine"
+        m["AH-7921"] = "AH-7921"
+        m["Ajmalicine"] = "Ajmalicine"
+        m["1-(1,2-dimethylcyclobutanecarbonyl)-6-allyl-6-norlysergic acid diethylamide"] = "AL-LAD"
+        m["6-Allyl-6-norlysergic acid diethylamide"] = "AL-LAD"
+        m["AL-LAD"] = "AL-LAD"
+        m["AL-LSD"] = "AL-LAD"
+        m["Aladdin"] = "AL-LAD"
+        m["ALLAD"] = "AL-LAD"
+        m["Alafen"] = "Alafen"
+        m["Ala"] = "Alanine"
+        m["Alanine"] = "Alanine"
+        m["Alcohol"] = "Alcohol"
+    }
+
+    private fun addChunk4(m: MutableMap<String, String>) {
+        m["Alcohol abuse"] = "Alcohol"
+        m["Alcohol dependence"] = "Alcohol"
+        m["Alcohol use disorder"] = "Alcohol"
+        m["Alcoholic beverage"] = "Alcohol"
+        m["Alcoholism"] = "Alcohol"
+        m["Beer"] = "Alcohol"
+        m["Bevvy"] = "Alcohol"
+        m["Booze"] = "Alcohol"
+        m["Corn beer"] = "Alcohol"
+        m["Drink"] = "Alcohol"
+        m["Ethanol"] = "Alcohol"
+        m["Ethyl alcohol"] = "Alcohol"
+        m["Juice"] = "Alcohol"
+        m["Liquor"] = "Alcohol"
+        m["Moonshine"] = "Alcohol"
+        m["Sauce"] = "Alcohol"
+        m["Spirits"] = "Alcohol"
+        m["Vitis"] = "Alcohol"
+        m["Wine"] = "Alcohol"
+        m["1-Acetyl-LSD"] = "ALD-52"
+        m["1A-LAD"] = "ALD-52"
+        m["1A-LSD"] = "ALD-52"
+        m["ALD-52"] = "ALD-52"
+        m["Ald52"] = "ALD-52"
+        m["Orange Sunshine"] = "ALD-52"
+        m["Aldosterone"] = "Aldosterone"
+        m["a-Allyl-phenethylamine"] = "Alfetamine"
+        m["Alfetamine"] = "Alfetamine"
+        m["α-Allyl-phenethylamine"] = "Alfetamine"
+        m["Alifedrine"] = "Alifedrine"
+        m["Allenestrol"] = "Allenestrol"
+        m["Allenolic acid"] = "Allenolic acid"
+        m["Allobarbital"] = "Allobarbital"
+        m["3,5-Dimethoxy-4-allyloxyphenethylamine"] = "Allylescaline"
+        m["4-Allyloxy-3,5-dimethoxyphenethylamine"] = "Allylescaline"
+        m["AL"] = "Allylescaline"
+        m["Allylescaline"] = "Allylescaline"
+        m["a-glycerophosphocholine"] = "Alpha-GPC"
+        m["A-GPC"] = "Alpha-GPC"
+        m["Alpha GPC"] = "Alpha-GPC"
+        m["Alpha-GPC"] = "Alpha-GPC"
+        m["Choline alfoscerate"] = "Alpha-GPC"
+        m["L-Alpha Glycerylphosphorylcholine"] = "Alpha-GPC"
+        m["L-alpha-Glycerophosphocholine"] = "Alpha-GPC"
+        m["α-glycerophosphocholine"] = "Alpha-GPC"
+        m["Alphenal"] = "Alphenal"
+        m["Alprazolam"] = "Alprazolam"
+        m["Bars"] = "Alprazolam"
+        m["Footballs"] = "Alprazolam"
+        m["Hulks"] = "Alprazolam"
+        m["Ksalol"] = "Alprazolam"
+        m["Ladders"] = "Alprazolam"
+        m["Niravam"] = "Alprazolam"
+        m["Sticks"] = "Alprazolam"
+        m["Xanax"] = "Alprazolam"
+        m["Xans"] = "Alprazolam"
+        m["Zanax"] = "Alprazolam"
+        m["Zannies"] = "Alprazolam"
+        m["Amanita muscaria"] = "Amanita muscaria"
+        m["Fly agaric"] = "Amanita muscaria"
+        m["Fly amanita"] = "Amanita muscaria"
+        m["Muscimol"] = "Amanita muscaria"
+        m["Amastatin"] = "Amastatin"
+        m["Amfetaminil"] = "Amfetaminil"
+        m["Amifampridine"] = "Amifampridine"
+        m["Amiflamine"] = "Amiflamine"
+        m["Aminoestradiol"] = "Aminoestradiol"
+        m["Aminopyralid"] = "Aminopyralid"
+        m["Aminorex"] = "Aminorex"
+        m["AR"] = "Aminorex"
+        m["Amisulpride"] = "Amisulpride"
+        m["APD-403"] = "Amisulpride"
+        m["APD-421"] = "Amisulpride"
+        m["APD403"] = "Amisulpride"
+        m["APD421"] = "Amisulpride"
+        m["AST"] = "Amisulpride"
+        m["DAN-2163"] = "Amisulpride"
+        m["DAN2163"] = "Amisulpride"
+        m["Amlodipine"] = "Amlodipine"
+        m["Amobarbital"] = "Amobarbital"
+        m["Amoxapine"] = "Amoxapine"
+        m["Amoxicillin"] = "Amoxicillin"
+        m["Amphecloral"] = "Amphecloral"
+        m["Ampyrone"] = "Ampyrone"
+        m["Anabaseine"] = "Anabaseine"
+        m["Anabasine"] = "Anabasine"
+        m["Anadenanthera peregrina"] = "Anadenanthera peregrina"
+        m["Jopo"] = "Anadenanthera peregrina"
+        m["Yopo"] = "Anadenanthera peregrina"
+        m["Anatabine"] = "Anatabine"
+        m["Anatalline"] = "Anatalline"
+        m["Anatoxin-a"] = "Anatoxin-a"
+        m["VFDF"] = "Anatoxin-a"
+        m["A4"] = "Androstenedione"
+        m["Androstenedione"] = "Androstenedione"
+        m["Anethole trithione"] = "Anethole trithione"
+        m["Anhalamine"] = "Anhalamine"
+        m["Anhalidine"] = "Anhalidine"
+        m["Anhalinine"] = "Anhalinine"
+        m["Anhalonidine"] = "Anhalonidine"
+        m["Aniline"] = "Aniline"
+        m["Ampamet"] = "Aniracetam"
+        m["Aniracetam"] = "Aniracetam"
+        m["Draganon"] = "Aniracetam"
+        m["Memodrin"] = "Aniracetam"
+        m["N-anisoyl-2-pyrrolidinone"] = "Aniracetam"
+        m["Referan"] = "Aniracetam"
+        m["Sarpul"] = "Aniracetam"
+        m["Anordrin"] = "Anordrin"
+        m["Anpirtoline"] = "Anpirtoline"
+        m["Apafant"] = "Apafant"
+        m["2NE1"] = "APICA"
+        m["APICA"] = "APICA"
+        m["N-(1-Adamantyl)-1-pentyl-1H-indazole-3-carboxamide"] = "APICA"
+        m["SDB-001"] = "APICA"
+        m["APO-go"] = "Apomorphine"
+        m["Apomorphine"] = "Apomorphine"
+        m["Blue Lotus"] = "Apomorphine"
+        m["Dacepton"] = "Apomorphine"
+        m["Aporphine"] = "Aporphine"
+        m["Aprobarbital"] = "Aprobarbital"
+        m["Aptiganel"] = "Aptiganel"
+        m["Arbutamine"] = "Arbutamine"
+        m["Arg"] = "Arginine"
+        m["Arginine"] = "Arginine"
+        m["Aripiprazole"] = "Aripiprazole"
+        m["Armodafinil"] = "Armodafinil"
+        m["Artvigil"] = "Armodafinil"
+        m["Neoresotyl"] = "Armodafinil"
+        m["Nuvigil"] = "Armodafinil"
+        m["R-Modafinil"] = "Armodafinil"
+        m["R-Modawake"] = "Armodafinil"
+        m["Waklert"] = "Armodafinil"
+        m["Ascorbic acid"] = "Ascorbic acid"
+        m["vitamin C"] = "Ascorbic acid"
+        m["Asn"] = "Asparagine"
+        m["Asparagine"] = "Asparagine"
+        m["Asp"] = "Aspartic acid"
+        m["Aspartic acid"] = "Aspartic acid"
+        m["Atagabalin"] = "Atagabalin"
+        m["Atomoxetine"] = "Atomoxetine"
+        m["Avizafone"] = "Avizafone"
+        m["Aya"] = "Ayahuasca"
+        m["Ayahuasca"] = "Ayahuasca"
+        m["Caapi"] = "Ayahuasca"
+        m["Cipó"] = "Ayahuasca"
+        m["Hoasca"] = "Ayahuasca"
+        m["Natem"] = "Ayahuasca"
+        m["Pharmahuasca"] = "Ayahuasca"
+        m["Shori"] = "Ayahuasca"
+        m["Vegetal"] = "Ayahuasca"
+        m["Yagé"] = "Ayahuasca"
+        m["Yajé"] = "Ayahuasca"
+        m["Baclofen"] = "Baclofen"
+        m["Lioresal"] = "Baclofen"
+        m["4-PO-NMT"] = "Baeocystin"
+        m["Baeocystin"] = "Baeocystin"
+        m["B caapi"] = "Banisteriopsis caapi"
+        m["B. caapi"] = "Banisteriopsis caapi"
+        m["Banisteriopsis caapi"] = "Banisteriopsis caapi"
+        m["Barbital"] = "Barbital"
+        m["Batrachotoxin"] = "Batrachotoxin"
+        m["BTX"] = "Batrachotoxin"
+        m["Beclometasone"] = "Beclometasone"
+        m["Beclometasone dipropionate"] = "Beclometasone dipropionate"
+        m["Bemethyl"] = "Bemethyl"
+        m["Benfluorex"] = "Benfluorex"
+        m["Benocyclidine"] = "Benocyclidine"
+        m["BTCP"] = "Benocyclidine"
+        m["Benserazide"] = "Benserazide"
+        m["Bentazepam"] = "Bentazepam"
+        m["Benzestrol"] = "Benzestrol"
+        m["Benzocaine"] = "Benzocaine"
+        m["Benzofuranylpropylaminopentane"] = "Benzofuranylpropylaminopentane"
+        m["BPAP"] = "Benzofuranylpropylaminopentane"
+        m["Benzoylecgonine"] = "Benzoylecgonine"
+        m["Benzoylecgonine dimethylamide"] = "Benzoylecgonine dimethylamide"
+        m["RTI-160"] = "Benzoylecgonine dimethylamide"
+        m["Benzoylpiperazine"] = "Benzoylpiperazine"
+        m["BZOP"] = "Benzoylpiperazine"
+        m["Benzphetamine"] = "Benzphetamine"
+        m["3,5-Dimethoxy-4-benzyloxyphenethylamine"] = "Benzscaline"
+        m["4-BzlO-3,5-DMPEA"] = "Benzscaline"
+        m["Benzscaline"] = "Benzscaline"
+        m["BZ"] = "Benzscaline"
+        m["Benzydamine"] = "Benzydamine"
+        m["Difflam"] = "Benzydamine"
+        m["Tantum Rosa"] = "Benzydamine"
+        m["Tantum Verde"] = "Benzydamine"
+        m["Benzyl chloride"] = "Benzyl chloride"
+        m["a-Cresol"] = "Benzylalcohol"
+        m["Benzylalcohol"] = "Benzylalcohol"
+        m["α-Cresol"] = "Benzylalcohol"
+        m["Benzylamine"] = "Benzylamine"
+        m["Benzylpenicillin"] = "Benzylpenicillin"
+        m["Benzylpiperazine"] = "Benzylpiperazine"
+        m["BZP"] = "Benzylpiperazine"
+        m["Bestatin"] = "Bestatin"
+        m["Ubenimex"] = "Bestatin"
+        m["b-Carboline"] = "Beta-Carboline"
+        m["b-Carbolines"] = "Beta-Carboline"
+        m["Beta-Carboline"] = "Beta-Carboline"
+        m["Beta-Carbolines"] = "Beta-Carboline"
+        m["b-Hydroxy-3-methylfentanyl"] = "Beta-Hydroxy-3-methylfentanyl"
+        m["Beta-Hydroxy-3-methylfentanyl"] = "Beta-Hydroxy-3-methylfentanyl"
+        m["Betamethasone"] = "Betamethasone"
+        m["Bexlosteride"] = "Bexlosteride"
+        m["Bicarbonate"] = "Bicarbonate"
+        m["Bilastine"] = "Bilastine"
+        m["Biperiden"] = "Biperiden"
+        m["Bisphenol A"] = "Bisphenol A"
+        m["BPA"] = "Bisphenol A"
+        m["BADGE"] = "Bisphenol A diglycidyl ether"
+        m["Bisphenol A diglycidyl ether"] = "Bisphenol A diglycidyl ether"
+        m["Bisphenol AF"] = "Bisphenol AF"
+        m["BPAF"] = "Bisphenol AF"
+        m["BFDGE"] = "Bisphenol F diglycidyl ether"
+        m["Bisphenol F diglycidyl ether"] = "Bisphenol F diglycidyl ether"
+        m["Bisphenol S"] = "Bisphenol S"
+        m["BPS"] = "Bisphenol S"
+        m["Bitolterol"] = "Bitolterol"
+        m["Botulinum toxin"] = "Botulinum toxin"
+        m["Brallobarbital"] = "Brallobarbital"
+        m["Brasofensine"] = "Brasofensine"
+        m["4-BMC"] = "Brephedrone"
+        m["Brephedrone"] = "Brephedrone"
+        m["Bretazenil"] = "Bretazenil"
+        m["5-Fluoro-MET"] = "Bretisilocin"
+        m["Bretisilocin"] = "Bretisilocin"
+        m["Bromadoline"] = "Bromadoline"
+        m["U-47931E"] = "Bromadoline"
+        m["Bromantan"] = "Bromantane"
+        m["Bromantane"] = "Bromantane"
+        m["Ladasten"] = "Bromantane"
+        m["Brazepam"] = "Bromazepam"
+        m["Bromaze"] = "Bromazepam"
+        m["Bromazepam"] = "Bromazepam"
+        m["Brozam"] = "Bromazepam"
+        m["Calmepam"] = "Bromazepam"
+        m["Lectopam"] = "Bromazepam"
+        m["Lexatin"] = "Bromazepam"
+        m["Lexaurin"] = "Bromazepam"
+        m["Lexilium"] = "Bromazepam"
+        m["Lexomil"] = "Bromazepam"
+        m["Lexotan"] = "Bromazepam"
+        m["Lexotanil"] = "Bromazepam"
+        m["Rekotnil"] = "Bromazepam"
+        m["Somalium"] = "Bromazepam"
+        m["Zepam"] = "Bromazepam"
+        m["Bromazolam"] = "Bromazolam"
+    }
+
+    private fun addChunk5(m: MutableMap<String, String>) {
+        m["XLI-268"] = "Bromazolam"
+        m["B-DFLY"] = "Bromo-DragonFLY"
+        m["Bromo-DragonFLY"] = "Bromo-DragonFLY"
+        m["DOB-DFLY"] = "Bromo-DragonFLY"
+        m["DOB-DragonFLY"] = "Bromo-DragonFLY"
+        m["Dragonfly"] = "Bromo-DragonFLY"
+        m["β-DFLY"] = "Bromo-DragonFLY"
+        m["2-Br-2'-Oxo-PCM"] = "Bromoketamine"
+        m["2-Br-DCK"] = "Bromoketamine"
+        m["2-Bromodeschloroketamine"] = "Bromoketamine"
+        m["Bromoketamine"] = "Bromoketamine"
+        m["Bromopane"] = "Bromopane"
+        m["Para-Bromophenyltropane"] = "Bromopane"
+        m["RTI-51"] = "Bromopane"
+        m["3-BMC"] = "Brophedrone"
+        m["Brophedrone"] = "Brophedrone"
+        m["Brorphine"] = "Brorphine"
+        m["Brotizolam"] = "Brotizolam"
+        m["Brucine"] = "Brucine"
+        m["AP-237"] = "Bucinnazine"
+        m["Bucinnazine"] = "Bucinnazine"
+        m["Budesonide"] = "Budesonide"
+        m["5-HO-DMT"] = "Bufotenin"
+        m["5hodmt"] = "Bufotenin"
+        m["Bufotenin"] = "Bufotenin"
+        m["Bufotenine"] = "Bufotenin"
+        m["N,N-Dimethylserotonin"] = "Bufotenin"
+        m["Buphedrone"] = "Buphedrone"
+        m["MABP"] = "Buphedrone"
+        m["Buphenine"] = "Buphenine"
+        m["Addnok"] = "Buprenorphine"
+        m["Buprenex"] = "Buprenorphine"
+        m["Buprenorphine"] = "Buprenorphine"
+        m["Butrans"] = "Buprenorphine"
+        m["Cizdol"] = "Buprenorphine"
+        m["Subutex"] = "Buprenorphine"
+        m["Temgesic"] = "Buprenorphine"
+        m["Transtec"] = "Buprenorphine"
+        m["Bupropion"] = "Bupropion"
+        m["Buspirone"] = "Buspirone"
+        m["Dimethyltryptamine"] = "Buspirone"
+        m["Dmitri"] = "Buspirone"
+        m["DMT"] = "Buspirone"
+        m["Butabarbital"] = "Butabarbital"
+        m["Butaxamine"] = "Butaxamine"
+        m["Butestrol"] = "Butestrol"
+        m["Buthalital"] = "Buthalital"
+        m["BA"] = "Butylamphetamine"
+        m["Butylamphetamine"] = "Butylamphetamine"
+        m["BCA"] = "Butylcyanoacrylate"
+        m["Butylcyanoacrylate"] = "Butylcyanoacrylate"
+        m["B1"] = "Butylone"
+        m["bk-MBDB"] = "Butylone"
+        m["Butylone"] = "Butylone"
+        m["Butylscopolamine"] = "Butylscopolamine"
+        m["Cabergoline"] = "Cabergoline"
+        m["Cafedrine"] = "Cafedrine"
+        m["Caff"] = "Caffeine"
+        m["Caffeine"] = "Caffeine"
+        m["Coffee"] = "Caffeine"
+        m["Cannabidiol"] = "Cannabidiol"
+        m["CBD"] = "Cannabidiol"
+        m["Epidiolex"] = "Cannabidiol"
+        m["Bud"] = "Cannabis"
+        m["Cannabichromene"] = "Cannabis"
+        m["Cannabichromevarin"] = "Cannabis"
+        m["Cannabicyclol"] = "Cannabis"
+        m["Cannabidivarin"] = "Cannabis"
+        m["Cannabigerol"] = "Cannabis"
+        m["Cannabigerovarin"] = "Cannabis"
+        m["Cannabinol"] = "Cannabis"
+        m["Cannabis"] = "Cannabis"
+        m["Cannabivarin"] = "Cannabis"
+        m["CBC"] = "Cannabis"
+        m["CBCV"] = "Cannabis"
+        m["CBDV"] = "Cannabis"
+        m["CBG"] = "Cannabis"
+        m["CBGM"] = "Cannabis"
+        m["CBGV"] = "Cannabis"
+        m["CBL"] = "Cannabis"
+        m["CBN"] = "Cannabis"
+        m["CBV"] = "Cannabis"
+        m["Charas"] = "Cannabis"
+        m["d-9-tetrahydrocannabinol"] = "Cannabis"
+        m["delta-9-tetrahydrocannabinol"] = "Cannabis"
+        m["Dope"] = "Cannabis"
+        m["Dronabinol"] = "Cannabis"
+        m["Ganja"] = "Cannabis"
+        m["Grass"] = "Cannabis"
+        m["Green"] = "Cannabis"
+        m["Hash"] = "Cannabis"
+        m["Hashish"] = "Cannabis"
+        m["Herb"] = "Cannabis"
+        m["Keif"] = "Cannabis"
+        m["Kief"] = "Cannabis"
+        m["Marihuana"] = "Cannabis"
+        m["Marijuana"] = "Cannabis"
+        m["Mary Jane"] = "Cannabis"
+        m["Pot"] = "Cannabis"
+        m["Reefer"] = "Cannabis"
+        m["Tetrahydrocannabivarin"] = "Cannabis"
+        m["THC"] = "Cannabis"
+        m["THCV"] = "Cannabis"
+        m["Tree"] = "Cannabis"
+        m["Weed"] = "Cannabis"
+        m["Δ9-THC"] = "Cannabis"
+        m["∆9-tetrahydrocannabinol"] = "Cannabis"
+        m["Capsaicin"] = "Capsaicin"
+        m["Caramboxin"] = "Caramboxin"
+        m["Carbestrol"] = "Carbestrol"
+        m["Carbidopa"] = "Carbidopa"
+        m["Carbon"] = "Carbon"
+        m["Carbon tet"] = "Carbon tetrachloride"
+        m["Carbon tetrachloride"] = "Carbon tetrachloride"
+        m["Carfentanyl"] = "Carfentanyl"
+        m["Carisoprodol"] = "Carisoprodol"
+        m["Soma"] = "Carisoprodol"
+        m["CAG"] = "Catharanthalog"
+        m["Catharanthalog"] = "Catharanthalog"
+        m["Cericlamine"] = "Cericlamine"
+        m["Cetirizine"] = "Cetirizine"
+        m["Chloral hydrate"] = "Chloral hydrate"
+        m["Chlordiazepoxide"] = "Chlordiazepoxide"
+        m["Librium"] = "Chlordiazepoxide"
+        m["Chlorhexidine"] = "Chlorhexidine"
+        m["Chlorphenamine"] = "Chlorphenamine"
+        m["CP"] = "Chlorphenamine"
+        m["CPM"] = "Chlorphenamine"
+        m["Chlorphentermine"] = "Chlorphentermine"
+        m["Chlorpyrifos"] = "Chlorpyrifos"
+        m["Choline"] = "Choline bitartrate"
+        m["Choline bitartrate"] = "Choline bitartrate"
+        m["Ciclotizolam"] = "Ciclotizolam"
+        m["Ciguatoxin 1"] = "Ciguatoxin 1"
+        m["CTX-1"] = "Ciguatoxin 1"
+        m["Ciguatoxin 2"] = "Ciguatoxin 2"
+        m["CTX-2"] = "Ciguatoxin 2"
+        m["Ciguatoxin 3"] = "Ciguatoxin 3"
+        m["CTX-3"] = "Ciguatoxin 3"
+        m["Ciguatoxin 4b"] = "Ciguatoxin 4b"
+        m["CTX-4b"] = "Ciguatoxin 4b"
+        m["Cinazepam"] = "Cinazepam"
+        m["Cinnamedrine"] = "Cinnamedrine"
+        m["Cinolazepam"] = "Cinolazepam"
+        m["Gerodorm"] = "Cinolazepam"
+        m["CDP Choline"] = "Citicoline"
+        m["CDP-Choline"] = "Citicoline"
+        m["Citicoline"] = "Citicoline"
+        m["Citric acid"] = "Citric acid"
+        m["Citrulline"] = "Citrulline"
+        m["Classic psychedelic"] = "Classical psychedelics"
+        m["Classical psychedelic"] = "Classical psychedelics"
+        m["Classical psychedelics"] = "Classical psychedelics"
+        m["4-CMC"] = "Clephedrone"
+        m["Clephedrone"] = "Clephedrone"
+        m["Climazolam"] = "Climazolam"
+        m["Ro21-3982"] = "Climazolam"
+        m["Clindamycin"] = "Clindamycin"
+        m["4-CIC"] = "Clipredrone"
+        m["Clipredrone"] = "Clipredrone"
+        m["Clobazam"] = "Clobazam"
+        m["Clobenzorex"] = "Clobenzorex"
+        m["Cloforex"] = "Cloforex"
+        m["Clominorex"] = "Clominorex"
+        m["Clomipramine"] = "Clomipramine"
+        m["Clonazafone"] = "Clonazafone"
+        m["Clonazafone desglycyl"] = "Clonazafone desglycyl"
+        m["Clonazepam"] = "Clonazepam"
+        m["K-Pins"] = "Clonazepam"
+        m["Klonopin"] = "Clonazepam"
+        m["Rivotril"] = "Clonazepam"
+        m["C-lam"] = "Clonazolam"
+        m["Clam"] = "Clonazolam"
+        m["Clonazolam"] = "Clonazolam"
+        m["Clonitrazolam"] = "Clonazolam"
+        m["Catapres"] = "Clonidine"
+        m["Catapres-TTS"] = "Clonidine"
+        m["Clonidine"] = "Clonidine"
+        m["Kapvay"] = "Clonidine"
+        m["Nexiclon XR"] = "Clonidine"
+        m["Clonitazene"] = "Clonitazene"
+        m["3-CMC"] = "Clophedrone"
+        m["Clophedrone"] = "Clophedrone"
+        m["Clorazepate"] = "Clorazepate"
+        m["Clorgyline"] = "Clorgyline"
+        m["Cloroqualone"] = "Cloroqualone"
+        m["Clortermine"] = "Clortermine"
+        m["Clotiazepam"] = "Clotiazepam"
+        m["Clotizolam"] = "Clotizolam"
+        m["Cocaethylene"] = "Cocaethylene"
+        m["Benzoylmethylecgonine"] = "Cocaine"
+        m["Blow"] = "Cocaine"
+        m["Chari"] = "Cocaine"
+        m["Coca"] = "Cocaine"
+        m["Cocaine"] = "Cocaine"
+        m["Cocaine base"] = "Cocaine"
+        m["Cocaine freebase"] = "Cocaine"
+        m["Cocaine paste"] = "Cocaine"
+        m["Coke"] = "Cocaine"
+        m["Crack"] = "Cocaine"
+        m["Crack-cocaine"] = "Cocaine"
+        m["Free base cocaine"] = "Cocaine"
+        m["Free-base cocaine"] = "Cocaine"
+        m["Girl"] = "Cocaine"
+        m["Nose Candy"] = "Cocaine"
+        m["Powder"] = "Cocaine"
+        m["Snow"] = "Cocaine"
+        m["White"] = "Cocaine"
+        m["Yayo"] = "Cocaine"
+        m["Cocao"] = "Cocoa"
+        m["Cocoa"] = "Cocoa"
+        m["Cocoa powder"] = "Cocoa"
+        m["Cocoa solid"] = "Cocoa"
+        m["Cocoa solids"] = "Cocoa"
+        m["3-Methylmorphine"] = "Codeine"
+        m["Codeine"] = "Codeine"
+        m["Codiene"] = "Codeine"
+        m["Lean"] = "Codeine"
+        m["Purple Drank"] = "Codeine"
+        m["Sizzurp"] = "Codeine"
+        m["Syrup"] = "Codeine"
+        m["Codeine-6-glucuronide"] = "Codeine-6-glucuronide"
+        m["Codeinone"] = "Codeinone"
+        m["Colterol"] = "Colterol"
+        m["BCI-540"] = "Coluracetam"
+        m["Coluracetam"] = "Coluracetam"
+        m["MKC-231"] = "Coluracetam"
+        m["Corbadrine"] = "Corbadrine"
+        m["Cortisone"] = "Cortisone"
+        m["Cotinine"] = "Cotinine"
+        m["Creatine"] = "Creatine"
+        m["Methylguanidoacetic acid"] = "Creatine"
+        m["N-Carbamimidoyl-N-methylglycine"] = "Creatine"
+        m["Cumene"] = "Cumene"
+        m["Isopropylbenzene"] = "Cumene"
+        m["Cyanide"] = "Cyanide"
+        m["Cyclazocine"] = "Cyclazocine"
+        m["Cyclazodone"] = "Cyclazodone"
+        m["N-Cyclopropylpemoline"] = "Cyclazodone"
+        m["Cyclodiol"] = "Cyclodiol"
+        m["Cycloheptatriene-1-ethylamine"] = "Cycloheptatriene-1-ethylamine"
+        m["Cycloheptatriene-1-ylpropan-2-amine"] = "Cycloheptatriene-1-ylpropan-2-amine"
+        m["Cyclohexylamine"] = "Cyclohexylamine"
+        m["Cyclohexylethylamine"] = "Cyclohexylethylamine"
+        m["Cyclopentamine"] = "Cyclopentamine"
+        m["Cyclotriol"] = "Cyclotriol"
+        m["CPA"] = "Cyproterone acetate"
+        m["Cyproterone acetate"] = "Cyproterone acetate"
+        m["Cys"] = "Cysteine"
+        m["Cysteine"] = "Cysteine"
+    }
+
+    private fun addChunk6(m: MutableMap<String, String>) {
+        m["Daidzein"] = "Daidzein"
+        m["Atropine"] = "Datura"
+        m["Datura"] = "Datura"
+        m["Devil's trumpet"] = "Datura"
+        m["Devil's weed"] = "Datura"
+        m["Hell's bells"] = "Datura"
+        m["Hyoscine"] = "Datura"
+        m["Hyoscyamine"] = "Datura"
+        m["Jimson Weed"] = "Datura"
+        m["Jimsonweed"] = "Datura"
+        m["Moonflower"] = "Datura"
+        m["Scopolamine"] = "Datura"
+        m["Thorn-apple"] = "Datura"
+        m["Deoxyepinephrine"] = "Deoxyepinephrine"
+        m["Deprenyl"] = "Deprenyl"
+        m["N-Propargyl-N-methylamphetamine"] = "Deprenyl"
+        m["Deschloroclotizolam"] = "Deschloroclotizolam"
+        m["Deschloroetizolam"] = "Deschloroetizolam"
+        m["2'-Oxo-PCM"] = "Deschloroketamine"
+        m["2-Oxo-PCM"] = "Deschloroketamine"
+        m["DCK"] = "Deschloroketamine"
+        m["Deschloroketamine"] = "Deschloroketamine"
+        m["DXE"] = "Deschloroketamine"
+        m["O-PCM"] = "Deschloroketamine"
+        m["Desmethyldeprenyl"] = "Desmethyldeprenyl"
+        m["DMS"] = "Desmethyldeprenyl"
+        m["Desmethylflunitrazepam"] = "Desmethylflunitrazepam"
+        m["Desmethylprodine"] = "Desmethylprodine"
+        m["MPPP"] = "Desmethylprodine"
+        m["Desmethylsibutramine"] = "Desmethylsibutramine"
+        m["Crocodile"] = "Desomorphine"
+        m["Desomorphine"] = "Desomorphine"
+        m["Dihydrodesoxymorphine"] = "Desomorphine"
+        m["Krok"] = "Desomorphine"
+        m["Krokodil"] = "Desomorphine"
+        m["Permonid"] = "Desomorphine"
+        m["2-Diphenylmethylpiperidine"] = "Desoxypipradrol"
+        m["2-DPMP"] = "Desoxypipradrol"
+        m["2dpmp"] = "Desoxypipradrol"
+        m["Desoxypipradol"] = "Desoxypipradrol"
+        m["Desoxypipradrol"] = "Desoxypipradrol"
+        m["Ivory Wave"] = "Desoxypipradrol"
+        m["Desylamine"] = "Desylamine"
+        m["DET"] = "DET"
+        m["Diethyltryptamine"] = "DET"
+        m["N,N-DET"] = "DET"
+        m["Dexamethasone"] = "Dexamethasone"
+        m["Dexmedetomidine"] = "Dexmedetomidine"
+        m["Attentin"] = "Dextroamphetamine"
+        m["D-amphetamine"] = "Dextroamphetamine"
+        m["Dex"] = "Dextroamphetamine"
+        m["Dexamphetamine"] = "Dextroamphetamine"
+        m["Dexedrine"] = "Dextroamphetamine"
+        m["Dextroamphetamine"] = "Dextroamphetamine"
+        m["δ-amphetamine"] = "Dextroamphetamine"
+        m["Delsym"] = "Dextromethorphan"
+        m["DexAlone"] = "Dextromethorphan"
+        m["Dextromethorphan"] = "Dextromethorphan"
+        m["Dextrorphan"] = "Dextromethorphan"
+        m["DM"] = "Dextromethorphan"
+        m["DMO"] = "Dextromethorphan"
+        m["Duract"] = "Dextromethorphan"
+        m["DXM"] = "Dextromethorphan"
+        m["DXO"] = "Dextromethorphan"
+        m["Robitussin"] = "Dextromethorphan"
+        m["Robo"] = "Dextromethorphan"
+        m["Robotripping"] = "Dextromethorphan"
+        m["Triple C"] = "Dextromethorphan"
+        m["Darvocet"] = "Dextropropoxyphene"
+        m["Darvon"] = "Dextropropoxyphene"
+        m["Dextropropoxyphene"] = "Dextropropoxyphene"
+        m["Propoxyphene"] = "Dextropropoxyphene"
+        m["Dezocine"] = "Dezocine"
+        m["Diarylethylamine"] = "Diarylethylamines"
+        m["Diarylethylamines"] = "Diarylethylamines"
+        m["Diarylpropionitrile"] = "Diarylpropionitrile"
+        m["DPN"] = "Diarylpropionitrile"
+        m["Apaurin"] = "Diazepam"
+        m["Diastat"] = "Diazepam"
+        m["Diazepam"] = "Diazepam"
+        m["Mother's Little Helper"] = "Diazepam"
+        m["Valium"] = "Diazepam"
+        m["Vals"] = "Diazepam"
+        m["Valtoco"] = "Diazepam"
+        m["Vazepam"] = "Diazepam"
+        m["Zetran"] = "Diazepam"
+        m["DBZP"] = "Dibenzylpiperazine"
+        m["Dibenzylpiperazine"] = "Dibenzylpiperazine"
+        m["DDT"] = "Dichlorodiphenyltrichloroethane"
+        m["Dichlorodiphenyltrichloroethane"] = "Dichlorodiphenyltrichloroethane"
+        m["Dichloropane"] = "Dichloropane"
+        m["O-401"] = "Dichloropane"
+        m["RTI-111"] = "Dichloropane"
+        m["Chlorodiazepam"] = "Diclazepam"
+        m["Diclaz"] = "Diclazepam"
+        m["Diclazepam"] = "Diclazepam"
+        m["Diclofenac"] = "Diclofenac"
+        m["Dienestrol"] = "Dienestrol"
+        m["Diethylpropion"] = "Diethylpropion"
+        m["DES"] = "Diethylstilbestrol"
+        m["Diethylstilbestrol"] = "Diethylstilbestrol"
+        m["Dieticyclidine"] = "Dieticyclidine"
+        m["PCDE"] = "Dieticyclidine"
+        m["Difludiazepam"] = "Difludiazepam"
+        m["DFE"] = "Difluoroethane"
+        m["Difluoroethane"] = "Difluoroethane"
+        m["Dihydrocapsaicin"] = "Dihydrocapsaicin"
+        m["DHC"] = "Dihydrocodeine"
+        m["Dihydrocodeine"] = "Dihydrocodeine"
+        m["Paracodeine"] = "Dihydrocodeine"
+        m["Paracodin"] = "Dihydrocodeine"
+        m["DHE"] = "Dihydroergotamine"
+        m["Dihydroergotamine"] = "Dihydroergotamine"
+        m["Dihydrotanshinone I"] = "Dihydrotanshinone I"
+        m["DHT"] = "Dihydrotestosterone"
+        m["Dihydrotestosterone"] = "Dihydrotestosterone"
+        m["Dimethocaine"] = "Dimethocaine"
+        m["Dimethyl sulfoxide"] = "Dimethyl sulfoxide"
+        m["DMSO"] = "Dimethyl sulfoxide"
+        m["Dimethylamphetamine"] = "Dimethylamphetamine"
+        m["Metrotonin"] = "Dimethylamphetamine"
+        m["Dimethylphenylpiperazinium"] = "Dimethylphenylpiperazinium"
+        m["DMPP"] = "Dimethylphenylpiperazinium"
+        m["Dioxethedrin"] = "Dioxethedrin"
+        m["Dioxifedrine"] = "Dioxifedrine"
+        m["Dipentylone"] = "Dipentylone"
+        m["Aviomarin"] = "Diphenhydramine"
+        m["Benadryl"] = "Diphenhydramine"
+        m["Dimenhydrinate"] = "Diphenhydramine"
+        m["Diphenhydramine"] = "Diphenhydramine"
+        m["DMH"] = "Diphenhydramine"
+        m["DPH"] = "Diphenhydramine"
+        m["Nytol"] = "Diphenhydramine"
+        m["Sominex"] = "Diphenhydramine"
+        m["Unisom SleepMelts"] = "Diphenhydramine"
+        m["ZzzQuil"] = "Diphenhydramine"
+        m["Diphenidine"] = "Diphenidine"
+        m["DPD"] = "Diphenidine"
+        m["Diphenpipenol"] = "Diphenpipenol"
+        m["Diprophylline"] = "Diprophylline"
+        m["Dipropylcyclopentylxanthine"] = "Dipropylcyclopentylxanthine"
+        m["DPCPX"] = "Dipropylcyclopentylxanthine"
+        m["Diproqualone"] = "Diproqualone"
+        m["Diisopropyltryptamine"] = "DiPT"
+        m["DiPT"] = "DiPT"
+        m["N,N-Diisopropyltryptamine"] = "DiPT"
+        m["Disopyramide"] = "Disopyramide"
+        m["Disulfiram"] = "Disulfiram"
+        m["Ditazole"] = "Ditazole"
+        m["Acacia Confusa"] = "DMT"
+        m["Acacia confusa rootbark"] = "DMT"
+        m["Deems"] = "DMT"
+        m["Dimitri"] = "DMT"
+        m["Dmitry"] = "DMT"
+        m["Mimosa hostillis rootbark"] = "DMT"
+        m["N,N-Dimethyltryptamine"] = "DMT"
+        m["N,N-DMT"] = "DMT"
+        m["The Glory"] = "DMT"
+        m["The Spirit Molecule"] = "DMT"
+        m["2,5-Dimethoxy-4-bromoamphetamine"] = "DOB"
+        m["Brolamfetamine"] = "DOB"
+        m["Bromo-DMA"] = "DOB"
+        m["DOB"] = "DOB"
+        m["DOB-5-hemifly"] = "DOB-5-hemifly"
+        m["2,5-Dimethoxy-4-chloroamphetamine"] = "DOC"
+        m["DOC"] = "DOC"
+        m["2,5-Dimethoxy-4-iodoamphetamine"] = "DOI"
+        m["DOI"] = "DOI"
+        m["DOI-2-hemifly"] = "DOI-2-hemifly"
+        m["Doisynoestrol"] = "Doisynoestrol"
+        m["Doisynolic acid"] = "Doisynolic acid"
+        m["2,5-Dimethoxy-4-methylamphetamine"] = "DOM"
+        m["DOM"] = "DOM"
+        m["STP"] = "DOM"
+        m["STP (Serenity, Tranquility, and Peace)"] = "DOM"
+        m["Domoic acid"] = "Domoic acid"
+        m["Domperidone"] = "Domperidone"
+        m["DA"] = "Dopamine"
+        m["Dopamine"] = "Dopamine"
+        m["Doxycycline"] = "Doxycycline"
+        m["Dipropyltryptamine"] = "DPT"
+        m["DPT"] = "DPT"
+        m["N,N-Dipropyltryptamine"] = "DPT"
+        m["The Light"] = "DPT"
+        m["Drospirenone"] = "Drospirenone"
+        m["Duloxetine"] = "Duloxetine"
+        m["Dutasteride"] = "Dutasteride"
+        m["Efavirenz"] = "Efavirenz"
+        m["Sustiva"] = "Efavirenz"
+        m["Eletriptan"] = "Eletriptan"
+        m["Emetine"] = "Emetine"
+        m["Encyprate"] = "Encyprate"
+        m["MO-1255"] = "Encyprate"
+        m["Endomorphin-1"] = "Endomorphin-1"
+        m["Endomorphin-2"] = "Endomorphin-2"
+        m["Entacapone"] = "Entacapone"
+        m["Entheogen"] = "Entheogen"
+        m["Entheogenic"] = "Entheogen"
+        m["Entheogens"] = "Entheogen"
+        m["b-Hydroxymethamphetamine"] = "Ephedrine"
+        m["Ephedra"] = "Ephedrine"
+        m["Ephedrine"] = "Ephedrine"
+        m["Pseudoephedrine"] = "Ephedrine"
+        m["β-Hydroxymethamphetamine"] = "Ephedrine"
+        m["EPE"] = "Ephenidine"
+        m["Ephenidine"] = "Ephenidine"
+        m["NEDPA"] = "Ephenidine"
+        m["Bk-EBDP"] = "Ephylone"
+        m["bk-ethyl-K"] = "Ephylone"
+        m["Ephylone"] = "Ephylone"
+        m["N-Ethylpentylone"] = "Ephylone"
+        m["βk-EBDP"] = "Ephylone"
+        m["Adrenaline"] = "Epinephrine"
+        m["Epinephrine"] = "Epinephrine"
+        m["Epinine"] = "Epinine"
+        m["EPT"] = "EPT"
+        m["Ethylpropyltryptamine"] = "EPT"
+        m["N-Ethyl-N-propyltryptamine"] = "EPT"
+        m["Equilenin"] = "Equilenin"
+        m["Equilin"] = "Equilin"
+        m["Ergocornine"] = "Ergocornine"
+        m["Ergonovine"] = "Ergonovine"
+        m["Ergotamine"] = "Ergotamine"
+        m["Erteberel"] = "Erteberel"
+        m["Erythrohydrobupropion"] = "Erythrohydrobupropion"
+        m["3,5-Dimethoxy-4-ethoxyphenethylamine"] = "Escaline"
+        m["Escaline"] = "Escaline"
+        m["Escitalopram"] = "Escitalopram"
+        m["Estazolam"] = "Estazolam"
+        m["E4"] = "Estetrol"
+        m["Estetrol"] = "Estetrol"
+        m["E2"] = "Estradiol"
+        m["Estradiol"] = "Estradiol"
+        m["Estradiol acetate"] = "Estradiol acetate"
+        m["EB"] = "Estradiol benzoate"
+        m["Estradiol benzoate"] = "Estradiol benzoate"
+        m["EBB"] = "Estradiol benzoate butyrate"
+        m["Estradiol benzoate butyrate"] = "Estradiol benzoate butyrate"
+        m["EBA"] = "Estradiol butyrylacetate"
+        m["Estradiol butyrylacetate"] = "Estradiol butyrylacetate"
+        m["EC"] = "Estradiol cypionate"
+        m["Estradiol cypionate"] = "Estradiol cypionate"
+        m["EDBu"] = "Estradiol dibutyrate"
+        m["Estradiol dibutyrate"] = "Estradiol dibutyrate"
+        m["EDE"] = "Estradiol dienantate"
+        m["Estradiol dienantate"] = "Estradiol dienantate"
+        m["EDP"] = "Estradiol dipropionate"
+        m["Estradiol dipropionate"] = "Estradiol dipropionate"
+        m["Estradiol diundecylate"] = "Estradiol diundecylate"
+        m["Estradiol diundecylenate"] = "Estradiol diundecylenate"
+    }
+
+    private fun addChunk7(m: MutableMap<String, String>) {
+        m["EEN"] = "Estradiol enantate"
+        m["Estradiol enantate"] = "Estradiol enantate"
+        m["EF"] = "Estradiol furoate"
+        m["Estradiol furoate"] = "Estradiol furoate"
+        m["Estradiol hemisuccinate"] = "Estradiol hemisuccinate"
+        m["EHHB"] = "Estradiol hexahydrobenzoate"
+        m["Estradiol hexahydrobenzoate"] = "Estradiol hexahydrobenzoate"
+        m["Estradiol palmitate"] = "Estradiol palmitate"
+        m["EPP"] = "Estradiol phenylpropionate"
+        m["Estradiol phenylpropionate"] = "Estradiol phenylpropionate"
+        m["E2-TMA"] = "Estradiol pivalate"
+        m["Estradiol pivalate"] = "Estradiol pivalate"
+        m["EP"] = "Estradiol propionate"
+        m["Estradiol propionate"] = "Estradiol propionate"
+        m["EPPP"] = "Estradiol propoxyphenylpropionate"
+        m["Estradiol propoxyphenylpropionate"] = "Estradiol propoxyphenylpropionate"
+        m["E2-17-St"] = "Estradiol stearate"
+        m["Estradiol stearate"] = "Estradiol stearate"
+        m["E2MATE"] = "Estradiol sulfamate"
+        m["Estradiol sulfamate"] = "Estradiol sulfamate"
+        m["E2S"] = "Estradiol sulfate"
+        m["Estradiol sulfate"] = "Estradiol sulfate"
+        m["Estradiol undecylate"] = "Estradiol undecylate"
+        m["EU"] = "Estradiol undecylate"
+        m["Estradiol valerate"] = "Estradiol valerate"
+        m["EV"] = "Estradiol valerate"
+        m["Estramustine"] = "Estramustine"
+        m["E3"] = "Estriol"
+        m["Estriol"] = "Estriol"
+        m["E1"] = "Estrone"
+        m["Estrone"] = "Estrone"
+        m["Eszop"] = "Eszopiclone"
+        m["Eszopiclone"] = "Eszopiclone"
+        m["Lunesta"] = "Eszopiclone"
+        m["Etafedrine"] = "Etafedrine"
+        m["Etamicastat"] = "Etamicastat"
+        m["Etaqualone"] = "Etaqualone"
+        m["ETH-CAT"] = "ETH-CAT"
+        m["Ethcat"] = "ETH-CAT"
+        m["Ethcathinone"] = "ETH-CAT"
+        m["Ethylcathinone"] = "ETH-CAT"
+        m["Ethylpropion"] = "ETH-CAT"
+        m["ETH-LAD"] = "ETH-LAD"
+        m["Ethlad"] = "ETH-LAD"
+        m["EA"] = "Ethamphetamine"
+        m["Ethamphetamine"] = "Ethamphetamine"
+        m["EE"] = "Ethinylestradiol"
+        m["Ethinylestradiol"] = "Ethinylestradiol"
+        m["2-Cl-2'-Oxo-PCE"] = "Ethketamine"
+        m["Ethketamine"] = "Ethketamine"
+        m["N-Ethylnorketamine"] = "Ethketamine"
+        m["NENK"] = "Ethketamine"
+        m["Ethylbenzene"] = "Ethylbenzene"
+        m["EBDB"] = "Ethylbenzodioxolylbutanamine"
+        m["Ethylbenzodioxolylbutanamine"] = "Ethylbenzodioxolylbutanamine"
+        m["ECA"] = "Ethylcyanoacrylate"
+        m["Ethylcyanoacrylate"] = "Ethylcyanoacrylate"
+        m["EO"] = "Ethylene oxide"
+        m["Ethylene oxide"] = "Ethylene oxide"
+        m["Ethylketazocine"] = "Ethylketazocine"
+        m["Codethyline"] = "Ethylmorphine"
+        m["Dionine"] = "Ethylmorphine"
+        m["Ethylmorphine"] = "Ethylmorphine"
+        m["Ethylnaphthidate"] = "Ethylnaphthidate"
+        m["HDEP-28"] = "Ethylnaphthidate"
+        m["Ethylnorepinephrine"] = "Ethylnorepinephrine"
+        m["bk-MDEA"] = "Ethylone"
+        m["EDEC"] = "Ethylone"
+        m["Ethylone"] = "Ethylone"
+        m["MDEC"] = "Ethylone"
+        m["EPH"] = "Ethylphenidate"
+        m["Ethylphenidate"] = "Ethylphenidate"
+        m["Etilevodopa"] = "Etilevodopa"
+        m["Depas"] = "Etizolam"
+        m["Etilaam"] = "Etizolam"
+        m["Etizest"] = "Etizolam"
+        m["Etizolam"] = "Etizolam"
+        m["Etolorex"] = "Etolorex"
+        m["Etomidate"] = "Etomidate"
+        m["Etonitazene"] = "Etonitazene"
+        m["Etonitazepyne"] = "Etonitazepyne"
+        m["Etonogestrel"] = "Etonogestrel"
+        m["Eugeroic"] = "Eugeroics"
+        m["Eugeroics"] = "Eugeroics"
+        m["Eutylone"] = "Eutylone"
+        m["4-Fluorophenibut"] = "F-Phenibut"
+        m["Baflofen"] = "F-Phenibut"
+        m["CGP-11130"] = "F-Phenibut"
+        m["F-Phenibut"] = "F-Phenibut"
+        m["Flourobut"] = "F-Phenibut"
+        m["Fluorobut"] = "F-Phenibut"
+        m["Fluorophenibut"] = "F-Phenibut"
+        m["Fphenibut"] = "F-Phenibut"
+        m["Fabomotizole"] = "Fabomotizole"
+        m["Famprofazone"] = "Famprofazone"
+        m["Fasoracetam"] = "Fasoracetam"
+        m["Fenadiazole"] = "Fenadiazole"
+        m["Fenbutrazate"] = "Fenbutrazate"
+        m["Fenclonine"] = "Fenclonine"
+        m["PCPA"] = "Fenclonine"
+        m["Fenestrel"] = "Fenestrel"
+        m["Amfetyline"] = "Fenethylline"
+        m["Amphetamin​oethyl​theophylline"] = "Fenethylline"
+        m["Biocapton"] = "Fenethylline"
+        m["Captagon"] = "Fenethylline"
+        m["Fenethylline"] = "Fenethylline"
+        m["Fitton"] = "Fenethylline"
+        m["Phenethylline"] = "Fenethylline"
+        m["Fenfluramine"] = "Fenfluramine"
+        m["Fenmetramide"] = "Fenmetramide"
+        m["Fenoterol"] = "Fenoterol"
+        m["Fenozolone"] = "Fenozolone"
+        m["Fenproporex"] = "Fenproporex"
+        m["Abstral"] = "Fentanyl"
+        m["Actiq"] = "Fentanyl"
+        m["Duragesic"] = "Fentanyl"
+        m["Durogesic"] = "Fentanyl"
+        m["Fent"] = "Fentanyl"
+        m["Fentanil"] = "Fentanyl"
+        m["Fentanyl"] = "Fentanyl"
+        m["Fentora"] = "Fentanyl"
+        m["Haldid"] = "Fentanyl"
+        m["Instanyl"] = "Fentanyl"
+        m["Lazanda"] = "Fentanyl"
+        m["Matrifen"] = "Fentanyl"
+        m["Onsolis"] = "Fentanyl"
+        m["Sublimaze"] = "Fentanyl"
+        m["Feprosidnine"] = "Feprosidnine"
+        m["Fexofenadine"] = "Fexofenadine"
+        m["Fezolamine"] = "Fezolamine"
+        m["Finasteride"] = "Finasteride"
+        m["4-FMC"] = "Flephedrone"
+        m["Flephedrone"] = "Flephedrone"
+        m["Flmodafinil"] = "Flmodafinil"
+        m["3-FMC"] = "Flophedrone"
+        m["Flophedrone"] = "Flophedrone"
+        m["Flualp"] = "Flualprazolam"
+        m["Flualprazolam"] = "Flualprazolam"
+        m["Flubromazepam"] = "Flubromazepam"
+        m["Flubromazolam"] = "Flubromazolam"
+        m["Flubrotizolam"] = "Flubrotizolam"
+        m["Flucetorex"] = "Flucetorex"
+        m["Fluclotizolam"] = "Fluclotizolam"
+        m["Fludrocortisone"] = "Fludrocortisone"
+        m["Fluetizolam"] = "Fluetizolam"
+        m["Flumazenil"] = "Flumazenil"
+        m["Fluminorex"] = "Fluminorex"
+        m["Circles"] = "Flunitrazepam"
+        m["Flunitrazepam"] = "Flunitrazepam"
+        m["Forget Me Pill"] = "Flunitrazepam"
+        m["Forget Pill"] = "Flunitrazepam"
+        m["La Rocha"] = "Flunitrazepam"
+        m["Mexican Valium"] = "Flunitrazepam"
+        m["R2"] = "Flunitrazepam"
+        m["Roach 2"] = "Flunitrazepam"
+        m["Roches"] = "Flunitrazepam"
+        m["Rohypnol"] = "Flunitrazepam"
+        m["Roofies"] = "Flunitrazepam"
+        m["Rophies"] = "Flunitrazepam"
+        m["Ruffies"] = "Flunitrazepam"
+        m["Wolfies"] = "Flunitrazepam"
+        m["Flunitrazolam"] = "Flunitrazolam"
+        m["Fluorexetamine"] = "Fluorexetamine"
+        m["FXE"] = "Fluorexetamine"
+        m["2-FPPP"] = "Fluorolintane"
+        m["Fluorolintane"] = "Fluorolintane"
+        m["Fluoxetine"] = "Fluoxetine"
+        m["Flurazepam"] = "Flurazepam"
+        m["Fluvoxamine"] = "Fluvoxamine"
+        m["Arformoterol"] = "Formoterol"
+        m["Esformoterol"] = "Formoterol"
+        m["Formoterol"] = "Formoterol"
+        m["Foslevodopa"] = "Foslevodopa"
+        m["Gababutin"] = "Gababutin"
+        m["Gabapentin"] = "Gabapentin"
+        m["Gabarone"] = "Gabapentin"
+        m["Gabba"] = "Gabapentin"
+        m["Gabbies"] = "Gabapentin"
+        m["Gralise"] = "Gabapentin"
+        m["Neurontin"] = "Gabapentin"
+        m["Gaboxadol"] = "Gaboxadol"
+        m["Galantamine"] = "Galantamine"
+        m["Lycoremine"] = "Galantamine"
+        m["Nivalin"] = "Galantamine"
+        m["Razadyne"] = "Galantamine"
+        m["Razadyne ER"] = "Galantamine"
+        m["Reminyl"] = "Galantamine"
+        m["Gamlaphen"] = "Gamlaphen"
+        m["Gamofen"] = "Gamofen"
+        m["g-butyrolactone"] = "GBL"
+        m["Gamma-butyrolactone"] = "GBL"
+        m["GBL"] = "GBL"
+        m["Genistein"] = "Genistein"
+        m["Fantasy"] = "GHB"
+        m["g-Hydroxybutyric acid"] = "GHB"
+        m["GHB"] = "GHB"
+        m["Liquid ecstasy"] = "GHB"
+        m["Liquid G"] = "GHB"
+        m["Sodium oxybate"] = "GHB"
+        m["Xyrem"] = "GHB"
+        m["γ-Hydroxybutyric acid"] = "GHB"
+        m["Gidazepam"] = "Gidazepam"
+        m["Gigantine"] = "Gigantine"
+        m["Dextrose"] = "Glucose"
+        m["Glucose"] = "Glucose"
+        m["Levo-glucose"] = "Glucose"
+        m["Glu"] = "Glutamic acid"
+        m["Glutamic acid"] = "Glutamic acid"
+        m["Gln"] = "Glutamine"
+        m["Glutamine"] = "Glutamine"
+        m["Glycerol"] = "Glycerol"
+        m["VG"] = "Glycerol"
+        m["Gly"] = "Glycine"
+        m["Glycine"] = "Glycine"
+        m["Glyphosate"] = "Glyphosate"
+        m["Gostatin"] = "Gostatin"
+        m["Hallucinogen"] = "Hallucinogens"
+        m["Hallucinogenic"] = "Hallucinogens"
+        m["Hallucinogens"] = "Hallucinogens"
+        m["Haldol"] = "Haloperidol"
+        m["Haloperidol"] = "Haloperidol"
+        m["Harmala alkaloid"] = "Harmala alkaloid"
+        m["Harmala alkaloids"] = "Harmala alkaloid"
+        m["Harmaline"] = "Harmala alkaloid"
+        m["Harman"] = "Harmala alkaloid"
+        m["Harmane"] = "Harmala alkaloid"
+        m["Harmine"] = "Harmala alkaloid"
+        m["Tetrahydroharmine"] = "Harmala alkaloid"
+        m["Heparin"] = "Heparin"
+        m["UFH"] = "Heparin"
+        m["6-MAM"] = "Heroin"
+        m["6-Monoacetylmorphine"] = "Heroin"
+        m["Black tar"] = "Heroin"
+        m["Black tar heroin"] = "Heroin"
+        m["Brown"] = "Heroin"
+        m["China white"] = "Heroin"
+        m["Diacetylmorphine"] = "Heroin"
+        m["Diamorphine"] = "Heroin"
+        m["Heroin"] = "Heroin"
+        m["Heroine"] = "Heroin"
+        m["Horse"] = "Heroin"
+        m["Junk"] = "Heroin"
+        m["Skag"] = "Heroin"
+        m["Smack"] = "Heroin"
+        m["Hexahydrocannabinol"] = "Hexahydrocannabinol"
+        m["HHC"] = "Hexahydrocannabinol"
+        m["Hexane"] = "Hexane"
+        m["Hexapradol"] = "Hexapradol"
+        m["Hexedrone"] = "Hexedrone"
+        m["Hexestrol"] = "Hexestrol"
+    }
+
+    private fun addChunk8(m: MutableMap<String, String>) {
+        m["Hexetidine"] = "Hexetidine"
+        m["Hexolame"] = "Hexolame"
+        m["Hippulin"] = "Hippulin"
+        m["Histamine"] = "Histamine"
+        m["His"] = "Histidine"
+        m["Histidine"] = "Histidine"
+        m["Homarylamine"] = "Homarylamine"
+        m["MDMPEA"] = "Homarylamine"
+        m["Homatropine"] = "Homatropine"
+        m["Homocapsaicin"] = "Homocapsaicin"
+        m["Homodihydrocapsaicin"] = "Homodihydrocapsaicin"
+        m["Homovanillic acid"] = "Homovanillic acid"
+        m["Homovanillyl alcohol"] = "Homovanillyl alcohol"
+        m["Hordenine"] = "Hordenine"
+        m["HXE"] = "HXE"
+        m["Hydroxetamine"] = "HXE"
+        m["Hydrafinil"] = "Hydrafinil"
+        m["Hydrastinine"] = "Hydrastinine"
+        m["Hydrocodone"] = "Hydrocodone"
+        m["Hysingla"] = "Hydrocodone"
+        m["Lortab"] = "Hydrocodone"
+        m["Norco"] = "Hydrocodone"
+        m["Vicodin"] = "Hydrocodone"
+        m["Vicodin (with paracetamol)"] = "Hydrocodone"
+        m["Zohydro"] = "Hydrocodone"
+        m["Zohydro ER (extended-release)"] = "Hydrocodone"
+        m["Cortisol"] = "Hydrocortisone"
+        m["Hydrocortisone"] = "Hydrocortisone"
+        m["Dihydromorphinone"] = "Hydromorphone"
+        m["Dilaudid"] = "Hydromorphone"
+        m["Hydromorph"] = "Hydromorphone"
+        m["Hydromorphone"] = "Hydromorphone"
+        m["Hydrostat"] = "Hydromorphone"
+        m["Jurnista"] = "Hydromorphone"
+        m["Palladone"] = "Hydromorphone"
+        m["Hydroxybupropion"] = "Hydroxybupropion"
+        m["Hydroxylamine"] = "Hydroxylamine"
+        m["Hydroxyzine"] = "Hydroxyzine"
+        m["Henbane"] = "Hyoscyamus niger (botany)"
+        m["Hyoscyamus niger (botany)"] = "Hyoscyamus niger (botany)"
+        m["IBG"] = "Ibogainalog"
+        m["Ibogainalog"] = "Ibogainalog"
+        m["12-Methoxyibogamine"] = "Ibogaine"
+        m["Endabuse"] = "Ibogaine"
+        m["Iboga"] = "Ibogaine"
+        m["Ibogaine"] = "Ibogaine"
+        m["Tabernanthe iboga"] = "Ibogaine"
+        m["Ibogaminalog"] = "Ibogaminalog"
+        m["Ibopamine"] = "Ibopamine"
+        m["Ibotenic acid"] = "Ibotenic acid"
+        m["Ibuprofen"] = "Ibuprofen"
+        m["Imagabalin"] = "Imagabalin"
+        m["Imidazenil"] = "Imidazenil"
+        m["Indapyrophenidone"] = "Indapyrophenidone"
+        m["Indolylpropylaminopentane"] = "Indolylpropylaminopentane"
+        m["IPAP"] = "Indolylpropylaminopentane"
+        m["Acetone"] = "Inhalants"
+        m["Butane"] = "Inhalants"
+        m["Chloroform"] = "Inhalants"
+        m["Diethyl ether"] = "Inhalants"
+        m["Ether"] = "Inhalants"
+        m["Freon"] = "Inhalants"
+        m["Gasoline"] = "Inhalants"
+        m["Inhalants"] = "Inhalants"
+        m["Toluene"] = "Inhalants"
+        m["Xenon"] = "Inhalants"
+        m["Iometopane"] = "Iometopane"
+        m["RTI-55"] = "Iometopane"
+        m["Isobutane"] = "Isobutane"
+        m["Isobutyl nitrite"] = "Isobutyl nitrite"
+        m["IBMX"] = "Isobutylmethylxanthine"
+        m["Isobutylmethylxanthine"] = "Isobutylmethylxanthine"
+        m["Isocyclamine"] = "Isocyclamine"
+        m["Isoetarine"] = "Isoetarine"
+        m["Isoethcathinone"] = "Isoethcathinone"
+        m["Isohexylone"] = "Isohexylone"
+        m["Ile"] = "Isoleucine"
+        m["Isoleucine"] = "Isoleucine"
+        m["Isoniazid"] = "Isoniazid"
+        m["Isoprenaline"] = "Isoprenaline"
+        m["IPA"] = "Isopropanol"
+        m["Isopropanol"] = "Isopropanol"
+        m["Isopropyl nitrite"] = "Isopropyl nitrite"
+        m["IA"] = "Isopropylamphetamine"
+        m["Isopropylamphetamine"] = "Isopropylamphetamine"
+        m["Isopropylbenzylamine"] = "Isopropylbenzylamine"
+        m["IPH"] = "Isopropylphenidate"
+        m["IPPD"] = "Isopropylphenidate"
+        m["IPPH"] = "Isopropylphenidate"
+        m["Isopropylphenidate"] = "Isopropylphenidate"
+        m["Isopropylphenidine"] = "Isopropylphenidine"
+        m["NPDPA"] = "Isopropylphenidine"
+        m["Isotonitazene"] = "Isotonitazene"
+        m["Isovaleramide"] = "Isovaleramide"
+        m["Isoxsuprine"] = "Isoxsuprine"
+        m["Israpafant"] = "Israpafant"
+        m["JQ1"] = "JQ1"
+        m["1-Pentyl-3-(1-naphthoyl)indole"] = "JWH-018"
+        m["AM-678"] = "JWH-018"
+        m["JWH-018"] = "JWH-018"
+        m["Jwh018"] = "JWH-018"
+        m["JWH-073"] = "JWH-073"
+        m["Spice"] = "JWH-073"
+        m["JWH-193"] = "JWH-193"
+        m["JWH-198"] = "JWH-198"
+        m["JWH-200"] = "JWH-200"
+        m["2-Cl-2'-Oxo-PCM"] = "Ketamine"
+        m["Arketamine"] = "Ketamine"
+        m["Cat Tranquilizer"] = "Ketamine"
+        m["Esketamine"] = "Ketamine"
+        m["Jet"] = "Ketamine"
+        m["Ket"] = "Ketamine"
+        m["Ketalar"] = "Ketamine"
+        m["Ketamine"] = "Ketamine"
+        m["Ketanest"] = "Ketamine"
+        m["Ketaset"] = "Ketamine"
+        m["Kit Kat"] = "Ketamine"
+        m["Kitty"] = "Ketamine"
+        m["Purple"] = "Ketamine"
+        m["R-Ketamine"] = "Ketamine"
+        m["S-Ketamine"] = "Ketamine"
+        m["Special K"] = "Ketamine"
+        m["Vitamin K"] = "Ketamine"
+        m["Ketazocine"] = "Ketazocine"
+        m["Ketoprofen"] = "Ketoprofen"
+        m["Biak"] = "Kratom"
+        m["Ketum"] = "Kratom"
+        m["Kratom"] = "Kratom"
+        m["Kratum"] = "Kratom"
+        m["Mitragyna speciosa"] = "Kratom"
+        m["กระท่อม (Thai)"] = "Kratom"
+        m["KRM-II-81"] = "KRM-II-81"
+        m["Lactase"] = "Lactase"
+        m["Lactose"] = "Lactose"
+        m["LAE-32"] = "LAE-32"
+        m["Lefetamine"] = "Lefetamine"
+        m["Leu-enkephalin"] = "Leu-enkephalin"
+        m["Leu"] = "Leucine"
+        m["Leucine"] = "Leucine"
+        m["Levallorphan"] = "Levallorphan"
+        m["Levomethorphan"] = "Levomethorphan"
+        m["LVM"] = "Levomethorphan"
+        m["Levorphanol"] = "Levorphanol"
+        m["Lidocaine"] = "Lidocaine"
+        m["Elvanse"] = "Lisdexamfetamine"
+        m["Lis"] = "Lisdexamfetamine"
+        m["Lisdexamfetamine"] = "Lisdexamfetamine"
+        m["Lisdexamfetamine dimesylate"] = "Lisdexamfetamine"
+        m["Lisdexamphetamine"] = "Lisdexamfetamine"
+        m["Lisdextroamphetamine"] = "Lisdexamfetamine"
+        m["Tyvense"] = "Lisdexamfetamine"
+        m["Vyvanse"] = "Lisdexamfetamine"
+        m["Lisuride"] = "Lisuride"
+        m["Loperamide"] = "Loperamide"
+        m["Lophophine"] = "Lophophine"
+        m["Lopirazepam"] = "Lopirazepam"
+        m["Loprazolam"] = "Loprazolam"
+        m["Ativan"] = "Lorazepam"
+        m["Lorazepam"] = "Lorazepam"
+        m["Lorsilan"] = "Lorazepam"
+        m["Orfidal"] = "Lorazepam"
+        m["Tavor"] = "Lorazepam"
+        m["Temesta"] = "Lorazepam"
+        m["Lorcaserin"] = "Lorcaserin"
+        m["Lormetazepam"] = "Lormetazepam"
+        m["Ergine"] = "LSA"
+        m["Hawaiian baby woodrose"] = "LSA"
+        m["LA-111"] = "LSA"
+        m["LSA"] = "LSA"
+        m["Lysergic acid"] = "LSA"
+        m["Lysergic acid amide"] = "LSA"
+        m["Acid"] = "LSD"
+        m["Blotter"] = "LSD"
+        m["Cid"] = "LSD"
+        m["Doses"] = "LSD"
+        m["LSD"] = "LSD"
+        m["LSD-25"] = "LSD"
+        m["Lucy"] = "LSD"
+        m["Lysergic acid diethylamide"] = "LSD"
+        m["Microdots"] = "LSD"
+        m["Tabs"] = "LSD"
+        m["LSM-775"] = "LSM-775"
+        m["Lsm775"] = "LSM-775"
+        m["Diazedine"] = "LSZ"
+        m["LA-SS-Az"] = "LSZ"
+        m["Lambda"] = "LSZ"
+        m["LSZ"] = "LSZ"
+        m["DAM"] = "Lysergic acid dimethylamide"
+        m["DAM-57"] = "Lysergic acid dimethylamide"
+        m["Lysergic acid dimethylamide"] = "Lysergic acid dimethylamide"
+        m["F-LSD"] = "Lysergic acid fluorodiethylamide"
+        m["Lysergic acid fluorodiethylamide"] = "Lysergic acid fluorodiethylamide"
+        m["LAM"] = "Lysergic acid methylamide"
+        m["Lysergic acid methylamide"] = "Lysergic acid methylamide"
+        m["NM-LA"] = "Lysergic acid methylamide"
+        m["Lys"] = "Lysine"
+        m["Lysine"] = "Lysine"
+        m["Macromerine"] = "Macromerine"
+        m["Magnesium"] = "Magnesium"
+        m["MAO inhibitor"] = "MAOI"
+        m["MAOI"] = "MAOI"
+        m["MAOI inhibitors"] = "MAOI"
+        m["MAOIs"] = "MAOI"
+        m["Monoamine oxidase inhibitor"] = "MAOI"
+        m["Monoamine oxidase inhibitors"] = "MAOI"
+        m["MCPP"] = "MCPP"
+        m["Meta-Chlorophenylpiperazine"] = "MCPP"
+        m["3,4-Methylenedioxyamphetamine"] = "MDA"
+        m["MDA"] = "MDA"
+        m["Sally"] = "MDA"
+        m["Sass"] = "MDA"
+        m["Tenamfetamine"] = "MDA"
+        m["5,6-Methylenedioxy-2-aminoindane"] = "MDAI"
+        m["MDAI"] = "MDAI"
+        m["3,4-Methylenedioxy-N-ethylamphetamine"] = "MDEA"
+        m["3,4-Methylenedioxyethamphetamine"] = "MDEA"
+        m["Eve"] = "MDEA"
+        m["MDE"] = "MDEA"
+        m["MDEA"] = "MDEA"
+        m["3,4-Methylenedioxymethamphetamine"] = "MDMA"
+        m["Beans"] = "MDMA"
+        m["Ecstasy"] = "MDMA"
+        m["Emma"] = "MDMA"
+        m["Mandy"] = "MDMA"
+        m["MD"] = "MDMA"
+        m["MDMA"] = "MDMA"
+        m["Methylenedioxymethamphetamine"] = "MDMA"
+        m["Midomafetamine"] = "MDMA"
+        m["Molly"] = "MDMA"
+        m["Pingers"] = "MDMA"
+        m["Rolls"] = "MDMA"
+        m["XTC"] = "MDMA"
+        m["3',4'-Methylenedioxy-α-pyrrolidinopentiophenone"] = "MDPV"
+        m["Bath Salts"] = "MDPV"
+        m["MDPK"] = "MDPV"
+        m["MDPV"] = "MDPV"
+        m["Methylenedioxypyrovalerone"] = "MDPV"
+        m["NRG-1"] = "MDPV"
+        m["Mebroqualone"] = "Mebroqualone"
+        m["Meclofenoxate"] = "Meclofenoxate"
+        m["Meclonazepam"] = "Meclonazepam"
+        m["Mecloqualone"] = "Mecloqualone"
+        m["Mefenorex"] = "Mefenorex"
+        m["Melatonin"] = "Melatonin"
+        m["N-Acetyl-5-methoxytryptamine"] = "Melatonin"
+        m["Melevodopa"] = "Melevodopa"
+        m["both extended-release)"] = "Memantine"
+        m["Ebixa"] = "Memantine"
+        m["Memantine"] = "Memantine"
+        m["Memaxa"] = "Memantine"
+    }
+
+    private fun addChunk9(m: MutableMap<String, String>) {
+        m["Namenda"] = "Memantine"
+        m["Namenda XR"] = "Memantine"
+        m["Namzaric (with donepezil"] = "Memantine"
+        m["Menthol"] = "Menthol"
+        m["Menthyl isovalerate"] = "Menthyl isovalerate"
+        m["Validolum"] = "Menthyl isovalerate"
+        m["Mephedrene"] = "Mephedrene"
+        m["4-MMA"] = "Mephedrine"
+        m["4MMA"] = "Mephedrine"
+        m["Mephedrine"] = "Mephedrine"
+        m["4-Methylmethcathinone"] = "Mephedrone"
+        m["4-MMC"] = "Mephedrone"
+        m["4mmc"] = "Mephedrone"
+        m["Drone"] = "Mephedrone"
+        m["M-CAT"] = "Mephedrone"
+        m["MCAT"] = "Mephedrone"
+        m["Meow meow"] = "Mephedrone"
+        m["Meph"] = "Mephedrone"
+        m["Mephedrone"] = "Mephedrone"
+        m["Mephenaqualone"] = "Mephenaqualone"
+        m["Mephenidine"] = "Mephenidine"
+        m["N-Methyl-1,2-diphenylethylamine"] = "Mephenidine"
+        m["Mephentermine"] = "Mephentermine"
+        m["3,4,5-Trimethoxyphenethylamine"] = "Mescaline"
+        m["Buttons"] = "Mescaline"
+        m["Cactus"] = "Mescaline"
+        m["Mescaline"] = "Mescaline"
+        m["Peyote"] = "Mescaline"
+        m["San Pedro"] = "Mescaline"
+        m["TMPEA"] = "Mescaline"
+        m["Mesocarb"] = "Mesocarb"
+        m["MLR-1017"] = "Mesocarb"
+        m["MET"] = "MET"
+        m["Methionine"] = "MET"
+        m["Methylethyltryptamine"] = "MET"
+        m["N-Ethyl-N-methyltryptamine"] = "MET"
+        m["Met-enkephalin"] = "Met-enkephalin"
+        m["Meta-Hydroxynorephedrine"] = "Meta-Hydroxynorephedrine"
+        m["Meta-Tyramine"] = "Meta-Tyramine"
+        m["Meta-Xylene"] = "Meta-Xylene"
+        m["Metacetamol"] = "Metacetamol"
+        m["Metamizole"] = "Metamizole"
+        m["3-MMA"] = "Metaphedrine"
+        m["Metaphedrine"] = "Metaphedrine"
+        m["Metaradrine"] = "Metaraminol"
+        m["Metaraminol"] = "Metaraminol"
+        m["Metfendrazine"] = "Metfendrazine"
+        m["Dolophine"] = "Methadone"
+        m["Methadone"] = "Methadone"
+        m["Methadose"] = "Methadone"
+        m["Symoron"] = "Methadone"
+        m["Methallenestril"] = "Methallenestril"
+        m["MAL"] = "Methallylescaline"
+        m["Methallylescaline"] = "Methallylescaline"
+        m["Methamexamine"] = "Methamexamine"
+        m["Crank"] = "Methamphetamine"
+        m["Crystal"] = "Methamphetamine"
+        m["Crystal meth"] = "Methamphetamine"
+        m["d-methamphetamine"] = "Methamphetamine"
+        m["Desoxyn"] = "Methamphetamine"
+        m["Dextromethamphetamine"] = "Methamphetamine"
+        m["Glass"] = "Methamphetamine"
+        m["Ice"] = "Methamphetamine"
+        m["Ma"] = "Methamphetamine"
+        m["Meth"] = "Methamphetamine"
+        m["Methamphetamine"] = "Methamphetamine"
+        m["Shabu"] = "Methamphetamine"
+        m["Shard"] = "Methamphetamine"
+        m["Speed"] = "Methamphetamine"
+        m["Tina"] = "Methamphetamine"
+        m["Tweak"] = "Methamphetamine"
+        m["Yaba"] = "Methamphetamine"
+        m["δ-methamphetamine"] = "Methamphetamine"
+        m["Methanol"] = "Methanol"
+        m["Ludes"] = "Methaqualone"
+        m["Mandrax"] = "Methaqualone"
+        m["Methaqualone"] = "Methaqualone"
+        m["Quaalude"] = "Methaqualone"
+        m["Quaaludes"] = "Methaqualone"
+        m["Quack"] = "Methaqualone"
+        m["Quacks"] = "Methaqualone"
+        m["Soaper"] = "Methaqualone"
+        m["Sopor"] = "Methaqualone"
+        m["Vitamin Q"] = "Methaqualone"
+        m["Cat"] = "Methcathinone"
+        m["Ephedrone"] = "Methcathinone"
+        m["Jeff"] = "Methcathinone"
+        m["MC"] = "Methcathinone"
+        m["Methcat"] = "Methcathinone"
+        m["Methcathinone"] = "Methcathinone"
+        m["Methedrone"] = "Methedrone"
+        m["PMMC"] = "Methedrone"
+        m["IC-26"] = "Methiodone"
+        m["Methiodone"] = "Methiodone"
+        m["WIN 1161-3"] = "Methiodone"
+        m["Medroxyprogesterone acetate"] = "Methiopropamine"
+        m["Methiopropamine"] = "Methiopropamine"
+        m["MPA"] = "Methiopropamine"
+        m["Methitural"] = "Methitural"
+        m["Methoxamine"] = "Methoxamine"
+        m["3-MeO-2'-Oxo-PCE"] = "Methoxetamine"
+        m["Methoxetamine"] = "Methoxetamine"
+        m["Mexxy"] = "Methoxetamine"
+        m["MXE"] = "Methoxetamine"
+        m["2-MXP"] = "Methoxphenidine"
+        m["Methoxphenidine"] = "Methoxphenidine"
+        m["Methoxyphenidine"] = "Methoxphenidine"
+        m["MXP"] = "Methoxphenidine"
+        m["Methoxpropamine"] = "Methoxpropamine"
+        m["MXPr"] = "Methoxpropamine"
+        m["2-MeO-DCK"] = "Methoxyketamine"
+        m["2-Methoxydeschloroketamine"] = "Methoxyketamine"
+        m["Methoxyketamine"] = "Methoxyketamine"
+        m["Methoxyphenamine"] = "Methoxyphenamine"
+        m["OMMA"] = "Methoxyphenamine"
+        m["MeOP"] = "Methoxypiperamide"
+        m["Methoxypiperamide"] = "Methoxypiperamide"
+        m["MEXP"] = "Methoxypiperamide"
+        m["Methoxyqualone"] = "Methoxyqualone"
+        m["MBZOP"] = "Methylbenzoylpiperazine"
+        m["Methylbenzoylpiperazine"] = "Methylbenzoylpiperazine"
+        m["MBZP"] = "Methylbenzylpiperazine"
+        m["Methylbenzylpiperazine"] = "Methylbenzylpiperazine"
+        m["MCA"] = "Methylcyanoacrylate"
+        m["Methylcyanoacrylate"] = "Methylcyanoacrylate"
+        m["Methyldopa"] = "Methyldopa"
+        m["Methylenedioxymephenidine"] = "Methylenedioxymephenidine"
+        m["UWA-001"] = "Methylenedioxymephenidine"
+        m["Methylephedrine"] = "Methylephedrine"
+        m["Methylestradiol"] = "Methylestradiol"
+        m["1,3-DMAA"] = "Methylhexanamine"
+        m["Methylhexanamine"] = "Methylhexanamine"
+        m["Methylmethaqualone"] = "Methylmethaqualone"
+        m["MMQ"] = "Methylmethaqualone"
+        m["HDMP-28"] = "Methylnaphthidate"
+        m["Hdmp28"] = "Methylnaphthidate"
+        m["Methylnaphthidate"] = "Methylnaphthidate"
+        m["bk-MDMA"] = "Methylone"
+        m["Bkmdma"] = "Methylone"
+        m["M1"] = "Methylone"
+        m["MDMC"] = "Methylone"
+        m["Methylone"] = "Methylone"
+        m["Methylphenethylamine"] = "Methylphenethylamine"
+        m["NMPEA"] = "Methylphenethylamine"
+        m["Concerta"] = "Methylphenidate"
+        m["Dexmethylphenidate"] = "Methylphenidate"
+        m["Equasym XL"] = "Methylphenidate"
+        m["Methylin"] = "Methylphenidate"
+        m["Methylphenidate"] = "Methylphenidate"
+        m["MPD"] = "Methylphenidate"
+        m["MPH"] = "Methylphenidate"
+        m["Rita"] = "Methylphenidate"
+        m["Ritalin"] = "Methylphenidate"
+        m["Methylpseudoephedrine"] = "Methylpseudoephedrine"
+        m["Methyltestosterone"] = "Methyltestosterone"
+        m["Methyltyramine"] = "Methyltyramine"
+        m["NMT"] = "Methyltyramine"
+        m["Desmethyletizolam"] = "Metizolam"
+        m["Metizolam"] = "Metizolam"
+        m["Metoclopramide"] = "Metoclopramide"
+        m["Metonitazene"] = "Metonitazene"
+        m["Metonitazepyne"] = "Metonitazepyne"
+        m["4-MMC-MeO"] = "Mexedrone"
+        m["Mexedrone"] = "Mexedrone"
+        m["Mianserin"] = "Mianserin"
+        m["Midazolam"] = "Midazolam"
+        m["Versed"] = "Midazolam"
+        m["Mifepristone"] = "Mifepristone"
+        m["Minoxidil"] = "Minoxidil"
+        m["Lamide"] = "MiPLA"
+        m["Methylisopropyllysergamide"] = "MiPLA"
+        m["MiPLA"] = "MiPLA"
+        m["Methylisopropyltryptamine"] = "MiPT"
+        m["MiPT"] = "MiPT"
+        m["N-Methyl-N-isopropyltryptamine"] = "MiPT"
+        m["Mirogabalin"] = "Mirogabalin"
+        m["Avanza"] = "Mirtazapine"
+        m["Axit"] = "Mirtazapine"
+        m["Mirtaz"] = "Mirtazapine"
+        m["Mirtazapine"] = "Mirtazapine"
+        m["Mirtazon"] = "Mirtazapine"
+        m["Remeron"] = "Mirtazapine"
+        m["Zispin"] = "Mirtazapine"
+        m["Mitragynine"] = "Mitragynine"
+        m["MN-25"] = "MN-25"
+        m["UR-12"] = "MN-25"
+        m["Alertec"] = "Modafinil"
+        m["Moda"] = "Modafinil"
+        m["Modafinil"] = "Modafinil"
+        m["Modalert"] = "Modafinil"
+        m["Modavigil"] = "Modafinil"
+        m["Modiodal"] = "Modafinil"
+        m["Provigil"] = "Modafinil"
+        m["Monomethyltryptamine"] = "Monomethyltryptamine"
+        m["Morforex"] = "Morforex"
+        m["Avinza"] = "Morphine"
+        m["Duramorph"] = "Morphine"
+        m["Kapanol"] = "Morphine"
+        m["Morphine"] = "Morphine"
+        m["MS Contin"] = "Morphine"
+        m["MS-Contin"] = "Morphine"
+        m["Oramorph"] = "Morphine"
+        m["Roxanol"] = "Morphine"
+        m["Sevredol"] = "Morphine"
+        m["Statex"] = "Morphine"
+        m["Zomorph"] = "Morphine"
+        m["Morpholine"] = "Morpholine"
+        m["Moxaverine"] = "Moxaverine"
+        m["Moxestrol"] = "Moxestrol"
+        m["Methylpropyltryptamine"] = "MPT"
+        m["MPT"] = "MPT"
+        m["N-Methyl-N-propyltryptamine"] = "MPT"
+        m["Muscarine"] = "Muscarine"
+        m["Methoxisopropamine"] = "MXiPr"
+        m["MXiP"] = "MXiPr"
+        m["MXiPr"] = "MXiPr"
+        m["Myosmine"] = "Myosmine"
+        m["Elemicin"] = "Myristicin"
+        m["Myristicin"] = "Myristicin"
+        m["Nutmeg"] = "Myristicin"
+        m["DMDA"] = "N,N-Dimethyldopamine"
+        m["N,N-Dimethyldopamine"] = "N,N-Dimethyldopamine"
+        m["N,N-Dimethylphenethylamine"] = "N,N-Dimethylphenethylamine"
+        m["N,N-DMPEA"] = "N,N-Dimethylphenethylamine"
+        m["AKB48"] = "N-(1-Adamantyl)-1-pentyl-1H-indazole-3-carboxamide"
+        m["APINACA"] = "N-(1-Adamantyl)-1-pentyl-1H-indazole-3-carboxamide"
+        m["N-(2-(Dimethylamino)acetaldehyde)amphetamine"] = "N-(2-(Dimethylamino)acetaldehyde)amphetamine"
+        m["DSP-4"] = "N-(2-Chloroethyl)-N-ethyl-2-bromobenzylamine"
+        m["N-(2-Chloroethyl)-N-ethyl-2-bromobenzylamine"] = "N-(2-Chloroethyl)-N-ethyl-2-bromobenzylamine"
+        m["N-(2-Fluorobenzyl)phenethylamine"] = "N-(2-Fluorobenzyl)phenethylamine"
+        m["NBF"] = "N-(2-Fluorobenzyl)phenethylamine"
+        m["N-(2-Hydroxybenzyl)phenethylamine"] = "N-(2-Hydroxybenzyl)phenethylamine"
+        m["NBOH"] = "N-(2-Hydroxybenzyl)phenethylamine"
+        m["N-(2-Methoxybenzyl)-4-ethylamphetamine"] = "N-(2-Methoxybenzyl)-4-ethylamphetamine"
+        m["N-(2C-B)-Fentanyl"] = "N-(2C-B)-Fentanyl"
+        m["N-(2C-B-FLY)-Fentanyl"] = "N-(2C-B-FLY)-Fentanyl"
+        m["N-(3-Methoxybenzyl)phenethylamine"] = "N-(3-Methoxybenzyl)phenethylamine"
+        m["NB3OMe"] = "N-(3-Methoxybenzyl)phenethylamine"
+        m["N-(4-Methoxybenzyl)phenethylamine"] = "N-(4-Methoxybenzyl)phenethylamine"
+        m["NB4OMe"] = "N-(4-Methoxybenzyl)phenethylamine"
+        m["Lys-MDA"] = "N-(L-Lysinamidyl)-3,4-methylenedioxyamphetamine"
+        m["N-(L-Lysinamidyl)-3,4-methylenedioxyamphetamine"] = "N-(L-Lysinamidyl)-3,4-methylenedioxyamphetamine"
+        m["Lys-MDMA"] = "N-(L-Lysinamidyl)-3,4-methylenedioxymethamphetamine"
+        m["N-(L-Lysinamidyl)-3,4-methylenedioxymethamphetamine"] = "N-(L-Lysinamidyl)-3,4-methylenedioxymethamphetamine"
+        m["3',4'-methylenedioxy alpha-methyl Fentanyl"] = "N-(MDA)-Fentanyl"
+        m["N-(MDA)-Fentanyl"] = "N-(MDA)-Fentanyl"
+        m["N-(Tert-butylformate)-3,4-methylenedioxymethamphetamine"] = "N-(Tert-butylformate)-3,4-methylenedioxymethamphetamine"
+        m["N-t-Boc-MDMA"] = "N-(Tert-butylformate)-3,4-methylenedioxymethamphetamine"
+        m["N-Acetyl-2-methylamphetamine"] = "N-Acetyl-2-methylamphetamine"
+        m["N-Acetyl-4-fluoroamphetamine"] = "N-Acetyl-4-fluoroamphetamine"
+    }
+
+    private fun addChunk10(m: MutableMap<String, String>) {
+        m["N-Acetyl-4-methylamphetamine"] = "N-Acetyl-4-methylamphetamine"
+        m["N-Acetyl-L-tyrosine"] = "N-Acetyl-L-tyrosine"
+        m["NALT"] = "N-Acetyl-L-tyrosine"
+        m["N-Acetylamphetamine"] = "N-Acetylamphetamine"
+        m["Acetylcysteine"] = "N-Acetylcysteine"
+        m["N-Acetyl-L-cysteine"] = "N-Acetylcysteine"
+        m["N-Acetylcysteine"] = "N-Acetylcysteine"
+        m["NAC"] = "N-Acetylcysteine"
+        m["N-Acetylmethamphetamine"] = "N-Acetylmethamphetamine"
+        m["N-Arachidonoyl dopamine"] = "N-Arachidonoyl dopamine"
+        m["NADA"] = "N-Arachidonoyl dopamine"
+        m["N-Benzylethylenediamine"] = "N-Benzylethylenediamine"
+        m["N-Benzylmethcathinone"] = "N-Benzylmethcathinone"
+        m["NBMC"] = "N-Benzylmethcathinone"
+        m["N-Benzylphenethylamine"] = "N-Benzylphenethylamine"
+        m["NB"] = "N-Benzylphenethylamine"
+        m["N-Benzyltryptamine"] = "N-Benzyltryptamine"
+        m["NB-T"] = "N-Benzyltryptamine"
+        m["T-NB"] = "N-Benzyltryptamine"
+        m["N-Carbamoylamphetamine"] = "N-Carbamoylamphetamine"
+        m["H-LAD"] = "N-desmethyllysergic acid diethylamide"
+        m["N-desmethyllysergic acid diethylamide"] = "N-desmethyllysergic acid diethylamide"
+        m["Nor-LSD"] = "N-desmethyllysergic acid diethylamide"
+        m["norLSD"] = "N-desmethyllysergic acid diethylamide"
+        m["4-MEAP"] = "N-Ethyl-4-methyl-nor-pentedrone"
+        m["N-Ethyl-4-methyl-nor-pentedrone"] = "N-Ethyl-4-methyl-nor-pentedrone"
+        m["ETAI"] = "N-Ethyl-5-trifluoromethyl-2-aminoindane"
+        m["N-Ethyl-5-trifluoromethyl-2-aminoindane"] = "N-Ethyl-5-trifluoromethyl-2-aminoindane"
+        m["N-Ethyl-nor-heptedrone"] = "N-Ethyl-nor-heptedrone"
+        m["N-Ethyl-nor-heptylone"] = "N-Ethyl-nor-heptylone"
+        m["N-Ethyl-nor-pentylone"] = "N-Ethyl-nor-pentylone"
+        m["Ethyl-Hex"] = "N-Ethylhexedrone"
+        m["Ethyl-Hexedrone"] = "N-Ethylhexedrone"
+        m["Ethylhexedrone"] = "N-Ethylhexedrone"
+        m["Hex-en"] = "N-Ethylhexedrone"
+        m["Hexen"] = "N-Ethylhexedrone"
+        m["N-ethyl-hexedrone"] = "N-Ethylhexedrone"
+        m["N-Ethyl-nor-hexedrone"] = "N-Ethylhexedrone"
+        m["N-Ethylhexedrone"] = "N-Ethylhexedrone"
+        m["NEH"] = "N-Ethylhexedrone"
+        m["N-Formylamphetamine"] = "N-Formylamphetamine"
+        m["N-iPr-α-Pr-PEA"] = "N-Isopropyl-α-propylphenethylamine"
+        m["N-Isopropyl-α-propylphenethylamine"] = "N-Isopropyl-α-propylphenethylamine"
+        m["N-Methylanabasine"] = "N-Methylanabasine"
+        m["Dehydroxyfluorafinil"] = "N-Methylbisfluoromodafinil"
+        m["Modafiendz"] = "N-Methylbisfluoromodafinil"
+        m["N-Methyl-4,4'-difluoro-modafinil"] = "N-Methylbisfluoromodafinil"
+        m["N-Methylbisfluoromodafinil"] = "N-Methylbisfluoromodafinil"
+        m["N-Methylbupropion"] = "N-Methylbupropion"
+        m["N-Methylcyclazodone"] = "N-Methylcyclazodone"
+        m["N-Phenethyl-α-ethylphenethylamine"] = "N-Phenethyl-α-ethylphenethylamine"
+        m["N-PhEt-α-Et-PEA"] = "N-Phenethyl-α-ethylphenethylamine"
+        m["N-Phenylethanol"] = "N-Phenylethanol"
+        m["N-Pr-α-Bn-PEA"] = "N-Propyl-α-benzylphenethylamine"
+        m["N-Propyl-α-benzylphenethylamine"] = "N-Propyl-α-benzylphenethylamine"
+        m["N-Pr-α-Ph-PEA"] = "N-Propyl-α-phenylphenethylamine"
+        m["N-Propyl-α-phenylphenethylamine"] = "N-Propyl-α-phenylphenethylamine"
+        m["N-Trifluoroacetylamphetamine"] = "N-Trifluoroacetylamphetamine"
+        m["N1-Tert-butoxycarbonyldimethyltryptamine"] = "N1-Tert-butoxycarbonyldimethyltryptamine"
+        m["NB-DMT"] = "N1-Tert-butoxycarbonyldimethyltryptamine"
+        m["NBoc-DMT"] = "N1-Tert-butoxycarbonyldimethyltryptamine"
+        m["Nalbuphine"] = "Nalbuphine"
+        m["Naloxol"] = "Naloxol"
+        m["Evzio"] = "Naloxone"
+        m["Nalaxone"] = "Naloxone"
+        m["Nalone"] = "Naloxone"
+        m["Naloxone"] = "Naloxone"
+        m["Narcan"] = "Naloxone"
+        m["Narcanti"] = "Naloxone"
+        m["Naltrexone"] = "Naltrexone"
+        m["Nandrolone"] = "Nandrolone"
+        m["Nandrolone decanoate"] = "Nandrolone decanoate"
+        m["Nandrolone phenylpropionate"] = "Nandrolone phenylpropionate"
+        m["NPP"] = "Nandrolone phenylpropionate"
+        m["Naphthylmetrazine"] = "Naphthylmetrazine"
+        m["PAL-704"] = "Naphthylmetrazine"
+        m["Naphthylmorpholine"] = "Naphthylmorpholine"
+        m["PAL-678"] = "Naphthylmorpholine"
+        m["Naphyrone"] = "Naphyrone"
+        m["Naratriptan"] = "Naratriptan"
+        m["Naringenin"] = "Naringenin"
+        m["Nefiracetam"] = "Nefiracetam"
+        m["Neopinone"] = "Neopinone"
+        m["Neosaxitoxin"] = "Neosaxitoxin"
+        m["Neostigmine"] = "Neostigmine"
+        m["Ethyl-Pentedrone"] = "NEP"
+        m["Ethylpentedrone"] = "NEP"
+        m["N-Ethyl-(nor)-Pentedrone"] = "NEP"
+        m["N-Ethyl-Nor-Pentedrone"] = "NEP"
+        m["N-ethyl-pentedrone"] = "NEP"
+        m["N-Ethylpentedrone"] = "NEP"
+        m["NEP"] = "NEP"
+        m["Nepicastat"] = "Nepicastat"
+        m["Nevirapine"] = "Nevirapine"
+        m["Niacin"] = "Niacin"
+        m["vitamin B3"] = "Niacin"
+        m["Nicotinamide mononucleotide"] = "Nicotinamide mononucleotide"
+        m["NMN"] = "Nicotinamide mononucleotide"
+        m["Cigarette"] = "Nicotine"
+        m["Cigs"] = "Nicotine"
+        m["Dipping tobacco"] = "Nicotine"
+        m["Nic"] = "Nicotine"
+        m["Nicotiana rustica"] = "Nicotine"
+        m["Nicotine"] = "Nicotine"
+        m["Smokeless tobacco"] = "Nicotine"
+        m["Tobacco"] = "Nicotine"
+        m["Vape"] = "Nicotine"
+        m["Nifoxipam"] = "Nifoxipam"
+        m["Nikethamide"] = "Nikethamide"
+        m["Nitrazepam"] = "Nitrazepam"
+        m["Nitrazolam"] = "Nitrazolam"
+        m["NG"] = "Nitroglycerine"
+        m["Nitroglycerine"] = "Nitroglycerine"
+        m["Nitromethaqualone"] = "Nitromethaqualone"
+        m["Balloons"] = "Nitrous"
+        m["Hippy Crack"] = "Nitrous"
+        m["Laughing Gas"] = "Nitrous"
+        m["N2O"] = "Nitrous"
+        m["Nangs"] = "Nitrous"
+        m["Nitro"] = "Nitrous"
+        m["Nitrous"] = "Nitrous"
+        m["Nitrous oxide"] = "Nitrous"
+        m["NOS"] = "Nitrous"
+        m["Whippet"] = "Nitrous"
+        m["Whippets"] = "Nitrous"
+        m["Whippit"] = "Nitrous"
+        m["Whippits"] = "Nitrous"
+        m["2NMAI"] = "NM-2-AI"
+        m["N-methyl-2-AI"] = "NM-2-AI"
+        m["N-Methyl-2-aminoindane"] = "NM-2-AI"
+        m["NM-2-AI"] = "NM-2-AI"
+        m["NM2AI"] = "NM-2-AI"
+        m["Nonivamide"] = "Nonivamide"
+        m["Nonylphenol"] = "Nonylphenol"
+        m["4-MC"] = "Nor-Mephedrone"
+        m["Nor-Mephedrone"] = "Nor-Mephedrone"
+        m["4-PO-T"] = "Norbaeocystin"
+        m["Norbaeocystin"] = "Norbaeocystin"
+        m["Norbenzphetamine"] = "Norbenzphetamine"
+        m["Norcodeine"] = "Norcodeine"
+        m["Nordazepam"] = "Nordazepam"
+        m["Nordihydrocapsaicin"] = "Nordihydrocapsaicin"
+        m["NE"] = "Norepinephrine"
+        m["Norepinephrine"] = "Norepinephrine"
+        m["Norfluoxetine"] = "Norfluoxetine"
+        m["Norflurane"] = "Norflurane"
+        m["Norflurazepam"] = "Norflurazepam"
+        m["nor-IBG"] = "Noribogainalog"
+        m["Noribogainalog"] = "Noribogainalog"
+        m["Noribogaminalog"] = "Noribogaminalog"
+        m["Norketamine"] = "Norketamine"
+        m["Nornicotine"] = "Nornicotine"
+        m["Norpropylhexedrine"] = "Norpropylhexedrine"
+        m["Norpseudoephedrine"] = "Norpseudoephedrine"
+        m["4-HO-NMT"] = "Norpsilocin"
+        m["Norpsilocin"] = "Norpsilocin"
+        m["Noscapine"] = "Noscapine"
+        m["Desmetramadol"] = "O-Desmethyltramadol"
+        m["O-Desmethyltramadol"] = "O-Desmethyltramadol"
+        m["O-DSMT"] = "O-Desmethyltramadol"
+        m["Odsmt"] = "O-Desmethyltramadol"
+        m["2'-Oxo-PCE"] = "O-PCE"
+        m["2-Oxo-PCE"] = "O-PCE"
+        m["2oxopce"] = "O-PCE"
+        m["Eticyclidone"] = "O-PCE"
+        m["O-PCE"] = "O-PCE"
+        m["Opce"] = "O-PCE"
+        m["Octenidine"] = "Octenidine"
+        m["OCT"] = "Octopamine"
+        m["Octopamine"] = "Octopamine"
+        m["OCA"] = "Octylcyanoacrylate"
+        m["Octylcyanoacrylate"] = "Octylcyanoacrylate"
+        m["Oenethyl"] = "Oenethyl"
+        m["Olanzapine"] = "Olanzapine"
+        m["GVS-111"] = "Omberacetam"
+        m["N-Phenylacetyl-l-prolylglycine ethyl ester"] = "Omberacetam"
+        m["Noopept"] = "Omberacetam"
+        m["Omberacetam"] = "Omberacetam"
+        m["Ноопепт"] = "Omberacetam"
+        m["Ondansetron"] = "Ondansetron"
+        m["2-MA"] = "Ortetamine"
+        m["Ortetamine"] = "Ortetamine"
+        m["Ortho-Xylene"] = "Ortho-Xylene"
+        m["2-MMC"] = "Orthophedrone"
+        m["Orthophedrone"] = "Orthophedrone"
+        m["Ceresta"] = "Oxazepam"
+        m["Oxazepam"] = "Oxazepam"
+        m["Serax"] = "Oxazepam"
+        m["6-OHDA"] = "Oxidopamine"
+        m["Oxidopamine"] = "Oxidopamine"
+        m["4-HEP"] = "Oxilofrine"
+        m["Oxilofrine"] = "Oxilofrine"
+        m["ISF 2522"] = "Oxiracetam"
+        m["Oxiracetam"] = "Oxiracetam"
+        m["Codilek"] = "Oxycodone"
+        m["Endone"] = "Oxycodone"
+        m["Hillbilly heroin"] = "Oxycodone"
+        m["Oxecta"] = "Oxycodone"
+        m["Oxy"] = "Oxycodone"
+        m["Oxycodon"] = "Oxycodone"
+        m["Oxycodone"] = "Oxycodone"
+        m["OxyContin"] = "Oxycodone"
+        m["Oxydor"] = "Oxycodone"
+        m["Oxygesic"] = "Oxycodone"
+        m["OxyIR"] = "Oxycodone"
+        m["OxyNEO"] = "Oxycodone"
+        m["Oxynor"] = "Oxycodone"
+        m["OxyNorm"] = "Oxycodone"
+        m["Oxys"] = "Oxycodone"
+        m["Percocet"] = "Oxycodone"
+        m["Percodan"] = "Oxycodone"
+        m["Redocam"] = "Oxycodone"
+        m["Roxicodone"] = "Oxycodone"
+        m["Oxyfedrine"] = "Oxyfedrine"
+        m["Numorphan"] = "Oxymorphone"
+        m["Numorphone"] = "Oxymorphone"
+        m["Opana"] = "Oxymorphone"
+        m["Oxymorphone"] = "Oxymorphone"
+        m["Oxytocin"] = "Oxytocin"
+        m["Pabofen"] = "Pabofen"
+        m["Pagoclone"] = "Pagoclone"
+        m["Panthenol"] = "Panthenol"
+        m["Pantoprazole"] = "Pantoprazole"
+        m["Pantothenic acid"] = "Pantothenic acid"
+        m["vitamin B5"] = "Pantothenic acid"
+        m["Papaverine"] = "Papaverine"
+        m["2β-Carbomethoxy-3β-(4'-chlorophenyl)tropane"] = "Para-Chlorophenyltropane"
+        m["Para-Chlorophenyltropane"] = "Para-Chlorophenyltropane"
+        m["RTI-31"] = "Para-Chlorophenyltropane"
+        m["Para-Hydroxynorephedrine"] = "Para-Hydroxynorephedrine"
+        m["Para-Xylene"] = "Para-Xylene"
+        m["Paracetamol"] = "Paracetamol"
+        m["Paraquat"] = "Paraquat"
+        m["Paraxanthine"] = "Paraxanthine"
+        m["PARGY-LAD"] = "PARGY-LAD"
+        m["Pargylad"] = "PARGY-LAD"
+        m["Pargyline"] = "Pargyline"
+        m["Paroxetine"] = "Paroxetine"
+        m["Paroxypropione"] = "Paroxypropione"
+        m["CI-400"] = "PCE"
+        m["Eticyclidine"] = "PCE"
+        m["PCE"] = "PCE"
+        m["Angel Dust"] = "PCP"
+        m["Boat"] = "PCP"
+        m["Dust"] = "PCP"
+        m["PCP"] = "PCP"
+        m["Phencyclidine"] = "PCP"
+        m["Sernyl"] = "PCP"
+        m["Sherm"] = "PCP"
+        m["Sherman"] = "PCP"
+    }
+
+    private fun addChunk11(m: MutableMap<String, String>) {
+        m["Supergrass"] = "PCP"
+        m["Tic Tac"] = "PCP"
+        m["Wet"] = "PCP"
+        m["Zoom"] = "PCP"
+        m["African rue"] = "Peganum harmala"
+        m["Esfand"] = "Peganum harmala"
+        m["Harmel"] = "Peganum harmala"
+        m["Peganum harmala"] = "Peganum harmala"
+        m["Syrian Rue"] = "Peganum harmala"
+        m["Wild rue"] = "Peganum harmala"
+        m["Pellotine"] = "Pellotine"
+        m["Peyotline"] = "Pellotine"
+        m["Pemoline"] = "Pemoline"
+        m["Penitrem A"] = "Penitrem A"
+        m["Tremortin"] = "Penitrem A"
+        m["PeMA"] = "Pentamethoxyamphetamine"
+        m["Pentamethoxyamphetamine"] = "Pentamethoxyamphetamine"
+        m["PeMPEA"] = "Pentamethoxyphenethylamine"
+        m["Pentamethoxyphenethylamine"] = "Pentamethoxyphenethylamine"
+        m["Pentazocine"] = "Pentazocine"
+        m["Pentedrone"] = "Pentedrone"
+        m["Nembutal"] = "Pentobarbital"
+        m["Pentobarbital"] = "Pentobarbital"
+        m["pentobarbitone"] = "Pentobarbital"
+        m["Pentorex"] = "Pentorex"
+        m["Pentylenetetrazol"] = "Pentylenetetrazol"
+        m["Pentylone"] = "Pentylone"
+        m["Pepstatin"] = "Pepstatin"
+        m["Perfluorooctanoic acid"] = "Perfluorooctanoic acid"
+        m["PFOA"] = "Perfluorooctanoic acid"
+        m["Demerol"] = "Pethidine"
+        m["Dolantin"] = "Pethidine"
+        m["Dolcontral"] = "Pethidine"
+        m["Meperidine"] = "Pethidine"
+        m["Pethidine"] = "Pethidine"
+        m["PHA-57378"] = "PHA-57378"
+        m["Phenacylamine"] = "Phenacylamine"
+        m["Phenatine"] = "Phenatine"
+        m["Phenazepam"] = "Phenazepam"
+        m["Phendimetrazine"] = "Phendimetrazine"
+        m["Phenelzine"] = "Phenelzine"
+        m["PEA"] = "Phenethylamine (compound)"
+        m["Phenethylamine (compound)"] = "Phenethylamine (compound)"
+        m["Phenetrazine"] = "Phenetrazine"
+        m["Citrocard"] = "Phenibut"
+        m["Fenibut"] = "Phenibut"
+        m["Noofen"] = "Phenibut"
+        m["Pheni"] = "Phenibut"
+        m["Phenibut"] = "Phenibut"
+        m["Phenybut"] = "Phenibut"
+        m["PhGABA"] = "Phenibut"
+        m["Pheniprazine"] = "Pheniprazine"
+        m["Phenmetetrazine"] = "Phenmetetrazine"
+        m["Phenmetrazine"] = "Phenmetrazine"
+        m["Luminal"] = "Phenobarbital"
+        m["Phenobarb"] = "Phenobarbital"
+        m["Phenobarbital"] = "Phenobarbital"
+        m["Phenobarbitone"] = "Phenobarbital"
+        m["Phenol"] = "Phenol"
+        m["Phenoxymethylpenicillin"] = "Phenoxymethylpenicillin"
+        m["BMMPEA"] = "Phenpromethamine"
+        m["Phenpromethamine"] = "Phenpromethamine"
+        m["Phentermine"] = "Phentermine"
+        m["Phe"] = "Phenylalanine"
+        m["Phenylalanine"] = "Phenylalanine"
+        m["Phenylbutazone"] = "Phenylbutazone"
+        m["PCMo"] = "Phenylcyclohexylmorpholine"
+        m["Phenylcyclohexylmorpholine"] = "Phenylcyclohexylmorpholine"
+        m["Phenylephrine"] = "Phenylephrine"
+        m["Phenylethanolamine"] = "Phenylethanolamine"
+        m["Phenylpiperazine"] = "Phenylpiperazine"
+        m["PP"] = "Phenylpiperazine"
+        m["PP-1"] = "Phenylpiperazine"
+        m["Carphedon"] = "Phenylpiracetam"
+        m["Phenotropil"] = "Phenylpiracetam"
+        m["Phenylpiracetam"] = "Phenylpiracetam"
+        m["Phenylpropanolamine"] = "Phenylpropanolamine"
+        m["PPA"] = "Phenylpropanolamine"
+        m["Phenylpropylamine"] = "Phenylpropylamine"
+        m["Phenylpropylaminopentane"] = "Phenylpropylaminopentane"
+        m["PPAP"] = "Phenylpropylaminopentane"
+        m["4-HMA"] = "Pholedrine"
+        m["Pholedrine"] = "Pholedrine"
+        m["EGYT-475"] = "Piberaline"
+        m["Piberaline"] = "Piberaline"
+        m["Picamilon"] = "Picamilon"
+        m["Picloram"] = "Picloram"
+        m["Picolinic acid"] = "Picolinic acid"
+        m["Pinazepam"] = "Pinazepam"
+        m["Pinoline"] = "Pinoline"
+        m["Piperazine"] = "Piperazine"
+        m["Piperidine"] = "Piperidine"
+        m["Piperine"] = "Piperine"
+        m["Pipradrol"] = "Pipradrol"
+        m["Piracetam"] = "Piracetam"
+        m["4-Methoxyamphetamine"] = "PMA"
+        m["Para-Methoxyamphetamine"] = "PMA"
+        m["Paramethoxyamphetamine"] = "PMA"
+        m["PMA"] = "PMA"
+        m["4-Methoxymethamphetamine"] = "PMMA"
+        m["Para-Methoxymethamphetamine"] = "PMMA"
+        m["Paramethoxymethamphetamine"] = "PMMA"
+        m["PMMA"] = "PMMA"
+        m["Alkyl nitrites"] = "Poppers"
+        m["Amyl nitrite"] = "Poppers"
+        m["Jungle juice"] = "Poppers"
+        m["Poppers"] = "Poppers"
+        m["Rush"] = "Poppers"
+        m["Pramiracetam"] = "Pramiracetam"
+        m["Pramistar"] = "Pramiracetam"
+        m["Pravadoline"] = "Pravadoline"
+        m["WIN 48,098"] = "Pravadoline"
+        m["Prednisolone"] = "Prednisolone"
+        m["Lyrica"] = "Pregabalin"
+        m["Nervalin"] = "Pregabalin"
+        m["Pregab"] = "Pregabalin"
+        m["Pregabalin"] = "Pregabalin"
+        m["Prenylamine"] = "Prenylamine"
+        m["Primidone"] = "Primidone"
+        m["PRO-LAD"] = "PRO-LAD"
+        m["Prolad"] = "PRO-LAD"
+        m["Procaine"] = "Procaine"
+        m["Procaterol"] = "Procaterol"
+        m["Buccastem"] = "Prochlorperazine"
+        m["Compazine"] = "Prochlorperazine"
+        m["Phenotil"] = "Prochlorperazine"
+        m["Prochlorperazine"] = "Prochlorperazine"
+        m["Stemetil"] = "Prochlorperazine"
+        m["Stemzine"] = "Prochlorperazine"
+        m["Procyclidine"] = "Procyclidine"
+        m["Prodine"] = "Prodine"
+        m["P4"] = "Progesterone"
+        m["Progesterone"] = "Progesterone"
+        m["Pro"] = "Proline"
+        m["Proline"] = "Proline"
+        m["1-Phenyl-2-pyrrolidinylpentane"] = "Prolintane"
+        m["Catovit"] = "Prolintane"
+        m["Prolintane"] = "Prolintane"
+        m["Promotil"] = "Prolintane"
+        m["Villescon"] = "Prolintane"
+        m["Lergigan"] = "Promethazine"
+        m["Phenergan"] = "Promethazine"
+        m["Promethazine"] = "Promethazine"
+        m["Propane"] = "Propane"
+        m["HWA 285"] = "Propentofylline"
+        m["HWA-285"] = "Propentofylline"
+        m["Propentofylline"] = "Propentofylline"
+        m["Propofol"] = "Propofol"
+        m["Propranolol"] = "Propranolol"
+        m["PA"] = "Propylamphetamine"
+        m["Propylamphetamine"] = "Propylamphetamine"
+        m["Propylcathinone"] = "Propylcathinone"
+        m["PG"] = "Propylene glycol"
+        m["Propylene glycol"] = "Propylene glycol"
+        m["Benzedrex"] = "Propylhexedrine"
+        m["Obesin"] = "Propylhexedrine"
+        m["Propylhexedrine"] = "Propylhexedrine"
+        m["Propylone"] = "Propylone"
+        m["PPH"] = "Propylphenidate"
+        m["Propylphenidate"] = "Propylphenidate"
+        m["Propylphenidine"] = "Propylphenidine"
+        m["4-Propyloxy-3,5-dimethoxyphenethylamine"] = "Proscaline"
+        m["Proscaline"] = "Proscaline"
+        m["Protonitazene"] = "Protonitazene"
+        m["Protonitazepyne"] = "Protonitazepyne"
+        m["1,2,4-Trimethylbenzene"] = "Pseudocumene"
+        m["Pseudocumene"] = "Pseudocumene"
+        m["Pseudophenmetrazine"] = "Pseudophenmetrazine"
+        m["4-HO-DMT"] = "Psilocin"
+        m["4-Hydroxy-N,N-dimethyltryptamine"] = "Psilocin"
+        m["4-OH-DMT"] = "Psilocin"
+        m["4hodmt"] = "Psilocin"
+        m["Psilocin"] = "Psilocin"
+        m["Psilocine"] = "Psilocin"
+        m["Psilocyn"] = "Psilocin"
+        m["Psilotsin"] = "Psilocin"
+        m["4-PO-DMT"] = "Psilocybin mushrooms"
+        m["Boomers"] = "Psilocybin mushrooms"
+        m["Cubes"] = "Psilocybin mushrooms"
+        m["Golden teachers"] = "Psilocybin mushrooms"
+        m["Hallucinogenic mushrooms"] = "Psilocybin mushrooms"
+        m["Liberty caps"] = "Psilocybin mushrooms"
+        m["Magic mushroom"] = "Psilocybin mushrooms"
+        m["Magic mushrooms"] = "Psilocybin mushrooms"
+        m["Mushrooms"] = "Psilocybin mushrooms"
+        m["Psilocybe Mushroom"] = "Psilocybin mushrooms"
+        m["Psilocybin"] = "Psilocybin mushrooms"
+        m["Psilocybin mushroom"] = "Psilocybin mushrooms"
+        m["Psilocybin mushrooms"] = "Psilocybin mushrooms"
+        m["Psychedelic mushrooms"] = "Psilocybin mushrooms"
+        m["Shrooms"] = "Psilocybin mushrooms"
+        m["4-HO-5-MeO-DMT"] = "Psilomethoxin"
+        m["Psilomethoxin"] = "Psilomethoxin"
+        m["Pyrazolam"] = "Pyrazolam"
+        m["Pyridine"] = "Pyridine"
+        m["Pyridoxine"] = "Pyridoxine"
+        m["Pyridoxiphen"] = "Pyridoxiphen"
+        m["O-2371"] = "Pyrovalerone"
+        m["Pyrovalerone"] = "Pyrovalerone"
+        m["Pyrrolidine"] = "Pyrrolidine"
+        m["Quazepam"] = "Quazepam"
+        m["Ketipinor"] = "Quetiapine"
+        m["Quetiapine"] = "Quetiapine"
+        m["Seroquel"] = "Quetiapine"
+        m["Xeroquel"] = "Quetiapine"
+        m["QNB"] = "Quinuclidinyl Benzilate"
+        m["Quinuclidinyl Benzilate"] = "Quinuclidinyl Benzilate"
+        m["Racefemine"] = "Racefemine"
+        m["Racetam"] = "Racetams"
+        m["Racetams"] = "Racetams"
+        m["Radafaxine"] = "Radafaxine"
+        m["Rasagiline"] = "Rasagiline"
+        m["Remifentanil"] = "Remifentanil"
+        m["Resiniferatoxin"] = "Resiniferatoxin"
+        m["RTX"] = "Resiniferatoxin"
+        m["Rilmazafone"] = "Rilmazafone"
+        m["Rilmazolam"] = "Rilmazolam"
+        m["RIMA"] = "RIMA"
+        m["RIMAs"] = "RIMA"
+        m["Risperdal"] = "Risperidone"
+        m["Risperidone"] = "Risperidone"
+        m["Ritodrine"] = "Ritodrine"
+        m["Ro09-9212"] = "Ro09-9212"
+        m["Rocuronium bromide"] = "Rocuronium bromide"
+        m["PCPy"] = "Rolicyclidine"
+        m["Rolicyclidine"] = "Rolicyclidine"
+        m["Rosuvastatin"] = "Rosuvastatin"
+        m["Salbutamol"] = "Salbutamol"
+        m["Diviner's Sage"] = "Salvinorin A"
+        m["Sally D"] = "Salvinorin A"
+        m["Salvia"] = "Salvinorin A"
+        m["Salvia divinorum"] = "Salvinorin A"
+        m["Salvinorin A"] = "Salvinorin A"
+        m["Seer's Sage"] = "Salvinorin A"
+        m["Ska María Pastora"] = "Salvinorin A"
+        m["2-MMSB"] = "Salvinorin B methoxymethyl ether"
+        m["2-O-methoxymethylsalvinorin B"] = "Salvinorin B methoxymethyl ether"
+        m["Salvinorin B"] = "Salvinorin B methoxymethyl ether"
+        m["Salvinorin B methoxymethyl ether"] = "Salvinorin B methoxymethyl ether"
+        m["Ademethionine"] = "SAM-e"
+        m["S-Adenosyl methionine"] = "SAM-e"
+        m["S-Adenosyl-L-methionine"] = "SAM-e"
+        m["SAM-e"] = "SAM-e"
+        m["SAMe"] = "SAM-e"
+        m["Sarin"] = "Sarin"
+        m["Saxitoxin"] = "Saxitoxin"
+        m["Secbutonitazene"] = "Secbutonitazene"
+        m["Secobarbital"] = "Secobarbital"
+        m["Secobarbitone"] = "Secobarbital"
+        m["Seconal"] = "Secobarbital"
+    }
+
+    private fun addChunk12(m: MutableMap<String, String>) {
+        m["Lustral"] = "Selective serotonin reuptake inhibitor"
+        m["Selective serotonin re-uptake inhibitors"] = "Selective serotonin reuptake inhibitor"
+        m["Selective serotonin reuptake inhibitor"] = "Selective serotonin reuptake inhibitor"
+        m["Selective serotonin reuptake inhibitors"] = "Selective serotonin reuptake inhibitor"
+        m["SSRI"] = "Selective serotonin reuptake inhibitor"
+        m["SSRIs"] = "Selective serotonin reuptake inhibitor"
+        m["Zoloft"] = "Selective serotonin reuptake inhibitor"
+        m["Sec"] = "Selenocysteine"
+        m["Selenocysteine"] = "Selenocysteine"
+        m["Ser"] = "Serine"
+        m["Serine"] = "Serine"
+        m["Serotonergic hallucinogens"] = "Serotonergic psychedelic"
+        m["Serotonergic psychedelic"] = "Serotonergic psychedelic"
+        m["Serotonergic psychedelics"] = "Serotonergic psychedelic"
+        m["5-HT"] = "Serotonin"
+        m["5-HT receptors"] = "Serotonin"
+        m["5-HT2A receptor"] = "Serotonin"
+        m["5-Hydroxytryptamine"] = "Serotonin"
+        m["Serotonergic"] = "Serotonin"
+        m["Serotonin"] = "Serotonin"
+        m["Serotonin releasers"] = "Serotonin"
+        m["Serotonin-norepinephrine reuptake inhibitor"] = "Serotonin-norepinephrine reuptake inhibitor"
+        m["Serotonin-norepinephrine reuptake inhibitors"] = "Serotonin-norepinephrine reuptake inhibitor"
+        m["SNRI"] = "Serotonin-norepinephrine reuptake inhibitor"
+        m["Sertraline"] = "Sertraline"
+        m["Sibutramine"] = "Sibutramine"
+        m["Sildenafil"] = "Sildenafil"
+        m["Viagra"] = "Sildenafil"
+        m["SKA-121"] = "SKA-121"
+        m["Solriamfetol"] = "Solriamfetol"
+        m["Speciociliatine"] = "Speciociliatine"
+        m["Spironolactone"] = "Spironolactone"
+        m["Sta"] = "Statine"
+        m["Statine"] = "Statine"
+        m["Stilbestrol"] = "Stilbestrol"
+        m["Strychnine"] = "Strychnine"
+        m["5F-APICA"] = "STS-135"
+        m["STS-135"] = "STS-135"
+        m["Sts135"] = "STS-135"
+        m["SP"] = "Substance P"
+        m["Substance P"] = "Substance P"
+        m["Aminorexes"] = "Substituted aminorexes"
+        m["Substituted aminorex"] = "Substituted aminorexes"
+        m["Substituted aminorexes"] = "Substituted aminorexes"
+        m["Substituted Amphetamine"] = "Substituted amphetamines"
+        m["Substituted amphetamines"] = "Substituted amphetamines"
+        m["Substituted cathinone"] = "Substituted cathinones"
+        m["Substituted cathinones"] = "Substituted cathinones"
+        m["Morphinan"] = "Substituted morphinans"
+        m["Morphinans"] = "Substituted morphinans"
+        m["Substituted morphinan"] = "Substituted morphinans"
+        m["Substituted morphinans"] = "Substituted morphinans"
+        m["Benzeneethanamine"] = "Substituted phenethylamines"
+        m["Cumylpropan-2-amine"] = "Substituted phenethylamines"
+        m["Phenylethylamine"] = "Substituted phenethylamines"
+        m["Phenylethylamines"] = "Substituted phenethylamines"
+        m["Substituted Phenethylamine"] = "Substituted phenethylamines"
+        m["Substituted phenethylamines"] = "Substituted phenethylamines"
+        m["Phenidate"] = "Substituted phenidates"
+        m["Phenidates"] = "Substituted phenidates"
+        m["Substituted phenidate"] = "Substituted phenidates"
+        m["Substituted phenidates"] = "Substituted phenidates"
+        m["Base Tryptamines"] = "Substituted tryptamines"
+        m["Substituted Tryptamine"] = "Substituted tryptamines"
+        m["Substituted tryptamines"] = "Substituted tryptamines"
+        m["Chronogesic"] = "Sufentanil"
+        m["Dsuvia"] = "Sufentanil"
+        m["Sufenta"] = "Sufentanil"
+        m["Sufentanil"] = "Sufentanil"
+        m["Sufentanyl"] = "Sufentanil"
+        m["Suloctidil"] = "Suloctidil"
+        m["Sulpiride"] = "Sulpiride"
+        m["Sultopride"] = "Sultopride"
+        m["Sumatriptan"] = "Sumatriptan"
+        m["DM-235"] = "Sunifiram"
+        m["Sunifiram"] = "Sunifiram"
+        m["Suxamethonium"] = "Suxamethonium"
+        m["Synephrine"] = "Synephrine"
+        m["K2"] = "Synthetic cannabinoid"
+        m["Noid"] = "Synthetic cannabinoid"
+        m["Synthetic cannabinoid"] = "Synthetic cannabinoid"
+        m["Synthetic cannabinoids"] = "Synthetic cannabinoid"
+        m["Tabernanthalog"] = "Tabernanthalog"
+        m["TBG"] = "Tabernanthalog"
+        m["Tadalafil"] = "Tadalafil"
+        m["Talbutal"] = "Talbutal"
+        m["Nucynta"] = "Tapentadol"
+        m["Palexia"] = "Tapentadol"
+        m["Tapentadol"] = "Tapentadol"
+        m["Yantil"] = "Tapentadol"
+        m["Yantil SR"] = "Tapentadol"
+        m["Taurine"] = "Taurine"
+        m["TCB-2"] = "TCB-2"
+        m["Normison"] = "Temazepam"
+        m["Restoril"] = "Temazepam"
+        m["Temazepam"] = "Temazepam"
+        m["Temgicoluril"] = "Temgicoluril"
+        m["TBPO"] = "Tert-Butyl-bicyclophosphate"
+        m["Tert-Butyl-bicyclophosphate"] = "Tert-Butyl-bicyclophosphate"
+        m["Tesofensine"] = "Tesofensine"
+        m["Testosterone"] = "Testosterone"
+        m["Tetracaine"] = "Tetracaine"
+        m["Tetraethyllead"] = "Tetraethyllead"
+        m["Tetrafluoroethane"] = "Tetrafluoroethane"
+        m["Tetrahydrocannabihexol"] = "Tetrahydrocannabihexol"
+        m["THCH"] = "Tetrahydrocannabihexol"
+        m["Tetrahydrocannabiphorol"] = "Tetrahydrocannabiphorol"
+        m["THCP"] = "Tetrahydrocannabiphorol"
+        m["Tetrahydrocannabutol"] = "Tetrahydrocannabutol"
+        m["THCB"] = "Tetrahydrocannabutol"
+        m["AMPH-CR"] = "Tetrahydroisoquinoline"
+        m["Tetrahydroisoquinoline"] = "Tetrahydroisoquinoline"
+        m["THIQ"] = "Tetrahydroisoquinoline"
+        m["TIQ"] = "Tetrahydroisoquinoline"
+        m["Tetramethylenedisulfotetramine"] = "Tetramethylenedisulfotetramine"
+        m["TETS"] = "Tetramethylenedisulfotetramine"
+        m["Tetrazepam"] = "Tetrazepam"
+        m["Tetrodotoxin"] = "Tetrodotoxin"
+        m["Teacrine"] = "Theacrine"
+        m["Temorine"] = "Theacrine"
+        m["Temurin"] = "Theacrine"
+        m["Theacrine"] = "Theacrine"
+        m["L-Theanine"] = "Theanine"
+        m["L-γ-glutamylethylamide and N5-ethyl-L-glutamine"] = "Theanine"
+        m["Theanine"] = "Theanine"
+        m["Thebaine"] = "Thebaine"
+        m["Theobromine"] = "Theobromine"
+        m["Theodrenaline"] = "Theodrenaline"
+        m["Theophylline"] = "Theophylline"
+        m["TDMA"] = "Thiadiazolylmethamphetamine"
+        m["Thiadiazolylmethamphetamine"] = "Thiadiazolylmethamphetamine"
+        m["Thialbarbital"] = "Thialbarbital"
+        m["Thiamine"] = "Thiamine"
+        m["vitamin B1"] = "Thiamine"
+        m["Thiamylal"] = "Thiamylal"
+        m["Substituted thienodiazepine"] = "Thienodiazepines"
+        m["Thienodiazepine"] = "Thienodiazepines"
+        m["Thienodiazepines"] = "Thienodiazepines"
+        m["Thienzodiazepines"] = "Thienodiazepines"
+        m["Thiobarbital"] = "Thiobarbital"
+        m["Thiobutabarbital"] = "Thiobutabarbital"
+        m["Thioephedrine"] = "Thioephedrine"
+        m["Thiopental"] = "Thiopental"
+        m["Thiophenatine"] = "Thiophenatine"
+        m["Thiopropamine"] = "Thiopropamine"
+        m["Thiotetrabarbital"] = "Thiotetrabarbital"
+        m["Thiothinone"] = "Thiothinone"
+        m["Thj"] = "THJ-018"
+        m["THJ-018"] = "THJ-018"
+        m["Thj018"] = "THJ-018"
+        m["THJ-2201"] = "THJ-2201"
+        m["Thj2201"] = "THJ-2201"
+        m["Thozalinone"] = "Thozalinone"
+        m["Threohydrobupropion"] = "Threohydrobupropion"
+        m["Thr"] = "Threonine"
+        m["Threonine"] = "Threonine"
+        m["T4"] = "Thyroxine"
+        m["Thyroxine"] = "Thyroxine"
+        m["Coaxil"] = "Tianeptine"
+        m["Stablon"] = "Tianeptine"
+        m["Tatinol"] = "Tianeptine"
+        m["Tianeptine"] = "Tianeptine"
+        m["Tiflorex"] = "Tiflorex"
+        m["Tiletamine"] = "Tiletamine"
+        m["Darby"] = "Tilidin"
+        m["Generika"] = "Tilidin"
+        m["Tilidin"] = "Tilidin"
+        m["Tilidine"] = "Tilidin"
+        m["Valoron"] = "Tilidin"
+        m["Tinofedrine"] = "Tinofedrine"
+        m["2,4,5-Trimethoxyamphetamine"] = "TMA-2"
+        m["TMA-2"] = "TMA-2"
+        m["Tma2"] = "TMA-2"
+        m["TMA-6"] = "TMA-6"
+        m["Tma6"] = "TMA-6"
+        m["3-Me-PCPy"] = "Tolicyclidine"
+        m["Tolicyclidine"] = "Tolicyclidine"
+        m["2β-Carbomethoxy-3β-(4-tolyl)tropane"] = "Tolpane"
+        m["Para-Methylphenyltropane"] = "Tolpane"
+        m["RTI-32"] = "Tolpane"
+        m["Tolpane"] = "Tolpane"
+        m["Tomscaline"] = "Tomscaline"
+        m["Toxiferine"] = "Toxiferine"
+        m["Ralivia"] = "Tramadol"
+        m["Tadol"] = "Tramadol"
+        m["Tramacur"] = "Tramadol"
+        m["Tramadol"] = "Tramadol"
+        m["Tramal"] = "Tramadol"
+        m["Tramundin"] = "Tramadol"
+        m["Ultram"] = "Tramadol"
+        m["Tranylcypromine"] = "Tranylcypromine"
+        m["AF-1161"] = "Trazodone"
+        m["Trazodone"] = "Trazodone"
+        m["Trecadrine"] = "Trecadrine"
+        m["Triazolam"] = "Triazolam"
+        m["TCE"] = "Trichloroethylene"
+        m["Trichloroethylene"] = "Trichloroethylene"
+        m["TCCA"] = "Trichloroisocyanuric acid"
+        m["Trichloroisocyanuric acid"] = "Trichloroisocyanuric acid"
+        m["Trichocereine"] = "Trichocereine"
+        m["Trimethylamphetamine"] = "Trimethylamphetamine"
+        m["Trimipramine"] = "Trimipramine"
+        m["Triprolidine"] = "Triprolidine"
+        m["Troparil"] = "Troparil"
+        m["Tropicamide"] = "Tropicamide"
+        m["Tryptoline"] = "Tryptoline"
+        m["Trp"] = "Tryptophan"
+        m["Tryptophan"] = "Tryptophan"
+        m["Tyramine"] = "Tyramine"
+        m["4-Hydroxyphenylalanine"] = "Tyrosine"
+        m["L-Tyrosine"] = "Tyrosine"
+        m["Tyr"] = "Tyrosine"
+        m["Tyrosine"] = "Tyrosine"
+        m["Tyrothricin"] = "Tyrothricin"
+        m["U-47700"] = "U-47700"
+        m["U-48800"] = "U-48800"
+        m["U-49900"] = "U-49900"
+        m["Uric acid"] = "Uric acid"
+        m["Val"] = "Valine"
+        m["Valine"] = "Valine"
+        m["Valproate"] = "Valproate"
+        m["Varenicline"] = "Varenicline"
+        m["Vasopressin"] = "Vasopressin"
+        m["Venlafaxine"] = "Venlafaxine"
+        m["VX"] = "VX"
+        m["Warfarin"] = "Warfarin"
+        m["Water"] = "Water"
+        m["Substituted xanthine"] = "Xanthines"
+        m["Xanthine"] = "Xanthines"
+        m["Xanthines"] = "Xanthines"
+        m["Yohimbine"] = "Yohimbine"
+        m["Zamicastat"] = "Zamicastat"
+        m["Zapizolam"] = "Zapizolam"
+        m["ZDCM-04"] = "ZDCM-04"
+        m["Zeranol"] = "Zeranol"
+        m["Zolazepam"] = "Zolazepam"
+        m["Ambien"] = "Zolpidem"
+        m["Edluar"] = "Zolpidem"
+        m["Intermezzo"] = "Zolpidem"
+        m["Stilnox"] = "Zolpidem"
+        m["Sublinox"] = "Zolpidem"
+        m["Zolpidem"] = "Zolpidem"
+        m["Zolpimist"] = "Zolpidem"
+        m["Imovane"] = "Zopiclone"
+        m["Zimovane"] = "Zopiclone"
+        m["Zopiclone"] = "Zopiclone"
+        m["Zylofuramine"] = "Zylofuramine"
+        m["α,N-Dimethyl-5-bromo-β-ketotryptamine"] = "α,N-Dimethyl-5-bromo-β-ketotryptamine"
+        m["βk-5Br-NM-αMT"] = "α,N-Dimethyl-5-bromo-β-ketotryptamine"
+        m["α,N-Dimethyl-5-chloro-β-ketotryptamine"] = "α,N-Dimethyl-5-chloro-β-ketotryptamine"
+    }
+
+    private fun addChunk13(m: MutableMap<String, String>) {
+        m["βk-5Cl-NM-αMT"] = "α,N-Dimethyl-5-chloro-β-ketotryptamine"
+        m["α,N-Dimethyl-5-fluoro-β-ketotryptamine"] = "α,N-Dimethyl-5-fluoro-β-ketotryptamine"
+        m["βk-5F-NM-αMT"] = "α,N-Dimethyl-5-fluoro-β-ketotryptamine"
+        m["α,N-Dimethyl-β-ketotryptamine"] = "α,N-Dimethyl-β-ketotryptamine"
+        m["βk-NM-αMT"] = "α,N-Dimethyl-β-ketotryptamine"
+        m["NM-αMT"] = "α,N-Dimethyltryptamine"
+        m["α,N-Dimethyltryptamine"] = "α,N-Dimethyltryptamine"
+        m["a-Benzylphenethylamine"] = "α-Benzylphenethylamine"
+        m["a-Bn-PEA"] = "α-Benzylphenethylamine"
+        m["alpha-Bn-PEA"] = "α-Benzylphenethylamine"
+        m["α-Benzylphenethylamine"] = "α-Benzylphenethylamine"
+        m["a-Cyclopropyl-3,4-methylenedioxymethamphetamine"] = "α-Cyclopropyl-3,4-methylenedioxymethamphetamine"
+        m["UWA-101"] = "α-Cyclopropyl-3,4-methylenedioxymethamphetamine"
+        m["α-Cyclopropyl-3,4-methylenedioxymethamphetamine"] = "α-Cyclopropyl-3,4-methylenedioxymethamphetamine"
+        m["a-Endorphin"] = "α-Endorphin"
+        m["α-Endorphin"] = "α-Endorphin"
+        m["a-Et-N-Pr-PEA"] = "α-Ethyl-N-propylphenethylamine"
+        m["a-Ethyl-N-propylphenethylamine"] = "α-Ethyl-N-propylphenethylamine"
+        m["α-Et-N-Pr-PEA"] = "α-Ethyl-N-propylphenethylamine"
+        m["α-Ethyl-N-propylphenethylamine"] = "α-Ethyl-N-propylphenethylamine"
+        m["a-Et-PEA"] = "α-Ethylphenethylamine"
+        m["a-Ethylphenethylamine"] = "α-Ethylphenethylamine"
+        m["α-Et-PEA"] = "α-Ethylphenethylamine"
+        m["α-Ethylphenethylamine"] = "α-Ethylphenethylamine"
+        m["a-Ethyltryptamine"] = "α-Ethyltryptamine"
+        m["α-Ethyltryptamine"] = "α-Ethyltryptamine"
+        m["αET"] = "α-Ethyltryptamine"
+        m["a-He-PEA"] = "α-Hexylphenethylamine"
+        m["a-Hexylphenethylamine"] = "α-Hexylphenethylamine"
+        m["α-He-PEA"] = "α-Hexylphenethylamine"
+        m["α-Hexylphenethylamine"] = "α-Hexylphenethylamine"
+        m["a-Hydroxyetizolam"] = "α-Hydroxyetizolam"
+        m["α-Hydroxyetizolam"] = "α-Hydroxyetizolam"
+        m["a-Methyl-p-tyrosine"] = "α-Methyl-p-tyrosine"
+        m["AMPT"] = "α-Methyl-p-tyrosine"
+        m["α-Methyl-p-tyrosine"] = "α-Methyl-p-tyrosine"
+        m["a-Methylbenzylamine"] = "α-Methylbenzylamine"
+        m["a-PEA"] = "α-Methylbenzylamine"
+        m["α-Methylbenzylamine"] = "α-Methylbenzylamine"
+        m["α-PEA"] = "α-Methylbenzylamine"
+        m["a-Me-DA"] = "α-Methyldopamine"
+        m["a-Methyldopamine"] = "α-Methyldopamine"
+        m["α-Me-DA"] = "α-Methyldopamine"
+        m["α-Methyldopamine"] = "α-Methyldopamine"
+        m["a-Methylepinine"] = "α-Methylepinine"
+        m["α-Methylepinine"] = "α-Methylepinine"
+        m["a-Methylmethcathinone"] = "α-Methylmethcathinone"
+        m["α-Methylmethcathinone"] = "α-Methylmethcathinone"
+        m["a-PIPBP"] = "α-Piperidinobutiophenone"
+        m["a-Piperidinobutiophenone"] = "α-Piperidinobutiophenone"
+        m["alpha-PIPBP"] = "α-Piperidinobutiophenone"
+        m["α-Piperidinobutiophenone"] = "α-Piperidinobutiophenone"
+        m["a-Piperidinohexiophenone"] = "α-Piperidinohexiophenone"
+        m["a-PIPHP"] = "α-Piperidinohexiophenone"
+        m["α-Piperidinohexiophenone"] = "α-Piperidinohexiophenone"
+        m["α-PIPHP"] = "α-Piperidinohexiophenone"
+        m["a-Piperidinopropiophenone"] = "α-Piperidinopropiophenone"
+        m["a-PIPPP"] = "α-Piperidinopropiophenone"
+        m["α-Piperidinopropiophenone"] = "α-Piperidinopropiophenone"
+        m["α-PIPPP"] = "α-Piperidinopropiophenone"
+        m["a-Pr-PEA"] = "α-Propylphenethylamine"
+        m["a-Propylphenethylamine"] = "α-Propylphenethylamine"
+        m["APPEA"] = "α-Propylphenethylamine"
+        m["α-Pr-PEA"] = "α-Propylphenethylamine"
+        m["α-Propylphenethylamine"] = "α-Propylphenethylamine"
+        m["a-D2PV"] = "α-Pyrrolidino-2-phenylacetophenone"
+        m["a-Pyrrolidino-2-phenylacetophenone"] = "α-Pyrrolidino-2-phenylacetophenone"
+        m["α-D2PV"] = "α-Pyrrolidino-2-phenylacetophenone"
+        m["α-Pyrrolidino-2-phenylacetophenone"] = "α-Pyrrolidino-2-phenylacetophenone"
+        m["a-PBP"] = "α-Pyrrolidinobutiophenone"
+        m["a-Pyrrolidinobutiophenone"] = "α-Pyrrolidinobutiophenone"
+        m["α-PBP"] = "α-Pyrrolidinobutiophenone"
+        m["α-Pyrrolidinobutiophenone"] = "α-Pyrrolidinobutiophenone"
+        m["a-PEP"] = "α-Pyrrolidinoheptaphenone"
+        m["a-Pyrrolidinoheptaphenone"] = "α-Pyrrolidinoheptaphenone"
+        m["alpha-PEP"] = "α-Pyrrolidinoheptaphenone"
+        m["α-Pyrrolidinoheptaphenone"] = "α-Pyrrolidinoheptaphenone"
+        m["a-PiHP"] = "α-Pyrrolidinoisohexanophenone"
+        m["a-Pyrrolidinoisohexanophenone"] = "α-Pyrrolidinoisohexanophenone"
+        m["α-PiHP"] = "α-Pyrrolidinoisohexanophenone"
+        m["α-Pyrrolidinoisohexanophenone"] = "α-Pyrrolidinoisohexanophenone"
+        m["a-Pyrrolidinopentiothiophenone"] = "α-Pyrrolidinopentiothiophenone"
+        m["α-Pyrrolidinopentiothiophenone"] = "α-Pyrrolidinopentiothiophenone"
+        m["a-PPP"] = "α-Pyrrolidinopropiophenone"
+        m["a-Pyrrolidinopropiophenone"] = "α-Pyrrolidinopropiophenone"
+        m["alpha-PPP"] = "α-Pyrrolidinopropiophenone"
+        m["α-Pyrrolidinopropiophenone"] = "α-Pyrrolidinopropiophenone"
+        m["a-Methyltryptamine"] = "ΑMT"
+        m["a-MT"] = "ΑMT"
+        m["alpha-Methyltryptamine"] = "ΑMT"
+        m["alpha-MT"] = "ΑMT"
+        m["AMT"] = "ΑMT"
+        m["Indopan"] = "ΑMT"
+        m["ΑMT"] = "ΑMT"
+        m["DMPPA"] = "β,N,N-Trimethylphenethylamine"
+        m["β,N,N-Trimethylphenethylamine"] = "β,N,N-Trimethylphenethylamine"
+        m["b-Endorphin"] = "β-Endorphin"
+        m["β-Endorphin"] = "β-Endorphin"
+        m["b-Ethyltryptamine"] = "β-Ethyltryptamine"
+        m["β-Ethyltryptamine"] = "β-Ethyltryptamine"
+        m["βET"] = "β-Ethyltryptamine"
+        m["b-Hydroxy-4-bromo-2,5-dimethoxyphenylamine"] = "β-Hydroxy-4-bromo-2,5-dimethoxyphenylamine"
+        m["β-Hydroxy-4-bromo-2,5-dimethoxyphenylamine"] = "β-Hydroxy-4-bromo-2,5-dimethoxyphenylamine"
+        m["βOH-2C-B"] = "β-Hydroxy-4-bromo-2,5-dimethoxyphenylamine"
+        m["b-Hydroxyamphetamine"] = "β-Hydroxyamphetamine"
+        m["Cathine"] = "β-Hydroxyamphetamine"
+        m["L-Norpseudoephedrine"] = "β-Hydroxyamphetamine"
+        m["β-Hydroxyamphetamine"] = "β-Hydroxyamphetamine"
+        m["b-Methoxy-3,4-methylenedioxyphenethylamine"] = "β-Methoxy-3,4-methylenedioxyphenethylamine"
+        m["BOH"] = "β-Methoxy-3,4-methylenedioxyphenethylamine"
+        m["β-Methoxy-3,4-methylenedioxyphenethylamine"] = "β-Methoxy-3,4-methylenedioxyphenethylamine"
+        m["b-Methyl-N,N-dimethyltryptamine"] = "β-Methyl-N,N-dimethyltryptamine"
+        m["β-Methyl-N,N-dimethyltryptamine"] = "β-Methyl-N,N-dimethyltryptamine"
+        m["βM-DMT"] = "β-Methyl-N,N-dimethyltryptamine"
+        m["b-Methyl-N-methyltryptamine"] = "β-Methyl-N-methyltryptamine"
+        m["β-Methyl-N-methyltryptamine"] = "β-Methyl-N-methyltryptamine"
+        m["βM-NMT"] = "β-Methyl-N-methyltryptamine"
+        m["b-Methylamphetamine"] = "β-Methylamphetamine"
+        m["BMA"] = "β-Methylamphetamine"
+        m["β-Methylamphetamine"] = "β-Methylamphetamine"
+        m["βMA"] = "β-Methylamphetamine"
+        m["b-Methylphenethylamine"] = "β-Methylphenethylamine"
+        m["BMPEA"] = "β-Methylphenethylamine"
+        m["β-Methylphenethylamine"] = "β-Methylphenethylamine"
+        m["b-Methyltryptamine"] = "β-Methyltryptamine"
+        m["β-Methyltryptamine"] = "β-Methyltryptamine"
+        m["βMT"] = "β-Methyltryptamine"
+        m["b-Phenylmethamphetamine"] = "β-Phenylmethamphetamine"
+        m["β-Phenylmethamphetamine"] = "β-Phenylmethamphetamine"
+        m["b-keto 2C-B"] = "Βk-2C-B"
+        m["bk-2C-B"] = "Βk-2C-B"
+        m["Bk2cb"] = "Βk-2C-B"
+        m["SSk-2C-B"] = "Βk-2C-B"
+        m["β-keto 2C-B"] = "Βk-2C-B"
+        m["Βk-2C-B"] = "Βk-2C-B"
+        m["g-Aminobutyric acid"] = "γ-Aminobutyric acid"
+        m["GABA"] = "γ-Aminobutyric acid"
+        m["γ-Aminobutyric acid"] = "γ-Aminobutyric acid"
+        m["g-Endorphin"] = "γ-Endorphin"
+        m["γ-Endorphin"] = "γ-Endorphin"
+        m["g-Hydroxyvaleric acid"] = "γ-Hydroxyvaleric acid"
+        m["GHV"] = "γ-Hydroxyvaleric acid"
+        m["γ-Hydroxyvaleric acid"] = "γ-Hydroxyvaleric acid"
+        m["g-Valerolactone"] = "γ-Valerolactone"
+        m["GVL"] = "γ-Valerolactone"
+        m["γ-Valerolactone"] = "γ-Valerolactone"
+        m["d-10-Tetrahydrocannabinol"] = "Δ-10-Tetrahydrocannabinol"
+        m["d-10-THC"] = "Δ-10-Tetrahydrocannabinol"
+        m["Delta-10-THC"] = "Δ-10-Tetrahydrocannabinol"
+        m["Δ-10-Tetrahydrocannabinol"] = "Δ-10-Tetrahydrocannabinol"
+        m["d-8-Tetrahydrocannabinol"] = "Δ-8-Tetrahydrocannabinol"
+        m["d-8-THC"] = "Δ-8-Tetrahydrocannabinol"
+        m["Delta-8-THC"] = "Δ-8-Tetrahydrocannabinol"
+        m["Δ-8-Tetrahydrocannabinol"] = "Δ-8-Tetrahydrocannabinol"
+    }
 }
