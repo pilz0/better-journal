@@ -82,6 +82,7 @@ class BiometricAuthManager @Inject constructor(
         const val CIPHER_TRANSFORMATION = "AES/CBC/PKCS7Padding"
         const val AUTH_CHALLENGE_SIZE_BYTES = 32
         const val STRONG_BIOMETRIC_AUTHENTICATOR = BiometricManager.Authenticators.BIOMETRIC_STRONG
+        const val ERROR_AUTH_NOT_VERIFIED = "Biometric authentication could not be verified."
     }
 
     private val secureRandom: SecureRandom by lazy { SecureRandom() }
@@ -184,19 +185,19 @@ class BiometricAuthManager @Inject constructor(
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                 val cipher = result.cryptoObject?.cipher
                 if (cipher == null) {
-                    onError("Biometric authentication could not be verified.")
+                    onError(ERROR_AUTH_NOT_VERIFIED)
                     return
                 }
                 try {
                     val proof = cipher.doFinal(challenge)
-                    if (proof.isEmpty()) {
-                        onError("Biometric authentication could not be verified.")
+                    if (proof.size < challenge.size || proof.size % cipher.blockSize != 0) {
+                        onError(ERROR_AUTH_NOT_VERIFIED)
                         return
                     }
                     _isUnlocked.value = true
                     onUnlocked()
                 } catch (e: GeneralSecurityException) {
-                    onError("Biometric authentication could not be verified.")
+                    onError(ERROR_AUTH_NOT_VERIFIED)
                 }
             }
 
@@ -244,8 +245,8 @@ class BiometricAuthManager @Inject constructor(
         val existingKey = try {
             keyStore.getKey(AUTH_KEY_ALIAS, null) as? SecretKey
         } catch (e: GeneralSecurityException) {
-            Log.d(TAG, "Failed to read biometric authentication key; regenerating it.")
-            keyStore.deleteEntry(AUTH_KEY_ALIAS)
+            Log.d(TAG, "Failed to read biometric authentication key; regenerating it.", e)
+            deleteSecretKey()
             null
         }
         existingKey?.let { return it }
