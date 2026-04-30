@@ -202,7 +202,7 @@ class BiometricAuthManager @Inject constructor(
         val prompt = BiometricPrompt(activity, executor, callback)
         val info = BiometricPrompt.PromptInfo.Builder()
             .setTitle("Unlock Journal")
-            .setSubtitle("Authenticate with a strong biometric to view your journal")
+            .setSubtitle("Authenticate to view your journal")
             .setAllowedAuthenticators(STRONG_BIOMETRIC_AUTHENTICATOR)
             .build()
         prompt.authenticate(info, cryptoObject)
@@ -262,9 +262,15 @@ class BiometricAuthManager @Inject constructor(
     }
 
     private fun deleteSecretKey() {
-        KeyStore.getInstance(ANDROID_KEYSTORE).apply {
-            load(null)
-            deleteEntry(AUTH_KEY_ALIAS)
+        try {
+            KeyStore.getInstance(ANDROID_KEYSTORE).apply {
+                load(null)
+                deleteEntry(AUTH_KEY_ALIAS)
+            }
+        } catch (e: GeneralSecurityException) {
+            throw GeneralSecurityException("Failed to delete invalid biometric authentication key.", e)
+        } catch (e: IOException) {
+            throw GeneralSecurityException("Failed to delete invalid biometric authentication key.", e)
         }
     }
 }
