@@ -43,6 +43,7 @@ class SettingsViewModel @Inject constructor(
     private val fileSystemConnection: FileSystemConnection,
     private val userPreferences: UserPreferences,
     private val biometricAuthManager: BiometricAuthManager,
+    private val webhookRepository: foo.pilz.freaklog.data.room.webhooks.WebhookRepository,
 ) : ViewModel() {
 
     fun saveDosageDotsAreHidden(value: Boolean) = viewModelScope.launch {
@@ -313,7 +314,10 @@ class SettingsViewModel @Inject constructor(
                 substanceCompanions = experienceRepository.getAllSubstanceCompanions(),
                 customSubstances = experienceRepository.getAllCustomSubstances(),
                 customUnits = customUnitsSerializable,
-                reminders = experienceRepository.getAllReminders()
+                reminders = experienceRepository.getAllReminders(),
+                webhooks = webhookRepository.getAll().map {
+                    foo.pilz.freaklog.data.export.WebhookSerializable.fromEntity(it)
+                }
             )
             try {
                 val jsonList = Json.encodeToString(journalExport)
