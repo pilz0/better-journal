@@ -37,15 +37,18 @@ import foo.pilz.freaklog.ui.theme.horizontalPadding
 fun CardWithTitle(
     modifier: Modifier = Modifier,
     title: String,
-    innerPaddingHorizontal: Dp = 10.dp,
+    innerPaddingHorizontal: Dp = horizontalPadding,
     content: @Composable (ColumnScope.() -> Unit)
 ) {
-    ElevatedCard(modifier = modifier.padding(vertical = 5.dp)) {
-        Column(modifier = Modifier.padding(bottom = 5.dp)) {
+    ElevatedCard(modifier = modifier.padding(vertical = 6.dp)) {
+        Column(modifier = Modifier.padding(vertical = 8.dp)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(vertical = 3.dp, horizontal = horizontalPadding)
+                modifier = Modifier.padding(
+                    horizontal = horizontalPadding,
+                    vertical = 4.dp,
+                )
             )
             Column(
                 Modifier
