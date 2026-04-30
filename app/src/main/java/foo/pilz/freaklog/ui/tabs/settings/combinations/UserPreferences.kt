@@ -18,7 +18,6 @@
 
 package foo.pilz.freaklog.ui.tabs.settings.combinations
 
-import android.R
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -28,6 +27,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.SavedTimeDisplayOption
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences.PreferencesKeys.WEBHOOK_URL
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.Instant
 import javax.inject.Inject
@@ -59,12 +59,12 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
 
         val WEBHOOK_TEMPLATE = stringPreferencesKey("webhook_template")
 
+        // True once the legacy single-webhook preferences above have been migrated
+        // into the `webhook` table. See WebhookSeeder.
+        val WEBHOOK_SEEDED = booleanPreferencesKey("webhook_seeded")
+
         val AI_API_KEY = stringPreferencesKey("ai_api_key")
         val AI_MODEL_NAME = stringPreferencesKey("ai_model_name")
-
-        val WEBHOOK_USE_FREAKQUERY = booleanPreferencesKey("webhook_use_freakquery")
-        val WEBHOOK_FREAKQUERY_SEPARATOR = stringPreferencesKey("webhook_freakquery_separator")
-        val WEBHOOK_HYPERLINK_SUBSTANCES = booleanPreferencesKey("webhook_hyperlink_substances")
 
         val KEY_INVENTORY_ENABLED = booleanPreferencesKey("key_inventory_enabled")
 
@@ -72,6 +72,11 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
         val KEY_REDOSE_COMEUP_FRACTION = stringPreferencesKey("key_redose_comeup_fraction")
         val KEY_REDOSE_PEAK_FRACTION = stringPreferencesKey("key_redose_peak_fraction")
         val KEY_REDOSE_SHOW = booleanPreferencesKey("key_redose_show")
+
+        // App lock (biometric)
+        val KEY_LOCK_ENABLED = booleanPreferencesKey("key_lock_enabled")
+        val KEY_LOCK_TIME_OPTION = stringPreferencesKey("key_lock_time_option")
+        val KEY_LOCK_LAST_ACTIVE = longPreferencesKey("key_lock_last_active_epoch_seconds")
     }
 
     suspend fun saveTimeDisplayOption(value: SavedTimeDisplayOption) {
@@ -222,14 +227,14 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
         }
     }
 
-    val webhookUseFreakQueryFlow: Flow<Boolean> = dataStore.data.map { it[PreferencesKeys.WEBHOOK_USE_FREAKQUERY] ?: true }
-    suspend fun saveWebhookUseFreakQuery(value: Boolean) = dataStore.edit { it[PreferencesKeys.WEBHOOK_USE_FREAKQUERY] = value }
+    /** Whether the legacy single-webhook preferences have already been migrated. */
+    suspend fun isWebhookSeeded(): Boolean = dataStore.data
+        .map { it[PreferencesKeys.WEBHOOK_SEEDED] ?: false }
+        .first()
 
-    val webhookFreakQuerySeparatorFlow: Flow<String> = dataStore.data.map { it[PreferencesKeys.WEBHOOK_FREAKQUERY_SEPARATOR] ?: ", " }
-    suspend fun saveWebhookFreakQuerySeparator(value: String) = dataStore.edit { it[PreferencesKeys.WEBHOOK_FREAKQUERY_SEPARATOR] = value }
-
-    val webhookHyperlinkSubstancesFlow: Flow<Boolean> = dataStore.data.map { it[PreferencesKeys.WEBHOOK_HYPERLINK_SUBSTANCES] ?: true }
-    suspend fun saveWebhookHyperlinkSubstances(value: Boolean) = dataStore.edit { it[PreferencesKeys.WEBHOOK_HYPERLINK_SUBSTANCES] = value }
+    suspend fun markWebhookSeeded() {
+        dataStore.edit { it[PreferencesKeys.WEBHOOK_SEEDED] = true }
+    }
 
     val isHapticFeedbackEnabledFlow: Flow<Boolean> = dataStore.data
         .map { preferences ->
@@ -302,5 +307,38 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
             prefs[PreferencesKeys.KEY_REDOSE_COMEUP_FRACTION] = comeup.toString()
             prefs[PreferencesKeys.KEY_REDOSE_PEAK_FRACTION] = peak.toString()
         }
+    }
+
+    // ---- App lock (biometric) ----
+
+    val isLockEnabledFlow: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.KEY_LOCK_ENABLED] ?: false
+    }
+
+    suspend fun saveLockEnabled(value: Boolean) {
+        dataStore.edit { prefs -> prefs[PreferencesKeys.KEY_LOCK_ENABLED] = value }
+    }
+
+    val lockTimeOptionFlow: Flow<foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption> =
+        dataStore.data.map { prefs ->
+            foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption.fromName(
+                prefs[PreferencesKeys.KEY_LOCK_TIME_OPTION]
+            )
+        }
+
+    suspend fun saveLockTimeOption(value: foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption) {
+        dataStore.edit { prefs -> prefs[PreferencesKeys.KEY_LOCK_TIME_OPTION] = value.name }
+    }
+
+    /**
+     * Last time the app was foregrounded, expressed as epoch seconds. 0 means "unknown",
+     * which is treated as "needs to lock" by [foo.pilz.freaklog.ui.tabs.settings.lock.shouldLockNow].
+     */
+    val lastActiveEpochSecondsFlow: Flow<Long> = dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.KEY_LOCK_LAST_ACTIVE] ?: 0L
+    }
+
+    suspend fun saveLastActiveEpochSeconds(value: Long) {
+        dataStore.edit { prefs -> prefs[PreferencesKeys.KEY_LOCK_LAST_ACTIVE] = value }
     }
 }

@@ -18,14 +18,8 @@
 
 package foo.pilz.freaklog.data.webhook
 
-import com.ndm4.freakquery.AnodyneAliases
-import com.ndm4.freakquery.DefaultAliases
-import com.ndm4.freakquery.FreakQueryConfig
-import foo.pilz.freaklog.data.freakquery.FreakQueryRepository
-import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -58,23 +52,16 @@ private object AndroidWebhookLogger : WebhookLogger {
 
 @Singleton
 class WebhookService internal constructor(
-    private val freakQueryRepository: FreakQueryRepository?,
-    private val userPreferences: UserPreferences?,
     private val logger: WebhookLogger,
     private val delayMillis: suspend (Long) -> Unit,
 ) {
 
-    @Inject constructor(
-        freakQueryRepository: FreakQueryRepository,
-        userPreferences: UserPreferences
-    ) : this(freakQueryRepository, userPreferences, AndroidWebhookLogger, ::delay)
-
-    private val sortedSubstances = AnodyneAliases.map.keys.sortedByDescending { it.length }
+    @Inject constructor() : this(AndroidWebhookLogger, ::delay)
 
     companion object {
         const val DEFAULT_TEMPLATE = "{user}: [{dose} {units} ]{substance} via {route}[ at {site}][\n> {note}]"
         private const val MAX_RETRIES = 3
-        private const val SUBSTANCE_INFO_URL = "https://anodynw.wiki/substance/"
+        private const val SUBSTANCE_INFO_URL = "https://anodyne.wiki/substance/"
     }
 
     suspend fun sendWebhook(
@@ -194,9 +181,15 @@ class WebhookService internal constructor(
             unitString = ""
         }
 
+        var displaySubstance = substance
+        if (isHyperlinked) {
+            val encodedSub = java.net.URLEncoder.encode(substance, "UTF-8")
+            displaySubstance = "[$substance](<$substanceInfoUrl$encodedSub>)"
+        }
+
         val values = mapOf(
             "user" to user,
-            "substance" to substance,
+            "substance" to displaySubstance,
             "dose" to doseString,
             "units" to unitString,
             "route" to route,
@@ -205,25 +198,8 @@ class WebhookService internal constructor(
         )
 
         val content = processTemplate(template, values)
-        
-        val freakQueryContent = if (userPreferences != null && userPreferences.webhookUseFreakQueryFlow.first()) {
-            val config = FreakQueryConfig(
-                renderSeparator = userPreferences.webhookFreakQuerySeparatorFlow.first()
-            )
-            freakQueryRepository?.renderFlow(content, config)?.first() ?: content
-        } else {
-            content
-        }
-
-        val hyperlinkEnabled = userPreferences?.webhookHyperlinkSubstancesFlow?.first() ?: isHyperlinked
-        val finalContent = if (hyperlinkEnabled) {
-            hyperlinkSubstancesInText(freakQueryContent, substanceInfoUrl)
-        } else {
-            freakQueryContent
-        }
-
         val payload = buildJsonObject {
-            put("content", finalContent)
+            put("content", content)
         }
 
         var lastError: Exception? = null
@@ -324,25 +300,5 @@ class WebhookService internal constructor(
             processed = processed.replace("{$key}", value)
         }
         return processed
-    }
-
-    private fun hyperlinkSubstancesInText(text: String, substanceInfoUrl: String): String {
-        var result = text
-        for (name in sortedSubstances) {
-            if (name.length < 3) continue // Avoid hyperlinking very short names
-            
-            val escapedName = java.util.regex.Pattern.quote(name)
-            // Match whole word, not preceded by [, /, or = (to avoid FreakQuery parameters)
-            // and not followed by ]( or > (already linked or inside URL)
-            val regex = "(?<!\\[|/|=)\\b$escapedName\\b(?!\\s*]\\(|>)".toRegex()
-            
-            result = regex.replace(result) { match ->
-                val canonicalName = AnodyneAliases.map[match.value] ?: match.value
-                val encodedSub = java.net.URLEncoder.encode(canonicalName, "UTF-8")
-                    .replace("+", "%20") // Use %20 instead of + for better compatibility in some Markdown parsers
-                "[${match.value}]($substanceInfoUrl$encodedSub)"
-            }
-        }
-        return result
     }
 }

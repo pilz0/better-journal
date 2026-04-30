@@ -68,7 +68,6 @@ import foo.pilz.freaklog.data.substances.parse.SubstanceParser
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.shapeAlpha
 import foo.pilz.freaklog.ui.theme.md_theme_dark_primary
 import foo.pilz.freaklog.ui.theme.md_theme_light_primary
-import kotlinx.coroutines.flow.first
 import java.io.File
 import java.io.FileOutputStream
 import java.time.Duration
@@ -393,9 +392,6 @@ class TimelineWidgetWorker(
             // Load substance data for accurate timeline durations
             val substanceDurations = loadSubstanceDurations(applicationContext)
 
-            // Fetch latest ingestions directly sorted by time
-            val ingestions = experienceDao.getSortedIngestionsFlow().first()
-
             val now = Instant.now()
 
             // For the graph, fetch enough history (48h back, 12h forward) so even
@@ -429,89 +425,82 @@ class TimelineWidgetWorker(
                 durationsBySubstance = substanceDurations,
             )
 
-            val (title, ingestionsText, hasData, timelineImagePath, substanceColors, mostRecentExperienceId) = if (ingestions.isEmpty()) {
-                WidgetData("", "", false, null, emptyMap(), null)
-            } else {
-                // Take the most recent ingestions (up to 7)
-                val recentIngestions = ingestions.take(40)
+            // Build text lines from the same recent window, ordered newest first,
+            // filtering out any ingestion whose effect has already finished (phase
+            // == Finished).  This prevents stale "10d ago • finished" lines from
+            // appearing while no active ingestions are present.
+            val sortedRecent = allRecentIngestionsWithCompanions
+                .sortedByDescending { it.ingestion.time }
 
-                // Get colors for substances from companions
-                val colorsMap = mutableMapOf<String, Int>()
+            // The UI renders at most 20 lines; stop collecting once we have that many.
+            val maxLines = 20
+            val colorsMap = mutableMapOf<String, Int>()
+            val lines = mutableListOf<String>()
 
-                // Get colors from ingestions with companions
-                allRecentIngestionsWithCompanions.forEach { ingestionWithCompanion ->
-                    val name = ingestionWithCompanion.ingestion.substanceName
-                    if (!colorsMap.containsKey(name)) {
-                        // Use companion color if available, otherwise default to BLUE (matching graph)
-                        val color = ingestionWithCompanion.substanceCompanion?.color ?: AdaptiveColor.BLUE
-                        colorsMap[name] = getAndroidColor(color, isDarkMode)
-                    }
+            for (iwc in sortedRecent) {
+                if (lines.size >= maxLines) break
+
+                val ingestion = iwc.ingestion
+                val elapsedSeconds = Duration.between(ingestion.time, now).seconds.toFloat()
+                val roa = substanceDurations[ingestion.substanceName]?.get(ingestion.administrationRoute)
+                val phase = WidgetTimelineModel.resolveIngestionPhase(elapsedSeconds, roa)
+                if (phase is IngestionPhase.Finished) continue   // skip inactive entries
+
+                val timeText = formatElapsedTime(ingestion.time, now)
+                val phaseText = when (phase) {
+                    is IngestionPhase.NotStarted -> "not started"
+                    is IngestionPhase.Onset      -> "onset • peak in ${formatSecondsToTime(phase.peakInSeconds.toLong())}"
+                    is IngestionPhase.Comeup     -> "↑ comeup • peak in ${formatSecondsToTime(phase.peakInSeconds.toLong())}"
+                    is IngestionPhase.Peak       -> "peak • ${formatSecondsToTime(phase.remainingSeconds.toLong())} left"
+                    is IngestionPhase.Offset     -> if (phase.remainingSeconds > 0) "↓ offset • ${formatSecondsToTime(phase.remainingSeconds.toLong())} left" else "↓ offset • finishing"
+                    is IngestionPhase.Active     -> if (phase.remainingSeconds > 0) "${formatSecondsToTime(phase.remainingSeconds.toLong())} left" else "finishing"
+                    is IngestionPhase.Finished   -> "finished"  // unreachable; filtered above
                 }
+                lines += "${ingestion.substanceName} • $timeText • $phaseText"
 
-                val lines = recentIngestions.map { ingestion ->
-                    val elapsedSeconds = Duration.between(ingestion.time, now).seconds.toFloat()
-                    val timeText = formatElapsedTime(ingestion.time, now)
-                    
-                    // Get duration information for this substance/route
-                    val roaDuration = substanceDurations[ingestion.substanceName]?.get(ingestion.administrationRoute)
-                    
-                    // Calculate phase timings in seconds from ingestion
-                    val onsetSec = roaDuration?.onset?.interpolateAtValueInSeconds(0.5f) ?: 1800f
-                    val comeupSec = roaDuration?.comeup?.interpolateAtValueInSeconds(0.5f) ?: 2700f
-                    val peakSec = roaDuration?.peak?.interpolateAtValueInSeconds(0.5f) ?: 5400f
-                    val offsetSec = roaDuration?.offset?.interpolateAtValueInSeconds(0.5f) ?: 5400f
-
-                    // Calculate phase boundaries from ingestion time
-                    val onsetEnd = onsetSec
-                    val comeupEnd = onsetEnd + comeupSec
-                    val peakEnd = comeupEnd + peakSec
-                    val offsetEnd = peakEnd + offsetSec
-
-                    // Determine current phase and format status text
-                    val phaseText = when {
-                        elapsedSeconds < 0 -> "not started"
-                        elapsedSeconds < onsetEnd -> {
-                            val timeToPeak = (comeupEnd - elapsedSeconds).toLong()
-                            "onset • peak in ${formatSecondsToTime(timeToPeak)}"
-                        }
-                        elapsedSeconds < comeupEnd -> {
-                            val remaining = (comeupEnd - elapsedSeconds).toLong()
-                            "↑ comeup • peak in ${formatSecondsToTime(remaining)}"
-                        }
-                        elapsedSeconds < peakEnd -> {
-                            val remaining = (peakEnd - elapsedSeconds).toLong()
-                            "peak • ${formatSecondsToTime(remaining)} left"
-                        }
-                        elapsedSeconds < offsetEnd -> {
-                            val remaining = (offsetEnd - elapsedSeconds).toLong()
-                            "↓ offset • ${formatSecondsToTime(remaining)} left"
-                        }
-                        else -> "finished"
-                    }
-                    
-                    // Build the line: Substance * elapsed * phase status
-                    "${ingestion.substanceName} • $timeText • $phaseText"
+                // Collect colors (first occurrence wins).
+                val name = ingestion.substanceName
+                if (!colorsMap.containsKey(name)) {
+                    val color = iwc.substanceCompanion?.color ?: AdaptiveColor.BLUE
+                    colorsMap[name] = getAndroidColor(color, isDarkMode)
                 }
-
-                // Generate timeline graph bitmap from the new model.
-                val imagePath = if (timelineModel.hasContent) {
-                    generateTimelineGraph(
-                        context = applicationContext,
-                        model = timelineModel,
-                        appWidgetId = appWidgetId,
-                        isDarkMode = isDarkMode,
-                    )
-                } else {
-                    null
-                }
-                // Determine the most recent experience ID from the first recent ingestion
-                val mostRecentExperienceId = recentIngestions.firstOrNull()?.experienceId
-
-                WidgetData("Journal", lines.joinToString("\n"), true, imagePath, colorsMap, mostRecentExperienceId)
             }
 
+            // Generate timeline graph bitmap from the new model.
+            val imagePath = if (timelineModel.hasContent) {
+                generateTimelineGraph(
+                    context = applicationContext,
+                    model = timelineModel,
+                    appWidgetId = appWidgetId,
+                    isDarkMode = isDarkMode,
+                )
+            } else {
+                // No active ingestions: delete any previously cached PNG so the
+                // widget can't accidentally display a stale graph.
+                val staleFile = File(applicationContext.cacheDir, "widget_timeline_$appWidgetId.png")
+                if (staleFile.exists()) staleFile.delete()
+                null
+            }
+
+            // hasData is true only when there is something current to display.
+            val hasData = timelineModel.hasContent || lines.isNotEmpty()
+            // Derive the deep-link experience ID from the first non-Finished ingestion so
+            // the widget doesn't open a finished/stale experience when hasData is false.
+            val mostRecentExperienceId = if (hasData) {
+                sortedRecent.firstOrNull { iwc ->
+                    val ingestion = iwc.ingestion
+                    val elapsedSeconds = Duration.between(ingestion.time, now).seconds.toFloat()
+                    val roa = substanceDurations[ingestion.substanceName]?.get(ingestion.administrationRoute)
+                    WidgetTimelineModel.resolveIngestionPhase(elapsedSeconds, roa) !is IngestionPhase.Finished
+                }?.ingestion?.experienceId
+            } else {
+                null
+            }
+
+            val ingestionsText = lines.joinToString("\n")
+
             // Serialize substance colors to JSON with proper escaping
-            val substanceColorsJson = substanceColors.entries.joinToString(",", "{", "}") { (name, color) ->
+            val substanceColorsJson = colorsMap.entries.joinToString(",", "{", "}") { (name, color) ->
                 val escapedName = name
                     .replace("\\", "\\\\")
                     .replace("\"", "\\\"")
@@ -534,8 +523,12 @@ class TimelineWidgetWorker(
                     this[WidgetKeys.HAS_DATA] = hasData
                     this[WidgetKeys.IS_LOADING] = false
                     this[WidgetKeys.SUBSTANCE_COLORS] = substanceColorsJson
-                    if (timelineImagePath != null) {
-                        this[WidgetKeys.TIMELINE_IMAGE_PATH] = timelineImagePath
+                    // Always update the image path: set it to the new value or remove it
+                    // entirely so a stale graph from a previous session is never shown.
+                    if (imagePath != null) {
+                        this[WidgetKeys.TIMELINE_IMAGE_PATH] = imagePath
+                    } else {
+                        this.remove(WidgetKeys.TIMELINE_IMAGE_PATH)
                     }
                     if (mostRecentExperienceId != null) {
                         this[WidgetKeys.MOST_RECENT_EXPERIENCE_ID] = mostRecentExperienceId
@@ -554,15 +547,6 @@ class TimelineWidgetWorker(
             Result.retry()
         }
     }
-
-    private data class WidgetData(
-        val title: String,
-        val ingestionsText: String,
-        val hasData: Boolean,
-        val timelineImagePath: String?,
-        val substanceColors: Map<String, Int>,
-        val mostRecentExperienceId: Int?
-    )
 
     private fun generateTimelineGraph(
         context: Context,
@@ -726,19 +710,24 @@ class TimelineWidgetWorker(
             isAntiAlias = true
         }
         val labelY = (height - paddingTop / 2f).coerceAtMost(height - 6f)
-        // Hour labels under each grid tick.
+        val nowSec2 = model.nowSecondsFromStart
+        val nowX2 = if (nowSec2 in 0f..widthInSeconds) secToPixel(nowSec2) else null
+        // Minimum pixel gap between an hour-tick label and the "now" label.
+        val nowLabelClearance = textPaint.measureText("now") * 0.75f
+
+        // Hour labels under each grid tick; skip any that would collide with "now".
         for (fullHour in fullHours) {
             val x = graphLeft + fullHour.distanceFromStart
+            if (nowX2 != null && kotlin.math.abs(x - nowX2) < nowLabelClearance) continue
             canvas.drawText(fullHour.label, x, labelY, textPaint)
         }
         // "now" label.
-        if (nowSec in 0f..widthInSeconds) {
-            val nowX = secToPixel(nowSec)
+        if (nowX2 != null) {
             val nowLabelPaint = Paint(textPaint).apply {
                 color = if (isDarkMode) Color.WHITE else Color.BLACK
                 isFakeBoldText = true
             }
-            canvas.drawText("now", nowX, labelY, nowLabelPaint)
+            canvas.drawText("now", nowX2, labelY, nowLabelPaint)
         }
 
         // ---- save ----

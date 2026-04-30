@@ -1,23 +1,6 @@
 # Freaklog Android
 A (partly vibecoded) fork from https://github.com/isaakhanimann/psychonautwiki-journal-android/
 
-## FreakQuery
-
-This project includes the `:android-freakquery` module, a Kotlin/Android port of the FreakQuery DSL.
-
-Use `FreakQueryRepository` when queries should run against the app's Room `experiences_db` data:
-
-```kotlin
-@HiltViewModel
-class ExampleViewModel @Inject constructor(
-    private val freakQueryRepository: FreakQueryRepository
-) : ViewModel() {
-    val lastDose = freakQueryRepository.queryFlow("last|dose")
-}
-```
-
-`FreakQueryRepository` reads `ExperienceRepository`, flattens `Experience` + `Ingestion` rows into FreakQuery logs, and supports `query`, `queryFlow`, `render`, and `renderFlow`.
-
 > [!WARNING]  
 > This app is still in development and might break your database with updates
 

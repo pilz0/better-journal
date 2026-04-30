@@ -1,5 +1,7 @@
 *.iml
 .gradle
+.gradle-user-home
+.gradle-user-home-*
 /local.properties
 .idea
 .DS_Store
@@ -11,7 +13,6 @@ local.properties
 release
 .kotlin
 result
-.gradle-user-home*
 
 # Upstream source archive (not tracked; fetched ad-hoc when porting)
 android-main.zip

@@ -20,6 +20,32 @@ package foo.pilz.freaklog.di
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
+import foo.pilz.freaklog.data.room.webhooks.WebhookSeeder
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltAndroidApp
-class JournalApplication : Application()
+class JournalApplication : Application() {
+
+    @Inject
+    lateinit var webhookSeeder: WebhookSeeder
+
+    @Inject
+    @ApplicationScope
+    lateinit var applicationScope: CoroutineScope
+
+    override fun onCreate() {
+        super.onCreate()
+        applicationScope.launch {
+            // Migrate the legacy single-webhook configuration into the new
+            // multi-webhook tables on first launch after upgrade. Idempotent.
+            // Wrap in try/catch so a failed migration cannot crash app startup.
+            try {
+                webhookSeeder.seedIfNeeded()
+            } catch (e: Exception) {
+                android.util.Log.e("JournalApplication", "Webhook seeding failed", e)
+            }
+        }
+    }
+}

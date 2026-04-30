@@ -56,8 +56,6 @@ class WebhookServiceHttpTest {
      * exponential-backoff retry tests don't sleep in real time).
      */
     private val service = WebhookService(
-        freakQueryRepository = null,
-        userPreferences = null,
         logger = WebhookLogger { _, _ -> },
         delayMillis = { /* no-op: skip exponential backoff in tests */ },
     )

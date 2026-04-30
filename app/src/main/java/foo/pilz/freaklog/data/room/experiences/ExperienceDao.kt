@@ -128,6 +128,9 @@ interface ExperienceDao {
     @Query("SELECT * FROM ingestion ORDER BY time DESC LIMIT :limit")
     fun getSortedIngestions(limit: Int): Flow<List<Ingestion>>
 
+    @Query("SELECT * FROM ingestion WHERE webhookMessageId IS NOT NULL")
+    suspend fun getIngestionsWithLegacyWebhookMessageId(): List<Ingestion>
+
     @Query("SELECT * FROM ingestion ORDER BY time DESC")
     fun getSortedIngestionsFlow(): Flow<List<Ingestion>>
 

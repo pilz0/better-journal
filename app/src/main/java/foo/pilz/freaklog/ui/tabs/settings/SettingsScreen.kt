@@ -36,7 +36,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ContactSupport
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.EmojiEvents
@@ -47,9 +46,7 @@ import androidx.compose.material.icons.outlined.Medication
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.QuestionAnswer
-import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Visibility
-import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material.icons.outlined.Webhook
 import androidx.compose.material3.AlertDialog
@@ -104,8 +101,8 @@ fun SettingsPreview() {
         navigateToSubstanceColors = {},
         navigateToCustomUnits = {},
         navigateToReminders = {},
-        navigateToFreakQueryShell = {},
         navigateToWebhook = {},
+        navigateToFreakQueryShell = {},
         importFile = {},
         exportFile = {},
         snackbarHostState = remember { SnackbarHostState() },
@@ -135,6 +132,11 @@ fun SettingsPreview() {
         saveAiApiKey = {},
         aiModelName = "gemini-2.5-flash",
         saveAiModelName = {},
+        isLockEnabled = false,
+        saveLockEnabled = {},
+        lockTimeOption = foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption.IMMEDIATELY,
+        saveLockTimeOption = {},
+        biometricAvailability = foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAvailability.AVAILABLE,
         )
 }
 
@@ -189,6 +191,11 @@ fun SettingsScreen(
         saveAiApiKey = viewModel::saveAiApiKey,
         aiModelName = viewModel.aiModelNameFlow.collectAsState().value,
         saveAiModelName = viewModel::saveAiModelName,
+        isLockEnabled = viewModel.isLockEnabledFlow.collectAsState().value,
+        saveLockEnabled = viewModel::saveLockEnabled,
+        lockTimeOption = viewModel.lockTimeOptionFlow.collectAsState().value,
+        saveLockTimeOption = viewModel::saveLockTimeOption,
+        biometricAvailability = viewModel.biometricAvailability(),
     )
 }
 
@@ -233,6 +240,11 @@ fun SettingsScreen(
     saveAiApiKey: (String) -> Unit,
     aiModelName: String,
     saveAiModelName: (String) -> Unit,
+    isLockEnabled: Boolean,
+    saveLockEnabled: (Boolean) -> Unit,
+    lockTimeOption: foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption,
+    saveLockTimeOption: (foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption) -> Unit,
+    biometricAvailability: foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAvailability,
 ) {
     val performHaptic = rememberHaptic()
     
@@ -542,6 +554,15 @@ fun SettingsScreen(
                     supportingText = { Text("Recommended: gemini-2.5-flash (fast) or gemini-2.5-pro (smartest)") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                )
+            }
+            CardWithTitle(title = "Lock", innerPaddingHorizontal = horizontalPadding) {
+                LockSettingsSection(
+                    isLockEnabled = isLockEnabled,
+                    lockTimeOption = lockTimeOption,
+                    biometricAvailability = biometricAvailability,
+                    onLockEnabledChange = saveLockEnabled,
+                    onLockTimeOptionChange = saveLockTimeOption,
                 )
             }
             CardWithTitle(title = "App data", innerPaddingHorizontal = 0.dp) {

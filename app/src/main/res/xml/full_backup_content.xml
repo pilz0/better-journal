@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Auto-backup rules for Android 6-11 (API 23-30).
+
+  Freaklog journals contain sensitive personal information about substance use.
+  We exclude every storage domain so nothing is uploaded to Google Drive even
+  on devices where the OS would otherwise enable auto backup.
+-->
+<full-backup-content>
+    <exclude domain="root" />
+    <exclude domain="file" />
+    <exclude domain="database" />
+    <exclude domain="sharedpref" />
+    <exclude domain="external" />
+</full-backup-content>

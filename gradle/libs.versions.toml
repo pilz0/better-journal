@@ -15,6 +15,7 @@ junitVersion = "1.2.1"
 kotlin = "2.0.21"
 kotlinxCoroutinesAndroid = "1.10.2"
 kotlinxCoroutinesCore = "1.10.2"
+kotlinxCoroutinesTest = "1.10.2"
 kotlinxSerializationJson = "1.8.1"
 lifecycleRuntimeKtx = "2.9.0"
 material3AdaptiveNavigationSuiteAndroid = "1.4.0"
@@ -22,9 +23,31 @@ navigationCompose = "2.9.0"
 roomRuntime = "2.6.1"
 workRuntimeKtx = "2.10.0"
 desugar_jdk_libs = "2.1.4"
-generativeai = "0.9.0"
+
 composeMarkdown = "0.5.4"
 ksp = "2.0.21-1.0.27"
+biometric = "1.1.0"
+
+# --- Test infrastructure ---
+# MockK 1.14+ ships kotlin-reflect/stdlib 2.2.x, which the project's Kotlin
+# 2.0.21 compiler cannot read ("metadata version 2.2.0, expected 2.0.0").
+# Stay on the latest 1.13.x until we bump the project to Kotlin 2.1+.
+mockk = "1.13.13"
+turbine = "1.2.1"
+# Robolectric 4.15+ depends on Kotlin 2.2 stdlib for the same reason as MockK
+# above; stay on the latest 4.14.x line until the project Kotlin bump.
+robolectric = "4.14.1"
+assertk = "0.28.1"
+# Pinned to 4.x. The 5.x line moved to the `mockwebserver3` package, which is
+# a breaking API change; revisit when adopting OkHttp 5.
+mockwebserver = "4.12.0"
+orgJson = "20251224"
+testRunner = "1.7.0"
+testCore = "1.7.0"
+
+# --- Static analysis & coverage plugins ---
+detekt = "1.23.8"
+kover = "0.9.8"
 
 [libraries]
 android-desugarJdkLibs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
@@ -48,6 +71,9 @@ androidx-navigation-compose = { module = "androidx.navigation:navigation-compose
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomRuntime" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
+androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "roomRuntime" }
+androidx-test-core = { module = "androidx.test:core", version.ref = "testCore" }
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "testRunner" }
 androidx-ui = { module = "androidx.compose.ui:ui" }
 androidx-ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
 androidx-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
@@ -61,9 +87,22 @@ hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", ve
 junit = { module = "junit:junit", version.ref = "junit" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
-google-generativeai = { module = "com.google.ai.client.generativeai:generativeai", version.ref = "generativeai" }
 compose-markdown = { module = "com.github.jeziellago:compose-markdown", version.ref = "composeMarkdown" }
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
+
+# --- Test infrastructure ---
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockk" }
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+assertk = { module = "com.willowtreeapps.assertk:assertk", version.ref = "assertk" }
+mockwebserver = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "mockwebserver" }
+org-json = { module = "org.json:json", version.ref = "orgJson" }
+
+# Detekt formatting plugin (rules pulled in at runtime).
+detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -74,3 +113,5 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hiltAndroidCompiler" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 androidx-room = { id = "androidx.room", version.ref = "roomRuntime" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }

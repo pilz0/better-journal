@@ -47,6 +47,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -78,6 +79,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestions
+import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
 import foo.pilz.freaklog.ui.YOU
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.AdministrationSitePicker
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
@@ -127,7 +129,10 @@ fun FinishIngestionScreen(
         showSiteSelection = viewModel.showSiteSelection,
         siteOptions = viewModel.siteOptions,
         administrationSite = viewModel.administrationSite,
-        onChangeOfAdministrationSite = viewModel::changeAdministrationSite
+        onChangeOfAdministrationSite = viewModel::changeAdministrationSite,
+        enabledWebhooks = viewModel.enabledWebhooksFlow.collectAsState().value,
+        isWebhookSelected = { id -> viewModel.selectedWebhookIds[id] ?: true },
+        onWebhookSelectedChange = viewModel::setWebhookSelected
     )
 }
 
@@ -171,7 +176,13 @@ fun FinishIngestionScreenPreview() {
         showSiteSelection = true,
         siteOptions = listOf("Left nostril", "Right nostril", "Both nostrils"),
         administrationSite = "",
-        onChangeOfAdministrationSite = {}
+        onChangeOfAdministrationSite = {},
+        enabledWebhooks = listOf(
+            Webhook(id = 1, name = "Friends", url = "https://discord.com/api/webhooks/x/y"),
+            Webhook(id = 2, name = "Personal", url = "https://discord.com/api/webhooks/a/b")
+        ),
+        isWebhookSelected = { true },
+        onWebhookSelectedChange = { _, _ -> }
     )
 }
 
@@ -207,7 +218,10 @@ fun FinishIngestionScreen(
     showSiteSelection: Boolean,
     siteOptions: List<String>,
     administrationSite: String,
-    onChangeOfAdministrationSite: (String) -> Unit
+    onChangeOfAdministrationSite: (String) -> Unit,
+    enabledWebhooks: List<Webhook>,
+    isWebhookSelected: (Int) -> Boolean,
+    onWebhookSelectedChange: (Int, Boolean) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
     Scaffold(
@@ -408,6 +422,44 @@ fun FinishIngestionScreen(
                             siteOptions = siteOptions,
                             onSiteChange = onChangeOfAdministrationSite
                         )
+                    }
+                }
+                if (enabledWebhooks.isNotEmpty()) {
+                    ElevatedCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(
+                                horizontal = horizontalPadding,
+                                vertical = 6.dp
+                            )
+                        ) {
+                            Text(
+                                "Send to",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            for (webhook in enabledWebhooks) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Checkbox(
+                                        checked = isWebhookSelected(webhook.id),
+                                        onCheckedChange = { checked ->
+                                            onWebhookSelectedChange(webhook.id, checked)
+                                        }
+                                    )
+                                    Text(
+                                        text = webhook.name.ifBlank { "Webhook" },
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
                 CardWithTitle(title = "Ingestion note") {

@@ -38,12 +38,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.Insights
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -64,6 +64,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
@@ -80,11 +81,13 @@ import foo.pilz.freaklog.ui.utils.rememberHaptic
 fun StatsScreen(
     viewModel: StatsViewModel = hiltViewModel(),
     navigateToSubstanceCompanion: (substanceName: String, consumerName: String?) -> Unit,
-    navigateToToleranceChart: () -> Unit = {}
+    navigateToToleranceChart: () -> Unit = {},
+    navigateToMoreCharts: () -> Unit = {},
 ) {
     StatsScreen(
         navigateToSubstanceCompanion = navigateToSubstanceCompanion,
         navigateToToleranceChart = navigateToToleranceChart,
+        navigateToMoreCharts = navigateToMoreCharts,
         onTapOption = viewModel::onTapOption,
         statsModel = viewModel.statsModelFlow.collectAsState().value,
         onChangeConsumerName = viewModel::onChangeConsumer,
@@ -103,6 +106,7 @@ fun StatsPreview(
         StatsScreen(
             navigateToSubstanceCompanion = { _, _ -> },
             navigateToToleranceChart = {},
+            navigateToMoreCharts = {},
             onTapOption = {},
             statsModel = statsModel,
             onChangeConsumerName = {},
@@ -116,6 +120,7 @@ fun StatsPreview(
 fun StatsScreen(
     navigateToSubstanceCompanion: (substanceName: String, consumerName: String?) -> Unit,
     navigateToToleranceChart: () -> Unit = {},
+    navigateToMoreCharts: () -> Unit = {},
     onTapOption: (option: TimePickerOption) -> Unit,
     statsModel: StatsModel,
     onChangeConsumerName: (String?) -> Unit,
@@ -184,6 +189,15 @@ fun StatsScreen(
                     }) {
                         Icon(Icons.Outlined.Schedule, contentDescription = "Tolerance")
                     }
+                    IconButton(onClick = {
+                        performHaptic(HapticType.CLICK)
+                        navigateToMoreCharts()
+                    }) {
+                        Icon(
+                            Icons.Outlined.Insights,
+                            contentDescription = "More charts"
+                        )
+                    }
                 }
             )
         },
@@ -213,79 +227,6 @@ fun StatsScreen(
                 if (statsModel.statItems.isNotEmpty()) {
                     val isDarkTheme = isSystemInDarkTheme()
                     Column {
-                        // Summary Cards
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = horizontalPadding, vertical = 10.dp),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            ElevatedCard(
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Column(
-                                    modifier = Modifier.padding(12.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Text(
-                                        text = statsModel.totalExperiences.toString(),
-                                        style = MaterialTheme.typography.headlineMedium
-                                    )
-                                    Text(
-                                        text = "Experiences",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                            ElevatedCard(
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Column(
-                                    modifier = Modifier.padding(12.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Text(
-                                        text = statsModel.totalIngestions.toString(),
-                                        style = MaterialTheme.typography.headlineMedium
-                                    )
-                                    Text(
-                                        text = "Ingestions",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                        }
-                        if (statsModel.mostUsedSubstance != null) {
-                            ElevatedCard(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = horizontalPadding, vertical = 0.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = "Most Used",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        Text(
-                                            text = statsModel.mostUsedSubstance,
-                                            style = MaterialTheme.typography.titleMedium
-                                        )
-                                    }
-                                    Text(
-                                        text = "${statsModel.mostUsedSubstanceCount}x",
-                                        style = MaterialTheme.typography.headlineSmall
-                                    )
-                                }
-                            }
-                        }
                         Spacer(modifier = Modifier.height(5.dp))
                         Text(
                             text = "Ingestions since ${statsModel.startDateText}",
@@ -335,7 +276,7 @@ fun StatsScreen(
                                                 .width(11.dp)
                                                 .fillMaxHeight()
                                         ) {}
-                                        Column {
+                                        Column(modifier = Modifier.weight(1f)) {
                                             Text(
                                                 text = subStat.substanceName,
                                                 style = MaterialTheme.typography.titleMedium
@@ -345,26 +286,42 @@ fun StatsScreen(
                                                 style = MaterialTheme.typography.bodyMedium
                                             )
                                         }
-                                        Spacer(modifier = Modifier.weight(1f))
                                         Column(horizontalAlignment = Alignment.End) {
                                             val cumulativeDose = subStat.totalDose
                                             if (cumulativeDose != null) {
                                                 if (cumulativeDose.isEstimate) {
                                                     if (cumulativeDose.estimatedDoseStandardDeviation != null) {
-                                                        Text(text = "total ${cumulativeDose.dose.toReadableString()}±${cumulativeDose.estimatedDoseStandardDeviation.toReadableString()} ${cumulativeDose.units}")
+                                                        Text(
+                                                            text = "total ${cumulativeDose.dose.toReadableString()}±${cumulativeDose.estimatedDoseStandardDeviation.toReadableString()} ${cumulativeDose.units}",
+                                                            maxLines = 1,
+                                                            overflow = TextOverflow.Ellipsis,
+                                                        )
                                                     } else {
-                                                        Text(text = "total ~${cumulativeDose.dose.toReadableString()} ${cumulativeDose.units}")
+                                                        Text(
+                                                            text = "total ~${cumulativeDose.dose.toReadableString()} ${cumulativeDose.units}",
+                                                            maxLines = 1,
+                                                            overflow = TextOverflow.Ellipsis,
+                                                        )
                                                     }
                                                 } else {
-                                                    Text(text = "total ${cumulativeDose.dose.toReadableString()} ${cumulativeDose.units}")
-
+                                                    Text(
+                                                        text = "total ${cumulativeDose.dose.toReadableString()} ${cumulativeDose.units}",
+                                                        maxLines = 1,
+                                                        overflow = TextOverflow.Ellipsis,
+                                                    )
                                                 }
                                             } else {
-                                                Text(text = "total dose unknown")
+                                                Text(
+                                                    text = "total dose unknown",
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                )
                                             }
                                             subStat.routeCounts.forEach {
                                                 Text(
-                                                    text = "${it.administrationRoute.displayText.lowercase()} ${it.count}x ",
+                                                    text = "${it.administrationRoute.displayText.lowercase()} ${it.count}x",
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis,
                                                 )
                                             }
                                         }
