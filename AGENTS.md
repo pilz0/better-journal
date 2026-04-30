@@ -13,7 +13,7 @@ Freaklog is an Android journal app (fork of [PsychonautWiki Journal](https://git
 | DB | Room (SQLite) |
 | Nav | Navigation Compose |
 | Async | Kotlin Coroutines + Flow |
-| AI | Google Generative AI SDK |
+| AI | Custom Gemini REST client (`v1beta` `generateContent`) — see [AI chatbot](#ai-chatbot-dataai) |
 | Serialization | kotlinx.serialization (JSON) |
 | Build | Gradle (Kotlin DSL), AGP |
 | CI | GitHub Actions |
@@ -24,14 +24,18 @@ Freaklog is an Android journal app (fork of [PsychonautWiki Journal](https://git
 app/src/main/java/foo/pilz/freaklog/
 ├── MainActivity.kt             # Entry point, sets up NavGraph + theme
 ├── data/
-│   ├── ai/                     # AI chatbot (Google Generative AI)
-│   │   ├── AiChatbotRepository.kt
-│   │   └── AiChatViewModel.kt
+│   ├── ai/                     # AI chatbot (custom Gemini REST client)
+│   │   ├── AiChatbotRepository.kt   # Builds system prompt + creates GeminiChatSession
+│   │   ├── AiChatViewModel.kt       # StateFlow<List<ChatMessage>> conversation state
+│   │   ├── AiDateFormatter.kt       # Locale-stable date helpers used in prompts
+│   │   ├── AiTools.kt               # Function-calling tool declarations + dispatcher
+│   │   ├── GeminiChatSession.kt     # Stateful chat wrapper (history kept as raw JSON)
+│   │   └── GeminiRestClient.kt      # v1beta generateContent HTTP client
 │   ├── export/                 # JSON export/import serializers
 │   │   ├── InstantSerializer.kt
 │   │   └── JournalExport.kt    # @Serializable data classes for export
 │   ├── room/                   # Room database
-│   │   ├── AppDatabase.kt      # Database, version, auto-migrations
+│   │   ├── AppDatabase.kt      # Database, version, auto-migrations + AutoMigrationSpec
 │   │   ├── SprayDao.kt / SprayRepository.kt
 │   │   ├── experiences/
 │   │   │   ├── ExperienceDao.kt
@@ -39,6 +43,10 @@ app/src/main/java/foo/pilz/freaklog/
 │   │   │   ├── CustomRecipeDao.kt / CustomRecipeRepository.kt
 │   │   │   ├── entities/       # Experience, Ingestion, CustomUnit, Spray, …
 │   │   │   └── relations/      # ExperienceWithIngestions, IngestionWithCompanion, …
+│   │   ├── inventory/          # Stash / inventory tracking
+│   │   │   ├── InventoryDao.kt
+│   │   │   ├── InventoryItem.kt
+│   │   │   └── InventoryRepository.kt
 │   │   └── reminders/
 │   │       ├── ReminderDao.kt
 │   │       ├── RemindersRepository.kt
@@ -46,22 +54,28 @@ app/src/main/java/foo/pilz/freaklog/
 │   ├── substances/             # Substance data (parsed from assets/Substances.json)
 │   │   ├── AdministrationRoute.kt   # Enum of routes (ORAL, INSUFFLATED, …)
 │   │   ├── classes/            # Substance, Roa, RoaDose, RoaDuration, Tolerance, …
+│   │   │   └── roa/curve/      # IngestionCurve / BatemanCurve projection model
 │   │   ├── parse/              # SubstanceParser (JSON → Kotlin models)
 │   │   └── repositories/       # SubstanceRepository, SearchRepository
 │   └── webhook/
 │       └── WebhookService.kt   # Discord webhook integration
 ├── di/
-│   ├── AppModule.kt            # Provides DB, DAOs, DataStore, CoroutineScope
+│   ├── AppModule.kt            # Provides DB, DAOs, DataStore, @ApplicationScope CoroutineScope
 │   ├── JournalApplication.kt   # @HiltAndroidApp Application class
 │   └── RepositoryModule.kt     # Binds SubstanceParser/Repository interfaces
 ├── scheduled/
-│   ├── NotificationScheduler.kt
-│   └── ReminderReceiver.kt     # BroadcastReceiver for scheduled reminders
+│   ├── NotificationScheduler.kt    # Wraps AlarmManager, schedules next reminder fire
+│   ├── ReminderSchedule.kt         # Pure helper: next-fire math (interval / times-of-day)
+│   ├── ReminderReceiver.kt         # BroadcastReceiver fired by AlarmManager
+│   ├── ReminderActionReceiver.kt   # Handles notification action buttons (snooze/dismiss/log)
+│   └── BootCompletedReceiver.kt    # Re-arms all enabled reminders after device reboot
 └── ui/
     ├── Constants.kt
     ├── HeatmapWidgetProvider.kt # Glance AppWidget for heatmap
+    ├── WidgetHeatmapModel.kt    # Pure model used by the heatmap widget renderer
     ├── WidgetProvider.kt        # Glance AppWidget (recent ingestions)
-    ├── main/                   # MainScreen, bottom navigation scaffold
+    ├── WidgetTimelineModel.kt   # Pure model used by the timeline widget renderer
+    ├── main/                   # MainScreen, bottom navigation scaffold + navigation graphs
     ├── tabs/
     │   ├── journal/            # Journal tab (list, calendar, timeline, edit)
     │   │   ├── JournalViewModel.kt
@@ -71,12 +85,18 @@ app/src/main/java/foo/pilz/freaklog/
     │   │   └── experience/
     │   │       ├── edit/       # EditExperienceScreen + ViewModel
     │   │       ├── recommendations/ # AiChatBottomSheet
-    │   │       └── timeline/   # Timeline rendering (drawables, screen, utils)
+    │   │       └── timeline/   # Timeline rendering (drawables, curve/, screen, utils)
+    │   ├── inventory/          # Inventory tab (optional — gated by Settings flag)
+    │   │   ├── InventoryScreen.kt
+    │   │   └── InventoryViewModel.kt
     │   ├── safer/              # Harm-reduction screens
     │   │   ├── tolerance/      # ToleranceCalculator, ToleranceTextParser, Screen
     │   │   ├── spray/          # SprayCalculatorScreen + ViewModel
-    │   │   ├── DoseGuideScreen.kt
-    │   │   ├── ReagentTestingScreen.kt
+    │   │   ├── DoseGuideScreen.kt / DoseExplanationScreen.kt
+    │   │   ├── ReagentTestingScreen.kt / DrugTestingScreen.kt
+    │   │   ├── RouteExplanationScreen.kt
+    │   │   ├── SaferHallucinogensScreen.kt
+    │   │   ├── SaferUseScreen.kt
     │   │   └── VolumetricDosingScreen.kt
     │   ├── search/             # Substance search + detail screens
     │   ├── settings/           # Settings, webhook, export, reminders, …
@@ -84,14 +104,16 @@ app/src/main/java/foo/pilz/freaklog/
     │   │   ├── customunits/    # Custom unit management
     │   │   ├── customrecipes/  # Custom recipe management
     │   │   ├── reminders/      # Reminder management
-    │   │   └── colors/         # Color preference screens
+    │   │   ├── colors/         # Color preference screens
+    │   │   ├── lock/           # App-lock (biometrics / PIN) settings
+    │   │   └── funny/          # Easter-egg screens
     │   └── stats/              # Statistics tab
     ├── theme/                  # Color, typography, theme (Material3)
     └── utils/
         ├── getDateFromString.kt
         ├── getInteractionExplanationURLForSubstance.kt
         ├── getTimeDifferenceText.kt
-        ├── HapticFeedbackManager.kt
+        ├── HapticFeedbackManager.kt / HapticProvider.kt
         └── keyboard/
 ```
 
@@ -202,6 +224,12 @@ To upgrade: edit version strings in `libs.versions.toml` (and root `build.gradle
 ### Room database (`data/room/AppDatabase.kt`)
 
 Current schema version: **17**. All migrations from v1 to v17 are handled by `@AutoMigration`.
+The `16 → 17` step uses an `AutoMigrationSpec` (`AppDatabase.ReminderV16To17`) that
+back-fills `scheduleType = 'INTERVAL'` on legacy reminder rows so they don't silently
+disable when the new column default (`DAILY_AT_TIMES`) is applied without `timesOfDay`.
+
+There is no schema version 13 — the migration jumps directly from 12 to 14
+(`AutoMigration(from = 12, to = 14)`).
 
 **Entities:**
 
@@ -218,6 +246,7 @@ Current schema version: **17**. All migrations from v1 to v17 are handled by `@A
 | `Reminder` | Scheduled substance reminder |
 | `CustomRecipe` | A named recipe (mix of substances) |
 | `CustomRecipeComponent` | One ingredient line within a recipe |
+| `InventoryItem` | Stash / inventory entry tracked by the Inventory tab |
 
 **Relations** (in `experiences/relations/`):
 
@@ -225,7 +254,7 @@ Current schema version: **17**. All migrations from v1 to v17 are handled by `@A
 - `ExperienceWithIngestionsAndCompanions`
 - `ExperienceWithIngestionsCompanionsAndRatings`
 - `ExperienceWithIngestionsTimedNotesAndRatings`
-- `IngestionWithCompanion`, `IngestionWithExperienceAndCustomUnit`
+- `IngestionWithCompanion`, `IngestionWithCompanionAndCustomUnit`, `IngestionWithExperienceAndCustomUnit`
 - `CustomUnitWithIngestions`, `CustomRecipeWithComponents`
 
 **Time storage:** All `Instant` values are stored as epoch milliseconds (Long) via `InstantConverter` and serialized via `InstantSerializer` (reads as Double for backwards-compat, writes as Long).
@@ -274,9 +303,23 @@ Sends Discord webhook messages on ingestion log. Supports:
 
 ### AI chatbot (`data/ai/`)
 
-`AiChatbotRepository` builds a harm-reduction context prompt from the current experience's ingestions and recent history, then initialises a `GenerativeModel` (Gemini) with the API key stored in `UserPreferences`.  
-The API key and model name are user-configurable in Settings → AI.  
-`AiChatViewModel` manages the conversation state as a `StateFlow<List<ChatMessage>>`.
+The AI chatbot does **not** use the archived `generative-ai-android` SDK. That SDK
+(v0.9.0) strips the `thoughtSignature` field that Gemini 2.5 / 3-series models attach
+to every `functionCall` part; omitting it on the next turn causes the API to return
+HTTP 400 ("Function call is missing a thought_signature"). Instead the app talks to
+Gemini directly:
+
+| File | Role |
+|------|------|
+| `GeminiRestClient.kt` | Minimal HTTP client for `https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`. Posts a raw `JSONObject`, returns a raw `JSONObject`, runs on `Dispatchers.IO`. |
+| `GeminiChatSession.kt` | Stateful chat wrapper. Stores conversation history as raw JSON `Part`s so `thoughtSignature` (and any other server-only fields) survive round-trips. |
+| `AiTools.kt` | Function-calling tool declarations the model may invoke (e.g. journal lookups). Also dispatches tool calls back to the right repository. |
+| `AiDateFormatter.kt` | Locale/TZ-stable date strings used inside the prompt and tool results. |
+| `AiChatbotRepository.kt` | Builds the harm-reduction system instruction from the current experience + recent history and constructs a fresh `GeminiChatSession` per call so settings changes (API key, model name) take effect immediately. |
+| `AiChatViewModel.kt` | Exposes the conversation as a `StateFlow<List<ChatMessage>>` to the UI (`AiChatBottomSheet`). |
+
+The API key and model name are user-configurable in Settings → AI and persisted via
+`UserPreferences` (DataStore).
 
 ### Export / Import (`data/export/`)
 
@@ -296,12 +339,23 @@ Routes and the `NavHost` are defined in `MainActivity.kt`. All screens are reach
 | Search | `ui/tabs/search/` | Substance search and detail pages |
 | Safer Use | `ui/tabs/safer/` | Harm-reduction tools (tolerance, dosing, reagent tests) |
 | Stats | `ui/tabs/stats/` | Usage statistics and charts |
-| Settings | `ui/tabs/settings/` | Preferences, webhook, export/import, reminders |
+| Inventory | `ui/tabs/inventory/` | Stash tracking — **optional**, hidden unless enabled in Settings |
+| Settings | `ui/tabs/settings/` | Preferences, webhook, export/import, reminders, AI, lock |
+
+Tabs are conditionally shown by `MainScreen` based on `MainViewModel` flags
+(`activateSaferFlow`, `isStatsHiddenFlow`, `isInventoryEnabledFlow`, drug-list flag).
 
 ### Timeline rendering
 
 The timeline is drawn on a `Canvas` using a set of `*Timeline` drawable classes under `ui/tabs/journal/experience/timeline/drawables/timelines/`. Each class handles a different combination of known duration phases:
 - `TotalTimeline`, `OnsetTimeline`, `OnsetComeupTimeline`, `OnsetComeupPeakTimeline`, `OnsetComeupPeakTotalTimeline`, etc.
+
+There is also a **Bateman-curve** rendering path used on the ingestion-logging
+screen: `RoaDuration.toIngestionCurve()` produces an `IngestionCurve`
+(`BatemanCurve`) which is rendered by `IngestionCurveDrawable`. `isCertain`
+controls solid-vs-dotted strokes. `AllTimelinesModel` / `GroupDrawable` accept a
+`useBatemanCurve` flag (default `false`); only the dose-pick screen passes
+`true`, every other timeline surface keeps the legacy trapezoid rendering.
 
 ### Tolerance calculator (`ui/tabs/safer/tolerance/`)
 
@@ -312,6 +366,27 @@ The timeline is drawn on a `Canvas` using a set of `*Timeline` drawable classes 
 Two Glance AppWidgets:
 - `WidgetProvider` — shows the most recent ingestion
 - `HeatmapWidgetProvider` — shows an ingestion heatmap calendar
+
+### Scheduled reminders (`scheduled/`)
+
+Reminder firing is split between pure logic and Android plumbing:
+
+- `ReminderSchedule.kt` — pure helper that computes the next fire time from a
+  `Reminder` entity (interval-based or `DAILY_AT_TIMES`). Easy to unit-test on
+  the JVM.
+- `NotificationScheduler.kt` — wraps `AlarmManager`; calls `ReminderSchedule`
+  and registers/cancels exact alarms.
+- `ReminderReceiver.kt` — `BroadcastReceiver` fired by the alarm; posts the
+  notification and re-arms the next occurrence.
+- `ReminderActionReceiver.kt` — handles notification action buttons (snooze,
+  dismiss, log ingestion).
+- `BootCompletedReceiver.kt` — re-arms all enabled reminders after device
+  reboot. Reminders are also re-armed on `MainActivity` launch as a safety
+  net.
+
+`@ApplicationScope` (`CoroutineScope(SupervisorJob() + Dispatchers.Default)`)
+from `AppModule` is used for background work that must outlive a UI scope
+(e.g. reminder rearm and webhook send-after-dismiss).
 
 ## Dependency injection (Hilt)
 
@@ -342,8 +417,9 @@ All ViewModels use `@HiltViewModel` + `@Inject constructor`. Repositories and DA
   - **androidx.room:room-testing** + `MigrationTestHelper` for Room schema tests.
 - JSON parsing tests use `org.json:json` from `testImplementation`.
 - Test fixture builders live in `app/src/test/java/foo/pilz/freaklog/testing/`
-  (`EntityBuilders.experience(...)`, `EntityBuilders.ingestion(...)`).
-  Reuse them rather than constructing entities by hand.
+  (`EntityBuilders.experience(...)`, `EntityBuilders.ingestion(...)`, plus
+  `RoomInMemoryExampleTest` showing the in-memory Room pattern). Reuse them
+  rather than constructing entities by hand.
 - Test JVMs run with **`-Duser.timezone=UTC`** and **`-Duser.language=en`**
   (set in `app/build.gradle.kts`); never assume the host TZ/locale.
 - CI splits tests into 3 shards: `data.*`, `ui.*`, and **everything else** (via
@@ -422,3 +498,6 @@ All ViewModels use `@HiltViewModel` + `@Inject constructor`. Repositories and DA
 - There is no schema version 13 — the migration jumps directly from 12 to 14 (`AutoMigration(from = 12, to = 14)`)
 - The `webhookMessageId` field in the `Ingestion` entity stores Discord message IDs for webhook operations (send, edit, delete)
 - `@Keep` annotation on `AdministrationRoute` is a workaround for an AGP/R8 bug stripping enum metadata used in Navigation Compose serialized routes (see issue tracker link in the source file)
+- `WebhookService.editWebhook` uses HTTP `PATCH`, which works on Android's okhttp-backed `HttpURLConnection` but throws `ProtocolException` on the JDK's plain `HttpURLConnection`; therefore `editWebhook` cannot be exercised by a plain JVM unit test. HTTP-level webhook tests use **MockWebServer** (`com.squareup.okhttp3:mockwebserver`).
+- The `generative-ai-android` SDK is intentionally **not** used — see [AI chatbot](#ai-chatbot-dataai). Use `GeminiRestClient` / `GeminiChatSession` instead so `thoughtSignature` is preserved.
+- `JournalExport` includes webhook configuration (full Discord webhook URLs) in plain text — treat exported journal files as sensitive credentials.
