@@ -11,6 +11,9 @@
 package foo.pilz.freaklog.ui.tabs.settings.lock
 
 import android.content.Context
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyPermanentlyInvalidatedException
+import android.security.keystore.KeyProperties
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.fragment.app.FragmentActivity
@@ -25,7 +28,14 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.io.IOException
+import java.security.GeneralSecurityException
+import java.security.InvalidKeyException
+import java.security.KeyStore
 import java.time.Instant
+import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -36,11 +46,11 @@ import javax.inject.Singleton
  * Kotlin enum so callers don't need to depend on the AndroidX constants.
  */
 enum class BiometricAvailability(val message: String) {
-    AVAILABLE("Biometric authentication is available."),
+    AVAILABLE("Strong biometric authentication is available."),
     NO_HARDWARE("This device has no biometric hardware."),
     HARDWARE_UNAVAILABLE("Biometric hardware is currently unavailable."),
-    NONE_ENROLLED("No biometrics or device PIN/pattern are enrolled. Set one up in system settings to enable the lock."),
-    UNSUPPORTED("Biometric authentication is not supported on this device."),
+    NONE_ENROLLED("No strong biometrics are enrolled. Set one up in system settings to enable the lock."),
+    UNSUPPORTED("Strong biometric authentication is not supported on this device."),
 }
 
 /**
@@ -62,6 +72,14 @@ class BiometricAuthManager @Inject constructor(
     private val userPreferences: UserPreferences,
     @ApplicationScope private val applicationScope: CoroutineScope,
 ) {
+
+    private companion object {
+        const val ANDROID_KEYSTORE = "AndroidKeyStore"
+        const val AUTH_KEY_ALIAS = "freaklog_app_lock_auth"
+        const val CIPHER_TRANSFORMATION = "AES/CBC/PKCS7Padding"
+        const val AUTH_CHALLENGE = "freaklog-app-lock"
+        const val STRONG_BIOMETRIC_AUTHENTICATOR = BiometricManager.Authenticators.BIOMETRIC_STRONG
+    }
 
     val isLockEnabledFlow: Flow<Boolean> = userPreferences.isLockEnabledFlow
     val lockTimeOptionFlow: Flow<LockTimeOption> = userPreferences.lockTimeOptionFlow
@@ -126,9 +144,7 @@ class BiometricAuthManager @Inject constructor(
     }
 
     fun availability(): BiometricAvailability {
-        val authenticators = BiometricManager.Authenticators.BIOMETRIC_WEAK or
-            BiometricManager.Authenticators.DEVICE_CREDENTIAL
-        return when (BiometricManager.from(appContext).canAuthenticate(authenticators)) {
+        return when (BiometricManager.from(appContext).canAuthenticate(STRONG_BIOMETRIC_AUTHENTICATOR)) {
             BiometricManager.BIOMETRIC_SUCCESS -> BiometricAvailability.AVAILABLE
             BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> BiometricAvailability.NO_HARDWARE
             BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> BiometricAvailability.HARDWARE_UNAVAILABLE
@@ -148,16 +164,30 @@ class BiometricAuthManager @Inject constructor(
         onUnlocked: () -> Unit = {},
         onError: (String) -> Unit = {},
     ) {
+        val cryptoObject = try {
+            createCryptoObject()
+        } catch (e: GeneralSecurityException) {
+            onError("Biometric authentication could not be prepared.")
+            return
+        } catch (e: IOException) {
+            onError("Biometric authentication could not be prepared.")
+            return
+        }
         val executor = androidx.core.content.ContextCompat.getMainExecutor(activity)
         val callback = object : BiometricPrompt.AuthenticationCallback() {
-            // The journal data is not encrypted by the biometric — the app lock is a UI
-            // overlay only, so we deliberately don't tie the prompt to a CryptoObject.
-            // CodeQL flags this as "insecure local authentication" because the
-            // AuthenticationResult isn't fed into a crypto operation; that warning is
-            // accepted as the documented tradeoff for this feature.
-            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) { // lgtm[java/insecure-local-authentication]
-                _isUnlocked.value = true
-                onUnlocked()
+            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                val cipher = result.cryptoObject?.cipher
+                if (cipher == null) {
+                    onError("Biometric authentication could not be verified.")
+                    return
+                }
+                try {
+                    cipher.doFinal(AUTH_CHALLENGE.encodeToByteArray())
+                    _isUnlocked.value = true
+                    onUnlocked()
+                } catch (e: GeneralSecurityException) {
+                    onError("Biometric authentication could not be verified.")
+                }
             }
 
             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
@@ -167,17 +197,54 @@ class BiometricAuthManager @Inject constructor(
         val prompt = BiometricPrompt(activity, executor, callback)
         val info = BiometricPrompt.PromptInfo.Builder()
             .setTitle("Unlock Journal")
-            .setSubtitle("Authenticate to view your journal")
-            .setAllowedAuthenticators(
-                BiometricManager.Authenticators.BIOMETRIC_WEAK or
-                    BiometricManager.Authenticators.DEVICE_CREDENTIAL
-            )
+            .setSubtitle("Authenticate with a strong biometric to view your journal")
+            .setAllowedAuthenticators(STRONG_BIOMETRIC_AUTHENTICATOR)
             .build()
-        prompt.authenticate(info)
+        prompt.authenticate(info, cryptoObject)
     }
 
     /** Forces a re-lock — used when toggling the setting on. */
     fun lockNow() {
         _isUnlocked.value = false
+    }
+
+    private fun createCryptoObject(): BiometricPrompt.CryptoObject {
+        val cipher = Cipher.getInstance(CIPHER_TRANSFORMATION)
+        try {
+            cipher.init(Cipher.ENCRYPT_MODE, getOrCreateSecretKey())
+        } catch (e: KeyPermanentlyInvalidatedException) {
+            deleteSecretKey()
+            cipher.init(Cipher.ENCRYPT_MODE, getOrCreateSecretKey())
+        } catch (e: InvalidKeyException) {
+            deleteSecretKey()
+            cipher.init(Cipher.ENCRYPT_MODE, getOrCreateSecretKey())
+        }
+        return BiometricPrompt.CryptoObject(cipher)
+    }
+
+    private fun getOrCreateSecretKey(): SecretKey {
+        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
+        (keyStore.getKey(AUTH_KEY_ALIAS, null) as? SecretKey)?.let { return it }
+
+        val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE)
+        val keySpec = KeyGenParameterSpec.Builder(
+            AUTH_KEY_ALIAS,
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
+        )
+            .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
+            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+            .setUserAuthenticationRequired(true)
+            .setUserAuthenticationParameters(0, KeyProperties.AUTH_BIOMETRIC_STRONG)
+            .setInvalidatedByBiometricEnrollment(true)
+            .build()
+        keyGenerator.init(keySpec)
+        return keyGenerator.generateKey()
+    }
+
+    private fun deleteSecretKey() {
+        KeyStore.getInstance(ANDROID_KEYSTORE).apply {
+            load(null)
+            deleteEntry(AUTH_KEY_ALIAS)
+        }
     }
 }
