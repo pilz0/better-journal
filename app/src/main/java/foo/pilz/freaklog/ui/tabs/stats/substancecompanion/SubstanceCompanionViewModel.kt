@@ -114,9 +114,13 @@ class SubstanceCompanionViewModel @Inject constructor(
         viewModelScope.launch { _selectedMetric.emit(metric) }
     }
 
-    // Source of all ingestions for this substance/consumer
+    // Source of all ingestions for this substance/consumer.
+    // Shared once via stateIn so the four downstream pipelines below
+    // (`dosageChartDataFlow`, `chartSummaryFlow`, `ingestionBurstsFlow`, `frequencyFlow`,
+    // `hasMixedUnitsFlow`) don't each re-collect (and re-query) the underlying Room flow.
     private val allIngestionsFlow = experienceRepo.getSortedIngestionsWithExperienceAndCustomUnitFlow(substanceName)
         .map { list -> list.filter { it.ingestion.consumerName == consumerName } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val dosageChartDataFlow: StateFlow<List<DosageBucket>> =
         combine(allIngestionsFlow, selectedTimeRange, currentTimeFlow) { ingestions, timeRange, currentTime ->
@@ -222,6 +226,42 @@ class SubstanceCompanionViewModel @Inject constructor(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000)
             )
+
+    /**
+     * Frequency of this substance over three time ranges, normalized to the busiest range.
+     * Used by the "Usage frequency" section of the screen.
+     */
+    val frequencyFlow: StateFlow<SubstanceFrequency> = combine(allIngestionsFlow, currentTimeFlow) { ingestions, now ->
+        val zone = ZoneId.systemDefault()
+        val experienceIdsByRange = { from: Instant? ->
+            ingestions
+                .asSequence()
+                .filter { from == null || it.ingestion.time >= from }
+                .map { it.ingestion.experienceId }
+                .toSet()
+                .size
+        }
+        val last30 = experienceIdsByRange(now.atZone(zone).minusDays(30).toInstant())
+        val last12m = experienceIdsByRange(now.atZone(zone).minusMonths(12).toInstant())
+        val all = experienceIdsByRange(null)
+        SubstanceFrequency(last30Days = last30, last12Months = last12m, allTime = all)
+    }.stateIn(
+        initialValue = SubstanceFrequency(0, 0, 0),
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000)
+    )
+
+    /**
+     * True if this substance's logged ingestions use more than one unit string. The UI uses
+     * this to warn the user that the dosage chart may mix incompatible measurements.
+     */
+    val hasMixedUnitsFlow: StateFlow<Boolean> = allIngestionsFlow.map { ingestions ->
+        ingestions.mapNotNull { it.ingestion.units?.takeIf { u -> u.isNotBlank() } }.toSet().size > 1
+    }.stateIn(
+        initialValue = false,
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000)
+    )
 
     private fun getDosageBuckets(
         ingestions: List<IngestionsBurst.IngestionAndCustomUnit>,
@@ -346,6 +386,16 @@ enum class DosageTimeRange(val displayText: String, val title: String, val perio
     MONTHS_12("12M","Last 12 Months",  Period.ofMonths(12)),
     ALL("All",      "All Time",        null)
 }
+
+/**
+ * Counts of distinct experiences containing this substance, broken down by time range.
+ * Used by the SubstanceCompanionScreen "Usage frequency" section.
+ */
+data class SubstanceFrequency(
+    val last30Days: Int,
+    val last12Months: Int,
+    val allTime: Int,
+)
 
 data class IngestionsBurst(
     val timeUntil: String,

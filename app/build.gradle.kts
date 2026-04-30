@@ -129,6 +129,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     implementation(libs.compose.markdown)
+    implementation(libs.androidx.biometric)
 
     coreLibraryDesugaring(libs.android.desugarJdkLibs)
 }

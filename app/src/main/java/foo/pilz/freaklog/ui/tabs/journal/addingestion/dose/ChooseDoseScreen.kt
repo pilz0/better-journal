@@ -325,6 +325,10 @@ fun ChooseDoseScreen(
             }
             if (substanceName == "Alcohol") {
                 AlcoholCalculator(onApplyDose = onChangeDoseText)
+            } else if (foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.mdma.MDMAFormulas.isMdma(substanceName)) {
+                foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.mdma.MDMACalculator(
+                    onApplyDose = onChangeDoseText
+                )
             }
             ElevatedCard(
                 modifier = Modifier.padding(

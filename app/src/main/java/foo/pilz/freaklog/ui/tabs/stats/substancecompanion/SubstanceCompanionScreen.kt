@@ -71,7 +71,8 @@ import androidx.compose.ui.draw.scale
 
 @Composable
 fun SubstanceCompanionScreen(
-    viewModel: SubstanceCompanionViewModel = hiltViewModel()
+    viewModel: SubstanceCompanionViewModel = hiltViewModel(),
+    navigateToDosageStat: (substanceName: String, consumerName: String?) -> Unit = { _, _ -> },
 ) {
     val companion = viewModel.thisCompanionFlow.collectAsState().value
     if (companion == null) {
@@ -91,6 +92,11 @@ fun SubstanceCompanionScreen(
             onTimeRangeSelected = viewModel::setTimeRange,
             showAverage = viewModel.showAverage.collectAsState().value,
             onToggleShowAverage = viewModel::toggleShowAverage,
+            frequency = viewModel.frequencyFlow.collectAsState().value,
+            hasMixedUnits = viewModel.hasMixedUnitsFlow.collectAsState().value,
+            onOpenDosageStat = {
+                navigateToDosageStat(companion.substanceName, viewModel.consumerName)
+            },
             showTrendLine = viewModel.showTrendLine.collectAsState().value,
             onToggleShowTrendLine = viewModel::toggleShowTrendLine,
             selectedMetric = viewModel.selectedMetric.collectAsState().value,
@@ -134,6 +140,9 @@ fun SubstanceCompanionScreen(
     onTimeRangeSelected: (DosageTimeRange) -> Unit = {},
     showAverage: Boolean = false,
     onToggleShowAverage: (Boolean) -> Unit = {},
+    frequency: SubstanceFrequency = SubstanceFrequency(0, 0, 0),
+    hasMixedUnits: Boolean = false,
+    onOpenDosageStat: () -> Unit = {},
     showTrendLine: Boolean = false,
     onToggleShowTrendLine: (Boolean) -> Unit = {},
     selectedMetric: DosageMetric = DosageMetric.TOTAL_DOSE,
@@ -154,7 +163,14 @@ fun SubstanceCompanionScreen(
             } else {
                 "${substanceCompanion.substanceName} ($consumerName)"
             }
-            TopAppBar(title = { Text(title) })
+            TopAppBar(
+                title = { Text(title) },
+                actions = {
+                    androidx.compose.material3.TextButton(onClick = onOpenDosageStat) {
+                        Text("Dosage stats")
+                    }
+                },
+            )
         }
     ) { padding ->
         LazyColumn(
@@ -164,6 +180,27 @@ fun SubstanceCompanionScreen(
                 .padding(horizontal = horizontalPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Usage frequency section
+            item {
+                SubstanceFrequencySection(frequency = frequency)
+            }
+            if (hasMixedUnits) {
+                item {
+                    ElevatedCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                    ) {
+                        Text(
+                            text = "Heads-up: ingestions for this substance use multiple unit strings " +
+                                "(e.g. mg vs µg). The dosage chart sums them together — interpret with care.",
+                            modifier = Modifier.padding(12.dp),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            }
             // ── Dosage stats card ────────────────────────────────────────────
             item {
                 ElevatedCard(

@@ -134,6 +134,11 @@ fun SettingsPreview() {
         saveAiApiKey = {},
         aiModelName = "gemini-2.5-flash",
         saveAiModelName = {},
+        isLockEnabled = false,
+        saveLockEnabled = {},
+        lockTimeOption = foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption.IMMEDIATELY,
+        saveLockTimeOption = {},
+        biometricAvailability = foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAvailability.AVAILABLE,
         )
 }
 
@@ -186,6 +191,11 @@ fun SettingsScreen(
         saveAiApiKey = viewModel::saveAiApiKey,
         aiModelName = viewModel.aiModelNameFlow.collectAsState().value,
         saveAiModelName = viewModel::saveAiModelName,
+        isLockEnabled = viewModel.isLockEnabledFlow.collectAsState().value,
+        saveLockEnabled = viewModel::saveLockEnabled,
+        lockTimeOption = viewModel.lockTimeOptionFlow.collectAsState().value,
+        saveLockTimeOption = viewModel::saveLockTimeOption,
+        biometricAvailability = viewModel.biometricAvailability(),
     )
 }
 
@@ -229,6 +239,11 @@ fun SettingsScreen(
     saveAiApiKey: (String) -> Unit,
     aiModelName: String,
     saveAiModelName: (String) -> Unit,
+    isLockEnabled: Boolean,
+    saveLockEnabled: (Boolean) -> Unit,
+    lockTimeOption: foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption,
+    saveLockTimeOption: (foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption) -> Unit,
+    biometricAvailability: foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAvailability,
 ) {
     val performHaptic = rememberHaptic()
     
@@ -530,6 +545,15 @@ fun SettingsScreen(
                     supportingText = { Text("Recommended: gemini-2.5-flash (fast) or gemini-2.5-pro (smartest)") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                )
+            }
+            CardWithTitle(title = "Lock", innerPaddingHorizontal = horizontalPadding) {
+                LockSettingsSection(
+                    isLockEnabled = isLockEnabled,
+                    lockTimeOption = lockTimeOption,
+                    biometricAvailability = biometricAvailability,
+                    onLockEnabledChange = saveLockEnabled,
+                    onLockTimeOptionChange = saveLockTimeOption,
                 )
             }
             CardWithTitle(title = "App data", innerPaddingHorizontal = 0.dp) {

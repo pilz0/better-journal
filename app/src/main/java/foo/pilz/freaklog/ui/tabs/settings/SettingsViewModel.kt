@@ -26,6 +26,9 @@ import androidx.lifecycle.viewModelScope
 import foo.pilz.freaklog.data.export.*
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
+import foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthManager
+import foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAvailability
+import foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -40,6 +43,7 @@ class SettingsViewModel @Inject constructor(
     private val experienceRepository: ExperienceRepository,
     private val fileSystemConnection: FileSystemConnection,
     private val userPreferences: UserPreferences,
+    private val biometricAuthManager: BiometricAuthManager,
 ) : ViewModel() {
 
     fun saveDosageDotsAreHidden(value: Boolean) = viewModelScope.launch {
@@ -174,6 +178,30 @@ class SettingsViewModel @Inject constructor(
 
     fun saveAiModelName(value: String) = viewModelScope.launch {
         userPreferences.saveAiModelName(value)
+    }
+
+    // ---- App lock ----
+
+    val isLockEnabledFlow = userPreferences.isLockEnabledFlow.stateIn(
+        initialValue = false,
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+    )
+
+    val lockTimeOptionFlow = userPreferences.lockTimeOptionFlow.stateIn(
+        initialValue = LockTimeOption.DEFAULT,
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+    )
+
+    fun biometricAvailability(): BiometricAvailability = biometricAuthManager.availability()
+
+    fun saveLockEnabled(value: Boolean) {
+        biometricAuthManager.setLockEnabled(value)
+    }
+
+    fun saveLockTimeOption(value: LockTimeOption) {
+        biometricAuthManager.setLockTimeOption(value)
     }
 
     val snackbarHostState = SnackbarHostState()
