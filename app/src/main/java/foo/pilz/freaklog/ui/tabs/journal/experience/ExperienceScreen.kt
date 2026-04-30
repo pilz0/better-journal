@@ -101,6 +101,8 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.models.ConsumerWithIngestion
 import foo.pilz.freaklog.ui.tabs.journal.experience.models.CumulativeDose
 import foo.pilz.freaklog.ui.tabs.journal.experience.models.OneExperienceScreenModel
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.AllTimelines
+import foo.pilz.freaklog.ui.tabs.settings.funny.AchievementDef
+import foo.pilz.freaklog.ui.tabs.settings.funny.TierBadge
 import foo.pilz.freaklog.ui.theme.JournalTheme
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import foo.pilz.freaklog.ui.utils.HapticType
@@ -180,7 +182,8 @@ fun ExperienceScreen(
         onChangeTimeDisplayOption = viewModel::saveTimeDisplayOption,
         navigateToTimelineScreen = navigateToTimelineScreen,
         areDosageDotsHidden = viewModel.areDosageDotsHiddenFlow.collectAsState().value,
-        isTimelineHidden = viewModel.isTimelineHiddenFlow.collectAsState().value
+        isTimelineHidden = viewModel.isTimelineHiddenFlow.collectAsState().value,
+        matchedAchievements = viewModel.matchedAchievementsFlow.collectAsState().value
     )
 }
 
@@ -244,6 +247,7 @@ fun ExperienceScreen(
     navigateToTimelineScreen: (consumerName: String) -> Unit,
     areDosageDotsHidden: Boolean,
     isTimelineHidden: Boolean,
+    matchedAchievements: List<AchievementDef> = emptyList(),
 ) {
     Scaffold(
         topBar = {
@@ -344,6 +348,12 @@ fun ExperienceScreen(
                     oneExperienceScreenModel = oneExperienceScreenModel
                 )
             }
+            AnimatedVisibility(visible = matchedAchievements.isNotEmpty()) {
+                ExperienceAchievementsSection(
+                    verticalCardPadding = verticalCardPadding,
+                    matchedAchievements = matchedAchievements
+                )
+            }
             Spacer(modifier = Modifier.height(60.dp))
         }
     }
@@ -385,6 +395,53 @@ private fun ExperienceInteractionsSection(
                     },
                     label = { Text(it.name) }
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ExperienceAchievementsSection(
+    verticalCardPadding: Dp,
+    matchedAchievements: List<AchievementDef>
+) {
+    ElevatedCard(
+        modifier = Modifier
+            .padding(vertical = verticalCardPadding)
+            .fillMaxWidth()
+    ) {
+        CardTitle(title = "Achievements")
+        HorizontalDivider()
+        matchedAchievements.forEachIndexed { index, achievement ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = horizontalPadding, vertical = 10.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    Text(
+                        text = achievement.title,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = achievement.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                val tier = achievement.tier
+                if (tier != null) {
+                    TierBadge(tier = tier)
+                }
+            }
+            if (index < matchedAchievements.size - 1) {
+                HorizontalDivider()
             }
         }
     }

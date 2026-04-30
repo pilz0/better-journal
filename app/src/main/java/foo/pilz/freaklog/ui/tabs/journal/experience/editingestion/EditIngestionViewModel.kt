@@ -255,21 +255,23 @@ class EditIngestionViewModel @Inject constructor(
         }
 
         val webhookName = userPreferences.readWebhookName().first()
-        val webhookTemplate = userPreferences.readWebhookTemplate().first().ifBlank { 
-            foo.pilz.freaklog.data.webhook.WebhookService.DEFAULT_TEMPLATE 
+        val webhookTemplate = userPreferences.readWebhookTemplate().first().ifBlank {
+            foo.pilz.freaklog.data.webhook.WebhookService.DEFAULT_TEMPLATE
         }
 
         val user = webhookName.ifBlank { "User" }
         val route = ingestion.administrationRoute.displayText
 
         try {
-            webhookService.editWebhook(
+            val (displayDose, displayUnits) = experienceRepo.getWebhookDisplayValues(ingestion)
+
+            val result = webhookService.editWebhook(
                 url = webhookURL,
                 messageId = ingestion.webhookMessageId!!,
                 user = user,
                 substance = ingestion.substanceName,
-                dose = ingestion.dose,
-                units = ingestion.units,
+                dose = displayDose,
+                units = displayUnits,
                 isEstimate = ingestion.isDoseAnEstimate,
                 route = route,
                 site = ingestion.administrationSite,
@@ -277,9 +279,15 @@ class EditIngestionViewModel @Inject constructor(
                 template = webhookTemplate,
                 isHyperlinked = true
             )
+
+            if (result.success) {
+                android.util.Log.d("EditIngestionViewModel", "Webhook edited successfully for message ID: ${ingestion.webhookMessageId}")
+            } else {
+                android.util.Log.w("EditIngestionViewModel", "Webhook edit failed: ${result.error?.message ?: "Unknown error"}")
+            }
         } catch (e: Exception) {
             // Silently fail - don't block ingestion update if webhook fails
-            android.util.Log.w("EditIngestionViewModel", "Webhook edit failed", e)
+            android.util.Log.w("EditIngestionViewModel", "Webhook edit exception: ${e.message}", e)
         }
     }
 
@@ -290,13 +298,18 @@ class EditIngestionViewModel @Inject constructor(
         }
 
         try {
-            webhookService.deleteWebhookMessage(
+            val success = webhookService.deleteWebhookMessage(
                 url = webhookURL,
                 messageId = ingestion.webhookMessageId!!
             )
+            if (success) {
+                android.util.Log.d("EditIngestionViewModel", "Webhook message deleted successfully: ${ingestion.webhookMessageId}")
+            } else {
+                android.util.Log.w("EditIngestionViewModel", "Webhook message deletion failed for ID: ${ingestion.webhookMessageId}")
+            }
         } catch (e: Exception) {
             // Silently fail - don't block ingestion deletion if webhook fails
-            android.util.Log.w("EditIngestionViewModel", "Webhook delete failed", e)
+            android.util.Log.w("EditIngestionViewModel", "Webhook delete exception: ${e.message}", e)
         }
     }
 
@@ -320,17 +333,7 @@ class EditIngestionViewModel @Inject constructor(
                 val route = currentIngestion.administrationRoute.displayText
 
                 try {
-                    var displayDose = currentIngestion.dose
-                    var displayUnits = currentIngestion.units
-                    
-                    val customUnitId = currentIngestion.customUnitId
-                    if (customUnitId != null) {
-                        val customUnit = experienceRepo.getCustomUnit(customUnitId)
-                        if (customUnit != null && customUnit.dose != null && currentIngestion.dose != null) {
-                           displayDose = currentIngestion.dose!! * customUnit.dose!!
-                           displayUnits = customUnit.originalUnit
-                        }
-                    }
+                    val (displayDose, displayUnits) = experienceRepo.getWebhookDisplayValues(currentIngestion)
 
                     // Treat Resend as sending a NEW webhook, which matches user intent of "sending again"
                     val result = webhookService.sendWebhook(
@@ -348,11 +351,14 @@ class EditIngestionViewModel @Inject constructor(
                     )
 
                     if (result.success && result.messageId != null) {
+                        android.util.Log.d("EditIngestionViewModel", "Webhook resent successfully. New message ID: ${result.messageId}")
                         currentIngestion.webhookMessageId = result.messageId
                         experienceRepo.update(currentIngestion)
+                    } else {
+                        android.util.Log.w("EditIngestionViewModel", "Webhook resend failed: ${result.error?.message ?: "Unknown error"}")
                     }
                 } catch (e: Exception) {
-                    android.util.Log.d("EditIngestionViewModel", "Resend webhook failed", e)
+                    android.util.Log.w("EditIngestionViewModel", "Resend webhook exception: ${e.message}", e)
                 }
             }
         }

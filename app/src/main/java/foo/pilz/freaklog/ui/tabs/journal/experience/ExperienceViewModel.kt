@@ -18,12 +18,14 @@
 
 package foo.pilz.freaklog.ui.tabs.journal.experience
 
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
+import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsTimedNotesAndRatings
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit
 import foo.pilz.freaklog.data.substances.classes.Substance
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
@@ -46,11 +48,17 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.DataForOneRating
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.DataForOneTimedNote
 import foo.pilz.freaklog.ui.tabs.settings.combinations.CombinationSettingsStorage
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
+import foo.pilz.freaklog.ui.tabs.settings.funny.AchievementContext
+import foo.pilz.freaklog.ui.tabs.settings.funny.AchievementDef
+import foo.pilz.freaklog.ui.tabs.settings.funny.evaluateAchievement
+import foo.pilz.freaklog.ui.tabs.settings.funny.loadAchievements
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
@@ -70,8 +78,11 @@ class ExperienceViewModel @Inject constructor(
     private val interactionChecker: InteractionChecker,
     private val userPreferences: UserPreferences,
     combinationSettingsStorage: CombinationSettingsStorage,
-    state: SavedStateHandle
+    state: SavedStateHandle,
+    @ApplicationContext context: Context,
 ) : ViewModel() {
+
+    private val achievementDefsFlow = MutableStateFlow<List<AchievementDef>>(emptyList())
 
     private val areSubstanceHeightsIndependentFlow =
         userPreferences.areSubstanceHeightsIndependentFlow.stateIn(
@@ -128,6 +139,9 @@ class ExperienceViewModel @Inject constructor(
             val experience = experienceRepo.getExperience(expId)
             val isFavorite = experience?.isFavorite ?: false
             localIsFavoriteFlow.emit(isFavorite)
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            achievementDefsFlow.value = runCatching { loadAchievements(context) }.getOrElse { emptyList() }
         }
     }
 
@@ -370,6 +384,39 @@ class ExperienceViewModel @Inject constructor(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000)
     )
+
+    val matchedAchievementsFlow: StateFlow<List<AchievementDef>> = combine(
+        ingestionsWithCompanionsFlow,
+        ratingsFlow,
+        timedNotesSortedFlow,
+        experienceFlow,
+        achievementDefsFlow
+    ) { ingestionWithComps, ratings, timedNotes, experience, defs ->
+        if (experience == null || defs.isEmpty()) return@combine emptyList()
+        val ingestions = ingestionWithComps.map { it.ingestion }
+        val expWithData = ExperienceWithIngestionsTimedNotesAndRatings(
+            experience = experience,
+            ingestions = ingestions,
+            timedNotes = timedNotes,
+            ratings = ratings
+        )
+        val ctx = AchievementContext(
+            experiences = listOf(expWithData),
+            allIngestions = ingestions,
+            allTimedNotes = timedNotes,
+            allRatings = ratings,
+            customUnits = emptyList(),
+            customRecipes = emptyList(),
+            substanceRepo = substanceRepo,
+            interactionChecker = interactionChecker
+        )
+        defs.filter { evaluateAchievement(it.condition, ctx) }
+    }.flowOn(Dispatchers.Default)
+        .stateIn(
+            initialValue = emptyList(),
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000)
+        )
 
     fun deleteExperience() {
         viewModelScope.launch {

@@ -32,7 +32,7 @@ import java.time.Instant
  *    fixed -2h..+3h window;
  *  * **sums overlapping doses of the same substance** so two doses an hour
  *    apart produce one taller curve, mirroring the in-app
- *    [foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.FullTimelines];
+ *    [foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.IngestionCurveDrawable];
  *  * uses the substance's actual min/max [RoaDuration] ranges (with
  *    `horizontalWeight = 0.5`) instead of hard-coded fallback values, only
  *    falling back to a total-duration triangle when full RoA data is
@@ -79,9 +79,9 @@ data class WidgetTimelineModel(
 
     companion object {
         /** Default lookback when there is no early active ingestion. */
-        private const val DEFAULT_LOOKBACK_SECONDS = 60L * 60L          // 1 hour
+        internal const val DEFAULT_LOOKBACK_SECONDS = 60L * 60L          // 1 hour
         /** Default lookahead when there is no late effect ending. */
-        private const val DEFAULT_LOOKAHEAD_SECONDS = 3L * 60L * 60L    // 3 hours
+        internal const val DEFAULT_LOOKAHEAD_SECONDS = 3L * 60L * 60L    // 3 hours
         /** Padding added before the earliest active ingestion. */
         private const val START_PADDING_SECONDS = 30L * 60L             // 30 minutes
         /** Padding added after the latest predicted effect end. */
@@ -91,9 +91,9 @@ data class WidgetTimelineModel(
         /** Maximum lookback. */
         private const val MAX_LOOKBACK_SECONDS = 12L * 60L * 60L        // 12 hours
         /** Default total duration when nothing is known about a substance. */
-        private const val DEFAULT_TOTAL_DURATION_SECONDS = 6L * 60L * 60L // 6 hours
+        internal const val DEFAULT_TOTAL_DURATION_SECONDS = 6L * 60L * 60L // 6 hours
         /** Drop ingestions whose effect ended this long before [now]. */
-        private const val INACTIVE_GRACE_SECONDS = 30L * 60L            // 30 minutes
+        internal const val INACTIVE_GRACE_SECONDS = 30L * 60L            // 30 minutes
         /** Number of curve sample points per substance group. */
         private const val SAMPLES_PER_GROUP = 60
 
@@ -229,6 +229,47 @@ data class WidgetTimelineModel(
                 }
             }
             return Shape.TotalOnly(Range(DEFAULT_TOTAL_DURATION_SECONDS.toFloat(), DEFAULT_TOTAL_DURATION_SECONDS.toFloat()))
+        }
+
+        /**
+         * Determines the current [IngestionPhase] for a single ingestion and its
+         * [RoaDuration].  This is the single source of truth used by both the
+         * graph model (for filtering) and the widget text lines (for phase labels),
+         * so the two never diverge.
+         *
+         * @param elapsedSeconds seconds that have elapsed since the ingestion time
+         *   (negative means the ingestion is in the future).
+         * @param roa the substance RoA duration data, or null if unknown.
+         */
+        fun resolveIngestionPhase(
+            elapsedSeconds: Float,
+            roa: RoaDuration?,
+        ): IngestionPhase {
+            val shape = resolveShape(roa)
+            return when (shape) {
+                is Shape.Full -> {
+                    val onsetEnd   = shape.onset.interpolate(0.5f)
+                    val comeupEnd  = onsetEnd  + shape.comeup.interpolate(0.5f)
+                    val peakEnd    = comeupEnd + shape.peak.interpolate(0.5f)
+                    val offsetEnd  = peakEnd   + shape.offset.interpolate(0.5f)
+                    when {
+                        elapsedSeconds < 0f         -> IngestionPhase.NotStarted
+                        elapsedSeconds < onsetEnd   -> IngestionPhase.Onset(peakInSeconds = comeupEnd - elapsedSeconds)
+                        elapsedSeconds < comeupEnd  -> IngestionPhase.Comeup(peakInSeconds = comeupEnd - elapsedSeconds)
+                        elapsedSeconds < peakEnd    -> IngestionPhase.Peak(remainingSeconds = peakEnd - elapsedSeconds)
+                        elapsedSeconds < offsetEnd + INACTIVE_GRACE_SECONDS -> IngestionPhase.Offset(remainingSeconds = offsetEnd - elapsedSeconds)
+                        else                        -> IngestionPhase.Finished
+                    }
+                }
+                is Shape.TotalOnly -> {
+                    val totalEnd = shape.totalSeconds
+                    when {
+                        elapsedSeconds < 0f                                        -> IngestionPhase.NotStarted
+                        elapsedSeconds < totalEnd + INACTIVE_GRACE_SECONDS         -> IngestionPhase.Active(remainingSeconds = totalEnd - elapsedSeconds)
+                        else                                                       -> IngestionPhase.Finished
+                    }
+                }
+            }
         }
     }
 
@@ -369,4 +410,30 @@ internal fun sampleSummedCurve(
         }
         WidgetTimelineModel.SamplePoint(secondsFromStart = x, height = total.toFloat().coerceAtLeast(0f))
     }
+}
+
+/**
+ * The current phase of a single ingestion, as resolved by
+ * [WidgetTimelineModel.Companion.resolveIngestionPhase].  This is the single
+ * source of truth shared between the graph model and the widget text lines.
+ */
+sealed class IngestionPhase {
+    /** Ingestion is in the future. */
+    object NotStarted : IngestionPhase()
+    /** In onset phase; [peakInSeconds] until the peak starts. */
+    data class Onset(val peakInSeconds: Float) : IngestionPhase()
+    /** In comeup phase; [peakInSeconds] until the peak starts. */
+    data class Comeup(val peakInSeconds: Float) : IngestionPhase()
+    /** Currently at peak; [remainingSeconds] until peak ends. */
+    data class Peak(val remainingSeconds: Float) : IngestionPhase()
+    /** In offset / come-down; [remainingSeconds] may be negative once past predicted end. */
+    data class Offset(val remainingSeconds: Float) : IngestionPhase()
+    /**
+     * Total-only substance (no full RoA data): still nominally active according to the
+     * total duration + grace window.  [remainingSeconds] may be negative once past
+     * predicted end.
+     */
+    data class Active(val remainingSeconds: Float) : IngestionPhase()
+    /** Effect ended and grace period elapsed — ingestion should be hidden. */
+    object Finished : IngestionPhase()
 }

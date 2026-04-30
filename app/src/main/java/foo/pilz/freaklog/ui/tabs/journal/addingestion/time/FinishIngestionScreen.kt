@@ -127,7 +127,10 @@ fun FinishIngestionScreen(
         showSiteSelection = viewModel.showSiteSelection,
         siteOptions = viewModel.siteOptions,
         administrationSite = viewModel.administrationSite,
-        onChangeOfAdministrationSite = viewModel::changeAdministrationSite
+        onChangeOfAdministrationSite = viewModel::changeAdministrationSite,
+        isWebhookConfigured = viewModel.isWebhookConfiguredFlow.collectAsState().value,
+        sendWebhook = viewModel.sendWebhook,
+        onSendWebhookChange = { viewModel.sendWebhook = it }
     )
 }
 
@@ -171,7 +174,10 @@ fun FinishIngestionScreenPreview() {
         showSiteSelection = true,
         siteOptions = listOf("Left nostril", "Right nostril", "Both nostrils"),
         administrationSite = "",
-        onChangeOfAdministrationSite = {}
+        onChangeOfAdministrationSite = {},
+        isWebhookConfigured = true,
+        sendWebhook = true,
+        onSendWebhookChange = {}
     )
 }
 
@@ -207,7 +213,10 @@ fun FinishIngestionScreen(
     showSiteSelection: Boolean,
     siteOptions: List<String>,
     administrationSite: String,
-    onChangeOfAdministrationSite: (String) -> Unit
+    onChangeOfAdministrationSite: (String) -> Unit,
+    isWebhookConfigured: Boolean,
+    sendWebhook: Boolean,
+    onSendWebhookChange: (Boolean) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
     Scaffold(
@@ -408,6 +417,41 @@ fun FinishIngestionScreen(
                             siteOptions = siteOptions,
                             onSiteChange = onChangeOfAdministrationSite
                         )
+                    }
+                }
+                if (isWebhookConfigured) {
+                    ElevatedCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(
+                                horizontal = horizontalPadding,
+                                vertical = 3.dp
+                            )
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Switch(
+                                    checked = sendWebhook,
+                                    onCheckedChange = onSendWebhookChange
+                                )
+                                Text(
+                                    "Send webhook notification",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            }
+                            if (!sendWebhook) {
+                                Text(
+                                    "No Discord notification will be sent for this ingestion",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
                     }
                 }
                 CardWithTitle(title = "Ingestion note") {

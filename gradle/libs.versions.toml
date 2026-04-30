@@ -23,7 +23,7 @@ navigationCompose = "2.9.0"
 roomRuntime = "2.6.1"
 workRuntimeKtx = "2.10.0"
 desugar_jdk_libs = "2.1.4"
-generativeai = "0.9.0"
+
 composeMarkdown = "0.5.4"
 ksp = "2.0.21-1.0.27"
 
@@ -88,7 +88,6 @@ kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutine
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
-google-generativeai = { module = "com.google.ai.client.generativeai:generativeai", version.ref = "generativeai" }
 compose-markdown = { module = "com.github.jeziellago:compose-markdown", version.ref = "composeMarkdown" }
 
 # --- Test infrastructure ---
