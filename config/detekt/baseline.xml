@@ -27,6 +27,7 @@
     <ID>Filename:saferGraph.kt$foo.pilz.freaklog.ui.main.navigation.graphs.saferGraph.kt</ID>
     <ID>Filename:searchGraph.kt$foo.pilz.freaklog.ui.main.navigation.graphs.searchGraph.kt</ID>
     <ID>Filename:settingsGraph.kt$foo.pilz.freaklog.ui.main.navigation.graphs.settingsGraph.kt</ID>
+    <ID>Filename:smoothLinesTo.kt$foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.smoothLinesTo.kt</ID>
     <ID>Filename:statsGraph.kt$foo.pilz.freaklog.ui.main.navigation.graphs.statsGraph.kt</ID>
     <ID>Filename:textBrush.kt$foo.pilz.freaklog.ui.tabs.search.substance.roa.dose.textBrush.kt</ID>
     <ID>Filename:utils.kt$foo.pilz.freaklog.ui.tabs.journal.experience.timeline.utils.kt</ID>
@@ -120,6 +121,7 @@
     <ID>FinalNewline:FinishIngestionScreenViewModel.kt$foo.pilz.freaklog.ui.tabs.journal.addingestion.time.FinishIngestionScreenViewModel.kt</ID>
     <ID>FinalNewline:FloatingDoneButton.kt$foo.pilz.freaklog.ui.tabs.journal.experience.rating.FloatingDoneButton.kt</ID>
     <ID>FinalNewline:FullDurationRange.kt$foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.FullDurationRange.kt</ID>
+    <ID>FinalNewline:FullTimelines.kt$foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.FullTimelines.kt</ID>
     <ID>FinalNewline:IngestionElement.kt$foo.pilz.freaklog.ui.tabs.journal.experience.models.IngestionElement.kt</ID>
     <ID>FinalNewline:IngestionRow.kt$foo.pilz.freaklog.ui.tabs.journal.experience.components.ingestion.IngestionRow.kt</ID>
     <ID>FinalNewline:IngestionRowPreviewProvider.kt$foo.pilz.freaklog.ui.tabs.journal.experience.components.ingestion.IngestionRowPreviewProvider.kt</ID>
@@ -140,8 +142,15 @@
     <ID>FinalNewline:Location.kt$foo.pilz.freaklog.data.room.experiences.entities.Location.kt</ID>
     <ID>FinalNewline:MainScreenViewModel.kt$foo.pilz.freaklog.ui.main.MainScreenViewModel.kt</ID>
     <ID>FinalNewline:NextFAB.kt$foo.pilz.freaklog.ui.tabs.journal.addingestion.NextFAB.kt</ID>
+    <ID>FinalNewline:NoTimeline.kt$foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.NoTimeline.kt</ID>
     <ID>FinalNewline:OneExperienceScreenModel.kt$foo.pilz.freaklog.ui.tabs.journal.experience.models.OneExperienceScreenModel.kt</ID>
     <ID>FinalNewline:OneExperienceScreenPreviewProvider.kt$foo.pilz.freaklog.ui.tabs.journal.experience.OneExperienceScreenPreviewProvider.kt</ID>
+    <ID>FinalNewline:OnsetComeupPeakTimeline.kt$foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.OnsetComeupPeakTimeline.kt</ID>
+    <ID>FinalNewline:OnsetComeupPeakTotalTimeline.kt$foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.OnsetComeupPeakTotalTimeline.kt</ID>
+    <ID>FinalNewline:OnsetComeupTimeline.kt$foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.OnsetComeupTimeline.kt</ID>
+    <ID>FinalNewline:OnsetComeupTotalTimeline.kt$foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.OnsetComeupTotalTimeline.kt</ID>
+    <ID>FinalNewline:OnsetTimeline.kt$foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.OnsetTimeline.kt</ID>
+    <ID>FinalNewline:OnsetTotalTimeline.kt$foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.OnsetTotalTimeline.kt</ID>
     <ID>FinalNewline:OptionalDosageUnitDisclaimer.kt$foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.OptionalDosageUnitDisclaimer.kt</ID>
     <ID>FinalNewline:ParserExtensions.kt$foo.pilz.freaklog.data.substances.parse.ParserExtensions.kt</ID>
     <ID>FinalNewline:PurityCalculation.kt$foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.PurityCalculation.kt</ID>
@@ -217,6 +226,7 @@
     <ID>FinalNewline:TimelinesPreviewProvider.kt$foo.pilz.freaklog.ui.tabs.journal.experience.timeline.TimelinesPreviewProvider.kt</ID>
     <ID>FinalNewline:Tolerance.kt$foo.pilz.freaklog.data.substances.classes.Tolerance.kt</ID>
     <ID>FinalNewline:ToleranceSection.kt$foo.pilz.freaklog.ui.tabs.search.substance.roa.ToleranceSection.kt</ID>
+    <ID>FinalNewline:TotalTimeline.kt$foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.TotalTimeline.kt</ID>
     <ID>FinalNewline:UnknownDoseDialog.kt$foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.UnknownDoseDialog.kt</ID>
     <ID>FinalNewline:UserPreferences.kt$foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences.kt</ID>
     <ID>FinalNewline:VerticalLine.kt$foo.pilz.freaklog.ui.tabs.journal.experience.components.ingestion.VerticalLine.kt</ID>
@@ -310,6 +320,8 @@
     <ID>Indentation:ExperienceDao.kt$ExperienceDao$ </ID>
     <ID>Indentation:ExperienceViewModel.kt$ExperienceViewModel$ </ID>
     <ID>Indentation:ExplainTimelineScreen.kt$ </ID>
+    <ID>Indentation:FullTimelines.kt$FullTimelines.Companion$ </ID>
+    <ID>Indentation:GroupDrawable.kt$GroupDrawable$ </ID>
     <ID>Indentation:HeatmapWidgetProvider.kt$HeatmapWidgetWorker$ </ID>
     <ID>Indentation:IngestionRow.kt$ </ID>
     <ID>Indentation:InteractionChecker.kt$InteractionChecker$ </ID>
@@ -413,6 +425,7 @@
     <ID>LongParameterList:FinishAddCustomUnitScreen.kt$( padding: PaddingValues, substanceName: String, administrationRoute: AdministrationRoute, numberOfIngestionsWithThisCustomUnit: Int?, roaDose: RoaDose?, name: String, onChangeOfName: (String) -&gt; Unit, doseText: String, onChangeDoseText: (String) -&gt; Unit, estimatedDoseStandardDeviationText: String, onChangeEstimatedDoseStandardDeviationText: (String) -&gt; Unit, isEstimate: Boolean, onChangeIsEstimate: (Boolean) -&gt; Unit, currentDoseClass: DoseClass?, isShowingUnitsField: Boolean, unit: String, onChangeOfUnits: (units: String) -&gt; Unit, unitPlural: String, onChangeOfUnitPlural: (unitPlural: String) -&gt; Unit, originalUnit: String, onChangeOfOriginalUnit: (String) -&gt; Unit, note: String, onChangeOfNote: (String) -&gt; Unit, isArchived: Boolean, onChangeOfIsArchived: (Boolean) -&gt; Unit, )</ID>
     <ID>LongParameterList:FinishAddCustomUnitScreen.kt$( substanceName: String, administrationRoute: AdministrationRoute, roaDose: RoaDose?, dismiss: () -&gt; Unit, name: String, onChangeOfName: (String) -&gt; Unit, doseText: String, onChangeDoseText: (String) -&gt; Unit, estimatedDoseStandardDeviationText: String, onChangeEstimatedDoseDeviationText: (String) -&gt; Unit, isEstimate: Boolean, onChangeIsEstimate: (Boolean) -&gt; Unit, currentDoseClass: DoseClass?, isUnitsFieldShown: Boolean, unit: String, onChangeOfUnits: (units: String) -&gt; Unit, unitPlural: String, onChangeOfUnitPlural: (unitPlural: String) -&gt; Unit, originalUnit: String, onChangeOfOriginalUnit: (String) -&gt; Unit, note: String, onChangeOfNote: (String) -&gt; Unit, isArchived: Boolean, onChangeOfIsArchived: (Boolean) -&gt; Unit, )</ID>
     <ID>LongParameterList:FinishIngestionScreen.kt$( createSaveAndDismissAfter: () -&gt; Unit, ingestionTimePickerOption: IngestionTimePickerOption, onChangeTimePickerOption: (option: IngestionTimePickerOption) -&gt; Unit, onChangeStartDateOrTime: (LocalDateTime) -&gt; Unit, localDateTimeStart: LocalDateTime, onChangeEndDateOrTime: (LocalDateTime) -&gt; Unit, localDateTimeEnd: LocalDateTime, isLoadingColor: Boolean, isShowingColorPicker: Boolean, selectedColor: AdaptiveColor, onChangeColor: (AdaptiveColor) -&gt; Unit, alreadyUsedColors: List&lt;AdaptiveColor&gt;, otherColors: List&lt;AdaptiveColor&gt;, previousNotes: List&lt;String&gt;, note: String, onNoteChange: (String) -&gt; Unit, experiencesInRange: List&lt;ExperienceWithIngestions&gt;, selectedExperience: ExperienceWithIngestions?, onChangeOfSelectedExperience: (ExperienceWithIngestions?) -&gt; Unit, substanceName: String, enteredTitle: String, onChangeOfEnteredTitle: (String) -&gt; Unit, isEnteredTitleOk: Boolean, consumerName: String, onChangeOfConsumerName: (String) -&gt; Unit, consumerNamesSorted: List&lt;String&gt;, showSiteSelection: Boolean, siteOptions: List&lt;String&gt;, administrationSite: String, onChangeOfAdministrationSite: (String) -&gt; Unit, enabledWebhooks: List&lt;Webhook&gt;, isWebhookSelected: (Int) -&gt; Boolean, onWebhookSelectedChange: (Int, Boolean) -&gt; Unit )</ID>
+    <ID>LongParameterList:FullTimelines.kt$FullTimelines.Companion$( x: Float, startX: Float, endX: Float, hMax: Float, onset: Float, comeup: Float, peak: Float, offset: Float, )</ID>
     <ID>LongParameterList:JournalScreen.kt$( navigateToExperiencePopNothing: (experienceId: Int) -&gt; Unit, navigateToAddIngestion: () -&gt; Unit, navigateToCalendar: () -&gt; Unit, navigateToAllIngestions: () -&gt; Unit = {}, isFavoriteEnabled: Boolean, onChangeIsFavorite: (Boolean) -&gt; Unit, isTimeRelativeToNow: Boolean, onChangeIsRelative: (Boolean) -&gt; Unit, searchText: String, onChangeSearchText: (String) -&gt; Unit, isSearchEnabled: Boolean, onChangeIsSearchEnabled: (Boolean) -&gt; Unit, experiences: List&lt;ExperienceWithIngestionsCompanionsAndRatings&gt;, )</ID>
     <ID>LongParameterList:ReminderScheduleTest.kt$ReminderScheduleTest$( scheduleType: String = ReminderSchedule.SCHEDULE_TYPE_DAILY_AT_TIMES, times: String = "08:00,20:00", daysMask: Int = 127, intervalValue: Int = 1, intervalUnit: String = "Days", startEpochMillis: Long = 0L, endEpochMillis: Long? = null, hour: Int = 0, minute: Int = 0, enabled: Boolean = true, )</ID>
     <ID>LongParameterList:SaferUseScreen.kt$( navigateToDrugTestingScreen: () -&gt; Unit, navigateToSaferHallucinogensScreen: () -&gt; Unit, navigateToVolumetricDosingScreen: () -&gt; Unit, navigateToDosageGuideScreen: () -&gt; Unit, navigateToDosageClassificationScreen: () -&gt; Unit, navigateToRouteExplanationScreen: () -&gt; Unit, navigateToReagentTestingScreen: () -&gt; Unit, navigateToSprayCalculatorScreen: () -&gt; Unit, )</ID>
@@ -493,13 +506,13 @@
     <ID>MaxLineLength:ExperienceViewModel.kt$ExperienceViewModel.Companion$if (groupedIngestions.any { it.ingestionWithCompanionAndCustomUnit.originalUnit != units }) return@mapNotNull null</ID>
     <ID>MaxLineLength:ExperienceViewModel.kt$ExperienceViewModel.Companion$if (groupedIngestions.any { it.ingestionWithCompanionAndCustomUnit.pureDose == null }) return@mapNotNull null</ID>
     <ID>MaxLineLength:ExperienceWithIngestionsPreviewProvider.kt$ExperienceWithIngestionsCompanionsAndRatingsPreviewProvider$location = Location(name = "Location name with a very long name that does not fit in one line", longitude = 4.0, latitude = 5.0)</ID>
+    <ID>MaxLineLength:ExplainTimelineScreen.kt$"Different administration routes are always drawn as separate timelines even if they are of the same substance. They also take the full height of the canvas, not the height that is proportional to the dose or effect."</ID>
     <ID>MaxLineLength:ExplainTimelineScreen.kt$"Duration can be broken down into 6 parts: (1) total duration (2) onset (3) come up (4) peak (5) offset and (6) after effects. Depending upon the substance consumed, each of these occurs in a separate and continuous fashion."</ID>
-    <ID>MaxLineLength:ExplainTimelineScreen.kt$"Each ingestion is plotted as a smooth pharmacokinetic absorption/elimination curve (a Bateman function) instead of a polygon. The curve has no vertical spike at ingestion, a single rounded peak, and an exponential tail."</ID>
-    <ID>MaxLineLength:ExplainTimelineScreen.kt$"Every substance follows simple two-compartment (one-absorption-rate, one-elimination-rate) pharmacokinetics, regardless of the actual metabolic pathway."</ID>
-    <ID>MaxLineLength:ExplainTimelineScreen.kt$"Ingestions of the same substance via the same route are stacked on a shared sample grid, so two overlapping doses produce a single taller combined curve."</ID>
-    <ID>MaxLineLength:ExplainTimelineScreen.kt$"The peak time of the curve (tmax) is taken from PsychonautWiki's onset and comeup durations. The tail length is taken from the total duration when defined, otherwise estimated from onset+comeup+peak+offset."</ID>
-    <ID>MaxLineLength:ExplainTimelineScreen.kt$"When PsychonautWiki data is incomplete (e.g. only a total duration is known) the curve is drawn with a dotted stroke to signal that its shape is uncertain. The location of the peak in such cases is a rough estimate."</ID>
-    <ID>MaxLineLength:ExplainTimelineScreen.kt$"When a time range is given for the ingestion (an infusion), the curve is the analytical convolution of the Bateman function with that ingestion window — the rise is slower and the peak occurs later than for the equivalent point ingestion."</ID>
+    <ID>MaxLineLength:ExplainTimelineScreen.kt$"If any of the 4 durations are missing but the total duration is given, then the first defined durations are drawn and as soon as a missing duration is encountered it uses the total to infer the end of the timeline and draws a dotted line to the end. If the total is not given it just stops drawing the line. So if there is no timeline or part of the timeline is missing that means that the duration is not defined in PsychonautWiki. If you add the missing durations in PsychonautWiki, the full timeline will be shown in the next update."</ID>
+    <ID>MaxLineLength:ExplainTimelineScreen.kt$"In the ideal case all 4 durations (onset, comeup, peak and offset) are defined and the full timeline is drawn as averageOnset -&gt; averageComeup -&gt; weightedPeak -&gt; weightedOffset, where \"weighted\" means that the given range has been linearly interpolated with the dose, so if a threshold dose was taken it takes the minimum of the range, if a heavy dose was taken it takes the max and for everything in between it linearly interpolates."</ID>
+    <ID>MaxLineLength:ExplainTimelineScreen.kt$"The timelines from ingestions with the same substance and administration route where substances have onset, comeup, peak and offset defined are combined into a cumulative timeline by simply putting the individual lines on top of each other. This is not done for ingestions where either the onset, comeup, peak or offset duration is missing."</ID>
+    <ID>MaxLineLength:ExplainTimelineScreen.kt$"The vertical trajectory of dotted lines is unknown. So if you see a dotted line that means it is not known how the effect develops over that timeframe. The only thing that is known is where the line will end."</ID>
+    <ID>MaxLineLength:ExplainTimelineScreen.kt$"When a time range is given for the ingestion and all durations are defined for the route of administration then the app assumes the dosage was evenly consumed in that time frame and cumulates the curves of the infinitesimal ingestions using convolution."</ID>
     <ID>MaxLineLength:ExplainTimelineScreen.kt$SectionText(text = "The \"come up\" phase can be defined as the period between the first noticeable changes in perception and the point of highest subjective intensity. This is colloquially known as \"coming up.\"")</ID>
     <ID>MaxLineLength:ExplainTimelineScreen.kt$SectionText(text = "The offset phase can be defined as the amount of time in between the conclusion of the peak and shifting into a sober state. This is colloquially referred to as \"coming down.\"")</ID>
     <ID>MaxLineLength:ExplainTimelineScreen.kt$SectionText(text = "The onset phase can be defined as the period until the very first changes in perception (i.e. \"first alerts\") are able to be detected.")</ID>
@@ -515,9 +528,11 @@
     <ID>MaxLineLength:FinishAddCustomUnitScreen.kt$Text("When smoking with a bong about 40% of the THC in the bud is inhaled. So if you smoke 300mg of a bud that has 20% THC then you inhale 300mg * 20/100 * 40/100 = 24mg THC.")</ID>
     <ID>MaxLineLength:FinishAddCustomUnitScreen.kt$Text("When smoking with a vaporizer about 70% of the THC in the bud is inhaled. So if you smoke 300mg of a bud that has 20% THC then you inhale 300mg * 20/100 * 70/100 = 42mg THC.")</ID>
     <ID>MaxLineLength:FinishIngestionScreen.kt$Text(text = if (selectedExperienceTitle != null) "Part of $selectedExperienceTitle" else "Part of new experience")</ID>
+    <ID>MaxLineLength:FullTimelines.kt$FullTimelines$this.endOfLineRelativeToStartInSeconds = finalPoints.maxOfOrNull { it.x } ?: (onset.maxInSeconds + comeup.maxInSeconds + peak.maxInSeconds + offset.maxInSeconds)</ID>
     <ID>MaxLineLength:IngestionRowPreviewProvider.kt$IngestionRowPreviewProvider$notes = "This is a very long note which I wrote to see how it looks like if the note spans more than one line in the ingestion row."</ID>
     <ID>MaxLineLength:InteractionChecker.kt$InteractionChecker$return@flatMap emptyList()</ID>
     <ID>MaxLineLength:MainScreen.kt$topLevelRoutes(hideSafer, hideStats, hideDrugs, showInventory).any { it.route == currentDestination?.route }</ID>
+    <ID>MaxLineLength:NoTimeline.kt$NoTimeline$override val nonNormalisedHeight: Float = 0.01f // low number because if this turns out to be max of timeline then it will be used as overall max which will downsize ingestions with timelines</ID>
     <ID>MaxLineLength:OneExperienceScreenPreviewProvider.kt$OneExperienceScreenPreviewProvider$note = "Peak start and this is a note that spans multiple lines, so long that we can see what a bigger layout looks like."</ID>
     <ID>MaxLineLength:ReagentTestingScreen.kt$Reagents can only determine the presence, not the quantity or purity, of a particular substance. Dark color reactions will tend to override reactions to other substances also in the pill. A positive or negative reaction for a substance does not indicate that a drug is safe. No drug use is 100% safe. Make wise decisions and take responsibility for your health and well-being; no one else can.</ID>
     <ID>MaxLineLength:RouteExplanationScreen.kt$Determining an optimal route of administration is highly dependent on the substance consumed, its desired duration and potency and side effects, and one's personal comfort level.</ID>
@@ -619,9 +634,11 @@
     <ID>MaximumLineLength:FAQScreen.kt$ </ID>
     <ID>MaximumLineLength:FinishAddCustomUnitScreen.kt$ </ID>
     <ID>MaximumLineLength:FinishIngestionScreen.kt$ </ID>
+    <ID>MaximumLineLength:FullTimelines.kt$FullTimelines$ </ID>
     <ID>MaximumLineLength:IngestionRowPreviewProvider.kt$IngestionRowPreviewProvider$ </ID>
     <ID>MaximumLineLength:InteractionChecker.kt$InteractionChecker$ </ID>
     <ID>MaximumLineLength:MainScreen.kt$ </ID>
+    <ID>MaximumLineLength:NoTimeline.kt$NoTimeline$ </ID>
     <ID>MaximumLineLength:OneExperienceScreenPreviewProvider.kt$OneExperienceScreenPreviewProvider$ </ID>
     <ID>MaximumLineLength:SaferHallucinogensScreen.kt$ </ID>
     <ID>MaximumLineLength:SaferUseScreen.kt$ </ID>
@@ -783,6 +800,7 @@
     <ID>NewLineAtEndOfFile:FinishIngestionScreenViewModel.kt$foo.pilz.freaklog.ui.tabs.journal.addingestion.time.FinishIngestionScreenViewModel.kt</ID>
     <ID>NewLineAtEndOfFile:FloatingDoneButton.kt$foo.pilz.freaklog.ui.tabs.journal.experience.rating.FloatingDoneButton.kt</ID>
     <ID>NewLineAtEndOfFile:FullDurationRange.kt$foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.FullDurationRange.kt</ID>
+    <ID>NewLineAtEndOfFile:FullTimelines.kt$foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.FullTimelines.kt</ID>
     <ID>NewLineAtEndOfFile:IngestionElement.kt$foo.pilz.freaklog.ui.tabs.journal.experience.models.IngestionElement.kt</ID>
     <ID>NewLineAtEndOfFile:IngestionRow.kt$foo.pilz.freaklog.ui.tabs.journal.experience.components.ingestion.IngestionRow.kt</ID>
     <ID>NewLineAtEndOfFile:IngestionRowPreviewProvider.kt$foo.pilz.freaklog.ui.tabs.journal.experience.components.ingestion.IngestionRowPreviewProvider.kt</ID>
@@ -803,8 +821,15 @@
     <ID>NewLineAtEndOfFile:Location.kt$foo.pilz.freaklog.data.room.experiences.entities.Location.kt</ID>
     <ID>NewLineAtEndOfFile:MainScreenViewModel.kt$foo.pilz.freaklog.ui.main.MainScreenViewModel.kt</ID>
     <ID>NewLineAtEndOfFile:NextFAB.kt$foo.pilz.freaklog.ui.tabs.journal.addingestion.NextFAB.kt</ID>
+    <ID>NewLineAtEndOfFile:NoTimeline.kt$foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.NoTimeline.kt</ID>
     <ID>NewLineAtEndOfFile:OneExperienceScreenModel.kt$foo.pilz.freaklog.ui.tabs.journal.experience.models.OneExperienceScreenModel.kt</ID>
     <ID>NewLineAtEndOfFile:OneExperienceScreenPreviewProvider.kt$foo.pilz.freaklog.ui.tabs.journal.experience.OneExperienceScreenPreviewProvider.kt</ID>
+    <ID>NewLineAtEndOfFile:OnsetComeupPeakTimeline.kt$foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.OnsetComeupPeakTimeline.kt</ID>
+    <ID>NewLineAtEndOfFile:OnsetComeupPeakTotalTimeline.kt$foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.OnsetComeupPeakTotalTimeline.kt</ID>
+    <ID>NewLineAtEndOfFile:OnsetComeupTimeline.kt$foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.OnsetComeupTimeline.kt</ID>
+    <ID>NewLineAtEndOfFile:OnsetComeupTotalTimeline.kt$foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.OnsetComeupTotalTimeline.kt</ID>
+    <ID>NewLineAtEndOfFile:OnsetTimeline.kt$foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.OnsetTimeline.kt</ID>
+    <ID>NewLineAtEndOfFile:OnsetTotalTimeline.kt$foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.OnsetTotalTimeline.kt</ID>
     <ID>NewLineAtEndOfFile:OptionalDosageUnitDisclaimer.kt$foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.OptionalDosageUnitDisclaimer.kt</ID>
     <ID>NewLineAtEndOfFile:ParserExtensions.kt$foo.pilz.freaklog.data.substances.parse.ParserExtensions.kt</ID>
     <ID>NewLineAtEndOfFile:PurityCalculation.kt$foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.PurityCalculation.kt</ID>
@@ -880,6 +905,7 @@
     <ID>NewLineAtEndOfFile:TimelinesPreviewProvider.kt$foo.pilz.freaklog.ui.tabs.journal.experience.timeline.TimelinesPreviewProvider.kt</ID>
     <ID>NewLineAtEndOfFile:Tolerance.kt$foo.pilz.freaklog.data.substances.classes.Tolerance.kt</ID>
     <ID>NewLineAtEndOfFile:ToleranceSection.kt$foo.pilz.freaklog.ui.tabs.search.substance.roa.ToleranceSection.kt</ID>
+    <ID>NewLineAtEndOfFile:TotalTimeline.kt$foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.timelines.TotalTimeline.kt</ID>
     <ID>NewLineAtEndOfFile:UnknownDoseDialog.kt$foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.UnknownDoseDialog.kt</ID>
     <ID>NewLineAtEndOfFile:UserPreferences.kt$foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences.kt</ID>
     <ID>NewLineAtEndOfFile:VerticalLine.kt$foo.pilz.freaklog.ui.tabs.journal.experience.components.ingestion.VerticalLine.kt</ID>
@@ -905,6 +931,7 @@
     <ID>NoBlankLineBeforeRbrace:CustomSubstanceChooseDoseViewModel.kt$CustomSubstanceChooseDoseViewModel$ </ID>
     <ID>NoBlankLineBeforeRbrace:EditExperienceViewModel.kt$EditExperienceViewModel$ </ID>
     <ID>NoBlankLineBeforeRbrace:FileSystemConnection.kt$FileSystemConnection$ </ID>
+    <ID>NoBlankLineBeforeRbrace:FullTimelines.kt$ </ID>
     <ID>NoBlankLineBeforeRbrace:InteractionChecker.kt$InteractionChecker$ </ID>
     <ID>NoBlankLineBeforeRbrace:ShulginRatingOption.kt$ShulginRatingOption.THREE_PLUS$ </ID>
     <ID>NoBlankLineBeforeRbrace:StatsScreen.kt$ </ID>
@@ -955,6 +982,7 @@
     <ID>NoConsecutiveBlankLines:InteractionChecker.kt$ </ID>
     <ID>NoConsecutiveBlankLines:JournalViewModel.kt$JournalViewModel$ </ID>
     <ID>NoConsecutiveBlankLines:NextFAB.kt$ </ID>
+    <ID>NoConsecutiveBlankLines:OnsetTimeline.kt$ </ID>
     <ID>NoConsecutiveBlankLines:RatingPreviewProvider.kt$ </ID>
     <ID>NoConsecutiveBlankLines:RatingRow.kt$ </ID>
     <ID>NoConsecutiveBlankLines:SettingsScreen.kt$ </ID>
@@ -1060,6 +1088,9 @@
     <ID>NoWildcardImports:CustomRecipesScreen.kt$import androidx.compose.runtime.*</ID>
     <ID>NoWildcardImports:DotRows.kt$import androidx.compose.foundation.layout.*</ID>
     <ID>NoWildcardImports:GetTimeDifferenceTextTest.kt$import org.junit.Assert.*</ID>
+    <ID>NoWildcardImports:OnsetComeupPeakTotalTimeline.kt$import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.*</ID>
+    <ID>NoWildcardImports:OnsetComeupTotalTimeline.kt$import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.*</ID>
+    <ID>NoWildcardImports:OnsetTotalTimeline.kt$import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.*</ID>
     <ID>NoWildcardImports:RelativeDateTextNew.kt$import androidx.compose.runtime.*</ID>
     <ID>NoWildcardImports:RoaDurationView.kt$import androidx.compose.foundation.layout.*</ID>
     <ID>NoWildcardImports:SearchViewModel.kt$import kotlinx.coroutines.flow.*</ID>
@@ -1117,6 +1148,7 @@
     <ID>SpacingAroundOperators:JournalExport.kt$IngestionSerializable$=</ID>
     <ID>SpacingAroundOperators:JournalExport.kt$RatingSerializable$=</ID>
     <ID>SpacingAroundOperators:JournalExport.kt$TimedNoteSerializable$=</ID>
+    <ID>SpacingAroundOperators:NoTimeline.kt$NoTimeline$*</ID>
     <ID>SpacingAroundOperators:RelativeDateTextNew.kt$/</ID>
     <ID>SpacingAroundOperators:RoaDose.kt$RoaDose$/</ID>
     <ID>SpacingAroundOperators:TimedNoteRow.kt$/</ID>
@@ -1229,6 +1261,9 @@
     <ID>WildcardImport:CustomRecipesScreen.kt$import androidx.compose.runtime.*</ID>
     <ID>WildcardImport:DotRows.kt$import androidx.compose.foundation.layout.*</ID>
     <ID>WildcardImport:GetTimeDifferenceTextTest.kt$import org.junit.Assert.*</ID>
+    <ID>WildcardImport:OnsetComeupPeakTotalTimeline.kt$import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.*</ID>
+    <ID>WildcardImport:OnsetComeupTotalTimeline.kt$import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.*</ID>
+    <ID>WildcardImport:OnsetTotalTimeline.kt$import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.*</ID>
     <ID>WildcardImport:RelativeDateTextNew.kt$import androidx.compose.runtime.*</ID>
     <ID>WildcardImport:RoaDurationView.kt$import androidx.compose.foundation.layout.*</ID>
     <ID>WildcardImport:SearchViewModel.kt$import kotlinx.coroutines.flow.*</ID>
@@ -1275,6 +1310,7 @@
     <ID>Wrapping:ExperienceViewModel.kt$ExperienceViewModel.Companion$it.ingestionWithCompanionAndCustomUnit.ingestion.isDoseAnEstimate || it.ingestionWithCompanionAndCustomUnit.customUnit?.isEstimate ?: false</ID>
     <ID>Wrapping:FinishAddCustomUnitScreen.kt$(</ID>
     <ID>Wrapping:FinishIngestionScreen.kt$(</ID>
+    <ID>Wrapping:FullTimelines.kt$FullTimelines$it.x</ID>
     <ID>Wrapping:GeminiChatSession.kt$GeminiChatSession$(</ID>
     <ID>Wrapping:GeminiChatSession.kt$GeminiChatSession$("functionResponse", JSONObject().apply { put("name", name) put("response", resultJson) })</ID>
     <ID>Wrapping:GeminiChatSession.kt$GeminiChatSession$("parts", JSONArray().apply { put(JSONObject().put("text", text)) })</ID>

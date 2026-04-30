@@ -617,6 +617,7 @@ private fun ProjectedTimeline(
             dataForRatings = emptyList(),
             timedNotes = emptyList(),
             areSubstanceHeightsIndependent = false,
+            useBatemanCurve = true,
         )
     }
     Column(modifier = modifier) {
