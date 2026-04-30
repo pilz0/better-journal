@@ -83,8 +83,8 @@ android {
 
     packaging {
         resources {
-            // Mockk + Kotlin coroutines pull in duplicate META-INF service files;
-            // exclude them so test APKs build cleanly.
+            // Several test/runtime dependencies (MockK, Kotlin coroutines, Robolectric, …)
+            // ship duplicate license files under META-INF; exclude them so APKs build cleanly.
             excludes += setOf(
                 "/META-INF/{AL2.0,LGPL2.1}",
                 "/META-INF/LICENSE.md",

@@ -82,7 +82,10 @@ jobs:
         run: ./gradlew testDebugUnitTest ${{ matrix.test-args }} --no-daemon
 
       - name: Publish JUnit results
-        if: always()
+        # action-junit-report requires `checks: write`, but PRs from forks always get a
+        # read-only GITHUB_TOKEN. Skip the check publication on fork PRs to avoid 403s;
+        # the raw XML is still uploaded as an artifact in the next step.
+        if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         uses: mikepenz/action-junit-report@3585e9575db828022551b4231f165eb59a0e74e3 # v5.6.2
         with:
           report_paths: 'app/build/test-results/testDebugUnitTest/*.xml'
@@ -171,7 +174,6 @@ jobs:
 
       - name: Run Detekt
         run: ./gradlew detekt --no-daemon
-        continue-on-error: true
 
       - name: Upload Detekt SARIF to code scanning
         if: always()
@@ -179,6 +181,8 @@ jobs:
         with:
           sarif_file: app/build/reports/detekt/detekt.sarif
           category: detekt
+        # SARIF upload requires `security-events: write`, which is read-only on fork PRs;
+        # tolerate that failure so fork PRs don't go red on the upload step alone.
         continue-on-error: true
 
       - name: Upload Detekt reports
