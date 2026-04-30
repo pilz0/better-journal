@@ -32,11 +32,11 @@ biometric = "1.1.0"
 # MockK 1.14+ ships kotlin-reflect/stdlib 2.2.x, which the project's Kotlin
 # 2.0.21 compiler cannot read ("metadata version 2.2.0, expected 2.0.0").
 # Stay on the latest 1.13.x until we bump the project to Kotlin 2.1+.
-mockk = "1.13.13"
+mockk = "1.14.9"
 turbine = "1.2.1"
 # Robolectric 4.15+ depends on Kotlin 2.2 stdlib for the same reason as MockK
 # above; stay on the latest 4.14.x line until the project Kotlin bump.
-robolectric = "4.14.1"
+robolectric = "4.16.1"
 assertk = "0.28.1"
 # Pinned to 4.x. The 5.x line moved to the `mockwebserver3` package, which is
 # a breaking API change; revisit when adopting OkHttp 5.
