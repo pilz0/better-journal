@@ -108,7 +108,7 @@ class GroupDrawable(
                 emptyList()
             }
             val pointHeights = timelineDrawables.map { it.nonNormalisedHeight }
-            nonNormalisedMaxOfRoute = pointHeights.maxOrNull() ?: 1f
+            nonNormalisedMaxOfRoute = pointHeights.maxOrNull() ?: 0.01f
             nonNormalisedHeight = nonNormalisedMaxOfRoute
         }
     }
