@@ -58,6 +58,7 @@ jobs:
       upstream-run-id: ${{ steps.resolve.outputs.upstream-run-id }}
       head-sha: ${{ steps.resolve.outputs.head-sha }}
       is-tag: ${{ steps.resolve.outputs.is-tag }}
+      should-release: ${{ steps.resolve.outputs.should-release }}
     steps:
       - name: Harden the runner
         uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.13.1
@@ -113,11 +114,23 @@ jobs:
           fi
 
           if [ "$is_tag" != "true" ] && [ "$head_branch" != "$default_branch" ]; then
-            echo "::error::Refusing to release: head_branch=$head_branch is neither the default branch ($default_branch) nor a tag." >&2
-            exit 1
+            # Build and test runs on every push (including PR branches), so the
+            # workflow_run trigger fires here for branches we never want to
+            # release. Treat those as a clean skip rather than a hard failure
+            # so the workflow run shows up green; downstream jobs are gated on
+            # `should-release` below.
+            echo "::notice::Skipping release: head_branch=$head_branch is neither the default branch ($default_branch) nor a tag."
+            {
+              echo "should-release=false"
+              echo "upstream-run-id=$run_id"
+              echo "head-sha=$head_sha"
+              echo "is-tag=$is_tag"
+            } >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
           {
+            echo "should-release=true"
             echo "upstream-run-id=$run_id"
             echo "head-sha=$head_sha"
             echo "is-tag=$is_tag"
@@ -126,6 +139,7 @@ jobs:
   sign:
     name: Sign (${{ matrix.app-type }})
     needs: [ preconditions ]
+    if: needs.preconditions.outputs.should-release == 'true'
     runs-on: ubuntu-latest
     # Secrets are scoped to the `signing` environment, which can be configured
     # in the repo settings to require manual approval for tagged releases.
@@ -183,6 +197,7 @@ jobs:
   attest:
     name: Attest build provenance
     needs: [ preconditions, sign ]
+    if: needs.preconditions.outputs.should-release == 'true'
     runs-on: ubuntu-latest
     permissions:
       # Required by `actions/attest-build-provenance` to mint OIDC tokens
@@ -213,6 +228,7 @@ jobs:
   upload-s3:
     name: Upload to Cloudflare R2 (${{ matrix.app-type }})
     needs: [ preconditions, sign ]
+    if: needs.preconditions.outputs.should-release == 'true'
     runs-on: ubuntu-latest
     environment: production
     permissions:
@@ -248,6 +264,7 @@ jobs:
   upload-google-play:
     name: Upload to Google Play
     needs: [ preconditions, sign ]
+    if: needs.preconditions.outputs.should-release == 'true'
     runs-on: ubuntu-latest
     # `internal-track` should be configured to NOT require approval; promotion
     # to a `production` track environment can be added later for staged

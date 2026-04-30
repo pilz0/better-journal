@@ -18,7 +18,6 @@
 
 package foo.pilz.freaklog.ui.tabs.settings.combinations
 
-import android.R
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -28,6 +27,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.SavedTimeDisplayOption
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences.PreferencesKeys.WEBHOOK_URL
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.Instant
 import javax.inject.Inject
@@ -58,6 +58,10 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
         val WEBHOOK_NAME = stringPreferencesKey("webhook_name")
 
         val WEBHOOK_TEMPLATE = stringPreferencesKey("webhook_template")
+
+        // True once the legacy single-webhook preferences above have been migrated
+        // into the `webhook` table. See WebhookSeeder.
+        val WEBHOOK_SEEDED = booleanPreferencesKey("webhook_seeded")
 
         val AI_API_KEY = stringPreferencesKey("ai_api_key")
         val AI_MODEL_NAME = stringPreferencesKey("ai_model_name")
@@ -221,6 +225,15 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.WEBHOOK_TEMPLATE] = value
         }
+    }
+
+    /** Whether the legacy single-webhook preferences have already been migrated. */
+    suspend fun isWebhookSeeded(): Boolean = dataStore.data
+        .map { it[PreferencesKeys.WEBHOOK_SEEDED] ?: false }
+        .first()
+
+    suspend fun markWebhookSeeded() {
+        dataStore.edit { it[PreferencesKeys.WEBHOOK_SEEDED] = true }
     }
 
     val isHapticFeedbackEnabledFlow: Flow<Boolean> = dataStore.data

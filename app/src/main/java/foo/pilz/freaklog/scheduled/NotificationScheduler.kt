@@ -134,6 +134,9 @@ class NotificationScheduler @Inject constructor(
         ensureNotificationChannel(context)
 
         val openIntent = Intent(context, MainActivity::class.java).apply {
+            // Explicit package + component avoids any chance of this PendingIntent being
+            // resolved against another app (CodeQL: implicit PendingIntent).
+            setPackage(context.packageName)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
         val openPending = PendingIntent.getActivity(
@@ -208,6 +211,11 @@ class NotificationScheduler @Inject constructor(
 
     private fun makeFireIntent(reminderId: Int): Intent =
         Intent(context, ReminderReceiver::class.java).apply {
+            // Explicit component + package: prevents the broadcast from being resolved
+            // by any receiver outside this app, even though we also set a custom action
+            // string for per-reminder PendingIntent equality (CodeQL: implicit
+            // PendingIntent).
+            setPackage(context.packageName)
             // Set a unique action so PendingIntent equality is per-reminder rather than per-class.
             action = "$ACTION_FIRE_REMINDER.$reminderId"
             putExtra(EXTRA_REMINDER_ID, reminderId)

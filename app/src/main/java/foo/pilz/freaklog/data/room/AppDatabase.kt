@@ -42,11 +42,14 @@ import foo.pilz.freaklog.data.room.inventory.InventoryDao
 import foo.pilz.freaklog.data.room.inventory.InventoryItem
 import foo.pilz.freaklog.data.room.reminders.ReminderDao
 import foo.pilz.freaklog.data.room.reminders.entities.Reminder
-import foo.pilz.freaklog.data.room.SprayDao
+import foo.pilz.freaklog.data.room.webhooks.IngestionWebhookMessageDao
+import foo.pilz.freaklog.data.room.webhooks.WebhookDao
+import foo.pilz.freaklog.data.room.webhooks.entities.IngestionWebhookMessage
+import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
 
 @TypeConverters(InstantConverter::class, AdaptiveColorConverter::class)
 @Database(
-    version = 17,
+    version = 18,
     entities = [
         Experience::class,
         Ingestion::class,
@@ -59,7 +62,9 @@ import foo.pilz.freaklog.data.room.SprayDao
         Reminder::class,
         CustomRecipe::class,
         CustomRecipeComponent::class,
-        InventoryItem::class
+        InventoryItem::class,
+        Webhook::class,
+        IngestionWebhookMessage::class
     ],
     autoMigrations = [
         AutoMigration (from = 1, to = 2),
@@ -77,6 +82,7 @@ import foo.pilz.freaklog.data.room.SprayDao
         AutoMigration (from = 14, to = 15),
         AutoMigration (from = 15, to = 16),
         AutoMigration (from = 16, to = 17, spec = AppDatabase.ReminderV16To17::class),
+        AutoMigration (from = 17, to = 18),
     ]
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -85,6 +91,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun reminderDao(): ReminderDao
     abstract fun customRecipeDao(): CustomRecipeDao
     abstract fun inventoryDao(): InventoryDao
+    abstract fun webhookDao(): WebhookDao
+    abstract fun ingestionWebhookMessageDao(): IngestionWebhookMessageDao
 
     /**
      * Legacy reminders (schema ≤ 16) only had interval-based scheduling. The v17 schema adds
@@ -104,6 +112,6 @@ abstract class AppDatabase : RoomDatabase() {
          * on the `@Database` annotation above. Exposed for migration tests so
          * they don't have to hard-code the value.
          */
-        const val LATEST_SCHEMA_VERSION: Int = 17
+        const val LATEST_SCHEMA_VERSION: Int = 18
     }
 }

@@ -43,7 +43,6 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import foo.pilz.freaklog.MainActivity
 import foo.pilz.freaklog.data.room.AppDatabase
-import kotlinx.coroutines.flow.first
 import java.io.File
 import java.io.FileOutputStream
 import java.time.Instant

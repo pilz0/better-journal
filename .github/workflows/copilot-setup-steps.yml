@@ -1,0 +1,79 @@
+---
+name: Copilot Setup Steps
+
+# Run automatically when this file changes (so PRs can validate the setup), and
+# allow manual runs from the Actions tab to verify the green path.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+# Deny all permissions by default; the job grants the minimum required.
+permissions: {}
+
+jobs:
+  # The job MUST be called `copilot-setup-steps` or it will not be picked up by
+  # the GitHub Copilot cloud agent.
+  copilot-setup-steps:
+    name: Copilot Setup Steps
+    runs-on: ubuntu-latest
+    permissions:
+      # Needed for actions/checkout below; Copilot uses its own token for any
+      # git operations it performs after setup completes.
+      contents: read
+
+    # Match the deterministic JVM defaults used by the rest of CI so any local
+    # Gradle invocations the agent runs behave the same as the build workflow.
+    env:
+      TZ: 'UTC'
+      LANG: 'en_US.UTF-8'
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.13.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.1.0
+        with:
+          persist-credentials: false
+
+      # Validate the Gradle wrapper before invoking it, mirroring the
+      # `wrapper-validation` job in build.yml. This mitigates wrapper-tampering
+      # risk before any `./gradlew` command runs below.
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@0b6dd653ba04f4f93bf581ec31e66cbd7dcb644d # v4.4.4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.7.1
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
+        with:
+          log-accepted-android-sdk-licenses: false
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@0b6dd653ba04f4f93bf581ec31e66cbd7dcb644d # v4.4.4
+        with:
+          # Only allow cache writes from the trusted default branch, matching
+          # build.yml. Untrusted PR runs use the cache read-only to avoid
+          # cache-poisoning from forks.
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      # Warm Gradle's dependency caches so the agent's first build/test/lint
+      # invocation does not have to download Hilt, Compose, Room,
+      # kotlinx-serialization, the JitPack `compose-markdown` artifact, etc.
+      # `:app:dependencies` resolves the full configuration graph without
+      # requiring keystores or running any application code.
+      - name: Warm Gradle caches
+        run: |
+          ./gradlew help --no-daemon
+          ./gradlew :app:dependencies --no-daemon

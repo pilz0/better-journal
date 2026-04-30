@@ -223,7 +223,7 @@ To upgrade: edit version strings in `libs.versions.toml` (and root `build.gradle
 
 ### Room database (`data/room/AppDatabase.kt`)
 
-Current schema version: **17**. All migrations from v1 to v17 are handled by `@AutoMigration`.
+Current schema version: **18**. All migrations from v1 to v18 are handled by `@AutoMigration`.
 The `16 → 17` step uses an `AutoMigrationSpec` (`AppDatabase.ReminderV16To17`) that
 back-fills `scheduleType = 'INTERVAL'` on legacy reminder rows so they don't silently
 disable when the new column default (`DAILY_AT_TIMES`) is applied without `timesOfDay`.
@@ -247,6 +247,8 @@ There is no schema version 13 — the migration jumps directly from 12 to 14
 | `CustomRecipe` | A named recipe (mix of substances) |
 | `CustomRecipeComponent` | One ingredient line within a recipe |
 | `InventoryItem` | Stash / inventory entry tracked by the Inventory tab |
+| `Webhook` | One Discord webhook destination (added in v18) |
+| `IngestionWebhookMessage` | Link table mapping `Ingestion` ↔ `Webhook` with the Discord `messageId` returned for that destination (added in v18) |
 
 **Relations** (in `experiences/relations/`):
 
@@ -280,7 +282,7 @@ SubstanceFile
 
 `SearchRepository` provides fuzzy substance name search.
 
-### Webhook (`data/webhook/WebhookService.kt`)
+### Webhook (`data/webhook/WebhookService.kt`, `data/room/webhooks/`)
 
 Sends Discord webhook messages on ingestion log. Supports:
 - Template-based message formatting: `{user}: [{dose} {units} ]{substance} via {route}[ at {site}][\n> {note}]`
@@ -289,17 +291,55 @@ Sends Discord webhook messages on ingestion log. Supports:
 - `sendWebhook` / `editWebhook` / `deleteWebhookMessage`
 - `sendWebhook` and `editWebhook` return `WebhookResult(success, messageId, error)`; `deleteWebhookMessage` returns `Boolean` and handles failures internally
 
-**Message ID storage:** Each `Ingestion` entity has a nullable `webhookMessageId` field that stores the Discord message ID. This ID enables editing and deleting webhook messages when ingestions are modified or removed.
+**Multi-webhook model (schema v18):** Users can configure any number of
+`Webhook` rows from Settings → Webhooks. Each row has a name, URL, display
+name (`{user}`), per-webhook template (falls back to
+`WebhookService.DEFAULT_TEMPLATE` when blank), `isHyperlinked`, `isEnabled`
+(global on/off without deleting), and `sortOrder`.
+`IngestionWebhookMessage` is the link table that records the Discord
+`messageId` returned per `(ingestionId, webhookId)` pair, with
+`onDelete = CASCADE` on both foreign keys and a unique index on
+`(ingestionId, webhookId)`.
 
-**Custom unit handling:** When sending or editing webhooks, custom units are automatically converted to their base units. For example, if a user logs "1 tab" and the custom unit defines "1 tab = 100 µg LSD", the webhook will display "100 µg LSD".
+**Legacy seeding:** On first launch after upgrade, `WebhookSeeder` (invoked
+from `JournalApplication.onCreate` on the `@ApplicationScope` scope) migrates
+the legacy single-webhook configuration: if `WEBHOOK_SEEDED` is unset and
+`WEBHOOK_URL` is non-blank, it inserts one `Webhook` row from
+`{WEBHOOK_URL, WEBHOOK_NAME, WEBHOOK_TEMPLATE}` and copies every existing
+`Ingestion.webhookMessageId` into a corresponding `IngestionWebhookMessage`
+row. The `Ingestion.webhookMessageId` column is kept for one release as a
+deprecation cycle and may be dropped in a future schema version with a
+`@DeleteColumn` spec. The seeder is idempotent and is also a no-op if the
+new table already contains at least one webhook.
 
-**Per-ingestion webhook toggle:** Users can disable webhook notifications for individual ingestions during creation via a toggle in `FinishIngestionScreen`. The toggle only appears when a webhook URL is configured in Settings. Defaults to enabled for backward compatibility.
+**Custom unit handling:** When sending or editing webhooks, custom units are
+automatically converted to their base units. For example, if a user logs
+"1 tab" and the custom unit defines "1 tab = 100 µg LSD", the webhook will
+display "100 µg LSD".
+
+**Per-ingestion selection:** During ingestion creation `FinishIngestionScreen`
+shows a "Send to" checklist of every enabled webhook (pre-checked). The list
+is hidden when no enabled webhooks exist. Selection state lives in
+`FinishIngestionScreenViewModel.selectedWebhookIds`.
 
 **Webhook operations:**
-- **Send** (`FinishIngestionScreenViewModel.sendWebhookForIngestion`): Creates new Discord message on ingestion creation, stores message ID
-- **Edit** (`EditIngestionViewModel.editWebhookForIngestion`): Updates existing Discord message when ingestion is modified, preserves message ID
-- **Delete** (`EditIngestionViewModel.deleteWebhookForIngestion`): Removes Discord message when ingestion is deleted
-- **Resend** (`EditIngestionViewModel.resendWebhook`): Sends a new webhook message and updates the stored message ID
+- **Send** (`FinishIngestionScreenViewModel.sendWebhookForIngestion`): For
+  each selected enabled webhook, posts a Discord message and persists the
+  returned id as an `IngestionWebhookMessage` row. Failures only log; they
+  do not block ingestion creation.
+- **Edit** (`EditIngestionViewModel.editWebhookForIngestion`): Iterates the
+  ingestion's `IngestionWebhookMessage` rows; for each, looks up the linked
+  `Webhook` and PATCHes the existing Discord message. Skips rows whose
+  webhook is disabled or has been deleted.
+- **Delete** (`EditIngestionViewModel.deleteWebhookForIngestion`): Iterates
+  the same link rows, DELETEs the Discord message, then removes the link row.
+- **Resend** (`EditIngestionViewModel.resendWebhook`): Sends a fresh message
+  to every currently-enabled webhook and inserts the new
+  `IngestionWebhookMessage` rows. Existing link rows are preserved.
+
+**Export/import:** `JournalExport.webhooks` is an additive `List<WebhookSerializable>`
+field. Older exports without the field decode cleanly thanks to the default
+empty list. Imports use `webhookDao.insert` and let Room assign new ids.
 
 ### AI chatbot (`data/ai/`)
 
@@ -501,7 +541,7 @@ All ViewModels use `@HiltViewModel` + `@Inject constructor`. Repositories and DA
 - AAB files from Gradle are named `app-release.aab` (NOT `app-release-unsigned.aab`) — the release workflow reflects this
 - The AI chatbot requires a Google AI (Gemini) API key configured by the user in Settings
 - There is no schema version 13 — the migration jumps directly from 12 to 14 (`AutoMigration(from = 12, to = 14)`)
-- The `webhookMessageId` field in the `Ingestion` entity stores Discord message IDs for webhook operations (send, edit, delete)
+- The legacy `Ingestion.webhookMessageId` column is retained for one release as a deprecation cycle; new code reads message ids from the `ingestion_webhook_message` table. The column may be removed in a later schema version with a `@DeleteColumn` spec.
 - `@Keep` annotation on `AdministrationRoute` is a workaround for an AGP/R8 bug stripping enum metadata used in Navigation Compose serialized routes (see issue tracker link in the source file)
 - `WebhookService.editWebhook` uses HTTP `PATCH`, which works on Android's okhttp-backed `HttpURLConnection` but throws `ProtocolException` on the JDK's plain `HttpURLConnection`; therefore `editWebhook` cannot be exercised by a plain JVM unit test. HTTP-level webhook tests use **MockWebServer** (`com.squareup.okhttp3:mockwebserver`).
 - The `generative-ai-android` SDK is intentionally **not** used — see [AI chatbot](#ai-chatbot-dataai). Use `GeminiRestClient` / `GeminiChatSession` instead so `thoughtSignature` is preserved.

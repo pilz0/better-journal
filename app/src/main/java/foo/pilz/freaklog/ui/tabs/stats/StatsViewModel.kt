@@ -110,7 +110,7 @@ class StatsViewModel @Inject constructor(
             var remainingExperiences = sortedExperiences
             val buckets = mutableListOf<List<ExperienceWithIngestionsAndCompanions>>()
             var startInstant = Instant.now().getEndOfDay()
-            for (i in 0 until option.bucketCount) {
+            repeat(option.bucketCount) {
                 startInstant = startInstant.minus(option.oneBucketSize)
                 val experiencesForBucket =
                     remainingExperiences.takeWhile { it.sortInstant > startInstant }
@@ -131,27 +131,6 @@ class StatsViewModel @Inject constructor(
                 )
             }.reversed()
         }
-
-    private fun getColorCountsForExperiences(
-        experiences: List<ExperienceWithIngestionsAndCompanions>,
-        companions: List<SubstanceCompanion>,
-        consumerName: String?
-    ): List<ColorCount> {
-        return experiences.map { experience ->
-            experience.ingestionsWithCompanionAndCustomUnit.filter { it.ingestion.consumerName == consumerName }
-                .map { it.ingestion.substanceName }.toSet()
-        }.flatten()
-            .groupBy { it }.values.mapNotNull { sameNames ->
-                val name =
-                    sameNames.firstOrNull() ?: return@mapNotNull null
-                val oneCompanion =
-                    companions.firstOrNull { it.substanceName == name } ?: return@mapNotNull null
-                return@mapNotNull ColorCount(
-                    color = oneCompanion.color,
-                    count = sameNames.size
-                )
-            }.sortedByDescending { it.count }
-    }
 
     private fun getIngestionColorCounts(
         experiences: List<ExperienceWithIngestionsAndCompanions>,
