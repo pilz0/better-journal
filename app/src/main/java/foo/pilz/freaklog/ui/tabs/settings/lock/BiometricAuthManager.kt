@@ -173,6 +173,9 @@ class BiometricAuthManager @Inject constructor(
             onError("Biometric authentication could not be prepared.")
             return
         }
+        // Ephemeral challenge: the ciphertext is intentionally discarded. The purpose is
+        // to prove that this prompt returned an authenticated Keystore cipher operation
+        // before unlocking the in-memory app-lock overlay.
         val challenge = ByteArray(AUTH_CHALLENGE_SIZE_BYTES).also { SecureRandom().nextBytes(it) }
         val executor = androidx.core.content.ContextCompat.getMainExecutor(activity)
         val callback = object : BiometricPrompt.AuthenticationCallback() {
@@ -215,7 +218,14 @@ class BiometricAuthManager @Inject constructor(
             cipher.init(Cipher.ENCRYPT_MODE, getOrCreateSecretKey())
         } catch (e: InvalidKeyException) {
             deleteSecretKey()
-            cipher.init(Cipher.ENCRYPT_MODE, getOrCreateSecretKey())
+            try {
+                cipher.init(Cipher.ENCRYPT_MODE, getOrCreateSecretKey())
+            } catch (retry: InvalidKeyException) {
+                throw GeneralSecurityException(
+                    "Failed to initialize biometric authentication after key regeneration.",
+                    retry,
+                )
+            }
         }
         return BiometricPrompt.CryptoObject(cipher)
     }
@@ -232,6 +242,8 @@ class BiometricAuthManager @Inject constructor(
             .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
             .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
             .setUserAuthenticationRequired(true)
+            // Timeout 0 requires the current BiometricPrompt to authorize every key use.
+            // Lock timing is still controlled separately by LockTimeOption/_isUnlocked.
             .setUserAuthenticationParameters(0, KeyProperties.AUTH_BIOMETRIC_STRONG)
             .setInvalidatedByBiometricEnrollment(true)
             .build()
