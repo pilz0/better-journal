@@ -25,7 +25,6 @@ import foo.pilz.freaklog.ui.main.navigation.composableWithTransitions
 import foo.pilz.freaklog.ui.main.navigation.SettingsTopLevelRoute
 import foo.pilz.freaklog.ui.tabs.settings.FAQScreen
 import foo.pilz.freaklog.ui.tabs.settings.SettingsScreen
-import foo.pilz.freaklog.ui.tabs.settings.WebhookSettingsScreen
 import foo.pilz.freaklog.ui.tabs.settings.colors.SubstanceColorsScreen
 import foo.pilz.freaklog.ui.tabs.settings.combinations.CombinationSettingsScreen
 import foo.pilz.freaklog.ui.tabs.settings.customunits.CustomUnitsScreen
@@ -34,6 +33,8 @@ import foo.pilz.freaklog.ui.tabs.settings.customunits.edit.EditCustomUnitScreen
 import foo.pilz.freaklog.ui.tabs.settings.funny.AchievementsScreen
 import foo.pilz.freaklog.ui.tabs.settings.reminders.EditReminderScreen
 import foo.pilz.freaklog.ui.tabs.settings.reminders.RemindersScreen
+import foo.pilz.freaklog.ui.tabs.settings.webhooks.WebhookEditorScreen
+import foo.pilz.freaklog.ui.tabs.settings.webhooks.WebhooksListScreen
 import kotlinx.serialization.Serializable
 
 fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
@@ -55,7 +56,7 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
                     navController.navigate(CustomUnitsRoute)
                 },
                 navigateToWebhook = {
-                  navController.navigate(WebhookSettingsScreenRoute)
+                  navController.navigate(WebhooksListRoute)
                 },
                 navigateToReminders = {
                     navController.navigate(RemindersScreenRoute)
@@ -80,7 +81,17 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
         composableWithTransitions<AchievementsRoute> { AchievementsScreen() }
         composableWithTransitions<CombinationSettingsRoute> { CombinationSettingsScreen() }
         composableWithTransitions<SubstanceColorsRoute> { SubstanceColorsScreen() }
-        composableWithTransitions<WebhookSettingsScreenRoute> { WebhookSettingsScreen(navController) }
+        composableWithTransitions<WebhooksListRoute> {
+            WebhooksListScreen(
+                navigateBack = navController::popBackStack,
+                navigateToEditor = { id ->
+                    navController.navigate(WebhookEditorRoute(id ?: -1))
+                }
+            )
+        }
+        composableWithTransitions<WebhookEditorRoute> {
+            WebhookEditorScreen(navigateBack = navController::popBackStack)
+        }
         composableWithTransitions<CustomUnitArchiveRoute> {
             CustomUnitArchiveScreen(navigateToEditCustomUnit = { customUnitId ->
                 navController.navigate(EditCustomUnitRoute(customUnitId))
@@ -125,7 +136,15 @@ object CustomUnitArchiveRoute
 object CustomUnitsRoute
 
 @Serializable
-object WebhookSettingsScreenRoute
+object WebhooksListRoute
+
+/**
+ * Editor route for a single webhook. [webhookId] is `-1` when creating a new
+ * webhook (Compose Navigation cannot serialize nullable primitives, so we use
+ * a sentinel rather than a nullable Int).
+ */
+@Serializable
+data class WebhookEditorRoute(val webhookId: Int)
 
 @Serializable
 object RemindersScreenRoute

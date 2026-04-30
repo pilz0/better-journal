@@ -24,6 +24,7 @@ import foo.pilz.freaklog.data.room.experiences.entities.ShulginRatingOption
 import foo.pilz.freaklog.data.room.experiences.entities.StomachFullness
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
 import foo.pilz.freaklog.data.room.reminders.entities.Reminder
+import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.ui.tabs.settings.ShulginRatingOptionSerializer
 import kotlinx.serialization.Serializable
@@ -36,8 +37,46 @@ data class JournalExport(
     val customSubstances: List<CustomSubstance> = emptyList(),
     val customUnits: List<CustomUnitSerializable> = emptyList(),
     val customRecipes: List<CustomRecipeSerializable> = emptyList(),
-    val reminders: List<Reminder> = emptyList()
+    val reminders: List<Reminder> = emptyList(),
+    /**
+     * Multi-webhook configuration. Backwards-compatible default ensures older
+     * exports (which lacked this field) still decode cleanly.
+     */
+    val webhooks: List<WebhookSerializable> = emptyList()
 )
+
+@Serializable
+data class WebhookSerializable(
+    val name: String,
+    val url: String,
+    val displayName: String = "",
+    val template: String = "",
+    val isHyperlinked: Boolean = true,
+    val isEnabled: Boolean = true,
+    val sortOrder: Int = 0
+) {
+    fun toEntity(): Webhook = Webhook(
+        name = name,
+        url = url,
+        displayName = displayName,
+        template = template,
+        isHyperlinked = isHyperlinked,
+        isEnabled = isEnabled,
+        sortOrder = sortOrder
+    )
+
+    companion object {
+        fun fromEntity(webhook: Webhook): WebhookSerializable = WebhookSerializable(
+            name = webhook.name,
+            url = webhook.url,
+            displayName = webhook.displayName,
+            template = webhook.template,
+            isHyperlinked = webhook.isHyperlinked,
+            isEnabled = webhook.isEnabled,
+            sortOrder = webhook.sortOrder
+        )
+    }
+}
 
 @Serializable
 data class ExperienceSerializable(
