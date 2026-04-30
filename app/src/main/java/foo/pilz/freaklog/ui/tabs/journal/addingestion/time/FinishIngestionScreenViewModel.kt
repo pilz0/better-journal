@@ -19,8 +19,10 @@
 package foo.pilz.freaklog.ui.tabs.journal.addingestion.time
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -94,8 +96,7 @@ class FinishIngestionScreenViewModel @Inject constructor(
      * Mutable map of webhook-id -> "should send to this webhook" for the
      * current ingestion. Initialised to all enabled webhooks pre-selected.
      */
-    val selectedWebhookIds: androidx.compose.runtime.snapshots.SnapshotStateMap<Int, Boolean> =
-        androidx.compose.runtime.mutableStateMapOf()
+    val selectedWebhookIds: SnapshotStateMap<Int, Boolean> = mutableStateMapOf()
 
     val enabledWebhooksFlow: StateFlow<List<Webhook>> =
         webhookRepository.getEnabledFlow()

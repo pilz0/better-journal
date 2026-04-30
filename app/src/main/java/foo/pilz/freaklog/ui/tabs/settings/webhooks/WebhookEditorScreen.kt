@@ -12,6 +12,7 @@ package foo.pilz.freaklog.ui.tabs.settings.webhooks
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -65,7 +66,7 @@ fun WebhookEditorScreen(
 
 @Composable
 private fun WebhookEditorBody(
-    padding: androidx.compose.foundation.layout.PaddingValues,
+    padding: PaddingValues,
     viewModel: WebhookEditorViewModel,
     navigateBack: () -> Unit
 ) {

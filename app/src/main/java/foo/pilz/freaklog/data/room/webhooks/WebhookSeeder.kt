@@ -55,7 +55,7 @@ class WebhookSeeder @Inject constructor(
         val legacyTemplate = userPreferences.readWebhookTemplate().first()
 
         val seededWebhook = Webhook(
-            name = legacyName.ifBlank { "Webhook" },
+            name = legacyName.ifBlank { "Migrated webhook" },
             url = legacyUrl,
             displayName = legacyName,
             template = legacyTemplate,

@@ -45,6 +45,11 @@ data class JournalExport(
     val webhooks: List<WebhookSerializable> = emptyList()
 )
 
+/**
+ * Serializable representation of [Webhook] for journal export/import. Older
+ * exports lack the `webhooks` field; default values keep deserialization
+ * backwards-compatible.
+ */
 @Serializable
 data class WebhookSerializable(
     val name: String,
