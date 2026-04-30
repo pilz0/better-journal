@@ -21,7 +21,6 @@ package foo.pilz.freaklog.data.substances.classes
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.substances.classes.roa.Roa
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
-import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull

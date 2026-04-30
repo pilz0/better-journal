@@ -82,7 +82,6 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.components.DataForOneEffectL
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.TimeDisplayOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.AllTimelines
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.AllTimelinesModel
-import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.WeightedLine
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.dose.RoaDosePreviewProvider
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.dose.RoaDoseView
 import foo.pilz.freaklog.ui.theme.horizontalPadding

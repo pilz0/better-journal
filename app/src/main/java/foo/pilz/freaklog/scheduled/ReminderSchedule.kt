@@ -7,7 +7,6 @@ package foo.pilz.freaklog.scheduled
 import foo.pilz.freaklog.data.room.reminders.entities.Reminder
 import java.time.DayOfWeek
 import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
 
