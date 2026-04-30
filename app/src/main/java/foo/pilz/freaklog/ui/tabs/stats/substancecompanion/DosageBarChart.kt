@@ -98,11 +98,11 @@ fun DosageBarChart(
     buckets: List<DosageBucket>,
     barColor: Color,
     showAverage: Boolean,
+    modifier: Modifier = Modifier,
     showTrendLine: Boolean = false,
     metric: DosageMetric = DosageMetric.TOTAL_DOSE,
     doseThresholds: DoseThresholds? = null,
     onBarTapped: ((Int) -> Unit)? = null,
-    modifier: Modifier = Modifier,
     height: Dp = 200.dp
 ) {
     if (buckets.isEmpty()) return

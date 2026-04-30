@@ -31,13 +31,15 @@
     <application
         android:name=".di.JournalApplication"
         android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:enableOnBackInvokedCallback="true"
-        android:fullBackupContent="false"
+        android:fullBackupContent="@xml/full_backup_content"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.App.Starting">
+        android:theme="@style/Theme.App.Starting"
+        tools:targetApi="33">
         <activity
             android:name=".MainActivity"
             android:exported="true"
