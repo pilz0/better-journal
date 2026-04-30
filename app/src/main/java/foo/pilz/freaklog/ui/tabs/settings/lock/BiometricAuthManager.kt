@@ -176,7 +176,8 @@ class BiometricAuthManager @Inject constructor(
         // Ephemeral challenge: the ciphertext is intentionally discarded. The purpose is
         // to prove that this prompt returned an authenticated Keystore cipher operation
         // before unlocking the in-memory app-lock overlay.
-        val challenge = ByteArray(AUTH_CHALLENGE_SIZE_BYTES).also { SecureRandom().nextBytes(it) }
+        val secureRandom = SecureRandom()
+        val challenge = ByteArray(AUTH_CHALLENGE_SIZE_BYTES).also { secureRandom.nextBytes(it) }
         val executor = androidx.core.content.ContextCompat.getMainExecutor(activity)
         val callback = object : BiometricPrompt.AuthenticationCallback() {
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
@@ -217,6 +218,8 @@ class BiometricAuthManager @Inject constructor(
         try {
             cipher.init(Cipher.ENCRYPT_MODE, getOrCreateSecretKey())
         } catch (e: InvalidKeyException) {
+            // The auth key can be invalidated when the enrolled biometrics change.
+            // Regenerate it once so the user can authenticate with the new enrollment.
             deleteSecretKey()
             try {
                 cipher.init(Cipher.ENCRYPT_MODE, getOrCreateSecretKey())
@@ -232,7 +235,13 @@ class BiometricAuthManager @Inject constructor(
 
     private fun getOrCreateSecretKey(): SecretKey {
         val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
-        (keyStore.getKey(AUTH_KEY_ALIAS, null) as? SecretKey)?.let { return it }
+        val existingKey = try {
+            keyStore.getKey(AUTH_KEY_ALIAS, null) as? SecretKey
+        } catch (e: GeneralSecurityException) {
+            keyStore.deleteEntry(AUTH_KEY_ALIAS)
+            null
+        }
+        existingKey?.let { return it }
 
         val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE)
         val keySpec = KeyGenParameterSpec.Builder(
@@ -242,8 +251,9 @@ class BiometricAuthManager @Inject constructor(
             .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
             .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
             .setUserAuthenticationRequired(true)
-            // Timeout 0 requires the current BiometricPrompt to authorize every key use.
-            // Lock timing is still controlled separately by LockTimeOption/_isUnlocked.
+            // Timeout 0 prevents this key from being used by any cached auth state: each
+            // cipher operation must be authorized by the current BiometricPrompt. Lock
+            // timing is still controlled separately by LockTimeOption/_isUnlocked.
             .setUserAuthenticationParameters(0, KeyProperties.AUTH_BIOMETRIC_STRONG)
             .setInvalidatedByBiometricEnrollment(true)
             .build()
