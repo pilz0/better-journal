@@ -79,8 +79,15 @@ class BiometricAuthManager @Inject constructor(
         const val ANDROID_KEYSTORE = "AndroidKeyStore"
         const val AUTH_KEY_ALIAS = "freaklog_app_lock_auth"
         const val KEY_ALGORITHM = KeyProperties.KEY_ALGORITHM_AES
-        const val CIPHER_TRANSFORMATION = "AES/CBC/PKCS7Padding"
+
+        // Use authenticated encryption (AES-GCM). CBC mode without a MAC is considered a
+        // risky / broken cryptographic construction by CodeQL because it offers no
+        // integrity protection.
+        const val CIPHER_TRANSFORMATION = "AES/GCM/NoPadding"
         const val AUTH_CHALLENGE_SIZE_BYTES = 32
+
+        /** Size of the GCM authentication tag in bytes (128 bits, the JCA default). */
+        const val GCM_TAG_LENGTH_BYTES = 16
         const val STRONG_BIOMETRIC_AUTHENTICATOR = BiometricManager.Authenticators.BIOMETRIC_STRONG
         const val ERROR_AUTH_NOT_VERIFIED = "Biometric authentication could not be verified."
     }
@@ -190,7 +197,11 @@ class BiometricAuthManager @Inject constructor(
                 }
                 try {
                     val proof = cipher.doFinal(challenge)
-                    if (proof.size < challenge.size || proof.size % cipher.blockSize != 0) {
+                    // AES-GCM output is `plaintext.size + 16-byte authentication tag`.
+                    // A successful doFinal on a Keystore-bound cipher already proves the
+                    // user authenticated; verify the result is at least as large as the
+                    // input plus the tag as a defence-in-depth sanity check.
+                    if (proof.size < challenge.size + GCM_TAG_LENGTH_BYTES) {
                         onError(ERROR_AUTH_NOT_VERIFIED)
                         return
                     }
@@ -256,8 +267,8 @@ class BiometricAuthManager @Inject constructor(
             AUTH_KEY_ALIAS,
             KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
         )
-            .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
             .setUserAuthenticationRequired(true)
             // Timeout 0 prevents this key from being used by any cached auth state: each
             // cipher operation must be authorized by the current BiometricPrompt. Lock
