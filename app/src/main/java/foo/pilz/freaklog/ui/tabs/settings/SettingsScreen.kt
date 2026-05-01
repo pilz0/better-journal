@@ -30,8 +30,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -138,6 +138,7 @@ fun SettingsPreview() {
         )
 }
 
+@Suppress("LongParameterList")
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
@@ -198,6 +199,7 @@ fun SettingsScreen(
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
+@Suppress("LongParameterList", "LongMethod")
 @Composable
 fun SettingsScreen(
     navigateToFAQ: () -> Unit,
@@ -607,6 +609,7 @@ private fun SettingsSwitchRow(
     }
 }
 
+@Suppress("LongParameterList")
 @Composable
 private fun VisibleTabsDialog(
     visible: Boolean,
