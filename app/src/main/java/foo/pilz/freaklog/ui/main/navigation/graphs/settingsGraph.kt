@@ -21,8 +21,8 @@ package foo.pilz.freaklog.ui.main.navigation.graphs
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigation
-import foo.pilz.freaklog.ui.main.navigation.composableWithTransitions
 import foo.pilz.freaklog.ui.main.navigation.SettingsTopLevelRoute
+import foo.pilz.freaklog.ui.main.navigation.composableWithTransitions
 import foo.pilz.freaklog.ui.tabs.settings.FAQScreen
 import foo.pilz.freaklog.ui.tabs.settings.SettingsScreen
 import foo.pilz.freaklog.ui.tabs.settings.colors.SubstanceColorsScreen
@@ -38,6 +38,7 @@ import foo.pilz.freaklog.ui.tabs.settings.webhooks.WebhookEditorScreen
 import foo.pilz.freaklog.ui.tabs.settings.webhooks.WebhooksListScreen
 import kotlinx.serialization.Serializable
 
+@Suppress("LongMethod")
 fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
     navigation<SettingsTopLevelRoute>(
         startDestination = SettingsScreenRoute,

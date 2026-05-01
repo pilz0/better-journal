@@ -16,8 +16,8 @@ import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
@@ -277,7 +277,7 @@ class WebhookServiceHttpTest {
         // The URL inside the link must be percent- or plus-encoded.
         assertTrue("expected encoded URL in: $content",
             content.contains("https://example.org/s/5-MeO-DMT+freebase") ||
-            content.contains("https://example.org/s/5-MeO-DMT%20freebase"))
+                content.contains("https://example.org/s/5-MeO-DMT%20freebase"))
     }
 
     @Test
