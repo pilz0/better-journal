@@ -2,6 +2,7 @@ package com.ndm4.freakquery
 
 import java.io.File
 import java.io.InputStream
+import java.util.Locale
 
 object FreakQuery {
     const val VERSION = "3.2.2"
@@ -64,7 +65,7 @@ object FreakQuery {
         val raw = tag.trim()
         if (raw.isEmpty()) return ""
 
-        val low = raw.lowercase()
+        val low = raw.lowercase(Locale.ROOT)
         if (low == "version") return ctx.config.version
         if (low == "version|json" || low == "json|version") return """{"version":"${ctx.config.version}"}"""
 
@@ -75,7 +76,7 @@ object FreakQuery {
         val plan = Planner.buildPlan(parts, ctx.config)
         if (emptyPlan(plan)) return unknownError(raw)
 
-        val wantedField = parts.firstOrNull { it.lowercase().startsWith("field=") }?.substringAfter("=")?.trim()
+        val wantedField = parts.firstOrNull { it.lowercase(Locale.ROOT).startsWith("field=") }?.substringAfter("=")?.trim()
 
         val filtered: Rows = Filters.apply(data.toList(), plan, ctx)
         val grouped: Any = Grouping.apply(filtered, plan, ctx)

@@ -110,7 +110,7 @@ private fun WebhookEditorBody(
         Text(
             "Placeholders: {user}, {dose}, {units}, {substance}, {route}, {site}, {note}. " +
                 "Square-bracketed blocks are removed when their placeholder is empty. " +
-                "FreakQuery tags like {{today|substance=A-PVP|sum=dose}} are supported.",
+                "FreakQuery tags like {{today|substance=A-PVP|sum_dose}} are supported.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

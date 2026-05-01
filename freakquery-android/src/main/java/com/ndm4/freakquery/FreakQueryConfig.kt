@@ -1,7 +1,7 @@
 package com.ndm4.freakquery
 
 data class FreakQueryConfig(
-    val version: String = "3.2.1",
+    val version: String = FreakQuery.VERSION,
     val defaultFormat: String = "text",
     val renderSeparator: String = ", ",
     val renderParens: Boolean = true,

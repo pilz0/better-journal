@@ -327,40 +327,59 @@ class WebhookService internal constructor(
         return processed
     }
 
-    private fun anodyneAliasMap(): Map<String, String> =
+    private val cachedAnodyneAliasMap: Map<String, String> by lazy {
         AnodyneAliases.map.mapKeys { Aliases.norm(it.key) }
+    }
+
+    private fun anodyneAliasMap(): Map<String, String> = cachedAnodyneAliasMap
+
+    private fun buildHyperlinkRegex(names: List<String>): Regex? {
+        val escapedAlternatives = names
+            .asSequence()
+            .filter { it.length >= 3 }
+            .distinct()
+            .sortedByDescending { it.length }
+            .map { java.util.regex.Pattern.quote(it) }
+            .toList()
+
+        if (escapedAlternatives.isEmpty()) return null
+
+        val combinedPattern = escapedAlternatives.joinToString("|")
+        return "(?<!\\[|/|=)\\b(?:$combinedPattern)\\b(?!\\s*]\\(|>)".toRegex()
+    }
+
+    private fun markdownLinkRanges(text: String): List<IntRange> =
+        Regex("\\[[^\\]]+\\]\\(<[^>]+>\\)").findAll(text).map { it.range }.toList()
+
+    private fun IntRange.isInsideMarkdownLink(linkRanges: List<IntRange>): Boolean =
+        linkRanges.any { linkRange ->
+            first >= linkRange.first && last <= linkRange.last
+        }
 
     private fun hyperlinkSubstancesInText(
         text: String,
         substanceInfoUrl: String,
         primarySubstance: String
     ): String {
-        var result = text
         val names = (listOf(primarySubstance) + sortedSubstances)
+            .filter { it.length >= 3 }
             .distinct()
             .sortedByDescending { it.length }
-        for (name in names) {
-            if (name.length < 3) continue
+        val regex = buildHyperlinkRegex(names) ?: return text
+        val existingLinkRanges = markdownLinkRanges(text)
+        val aliasMap = anodyneAliasMap()
 
-            val escapedName = java.util.regex.Pattern.quote(name)
-            val regex = "(?<!\\[|/|=)\\b$escapedName\\b(?!\\s*]\\(|>)".toRegex()
-
-            result = regex.replace(result) { match ->
-                if (match.range.isInsideMarkdownLink(result)) {
-                    match.value
-                } else {
-                    val canonicalName = AnodyneAliases.map[match.value] ?: match.value
-                    val encodedSubstance = java.net.URLEncoder.encode(canonicalName, "UTF-8")
-                        .replace("+", "%20")
-                    "[${match.value}](<$substanceInfoUrl$encodedSubstance>)"
-                }
+        return regex.replace(text) { match ->
+            if (match.range.isInsideMarkdownLink(existingLinkRanges)) {
+                match.value
+            } else {
+                val canonicalName = AnodyneAliases.map[match.value]
+                    ?: aliasMap[Aliases.norm(match.value)]
+                    ?: match.value
+                val encodedSubstance = java.net.URLEncoder.encode(canonicalName, "UTF-8")
+                    .replace("+", "%20")
+                "[${match.value}](<$substanceInfoUrl$encodedSubstance>)"
             }
         }
-        return result
     }
-
-    private fun IntRange.isInsideMarkdownLink(text: String): Boolean =
-        Regex("\\[[^\\]]+\\]\\(<[^>]+>\\)").findAll(text).any { link ->
-            first >= link.range.first && last <= link.range.last
-        }
 }
