@@ -152,6 +152,8 @@ tasks.withType<io.gitlab.arturbosch.detekt.DetektCreateBaselineTask>().configure
 }
 
 dependencies {
+    implementation(project(":freakquery-android"))
+
     detektPlugins(libs.detekt.formatting)
 }
 

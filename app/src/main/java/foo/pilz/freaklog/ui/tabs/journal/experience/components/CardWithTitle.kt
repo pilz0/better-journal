@@ -40,7 +40,7 @@ fun CardWithTitle(
     innerPaddingHorizontal: Dp = horizontalPadding,
     content: @Composable (ColumnScope.() -> Unit)
 ) {
-    ElevatedCard(modifier = modifier.padding(vertical = 6.dp)) {
+    ElevatedCard(modifier = modifier.fillMaxWidth().padding(vertical = 6.dp)) {
         Column(modifier = Modifier.padding(vertical = 8.dp)) {
             Text(
                 text = title,

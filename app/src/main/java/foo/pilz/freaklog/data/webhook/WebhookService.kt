@@ -18,8 +18,15 @@
 
 package foo.pilz.freaklog.data.webhook
 
+import com.ndm4.freakquery.Aliases
+import com.ndm4.freakquery.AnodyneAliases
+import com.ndm4.freakquery.DefaultAliases
+import com.ndm4.freakquery.FreakQueryConfig
+import foo.pilz.freaklog.data.freakquery.FreakQueryRepository
+import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -52,11 +59,18 @@ private object AndroidWebhookLogger : WebhookLogger {
 
 @Singleton
 class WebhookService internal constructor(
-    private val logger: WebhookLogger,
-    private val delayMillis: suspend (Long) -> Unit,
+    private val freakQueryRepository: FreakQueryRepository? = null,
+    private val userPreferences: UserPreferences? = null,
+    private val logger: WebhookLogger = AndroidWebhookLogger,
+    private val delayMillis: suspend (Long) -> Unit = ::delay,
 ) {
 
-    @Inject constructor() : this(AndroidWebhookLogger, ::delay)
+    @Inject constructor(
+        freakQueryRepository: FreakQueryRepository,
+        userPreferences: UserPreferences
+    ) : this(freakQueryRepository, userPreferences, AndroidWebhookLogger, ::delay)
+
+    private val sortedSubstances = AnodyneAliases.map.keys.sortedByDescending { it.length }
 
     companion object {
         const val DEFAULT_TEMPLATE = "{user}: [{dose} {units} ]{substance} via {route}[ at {site}][\n> {note}]"
@@ -181,15 +195,9 @@ class WebhookService internal constructor(
             unitString = ""
         }
 
-        var displaySubstance = substance
-        if (isHyperlinked) {
-            val encodedSub = java.net.URLEncoder.encode(substance, "UTF-8")
-            displaySubstance = "[$substance](<$substanceInfoUrl$encodedSub>)"
-        }
-
         val values = mapOf(
             "user" to user,
-            "substance" to displaySubstance,
+            "substance" to substance,
             "dose" to doseString,
             "units" to unitString,
             "route" to route,
@@ -198,8 +206,25 @@ class WebhookService internal constructor(
         )
 
         val content = processTemplate(template, values)
+        val freakQueryContent = if (userPreferences?.webhookUseFreakQueryFlow?.first() != false) {
+            val separator = userPreferences?.webhookFreakQuerySeparatorFlow?.first() ?: ", "
+            val config = FreakQueryConfig(
+                renderSeparator = separator,
+                aliases = DefaultAliases.all + ("substance" to anodyneAliasMap())
+            )
+            freakQueryRepository?.render(content, config) ?: content
+        } else {
+            content
+        }
+
+        val finalContent = if (isHyperlinked) {
+            hyperlinkSubstancesInText(freakQueryContent, substanceInfoUrl, substance)
+        } else {
+            freakQueryContent
+        }
+
         val payload = buildJsonObject {
-            put("content", content)
+            put("content", finalContent)
         }
 
         var lastError: Exception? = null
@@ -300,5 +325,61 @@ class WebhookService internal constructor(
             processed = processed.replace("{$key}", value)
         }
         return processed
+    }
+
+    private val cachedAnodyneAliasMap: Map<String, String> by lazy {
+        AnodyneAliases.map.mapKeys { Aliases.norm(it.key) }
+    }
+
+    private fun anodyneAliasMap(): Map<String, String> = cachedAnodyneAliasMap
+
+    private fun buildHyperlinkRegex(names: List<String>): Regex? {
+        val escapedAlternatives = names
+            .asSequence()
+            .filter { it.length >= 3 }
+            .distinct()
+            .sortedByDescending { it.length }
+            .map { java.util.regex.Pattern.quote(it) }
+            .toList()
+
+        if (escapedAlternatives.isEmpty()) return null
+
+        val combinedPattern = escapedAlternatives.joinToString("|")
+        return "(?<!\\[|/|=)\\b(?:$combinedPattern)\\b(?!\\s*]\\(|>)".toRegex()
+    }
+
+    private fun markdownLinkRanges(text: String): List<IntRange> =
+        Regex("\\[[^\\]]+\\]\\(<[^>]+>\\)").findAll(text).map { it.range }.toList()
+
+    private fun IntRange.isInsideMarkdownLink(linkRanges: List<IntRange>): Boolean =
+        linkRanges.any { linkRange ->
+            first >= linkRange.first && last <= linkRange.last
+        }
+
+    private fun hyperlinkSubstancesInText(
+        text: String,
+        substanceInfoUrl: String,
+        primarySubstance: String
+    ): String {
+        val names = (listOf(primarySubstance) + sortedSubstances)
+            .filter { it.length >= 3 }
+            .distinct()
+            .sortedByDescending { it.length }
+        val regex = buildHyperlinkRegex(names) ?: return text
+        val existingLinkRanges = markdownLinkRanges(text)
+        val aliasMap = anodyneAliasMap()
+
+        return regex.replace(text) { match ->
+            if (match.range.isInsideMarkdownLink(existingLinkRanges)) {
+                match.value
+            } else {
+                val canonicalName = AnodyneAliases.map[match.value]
+                    ?: aliasMap[Aliases.norm(match.value)]
+                    ?: match.value
+                val encodedSubstance = java.net.URLEncoder.encode(canonicalName, "UTF-8")
+                    .replace("+", "%20")
+                "[${match.value}](<$substanceInfoUrl$encodedSubstance>)"
+            }
+        }
     }
 }

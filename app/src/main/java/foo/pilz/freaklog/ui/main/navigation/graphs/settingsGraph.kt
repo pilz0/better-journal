@@ -30,6 +30,7 @@ import foo.pilz.freaklog.ui.tabs.settings.combinations.CombinationSettingsScreen
 import foo.pilz.freaklog.ui.tabs.settings.customunits.CustomUnitsScreen
 import foo.pilz.freaklog.ui.tabs.settings.customunits.archive.CustomUnitArchiveScreen
 import foo.pilz.freaklog.ui.tabs.settings.customunits.edit.EditCustomUnitScreen
+import foo.pilz.freaklog.ui.tabs.settings.freakquery.FreakQueryShellScreen
 import foo.pilz.freaklog.ui.tabs.settings.funny.AchievementsScreen
 import foo.pilz.freaklog.ui.tabs.settings.reminders.EditReminderScreen
 import foo.pilz.freaklog.ui.tabs.settings.reminders.RemindersScreen
@@ -63,6 +64,9 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
                 },
                 navigateToAchievements = {
                     navController.navigate(AchievementsRoute)
+                },
+                navigateToFreakQueryShell = {
+                    navController.navigate(FreakQueryShellRoute)
                 }
             )
         }
@@ -78,6 +82,9 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
             EditReminderScreen(navigateBack = navController::popBackStack)
         }
         composableWithTransitions<FAQRoute> { FAQScreen() }
+        composableWithTransitions<FreakQueryShellRoute> {
+            FreakQueryShellScreen(navigateBack = navController::popBackStack)
+        }
         composableWithTransitions<AchievementsRoute> { AchievementsScreen() }
         composableWithTransitions<CombinationSettingsRoute> { CombinationSettingsScreen() }
         composableWithTransitions<SubstanceColorsRoute> { SubstanceColorsScreen() }
@@ -122,6 +129,9 @@ object SettingsScreenRoute
 
 @Serializable
 object FAQRoute
+
+@Serializable
+object FreakQueryShellRoute
 
 @Serializable
 object CombinationSettingsRoute

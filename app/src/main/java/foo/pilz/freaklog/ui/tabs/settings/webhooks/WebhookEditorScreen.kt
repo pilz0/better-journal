@@ -109,12 +109,30 @@ private fun WebhookEditorBody(
         )
         Text(
             "Placeholders: {user}, {dose}, {units}, {substance}, {route}, {site}, {note}. " +
-                "Square-bracketed blocks are removed when their placeholder is empty.",
+                "Square-bracketed blocks are removed when their placeholder is empty. " +
+                "FreakQuery tags like {{today|substance=A-PVP|sum_dose}} are supported.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         SwitchRow("Enabled", viewModel.isEnabled) { viewModel.isEnabled = it }
-        SwitchRow("Link substance to wiki", viewModel.isHyperlinked) { viewModel.isHyperlinked = it }
+        SwitchRow("Link substances to Anodyne wiki", viewModel.isHyperlinked) { viewModel.isHyperlinked = it }
+        SwitchRow("Enable FreakQuery tags", viewModel.useFreakQuery) {
+            viewModel.useFreakQuery = it
+        }
+        if (viewModel.useFreakQuery) {
+            OutlinedTextField(
+                value = viewModel.freakQuerySeparator,
+                onValueChange = { viewModel.freakQuerySeparator = it },
+                label = { Text("FreakQuery compact separator") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Text(
+                "Used by compact FreakQuery output and row parts. Tags can still override it with sep=...",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
         Button(
             onClick = { viewModel.save(navigateBack) },
             enabled = viewModel.canSave,

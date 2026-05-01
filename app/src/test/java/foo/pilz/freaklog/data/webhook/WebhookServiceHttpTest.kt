@@ -10,7 +10,14 @@
 
 package foo.pilz.freaklog.data.webhook
 
+import com.ndm4.freakquery.FreakQueryConfig
+import foo.pilz.freaklog.data.freakquery.FreakQueryRepository
+import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.flowOf
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
@@ -76,6 +83,25 @@ class WebhookServiceHttpTest {
 
     private fun enqueue(status: Int, body: String = "") {
         server.enqueue(MockResponse().setResponseCode(status).setBody(body))
+    }
+
+    private fun serviceWithFreakQuery(
+        separator: String = ", ",
+        render: suspend (String, FreakQueryConfig) -> String
+    ): WebhookService {
+        val repo = mockk<FreakQueryRepository>()
+        val prefs = mockk<UserPreferences>()
+        every { prefs.webhookUseFreakQueryFlow } returns flowOf(true)
+        every { prefs.webhookFreakQuerySeparatorFlow } returns flowOf(separator)
+        coEvery { repo.render(any(), any()) } coAnswers {
+            render(firstArg(), secondArg())
+        }
+        return WebhookService(
+            freakQueryRepository = repo,
+            userPreferences = prefs,
+            logger = WebhookLogger { _, _ -> },
+            delayMillis = { },
+        )
     }
 
     /**
@@ -251,7 +277,43 @@ class WebhookServiceHttpTest {
         // The URL inside the link must be percent- or plus-encoded.
         assertTrue("expected encoded URL in: $content",
             content.contains("https://example.org/s/5-MeO-DMT+freebase") ||
-                content.contains("https://example.org/s/5-MeO-DMT%20freebase"))
+            content.contains("https://example.org/s/5-MeO-DMT%20freebase"))
+    }
+
+    @Test
+    fun sendWebhook_rendersFreakQueryTemplateBeforePosting() = runBlocking {
+        enqueue(200, """{"id":"x"}""")
+        val service = serviceWithFreakQuery { template, _ ->
+            template.replace("{{today|count}}", "2")
+        }
+
+        service.sendWebhook(
+            url = baseUrl,
+            user = "u", substance = "Caffeine", dose = null, units = null,
+            isEstimate = false, route = "oral", site = null, note = null,
+            template = "Today: {{today|count}}", isHyperlinked = false,
+        )
+
+        val payload = JSONObject(takeRequest().body.readUtf8())
+        assertEquals("Today: 2", payload.getString("content"))
+    }
+
+    @Test
+    fun sendWebhook_passesConfiguredFreakQueryCompactSeparator() = runBlocking {
+        enqueue(200, """{"id":"x"}""")
+        val service = serviceWithFreakQuery(separator = " | ") { _, config ->
+            "separator=${config.renderSeparator}"
+        }
+
+        service.sendWebhook(
+            url = baseUrl,
+            user = "u", substance = "Caffeine", dose = null, units = null,
+            isEstimate = false, route = "oral", site = null, note = null,
+            template = "{{today|compact=true}}", isHyperlinked = false,
+        )
+
+        val payload = JSONObject(takeRequest().body.readUtf8())
+        assertEquals("separator= | ", payload.getString("content"))
     }
 
     @Test

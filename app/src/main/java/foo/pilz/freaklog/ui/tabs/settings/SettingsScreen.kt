@@ -18,7 +18,6 @@
 
 package foo.pilz.freaklog.ui.tabs.settings
 
-import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -77,7 +76,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -102,6 +100,7 @@ fun SettingsPreview() {
         navigateToCustomUnits = {},
         navigateToReminders = {},
         navigateToWebhook = {},
+        navigateToFreakQueryShell = {},
         importFile = {},
         exportFile = {},
         snackbarHostState = remember { SnackbarHostState() },
@@ -149,6 +148,7 @@ fun SettingsScreen(
     navigateToCustomUnits: () -> Unit,
     navigateToReminders: () -> Unit,
     navigateToAchievements: () -> Unit = {},
+    navigateToFreakQueryShell: () -> Unit = {},
 ) {
     SettingsScreen(
         navigateToFAQ = navigateToFAQ,
@@ -158,6 +158,7 @@ fun SettingsScreen(
         navigateToCustomUnits = navigateToCustomUnits,
         navigateToReminders = navigateToReminders,
         navigateToAchievements = navigateToAchievements,
+        navigateToFreakQueryShell = navigateToFreakQueryShell,
         deleteEverything = viewModel::deleteEverything,
         importFile = viewModel::importFile,
         exportFile = viewModel::exportFile,
@@ -206,6 +207,7 @@ fun SettingsScreen(
     navigateToCustomUnits: () -> Unit,
     navigateToReminders: () -> Unit,
     navigateToAchievements: () -> Unit = {},
+    navigateToFreakQueryShell: () -> Unit = {},
     deleteEverything: () -> Unit,
     importFile: (uri: Uri) -> Unit,
     exportFile: (uri: Uri) -> Unit,
@@ -259,21 +261,37 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            CardWithTitle(title = "UI", innerPaddingHorizontal = 0.dp) {
+            var isShowingVisibleTabsDialog by remember { mutableStateOf(false) }
+            var isShowingExportDialog by remember { mutableStateOf(false) }
+            var isShowingImportDialog by remember { mutableStateOf(false) }
+            var isShowingDeleteDialog by remember { mutableStateOf(false) }
+            val jsonMIMEType = "application/json"
+            val scope = rememberCoroutineScope()
+            val uriHandler = LocalUriHandler.current
+            val launcherExport =
+                rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.CreateDocument(
+                        mimeType = jsonMIMEType
+                    )
+                ) { uri ->
+                    if (uri != null) {
+                        exportFile(uri)
+                    }
+                }
+            val launcherImport =
+                rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri ->
+                    if (uri != null) {
+                        importFile(uri)
+                    }
+                }
+
+            CardWithTitle(title = "Manage", innerPaddingHorizontal = 0.dp) {
                 SettingsButton(
                     imageVector = Icons.Outlined.Medication,
                     text = "Custom units"
                 ) {
                     performHaptic(HapticType.CLICK)
                     navigateToCustomUnits()
-                }
-                HorizontalDivider()
-                SettingsButton(
-                    imageVector = Icons.Outlined.Palette,
-                    text = "Substance colors"
-                ) {
-                    performHaptic(HapticType.CLICK)
-                    navigateToSubstanceColors()
                 }
                 HorizontalDivider()
                 SettingsButton(
@@ -284,6 +302,13 @@ fun SettingsScreen(
                     navigateToComboSettings()
                 }
                 HorizontalDivider()
+                SettingsButton(imageVector = Icons.Outlined.Webhook, text = "Webhooks") {
+                    performHaptic(HapticType.CLICK)
+                    navigateToWebhook()
+                }
+            }
+
+            CardWithTitle(title = "Automation", innerPaddingHorizontal = 0.dp) {
                 SettingsButton(
                     imageVector = Icons.Outlined.Notifications,
                     text = "Reminders"
@@ -293,14 +318,23 @@ fun SettingsScreen(
                 }
                 HorizontalDivider()
                 SettingsButton(
-                    imageVector = Icons.Outlined.EmojiEvents,
-                    text = "Achievements"
+                    imageVector = Icons.Outlined.Code,
+                    text = "FreakQuery shell"
                 ) {
                     performHaptic(HapticType.CLICK)
-                    navigateToAchievements()
+                    navigateToFreakQueryShell()
+                }
+            }
+
+            CardWithTitle(title = "Appearance", innerPaddingHorizontal = 0.dp) {
+                SettingsButton(
+                    imageVector = Icons.Outlined.Palette,
+                    text = "Substance colors"
+                ) {
+                    performHaptic(HapticType.CLICK)
+                    navigateToSubstanceColors()
                 }
                 HorizontalDivider()
-                var isShowingVisibleTabsDialog by remember { mutableStateOf(false) }
                 SettingsButton(
                     imageVector = Icons.Outlined.Visibility,
                     text = "Visible tabs"
@@ -308,188 +342,53 @@ fun SettingsScreen(
                     performHaptic(HapticType.CLICK)
                     isShowingVisibleTabsDialog = true
                 }
-                AnimatedVisibility(visible = isShowingVisibleTabsDialog) {
-                    AlertDialog(
-                        onDismissRequest = { isShowingVisibleTabsDialog = false },
-                        title = { Text("Visible tabs") },
-                        text = {
-                            Column {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            performHaptic(HapticType.TOGGLE)
-                                            saveIsStatsHidden(!isStatsHidden)
-                                        }
-                                ) {
-                                    Checkbox(
-                                        checked = !isStatsHidden,
-                                        onCheckedChange = {
-                                            performHaptic(HapticType.TOGGLE)
-                                            saveIsStatsHidden(!it)
-                                        }
-                                    )
-                                    Text("Stats")
-                                }
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            performHaptic(HapticType.TOGGLE)
-                                            saveIsDrugsHidden(!isDrugsHidden)
-                                        }
-                                ) {
-                                    Checkbox(
-                                        checked = !isDrugsHidden,
-                                        onCheckedChange = {
-                                            performHaptic(HapticType.TOGGLE)
-                                            saveIsDrugsHidden(!it)
-                                        }
-                                    )
-                                    Text("Drugs")
-                                }
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            performHaptic(HapticType.TOGGLE)
-                                            saveActivateSafer(!activateSafer)
-                                        }
-                                ) {
-                                    Checkbox(
-                                        checked = !activateSafer,
-                                        onCheckedChange = {
-                                            performHaptic(HapticType.TOGGLE)
-                                            saveActivateSafer(!it)
-                                        }
-                                    )
-                                    Text("Safer Use")
-                                }
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            performHaptic(HapticType.TOGGLE)
-                                            saveIsInventoryEnabled(!isInventoryEnabled)
-                                        }
-                                ) {
-                                    Checkbox(
-                                        checked = isInventoryEnabled,
-                                        onCheckedChange = {
-                                            performHaptic(HapticType.TOGGLE)
-                                            saveIsInventoryEnabled(it)
-                                        }
-                                    )
-                                    Text("Inventory")
-                                }
-                            }
-                        },
-                        confirmButton = {
-                            TextButton(onClick = { isShowingVisibleTabsDialog = false }) {
-                                Text("Done")
-                            }
-                        }
-                    )
-                }
                 HorizontalDivider()
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = horizontalPadding),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = "Hide dosage dots")
-                    Switch(
-                        checked = areDosageDotsHidden,
-                        onCheckedChange = { 
-                            performHaptic(HapticType.TOGGLE)
-                            saveDosageDotsAreHidden(it)
-                        }
-                    )
-                }
+                SettingsSwitchRow(
+                    text = "Hide dosage dots",
+                    checked = areDosageDotsHidden,
+                    onCheckedChange = {
+                        performHaptic(HapticType.TOGGLE)
+                        saveDosageDotsAreHidden(it)
+                    }
+                )
                 HorizontalDivider()
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = horizontalPadding),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = "Hide timeline")
-                    Switch(
-                        checked = isTimelineHidden,
-                        onCheckedChange = { 
-                            performHaptic(HapticType.TOGGLE)
-                            saveIsTimelineHidden(it)
-                        }
-                    )
-                }
+                SettingsSwitchRow(
+                    text = "Hide timeline",
+                    checked = isTimelineHidden,
+                    onCheckedChange = {
+                        performHaptic(HapticType.TOGGLE)
+                        saveIsTimelineHidden(it)
+                    }
+                )
                 HorizontalDivider()
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = horizontalPadding),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = "Show redose recommendation")
-                    Switch(
-                        checked = isRedoseShown,
-                        onCheckedChange = {
-                            performHaptic(HapticType.TOGGLE)
-                            saveRedoseShown(it)
-                        }
-                    )
-                }
-                if (isRedoseShown) {
-                    RedoseFractionsSection(
-                        onsetFraction = redoseOnsetFraction,
-                        comeupFraction = redoseComeupFraction,
-                        peakFraction = redosePeakFraction,
-                        onSave = saveRedoseFractions
-                    )
-                }
-                HorizontalDivider()
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = horizontalPadding),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-                    var showBottomSheet by remember { mutableStateOf(false) }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(5.dp),
-                        modifier = Modifier
-                            .clickable {
-                                performHaptic(HapticType.CLICK)
-                                showBottomSheet = true
-                            }
-                            .padding(end = ButtonDefaults.IconSpacing)
-                    ) {
-                        Text(text = "Independent substance heights")
+                SettingsSwitchRow(
+                    text = "Independent substance heights",
+                    checked = areSubstanceHeightsIndependent,
+                    description = "Scale each substance and route independently in timelines.",
+                    trailingInfo = {
+                        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+                        var showBottomSheet by remember { mutableStateOf(false) }
+                        Icon(
+                            Icons.Outlined.Info,
+                            contentDescription = "Show more info",
+                            modifier = Modifier
+                                .clickable {
+                                    performHaptic(HapticType.CLICK)
+                                    showBottomSheet = true
+                                }
+                                .padding(8.dp)
+                        )
                         if (showBottomSheet) {
                             ModalBottomSheet(
-                                onDismissRequest = {
-                                    showBottomSheet = false
-                                },
+                                onDismissRequest = { showBottomSheet = false },
                                 sheetState = sheetState
                             ) {
                                 Text(
                                     text = """
-                                    Enable this setting if you want the timeline of different substances and routes of administration (roas) to be independent. Then ingestions of different substances and roas will always take the full height of the timeline.
-                                    
-                                    If this setting is disabled then timelines of different substances have a height relative to each other. In that case the average of the common dose is used as the point to compare it to.
-                                    E.g. if the oral average common dose of MDMA is 100mg and the average common dose of insufflated MDMA is 50mg then the timeline for 100mg of oral MDMA is the same height as for 50mg of insufflated MDMA.
-                                    This is also applied across substances. E.g. if the common dose of oral 2C-B is 20mg then the timeline of 40mg oral 2C-B will be twice as high as 100mg of oral MDMA.
-                                """.trimIndent(),
+                                        Enable this if you want timelines for different substances and routes of administration to use their own height scale.
+
+                                        When disabled, timeline heights are relative across substances and routes using average common doses.
+                                    """.trimIndent(),
                                     modifier = Modifier
                                         .padding(horizontal = horizontalPadding)
                                         .padding(bottom = 15.dp)
@@ -497,37 +396,54 @@ fun SettingsScreen(
                                 )
                             }
                         }
-                        Icon(Icons.Outlined.Info, contentDescription = "Show more info")
+                    },
+                    onCheckedChange = {
+                        performHaptic(HapticType.TOGGLE)
+                        saveAreSubstanceHeightsIndependent(it)
                     }
-                    Switch(
-                        checked = areSubstanceHeightsIndependent,
-                        onCheckedChange = { 
-                            performHaptic(HapticType.TOGGLE)
-                            saveAreSubstanceHeightsIndependent(it)
-                        }
-                    )
-                }
+                )
                 HorizontalDivider()
+                SettingsSwitchRow(
+                    text = "Haptic feedback",
+                    checked = isHapticFeedbackEnabled,
+                    onCheckedChange = {
+                        performHaptic(HapticType.TOGGLE)
+                        saveHapticFeedbackEnabled(it)
+                    }
+                )
+            }
 
-                HorizontalDivider()
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = horizontalPadding),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = "Haptic feedback")
-                    Switch(
-                        checked = isHapticFeedbackEnabled,
-                        onCheckedChange = { 
-                            performHaptic(HapticType.TOGGLE)
-                            saveHapticFeedbackEnabled(it)
-                        }
+            CardWithTitle(title = "Recommendations", innerPaddingHorizontal = 0.dp) {
+                SettingsSwitchRow(
+                    text = "Show redose recommendation",
+                    checked = isRedoseShown,
+                    onCheckedChange = {
+                        performHaptic(HapticType.TOGGLE)
+                        saveRedoseShown(it)
+                    }
+                )
+                if (isRedoseShown) {
+                    HorizontalDivider()
+                    RedoseFractionsSection(
+                        onsetFraction = redoseOnsetFraction,
+                        comeupFraction = redoseComeupFraction,
+                        peakFraction = redosePeakFraction,
+                        onSave = saveRedoseFractions
                     )
                 }
             }
-            CardWithTitle(title = "AI Chatbot", innerPaddingHorizontal = horizontalPadding) {
+
+            CardWithTitle(title = "Tools", innerPaddingHorizontal = 0.dp) {
+                SettingsButton(
+                    imageVector = Icons.Outlined.EmojiEvents,
+                    text = "Achievements"
+                ) {
+                    performHaptic(HapticType.CLICK)
+                    navigateToAchievements()
+                }
+            }
+
+            CardWithTitle(title = "AI chatbot", innerPaddingHorizontal = horizontalPadding) {
                 androidx.compose.material3.OutlinedTextField(
                     value = aiApiKey,
                     onValueChange = saveAiApiKey,
@@ -544,7 +460,8 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
                 )
             }
-            CardWithTitle(title = "Lock", innerPaddingHorizontal = horizontalPadding) {
+
+            CardWithTitle(title = "Privacy", innerPaddingHorizontal = horizontalPadding) {
                 LockSettingsSection(
                     isLockEnabled = isLockEnabled,
                     lockTimeOption = lockTimeOption,
@@ -553,158 +470,38 @@ fun SettingsScreen(
                     onLockTimeOptionChange = saveLockTimeOption,
                 )
             }
+
             CardWithTitle(title = "App data", innerPaddingHorizontal = 0.dp) {
-                var isShowingExportDialog by remember { mutableStateOf(false) }
                 SettingsButton(imageVector = Icons.Outlined.FileUpload, text = "Export File") {
                     performHaptic(HapticType.CLICK)
                     isShowingExportDialog = true
                 }
-                val jsonMIMEType = "application/json"
-                val launcherExport =
-                    rememberLauncherForActivityResult(
-                        contract = ActivityResultContracts.CreateDocument(
-                            mimeType = jsonMIMEType
-                        )
-                    ) { uri ->
-                        if (uri != null) {
-                            exportFile(uri)
-                        }
-                    }
-                AnimatedVisibility(visible = isShowingExportDialog) {
-                    AlertDialog(
-                        onDismissRequest = { isShowingExportDialog = false },
-                        title = {
-                            Text(text = "Export?")
-                        },
-                        text = {
-                            Text("This will export all your data from the app into a file so you can send it to someone or import it again on a new phone")
-                        },
-                        confirmButton = {
-                            TextButton(
-                                onClick = {
-                                    isShowingExportDialog = false
-                                    launcherExport.launch(
-                                        "Journal ${
-                                            Instant.now().getStringOfPattern("dd MMM yyyy")
-                                        }.json"
-                                    )
-                                }
-                            ) {
-                                Text("Export")
-                            }
-                        },
-                        dismissButton = {
-                            TextButton(
-                                onClick = { isShowingExportDialog = false }
-                            ) {
-                                Text("Cancel")
-                            }
-                        }
-                    )
-                }
                 HorizontalDivider()
-                var isShowingImportDialog by remember { mutableStateOf(false) }
                 SettingsButton(imageVector = Icons.Outlined.FileDownload, text = "Import file") {
+                    performHaptic(HapticType.CLICK)
                     isShowingImportDialog = true
                 }
-                val launcherImport =
-                    rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri ->
-                        if (uri != null) {
-                            importFile(uri)
-                        }
-                    }
-                AnimatedVisibility(visible = isShowingImportDialog) {
-                    AlertDialog(
-                        onDismissRequest = { isShowingImportDialog = false },
-                        title = {
-                            Text(text = "Import file?")
-                        },
-                        text = {
-                            Text("Import a file that was exported before. Note that this will delete the data that you already have in the app.")
-                        },
-                        confirmButton = {
-                            TextButton(
-                                onClick = {
-                                    isShowingImportDialog = false
-                                    launcherImport.launch(jsonMIMEType)
-                                }
-                            ) {
-                                Text("Import")
-                            }
-                        },
-                        dismissButton = {
-                            TextButton(
-                                onClick = { isShowingImportDialog = false }
-                            ) {
-                                Text("Cancel")
-                            }
-                        }
-                    )
-                }
                 HorizontalDivider()
-                var isShowingDeleteDialog by remember { mutableStateOf(false) }
                 SettingsButton(
                     imageVector = Icons.Outlined.DeleteForever,
                     text = "Delete everything"
                 ) {
+                    performHaptic(HapticType.CLICK)
                     isShowingDeleteDialog = true
                 }
-                val scope = rememberCoroutineScope()
-                AnimatedVisibility(visible = isShowingDeleteDialog) {
-                    AlertDialog(
-                        onDismissRequest = { isShowingDeleteDialog = false },
-                        title = {
-                            Text(text = "Delete everything?")
-                        },
-                        text = {
-                            Text("This will delete all your experiences, ingestions and custom substances.")
-                        },
-                        confirmButton = {
-                            TextButton(
-                                onClick = {
-                                    isShowingDeleteDialog = false
-                                    deleteEverything()
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(
-                                            message = "Deleted everything",
-                                            duration = SnackbarDuration.Short
-                                        )
-                                    }
-                                }
-                            ) {
-                                Text("Delete")
-                            }
-                        },
-                        dismissButton = {
-                            TextButton(
-                                onClick = { isShowingDeleteDialog = false }
-                            ) {
-                                Text("Cancel")
-                            }
-                        }
-                    )
-                }
-                HorizontalDivider()
-                SettingsButton(imageVector = Icons.Outlined.Webhook, text = "Webhook") {
-                    navigateToWebhook()
-                }
             }
-            val uriHandler = LocalUriHandler.current
-            CardWithTitle(title = "Feedback", innerPaddingHorizontal = 0.dp) {
+
+            CardWithTitle(title = "Help", innerPaddingHorizontal = 0.dp) {
                 SettingsButton(imageVector = Icons.Outlined.QuestionAnswer, text = "FAQ") {
+                    performHaptic(HapticType.CLICK)
                     navigateToFAQ()
                 }
             }
+
             CardWithTitle(title = "App", innerPaddingHorizontal = 0.dp) {
                 SettingsButton(imageVector = Icons.Outlined.Code, text = "Source Code") {
+                    performHaptic(HapticType.CLICK)
                     uriHandler.openUri("https://woof.rip/FreakLog/FreakLog-Android")
-                }
-                HorizontalDivider()
-                LocalContext.current
-                Intent().apply {
-                    action = Intent.ACTION_SEND
-                    putExtra(Intent.EXTRA_TEXT, SHARE_APP_URL)
-                    type = "text/plain"
                 }
                 HorizontalDivider()
                 Text(
@@ -715,18 +512,219 @@ fun SettingsScreen(
                         .padding(vertical = 10.dp)
                 )
             }
+
+            VisibleTabsDialog(
+                visible = isShowingVisibleTabsDialog,
+                onDismiss = { isShowingVisibleTabsDialog = false },
+                isStatsHidden = isStatsHidden,
+                saveIsStatsHidden = saveIsStatsHidden,
+                isDrugsHidden = isDrugsHidden,
+                saveIsDrugsHidden = saveIsDrugsHidden,
+                activateSafer = activateSafer,
+                saveActivateSafer = saveActivateSafer,
+                isInventoryEnabled = isInventoryEnabled,
+                saveIsInventoryEnabled = saveIsInventoryEnabled,
+                performHaptic = performHaptic
+            )
+            ConfirmActionDialog(
+                visible = isShowingExportDialog,
+                title = "Export file?",
+                text = "Export all app data into a JSON file.",
+                confirmText = "Export",
+                onDismiss = { isShowingExportDialog = false },
+                onConfirm = {
+                    isShowingExportDialog = false
+                    launcherExport.launch(
+                        "Journal ${Instant.now().getStringOfPattern("dd MMM yyyy")}.json"
+                    )
+                }
+            )
+            ConfirmActionDialog(
+                visible = isShowingImportDialog,
+                title = "Import file?",
+                text = "Importing replaces the data currently stored in the app.",
+                confirmText = "Import",
+                onDismiss = { isShowingImportDialog = false },
+                onConfirm = {
+                    isShowingImportDialog = false
+                    launcherImport.launch(jsonMIMEType)
+                }
+            )
+            ConfirmActionDialog(
+                visible = isShowingDeleteDialog,
+                title = "Delete everything?",
+                text = "This will delete all experiences, ingestions and custom substances.",
+                confirmText = "Delete",
+                onDismiss = { isShowingDeleteDialog = false },
+                onConfirm = {
+                    isShowingDeleteDialog = false
+                    deleteEverything()
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = "Deleted everything",
+                            duration = SnackbarDuration.Short
+                        )
+                    }
+                }
+            )
         }
     }
 }
 
 const val SHARE_APP_URL = "https://psychonautwiki.org/wiki/PsychonautWiki_Journal"
 
+@Composable
+private fun SettingsSwitchRow(
+    text: String,
+    checked: Boolean,
+    description: String? = null,
+    trailingInfo: @Composable (() -> Unit)? = null,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCheckedChange(!checked) }
+            .padding(horizontal = horizontalPadding, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = text, style = MaterialTheme.typography.bodyLarge)
+            if (description != null) {
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        trailingInfo?.invoke()
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange
+        )
+    }
+}
+
+@Composable
+private fun VisibleTabsDialog(
+    visible: Boolean,
+    onDismiss: () -> Unit,
+    isStatsHidden: Boolean,
+    saveIsStatsHidden: (Boolean) -> Unit,
+    isDrugsHidden: Boolean,
+    saveIsDrugsHidden: (Boolean) -> Unit,
+    activateSafer: Boolean,
+    saveActivateSafer: (Boolean) -> Unit,
+    isInventoryEnabled: Boolean,
+    saveIsInventoryEnabled: (Boolean) -> Unit,
+    performHaptic: (HapticType) -> Unit,
+) {
+    AnimatedVisibility(visible = visible) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("Visible tabs") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    TabVisibilityRow(
+                        text = "Stats",
+                        checked = !isStatsHidden,
+                        onCheckedChange = {
+                            performHaptic(HapticType.TOGGLE)
+                            saveIsStatsHidden(!it)
+                        }
+                    )
+                    TabVisibilityRow(
+                        text = "Drugs",
+                        checked = !isDrugsHidden,
+                        onCheckedChange = {
+                            performHaptic(HapticType.TOGGLE)
+                            saveIsDrugsHidden(!it)
+                        }
+                    )
+                    TabVisibilityRow(
+                        text = "Safer use",
+                        checked = activateSafer,
+                        onCheckedChange = {
+                            performHaptic(HapticType.TOGGLE)
+                            saveActivateSafer(it)
+                        }
+                    )
+                    TabVisibilityRow(
+                        text = "Inventory",
+                        checked = isInventoryEnabled,
+                        onCheckedChange = {
+                            performHaptic(HapticType.TOGGLE)
+                            saveIsInventoryEnabled(it)
+                        }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = onDismiss) {
+                    Text("Done")
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun TabVisibilityRow(
+    text: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCheckedChange(!checked) }
+    ) {
+        Checkbox(
+            checked = checked,
+            onCheckedChange = onCheckedChange
+        )
+        Text(text)
+    }
+}
+
+@Composable
+private fun ConfirmActionDialog(
+    visible: Boolean,
+    title: String,
+    text: String,
+    confirmText: String,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    AnimatedVisibility(visible = visible) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text(title) },
+            text = { Text(text) },
+            confirmButton = {
+                TextButton(onClick = onConfirm) {
+                    Text(confirmText)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+}
 
 @Composable
 fun SettingsButton(imageVector: ImageVector, text: String, onClick: () -> Unit) {
     TextButton(
         onClick = onClick,
-        modifier = Modifier.padding(horizontal = 2.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 2.dp)
     ) {
         Icon(
             imageVector,
@@ -738,6 +736,7 @@ fun SettingsButton(imageVector: ImageVector, text: String, onClick: () -> Unit) 
         Spacer(modifier = Modifier.weight(1f))
     }
 }
+
 @Composable
 private fun RedoseFractionsSection(
     onsetFraction: Float,
