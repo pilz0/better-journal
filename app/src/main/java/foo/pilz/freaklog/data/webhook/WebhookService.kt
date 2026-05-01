@@ -217,8 +217,7 @@ class WebhookService internal constructor(
             content
         }
 
-        val hyperlinkEnabled = userPreferences?.webhookHyperlinkSubstancesFlow?.first() ?: isHyperlinked
-        val finalContent = if (hyperlinkEnabled) {
+        val finalContent = if (isHyperlinked) {
             hyperlinkSubstancesInText(freakQueryContent, substanceInfoUrl, substance)
         } else {
             freakQueryContent

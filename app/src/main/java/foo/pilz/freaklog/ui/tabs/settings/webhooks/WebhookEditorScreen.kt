@@ -115,7 +115,7 @@ private fun WebhookEditorBody(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         SwitchRow("Enabled", viewModel.isEnabled) { viewModel.isEnabled = it }
-        SwitchRow("Link substance to wiki", viewModel.isHyperlinked) { viewModel.isHyperlinked = it }
+        SwitchRow("Link substances to Anodyne wiki", viewModel.isHyperlinked) { viewModel.isHyperlinked = it }
         SwitchRow("Enable FreakQuery tags", viewModel.useFreakQuery) {
             viewModel.useFreakQuery = it
         }
@@ -123,13 +123,15 @@ private fun WebhookEditorBody(
             OutlinedTextField(
                 value = viewModel.freakQuerySeparator,
                 onValueChange = { viewModel.freakQuerySeparator = it },
-                label = { Text("FreakQuery list separator") },
+                label = { Text("FreakQuery compact separator") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
-        }
-        SwitchRow("Hyperlink Anodyne substances", viewModel.hyperlinkSubstances) {
-            viewModel.hyperlinkSubstances = it
+            Text(
+                "Used by compact FreakQuery output and row parts. Tags can still override it with sep=...",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
         Button(
             onClick = { viewModel.save(navigateBack) },

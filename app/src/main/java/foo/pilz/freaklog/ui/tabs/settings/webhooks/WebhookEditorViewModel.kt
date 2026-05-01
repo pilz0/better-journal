@@ -44,7 +44,6 @@ class WebhookEditorViewModel @Inject constructor(
     var isEnabled by mutableStateOf(true)
     var useFreakQuery by mutableStateOf(true)
     var freakQuerySeparator by mutableStateOf(", ")
-    var hyperlinkSubstances by mutableStateOf(true)
     var sortOrder: Int = 0
 
     val isExisting: Boolean get() = webhookId != null
@@ -53,7 +52,6 @@ class WebhookEditorViewModel @Inject constructor(
         viewModelScope.launch {
             useFreakQuery = userPreferences.webhookUseFreakQueryFlow.first()
             freakQuerySeparator = userPreferences.webhookFreakQuerySeparatorFlow.first()
-            hyperlinkSubstances = userPreferences.webhookHyperlinkSubstancesFlow.first()
 
             val id = webhookId ?: return@launch
             val existing = webhookRepository.getById(id) ?: return@launch
@@ -85,7 +83,6 @@ class WebhookEditorViewModel @Inject constructor(
             webhookRepository.upsert(webhook)
             userPreferences.saveWebhookUseFreakQuery(useFreakQuery)
             userPreferences.saveWebhookFreakQuerySeparator(freakQuerySeparator)
-            userPreferences.saveWebhookHyperlinkSubstances(hyperlinkSubstances)
             onDone()
         }
     }
