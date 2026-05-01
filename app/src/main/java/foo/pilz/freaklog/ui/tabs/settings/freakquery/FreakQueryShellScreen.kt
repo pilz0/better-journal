@@ -62,6 +62,7 @@ fun FreakQueryShellScreen(
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Suppress("LongMethod")
 @Composable
 fun FreakQueryShellScreenContent(
     state: FreakQueryShellState,
