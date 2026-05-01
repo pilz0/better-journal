@@ -68,9 +68,8 @@ internal object Metrics {
         for (metric in plan.metrics) {
             val low = metric.trim().lowercase(Locale.ROOT)
             if (low.startsWith("ratio=") || low.startsWith("sequence=")) return metric
-            return low
         }
-        return null
+        return plan.metrics.firstOrNull()?.trim()?.lowercase(Locale.ROOT)
     }
 
     private fun ratio(rows: Rows, field: String, plan: QueryPlan, ctx: Context): List<Map<String, Any?>> {

@@ -48,7 +48,8 @@ internal class Context(
         return value
     }
 
-    fun recall(key: String, default: Any? = null): Any? = memory[key] ?: default
+    fun recall(key: String, default: Any? = null): Any? =
+        if (memory.containsKey(key)) memory[key] else default
 
     fun has(key: String): Boolean = key in memory
 }

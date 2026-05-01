@@ -46,12 +46,20 @@ class WebhookEditorViewModel @Inject constructor(
     var freakQuerySeparator by mutableStateOf(", ")
     var sortOrder: Int = 0
 
+    /**
+     * Guard so [save] cannot persist the in-memory defaults for
+     * [useFreakQuery] / [freakQuerySeparator] before the async load in [init]
+     * finishes.
+     */
+    private var isPrefsLoaded: Boolean = false
+
     val isExisting: Boolean get() = webhookId != null
 
     init {
         viewModelScope.launch {
             useFreakQuery = userPreferences.webhookUseFreakQueryFlow.first()
             freakQuerySeparator = userPreferences.webhookFreakQuerySeparatorFlow.first()
+            isPrefsLoaded = true
 
             val id = webhookId ?: return@launch
             val existing = webhookRepository.getById(id) ?: return@launch
@@ -66,9 +74,10 @@ class WebhookEditorViewModel @Inject constructor(
     }
 
     val canSave: Boolean
-        get() = url.isNotBlank() && name.isNotBlank()
+        get() = url.isNotBlank() && name.isNotBlank() && isPrefsLoaded
 
     fun save(onDone: () -> Unit) {
+        if (!isPrefsLoaded) return
         viewModelScope.launch {
             val webhook = Webhook(
                 id = webhookId ?: 0,

@@ -336,7 +336,9 @@ class WebhookService internal constructor(
         primarySubstance: String
     ): String {
         var result = text
-        val names = (listOf(primarySubstance) + sortedSubstances).distinct()
+        val names = (listOf(primarySubstance) + sortedSubstances)
+            .distinct()
+            .sortedByDescending { it.length }
         for (name in names) {
             if (name.length < 3) continue
 

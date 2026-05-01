@@ -645,10 +645,10 @@ private fun VisibleTabsDialog(
                     )
                     TabVisibilityRow(
                         text = "Safer use",
-                        checked = !activateSafer,
+                        checked = activateSafer,
                         onCheckedChange = {
                             performHaptic(HapticType.TOGGLE)
-                            saveActivateSafer(!it)
+                            saveActivateSafer(it)
                         }
                     )
                     TabVisibilityRow(

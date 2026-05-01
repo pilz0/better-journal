@@ -7,6 +7,7 @@ import foo.pilz.freaklog.data.room.experiences.entities.Experience
 import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestions
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -17,13 +18,9 @@ class FreakQueryRepository @Inject constructor(
 ) {
     suspend fun getLogs(): List<Map<String, Any?>> =
         experienceRepository
-            .getAllExperiencesWithIngestionsTimedNotesAndRatingsSorted()
-            .flatMap { row ->
-                row.ingestions.map { ingestion ->
-                    ingestion.toFreakQueryRow(row.experience)
-                }
-            }
-            .sortedBy { it["time"] as Long }
+            .getSortedExperiencesWithIngestionsFlow()
+            .first()
+            .toFreakQueryRows()
 
     fun getLogsFlow(): Flow<List<Map<String, Any?>>> =
         experienceRepository

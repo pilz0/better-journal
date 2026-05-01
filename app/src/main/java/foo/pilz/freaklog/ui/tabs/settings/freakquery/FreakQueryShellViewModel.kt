@@ -77,24 +77,29 @@ class FreakQueryShellViewModel @Inject constructor(
             return
         }
 
+        // Synchronously mark running so concurrent runCurrentInput/runExample
+        // calls see the guard before the coroutine has a chance to start.
+        _state.update { it.copy(isRunning = true, input = if (clearInput) "" else it.input) }
+
         viewModelScope.launch(Dispatchers.IO) {
-            _state.update { it.copy(isRunning = true, input = if (clearInput) "" else it.input) }
-
-            val output = runCatching {
-                if (query == "version") {
-                    FreakQuery.VERSION
-                } else {
-                    freakQueryRepository.query(query)
+            try {
+                val output = runCatching {
+                    if (query == "version") {
+                        FreakQuery.VERSION
+                    } else {
+                        freakQueryRepository.query(query)
+                    }
+                }.getOrElse { throwable ->
+                    throwable.message ?: throwable::class.java.simpleName
                 }
-            }.getOrElse { throwable ->
-                throwable.message ?: throwable::class.java.simpleName
-            }
 
-            _state.update {
-                it.copy(
-                    isRunning = false,
-                    history = it.history + FreakQueryShellEntry(query, output.ifBlank { "(empty)" })
-                )
+                _state.update {
+                    it.copy(
+                        history = it.history + FreakQueryShellEntry(query, output.ifBlank { "(empty)" })
+                    )
+                }
+            } finally {
+                _state.update { it.copy(isRunning = false) }
             }
         }
     }

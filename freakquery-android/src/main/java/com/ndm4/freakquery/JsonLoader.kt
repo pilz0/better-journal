@@ -1,6 +1,7 @@
 package com.ndm4.freakquery
 
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
 import java.io.InputStream
@@ -10,13 +11,18 @@ object FreakQueryLoader {
         val trimmed = json.trim()
         if (trimmed.isEmpty()) return emptyList()
 
-        return when (trimmed.first()) {
-            '[' -> jsonArrayToRows(JSONArray(trimmed))
-            '{' -> {
-                val obj = JSONObject(trimmed)
-                if (obj.has("experiences")) loadJournal(obj, config) else emptyList()
+        return try {
+            when (trimmed.first()) {
+                '[' -> jsonArrayToRows(JSONArray(trimmed))
+                '{' -> {
+                    val obj = JSONObject(trimmed)
+                    if (obj.has("experiences")) loadJournal(obj, config) else emptyList()
+                }
+                else -> emptyList()
             }
-            else -> emptyList()
+        } catch (e: JSONException) {
+            android.util.Log.w("FreakQueryLoader", "Failed to parse JSON input", e)
+            emptyList()
         }
     }
 
@@ -49,7 +55,8 @@ object FreakQueryLoader {
                 )
 
                 jsonValue(ing, "administrationSite")?.let {
-                    if (it.toString().isNotBlank()) row["site"] = Aliases.canonicalValue(config, "site", it)
+                    val site = it.toString()
+                    if (site.isNotBlank()) row["site"] = Aliases.canonicalValue(config, "site", site)
                 }
                 jsonValue(ing, "notes")?.let {
                     if (it.toString().isNotBlank()) row["notes"] = it

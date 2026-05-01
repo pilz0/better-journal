@@ -46,6 +46,12 @@ object DefaultAliases {
 
     val unit: Map<String, String> = normalized(
         mapOf(
+            "ug" to "ug",
+            "mg" to "mg",
+            "g" to "g",
+            "kg" to "kg",
+            "ml" to "ml",
+            "l" to "l",
             "μg" to "ug",
             "µg" to "ug",
             "mcg" to "ug",

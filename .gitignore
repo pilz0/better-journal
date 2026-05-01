@@ -13,6 +13,7 @@ local.properties
 release
 .kotlin
 result
+build
 
 # Upstream source archive (not tracked; fetched ad-hoc when porting)
 android-main.zip

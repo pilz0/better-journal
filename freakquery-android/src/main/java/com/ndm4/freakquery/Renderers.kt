@@ -27,7 +27,9 @@ internal object TextRenderer {
         val showPercent = truthy(plan.display["percent"], ctx.config.renderPercent)
         val compact = truthy(plan.display["compact"], ctx.config.renderCompact)
         val sep = plan.display["sep"]?.toString() ?: ctx.config.renderSeparator
-        val timeMode = plan.display["time"] ?: ctx.config.renderTime
+        val timeMode: Any? = plan.display["time"]
+            ?: ctx.config.renderTimeFormat
+            ?: ctx.config.renderTimeEnabled
 
         val lines = list.map { item ->
             @Suppress("UNCHECKED_CAST")
@@ -57,14 +59,14 @@ internal object TextRenderer {
     private fun renderValueCount(item: Row, labels: Boolean, count: Boolean, parens: Boolean, config: FreakQueryConfig): String {
         val parts = mutableListOf<String>()
         if (labels) parts += Aliases.displayValue(config, "value", item["value"])
-        val c = item["count"].toString()
+        val c = item["count"]?.toString() ?: ""
         parts += if (count) c else wrapCount(c, parens)
         return parts.filter { it.isNotBlank() }.joinToString(" ").trim()
     }
 
     private fun renderTopSubstance(item: Row, labels: Boolean, count: Boolean, parens: Boolean, config: FreakQueryConfig): String {
         val left = if (labels) Aliases.displayValue(config, "substance", item["substance"]) else ""
-        val right = if (count) item["count"].toString() else wrapCount(item["count"].toString(), parens)
+        val right = if (count) item["count"]?.toString() ?: "" else wrapCount(item["count"]?.toString() ?: "", parens)
         return listOf(left, right).filter { it.isNotBlank() }.joinToString(" ").trim()
     }
 

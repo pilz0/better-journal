@@ -167,7 +167,11 @@ fun FreakQueryShellScreenContent(
                         Text("fq>", fontFamily = FontFamily.Monospace)
                     },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-                    keyboardActions = KeyboardActions(onSend = { onRun() })
+                    keyboardActions = KeyboardActions(onSend = {
+                        if (state.input.trim().isNotBlank() && !state.isRunning) {
+                            onRun()
+                        }
+                    })
                 )
                 IconButton(
                     onClick = onRun,

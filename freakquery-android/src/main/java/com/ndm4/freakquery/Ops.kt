@@ -15,7 +15,7 @@ internal object Filters {
                 val low = filter.trim().lowercase(Locale.ROOT)
                 when {
                     low in setOf("day", "today") -> dt != null && dt == now
-                    low == "week" -> dt != null && dt.year == now.year && dt.week == now.week
+                    low == "week" -> dt != null && dt.weekYear == now.weekYear && dt.week == now.week
                     low == "month" -> dt != null && dt.year == now.year && dt.month == now.month
                     low == "year" -> dt != null && dt.year == now.year
                     "=" in low -> {
@@ -162,7 +162,8 @@ private data class DayFields(
     val year: Int,
     val month: Int,
     val dayOfYear: Int,
-    val week: Int
+    val week: Int,
+    val weekYear: Int
 )
 
 private fun dayFields(ms: Long): DayFields {
@@ -174,7 +175,8 @@ private fun dayFields(ms: Long): DayFields {
         year = calendar.get(Calendar.YEAR),
         month = calendar.get(Calendar.MONTH),
         dayOfYear = calendar.get(Calendar.DAY_OF_YEAR),
-        week = calendar.get(Calendar.WEEK_OF_YEAR)
+        week = calendar.get(Calendar.WEEK_OF_YEAR),
+        weekYear = calendar.weekYear
     )
 }
 

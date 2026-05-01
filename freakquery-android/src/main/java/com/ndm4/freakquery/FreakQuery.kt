@@ -61,7 +61,6 @@ object FreakQuery {
     }
 
     internal fun executeTag(tag: String, data: Rows, ctx: Context): String {
-        android.util.Log.d("Query:", tag)
         val raw = tag.trim()
         if (raw.isEmpty()) return ""
 
@@ -78,10 +77,9 @@ object FreakQuery {
 
         val wantedField = parts.firstOrNull { it.lowercase().startsWith("field=") }?.substringAfter("=")?.trim()
 
-        var rows: Any = data.toList()
-        rows = Filters.apply(rows as Rows, plan, ctx)
-        rows = Grouping.apply(rows as Rows, plan, ctx)
-        rows = Selectors.apply(rows, plan, ctx)
+        val filtered: Rows = Filters.apply(data.toList(), plan, ctx)
+        val grouped: Any = Grouping.apply(filtered, plan, ctx)
+        var rows: Any = Selectors.apply(grouped, plan, ctx)
 
         if (wantedField != null) {
             @Suppress("UNCHECKED_CAST")
