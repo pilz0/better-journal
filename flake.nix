@@ -42,7 +42,7 @@
           default = self.packages.${system}.apk;
           apk = gradle2nix.builders.${system}.buildGradlePackage {
             pname = "freaklog apk release";
-            version = "11.18";
+            version = "11.19";
             lockFile = ./gradle.lock;
             src = ./.;
             gradleBuildFlags = [ "assembleRelease" ];
@@ -85,7 +85,7 @@
           };
            aab = gradle2nix.builders.${system}.buildGradlePackage {
              pname = "freaklog android app bundle";
-             version = "11.18";
+             version = "11.19";
              lockFile = ./gradle.lock;
              src = ./.;
              gradleBuildFlags = [ "bundle" ];
