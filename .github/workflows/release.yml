@@ -58,6 +58,7 @@ jobs:
       upstream-run-id: ${{ steps.resolve.outputs.upstream-run-id }}
       head-sha: ${{ steps.resolve.outputs.head-sha }}
       is-tag: ${{ steps.resolve.outputs.is-tag }}
+      tag-name: ${{ steps.resolve.outputs.tag-name }}
       should-release: ${{ steps.resolve.outputs.should-release }}
     steps:
       - name: Harden the runner
@@ -99,16 +100,19 @@ jobs:
           # Detect whether `head_branch` names a tag at `head_sha`. If so this
           # is a tag release; otherwise it must be the default branch.
           is_tag=false
+          tag_name=
           if gh api "/repos/$GH_REPO/git/refs/tags/$head_branch" >/dev/null 2>&1; then
             tag_sha="$(gh api "/repos/$GH_REPO/git/refs/tags/$head_branch" --jq .object.sha)"
             # Lightweight tags point straight at the commit; annotated tags
             # point at a tag object whose `.object.sha` is the commit.
             if [ "$tag_sha" = "$head_sha" ]; then
               is_tag=true
+              tag_name="$head_branch"
             else
               tag_obj="$(gh api "/repos/$GH_REPO/git/tags/$tag_sha" 2>/dev/null || true)"
               if [ -n "$tag_obj" ] && [ "$(jq -r '.object.sha' <<<"$tag_obj")" = "$head_sha" ]; then
                 is_tag=true
+                tag_name="$head_branch"
               fi
             fi
           fi
@@ -125,6 +129,7 @@ jobs:
               echo "upstream-run-id=$run_id"
               echo "head-sha=$head_sha"
               echo "is-tag=$is_tag"
+              echo "tag-name=$tag_name"
             } >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -134,6 +139,7 @@ jobs:
             echo "upstream-run-id=$run_id"
             echo "head-sha=$head_sha"
             echo "is-tag=$is_tag"
+            echo "tag-name=$tag_name"
           } >> "$GITHUB_OUTPUT"
 
   sign:
@@ -317,6 +323,10 @@ jobs:
       - name: Create release
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.4.0
         with:
+          # `workflow_run` workflows execute on the default branch ref even when
+          # the upstream build was for a tag, so pass the resolved upstream tag
+          # explicitly instead of relying on GITHUB_REF.
+          tag_name: ${{ needs.preconditions.outputs.tag-name }}
           # Only ship the signed, attested artifacts. Unsigned APK/AAB are
           # available as workflow artifacts on the upstream build run for
           # debugging but are not published to end users.
