@@ -171,13 +171,17 @@ class StatsViewModel @Inject constructor(
             val oneCompanion =
                 companions.firstOrNull { it.substanceName == name } ?: return@mapNotNull null
             val experienceCounts = experienceNamesMap[name]?.size ?: 0
+            val ingestions = groupedIngestions.map { it.ingestion }
             StatItem(
                 substanceName = name,
                 color = oneCompanion.color,
                 experienceCount = experienceCounts,
                 ingestionCount = groupedIngestions.size,
-                routeCounts = getRouteCounts(groupedIngestions.map { it.ingestion }),
-                totalDose = getTotalDose(groupedIngestions)
+                routeCounts = getRouteCounts(ingestions),
+                totalDose = getTotalDose(groupedIngestions),
+                lastUsed = ingestions.maxOfOrNull { it.time },
+                unknownDoseCount = ingestions.count { it.dose == null && it.customUnitId == null },
+                unitNames = ingestions.mapNotNull { it.units?.takeIf(String::isNotBlank) }.distinct(),
             )
         }.sortedByDescending { it.experienceCount }
     }
@@ -279,6 +283,9 @@ data class StatItem(
     val ingestionCount: Int,
     val routeCounts: List<RouteCount>,
     val totalDose: TotalDose?,
+    val lastUsed: Instant?,
+    val unknownDoseCount: Int,
+    val unitNames: List<String>,
 )
 
 data class RouteCount(

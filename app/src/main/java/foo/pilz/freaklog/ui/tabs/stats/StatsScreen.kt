@@ -23,10 +23,8 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -43,6 +41,7 @@ import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -74,6 +73,8 @@ import foo.pilz.freaklog.ui.theme.JournalTheme
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import foo.pilz.freaklog.ui.utils.HapticType
 import foo.pilz.freaklog.ui.utils.rememberHaptic
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 
 @Composable
@@ -233,88 +234,15 @@ fun StatsScreen(
                         )
                         HorizontalDivider()
                         LazyColumn {
-                            items(statsModel.statItems) { subStat ->
-                                Column {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(intrinsicSize = IntrinsicSize.Min)
-                                            .clickable {
-                                                performHaptic(HapticType.SELECTION)
-                                                navigateToSubstanceCompanion(
-                                                    subStat.substanceName,
-                                                    statsModel.consumerName
-                                                )
-                                            }
-                                            .padding(
-                                                horizontal = horizontalPadding,
-                                                vertical = 5.dp
-                                            )
-                                    ) {
-                                        Surface(
-                                            shape = RoundedCornerShape(3.dp),
-                                            color = subStat.color.getComposeColor(
-                                                isDarkTheme
-                                            ),
-                                            modifier = Modifier
-                                                .width(11.dp)
-                                                .fillMaxHeight()
-                                        ) {}
-                                        Column(modifier = Modifier.weight(1f)) {
-                                            Text(
-                                                text = subStat.substanceName,
-                                                style = MaterialTheme.typography.titleMedium
-                                            )
-                                            Text(
-                                                text = "${subStat.ingestionCount} ingestion${if (subStat.ingestionCount != 1) "s" else ""} across ${subStat.experienceCount} experience${if (subStat.experienceCount != 1) "s" else ""}",
-                                                style = MaterialTheme.typography.bodyMedium
-                                            )
-                                        }
-                                        Column(horizontalAlignment = Alignment.End) {
-                                            val cumulativeDose = subStat.totalDose
-                                            if (cumulativeDose != null) {
-                                                if (cumulativeDose.isEstimate) {
-                                                    if (cumulativeDose.estimatedDoseStandardDeviation != null) {
-                                                        Text(
-                                                            text = "total ${cumulativeDose.dose.toReadableString()}±${cumulativeDose.estimatedDoseStandardDeviation.toReadableString()} ${cumulativeDose.units}",
-                                                            maxLines = 1,
-                                                            overflow = TextOverflow.Ellipsis,
-                                                        )
-                                                    } else {
-                                                        Text(
-                                                            text = "total ~${cumulativeDose.dose.toReadableString()} ${cumulativeDose.units}",
-                                                            maxLines = 1,
-                                                            overflow = TextOverflow.Ellipsis,
-                                                        )
-                                                    }
-                                                } else {
-                                                    Text(
-                                                        text = "total ${cumulativeDose.dose.toReadableString()} ${cumulativeDose.units}",
-                                                        maxLines = 1,
-                                                        overflow = TextOverflow.Ellipsis,
-                                                    )
-                                                }
-                                            } else {
-                                                Text(
-                                                    text = "total dose unknown",
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis,
-                                                )
-                                            }
-                                            subStat.routeCounts.forEach {
-                                                Text(
-                                                    text = "${it.administrationRoute.displayText.lowercase()} ${it.count}x",
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis,
-                                                )
-                                            }
-                                        }
-
+                            items(statsModel.statItems, key = { it.substanceName }) { subStat ->
+                                SubstanceStatCard(
+                                    stat = subStat,
+                                    isDarkTheme = isDarkTheme,
+                                    onClick = {
+                                        performHaptic(HapticType.SELECTION)
+                                        navigateToSubstanceCompanion(subStat.substanceName, statsModel.consumerName)
                                     }
-                                    HorizontalDivider()
-                                }
+                                )
                             }
                         }
                     }
@@ -327,6 +255,89 @@ fun StatsScreen(
             }
         }
     }
+}
+
+private val LAST_USED_DATE_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy")
+
+@Composable
+private fun SubstanceStatCard(
+    stat: StatItem,
+    isDarkTheme: Boolean,
+    onClick: () -> Unit,
+) {
+    ElevatedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = horizontalPadding, vertical = 6.dp)
+            .clickable(onClick = onClick)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Surface(
+                shape = RoundedCornerShape(4.dp),
+                color = stat.color.getComposeColor(isDarkTheme),
+                modifier = Modifier.size(width = 12.dp, height = 56.dp),
+            ) {}
+            Column(modifier = Modifier.weight(1f)) {
+                Text(stat.substanceName, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = "${stat.ingestionCount} ingestion${if (stat.ingestionCount == 1) "" else "s"} · " +
+                        "${stat.experienceCount} experience${if (stat.experienceCount == 1) "" else "s"}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                val routes = stat.routeCounts.joinToString(" · ") {
+                    "${it.administrationRoute.displayText.lowercase()} ${it.count}x"
+                }
+                if (routes.isNotBlank()) {
+                    Text(
+                        text = routes,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                stat.lastUsed?.let { lastUsed ->
+                    val formatted = remember(lastUsed) {
+                        LAST_USED_DATE_FORMATTER.format(lastUsed.atZone(ZoneId.systemDefault()))
+                    }
+                    Text(
+                        text = "Last used $formatted",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = stat.totalDose?.let(::formatTotalDose) ?: "Dose varies",
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (stat.unknownDoseCount > 0) {
+                    Text(
+                        text = "${stat.unknownDoseCount} unknown",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun formatTotalDose(totalDose: TotalDose): String {
+    val value = totalDose.dose.toReadableString()
+    val uncertainty = totalDose.estimatedDoseStandardDeviation?.let { "±${it.toReadableString()}" }.orEmpty()
+    val estimatePrefix = if (totalDose.isEstimate && totalDose.estimatedDoseStandardDeviation == null) "~" else ""
+    return "$estimatePrefix$value$uncertainty ${totalDose.units}"
 }
 
 @Composable

@@ -21,6 +21,7 @@ package foo.pilz.freaklog.ui.tabs.stats
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.substances.AdministrationRoute
+import java.time.Instant
 
 class StatsPreviewProvider : PreviewParameterProvider<StatsModel> {
     override val values: Sequence<StatsModel> = sequenceOf(
@@ -46,7 +47,10 @@ class StatsPreviewProvider : PreviewParameterProvider<StatsModel> {
                         units = "ug",
                         isEstimate = false,
                         estimatedDoseStandardDeviation = null
-                    )
+                    ),
+                    lastUsed = Instant.parse("2026-04-29T12:00:00Z"),
+                    unknownDoseCount = 1,
+                    unitNames = listOf("ug"),
                 ),
                 StatItem(
                     substanceName = "MDMA",
@@ -68,7 +72,10 @@ class StatsPreviewProvider : PreviewParameterProvider<StatsModel> {
                         units = "mg",
                         isEstimate = true,
                         estimatedDoseStandardDeviation = 50.0
-                    )
+                    ),
+                    lastUsed = Instant.parse("2026-04-29T12:00:00Z"),
+                    unknownDoseCount = 1,
+                    unitNames = listOf("mg"),
                 ),
                 StatItem(
                     substanceName = "Cocaine",
@@ -81,7 +88,10 @@ class StatsPreviewProvider : PreviewParameterProvider<StatsModel> {
                             count = 11
                         )
                     ),
-                    totalDose = null
+                    totalDose = null,
+                    lastUsed = Instant.parse("2026-04-29T12:00:00Z"),
+                    unknownDoseCount = 1,
+                    unitNames = listOf("mg"),
                 ),
                 StatItem(
                     substanceName = "Ketamine",
@@ -99,7 +109,10 @@ class StatsPreviewProvider : PreviewParameterProvider<StatsModel> {
                         units = "mg",
                         isEstimate = true,
                         estimatedDoseStandardDeviation = 5.0
-                    )
+                    ),
+                    lastUsed = Instant.parse("2026-04-29T12:00:00Z"),
+                    unknownDoseCount = 1,
+                    unitNames = listOf("mg"),
                 )
             ),
             chartBuckets = listOf(
