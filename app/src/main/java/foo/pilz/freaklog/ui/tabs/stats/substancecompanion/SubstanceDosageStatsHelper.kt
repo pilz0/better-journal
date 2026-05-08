@@ -89,14 +89,12 @@ object SubstanceDosageStatsHelper {
             while (ingestionIndex >= 0) {
                 val ingestion = ingestions[ingestionIndex]
                 val ingestionTime = ingestion.time
-                if (ingestionTime >= bucketEndInstant) {
-                    ingestionIndex--
-                    continue
-                }
                 if (ingestionTime < bucketStartInstant) break
-                sessionIds += ingestion.experienceId
-                if (singleUnit != null && ingestion.units == singleUnit) {
-                    bucketKnownDose += ingestion.dose ?: 0.0
+                if (ingestionTime < bucketEndInstant) {
+                    sessionIds += ingestion.experienceId
+                    if (singleUnit != null && ingestion.units == singleUnit) {
+                        bucketKnownDose += ingestion.dose ?: 0.0
+                    }
                 }
                 ingestionIndex--
             }
