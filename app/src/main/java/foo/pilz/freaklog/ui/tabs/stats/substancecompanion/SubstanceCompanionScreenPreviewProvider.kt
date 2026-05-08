@@ -29,6 +29,28 @@ import foo.pilz.freaklog.ui.utils.getInstant
 
 class SubstanceCompanionScreenPreviewProvider :
     PreviewParameterProvider<Pair<SubstanceCompanion, List<IngestionsBurst>>> {
+
+    companion object {
+        val previewStats = SubstanceDosageStatsModel(
+            buckets = listOf(
+                DosageBucket("W1", "01 Apr 2026", 120.0, 1, "mg"),
+                DosageBucket("W2", "08 Apr 2026", 0.0, 0, "mg"),
+                DosageBucket("W3", "15 Apr 2026", 180.0, 2, "mg"),
+            ),
+            summary = SubstanceDosageSummary(
+                totalSessions = 3,
+                totalKnownDose = 300.0,
+                averageKnownDosePerSession = 100.0,
+                peakKnownDose = 180.0,
+                unknownDoseCount = 1,
+                unitsUsed = listOf("mg"),
+                longestGapDays = 14,
+                currentStreakWeeks = 1,
+            ),
+            hasMixedUnits = false,
+        )
+    }
+
     override val values: Sequence<Pair<SubstanceCompanion, List<IngestionsBurst>>> = sequenceOf(
         Pair(
             first = SubstanceCompanion(
