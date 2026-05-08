@@ -21,10 +21,9 @@ package foo.pilz.freaklog.ui.main.navigation.graphs
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigation
-import foo.pilz.freaklog.ui.main.navigation.composableWithTransitions
 import foo.pilz.freaklog.ui.main.navigation.StatsTopLevelRoute
+import foo.pilz.freaklog.ui.main.navigation.composableWithTransitions
 import foo.pilz.freaklog.ui.tabs.stats.StatsScreen
-import foo.pilz.freaklog.ui.tabs.stats.charts.MoreChartsScreen
 import foo.pilz.freaklog.ui.tabs.stats.dosage.DosageStatScreen
 import foo.pilz.freaklog.ui.tabs.stats.substancecompanion.SubstanceCompanionScreen
 import foo.pilz.freaklog.ui.tabs.stats.tolerance.ToleranceChartScreen
@@ -46,9 +45,6 @@ fun NavGraphBuilder.statsGraph(navController: NavHostController) {
                 },
                 navigateToToleranceChart = {
                     navController.navigate(ToleranceChartRoute)
-                },
-                navigateToMoreCharts = {
-                    navController.navigate(MoreChartsRoute)
                 }
             )
         }
@@ -67,9 +63,6 @@ fun NavGraphBuilder.statsGraph(navController: NavHostController) {
         composableWithTransitions<ToleranceChartRoute> {
             ToleranceChartScreen()
         }
-        composableWithTransitions<MoreChartsRoute> {
-            MoreChartsScreen(onBack = { navController.popBackStack() })
-        }
         composableWithTransitions<DosageStatRoute> {
             DosageStatScreen(onBack = { navController.popBackStack() })
         }
@@ -84,9 +77,6 @@ data class SubstanceCompanionRoute(val substanceName: String, val consumerName: 
 
 @Serializable
 object ToleranceChartRoute
-
-@Serializable
-object MoreChartsRoute
 
 @Serializable
 data class DosageStatRoute(val substanceName: String, val consumerName: String?)
