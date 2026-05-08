@@ -21,9 +21,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -58,12 +60,6 @@ enum class DosageMetric(val displayText: String) {
     SESSION_COUNT("Sessions"),
     AVG_DOSE_PER_SESSION("Avg/Session")
 }
-
-data class ChartSummary(
-    val totalSessions: Int,
-    val longestGapDays: Int?,
-    val currentStreakWeeks: Int
-)
 
 /** Used for drawing horizontal dose-threshold lines inside [DosageBarChart]. */
 private data class ThresholdEntry(val name: String, val value: Double?, val color: Color)
@@ -145,11 +141,17 @@ fun DosageBarChart(
     // Canvas size tracked for tap geometry
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
 
+    val chartDescription = remember(buckets, metric) {
+        val nonEmpty = buckets.count { it.totalDose > 0 || it.sessionCount > 0 }
+        "${metric.displayText} chart with ${buckets.size} buckets and $nonEmpty non-empty buckets"
+    }
+
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(height)
             .padding(horizontal = 4.dp)
+            .semantics { contentDescription = chartDescription }
     ) {
         Canvas(
             modifier = Modifier

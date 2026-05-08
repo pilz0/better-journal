@@ -45,6 +45,7 @@ import androidx.compose.material.icons.outlined.Medication
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.QuestionAnswer
+import androidx.compose.material.icons.outlined.SmartToy
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material.icons.outlined.Webhook
@@ -126,10 +127,9 @@ fun SettingsPreview() {
         isDrugsHidden = false,
         saveIsDrugsHidden = {},
         saveHapticFeedbackEnabled = {},
-        aiApiKey = "",
-        saveAiApiKey = {},
-        aiModelName = "gemini-2.5-flash",
-        saveAiModelName = {},
+        navigateToAiAssistantSettings = {},
+        aiAssistantEnabled = false,
+        saveAiAssistantEnabled = {},
         isLockEnabled = false,
         saveLockEnabled = {},
         lockTimeOption = foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption.IMMEDIATELY,
@@ -150,6 +150,7 @@ fun SettingsScreen(
     navigateToReminders: () -> Unit,
     navigateToAchievements: () -> Unit = {},
     navigateToFreakQueryShell: () -> Unit = {},
+    navigateToAiAssistantSettings: () -> Unit,
 ) {
     SettingsScreen(
         navigateToFAQ = navigateToFAQ,
@@ -160,6 +161,7 @@ fun SettingsScreen(
         navigateToReminders = navigateToReminders,
         navigateToAchievements = navigateToAchievements,
         navigateToFreakQueryShell = navigateToFreakQueryShell,
+        navigateToAiAssistantSettings = navigateToAiAssistantSettings,
         deleteEverything = viewModel::deleteEverything,
         importFile = viewModel::importFile,
         exportFile = viewModel::exportFile,
@@ -186,10 +188,8 @@ fun SettingsScreen(
         saveRedoseFractions = viewModel::saveRedoseFractions,
         isHapticFeedbackEnabled = viewModel.isHapticFeedbackEnabledFlow.collectAsState().value,
         saveHapticFeedbackEnabled = viewModel::saveHapticFeedbackEnabled,
-        aiApiKey = viewModel.aiApiKeyFlow.collectAsState().value,
-        saveAiApiKey = viewModel::saveAiApiKey,
-        aiModelName = viewModel.aiModelNameFlow.collectAsState().value,
-        saveAiModelName = viewModel::saveAiModelName,
+        aiAssistantEnabled = viewModel.aiAssistantEnabledFlow.collectAsState().value,
+        saveAiAssistantEnabled = viewModel::saveAiAssistantEnabled,
         isLockEnabled = viewModel.isLockEnabledFlow.collectAsState().value,
         saveLockEnabled = viewModel::saveLockEnabled,
         lockTimeOption = viewModel.lockTimeOptionFlow.collectAsState().value,
@@ -210,6 +210,7 @@ fun SettingsScreen(
     navigateToReminders: () -> Unit,
     navigateToAchievements: () -> Unit = {},
     navigateToFreakQueryShell: () -> Unit = {},
+    navigateToAiAssistantSettings: () -> Unit,
     deleteEverything: () -> Unit,
     importFile: (uri: Uri) -> Unit,
     exportFile: (uri: Uri) -> Unit,
@@ -236,10 +237,8 @@ fun SettingsScreen(
     saveRedoseFractions: (Float, Float, Float) -> Unit,
     isHapticFeedbackEnabled: Boolean,
     saveHapticFeedbackEnabled: (Boolean) -> Unit,
-    aiApiKey: String,
-    saveAiApiKey: (String) -> Unit,
-    aiModelName: String,
-    saveAiModelName: (String) -> Unit,
+    aiAssistantEnabled: Boolean,
+    saveAiAssistantEnabled: (Boolean) -> Unit,
     isLockEnabled: Boolean,
     saveLockEnabled: (Boolean) -> Unit,
     lockTimeOption: foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption,
@@ -445,22 +444,24 @@ fun SettingsScreen(
                 }
             }
 
-            CardWithTitle(title = "AI chatbot", innerPaddingHorizontal = horizontalPadding) {
-                androidx.compose.material3.OutlinedTextField(
-                    value = aiApiKey,
-                    onValueChange = saveAiApiKey,
-                    label = { Text("Gemini API Key") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+            CardWithTitle(title = "AI assistant", innerPaddingHorizontal = 0.dp) {
+                SettingsSwitchRow(
+                    text = "Enable AI assistant",
+                    description = "Off by default. Requires an API key configured in AI provider settings. Sends assistant prompts to the configured provider.",
+                    checked = aiAssistantEnabled,
+                    onCheckedChange = {
+                        performHaptic(HapticType.TOGGLE)
+                        saveAiAssistantEnabled(it)
+                    }
                 )
-                androidx.compose.material3.OutlinedTextField(
-                    value = aiModelName,
-                    onValueChange = saveAiModelName,
-                    label = { Text("Gemini Model Name") },
-                    supportingText = { Text("Recommended: gemini-2.5-flash (fast) or gemini-2.5-pro (smartest)") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
-                )
+                HorizontalDivider()
+                SettingsButton(
+                    imageVector = Icons.Outlined.SmartToy,
+                    text = "AI provider settings"
+                ) {
+                    performHaptic(HapticType.CLICK)
+                    navigateToAiAssistantSettings()
+                }
             }
 
             CardWithTitle(title = "Privacy", innerPaddingHorizontal = horizontalPadding) {

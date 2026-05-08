@@ -97,6 +97,12 @@ class ExperienceViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000)
     )
 
+    val aiAssistantEnabledFlow = userPreferences.aiAssistantEnabledFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = false,
+    )
+
     fun saveTimeDisplayOption(savedTimeDisplayOption: SavedTimeDisplayOption) {
         viewModelScope.launch {
             userPreferences.saveTimeDisplayOption(savedTimeDisplayOption)

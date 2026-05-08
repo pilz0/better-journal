@@ -29,24 +29,22 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -60,19 +58,10 @@ import foo.pilz.freaklog.ui.theme.JournalTheme
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import foo.pilz.freaklog.ui.utils.getDateWithWeekdayText
 import foo.pilz.freaklog.ui.utils.getShortTimeText
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Switch
-import androidx.compose.ui.draw.scale
 
 @Composable
 fun SubstanceCompanionScreen(
     viewModel: SubstanceCompanionViewModel = hiltViewModel(),
-    navigateToDosageStat: (substanceName: String, consumerName: String?) -> Unit = { _, _ -> },
 ) {
     val companion = viewModel.thisCompanionFlow.collectAsState().value
     if (companion == null) {
@@ -87,22 +76,16 @@ fun SubstanceCompanionScreen(
             tolerance = viewModel.tolerance,
             crossTolerances = viewModel.crossTolerances,
             consumerName = viewModel.consumerName,
-            dosageBuckets = viewModel.dosageChartDataFlow.collectAsState().value,
+            dosageStats = viewModel.dosageStatsFlow.collectAsState().value,
             selectedTimeRange = viewModel.selectedTimeRange.collectAsState().value,
             onTimeRangeSelected = viewModel::setTimeRange,
             showAverage = viewModel.showAverage.collectAsState().value,
             onToggleShowAverage = viewModel::toggleShowAverage,
-            frequency = viewModel.frequencyFlow.collectAsState().value,
-            hasMixedUnits = viewModel.hasMixedUnitsFlow.collectAsState().value,
-            onOpenDosageStat = {
-                navigateToDosageStat(companion.substanceName, viewModel.consumerName)
-            },
             showTrendLine = viewModel.showTrendLine.collectAsState().value,
             onToggleShowTrendLine = viewModel::toggleShowTrendLine,
             selectedMetric = viewModel.selectedMetric.collectAsState().value,
             onMetricSelected = viewModel::setMetric,
             doseThresholds = viewModel.doseThresholds,
-            chartSummary = viewModel.chartSummaryFlow.collectAsState().value
         )
     }
 }
@@ -123,9 +106,17 @@ fun SubstanceCompanionPreview(@PreviewParameter(SubstanceCompanionScreenPreviewP
                 "dopamine",
                 "stimulant"
             ),
+            dosageStats = SubstanceCompanionScreenPreviewProvider.previewStats,
         )
     }
 }
+
+private data class DosageChartCallbacks(
+    val onTimeRangeSelected: (DosageTimeRange) -> Unit,
+    val onToggleShowAverage: (Boolean) -> Unit,
+    val onToggleShowTrendLine: (Boolean) -> Unit,
+    val onMetricSelected: (DosageMetric) -> Unit,
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -135,27 +126,30 @@ fun SubstanceCompanionScreen(
     tolerance: Tolerance?,
     crossTolerances: List<String>,
     consumerName: String? = null,
-    dosageBuckets: List<DosageBucket> = emptyList(),
+    dosageStats: SubstanceDosageStatsModel = SubstanceDosageStatsModel(
+        buckets = emptyList(),
+        summary = SubstanceDosageSummary(
+            totalSessions = 0,
+            totalKnownDose = null,
+            averageKnownDosePerSession = null,
+            peakKnownDose = null,
+            unknownDoseCount = 0,
+            unitsUsed = emptyList(),
+            longestGapDays = null,
+            currentStreakWeeks = 0,
+        ),
+        hasMixedUnits = false,
+    ),
     selectedTimeRange: DosageTimeRange = DosageTimeRange.WEEKS_26,
     onTimeRangeSelected: (DosageTimeRange) -> Unit = {},
     showAverage: Boolean = false,
     onToggleShowAverage: (Boolean) -> Unit = {},
-    frequency: SubstanceFrequency = SubstanceFrequency(0, 0, 0),
-    hasMixedUnits: Boolean = false,
-    onOpenDosageStat: () -> Unit = {},
     showTrendLine: Boolean = false,
     onToggleShowTrendLine: (Boolean) -> Unit = {},
     selectedMetric: DosageMetric = DosageMetric.TOTAL_DOSE,
     onMetricSelected: (DosageMetric) -> Unit = {},
     doseThresholds: DoseThresholds? = null,
-    chartSummary: ChartSummary? = null
 ) {
-    // Tracks which bar the user last tapped; null = none selected
-    var tappedIndex by remember { mutableStateOf<Int?>(null) }
-    // Clear the selection whenever the time range changes so the info card
-    // doesn't display stale data from a different bucket at the same index.
-    LaunchedEffect(selectedTimeRange) { tappedIndex = null }
-
     Scaffold(
         topBar = {
             val title = if (consumerName == null) {
@@ -163,14 +157,7 @@ fun SubstanceCompanionScreen(
             } else {
                 "${substanceCompanion.substanceName} ($consumerName)"
             }
-            TopAppBar(
-                title = { Text(title) },
-                actions = {
-                    androidx.compose.material3.TextButton(onClick = onOpenDosageStat) {
-                        Text("Dosage stats")
-                    }
-                },
-            )
+            TopAppBar(title = { Text(title) })
         }
     ) { padding ->
         LazyColumn(
@@ -180,236 +167,29 @@ fun SubstanceCompanionScreen(
                 .padding(horizontal = horizontalPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Usage frequency section
             item {
-                SubstanceFrequencySection(frequency = frequency)
-            }
-            if (hasMixedUnits) {
-                item {
-                    ElevatedCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                    ) {
-                        Text(
-                            text = "Heads-up: ingestions for this substance use multiple unit strings " +
-                                "(e.g. mg vs µg). The dosage chart sums them together — interpret with care.",
-                            modifier = Modifier.padding(12.dp),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error,
-                        )
-                    }
-                }
-            }
-            // ── Dosage stats card ────────────────────────────────────────────
-            item {
-                ElevatedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
+                val unit = dosageStats.summary.unitsUsed.firstOrNull().orEmpty()
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-
-                        // Time-range selector pill
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(
-                                    MaterialTheme.colorScheme.surfaceVariant,
-                                    RoundedCornerShape(8.dp)
-                                )
-                                .padding(4.dp),
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            DosageTimeRange.values().forEach { range ->
-                                val isSelected = range == selectedTimeRange
-                                val bg = if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
-                                val fg = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .background(bg, RoundedCornerShape(6.dp))
-                                        .clickable { onTimeRangeSelected(range) }
-                                        .padding(vertical = 6.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = range.displayText,
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = fg
-                                    )
-                                }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        // ── Summary row (#8) ──────────────────────────────
-                        if (chartSummary != null && chartSummary.totalSessions > 0) {
-                            val parts = buildList {
-                                add("${chartSummary.totalSessions} sessions")
-                                chartSummary.longestGapDays?.let { add("${it}d max gap") }
-                                if (chartSummary.currentStreakWeeks > 0) {
-                                    add("${chartSummary.currentStreakWeeks}w streak")
-                                }
-                            }
-                            Text(
-                                text = parts.joinToString(" · "),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                        }
-
-                        // Chart subtitle + title
-                        val chartSubtitle = when (selectedTimeRange) {
-                            DosageTimeRange.DAYS_30   -> "Dosage by day"
-                            DosageTimeRange.WEEKS_26  -> "Dosage by week"
-                            DosageTimeRange.MONTHS_12 -> "Dosage by month"
-                            DosageTimeRange.ALL       -> "Dosage over all time"
-                        }
-                        Text(
-                            text = chartSubtitle,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = selectedTimeRange.title,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // Chart (#4 tap handling)
-                        DosageBarChart(
-                            buckets = dosageBuckets,
-                            barColor = substanceCompanion.color.getComposeColor(isSystemInDarkTheme()),
-                            showAverage = showAverage,
-                            showTrendLine = showTrendLine,
-                            metric = selectedMetric,
-                            doseThresholds = doseThresholds,
-                            onBarTapped = { idx -> tappedIndex = if (tappedIndex == idx) null else idx },
-                            height = 200.dp
-                        )
-
-                        // ── Tapped-bar info row (#4) ──────────────────────
-                        val tappedBucket = tappedIndex?.let { dosageBuckets.getOrNull(it) }
-                        if (tappedBucket != null) {
-                            Spacer(modifier = Modifier.height(4.dp))
-                            ElevatedCard(
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-                                    Text(
-                                        text = tappedBucket.fullDateText,
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text(
-                                            text = if (tappedBucket.totalDose > 0)
-                                                "${formatSiValue(tappedBucket.totalDose)} ${tappedBucket.unit} total"
-                                            else
-                                                "No dose logged",
-                                            style = MaterialTheme.typography.bodyMedium
-                                        )
-                                        Text(
-                                            text = "${tappedBucket.sessionCount} session${if (tappedBucket.sessionCount != 1) "s" else ""}",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                    if (tappedBucket.sessionCount > 1 && tappedBucket.avgDosePerSession > 0) {
-                                        Text(
-                                            text = "avg ${formatSiValue(tappedBucket.avgDosePerSession)} ${tappedBucket.unit}/session",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // ── Metric selector (#3 / #10) ────────────────────────
-                    HorizontalDivider()
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(
-                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                            )
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        DosageMetric.values().forEach { m ->
-                            val isSelected = m == selectedMetric
-                            val bg = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
-                            val fg = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .background(bg, RoundedCornerShape(6.dp))
-                                    .clickable { onMetricSelected(m) }
-                                    .padding(vertical = 6.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = m.displayText,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = fg
-                                )
-                            }
-                        }
-                    }
-
-                    // ── Toggle row: Average + Trend Line (#7, #9) ─────────
-                    HorizontalDivider()
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Average toggle
-                        Row(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable { onToggleShowAverage(!showAverage) }
-                                .padding(vertical = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("Average", style = MaterialTheme.typography.bodySmall)
-                            Switch(
-                                checked = showAverage,
-                                onCheckedChange = onToggleShowAverage,
-                                modifier = Modifier.scale(0.72f)
-                            )
-                        }
-
-                        // Trend line toggle
-                        Row(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable { onToggleShowTrendLine(!showTrendLine) }
-                                .padding(vertical = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("Trend line", style = MaterialTheme.typography.bodySmall)
-                            Switch(
-                                checked = showTrendLine,
-                                onCheckedChange = onToggleShowTrendLine,
-                                modifier = Modifier.scale(0.72f)
-                            )
-                        }
-                    }
+                    SubstanceSummaryCards(summary = dosageStats.summary, unit = unit)
+                    DosageDiagnostics(stats = dosageStats)
+                    DosageChartCard(
+                        substanceCompanion = substanceCompanion,
+                        dosageStats = dosageStats,
+                        selectedTimeRange = selectedTimeRange,
+                        showAverage = showAverage,
+                        showTrendLine = showTrendLine,
+                        selectedMetric = selectedMetric,
+                        doseThresholds = doseThresholds,
+                        callbacks = DosageChartCallbacks(
+                            onTimeRangeSelected = onTimeRangeSelected,
+                            onToggleShowAverage = onToggleShowAverage,
+                            onToggleShowTrendLine = onToggleShowTrendLine,
+                            onMetricSelected = onMetricSelected,
+                        ),
+                    )
                 }
             }
 
@@ -453,6 +233,145 @@ fun SubstanceCompanionScreen(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SubstanceSummaryCards(summary: SubstanceDosageSummary, unit: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        SummaryCard(
+            label = "Sessions",
+            value = summary.totalSessions.toString(),
+            modifier = Modifier.weight(1f),
+        )
+        SummaryCard(
+            label = "Known total",
+            value = summary.totalKnownDose?.takeIf { it > 0 }?.let {
+                "${formatSiValue(it)} $unit".trim()
+            } ?: "Mixed/unknown",
+            modifier = Modifier.weight(1f),
+        )
+        SummaryCard(
+            label = "Avg/session",
+            value = summary.averageKnownDosePerSession?.takeIf { it > 0 }?.let {
+                "${formatSiValue(it)} $unit".trim()
+            } ?: "Mixed/unknown",
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+@Composable
+private fun SummaryCard(label: String, value: String, modifier: Modifier = Modifier) {
+    ElevatedCard(modifier = modifier) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+@Composable
+private fun DosageDiagnostics(stats: SubstanceDosageStatsModel) {
+    if (stats.hasMixedUnits) {
+        ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "Mixed units: ${stats.summary.unitsUsed.joinToString(", ")}. Dose totals are shown as logged and should not be compared as one unit.",
+                modifier = Modifier.padding(12.dp),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+    }
+    if (stats.summary.unknownDoseCount > 0) {
+        ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "${stats.summary.unknownDoseCount} ingestion${if (stats.summary.unknownDoseCount == 1) "" else "s"} in this range have no dose. Known-dose totals exclude them.",
+                modifier = Modifier.padding(12.dp),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun DosageChartCard(
+    substanceCompanion: SubstanceCompanion,
+    dosageStats: SubstanceDosageStatsModel,
+    selectedTimeRange: DosageTimeRange,
+    showAverage: Boolean,
+    showTrendLine: Boolean,
+    selectedMetric: DosageMetric,
+    doseThresholds: DoseThresholds?,
+    callbacks: DosageChartCallbacks,
+) {
+    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("Dosage over time", style = MaterialTheme.typography.titleMedium)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                DosageTimeRange.values().forEach { range ->
+                    FilterChip(
+                        selected = selectedTimeRange == range,
+                        onClick = { callbacks.onTimeRangeSelected(range) },
+                        label = { Text(range.displayText) },
+                    )
+                }
+            }
+            val effectiveMetric = if (dosageStats.hasMixedUnits && selectedMetric != DosageMetric.SESSION_COUNT) {
+                DosageMetric.SESSION_COUNT
+            } else {
+                selectedMetric
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                DosageMetric.values().forEach { metric ->
+                    val isLockedByMixedUnits = dosageStats.hasMixedUnits && metric != DosageMetric.SESSION_COUNT
+                    FilterChip(
+                        selected = effectiveMetric == metric,
+                        onClick = { callbacks.onMetricSelected(metric) },
+                        label = { Text(metric.displayText) },
+                        enabled = !isLockedByMixedUnits,
+                    )
+                }
+            }
+            DosageBarChart(
+                buckets = dosageStats.buckets,
+                barColor = substanceCompanion.color.getComposeColor(isSystemInDarkTheme()),
+                showAverage = showAverage,
+                showTrendLine = showTrendLine,
+                metric = effectiveMetric,
+                doseThresholds = if (dosageStats.hasMixedUnits) null else doseThresholds,
+                height = 200.dp,
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("Average", style = MaterialTheme.typography.bodyMedium)
+                Switch(checked = showAverage, onCheckedChange = callbacks.onToggleShowAverage)
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("Trend line", style = MaterialTheme.typography.bodyMedium)
+                Switch(checked = showTrendLine, onCheckedChange = callbacks.onToggleShowTrendLine)
             }
         }
     }

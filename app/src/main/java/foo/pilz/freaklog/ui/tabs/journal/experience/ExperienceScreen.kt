@@ -129,6 +129,7 @@ fun ExperienceScreen(
     val ingestionsWithCompanions = viewModel.ingestionsWithCompanionsFlow.collectAsState().value
     val experience = viewModel.experienceFlow.collectAsState().value
     val isFavorite = viewModel.isFavoriteFlow.collectAsState().value
+    val isAiAssistantEnabled = viewModel.aiAssistantEnabledFlow.collectAsState().value
     val oneExperienceScreenModel = OneExperienceScreenModel(
         id = experience?.id ?: 0,
         isFavorite = isFavorite,
@@ -147,10 +148,10 @@ fun ExperienceScreen(
         consumersWithIngestions = viewModel.consumersWithIngestionsFlow.collectAsState().value,
         dataForEffectLines = viewModel.dataForEffectTimelinesFlow.collectAsState().value
     )
-    
+
     var showAiChat by remember { mutableStateOf(false) }
 
-    if (showAiChat) {
+    if (showAiChat && isAiAssistantEnabled) {
         foo.pilz.freaklog.ui.tabs.journal.experience.recommendations.AiChatBottomSheet(
             experienceId = experience?.id ?: 0,
             onDismiss = { showAiChat = false }
@@ -175,6 +176,7 @@ fun ExperienceScreen(
         navigateBack = navigateBack,
         saveIsFavorite = viewModel::saveIsFavorite,
         openAiChat = { showAiChat = true },
+        isAiAssistantEnabled = isAiAssistantEnabled,
         navigateToEditRatingScreen = navigateToEditRatingScreen,
         navigateToEditTimedNoteScreen = navigateToEditTimedNoteScreen,
         savedTimeDisplayOption = viewModel.savedTimeDisplayOption.collectAsState().value,
@@ -239,6 +241,7 @@ fun ExperienceScreen(
     navigateBack: () -> Unit,
     saveIsFavorite: (Boolean) -> Unit,
     openAiChat: () -> Unit,
+    isAiAssistantEnabled: Boolean = false,
     navigateToEditRatingScreen: (ratingId: Int) -> Unit,
     navigateToEditTimedNoteScreen: (timedNoteId: Int) -> Unit,
     savedTimeDisplayOption: SavedTimeDisplayOption,
@@ -258,6 +261,7 @@ fun ExperienceScreen(
                 deleteExperience = deleteExperience,
                 navigateBack = navigateBack,
                 openAiChat = openAiChat,
+                isAiAssistantEnabled = isAiAssistantEnabled,
                 navigateToEditExperienceScreen = navigateToEditExperienceScreen,
                 saveIsFavorite = saveIsFavorite,
                 navigateToAddTimedNoteScreen = navigateToAddTimedNoteScreen,
@@ -845,6 +849,7 @@ private fun ExperienceTopBar(
     deleteExperience: () -> Unit,
     navigateBack: () -> Unit,
     openAiChat: () -> Unit,
+    isAiAssistantEnabled: Boolean,
     navigateToEditExperienceScreen: () -> Unit,
     saveIsFavorite: (Boolean) -> Unit,
     navigateToAddTimedNoteScreen: () -> Unit,
@@ -854,11 +859,13 @@ private fun ExperienceTopBar(
     TopAppBar(
         title = { Text(oneExperienceScreenModel.title) },
         actions = {
-            IconButton(onClick = openAiChat) {
-                Icon(
-                    androidx.compose.material.icons.Icons.Outlined.SmartToy,
-                    contentDescription = "AI Recommendations"
-                )
+            if (isAiAssistantEnabled) {
+                IconButton(onClick = openAiChat) {
+                    Icon(
+                        androidx.compose.material.icons.Icons.Outlined.SmartToy,
+                        contentDescription = "AI Recommendations"
+                    )
+                }
             }
             var areTimeOptionsExpanded by remember { mutableStateOf(false) }
             IconButton(onClick = { areTimeOptionsExpanded = true }) {

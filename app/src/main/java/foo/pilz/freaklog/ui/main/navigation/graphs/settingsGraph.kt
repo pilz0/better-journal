@@ -23,6 +23,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigation
 import foo.pilz.freaklog.ui.main.navigation.SettingsTopLevelRoute
 import foo.pilz.freaklog.ui.main.navigation.composableWithTransitions
+import foo.pilz.freaklog.ui.tabs.settings.AiAssistantSettingsScreen
 import foo.pilz.freaklog.ui.tabs.settings.FAQScreen
 import foo.pilz.freaklog.ui.tabs.settings.SettingsScreen
 import foo.pilz.freaklog.ui.tabs.settings.colors.SubstanceColorsScreen
@@ -68,8 +69,14 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
                 },
                 navigateToFreakQueryShell = {
                     navController.navigate(FreakQueryShellRoute)
+                },
+                navigateToAiAssistantSettings = {
+                    navController.navigate(AiAssistantSettingsRoute)
                 }
             )
+        }
+        composableWithTransitions<AiAssistantSettingsRoute> {
+            AiAssistantSettingsScreen(navigateBack = navController::popBackStack)
         }
         composableWithTransitions<RemindersScreenRoute> {
             RemindersScreen(
@@ -168,3 +175,6 @@ object AchievementsRoute
 
 @Serializable
 data class EditCustomUnitRoute(val customUnitId: Int)
+
+@Serializable
+object AiAssistantSettingsRoute
