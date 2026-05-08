@@ -35,7 +35,7 @@ object SubstanceDosageStatsHelper {
             DosageTimeRange.ALL -> ingestions.minOfOrNull { it.time } ?: now
             else -> now.atZone(zone).minus(range.period ?: Period.ZERO).toInstant()
         }
-        val unsorted = ingestions.filter { it.time >= rangeStart && it.time < now }
+        val unsorted = ingestions.filter { it.time >= rangeStart && it.time <= now }
         val visible = unsorted.sortedBy { it.time }
         val unitsUsed = unsorted.mapNotNull { it.units?.takeIf(String::isNotBlank) }.distinct()
         val buckets = buildBuckets(visible, range, rangeStart, now, zone, unitsUsed)

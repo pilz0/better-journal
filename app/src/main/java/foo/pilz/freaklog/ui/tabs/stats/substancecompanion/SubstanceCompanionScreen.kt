@@ -72,7 +72,6 @@ import androidx.compose.ui.draw.scale
 @Composable
 fun SubstanceCompanionScreen(
     viewModel: SubstanceCompanionViewModel = hiltViewModel(),
-    navigateToDosageStat: (substanceName: String, consumerName: String?) -> Unit = { _, _ -> },
 ) {
     val companion = viewModel.thisCompanionFlow.collectAsState().value
     if (companion == null) {
@@ -81,28 +80,29 @@ fun SubstanceCompanionScreen(
             color = MaterialTheme.colorScheme.background
         ) {}
     } else {
+        val dosageStats = viewModel.dosageStatsFlow.collectAsState().value
         SubstanceCompanionScreen(
             substanceCompanion = companion,
             ingestionBursts = viewModel.ingestionBurstsFlow.collectAsState().value,
             tolerance = viewModel.tolerance,
             crossTolerances = viewModel.crossTolerances,
             consumerName = viewModel.consumerName,
-            dosageBuckets = viewModel.dosageChartDataFlow.collectAsState().value,
+            dosageBuckets = dosageStats.buckets,
             selectedTimeRange = viewModel.selectedTimeRange.collectAsState().value,
             onTimeRangeSelected = viewModel::setTimeRange,
             showAverage = viewModel.showAverage.collectAsState().value,
             onToggleShowAverage = viewModel::toggleShowAverage,
             frequency = viewModel.frequencyFlow.collectAsState().value,
-            hasMixedUnits = viewModel.hasMixedUnitsFlow.collectAsState().value,
-            onOpenDosageStat = {
-                navigateToDosageStat(companion.substanceName, viewModel.consumerName)
-            },
+            hasMixedUnits = dosageStats.hasMixedUnits,
+            onOpenDosageStat = {},
             showTrendLine = viewModel.showTrendLine.collectAsState().value,
             onToggleShowTrendLine = viewModel::toggleShowTrendLine,
             selectedMetric = viewModel.selectedMetric.collectAsState().value,
             onMetricSelected = viewModel::setMetric,
             doseThresholds = viewModel.doseThresholds,
-            chartSummary = viewModel.chartSummaryFlow.collectAsState().value
+            chartSummary = dosageStats.summary.let {
+                ChartSummary(it.totalSessions, it.longestGapDays, it.currentStreakWeeks)
+            }
         )
     }
 }

@@ -22,6 +22,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.room.experiences.entities.Experience
@@ -32,24 +33,21 @@ import foo.pilz.freaklog.ui.main.navigation.graphs.SubstanceCompanionRoute
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.search.suggestion.models.CustomUnitDose
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
 import foo.pilz.freaklog.ui.utils.getTimeDifferenceText
-import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.Instant
+import java.time.Period
+import java.time.ZoneId
+import javax.inject.Inject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import java.time.Instant
-import java.time.Period
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
-import javax.inject.Inject
 
 @HiltViewModel
 class SubstanceCompanionViewModel @Inject constructor(
@@ -122,73 +120,29 @@ class SubstanceCompanionViewModel @Inject constructor(
         .map { list -> list.filter { it.ingestion.consumerName == consumerName } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val dosageChartDataFlow: StateFlow<List<DosageBucket>> =
+    val dosageStatsFlow: StateFlow<SubstanceDosageStatsModel> =
         combine(allIngestionsFlow, selectedTimeRange, currentTimeFlow) { ingestions, timeRange, currentTime ->
-            val mapped = ingestions.map { IngestionsBurst.IngestionAndCustomUnit(it.ingestion, it.customUnit) }
-            val zoneId = ZoneId.systemDefault()
-            val start = if (timeRange == DosageTimeRange.ALL) {
-                ingestions.minOfOrNull { it.ingestion.time } ?: currentTime
-            } else {
-                currentTime.atZone(zoneId).minus(timeRange.period!!).toInstant()
-            }
-            getDosageBuckets(mapped, timeRange, start, currentTime)
+            SubstanceDosageStatsHelper.build(
+                ingestions = ingestions.map { it.ingestion },
+                range = timeRange,
+                now = currentTime,
+                zone = ZoneId.systemDefault(),
+            )
         }.stateIn(
-            initialValue = emptyList(),
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000)
-        )
-
-    val chartSummaryFlow: StateFlow<ChartSummary?> =
-        combine(allIngestionsFlow, selectedTimeRange, currentTimeFlow) { ingestions, timeRange, currentTime ->
-            val zoneId = ZoneId.systemDefault()
-
-            // Determine the range start
-            val rangeStart: Instant? = when (timeRange) {
-                DosageTimeRange.ALL -> ingestions.minOfOrNull { it.ingestion.time }
-                else -> currentTime.atZone(zoneId).minus(timeRange.period!!).toInstant()
-            }
-
-            // Ingestions within the selected range
-            val inRange = if (rangeStart != null) {
-                ingestions.filter { it.ingestion.time >= rangeStart && it.ingestion.time <= currentTime }
-            } else ingestions
-
-            if (inRange.isEmpty()) return@combine null
-
-            // Total distinct sessions in range
-            val totalSessions = inRange.map { it.ingestion.experienceId }.distinct().size
-
-            // Longest gap between consecutive session starts (in range)
-            val sessionTimes = inRange
-                .groupBy { it.ingestion.experienceId }
-                .values
-                .map { group -> group.minOf { it.ingestion.time } }
-                .sorted()
-            val longestGapDays: Int? = if (sessionTimes.size >= 2) {
-                sessionTimes.zipWithNext { a, b ->
-                    ChronoUnit.DAYS.between(a.atZone(zoneId), b.atZone(zoneId)).toInt()
-                }.maxOrNull()
-            } else null
-
-            // Current streak: consecutive weeks going backwards from now with ≥1 session.
-            // Precompute a set of sliding-week indices (0 = current week, 1 = previous, …)
-            // that contain at least one in-range session for O(1) per-iteration lookup.
-            val currentEpochMs = currentTime.toEpochMilli()
-            val weekMs = 7L * 24 * 60 * 60 * 1000
-            val sessionWeekIndices: Set<Int> = inRange
-                .map { it.ingestion.time.toEpochMilli() }
-                .filter { it <= currentEpochMs }
-                .map { ((currentEpochMs - it) / weekMs).toInt() }
-                .toHashSet()
-            var streakWeeks = 0
-            // Cap at 104 weeks (2 years) to prevent excessive computation
-            for (weekIdx in 0 until 104) {
-                if (weekIdx in sessionWeekIndices) streakWeeks++ else break
-            }
-
-            ChartSummary(totalSessions, longestGapDays, streakWeeks)
-        }.stateIn(
-            initialValue = null,
+            initialValue = SubstanceDosageStatsModel(
+                buckets = emptyList(),
+                summary = SubstanceDosageSummary(
+                    totalSessions = 0,
+                    totalKnownDose = null,
+                    averageKnownDosePerSession = null,
+                    peakKnownDose = null,
+                    unknownDoseCount = 0,
+                    unitsUsed = emptyList(),
+                    longestGapDays = null,
+                    currentStreakWeeks = 0,
+                ),
+                hasMixedUnits = false,
+            ),
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000)
         )
@@ -250,134 +204,6 @@ class SubstanceCompanionViewModel @Inject constructor(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000)
     )
-
-    /**
-     * True if this substance's logged ingestions use more than one unit string. The UI uses
-     * this to warn the user that the dosage chart may mix incompatible measurements.
-     */
-    val hasMixedUnitsFlow: StateFlow<Boolean> = allIngestionsFlow.map { ingestions ->
-        ingestions.mapNotNull { it.ingestion.units?.takeIf { u -> u.isNotBlank() } }.toSet().size > 1
-    }.stateIn(
-        initialValue = false,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
-
-    private fun getDosageBuckets(
-        ingestions: List<IngestionsBurst.IngestionAndCustomUnit>,
-        timeRange: DosageTimeRange,
-        start: Instant,
-        end: Instant
-    ): List<DosageBucket> {
-        if (!start.isBefore(end)) return emptyList()
-
-        val zoneId = ZoneId.systemDefault()
-
-        // Determine step and label pattern
-        data class BucketConfig(val step: Period, val labelPattern: String)
-
-        val spanDays = ChronoUnit.DAYS.between(start.atZone(zoneId), end.atZone(zoneId)).coerceAtLeast(1)
-
-        val config: BucketConfig = when (timeRange) {
-            DosageTimeRange.DAYS_30  -> BucketConfig(Period.ofDays(1),    "dd")
-            DosageTimeRange.WEEKS_26 -> BucketConfig(Period.ofWeeks(1),   "dd.MM")
-            DosageTimeRange.MONTHS_12 -> BucketConfig(Period.ofMonths(1), "MMM")
-            DosageTimeRange.ALL -> {
-                val spanMonths = ChronoUnit.MONTHS.between(start.atZone(zoneId), end.atZone(zoneId))
-                when {
-                    spanDays <= 60  -> BucketConfig(Period.ofDays(1),   "dd.MM")
-                    spanMonths <= 18 -> BucketConfig(Period.ofWeeks(1), "dd.MM")
-                    else             -> BucketConfig(Period.ofMonths(1), "MMM yy")
-                }
-            }
-        }
-
-        // Determine bucket count
-        val bucketCount: Int = when (timeRange) {
-            DosageTimeRange.DAYS_30   -> 30
-            DosageTimeRange.WEEKS_26  -> 26
-            DosageTimeRange.MONTHS_12 -> 12
-            DosageTimeRange.ALL -> {
-                // Count steps needed to cover start→end; capped at 200 to avoid rendering
-                // an unreasonable number of bars if the dataset is extremely long.
-                var count = 0
-                var t = end.atZone(zoneId)
-                while (t.toInstant().isAfter(start) && count < 200) {
-                    t = t.minus(config.step)
-                    count++
-                }
-                count.coerceAtLeast(1)
-            }
-        }
-
-        val labelFmt    = DateTimeFormatter.ofPattern(config.labelPattern)
-        val fullDateFmt = DateTimeFormatter.ofPattern("dd MMM yyyy")
-        val initialUnit = ingestions.firstOrNull()?.ingestion?.units ?: "mg"
-
-        // Build an ascending array of bucket-boundary epoch-millis for O(log m) binary search.
-        // Bucket i spans [boundaryMillis[i], boundaryMillis[i+1]).
-        // The array is built backwards from `end`: boundaryMillis[bucketCount] = end,
-        // boundaryMillis[bucketCount-1] = end - 1×step, …, boundaryMillis[0] = end - bucketCount×step.
-        val boundaryMillis = LongArray(bucketCount + 1)
-        var tBoundary = end.atZone(zoneId)
-        for (i in bucketCount downTo 0) {
-            boundaryMillis[i] = tBoundary.toInstant().toEpochMilli()
-            if (i > 0) tBoundary = tBoundary.minus(config.step)
-        }
-
-        // Accumulators – one slot per bucket
-        val bucketTotals   = DoubleArray(bucketCount) { 0.0 }
-        val bucketSessions = Array(bucketCount) { mutableSetOf<Int>() }
-
-        // Pre-computed range limits to guard against out-of-range ingestions
-        val rangeStart = boundaryMillis[0]
-        val rangeEnd   = boundaryMillis[bucketCount]
-
-        // Single pass: binary-search each ingestion into its bucket.
-        // Ingestions outside [rangeStart, rangeEnd) are skipped rather than coerced
-        // into an edge bucket, which would inflate those buckets with out-of-range data.
-        for (ing in ingestions) {
-            val millis = ing.ingestion.time.toEpochMilli()
-            if (millis < rangeStart || millis >= rangeEnd) continue
-
-            val pos = boundaryMillis.binarySearch(millis)
-            val bucketIdx = if (pos >= 0) {
-                // Exact hit on a boundary → this is the start of that bucket.
-                // Clamp to bucketCount-1 in the (theoretical) case pos == bucketCount,
-                // which cannot actually occur given the rangeEnd guard above.
-                pos.coerceAtMost(bucketCount - 1)
-            } else {
-                // pos = -(insertion_point) - 1  →  insertion_point = -pos - 1
-                // The ingestion falls in bucket (insertion_point - 1).
-                (-pos - 2) // already ≥ 0 because millis >= rangeStart was checked
-            }
-            bucketTotals[bucketIdx]   += ing.ingestion.dose ?: 0.0
-            bucketSessions[bucketIdx].add(ing.ingestion.experienceId)
-        }
-
-        // Build the result list using pre-generated bucket-start times
-        val result = mutableListOf<DosageBucket>()
-        var bucketEnd = end.atZone(zoneId)
-
-        for (i in 0 until bucketCount) {
-            val bucketStart = bucketEnd.minus(config.step)
-
-            result.add(
-                0,
-                DosageBucket(
-                    label        = labelFmt.format(bucketStart),
-                    fullDateText = fullDateFmt.format(bucketStart),
-                    totalDose    = bucketTotals[i],
-                    sessionCount = bucketSessions[i].size,
-                    unit         = initialUnit
-                )
-            )
-
-            bucketEnd = bucketStart
-        }
-
-        return result
-    }
 }
 
 enum class DosageTimeRange(val displayText: String, val title: String, val period: Period?) {
