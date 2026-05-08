@@ -41,6 +41,7 @@ sealed interface ChatItem {
 data class AiChatUiState(
     val items: List<ChatItem> = emptyList(),
     val isApiKeyMissing: Boolean = false,
+    val isAssistantDisabled: Boolean = false,
     val isContextLoading: Boolean = true,
     val isAssistantBusy: Boolean = false,
     val statusMessage: String? = null,
@@ -100,36 +101,71 @@ class AiChatViewModel @Inject constructor(
                     statusMessage = null
                 )
             }
-            val ready = repository.createChatSession(experienceId)
+            val result = repository.createChatSession(experienceId)
             if (token != sessionToken) return@launch
-            if (ready == null) {
-                _uiState.update {
-                    it.copy(
-                        isContextLoading = false,
-                        isApiKeyMissing = true,
-                        modelName = null
-                    )
+            when (result) {
+                is AiChatSessionResult.Disabled -> {
+                    _uiState.update {
+                        it.copy(
+                            isContextLoading = false,
+                            isAssistantDisabled = true,
+                            isApiKeyMissing = false,
+                            modelName = null
+                        )
+                    }
+                    return@launch
                 }
-                return@launch
-            }
-            chatSession = ready.session
-            val initial = if (showWelcome) {
-                listOf(
-                    ChatItem.Message(
-                        text = "Hi! I'm your in-app journal assistant. I can search your past " +
-                            "experiences, summarise patterns, and answer harm-reduction questions about " +
-                            "your current session. Try a suggestion below or ask me anything.",
-                        isUser = false
-                    )
-                )
-            } else emptyList()
-            _uiState.update {
-                it.copy(
-                    isContextLoading = false,
-                    isApiKeyMissing = false,
-                    modelName = ready.modelName,
-                    items = initial
-                )
+                is AiChatSessionResult.MissingApiKey -> {
+                    _uiState.update {
+                        it.copy(
+                            isContextLoading = false,
+                            isApiKeyMissing = true,
+                            isAssistantDisabled = false,
+                            modelName = null
+                        )
+                    }
+                    return@launch
+                }
+                is AiChatSessionResult.Failed -> {
+                    _uiState.update {
+                        it.copy(
+                            isContextLoading = false,
+                            isApiKeyMissing = false,
+                            isAssistantDisabled = false,
+                            modelName = null,
+                            items = listOf(
+                                ChatItem.Message(
+                                    text = "Failed to initialise assistant: ${result.message}",
+                                    isUser = false,
+                                    isError = true
+                                )
+                            )
+                        )
+                    }
+                    return@launch
+                }
+                is AiChatSessionResult.Ready -> {
+                    chatSession = result.session
+                    val initial = if (showWelcome) {
+                        listOf(
+                            ChatItem.Message(
+                                text = "Hi! I'm your in-app journal assistant. I can search your past " +
+                                    "experiences, summarise patterns, and answer harm-reduction questions about " +
+                                    "your current session. Try a suggestion below or ask me anything.",
+                                isUser = false
+                            )
+                        )
+                    } else emptyList()
+                    _uiState.update {
+                        it.copy(
+                            isContextLoading = false,
+                            isApiKeyMissing = false,
+                            isAssistantDisabled = false,
+                            modelName = result.modelName,
+                            items = initial
+                        )
+                    }
+                }
             }
         }
     }

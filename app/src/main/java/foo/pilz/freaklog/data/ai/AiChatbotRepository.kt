@@ -9,6 +9,13 @@ import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
 
+sealed interface AiChatSessionResult {
+    data class Ready(val session: GeminiChatSession, val modelName: String) : AiChatSessionResult
+    data object Disabled : AiChatSessionResult
+    data object MissingApiKey : AiChatSessionResult
+    data class Failed(val message: String) : AiChatSessionResult
+}
+
 /**
  * Builds [GeminiChatSession] instances configured with a journal-aware system instruction
  * and the function-calling tools the model may invoke.
@@ -33,27 +40,30 @@ class AiChatbotRepository @Inject constructor(
         private const val TAG = "AiChatbotRepository"
     }
 
-    /** Result of a successful session initialisation, exposing the resolved model name to the UI. */
-    data class ReadySession(val session: GeminiChatSession, val modelName: String)
+    suspend fun createChatSession(experienceId: Int?): AiChatSessionResult {
+        val enabled = userPreferences.aiAssistantEnabledFlow.firstOrNull() ?: false
+        if (!enabled) {
+            Log.d(TAG, "AI assistant is disabled – skipping session creation")
+            return AiChatSessionResult.Disabled
+        }
 
-    suspend fun createChatSession(experienceId: Int?): ReadySession? {
         val apiKey = userPreferences.aiApiKeyFlow.firstOrNull().orEmpty()
-        val configuredName = userPreferences.aiModelNameFlow.firstOrNull().orEmpty()
-        val modelName = configuredName.ifBlank { DEFAULT_MODEL_NAME }
-
         if (apiKey.isBlank()) {
             Log.w(TAG, "API key is empty – cannot create chat session")
-            return null
+            return AiChatSessionResult.MissingApiKey
         }
+
+        val configuredName = userPreferences.aiModelNameFlow.firstOrNull().orEmpty()
+        val modelName = configuredName.ifBlank { DEFAULT_MODEL_NAME }
 
         return try {
             val systemInstruction = buildSystemInstructionJson(experienceId)
             val tools = buildToolsJson()
             val session = GeminiChatSession(apiKey, modelName, systemInstruction, tools)
-            ReadySession(session, modelName)
+            AiChatSessionResult.Ready(session, modelName)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to initialise chat session: ${e.message}", e)
-            null
+            AiChatSessionResult.Failed(e.message ?: e::class.java.simpleName)
         }
     }
 
