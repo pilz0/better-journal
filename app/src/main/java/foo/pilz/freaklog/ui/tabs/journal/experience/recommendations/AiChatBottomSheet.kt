@@ -99,6 +99,7 @@ fun AiChatBottomSheet(
 
             when {
                 uiState.isApiKeyMissing -> ApiKeyMissingState()
+                uiState.isAssistantDisabled -> AssistantDisabledState()
                 uiState.isContextLoading -> {
                     LinearProgressIndicator(
                         modifier = Modifier
@@ -169,6 +170,22 @@ private fun Header(
             Spacer(Modifier.width(4.dp))
             Text("New chat")
         }
+    }
+}
+
+@Composable
+private fun AssistantDisabledState() {
+    Column(modifier = Modifier.padding(vertical = 16.dp)) {
+        Text(
+            text = "AI assistant is disabled.",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = "Enable it in Settings → AI assistant to start a chat session.",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = 4.dp)
+        )
     }
 }
 
@@ -378,6 +395,5 @@ private fun InputBar(
         }
     }
 }
-
 
 

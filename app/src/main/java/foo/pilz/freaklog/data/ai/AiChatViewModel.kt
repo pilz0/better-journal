@@ -110,7 +110,13 @@ class AiChatViewModel @Inject constructor(
                             isContextLoading = false,
                             isAssistantDisabled = true,
                             isApiKeyMissing = false,
-                            modelName = null
+                            modelName = null,
+                            items = listOf(
+                                ChatItem.Message(
+                                    text = "AI assistant is currently disabled in Settings.",
+                                    isUser = false
+                                )
+                            )
                         )
                     }
                     return@launch

@@ -35,7 +35,7 @@ object SubstanceDosageStatsHelper {
             DosageTimeRange.ALL -> ingestions.minOfOrNull { it.time } ?: now
             else -> now.atZone(zone).minus(range.period ?: Period.ZERO).toInstant()
         }
-        val unsorted = ingestions.filter { it.time >= rangeStart && it.time <= now }
+        val unsorted = ingestions.filter { it.time >= rangeStart && it.time < now }
         val visible = unsorted.sortedBy { it.time }
         val unitsUsed = unsorted.mapNotNull { it.units?.takeIf(String::isNotBlank) }.distinct()
         val buckets = buildBuckets(visible, range, rangeStart, now, zone, unitsUsed)
@@ -79,21 +79,33 @@ object SubstanceDosageStatsHelper {
         val singleUnit = unitsUsed.singleOrNull()
         val buckets = ArrayDeque<DosageBucket>()
         var bucketEnd = end.atZone(zone)
+        var ingestionIndex = ingestions.lastIndex
         repeat(count) {
             val bucketStart = bucketEnd.minus(config.step)
-            val inBucket = ingestions.filter {
-                it.time >= bucketStart.toInstant() && it.time < bucketEnd.toInstant()
+            val bucketStartInstant = bucketStart.toInstant()
+            val bucketEndInstant = bucketEnd.toInstant()
+            val sessionIds = mutableSetOf<Int>()
+            var bucketKnownDose = 0.0
+            while (ingestionIndex >= 0) {
+                val ingestion = ingestions[ingestionIndex]
+                val ingestionTime = ingestion.time
+                if (ingestionTime >= bucketEndInstant) {
+                    ingestionIndex--
+                    continue
+                }
+                if (ingestionTime < bucketStartInstant) break
+                sessionIds += ingestion.experienceId
+                if (singleUnit != null && ingestion.units == singleUnit) {
+                    bucketKnownDose += ingestion.dose ?: 0.0
+                }
+                ingestionIndex--
             }
             buckets.addFirst(
                 DosageBucket(
                     label = labelFormat.format(bucketStart),
                     fullDateText = fullDateFormat.format(bucketStart),
-                    totalDose = if (singleUnit == null) {
-                        0.0
-                    } else {
-                        inBucket.filter { it.units == singleUnit }.sumOf { it.dose ?: 0.0 }
-                    },
-                    sessionCount = inBucket.map { it.experienceId }.toSet().size,
+                    totalDose = if (singleUnit == null) 0.0 else bucketKnownDose,
+                    sessionCount = sessionIds.size,
                     unit = singleUnit.orEmpty(),
                 )
             )

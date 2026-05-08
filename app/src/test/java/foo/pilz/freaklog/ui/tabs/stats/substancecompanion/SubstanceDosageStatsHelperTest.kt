@@ -90,4 +90,21 @@ class SubstanceDosageStatsHelperTest {
         assertThat(model.buckets.isNotEmpty()).isTrue()
         assertThat(model.summary.totalKnownDose).isEqualTo(100.0)
     }
+
+    @Test
+    fun `ingestion exactly at now is excluded from summary and buckets`() {
+        val model = SubstanceDosageStatsHelper.build(
+            ingestions = listOf(
+                ingestion(1, "2026-04-29T11:00:00Z", 100.0, experienceId = 1),
+                ingestion(2, "2026-04-29T12:00:00Z", 250.0, experienceId = 2),
+            ),
+            range = DosageTimeRange.DAYS_30,
+            now = now,
+            zone = zone,
+        )
+
+        assertThat(model.summary.totalSessions).isEqualTo(1)
+        assertThat(model.summary.totalKnownDose).isEqualTo(100.0)
+        assertThat(model.buckets.sumOf { it.totalDose }).isEqualTo(100.0)
+    }
 }
