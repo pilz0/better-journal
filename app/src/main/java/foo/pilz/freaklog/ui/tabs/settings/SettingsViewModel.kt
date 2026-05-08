@@ -180,6 +180,16 @@ class SettingsViewModel @Inject constructor(
         userPreferences.saveAiModelName(value)
     }
 
+    val aiAssistantEnabledFlow = userPreferences.aiAssistantEnabledFlow.stateIn(
+        initialValue = false,
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000)
+    )
+
+    fun saveAiAssistantEnabled(value: Boolean) = viewModelScope.launch {
+        userPreferences.saveAiAssistantEnabled(value)
+    }
+
     // ---- App lock ----
 
     val isLockEnabledFlow = userPreferences.isLockEnabledFlow.stateIn(

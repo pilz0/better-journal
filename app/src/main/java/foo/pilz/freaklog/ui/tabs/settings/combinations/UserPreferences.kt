@@ -65,6 +65,7 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
 
         val AI_API_KEY = stringPreferencesKey("ai_api_key")
         val AI_MODEL_NAME = stringPreferencesKey("ai_model_name")
+        val AI_ASSISTANT_ENABLED = booleanPreferencesKey("ai_assistant_enabled")
 
         val WEBHOOK_USE_FREAKQUERY = booleanPreferencesKey("webhook_use_freakquery")
         val WEBHOOK_FREAKQUERY_SEPARATOR = stringPreferencesKey("webhook_freakquery_separator")
@@ -281,6 +282,17 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
     suspend fun saveAiModelName(value: String) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.AI_MODEL_NAME] = value
+        }
+    }
+
+    val aiAssistantEnabledFlow: Flow<Boolean> = dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.AI_ASSISTANT_ENABLED] ?: false
+        }
+
+    suspend fun saveAiAssistantEnabled(value: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.AI_ASSISTANT_ENABLED] = value
         }
     }
 
