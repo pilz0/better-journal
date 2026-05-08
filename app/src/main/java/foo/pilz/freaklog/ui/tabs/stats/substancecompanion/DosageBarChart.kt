@@ -61,12 +61,6 @@ enum class DosageMetric(val displayText: String) {
     AVG_DOSE_PER_SESSION("Avg/Session")
 }
 
-data class ChartSummary(
-    val totalSessions: Int,
-    val longestGapDays: Int?,
-    val currentStreakWeeks: Int
-)
-
 /** Used for drawing horizontal dose-threshold lines inside [DosageBarChart]. */
 private data class ThresholdEntry(val name: String, val value: Double?, val color: Color)
 

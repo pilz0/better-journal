@@ -113,9 +113,9 @@ class SubstanceCompanionViewModel @Inject constructor(
     }
 
     // Source of all ingestions for this substance/consumer.
-    // Shared once via stateIn so the four downstream pipelines below
-    // (`dosageChartDataFlow`, `chartSummaryFlow`, `ingestionBurstsFlow`, `frequencyFlow`,
-    // `hasMixedUnitsFlow`) don't each re-collect (and re-query) the underlying Room flow.
+    // Shared once via stateIn so the downstream pipelines below
+    // (`dosageStatsFlow`, `ingestionBurstsFlow`, `frequencyFlow`)
+    // don't each re-collect (and re-query) the underlying Room flow.
     private val allIngestionsFlow = experienceRepo.getSortedIngestionsWithExperienceAndCustomUnitFlow(substanceName)
         .map { list -> list.filter { it.ingestion.consumerName == consumerName } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
