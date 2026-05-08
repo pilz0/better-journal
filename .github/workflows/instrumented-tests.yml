@@ -17,9 +17,6 @@ on:
           - '35'
   pull_request:
     types: [ labeled, synchronize ]
-  schedule:
-    # Nightly run on main, 03:42 UTC, to catch flakes and emulator regressions.
-    - cron: '42 3 * * *'
 
 # Deny all permissions by default; each job grants the minimum required.
 permissions: {}
