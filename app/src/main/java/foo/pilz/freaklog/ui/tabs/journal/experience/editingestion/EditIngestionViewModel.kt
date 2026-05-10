@@ -91,6 +91,14 @@ class EditIngestionViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000)
     )
 
+    val hasEnabledWebhooksFlow: StateFlow<Boolean> = webhookRepository.getEnabledFlow()
+        .map { it.isNotEmpty() }
+        .stateIn(
+            initialValue = false,
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000)
+        )
+
     fun onDoseChange(newDoseText: String) {
         dose = newDoseText
     }

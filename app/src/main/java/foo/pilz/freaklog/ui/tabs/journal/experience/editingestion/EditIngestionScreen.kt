@@ -143,7 +143,8 @@ fun EditIngestionScreen(
         siteOptions = viewModel.siteOptions,
         administrationSite = viewModel.administrationSite,
         onChangeOfAdministrationSite = viewModel::onChangeAdministrationSite,
-        onResendWebhook = viewModel::resendWebhook
+        onResendWebhook = viewModel::resendWebhook,
+        hasEnabledWebhooks = viewModel.hasEnabledWebhooksFlow.collectAsState().value
     )
 }
 
@@ -187,7 +188,8 @@ fun EditIngestionScreenPreview() {
             siteOptions = listOf("Left nostril", "Right nostril", "Both nostrils"),
             administrationSite = "Left nostril",
             onChangeOfAdministrationSite = {},
-            onResendWebhook = {}
+            onResendWebhook = {},
+            hasEnabledWebhooks = true
         )
     }
 }
@@ -231,7 +233,8 @@ fun EditIngestionScreen(
 
     administrationSite: String,
     onChangeOfAdministrationSite: (String) -> Unit,
-    onResendWebhook: () -> Unit
+    onResendWebhook: () -> Unit,
+    hasEnabledWebhooks: Boolean
 ) {
     var isPresentingBottomSheet by rememberSaveable { mutableStateOf(false) }
     val skipPartiallyExpanded by remember { mutableStateOf(false) }
@@ -577,19 +580,21 @@ fun EditIngestionScreen(
                     }
                 }
             }
-            ElevatedCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(
-                        horizontal = horizontalPadding,
-                        vertical = 3.dp
-                    )
+            if (hasEnabledWebhooks) {
+                ElevatedCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
                 ) {
-                    TextButton(onClick = onResendWebhook) {
-                        Text(text = "Resend Webhook")
+                    Column(
+                        modifier = Modifier.padding(
+                            horizontal = horizontalPadding,
+                            vertical = 3.dp
+                        )
+                    ) {
+                        TextButton(onClick = onResendWebhook) {
+                            Text(text = "Resend Webhook")
+                        }
                     }
                 }
             }
