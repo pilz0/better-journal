@@ -581,22 +581,22 @@ fun EditIngestionScreen(
                 }
             }
             if (hasEnabledWebhooks) {
-            ElevatedCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(
-                        horizontal = horizontalPadding,
-                        vertical = 3.dp
-                    )
+                ElevatedCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
                 ) {
-                    TextButton(onClick = onResendWebhook) {
-                        Text(text = "Resend Webhook")
+                    Column(
+                        modifier = Modifier.padding(
+                            horizontal = horizontalPadding,
+                            vertical = 3.dp
+                        )
+                    ) {
+                        TextButton(onClick = onResendWebhook) {
+                            Text(text = "Resend Webhook")
+                        }
                     }
                 }
-            }
             }
         }
     }
