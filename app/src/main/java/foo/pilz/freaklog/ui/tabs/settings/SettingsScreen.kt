@@ -516,6 +516,19 @@ fun SettingsScreen(
                 )
             }
 
+            CardWithTitle(title = "Attribution", innerPaddingHorizontal = 0.dp) {
+                SettingsButton(imageVector = Icons.Outlined.Code, text = "Original repository (archived)") {
+                    performHaptic(HapticType.CLICK)
+                    uriHandler.openUri("https://github.com/isaakhanimann/psychonautwiki-journal-android")
+                }
+                Text(
+                    text = "Some features and improvements (for example the whole achievement-code) were built for the fork on codeberg (codeberg.org/psychonaut-journal)",
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier
+                        .padding(horizontal = 15.dp)
+                        .padding(vertical = 10.dp)
+                )
+            }
             VisibleTabsDialog(
                 visible = isShowingVisibleTabsDialog,
                 onDismiss = { isShowingVisibleTabsDialog = false },

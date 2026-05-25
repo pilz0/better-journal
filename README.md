@@ -5,6 +5,9 @@ A (partly vibecoded) fork from https://github.com/isaakhanimann/psychonautwiki-j
 > This app is still in development and might break your database with updates
 
 > [!WARNING]  
+> This is a sloppy vibecoded fork and might have unknown issues
+
+> [!WARNING]  
 > migrating back to psylog/psychonautwiki journal might cause issues/requiere manual json edits because of custom roas
 
 ## Building with nix
@@ -30,20 +33,7 @@ The unsigned app bundle should be under `result/bin/`
 ./gradlew bundleRelease --no-daemon
 ```
 
-## Features added
-- Multi-webhook Discord logging with per-webhook names, templates, enable/disable state and resend/edit/delete handling.
-- FreakQuery support in webhook templates, including compact list rendering and a configurable compact separator.
-- Optional Anodyne-style substance links in webhook output.
-- AI chatbot powered by Google Generative AI for harm-reduction guidance.
-- Tolerance calculator with an exponential decay model.
-- Custom substances, custom routes of administration and custom units.
-- Custom substance recipes.
-- Inventory tab for substances on hand.
-- Redose recommendation controls based on onset, come-up and peak timing.
-- Home screen widgets, including timeline/heatmap style widget support.
-- Improved timeline visualization and cumulative dose display.
-- Statistics upgrades for substance usage, routes, dosage charts, trends and frequency.
-- Spray calculator and volumetric dosing helpers.
-- Reminders with quick logging actions.
-- Optional app lock and haptic feedback settings.
-- Import/export support for the expanded Freaklog data model.
+## Attribution
+The original app was built by [https://github.com/isaakhanimann/](isaakhanimann) 
+
+Some features and improvements (for example the whole achievement-code) were built for the fork on codeberg (https://codeberg.org/psychonaut-journal). Check out their fork if you are looking for a more stable, non-vibecoded fork.
