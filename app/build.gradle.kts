@@ -6,8 +6,8 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.androidx.room)
     alias(libs.plugins.ksp)
-    // alias(libs.plugins.detekt)  // Disabled for Nix build lock regeneration
-    // alias(libs.plugins.kover)    // Disabled for Nix build lock regeneration
+    alias(libs.plugins.detekt)
+    alias(libs.plugins.kover)
 }
 
 android {
@@ -126,8 +126,6 @@ tasks.withType<Test>().configureEach {
 }
 
 // --- Detekt ---
-// Disabled for Nix build lock regeneration
-/*
 detekt {
     toolVersion = libs.versions.detekt.get()
     parallel = true
@@ -152,17 +150,14 @@ tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
 tasks.withType<io.gitlab.arturbosch.detekt.DetektCreateBaselineTask>().configureEach {
     jvmTarget = "17"
 }
-*/
 
 dependencies {
     implementation(project(":freakquery-android"))
 
-    // detektPlugins(libs.detekt.formatting)  // Disabled for Nix build
+    detektPlugins(libs.detekt.formatting)
 }
 
 // --- Kover (Kotlinx coverage) ---
-// Disabled for Nix build lock regeneration
-/*
 kover {
     reports {
         filters {
@@ -197,7 +192,6 @@ kover {
         }
     }
 }
-*/
 
 dependencies {
     implementation(libs.androidx.core.ktx)

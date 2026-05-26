@@ -82,16 +82,6 @@ class AdministrationRouteTest {
         assertEquals("Inhaled", AdministrationRoute.INHALED.displayText)
     }
 
-    @Test
-    fun testMedikinet_displayText() {
-        assertEquals("Medikinet Oral", AdministrationRoute.MEDIKINET.displayText)
-    }
-
-    @Test
-    fun testKinecteen_displayText() {
-        assertEquals("Kinecteen Oral", AdministrationRoute.KINECTEEN.displayText)
-    }
-
     // ===== isInjectionMethod Tests =====
 
     @Test
@@ -270,7 +260,7 @@ class AdministrationRouteTest {
     @Test
     fun testAllRouteEnumValues() {
         val allRoutes = AdministrationRoute.entries
-        assertEquals(13, allRoutes.size)
+        assertEquals(11, allRoutes.size)
     }
 
     @Test

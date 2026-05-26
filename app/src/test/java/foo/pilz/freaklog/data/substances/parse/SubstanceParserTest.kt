@@ -303,7 +303,7 @@ class SubstanceParserTest {
         """.trimIndent()
         
         val result = parser.parseSubstanceFile(json)
-        assertEquals(13, result.substances[0].roas.size)
+        assertEquals(11, result.substances[0].roas.size)
     }
 
     @Test

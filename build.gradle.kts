@@ -11,17 +11,15 @@ plugins {
     alias(libs.plugins.hilt.android) apply false
     alias(libs.plugins.androidx.room) apply false
     alias(libs.plugins.ksp) apply false
-    // alias(libs.plugins.detekt) apply false  // Disabled for Nix build
-    // alias(libs.plugins.kover) apply false    // Disabled for Nix build
+    alias(libs.plugins.detekt) apply false
+    alias(libs.plugins.kover) apply false
     id ("nl.littlerobots.version-catalog-update") version "1.0.1"
 }
 
 // Convenience aggregator: `./gradlew detektAll` runs every Kotlin module's
 // :detekt task. Useful as the project grows beyond a single :app module.
-/*
 tasks.register("detektAll") {
     group = "verification"
     description = "Runs Detekt across all Kotlin modules."
     dependsOn(":app:detekt")
 }
-*/
