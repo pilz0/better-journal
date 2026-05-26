@@ -454,7 +454,8 @@ interface ExperienceDao {
                     notes = ingestionSerializable.notes,
                     stomachFullness = ingestionSerializable.stomachFullness,
                     consumerName = ingestionSerializable.consumerName,
-                    customUnitId = ingestionSerializable.customUnitId
+                    customUnitId = ingestionSerializable.customUnitId,
+                    saltForm = ingestionSerializable.saltForm
                 )
                 insert(newIngestion)
             }

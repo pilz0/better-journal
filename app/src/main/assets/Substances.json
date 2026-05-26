@@ -250,7 +250,7 @@
         {
           "name": "oral",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 15,
             "commonMin": 75,
             "strongMin": 150,
@@ -330,7 +330,7 @@
         {
           "name": "oral",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 20,
             "commonMin": 100,
             "strongMin": 225,
@@ -407,7 +407,7 @@
         {
           "name": "oral",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 15,
             "commonMin": 75,
             "strongMin": 150,
@@ -487,7 +487,7 @@
         {
           "name": "oral",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 50,
             "commonMin": 150,
             "strongMin": 200,
@@ -565,7 +565,7 @@
         {
           "name": "oral",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 25,
             "commonMin": 60,
             "strongMin": 100,
@@ -636,7 +636,7 @@
         {
           "name": "oral",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 15,
             "commonMin": 75,
             "strongMin": 150,
@@ -715,7 +715,7 @@
         {
           "name": "oral",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 15,
             "commonMin": 75,
             "strongMin": 150,
@@ -859,7 +859,7 @@
       "interactions": {
         "dangerous": [
           "Tramadol",
-          "ΑMT",
+          "\u0391MT",
           "MAOI"
         ],
         "unsafe": [
@@ -1150,7 +1150,7 @@
       "interactions": {
         "dangerous": [
           "Tramadol",
-          "ΑMT",
+          "\u0391MT",
           "MAOI"
         ],
         "unsafe": [
@@ -1347,7 +1347,7 @@
         ],
         "unsafe": [
           "Substituted amphetamines",
-          "ΑMT",
+          "\u0391MT",
           "Cocaine",
           "Dextromethorphan",
           "Tramadol"
@@ -1367,7 +1367,7 @@
         {
           "name": "insufflated",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 25,
             "commonMin": 200,
             "strongMin": 350,
@@ -1377,7 +1377,7 @@
         {
           "name": "sublingual",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 50,
             "commonMin": 300,
             "strongMin": 500,
@@ -1459,7 +1459,7 @@
         {
           "name": "sublingual",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 100,
             "commonMin": 500,
             "strongMin": 750,
@@ -1524,7 +1524,7 @@
         ],
         "unsafe": [
           "Substituted amphetamines",
-          "ΑMT",
+          "\u0391MT",
           "Cocaine",
           "Dextromethorphan",
           "Tramadol"
@@ -1544,7 +1544,7 @@
         {
           "name": "sublingual",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 50,
             "commonMin": 300,
             "strongMin": 700,
@@ -1602,7 +1602,7 @@
         ],
         "unsafe": [
           "Substituted amphetamines",
-          "ΑMT",
+          "\u0391MT",
           "Cocaine",
           "Dextromethorphan",
           "Tramadol"
@@ -1622,7 +1622,7 @@
         {
           "name": "sublingual",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 300,
             "commonMin": 800,
             "strongMin": 1000,
@@ -1695,7 +1695,7 @@
         {
           "name": "sublingual",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 50,
             "commonMin": 500,
             "strongMin": 900,
@@ -1769,7 +1769,7 @@
         ],
         "unsafe": [
           "Substituted amphetamines",
-          "ΑMT",
+          "\u0391MT",
           "Cocaine",
           "Dextromethorphan",
           "Tramadol"
@@ -1789,7 +1789,7 @@
         {
           "name": "insufflated",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 50,
             "commonMin": 500,
             "strongMin": 700
@@ -1830,7 +1830,7 @@
         {
           "name": "sublingual",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 50,
             "commonMin": 500,
             "strongMin": 700,
@@ -1902,7 +1902,7 @@
         ],
         "unsafe": [
           "Substituted amphetamines",
-          "ΑMT",
+          "\u0391MT",
           "Cocaine",
           "Dextromethorphan",
           "Tramadol"
@@ -1922,7 +1922,7 @@
         {
           "name": "sublingual",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 100,
             "commonMin": 300,
             "strongMin": 800,
@@ -3108,7 +3108,7 @@
       "interactions": {
         "dangerous": [
           "Tramadol",
-          "ΑMT",
+          "\u0391MT",
           "MAOI"
         ],
         "unsafe": [
@@ -3209,7 +3209,7 @@
       "interactions": {
         "dangerous": [
           "Tramadol",
-          "ΑMT",
+          "\u0391MT",
           "MAOI"
         ],
         "unsafe": [
@@ -3351,7 +3351,7 @@
       "interactions": {
         "dangerous": [
           "Tramadol",
-          "ΑMT",
+          "\u0391MT",
           "MAOI"
         ],
         "unsafe": [
@@ -3538,7 +3538,7 @@
         "habit-forming",
         "tentative"
       ],
-      "summary": "A rare and very potent PCP analogue, eight times more potent than PCP as NMDA receptor antagonist and also a μ-opioid receptor agonist. Similar in structure to methoxetamine.",
+      "summary": "A rare and very potent PCP analogue, eight times more potent than PCP as NMDA receptor antagonist and also a \u03bc-opioid receptor agonist. Similar in structure to methoxetamine.",
       "interactions": {
         "dangerous": [
           "Stimulants",
@@ -5055,7 +5055,7 @@
       "interactions": {
         "dangerous": [
           "Tramadol",
-          "ΑMT",
+          "\u0391MT",
           "MAOI"
         ],
         "unsafe": [
@@ -5154,7 +5154,7 @@
       "interactions": {
         "dangerous": [
           "Tramadol",
-          "ΑMT",
+          "\u0391MT",
           "MAOI"
         ],
         "unsafe": [
@@ -5700,7 +5700,7 @@
         "psychedelic",
         "research-chemical"
       ],
-      "summary": "4-PrO-MET is marketed in Europe as pressed pellets labeled 15–20 mg; multiple user reports indicate substantial potency variability between batches, so titration from 2–3 mg is prudent. A German-language thread documents perceived microdose at 0.5–3 mg, light 4–8 mg, and 8 mg+ as very strong; half of a 15 mg pellet (~7.5 mg) ranged from mild to quite strong depending on the commenter, underscoring variability in pressing and individual sensitivity. As an O-propionyl ester at the 4-position, 4-PrO-MET is expected to hydrolyze to 4-HO-MET in vivo; human data are absent, but analogous work with 4-PrO-DMT demonstrates psychedelic activity in animals and supports the prodrug model. Compared with 4-HO-MET, some users describe slightly slower onset and equal or lower mg-for-mg potency; others report unexpectedly strong visuals from a single pellet, suggesting either under/overfilled tablets or uneven distribution of active. A conservative harm-reduction approach is to treat 4-PrO-MET as roughly equipotent to 4-AcO-MET and somewhat less potent than 4-HO-MET, keeping first trials ≤5–7 mg. Come-up may be 'sneaky' with waves, yawning, and mild nausea; set and setting control anxiety spikes. Visuals can be intense and 'cartoony,' while headspace is often reported as lighter than psilocybin or LSD. Cannabis co-use reliably amplifies visuals but can worsen body-load. Acute tolerance develops within hours; wait at least 7–14 days before re-dosing to regain baseline response. Because this is a novel ester, reagent tests may not distinguish it from other tryptamines; consider multi-reagent testing plus, where feasible, analytical confirmation. Avoid insufflation due to ester hydrolysis uncertainty, harshness, and limited benefit; oral titration is preferred.",
+      "summary": "4-PrO-MET is marketed in Europe as pressed pellets labeled 15\u201320 mg; multiple user reports indicate substantial potency variability between batches, so titration from 2\u20133 mg is prudent. A German-language thread documents perceived microdose at 0.5\u20133 mg, light 4\u20138 mg, and 8 mg+ as very strong; half of a 15 mg pellet (~7.5 mg) ranged from mild to quite strong depending on the commenter, underscoring variability in pressing and individual sensitivity. As an O-propionyl ester at the 4-position, 4-PrO-MET is expected to hydrolyze to 4-HO-MET in vivo; human data are absent, but analogous work with 4-PrO-DMT demonstrates psychedelic activity in animals and supports the prodrug model. Compared with 4-HO-MET, some users describe slightly slower onset and equal or lower mg-for-mg potency; others report unexpectedly strong visuals from a single pellet, suggesting either under/overfilled tablets or uneven distribution of active. A conservative harm-reduction approach is to treat 4-PrO-MET as roughly equipotent to 4-AcO-MET and somewhat less potent than 4-HO-MET, keeping first trials \u22645\u20137 mg. Come-up may be 'sneaky' with waves, yawning, and mild nausea; set and setting control anxiety spikes. Visuals can be intense and 'cartoony,' while headspace is often reported as lighter than psilocybin or LSD. Cannabis co-use reliably amplifies visuals but can worsen body-load. Acute tolerance develops within hours; wait at least 7\u201314 days before re-dosing to regain baseline response. Because this is a novel ester, reagent tests may not distinguish it from other tryptamines; consider multi-reagent testing plus, where feasible, analytical confirmation. Avoid insufflation due to ester hydrolysis uncertainty, harshness, and limited benefit; oral titration is preferred.",
       "interactions": {
         "dangerous": [
           "Lithium",
@@ -6481,7 +6481,7 @@
       "summary": "A strange drug with an unknown mechanism of action. Some psychedelic effects alongside some effects non-characteristic of psychedelics like appetite enhancement. Reported as having rapid, intense and short acting entheogenic effects.",
       "interactions": {
         "dangerous": [
-          "ΑMT",
+          "\u0391MT",
           "MAOI",
           "PCP"
         ],
@@ -6670,7 +6670,7 @@
       "summary": "5-methoxy-di isopropyl tryptamine, also known as 'foxy', a psychedelic tryptamine related to DMT, which distorts visual and audio perception. Reported to have a heavy body load at high doses, it behaves similarly to other drugs of its class.",
       "interactions": {
         "dangerous": [
-          "ΑMT",
+          "\u0391MT",
           "MAOI",
           "PCP"
         ],
@@ -6760,7 +6760,7 @@
       ],
       "interactions": {
         "dangerous": [
-          "ΑMT",
+          "\u0391MT",
           "MAOI",
           "PCP"
         ],
@@ -6889,7 +6889,7 @@
       "summary": "A potent, stimulating psychedelic tryptamine, sometimes compared to 5-MeO-DiPT.  Has an unusually strong body component and weak visual effects. Often said to be very empathogenic.",
       "interactions": {
         "dangerous": [
-          "ΑMT",
+          "\u0391MT",
           "MAOI",
           "PCP"
         ],
@@ -7028,7 +7028,7 @@
           "2C-x",
           "5-MeO-xxT",
           "Substituted amphetamines",
-          "ΑMT",
+          "\u0391MT",
           "Cocaine",
           "DMT",
           "DOx",
@@ -7112,7 +7112,7 @@
           "2C-x",
           "5-MeO-xxT",
           "Substituted amphetamines",
-          "ΑMT",
+          "\u0391MT",
           "Cocaine",
           "DMT",
           "DOx",
@@ -7341,7 +7341,7 @@
     {
       "name": "A-PHP",
       "commonNames": [
-        "α-PHP",
+        "\u03b1-PHP",
         "alpha-PHP",
         "PV7"
       ],
@@ -7502,12 +7502,12 @@
     {
       "name": "A-PVP",
       "commonNames": [
-        "α-PVP",
+        "\u03b1-PVP",
         "alpha-PVP",
         "Flakka",
         "Flak",
         "O-2387",
-        "β-ketone-prolintane",
+        "\u03b2-ketone-prolintane",
         "Prolintanone",
         "Gravel"
       ],
@@ -7702,7 +7702,7 @@
           "2C-x",
           "5-MeO-xxT",
           "Substituted amphetamines",
-          "ΑMT",
+          "\u0391MT",
           "Cocaine",
           "DMT",
           "DOx",
@@ -7966,7 +7966,7 @@
         {
           "name": "oral",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 20,
             "commonMin": 100,
             "strongMin": 225,
@@ -8038,10 +8038,10 @@
         "habit-forming",
         "common"
       ],
-      "summary": "Alcohol is a CNS depressant that acts through the GABAₐ receptor, and is one of the most common strong psychoactives used by humans. It has a long history of use and its intoxicating effects are well-studied and documented. It remains legal in most parts of the world.",
+      "summary": "Alcohol is a CNS depressant that acts through the GABA\u2090 receptor, and is one of the most common strong psychoactives used by humans. It has a long history of use and its intoxicating effects are well-studied and documented. It remains legal in most parts of the world.",
       "effectsSummary": "Stimulation, relaxation, calming down, disinhibition, sociability, euphoria, reduction of the ability to react, overestimation of oneself and urge to talk, but also melancholy or irritability up to aggressiveness.\nAbsinthe (\"The Green Fairy\"), a high-proof spirit (usually 50 - 70 % by volume), contains the plant substance thujone. Together with the main active ingredient alcohol, thujone is said to have stimulating and mind-altering effects. In Europe, as in Switzerland, clear limits apply (max. 35 mg thujone per kg alcohol). Caution with chronic use! A thujone overdose manifests itself in seizures and epilepsy-like symptoms.",
-      "dosageRemark": "Standard drinks such as 3 dl beer, 1 dl wine or 2 cl spirits contain about 12 g alcohol. The effect of alcohol is influenced by the amount consumed, the type of alcohol (sugary and/or carbonated), the period of consumption and individual factors (age, sex, weight). The blood alcohol concentration is measured in parts per thousand (‰). The higher the alcohol concentration in the blood, the stronger the effect of alcohol.",
-      "generalRisks": "Small amounts of alcohol generally have a relaxing and exhilarating effect, a general feeling of well-being spreads, fears are reduced and sociability increases. The consumption of larger amounts can lead to balance and speech disorders, visual disturbances (double vision or tunnel vision), stomach pain, nausea to vomiting, headaches (hangover) due to dehydration, loss of control and blackouts. There is a risk of accidents due to overestimation of one's own abilities and reduced ability to react. High doses can lead to hypothermia or overheating, deep sleep and coma. Very high doses (blood alcohol concentration of 3-4‰) can be life-threatening.\nBinge drinking, i.e. the consumption of a large amount of alcohol in a very short time, causes the blood alcohol content to rise particularly quickly and strongly. This can quickly lead to alcohol poisoning. Consequences can be: comatose state, memory lapses (film tears), deactivation of important reflexes (danger of choking when vomiting, danger of freezing to death when cold) as well as epileptic seizures. There is also an increased risk of thrombosis, high or low blood pressure, respiratory depression and sudden cardiac death.",
+      "dosageRemark": "Standard drinks such as 3 dl beer, 1 dl wine or 2 cl spirits contain about 12 g alcohol. The effect of alcohol is influenced by the amount consumed, the type of alcohol (sugary and/or carbonated), the period of consumption and individual factors (age, sex, weight). The blood alcohol concentration is measured in parts per thousand (\u2030). The higher the alcohol concentration in the blood, the stronger the effect of alcohol.",
+      "generalRisks": "Small amounts of alcohol generally have a relaxing and exhilarating effect, a general feeling of well-being spreads, fears are reduced and sociability increases. The consumption of larger amounts can lead to balance and speech disorders, visual disturbances (double vision or tunnel vision), stomach pain, nausea to vomiting, headaches (hangover) due to dehydration, loss of control and blackouts. There is a risk of accidents due to overestimation of one's own abilities and reduced ability to react. High doses can lead to hypothermia or overheating, deep sleep and coma. Very high doses (blood alcohol concentration of 3-4\u2030) can be life-threatening.\nBinge drinking, i.e. the consumption of a large amount of alcohol in a very short time, causes the blood alcohol content to rise particularly quickly and strongly. This can quickly lead to alcohol poisoning. Consequences can be: comatose state, memory lapses (film tears), deactivation of important reflexes (danger of choking when vomiting, danger of freezing to death when cold) as well as epileptic seizures. There is also an increased risk of thrombosis, high or low blood pressure, respiratory depression and sudden cardiac death.",
       "longtermRisks": "Since alcohol is a cytotoxin, regular heavy consumption can have consequences such as damage to all bodily organs, deficiency symptoms, disorders of the nervous system, coordination of movement and memory functions, and even alcohol-induced dementia. Alcohol is a co-carcinogen, i.e. it significantly increases the carcinogenic effect of other substances (e.g. nicotine).\nAlcohol can produce a dependence with psychological and physical symptoms. Typical withdrawal symptoms are trembling, sweating, nausea and vomiting up to epileptic seizures. On a psychological level, irritability, anxiety disorders, depressive moods and hallucinations may occur. Tolerance develops with regular consumption.",
       "saferUse": [
         "Do not consume alcohol out of boredom or when you feel bad.",
@@ -8078,7 +8078,7 @@
           "Stimulants",
           "Cannabis",
           "Substituted amphetamines",
-          "ΑMT",
+          "\u0391MT",
           "MDMA",
           "Nitrous",
           "SSRIs"
@@ -8175,7 +8175,7 @@
         {
           "name": "oral",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 30,
             "commonMin": 100,
             "strongMin": 175,
@@ -8441,6 +8441,12 @@
             }
           }
         }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
+        }
       ]
     },
     {
@@ -8491,7 +8497,7 @@
       "interactions": {
         "dangerous": [
           "Tramadol",
-          "ΑMT",
+          "\u0391MT",
           "MAOI"
         ],
         "unsafe": [
@@ -8636,6 +8642,12 @@
               "units": "hours"
             }
           }
+        }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
         }
       ]
     },
@@ -9052,11 +9064,11 @@
         "Ayahuasca",
         "Aya",
         "Caapi",
-        "Cipó",
+        "Cip\u00f3",
         "Hoasca",
         "Vegetal",
-        "Yagé",
-        "Yajé",
+        "Yag\u00e9",
+        "Yaj\u00e9",
         "Natem",
         "Shori"
       ],
@@ -9385,6 +9397,12 @@
             }
           }
         }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
+        }
       ]
     },
     {
@@ -9496,7 +9514,7 @@
         {
           "name": "oral",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 75,
             "commonMin": 300,
             "strongMin": 500,
@@ -9647,7 +9665,7 @@
       "summary": "A semi-synthetic opioid analgesic also known as subutex. Often administered as Butrans patches, or in combination with Naloxone as Suboxone, a heroin replacement therapy drug. Will cause withdrawals if you have an opioid tolerance and don't wait long enough (typically around 48 hours) before taking this.",
       "effectsSummary": "Like all opiates, buprenorphine has analgesic and cough-irritant effects. However, its euphoric and sedative properties are less pronounced than those of other opioids, which is why it is also used for substitution treatment. Buprenorphine is a partial agonist. This means that, for safety reasons, only a submaximal effect is elicited. After a certain dose, a saturation effect (ceiling effect) occurs, which prevents a further increase in the effect. This makes the active ingredient so relevant for substitution treatments, as withdrawal symptoms can be alleviated and overdoses avoided.",
       "dosageRemark": "From 16 mg, the saturation effect (ceiling effect) takes effect and no more effect enhancement is felt.\nWhen consuming for the first time, low doses should be used, as the risk of respiratory arrest is increased.",
-      "generalRisks": "The side effects are less pronounced than with other opioids. Nevertheless, fatigue, constipation, drowsiness, sweating, nausea, vomiting, insomnia and irritability may occur. Buprenorphine has a lower risk of respiratory depression, which is why it is considered comparatively safe.\nOverdoses with buprenorphine are difficult to treat with the opioid antagonist naloxone due to its high binding to the μ-opioid receptor. Therefore, agents from the group of respiratory stimulants (such as doxapram) are used.",
+      "generalRisks": "The side effects are less pronounced than with other opioids. Nevertheless, fatigue, constipation, drowsiness, sweating, nausea, vomiting, insomnia and irritability may occur. Buprenorphine has a lower risk of respiratory depression, which is why it is considered comparatively safe.\nOverdoses with buprenorphine are difficult to treat with the opioid antagonist naloxone due to its high binding to the \u03bc-opioid receptor. Therefore, agents from the group of respiratory stimulants (such as doxapram) are used.",
       "longtermRisks": "Unlike other opioids, the active ingredient floods on slowly, which is why the risk of dependence is considered lower.",
       "saferUse": [
         "Opioids are highly effective drugs that should only be used for a limited time and at best under medical supervision.",
@@ -9904,7 +9922,7 @@
         "uncertain": [
           "DOx",
           "25x-NBOMe",
-          "ΑMT",
+          "\u0391MT",
           "PCP",
           "Substituted amphetamines",
           "MDMA",
@@ -10140,7 +10158,7 @@
           "2C-x",
           "5-MeO-xxT",
           "Substituted amphetamines",
-          "ΑMT",
+          "\u0391MT",
           "Cocaine",
           "DMT",
           "DOx",
@@ -10653,6 +10671,12 @@
             }
           }
         }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
+        }
       ]
     },
     {
@@ -10700,7 +10724,7 @@
         {
           "name": "oral",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 50,
             "commonMin": 200,
             "strongMin": 400,
@@ -10753,7 +10777,7 @@
         {
           "name": "oral",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 25,
             "commonMin": 75,
             "strongMin": 100,
@@ -10781,6 +10805,12 @@
               "units": "hours"
             }
           }
+        }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
         }
       ]
     },
@@ -10836,7 +10866,7 @@
       ],
       "interactions": {
         "dangerous": [
-          "ΑMT",
+          "\u0391MT",
           "Opioids",
           "Tramadol",
           "MAOI"
@@ -11034,6 +11064,12 @@
               "units": "hours"
             }
           }
+        }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
         }
       ]
     },
@@ -11513,6 +11549,12 @@
             }
           }
         }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
+        }
       ]
     },
     {
@@ -11704,7 +11746,7 @@
       "interactions": {
         "dangerous": [
           "Tramadol",
-          "ΑMT",
+          "\u0391MT",
           "MAOI"
         ],
         "unsafe": [
@@ -11813,6 +11855,12 @@
             }
           }
         }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
+        }
       ]
     },
     {
@@ -11853,7 +11901,7 @@
       "saferUse": [],
       "interactions": {
         "dangerous": [
-          "ΑMT",
+          "\u0391MT",
           "PCP",
           "MDMA",
           "Alcohol",
@@ -11921,6 +11969,12 @@
               "units": "hours"
             }
           }
+        }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
         }
       ]
     },
@@ -12088,6 +12142,12 @@
               "units": "hours"
             }
           }
+        }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
         }
       ]
     },
@@ -12310,6 +12370,12 @@
               "units": "hours"
             }
           }
+        }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
         }
       ]
     },
@@ -13391,7 +13457,7 @@
       "commonNames": [
         "Ephylone",
         "bk-EBDP",
-        "βk-EBDP",
+        "\u03b2k-EBDP",
         "bk-ethyl-K"
       ],
       "url": "https://psychonautwiki.org/wiki/Ephylone",
@@ -13636,6 +13702,12 @@
             }
           }
         }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
+        }
       ]
     },
     {
@@ -13798,7 +13870,7 @@
         {
           "name": "oral",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 15,
             "commonMin": 60,
             "strongMin": 150,
@@ -14345,7 +14417,7 @@
       "interactions": {
         "dangerous": [
           "Tramadol",
-          "ΑMT",
+          "\u0391MT",
           "MAOI"
         ],
         "unsafe": [
@@ -14433,7 +14505,7 @@
         "depressant",
         "common"
       ],
-      "summary": "Fentanyl is a synthetic opiate analgesic with a rapid onset and short duration of action. It is a strong agonist at the μ-opioid receptors and is historically used to treat breakthrough pain. Fentanyl is approximately 100 times more potent than Morphine, and is commonly used as a patch. Sometimes used as an adulterant for heroin, which has led to many overdose deaths.",
+      "summary": "Fentanyl is a synthetic opiate analgesic with a rapid onset and short duration of action. It is a strong agonist at the \u03bc-opioid receptors and is historically used to treat breakthrough pain. Fentanyl is approximately 100 times more potent than Morphine, and is commonly used as a patch. Sometimes used as an adulterant for heroin, which has led to many overdose deaths.",
       "effectsSummary": "Fentanyl has a strong analgesic and sedative effect and is effective in the smallest doses. However, its euphoric effect is less pronounced than that of other opioids. It is used in emergency medicine for surgical procedures and anesthesia, and for breakthrough pain in cancer patients. For chronic pain, fentanyl patches are used, which release the active ingredient slowly. Due to its opioid properties, fentanyl rapidly leads to dependence when taken over a long period of time and should not be discontinued abruptly and only under medical supervision.",
       "dosageRemark": "Fentanyl is extremely potent and therefore very difficult to dose. Therefore, overdoses can easily occur. When consuming for the first time, low doses should be used, as the risk of respiratory arrest is increased.",
       "generalRisks": "The side effects are strongly dose-dependent. As the dose increases, the side effects also become more pronounced. At the beginning there is often drowsiness, dizziness, dizziness, pupil constriction, slowed heartbeat, drop in blood pressure, nausea and vomiting.\nExcessive sweating, rashes, itching, central dullness, confusion, visual disturbances, cardiac arrhythmias, respiratory reflex depression and urinary retention may also occur.\nOverdoses with fentanyl are life-threatening because the substance, like all opioids, slows down breathing, even to the point of respiratory arrest and coma.",
@@ -14477,7 +14549,7 @@
         {
           "name": "insufflated",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 5,
             "commonMin": 25,
             "strongMin": 50,
@@ -14499,7 +14571,7 @@
         {
           "name": "sublingual",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 5,
             "commonMin": 25,
             "strongMin": 50,
@@ -14521,7 +14593,7 @@
         {
           "name": "transdermal",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 5,
             "commonMin": 25,
             "strongMin": 50,
@@ -14700,7 +14772,7 @@
         {
           "name": "oral",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 50,
             "commonMin": 150,
             "strongMin": 250,
@@ -14790,6 +14862,12 @@
               "units": "hours"
             }
           }
+        }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
         }
       ]
     },
@@ -14921,6 +14999,12 @@
             "min": 27,
             "max": 60
           }
+        }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
         }
       ]
     },
@@ -15718,6 +15802,12 @@
             }
           }
         }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
+        }
       ]
     },
     {
@@ -15885,6 +15975,12 @@
               "units": "hours"
             }
           }
+        }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
         }
       ]
     },
@@ -16089,7 +16185,7 @@
           "2C-x",
           "5-MeO-xxT",
           "Substituted amphetamines",
-          "ΑMT",
+          "\u0391MT",
           "Cocaine",
           "DMT",
           "DOx",
@@ -16170,7 +16266,7 @@
           "2C-x",
           "5-MeO-xxT",
           "Substituted amphetamines",
-          "ΑMT",
+          "\u0391MT",
           "Cocaine",
           "DMT",
           "DOx",
@@ -16383,7 +16479,7 @@
       "name": "Kratom",
       "commonNames": [
         "Mitragyna Speciosa",
-        "กระท่อม (Thai)",
+        "\u0e01\u0e23\u0e30\u0e17\u0e48\u0e2d\u0e21 (Thai)",
         "Ketum",
         "Kratom",
         "Kratum",
@@ -16500,7 +16596,7 @@
         {
           "name": "oral",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "commonMin": 500,
             "strongMin": 1500
           },
@@ -16777,7 +16873,7 @@
       "interactions": {
         "dangerous": [
           "Tramadol",
-          "ΑMT",
+          "\u0391MT",
           "MAOI"
         ],
         "unsafe": [
@@ -16844,6 +16940,12 @@
             }
           }
         }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
+        }
       ]
     },
     {
@@ -16901,6 +17003,12 @@
               "units": "hours"
             }
           }
+        }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
         }
       ]
     },
@@ -17026,7 +17134,7 @@
         {
           "name": "sublingual",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 15,
             "commonMin": 75,
             "strongMin": 150,
@@ -17136,7 +17244,7 @@
         {
           "name": "sublingual",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 25,
             "commonMin": 130,
             "strongMin": 275,
@@ -17210,7 +17318,7 @@
         "psychedelic",
         "research-chemical"
       ],
-      "summary": "1S-LSD is 1-(3-trimethylsilyl-propionyl)-LSD, a silicon-containing N1-acyl analogue designed to skirt Germany’s NpSG after the 1D-LSD ban in 2024. Analytical papers confirm it hydrolyses in vitro and in vivo to LSD-25; user reports and reagent-testing services (e.g., Miraculix QTest) show the blotters do *not* trigger Ehrlich/DMAB, so lab testing is advised. Community consensus suggests oral potency is about 0.7 of equimolar LSD-25 (e.g., 150 ug 1S ≈ 110 ug LSD), with a noticeably slower come-up but identical plateau once conversion occurs. Because silicon-carbon bonds are hydrolytically labile, storage in dry foil at <10 °C is recommended; moisture can degrade tabs within weeks. Harm-reduction points: always verify blotter identity with multiple reagents, weigh liquid for volumetric dosing, arrange a 14-hour safety window before obligations, and keep benzodiazepines (e.g., 1 mg lorazepam) on hand for panic or prolonged stimulation.",
+      "summary": "1S-LSD is 1-(3-trimethylsilyl-propionyl)-LSD, a silicon-containing N1-acyl analogue designed to skirt Germany\u2019s NpSG after the 1D-LSD ban in 2024. Analytical papers confirm it hydrolyses in vitro and in vivo to LSD-25; user reports and reagent-testing services (e.g., Miraculix QTest) show the blotters do *not* trigger Ehrlich/DMAB, so lab testing is advised. Community consensus suggests oral potency is about 0.7 of equimolar LSD-25 (e.g., 150 ug 1S \u2248 110 ug LSD), with a noticeably slower come-up but identical plateau once conversion occurs. Because silicon-carbon bonds are hydrolytically labile, storage in dry foil at <10 \u00b0C is recommended; moisture can degrade tabs within weeks. Harm-reduction points: always verify blotter identity with multiple reagents, weigh liquid for volumetric dosing, arrange a 14-hour safety window before obligations, and keep benzodiazepines (e.g., 1 mg lorazepam) on hand for panic or prolonged stimulation.",
       "effectsSummary": "The effect is very much dependent on dose, set and setting. As a hallucinogen, LSD intensifies and alienates sensory perceptions and the sense of space-time. Mood and feelings can change abruptly. At higher doses, feelings of detachment from one's own body can occur. Especially in the initial phase of the trip, slight breathing difficulties, palpitations, sweating, altered blood pressure and nausea may occur.",
       "generalRisks": "The risks of LSD use are psychological and depend on the personality structure of the user. The perceptual changes during a trip can be so intense that inexperienced users in particular feel overwhelmed by the flood of impressions. This can lead to erroneous reactions, loss of orientation, panic, paranoia and badtrips/horror trips.\nThere is a risk - even with single use - that latent (hidden) mental disorders can be triggered. LSD does not lead to organ damage or genetic mutations and is not physically addictive.",
       "saferUse": [
@@ -17246,7 +17354,7 @@
         {
           "name": "sublingual",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 15,
             "commonMin": 75,
             "strongMin": 150,
@@ -17332,7 +17440,7 @@
         {
           "name": "oral",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 250,
             "commonMin": 750,
             "strongMin": 1250,
@@ -17394,7 +17502,7 @@
         {
           "name": "oral",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 50,
             "commonMin": 150,
             "strongMin": 300,
@@ -17894,7 +18002,7 @@
           "GHB",
           "GBL",
           "Methoxetamine",
-          "ΑMT",
+          "\u0391MT",
           "Protease Inhibitors",
           "SSRIs",
           "SNRIs"
@@ -18189,6 +18297,12 @@
             }
           }
         }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
+        }
       ]
     },
     {
@@ -18457,7 +18571,7 @@
       ],
       "interactions": {
         "dangerous": [
-          "ΑMT"
+          "\u0391MT"
         ],
         "unsafe": [
           "Tramadol"
@@ -18882,7 +18996,7 @@
       "interactions": {
         "dangerous": [
           "Tramadol",
-          "ΑMT",
+          "\u0391MT",
           "MAOI"
         ],
         "unsafe": [
@@ -19399,7 +19513,7 @@
       ],
       "interactions": {
         "dangerous": [
-          "ΑMT",
+          "\u0391MT",
           "Alcohol",
           "GHB",
           "GBL",
@@ -19717,7 +19831,7 @@
         "habit-forming",
         "common"
       ],
-      "summary": "βk-MDMA is a cathinone stimulant and empathogen, similar in structure to MDMA, though more stimulating and less empathogenic in comparison. Was very commonly mis-sold as MDMA on the street until it was banned in 2013. The Marquis reagent can differentiate βk-MDMA from MDMA. Less potent than MDMA with a slightly shorter duration.",
+      "summary": "\u03b2k-MDMA is a cathinone stimulant and empathogen, similar in structure to MDMA, though more stimulating and less empathogenic in comparison. Was very commonly mis-sold as MDMA on the street until it was banned in 2013. The Marquis reagent can differentiate \u03b2k-MDMA from MDMA. Less potent than MDMA with a slightly shorter duration.",
       "effectsSummary": "Compared to MDMA, methylone has a stronger stimulating and less empathogenic effect. The effect is more constant, the \"hangover\" less than with MDMA.",
       "generalRisks": "Short-term side effects are increased body temperature and heartbeat, dilated pupils and tightening of the jaw. The side effects and the (long-term) risks of methylone have hardly been researched yet.",
       "saferUse": [
@@ -19923,7 +20037,9 @@
               "units": "hours"
             }
           }
-        },
+        }
+      ],
+      "formulations": [
         {
           "name": "medikinet",
           "dose": {
@@ -19964,7 +20080,8 @@
               "max": 6,
               "units": "hours"
             }
-          }
+          },
+          "route": "oral"
         },
         {
           "name": "kinecteen",
@@ -20006,7 +20123,12 @@
               "max": 4,
               "units": "hours"
             }
-          }
+          },
+          "route": "oral"
+        },
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
         }
       ]
     },
@@ -20276,7 +20398,7 @@
         {
           "name": "oral",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 50,
             "commonMin": 150,
             "strongMin": 200,
@@ -20456,7 +20578,7 @@
         "common"
       ],
       "summary": "A wakefulness promoting, long acting stimulant which is typically only used functionally, because there is no real euphoric component to its effects. Also prescribed for daytime sleeping disorders.",
-      "effectsSummary": "The mechanism of action of modafinil is not yet fully understood. It is assumed that modafinil binds to the dopamine transporter and inhibits dopamine reuptake. Unlike other stimulants such as amphetamine or methylphenidate (Ritalin®, Concerta®), which in equivalent wakefulness-promoting doses increase neuronal activity throughout the brain, modafinil acts primarily on the brain regions responsible for controlling waking, sleep, wakefulness and vigilance (sustained attention).\nModafinil thus promotes alertness (physical and mental), increases attention and motor activity. Due to its stimulating, wakefulness-promoting properties, modafinil is consumed by healthy people as a so-called \"smart drug\" or \"cognitive enhancer\".According to user reports, modafinil has a much more subtle effect than other stimulants and does not trigger comparable states of intoxication. Modafinil causes less physical restlessness and the sleep-wake rhythm is less disturbed.\nA mood-lifting and euphoric effect is controversial. According to a publication of the American Food and Drug Administration (FDA), modafinil causes psychoactive and euphoric effects, whereas various studies point to the lack of a euphoric effect.",
+      "effectsSummary": "The mechanism of action of modafinil is not yet fully understood. It is assumed that modafinil binds to the dopamine transporter and inhibits dopamine reuptake. Unlike other stimulants such as amphetamine or methylphenidate (Ritalin\u00ae, Concerta\u00ae), which in equivalent wakefulness-promoting doses increase neuronal activity throughout the brain, modafinil acts primarily on the brain regions responsible for controlling waking, sleep, wakefulness and vigilance (sustained attention).\nModafinil thus promotes alertness (physical and mental), increases attention and motor activity. Due to its stimulating, wakefulness-promoting properties, modafinil is consumed by healthy people as a so-called \"smart drug\" or \"cognitive enhancer\".According to user reports, modafinil has a much more subtle effect than other stimulants and does not trigger comparable states of intoxication. Modafinil causes less physical restlessness and the sleep-wake rhythm is less disturbed.\nA mood-lifting and euphoric effect is controversial. According to a publication of the American Food and Drug Administration (FDA), modafinil causes psychoactive and euphoric effects, whereas various studies point to the lack of a euphoric effect.",
       "dosageRemark": "The recommended daily dose when prescribed by a doctor is 200 mg at the beginning. If there is an insufficient response to this dose, a maximum daily dose of 400 mg may be administered/taken.\nThe long-term effect of modafinil when taken regularly and over a longer period of time has not yet been studied. If taken over a longer period of time, regular monitoring by a medical specialist is therefore recommended.",
       "generalRisks": "In 2011, the European Medicines Agency (EMA) recommended limiting the marketing authorisation for modafinil to the treatment of adults with excessive sleepiness associated with narcolepsy. Due to the possible risks and side effects, modafinil has since not been approved for other indications, for the treatment of children and adolescents, and during pregnancy and breastfeeding.\nThe following side effects may occur: Headache, nervousness, palpitations, abdominal pain and/or dry mouth. In addition, modafinil can impair the effectiveness of oral contraceptives! Therefore, the use of additional contraceptive methods is recommended during intake. Further risks are cardiovascular diseases such as cardiac arrhythmias, diseases of the heart muscles, cardiac insufficiency and/or high blood pressure. Furthermore, the consumption of modafinil can have an effect on the psyche and trigger hostility, aggression ,psychoses/psychotic disorders, depression, insomnia, up to delusions and/or anxiety.\nSymptoms of overdose with modafinil alone or in combination with other medicines: Insomnia; central nervous symptoms (restlessness, disorientation, confusion, agitation, hallucinations); nausea, diarrhoea; palpitations, high blood pressure, chest pain, slow heartbeat.",
       "longtermRisks": "Since modafinil affects the dopamine balance in the brain, among other things, there is an increased potential for physical dependence. If modafinil is consumed for the purpose of performance enhancement and promotion of alertness with the intention of being able to achieve high performance with little sleep, there is also a risk of psychological dependence.\nThe long-term effect of modafinil when taken regularly and over a longer period of time has been little studied so far. If taken over a longer period of time, regular monitoring by a medical specialist is therefore recommended.",
@@ -20554,7 +20676,7 @@
         "common",
         "depressant"
       ],
-      "summary": "The prototypical opioid drug, a powerful analgesic with euphoric qualities, found in the seeds and wax of the plant papaver somniferum (opium poppy).  First isolated by Friedrich Sertürner in 1805, named for its sleep-inducing qualities. Do not combine with other depressants, may cause dangerous respiratory depression in overdose.",
+      "summary": "The prototypical opioid drug, a powerful analgesic with euphoric qualities, found in the seeds and wax of the plant papaver somniferum (opium poppy).  First isolated by Friedrich Sert\u00fcrner in 1805, named for its sleep-inducing qualities. Do not combine with other depressants, may cause dangerous respiratory depression in overdose.",
       "effectsSummary": "Due to its strong analgesic, antitussive and psychotropic properties, morphine is used to treat severe pain in emergency and palliative care.\nDue to its depressant and sedative effect, the active substance is also misused as a euphoric intoxicant. In the context of opioid agonist therapy, morphine is used as a substitute for opiate/heroin addiction.",
       "dosageRemark": "When consuming for the first time, low doses should be used, as the risk of respiratory arrest is increased.",
       "generalRisks": "Gastrointestinal complaints such as constipation are common side effects after taking opiates. Nausea, vomiting, dry mouth, lack of appetite, abdominal pain, sweating, skin rashes, itching, dizziness, headaches and fatigue are other common complaints. On the psychological level, confusion, nightmares and hallucinations may occur. Rather rarely, there is a drop in blood pressure, breathing difficulties and allergic reactions.\nOverdoses with morphine are life-threatening, as the substance has a strong respiratory depressant effect (worsening breathing) even in low doses, which can lead to respiratory arrest and coma. Oral consumption of 0.3 - 1.5 g and intravenous consumption of 100 mg can lead to a fatal overdose. In opioid addicts, the lethal dose can be significantly higher. An overdose is treated by taking naloxone, an opioid antagonist.",
@@ -20667,6 +20789,12 @@
             "min": 35,
             "max": 40
           }
+        }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
         }
       ]
     },
@@ -21720,7 +21848,7 @@
         "tentative",
         "depressant"
       ],
-      "summary": "A opioid analgesic which is the main active metabolite of Tramadol. Alone, it is a few times more potent than Tramadol and has additional affinity for δ and κ-opioid receptors. Has proven popular when sold, but these occasions have been rare due to patent rights.",
+      "summary": "A opioid analgesic which is the main active metabolite of Tramadol. Alone, it is a few times more potent than Tramadol and has additional affinity for \u03b4 and \u03ba-opioid receptors. Has proven popular when sold, but these occasions have been rare due to patent rights.",
       "interactions": {
         "dangerous": [
           "SNRIs",
@@ -21961,7 +22089,7 @@
       "name": "Omberacetam",
       "commonNames": [
         "Noopept",
-        "Ноопепт",
+        "\u041d\u043e\u043e\u043f\u0435\u043f\u0442",
         "GVS-111",
         "Omberacetam"
       ],
@@ -22103,6 +22231,12 @@
               "units": "hours"
             }
           }
+        }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
         }
       ]
     },
@@ -22273,6 +22407,12 @@
             }
           }
         }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
+        }
       ]
     },
     {
@@ -22335,6 +22475,12 @@
             }
           }
         }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
+        }
       ]
     },
     {
@@ -22375,7 +22521,7 @@
         {
           "name": "oral",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 50,
             "commonMin": 275,
             "strongMin": 500,
@@ -22591,7 +22737,7 @@
       "interactions": {
         "dangerous": [
           "2C-T-x",
-          "ΑMT",
+          "\u0391MT",
           "5-MeO-xxT",
           "Dextromethorphan",
           "GHB",
@@ -23338,7 +23484,7 @@
       "interactions": {
         "dangerous": [
           "Tramadol",
-          "ΑMT",
+          "\u0391MT",
           "MAOI"
         ],
         "unsafe": [
@@ -23592,6 +23738,12 @@
             }
           }
         }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
+        }
       ]
     },
     {
@@ -23634,7 +23786,7 @@
         {
           "name": "oral",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 20,
             "commonMin": 100,
             "strongMin": 200,
@@ -24328,6 +24480,12 @@
             "max": 100
           }
         }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
+        }
       ]
     },
     {
@@ -24404,7 +24562,7 @@
       "interactions": {
         "dangerous": [
           "2C-T-x",
-          "ΑMT",
+          "\u0391MT",
           "5-MeO-xxT",
           "GHB",
           "GBL",
@@ -24562,7 +24720,7 @@
         "Salvia",
         "Salvia divinorum",
         "Diviner's Sage",
-        "Ska María Pastora",
+        "Ska Mar\u00eda Pastora",
         "Seer's Sage",
         "Sally"
       ],
@@ -24753,7 +24911,7 @@
           "2C-x",
           "5-MeO-xxT",
           "Substituted amphetamines",
-          "ΑMT",
+          "\u0391MT",
           "Cocaine",
           "DMT",
           "DOx",
@@ -24855,7 +25013,7 @@
         {
           "name": "intravenous",
           "dose": {
-            "units": "µg",
+            "units": "\u00b5g",
             "lightMin": 0.1,
             "commonMin": 5,
             "strongMin": 10,
@@ -24969,6 +25127,12 @@
             }
           }
         }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
+        }
       ]
     },
     {
@@ -25025,6 +25189,12 @@
               "units": "hours"
             }
           }
+        }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
         }
       ]
     },
@@ -25101,7 +25271,7 @@
       "commonNames": [
         "Theanine",
         "L-Theanine",
-        "L-γ-glutamylethylamide and N5-ethyl-L-glutamine"
+        "L-\u03b3-glutamylethylamide and N5-ethyl-L-glutamine"
       ],
       "url": "https://psychonautwiki.org/wiki/Theanine",
       "isApproved": true,
@@ -25180,7 +25350,7 @@
           "2C-x",
           "5-MeO-xxT",
           "Substituted amphetamines",
-          "ΑMT",
+          "\u0391MT",
           "Cocaine",
           "DMT",
           "DOx",
@@ -25262,7 +25432,7 @@
           "2C-x",
           "5-MeO-xxT",
           "Substituted amphetamines",
-          "ΑMT",
+          "\u0391MT",
           "Cocaine",
           "DMT",
           "DOx",
@@ -25342,7 +25512,7 @@
         "habit-forming",
         "depressant"
       ],
-      "summary": "A Tricyclic antidepressant, that has quite unique pharmacological properties than others in its class. Such as the possible indirect action on NMDA/AMPA and a full agonist at the μ-opioid receptor. While abuse of this substance is uncommon, it has been shown in a few countries.",
+      "summary": "A Tricyclic antidepressant, that has quite unique pharmacological properties than others in its class. Such as the possible indirect action on NMDA/AMPA and a full agonist at the \u03bc-opioid receptor. While abuse of this substance is uncommon, it has been shown in a few countries.",
       "roas": [
         {
           "name": "oral",
@@ -25670,7 +25840,7 @@
           "MAOI",
           "Grapefruit",
           "MDMA",
-          "ΑMT"
+          "\u0391MT"
         ],
         "unsafe": [
           "2C-T-x"
@@ -25724,6 +25894,12 @@
             "min": 70,
             "max": 90
           }
+        }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
         }
       ]
     },
@@ -25893,7 +26069,7 @@
         "habit-forming",
         "depressant"
       ],
-      "summary": "A µ-opioid receptor agonist that is related to AH-7921. Having a very short duration.",
+      "summary": "A \u00b5-opioid receptor agonist that is related to AH-7921. Having a very short duration.",
       "interactions": {
         "dangerous": [
           "Alcohol",
@@ -26020,6 +26196,12 @@
             }
           }
         }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
+        }
       ]
     },
     {
@@ -26077,13 +26259,19 @@
             }
           }
         }
+      ],
+      "formulations": [
+        {
+          "name": "Extended-Release (XR)",
+          "route": "oral"
+        }
       ]
     },
     {
-      "name": "ΑMT",
+      "name": "\u0391MT",
       "commonNames": [
         "AMT",
-        "αMT",
+        "\u03b1MT",
         "Indopan"
       ],
       "url": "https://psychonautwiki.org/wiki/%CE%91MT",
@@ -26165,9 +26353,9 @@
       ]
     },
     {
-      "name": "Βk-2C-B",
+      "name": "\u0392k-2C-B",
       "commonNames": [
-        "βk-2C-B",
+        "\u03b2k-2C-B",
         "beta-keto 2C-B",
         "bk-2C-B"
       ],

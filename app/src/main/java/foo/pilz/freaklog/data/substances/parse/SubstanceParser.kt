@@ -110,6 +110,8 @@ class SubstanceParser @Inject constructor() : SubstanceParserInterface {
         val interactions = parseInteractions(jsonInteractions)
         val jsonRoas = jsonSubstance.getOptionalJSONArray("roas")
         val roas = parseRoas(jsonRoas)
+        val jsonFormulations = jsonSubstance.getOptionalJSONArray("formulations")
+        val formulations = parseFormulations(jsonFormulations)
         return Substance(
             name = name,
             commonNames = commonNames,
@@ -128,6 +130,7 @@ class SubstanceParser @Inject constructor() : SubstanceParserInterface {
             saferUse = saferUse,
             interactions = interactions,
             roas = roas,
+            formulations = formulations,
         )
     }
 
@@ -207,8 +210,6 @@ class SubstanceParser @Inject constructor() : SubstanceParserInterface {
             AdministrationRoute.INTRAVENOUS.name -> AdministrationRoute.INTRAVENOUS
             AdministrationRoute.SMOKED.name -> AdministrationRoute.SMOKED
             AdministrationRoute.INHALED.name -> AdministrationRoute.INHALED
-            AdministrationRoute.MEDIKINET.name -> AdministrationRoute.MEDIKINET
-            AdministrationRoute.KINECTEEN.name -> AdministrationRoute.KINECTEEN
             else -> return null
         }
         val jsonRoaDose = oneJsonRoa.getOptionalJSONObject("dose")
@@ -222,6 +223,49 @@ class SubstanceParser @Inject constructor() : SubstanceParserInterface {
             roaDose = roaDose,
             roaDuration = roaDuration,
             bioavailability = bioavailability
+        )
+    }
+
+    private fun parseFormulations(jsonFormulations: JSONArray?): List<Formulation> {
+        if (jsonFormulations == null) return emptyList()
+        val formulations: MutableList<Formulation> = mutableListOf()
+        for (i in 0 until jsonFormulations.length()) {
+            val oneJsonFormulation = jsonFormulations.getOptionalJSONObject(i) ?: continue
+            val formulation = parseFormulation(oneJsonFormulation)
+            if (formulation != null) {
+                formulations.add(formulation)
+            }
+        }
+        return formulations
+    }
+
+    private fun parseFormulation(oneJsonFormulation: JSONObject): Formulation? {
+        val name = oneJsonFormulation.getOptionalString("name") ?: return null
+        val routeName = oneJsonFormulation.getOptionalString("route")?.uppercase() ?: return null
+        val route = when (routeName) {
+            AdministrationRoute.ORAL.name -> AdministrationRoute.ORAL
+            AdministrationRoute.SUBLINGUAL.name -> AdministrationRoute.SUBLINGUAL
+            AdministrationRoute.BUCCAL.name -> AdministrationRoute.BUCCAL
+            AdministrationRoute.INSUFFLATED.name -> AdministrationRoute.INSUFFLATED
+            AdministrationRoute.RECTAL.name -> AdministrationRoute.RECTAL
+            AdministrationRoute.TRANSDERMAL.name -> AdministrationRoute.TRANSDERMAL
+            AdministrationRoute.SUBCUTANEOUS.name -> AdministrationRoute.SUBCUTANEOUS
+            AdministrationRoute.INTRAMUSCULAR.name -> AdministrationRoute.INTRAMUSCULAR
+            AdministrationRoute.INTRAVENOUS.name -> AdministrationRoute.INTRAVENOUS
+            AdministrationRoute.SMOKED.name -> AdministrationRoute.SMOKED
+            AdministrationRoute.INHALED.name -> AdministrationRoute.INHALED
+            else -> return null
+        }
+        val jsonDose = oneJsonFormulation.getOptionalJSONObject("dose")
+        val dose = parseRoaDose(jsonDose)
+        val jsonDuration = oneJsonFormulation.getOptionalJSONObject("duration")
+        val duration = parseRoaDuration(jsonDuration)
+        
+        return Formulation(
+            name = name,
+            route = route,
+            dose = dose,
+            duration = duration
         )
     }
 

@@ -80,6 +80,7 @@ class EditIngestionViewModel @Inject constructor(
     var localDateTimeEndFlow = MutableStateFlow(LocalDateTime.now())
     var consumerName by mutableStateOf("")
     var administrationSite by mutableStateOf("")
+    var saltForm by mutableStateOf("")
     var customUnit: CustomUnit? by mutableStateOf(null)
     val otherCustomUnits = experienceRepo.getAllCustomUnitsFlow().combine(ingestionFlow) { customUnits, ing ->
         customUnits.filter {customUnit ->
@@ -124,6 +125,7 @@ class EditIngestionViewModel @Inject constructor(
             units = ing.units ?: ""
             consumerName = ing.consumerName ?: ""
             administrationSite = ing.administrationSite ?: ""
+            saltForm = ing.saltForm ?: ""
             localDateTimeStartFlow.emit(ing.time.getLocalDateTime())
             val endTime = ing.endTime
             if (endTime != null) {
@@ -186,6 +188,10 @@ class EditIngestionViewModel @Inject constructor(
         administrationSite = newSite
     }
 
+    fun onChangeSaltForm(value: String) {
+        saltForm = value
+    }
+
     // Check if site selection is relevant for the current administration route
     val showSiteSelection: Boolean
         get() = ingestion?.administrationRoute?.showSiteSelection ?: false
@@ -240,6 +246,7 @@ class EditIngestionViewModel @Inject constructor(
                 it.endTime = endTime
                 it.consumerName = consumerName.ifBlank { null }
                 it.administrationSite = administrationSite.ifBlank { null }
+                it.saltForm = saltForm.ifBlank { null }
                 experienceRepo.update(it)
                 
                 // Send webhook edit notification in background
@@ -296,7 +303,9 @@ class EditIngestionViewModel @Inject constructor(
                     site = ingestion.administrationSite,
                     note = ingestion.notes,
                     template = template,
-                    isHyperlinked = webhook.isHyperlinked
+                    isHyperlinked = webhook.isHyperlinked,
+                    formulation = ingestion.formulationName,
+                    saltForm = ingestion.saltForm
                 )
                 if (!result.success) {
                     android.util.Log.w(
@@ -380,7 +389,9 @@ class EditIngestionViewModel @Inject constructor(
                             site = currentIngestion.administrationSite,
                             note = currentIngestion.notes,
                             template = template,
-                            isHyperlinked = webhook.isHyperlinked
+                            isHyperlinked = webhook.isHyperlinked,
+                            formulation = currentIngestion.formulationName,
+                            saltForm = currentIngestion.saltForm
                         )
                         if (result.success && result.messageId != null) {
                             ingestionWebhookMessageRepository.insert(

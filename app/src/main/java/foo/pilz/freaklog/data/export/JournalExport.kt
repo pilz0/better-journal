@@ -166,7 +166,8 @@ data class IngestionSerializable(
     var stomachFullness: StomachFullness? = null,
     var consumerName: String? = null,
     var customUnitId: Int? = null,
-    var administrationSite: String? = null
+    var administrationSite: String? = null,
+    var saltForm: String? = null
 )
 
 @Serializable

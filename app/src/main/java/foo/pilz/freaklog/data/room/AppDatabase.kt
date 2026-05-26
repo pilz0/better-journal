@@ -49,7 +49,7 @@ import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
 
 @TypeConverters(InstantConverter::class, AdaptiveColorConverter::class)
 @Database(
-    version = 18,
+    version = 20,
     entities = [
         Experience::class,
         Ingestion::class,
@@ -64,7 +64,8 @@ import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
         CustomRecipeComponent::class,
         InventoryItem::class,
         Webhook::class,
-        IngestionWebhookMessage::class
+        IngestionWebhookMessage::class,
+        foo.pilz.freaklog.data.room.experiences.entities.CustomFormulation::class
     ],
     autoMigrations = [
         AutoMigration (from = 1, to = 2),
@@ -83,6 +84,8 @@ import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
         AutoMigration (from = 15, to = 16),
         AutoMigration (from = 16, to = 17, spec = AppDatabase.ReminderV16To17::class),
         AutoMigration (from = 17, to = 18),
+        AutoMigration (from = 18, to = 19, spec = AppDatabase.Migration18To19::class),
+        AutoMigration (from = 19, to = 20),
     ]
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -93,6 +96,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun inventoryDao(): InventoryDao
     abstract fun webhookDao(): WebhookDao
     abstract fun ingestionWebhookMessageDao(): IngestionWebhookMessageDao
+    abstract fun customFormulationDao(): foo.pilz.freaklog.data.room.experiences.CustomFormulationDao
 
     /**
      * Legacy reminders (schema ≤ 16) only had interval-based scheduling. The v17 schema adds
@@ -106,12 +110,19 @@ abstract class AppDatabase : RoomDatabase() {
         }
     }
 
+    class Migration18To19 : AutoMigrationSpec {
+        override fun onPostMigrate(db: SupportSQLiteDatabase) {
+            db.execSQL("UPDATE Ingestion SET administrationRoute = 'ORAL', formulationName = 'medikinet' WHERE administrationRoute = 'MEDIKINET'")
+            db.execSQL("UPDATE Ingestion SET administrationRoute = 'ORAL', formulationName = 'kinecteen' WHERE administrationRoute = 'KINECTEEN'")
+        }
+    }
+
     companion object {
         /**
          * The current schema version. Kept in sync with the `version = ` field
          * on the `@Database` annotation above. Exposed for migration tests so
          * they don't have to hard-code the value.
          */
-        const val LATEST_SCHEMA_VERSION: Int = 18
+        const val LATEST_SCHEMA_VERSION: Int = 20
     }
 }

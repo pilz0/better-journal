@@ -53,6 +53,11 @@ object AppModule {
 
     @Singleton
     @Provides
+    fun provideCustomFormulationDao(appDatabase: AppDatabase): foo.pilz.freaklog.data.room.experiences.CustomFormulationDao =
+        appDatabase.customFormulationDao()
+
+    @Singleton
+    @Provides
     fun provideSprayDao(appDatabase: AppDatabase): SprayDao =
         appDatabase.sprayDao()
 

@@ -6146,5 +6146,261 @@
       "url": "https://repo.maven.apache.org/maven2/org/xerial/sqlite-jdbc/3.41.2.2/sqlite-jdbc-3.41.2.2.pom",
       "hash": "sha256-rhGjsR3LrBtkA2ieP9jYKyzupV6C2/xLsyrt7fjMrI4="
     }
+  },
+  "com.android.library:com.android.library.gradle.plugin:8.13.2": {
+    "com.android.library.gradle.plugin-8.13.2.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/com/android/library/com.android.library.gradle.plugin/8.13.2/com.android.library.gradle.plugin-8.13.2.pom",
+      "hash": "sha256-xYVT/MkO41ec7v/K6WH0rEciskhUkhr6rJt6ZomG670="
+    }
+  },
+  "androidx.lifecycle:lifecycle-viewmodel:2.5.1": {
+    "lifecycle-viewmodel-2.5.1.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/lifecycle/lifecycle-viewmodel/2.5.1/lifecycle-viewmodel-2.5.1.pom",
+      "hash": "sha256-k+XPzLyf0vihCS7AawdXvYNOY9zSqAAbWUI5qx5KbeE="
+    },
+    "lifecycle-viewmodel-2.5.1.module": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/lifecycle/lifecycle-viewmodel/2.5.1/lifecycle-viewmodel-2.5.1.module",
+      "hash": "sha256-AeQTtzy+OMtxTcW9shvYYJMRJMjl8jaYA/SqzEkIHJ8="
+    },
+    "lifecycle-viewmodel-2.5.1.aar": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/lifecycle/lifecycle-viewmodel/2.5.1/lifecycle-viewmodel-2.5.1.aar",
+      "hash": "sha256-FKJ9X7ihQ2sbfewYvrqmbIMM27yOKKgc5fhbfDOzrp0="
+    }
+  },
+  "androidx.lifecycle:lifecycle-livedata:2.0.0": {
+    "lifecycle-livedata-2.0.0.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/lifecycle/lifecycle-livedata/2.0.0/lifecycle-livedata-2.0.0.pom",
+      "hash": "sha256-qEhC/8DxTlGNt1wFzBEmgKikoWT6eDlb4y2IMEpDlCM="
+    },
+    "lifecycle-livedata-2.0.0.aar": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/lifecycle/lifecycle-livedata/2.0.0/lifecycle-livedata-2.0.0.aar",
+      "hash": "sha256-yCYJztjEmPCnAaMPtncbt0gIYNruhNguCoHuhu33ujk="
+    }
+  },
+  "androidx.lifecycle:lifecycle-livedata-core:2.5.1": {
+    "lifecycle-livedata-core-2.5.1.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/lifecycle/lifecycle-livedata-core/2.5.1/lifecycle-livedata-core-2.5.1.pom",
+      "hash": "sha256-ZC8Oldo/OGux0TbvihFIHczThMKKCT2Utce82qLvpbM="
+    },
+    "lifecycle-livedata-core-2.5.1.module": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/lifecycle/lifecycle-livedata-core/2.5.1/lifecycle-livedata-core-2.5.1.module",
+      "hash": "sha256-PziOngeJAZcMK/z8Av7K6UjeS0a+UhGRmuB9ASyimA0="
+    },
+    "lifecycle-livedata-core-2.5.1.aar": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/lifecycle/lifecycle-livedata-core/2.5.1/lifecycle-livedata-core-2.5.1.aar",
+      "hash": "sha256-7nkhA8oki/rxUMRak4ceTPfozrq5kOD2L33l1P8vIJ8="
+    }
+  },
+  "androidx.core:core:1.0.0": {
+    "core-1.0.0.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/core/core/1.0.0/core-1.0.0.pom",
+      "hash": "sha256-OE1SmtZoraSAjeKbKaY0jwAHwoQa15yumloIm9aIEPU="
+    },
+    "core-1.0.0.aar": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/core/core/1.0.0/core-1.0.0.aar",
+      "hash": "sha256-12cjWPwNRt5niWi83f073+FhhXQpmnU0d7FhFs/sdPU="
+    }
+  },
+  "androidx.versionedparcelable:versionedparcelable:1.0.0": {
+    "versionedparcelable-1.0.0.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/versionedparcelable/versionedparcelable/1.0.0/versionedparcelable-1.0.0.pom",
+      "hash": "sha256-R+58VUMjmmUfj7gTEMre6quOOKLYRNe7kt0Ibk/7syA="
+    },
+    "versionedparcelable-1.0.0.aar": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/versionedparcelable/versionedparcelable/1.0.0/versionedparcelable-1.0.0.aar",
+      "hash": "sha256-9kOKk+2AFszdyg4UCnC+CwEQ4EJO2qFHL4T5j+0uHOM="
+    }
+  },
+  "androidx.lifecycle:lifecycle-runtime:2.0.0": {
+    "lifecycle-runtime-2.0.0.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/lifecycle/lifecycle-runtime/2.0.0/lifecycle-runtime-2.0.0.pom",
+      "hash": "sha256-qSpG+nrsisMmpdV4c0otW2MgaXaZa54GyuFxs1sKtt4="
+    },
+    "lifecycle-runtime-2.0.0.aar": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/lifecycle/lifecycle-runtime/2.0.0/lifecycle-runtime-2.0.0.aar",
+      "hash": "sha256-5K/J5jYYP28+Dt8c9GEhpJL/0sZzB1uwf1XHqZ3UPPs="
+    }
+  },
+  "androidx.compose.runtime:runtime:1.7.0-beta01": {
+    "runtime-1.7.0-beta01.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/compose/runtime/runtime/1.7.0-beta01/runtime-1.7.0-beta01.pom",
+      "hash": "sha256-Q4YimxJD92YoFhNNPd3DBTBvnS/ZpS8zi1dI8HEMsOo="
+    },
+    "runtime-1.7.0-beta01.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/compose/runtime/runtime/1.7.0-beta01/runtime-1.7.0-beta01.jar",
+      "hash": "sha256-n0CrC4z058sPWTSTwu2W5xVdDpHrWSQHWX7NYeLVoFQ="
+    },
+    "runtime-1.7.0-beta01.module": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/compose/runtime/runtime/1.7.0-beta01/runtime-1.7.0-beta01.module",
+      "hash": "sha256-eJUJSMCa7wDiak6uF7Yw87kcL4damiKMKnMhB542Too="
+    },
+    "runtime-1.7.0-beta01.aar": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/compose/runtime/runtime/1.7.0-beta01/runtime-1.7.0-beta01.aar",
+      "hash": "sha256-6Tfs+rX5wNqPwntD0aRqoog+E3smAjvBQG3IGXYvfqw="
+    }
+  },
+  "androidx.compose.runtime:runtime-android:1.7.0-beta01": {
+    "runtime-android-1.7.0-beta01.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/compose/runtime/runtime-android/1.7.0-beta01/runtime-android-1.7.0-beta01.pom",
+      "hash": "sha256-T7et5pC9svf2/rHk3Mv1VWaYj3DQEIhkoz1InBQQGr0="
+    },
+    "runtime-android-1.7.0-beta01.module": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/compose/runtime/runtime-android/1.7.0-beta01/runtime-android-1.7.0-beta01.module",
+      "hash": "sha256-i8i0awCGUv8zaCBzOm7BAPJAWiOYemmT+AVwfTxT81c="
+    },
+    "runtime-android-1.7.0-beta01.aar": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/compose/runtime/runtime-android/1.7.0-beta01/runtime-android-1.7.0-beta01.aar",
+      "hash": "sha256-oGPyV/EgHq+PTnbAXS2r3FJRoytYhpldlvn/ZRAsIgc="
+    }
+  },
+  "androidx.collection:collection-jvm:1.4.0": {
+    "collection-jvm-1.4.0.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/collection/collection-jvm/1.4.0/collection-jvm-1.4.0.pom",
+      "hash": "sha256-WSTeoD4BjjIbPXlfI/tmWXJmQDJuCjIHWK5ZpnmStto="
+    },
+    "collection-jvm-1.4.0.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/collection/collection-jvm/1.4.0/collection-jvm-1.4.0.jar",
+      "hash": "sha256-1c97cmR8eZUHFYj+hwRQ/5yPEn8lPS1IUeFhuAD2euA="
+    },
+    "collection-jvm-1.4.0.module": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/collection/collection-jvm/1.4.0/collection-jvm-1.4.0.module",
+      "hash": "sha256-IbCwLqaKvkGPPdTk1Ch27PO9mhytpFi0YMrhzZ1Y720="
+    }
+  },
+  "androidx.annotation:annotation:1.7.0": {
+    "annotation-1.7.0.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/annotation/annotation/1.7.0/annotation-1.7.0.pom",
+      "hash": "sha256-IcYYrIxwkt2VGT8FwLGWGDp86PE2anqRLIAOvuNoqFg="
+    },
+    "annotation-1.7.0.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/annotation/annotation/1.7.0/annotation-1.7.0.jar",
+      "hash": "sha256-sRZ2g3ytARpShdYHRBhkkQfvJeuhcTFRfpVX74yZhO0="
+    },
+    "annotation-1.7.0.module": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/annotation/annotation/1.7.0/annotation-1.7.0.module",
+      "hash": "sha256-UwcIZW04BgUHfqi8qa4TcvvRrzjjdfQR1OQyY71RDDw="
+    }
+  },
+  "androidx.annotation:annotation-jvm:1.7.0": {
+    "annotation-jvm-1.7.0.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/annotation/annotation-jvm/1.7.0/annotation-jvm-1.7.0.pom",
+      "hash": "sha256-LT/MEucHiGmSA5JmI39FEUDKqPlMHmLn/E1gLeNFsNc="
+    },
+    "annotation-jvm-1.7.0.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/annotation/annotation-jvm/1.7.0/annotation-jvm-1.7.0.jar",
+      "hash": "sha256-42uOS4OTpK3HTj1KsirVo2OW8M6i5AtXNOrhSTff0iQ="
+    },
+    "annotation-jvm-1.7.0.module": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/annotation/annotation-jvm/1.7.0/annotation-jvm-1.7.0.module",
+      "hash": "sha256-B85gw3erlOR8jJAlibl3YDAGT9Gn5NWgGjjXAONeXbQ="
+    }
+  },
+  "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2": {
+    "kotlinx-coroutines-core-1.10.2.pom": {
+      "url": "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.10.2/kotlinx-coroutines-core-1.10.2.pom",
+      "hash": "sha256-UZ2lQACW80YqTa6AeDrQUEE9S8gex65T+udq7wzL7Uw="
+    },
+    "kotlinx-coroutines-core-1.10.2.jar": {
+      "url": "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.10.2/kotlinx-coroutines-core-1.10.2.jar",
+      "hash": "sha256-MZtlMAnUnHCYL5jfKcyE/HAlsJLLBXHI51MuOtQ2ba4="
+    },
+    "kotlinx-coroutines-core-1.10.2.module": {
+      "url": "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.10.2/kotlinx-coroutines-core-1.10.2.module",
+      "hash": "sha256-j+JUF35xGnzRijwG2CQvzpRfQcLMoT3BmzOuQqVDUBY="
+    }
+  },
+  "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2": {
+    "kotlinx-coroutines-android-1.10.2.pom": {
+      "url": "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-android/1.10.2/kotlinx-coroutines-android-1.10.2.pom",
+      "hash": "sha256-uS02cuf56PTE4qsYfD4x/sxQZJY5b0pfJ+4clXpCsxk="
+    },
+    "kotlinx-coroutines-android-1.10.2.jar": {
+      "url": "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-android/1.10.2/kotlinx-coroutines-android-1.10.2.jar",
+      "hash": "sha256-5xPx+HQkQRWgdXEGXP+g8k9eeDAOlyD+oW3jrx11/UE="
+    },
+    "kotlinx-coroutines-android-1.10.2.module": {
+      "url": "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-android/1.10.2/kotlinx-coroutines-android-1.10.2.module",
+      "hash": "sha256-CS/jgQPuxi6UVAygzWEDnvj32ORmlOwDO+H2Pw6iAT0="
+    }
+  },
+  "org.jetbrains.kotlin:kotlin-stdlib:2.1.0": {
+    "kotlin-stdlib-2.1.0.pom": {
+      "url": "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.1.0/kotlin-stdlib-2.1.0.pom",
+      "hash": "sha256-E05IwXeWwcECfsvmyfHHXHkvU1mHq4nh4d2kP4w2b14="
+    },
+    "kotlin-stdlib-2.1.0.jar": {
+      "url": "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.1.0/kotlin-stdlib-2.1.0.jar",
+      "hash": "sha256-1vkbew8wbMopn+x0+3w05IdNb17FuSWgtN4hkB4RnD8="
+    },
+    "kotlin-stdlib-2.1.0.module": {
+      "url": "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.1.0/kotlin-stdlib-2.1.0.module",
+      "hash": "sha256-3PvI6L8yzWen763ZHTEVK86YcJEdbsUIePT9tuA+cOI="
+    }
+  },
+  "org.jetbrains.kotlin:kotlin-stdlib-common:2.1.0": {
+    "kotlin-stdlib-common-2.1.0.pom": {
+      "url": "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/2.1.0/kotlin-stdlib-common-2.1.0.pom",
+      "hash": "sha256-Sp2nqeUpW9VC1YY8rgNfevnKEB8iXEoIkcPS343CqA0="
+    },
+    "kotlin-stdlib-common-2.1.0.module": {
+      "url": "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/2.1.0/kotlin-stdlib-common-2.1.0.module",
+      "hash": "sha256-K5pa54X4UTqT+M7D9uXgf4sXZvhJezpIfzRBolHWdWM="
+    }
+  },
+  "androidx.navigation:navigation-runtime:2.5.1": {
+    "navigation-runtime-2.5.1.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/navigation/navigation-runtime/2.5.1/navigation-runtime-2.5.1.pom",
+      "hash": "sha256-stNqtsyEgR3+Xclr2ewjbID9qkhnCWdKsg2dyf7C0VQ="
+    },
+    "navigation-runtime-2.5.1.module": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/navigation/navigation-runtime/2.5.1/navigation-runtime-2.5.1.module",
+      "hash": "sha256-1nk8TxwxRX9gLcgYik4IZrSHeG1b/WloHIzygrIK3/8="
+    },
+    "navigation-runtime-2.5.1.aar": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/navigation/navigation-runtime/2.5.1/navigation-runtime-2.5.1.aar",
+      "hash": "sha256-PoFxuW4+3ws8R5bSgO6Uvz69ZK7sBxI7FYx5ZMuUXBw="
+    }
+  },
+  "androidx.navigation:navigation-common:2.5.1": {
+    "navigation-common-2.5.1.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/navigation/navigation-common/2.5.1/navigation-common-2.5.1.pom",
+      "hash": "sha256-qYzzN4K4u+EUHiOKS9LeV1ez+nTQmo9AJXVYQjXdQHI="
+    },
+    "navigation-common-2.5.1.module": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/navigation/navigation-common/2.5.1/navigation-common-2.5.1.module",
+      "hash": "sha256-yhvp78kJLGdjtBbxaWdTx4HcsvabHOiL+BWyRn0xIAI="
+    },
+    "navigation-common-2.5.1.aar": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/navigation/navigation-common/2.5.1/navigation-common-2.5.1.aar",
+      "hash": "sha256-aWCo4J4LL8xffw0aMpn5OPqtGKtGVlBgOOJ1J9BOsIo="
+    }
+  },
+  "androidx.collection:collection-ktx:1.4.0": {
+    "collection-ktx-1.4.0.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/collection/collection-ktx/1.4.0/collection-ktx-1.4.0.pom",
+      "hash": "sha256-4PMV1juOflS6J3zbNKWAUEOLoqvPFNgnKu/c/zvDhjA="
+    },
+    "collection-ktx-1.4.0.jar": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/collection/collection-ktx/1.4.0/collection-ktx-1.4.0.jar",
+      "hash": "sha256-xt6tovrFO46mUj29p3WXsSgAZnRhbxQPBN8jJkxtGqM="
+    },
+    "collection-ktx-1.4.0.module": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/collection/collection-ktx/1.4.0/collection-ktx-1.4.0.module",
+      "hash": "sha256-N3CZnsMtHAgtGjTPHWTRbZ7Km2sSY8l5lUQH9GH7qCs="
+    }
+  },
+  "androidx.savedstate:savedstate-ktx:1.2.0": {
+    "savedstate-ktx-1.2.0.pom": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/savedstate/savedstate-ktx/1.2.0/savedstate-ktx-1.2.0.pom",
+      "hash": "sha256-w6yDRgTX1i5itDOu9+QEXi1lIlvJ+WD+fteQpzyTkoE="
+    },
+    "savedstate-ktx-1.2.0.module": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/savedstate/savedstate-ktx/1.2.0/savedstate-ktx-1.2.0.module",
+      "hash": "sha256-HINP6qI1xpyp/qzuBrpX0R1val+0ElpJ384meaMT37c="
+    },
+    "savedstate-ktx-1.2.0.aar": {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/savedstate/savedstate-ktx/1.2.0/savedstate-ktx-1.2.0.aar",
+      "hash": "sha256-QxEpKNPLsQiAHuERMPMDQEvEiSz3iQiBFWgZUQe7p/4="
+    }
   }
 }

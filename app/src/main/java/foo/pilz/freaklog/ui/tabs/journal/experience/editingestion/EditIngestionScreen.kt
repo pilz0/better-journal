@@ -88,6 +88,7 @@ import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.IngestionTimePickerOp
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.TimePointOrRangePicker
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.AdministrationSitePicker
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
+import foo.pilz.freaklog.ui.tabs.journal.experience.components.SaltFormPicker
 import foo.pilz.freaklog.ui.theme.JournalTheme
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import kotlinx.coroutines.launch
@@ -143,6 +144,8 @@ fun EditIngestionScreen(
         siteOptions = viewModel.siteOptions,
         administrationSite = viewModel.administrationSite,
         onChangeOfAdministrationSite = viewModel::onChangeAdministrationSite,
+        saltForm = viewModel.saltForm,
+        onSaltFormChange = viewModel::onChangeSaltForm,
         onResendWebhook = viewModel::resendWebhook,
         hasEnabledWebhooks = viewModel.hasEnabledWebhooksFlow.collectAsState().value
     )
@@ -188,6 +191,8 @@ fun EditIngestionScreenPreview() {
             siteOptions = listOf("Left nostril", "Right nostril", "Both nostrils"),
             administrationSite = "Left nostril",
             onChangeOfAdministrationSite = {},
+            saltForm = "",
+            onSaltFormChange = {},
             onResendWebhook = {},
             hasEnabledWebhooks = true
         )
@@ -233,6 +238,8 @@ fun EditIngestionScreen(
 
     administrationSite: String,
     onChangeOfAdministrationSite: (String) -> Unit,
+    saltForm: String,
+    onSaltFormChange: (String) -> Unit,
     onResendWebhook: () -> Unit,
     hasEnabledWebhooks: Boolean
 ) {
@@ -559,6 +566,13 @@ fun EditIngestionScreen(
                         onSiteChange = onChangeOfAdministrationSite
                     )
                 }
+            }
+            CardWithTitle(title = "Salt form") {
+                SaltFormPicker(
+                    saltForm = saltForm,
+                    previousSaltForms = emptyList(),
+                    onSaltFormChange = onSaltFormChange
+                )
             }
             ElevatedCard(
                 modifier = Modifier
