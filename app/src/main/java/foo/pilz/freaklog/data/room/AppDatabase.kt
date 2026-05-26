@@ -84,7 +84,7 @@ import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
         AutoMigration (from = 15, to = 16),
         AutoMigration (from = 16, to = 17, spec = AppDatabase.ReminderV16To17::class),
         AutoMigration (from = 17, to = 18),
-        AutoMigration (from = 18, to = 19),
+        AutoMigration (from = 18, to = 19, spec = AppDatabase.Migration18To19::class),
     ]
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -106,6 +106,13 @@ abstract class AppDatabase : RoomDatabase() {
     class ReminderV16To17 : AutoMigrationSpec {
         override fun onPostMigrate(db: SupportSQLiteDatabase) {
             db.execSQL("UPDATE reminder SET scheduleType = 'INTERVAL'")
+        }
+    }
+
+    class Migration18To19 : AutoMigrationSpec {
+        override fun onPostMigrate(db: SupportSQLiteDatabase) {
+            db.execSQL("UPDATE Ingestion SET administrationRoute = 'ORAL', formulationName = 'medikinet' WHERE administrationRoute = 'MEDIKINET'")
+            db.execSQL("UPDATE Ingestion SET administrationRoute = 'ORAL', formulationName = 'kinecteen' WHERE administrationRoute = 'KINECTEEN'")
         }
     }
 
