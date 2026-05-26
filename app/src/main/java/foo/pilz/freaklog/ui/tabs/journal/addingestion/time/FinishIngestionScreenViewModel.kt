@@ -44,6 +44,8 @@ import foo.pilz.freaklog.ui.utils.getInstant
 import foo.pilz.freaklog.ui.utils.getLocalDateTime
 import foo.pilz.freaklog.ui.utils.getStringOfPattern
 import dagger.hilt.android.lifecycle.HiltViewModel
+import foo.pilz.freaklog.data.room.experiences.CustomFormulationRepository
+import foo.pilz.freaklog.data.substances.repositories.SubstanceRepositoryInterface
 import foo.pilz.freaklog.di.ApplicationScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -79,9 +81,21 @@ class FinishIngestionScreenViewModel @Inject constructor(
     private val webhookService: foo.pilz.freaklog.data.webhook.WebhookService,
     private val webhookRepository: WebhookRepository,
     private val ingestionWebhookMessageRepository: IngestionWebhookMessageRepository,
+    private val customFormulationRepository: CustomFormulationRepository,
+    private val substanceRepository: SubstanceRepositoryInterface,
     @ApplicationScope private val externalScope: CoroutineScope,
     state: SavedStateHandle
 ) : ViewModel() {
+    
+    data class FormulationOption(
+        val name: String,
+        val isCustom: Boolean,
+        val customFormulationId: Int? = null
+    )
+
+    var selectedFormulationName by mutableStateOf<String?>(null)
+    var selectedCustomFormulationId by mutableStateOf<Int?>(null)
+
     var substanceName by mutableStateOf("")
     val localDateTimeStartFlow = MutableStateFlow(LocalDateTime.now())
     val localDateTimeEndFlow = MutableStateFlow(LocalDateTime.now().plusMinutes(30))
@@ -135,6 +149,21 @@ class FinishIngestionScreenViewModel @Inject constructor(
     val sortedConsumerNamesFlow =
         experienceRepo.getSortedIngestions(limit = 200).map { ingestions ->
             return@map ingestions.mapNotNull { it.consumerName }.distinct()
+        }.stateIn(
+            initialValue = emptyList(),
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000)
+        )
+
+    val availableFormulationsFlow: StateFlow<List<FormulationOption>> = customFormulationRepository.getAll()
+        .map { allCustoms ->
+            val matchingCustoms = allCustoms.filter { it.substanceName == substanceName && it.baseRoa == _administrationRoute }
+            val builtin = substanceRepository.getSubstance(substanceName)?.formulations?.filter { it.route == _administrationRoute } ?: emptyList()
+            
+            val options = mutableListOf<FormulationOption>()
+            builtin.forEach { options.add(FormulationOption(name = it.name, isCustom = false)) }
+            matchingCustoms.forEach { options.add(FormulationOption(name = it.name, isCustom = true, customFormulationId = it.id)) }
+            options
         }.stateIn(
             initialValue = emptyList(),
             scope = viewModelScope,
@@ -401,7 +430,9 @@ class FinishIngestionScreenViewModel @Inject constructor(
                 null
             },
             customUnitId = customUnitId,
-            administrationSite = administrationSite.ifBlank { null }
+            administrationSite = administrationSite.ifBlank { null },
+            formulationName = selectedFormulationName,
+            customFormulationId = selectedCustomFormulationId
         )
     }
 

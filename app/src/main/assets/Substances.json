@@ -19923,7 +19923,9 @@
               "units": "hours"
             }
           }
-        },
+        }
+      ],
+      "formulations": [
         {
           "name": "medikinet",
           "dose": {
@@ -19964,7 +19966,8 @@
               "max": 6,
               "units": "hours"
             }
-          }
+          },
+          "route": "oral"
         },
         {
           "name": "kinecteen",
@@ -20006,7 +20009,8 @@
               "max": 4,
               "units": "hours"
             }
-          }
+          },
+          "route": "oral"
         }
       ]
     },

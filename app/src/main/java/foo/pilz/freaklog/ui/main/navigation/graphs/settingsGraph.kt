@@ -35,6 +35,8 @@ import foo.pilz.freaklog.ui.tabs.settings.freakquery.FreakQueryShellScreen
 import foo.pilz.freaklog.ui.tabs.settings.funny.AchievementsScreen
 import foo.pilz.freaklog.ui.tabs.settings.reminders.EditReminderScreen
 import foo.pilz.freaklog.ui.tabs.settings.reminders.RemindersScreen
+import foo.pilz.freaklog.ui.tabs.settings.customformulations.CustomFormulationsScreen
+import foo.pilz.freaklog.ui.tabs.settings.customformulations.add.AddCustomFormulationScreen
 import foo.pilz.freaklog.ui.tabs.settings.webhooks.WebhookEditorScreen
 import foo.pilz.freaklog.ui.tabs.settings.webhooks.WebhooksListScreen
 import kotlinx.serialization.Serializable
@@ -57,6 +59,9 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
                 },
                 navigateToCustomUnits = {
                     navController.navigate(CustomUnitsRoute)
+                },
+                navigateToCustomFormulations = {
+                    navController.navigate(CustomFormulationsRoute)
                 },
                 navigateToWebhook = {
                   navController.navigate(WebhooksListRoute)
@@ -129,6 +134,15 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
         composableWithTransitions<EditCustomUnitRoute> {
             EditCustomUnitScreen(navigateBack = navController::popBackStack)
         }
+        composableWithTransitions<CustomFormulationsRoute> {
+            CustomFormulationsScreen(
+                navigateBack = navController::popBackStack,
+                navigateToAdd = { navController.navigate(AddCustomFormulationRoute) }
+            )
+        }
+        composableWithTransitions<AddCustomFormulationRoute> {
+            AddCustomFormulationScreen(navigateBack = navController::popBackStack)
+        }
     }
 }
 
@@ -178,3 +192,9 @@ data class EditCustomUnitRoute(val customUnitId: Int)
 
 @Serializable
 object AiAssistantSettingsRoute
+
+@Serializable
+object CustomFormulationsRoute
+
+@Serializable
+object AddCustomFormulationRoute

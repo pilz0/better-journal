@@ -99,6 +99,7 @@ fun SettingsPreview() {
         navigateToComboSettings = {},
         navigateToSubstanceColors = {},
         navigateToCustomUnits = {},
+        navigateToCustomFormulations = {},
         navigateToReminders = {},
         navigateToWebhook = {},
         navigateToFreakQueryShell = {},
@@ -147,6 +148,7 @@ fun SettingsScreen(
     navigateToComboSettings: () -> Unit,
     navigateToSubstanceColors: () -> Unit,
     navigateToCustomUnits: () -> Unit,
+    navigateToCustomFormulations: () -> Unit,
     navigateToReminders: () -> Unit,
     navigateToAchievements: () -> Unit = {},
     navigateToFreakQueryShell: () -> Unit = {},
@@ -158,6 +160,7 @@ fun SettingsScreen(
         navigateToComboSettings = navigateToComboSettings,
         navigateToSubstanceColors = navigateToSubstanceColors,
         navigateToCustomUnits = navigateToCustomUnits,
+        navigateToCustomFormulations = navigateToCustomFormulations,
         navigateToReminders = navigateToReminders,
         navigateToAchievements = navigateToAchievements,
         navigateToFreakQueryShell = navigateToFreakQueryShell,
@@ -207,6 +210,7 @@ fun SettingsScreen(
     navigateToComboSettings: () -> Unit,
     navigateToSubstanceColors: () -> Unit,
     navigateToCustomUnits: () -> Unit,
+    navigateToCustomFormulations: () -> Unit,
     navigateToReminders: () -> Unit,
     navigateToAchievements: () -> Unit = {},
     navigateToFreakQueryShell: () -> Unit = {},
@@ -293,6 +297,14 @@ fun SettingsScreen(
                 ) {
                     performHaptic(HapticType.CLICK)
                     navigateToCustomUnits()
+                }
+                HorizontalDivider()
+                SettingsButton(
+                    imageVector = Icons.Outlined.Medication,
+                    text = "Custom formulations"
+                ) {
+                    performHaptic(HapticType.CLICK)
+                    navigateToCustomFormulations()
                 }
                 HorizontalDivider()
                 SettingsButton(

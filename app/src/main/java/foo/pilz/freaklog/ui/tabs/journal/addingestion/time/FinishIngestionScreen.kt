@@ -132,7 +132,14 @@ fun FinishIngestionScreen(
         onChangeOfAdministrationSite = viewModel::changeAdministrationSite,
         enabledWebhooks = viewModel.enabledWebhooksFlow.collectAsState().value,
         isWebhookSelected = { id -> viewModel.selectedWebhookIds[id] ?: true },
-        onWebhookSelectedChange = viewModel::setWebhookSelected
+        onWebhookSelectedChange = viewModel::setWebhookSelected,
+        availableFormulations = viewModel.availableFormulationsFlow.collectAsState().value,
+        selectedFormulationName = viewModel.selectedFormulationName,
+        selectedCustomFormulationId = viewModel.selectedCustomFormulationId,
+        onFormulationChange = { name, isCustom, id ->
+            viewModel.selectedFormulationName = name
+            viewModel.selectedCustomFormulationId = id
+        }
     )
 }
 
@@ -182,7 +189,13 @@ fun FinishIngestionScreenPreview() {
             Webhook(id = 2, name = "Personal", url = "https://discord.com/api/webhooks/a/b")
         ),
         isWebhookSelected = { true },
-        onWebhookSelectedChange = { _, _ -> }
+        onWebhookSelectedChange = { _, _ -> },
+        availableFormulations = listOf(
+            FinishIngestionScreenViewModel.FormulationOption(name = "Extended-Release (XR)", isCustom = false)
+        ),
+        selectedFormulationName = null,
+        selectedCustomFormulationId = null,
+        onFormulationChange = { _, _, _ -> }
     )
 }
 
@@ -221,7 +234,11 @@ fun FinishIngestionScreen(
     onChangeOfAdministrationSite: (String) -> Unit,
     enabledWebhooks: List<Webhook>,
     isWebhookSelected: (Int) -> Boolean,
-    onWebhookSelectedChange: (Int, Boolean) -> Unit
+    onWebhookSelectedChange: (Int, Boolean) -> Unit,
+    availableFormulations: List<FinishIngestionScreenViewModel.FormulationOption>,
+    selectedFormulationName: String?,
+    selectedCustomFormulationId: Int?,
+    onFormulationChange: (name: String?, isCustom: Boolean, customId: Int?) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
     Scaffold(
@@ -422,6 +439,44 @@ fun FinishIngestionScreen(
                             siteOptions = siteOptions,
                             onSiteChange = onChangeOfAdministrationSite
                         )
+                    }
+                }
+                if (availableFormulations.isNotEmpty()) {
+                    CardWithTitle(title = "Formulation", modifier = Modifier.fillMaxWidth()) {
+                        var isShowingFormulationMenu by remember { mutableStateOf(false) }
+                        Box(
+                            modifier = Modifier
+                                .wrapContentSize(Alignment.TopEnd)
+                        ) {
+                            OutlinedButton(
+                                onClick = { isShowingFormulationMenu = true },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                val selectedTitle = selectedFormulationName ?: "Base formulation"
+                                Text(text = selectedTitle)
+                            }
+                            DropdownMenu(
+                                expanded = isShowingFormulationMenu,
+                                onDismissRequest = { isShowingFormulationMenu = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Base formulation") },
+                                    onClick = {
+                                        onFormulationChange(null, false, null)
+                                        isShowingFormulationMenu = false
+                                    }
+                                )
+                                availableFormulations.forEach { option ->
+                                    DropdownMenuItem(
+                                        text = { Text(option.name) },
+                                        onClick = {
+                                            onFormulationChange(option.name, option.isCustom, option.customFormulationId)
+                                            isShowingFormulationMenu = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
                 if (enabledWebhooks.isNotEmpty()) {
