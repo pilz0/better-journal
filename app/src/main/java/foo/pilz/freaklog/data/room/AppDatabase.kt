@@ -49,7 +49,7 @@ import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
 
 @TypeConverters(InstantConverter::class, AdaptiveColorConverter::class)
 @Database(
-    version = 19,
+    version = 20,
     entities = [
         Experience::class,
         Ingestion::class,
@@ -85,6 +85,7 @@ import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
         AutoMigration (from = 16, to = 17, spec = AppDatabase.ReminderV16To17::class),
         AutoMigration (from = 17, to = 18),
         AutoMigration (from = 18, to = 19, spec = AppDatabase.Migration18To19::class),
+        AutoMigration (from = 19, to = 20),
     ]
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -122,6 +123,6 @@ abstract class AppDatabase : RoomDatabase() {
          * on the `@Database` annotation above. Exposed for migration tests so
          * they don't have to hard-code the value.
          */
-        const val LATEST_SCHEMA_VERSION: Int = 19
+        const val LATEST_SCHEMA_VERSION: Int = 20
     }
 }

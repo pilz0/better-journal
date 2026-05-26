@@ -73,7 +73,7 @@ class WebhookService internal constructor(
     private val sortedSubstances = AnodyneAliases.map.keys.sortedByDescending { it.length }
 
     companion object {
-        const val DEFAULT_TEMPLATE = "{user}: [{dose} {units} ]{substance} via {route}[ at {site}][\n> {note}]"
+        const val DEFAULT_TEMPLATE = "{user}: [{dose} {units} ]{substance}[{formulation}] via {route}[ at {site}][\n> {note}]"
         private const val MAX_RETRIES = 3
         private const val SUBSTANCE_INFO_URL = "https://anodyne.wiki/substance/"
     }
@@ -90,7 +90,9 @@ class WebhookService internal constructor(
         note: String?,
         template: String,
         isHyperlinked: Boolean,
-        substanceInfoUrl: String = SUBSTANCE_INFO_URL
+        substanceInfoUrl: String = SUBSTANCE_INFO_URL,
+        formulation: String? = null,
+        saltForm: String? = null
     ): WebhookResult {
         return sendWebhookWithRetry(
             url = url,
@@ -106,7 +108,9 @@ class WebhookService internal constructor(
             isHyperlinked = isHyperlinked,
             substanceInfoUrl = substanceInfoUrl,
             isEdit = false,
-            messageId = null
+            messageId = null,
+            formulation = formulation,
+            saltForm = saltForm
         )
     }
 
@@ -123,7 +127,9 @@ class WebhookService internal constructor(
         note: String?,
         template: String,
         isHyperlinked: Boolean,
-        substanceInfoUrl: String = SUBSTANCE_INFO_URL
+        substanceInfoUrl: String = SUBSTANCE_INFO_URL,
+        formulation: String? = null,
+        saltForm: String? = null
     ): WebhookResult {
         return sendWebhookWithRetry(
             url = url,
@@ -139,7 +145,9 @@ class WebhookService internal constructor(
             isHyperlinked = isHyperlinked,
             substanceInfoUrl = substanceInfoUrl,
             isEdit = true,
-            messageId = messageId
+            messageId = messageId,
+            formulation = formulation,
+            saltForm = saltForm
         )
     }
 
@@ -178,7 +186,9 @@ class WebhookService internal constructor(
         isHyperlinked: Boolean,
         substanceInfoUrl: String,
         isEdit: Boolean,
-        messageId: String?
+        messageId: String?,
+        formulation: String? = null,
+        saltForm: String? = null
     ): WebhookResult {
         val doseString: String
         val unitString: String
@@ -195,14 +205,18 @@ class WebhookService internal constructor(
             unitString = ""
         }
 
+        val displaySubstance = if (!saltForm.isNullOrBlank()) "$substance[$saltForm]" else substance
+        val displayFormulation = if (!formulation.isNullOrBlank()) "[$formulation]" else ""
+
         val values = mapOf(
             "user" to user,
-            "substance" to substance,
+            "substance" to displaySubstance,
             "dose" to doseString,
             "units" to unitString,
             "route" to route,
             "site" to (site ?: ""),
-            "note" to (note ?: "")
+            "note" to (note ?: ""),
+            "formulation" to displayFormulation
         )
 
         val content = processTemplate(template, values)

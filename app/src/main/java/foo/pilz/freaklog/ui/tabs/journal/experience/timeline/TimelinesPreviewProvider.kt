@@ -1087,7 +1087,7 @@ class TimelinesPreviewProvider :
             ),
             DataForOneEffectLine(
                 substanceName = "name17",
-                route = AdministrationRoute.MEDIKINET,
+                route = AdministrationRoute.ORAL,
                 roaDuration = RoaDuration(
                     onset = DurationRange(
                         min = 20f,
@@ -1128,7 +1128,7 @@ class TimelinesPreviewProvider :
             ),
             DataForOneEffectLine(
                 substanceName = "name18",
-                route = AdministrationRoute.KINECTEEN,
+                route = AdministrationRoute.ORAL,
                 roaDuration = RoaDuration(
                     onset = DurationRange(
                         min = 20f,

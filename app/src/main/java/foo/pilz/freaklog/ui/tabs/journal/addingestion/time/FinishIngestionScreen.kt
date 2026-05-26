@@ -82,6 +82,7 @@ import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestion
 import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
 import foo.pilz.freaklog.ui.YOU
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.AdministrationSitePicker
+import foo.pilz.freaklog.ui.tabs.journal.experience.components.SaltFormPicker
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
 import foo.pilz.freaklog.ui.tabs.journal.experience.rating.FloatingDoneButton
 import foo.pilz.freaklog.ui.theme.horizontalPadding
@@ -139,7 +140,10 @@ fun FinishIngestionScreen(
         onFormulationChange = { name, isCustom, id ->
             viewModel.selectedFormulationName = name
             viewModel.selectedCustomFormulationId = id
-        }
+        },
+        previousSaltForms = viewModel.previousSaltFormsFlow.collectAsState().value,
+        saltForm = viewModel.saltForm,
+        onSaltFormChange = viewModel::changeSaltForm
     )
 }
 
@@ -195,7 +199,10 @@ fun FinishIngestionScreenPreview() {
         ),
         selectedFormulationName = null,
         selectedCustomFormulationId = null,
-        onFormulationChange = { _, _, _ -> }
+        onFormulationChange = { _, _, _ -> },
+        previousSaltForms = listOf("HCL", "Freebase"),
+        saltForm = "",
+        onSaltFormChange = {}
     )
 }
 
@@ -238,7 +245,10 @@ fun FinishIngestionScreen(
     availableFormulations: List<FinishIngestionScreenViewModel.FormulationOption>,
     selectedFormulationName: String?,
     selectedCustomFormulationId: Int?,
-    onFormulationChange: (name: String?, isCustom: Boolean, customId: Int?) -> Unit
+    onFormulationChange: (name: String?, isCustom: Boolean, customId: Int?) -> Unit,
+    previousSaltForms: List<String>,
+    saltForm: String,
+    onSaltFormChange: (String) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
     Scaffold(
@@ -440,6 +450,13 @@ fun FinishIngestionScreen(
                             onSiteChange = onChangeOfAdministrationSite
                         )
                     }
+                }
+                CardWithTitle(title = "Salt form") {
+                    SaltFormPicker(
+                        saltForm = saltForm,
+                        previousSaltForms = previousSaltForms,
+                        onSaltFormChange = onSaltFormChange
+                    )
                 }
                 if (availableFormulations.isNotEmpty()) {
                     CardWithTitle(title = "Formulation", modifier = Modifier.fillMaxWidth()) {

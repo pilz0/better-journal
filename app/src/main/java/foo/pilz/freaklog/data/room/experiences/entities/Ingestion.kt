@@ -44,5 +44,6 @@ data class Ingestion(
     var webhookMessageId: String? = null,
     var administrationSite: String? = null,
     var formulationName: String? = null,
-    var customFormulationId: Int? = null
+    var customFormulationId: Int? = null,
+    var saltForm: String? = null
 )

@@ -175,6 +175,7 @@ class FinishIngestionScreenViewModel @Inject constructor(
     var selectedColor: AdaptiveColor by mutableStateOf(AdaptiveColor.BLUE)
     var note by mutableStateOf("")
     var administrationSite by mutableStateOf("")
+    var saltForm by mutableStateOf("")
     private var hasTitleBeenChanged = false
 
     fun changeTitle(newTitle: String) {
@@ -190,9 +191,22 @@ class FinishIngestionScreenViewModel @Inject constructor(
         administrationSite = newSite
     }
 
+    fun changeSaltForm(value: String) {
+        saltForm = value
+    }
+
     val previousNotesFlow: StateFlow<List<String>> =
         experienceRepo.getSortedIngestionsFlow(substanceName, limit = 10).map { list ->
             list.mapNotNull { it.notes }.filter { it.isNotBlank() }.distinct()
+        }.stateIn(
+            initialValue = emptyList(),
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000)
+        )
+
+    val previousSaltFormsFlow: StateFlow<List<String>> =
+        experienceRepo.getSortedIngestionsFlow(substanceName, limit = 10).map { list ->
+            list.mapNotNull { it.saltForm }.filter { it.isNotBlank() }.distinct()
         }.stateIn(
             initialValue = emptyList(),
             scope = viewModelScope,
@@ -432,7 +446,8 @@ class FinishIngestionScreenViewModel @Inject constructor(
             customUnitId = customUnitId,
             administrationSite = administrationSite.ifBlank { null },
             formulationName = selectedFormulationName,
-            customFormulationId = selectedCustomFormulationId
+            customFormulationId = selectedCustomFormulationId,
+            saltForm = saltForm.ifBlank { null }
         )
     }
 
@@ -480,7 +495,9 @@ class FinishIngestionScreenViewModel @Inject constructor(
                     site = ingestion.administrationSite,
                     note = ingestion.notes,
                     template = template,
-                    isHyperlinked = webhook.isHyperlinked
+                    isHyperlinked = webhook.isHyperlinked,
+                    formulation = ingestion.formulationName,
+                    saltForm = ingestion.saltForm
                 )
                 if (result.success && result.messageId != null) {
                     ingestionWebhookMessageRepository.insert(

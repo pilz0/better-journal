@@ -27,7 +27,7 @@ class AchievementViewModel @Inject constructor(
     private val customRecipeRepository: CustomRecipeRepository,
     private val achievementPreferences: AchievementPreferences,
     interactionChecker: InteractionChecker,
-    @param:ApplicationContext context: Context,
+    @ApplicationContext context: Context,
 ) : ViewModel() {
 
     private val defs = loadAchievements(context)
