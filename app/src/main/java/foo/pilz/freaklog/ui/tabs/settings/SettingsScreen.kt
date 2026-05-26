@@ -398,9 +398,11 @@ fun SettingsScreen(
                             ) {
                                 Text(
                                     text = """
-                                        Enable this if you want timelines for different substances and routes of administration to use their own height scale.
+                                        Enable this if you want timelines for different substances and
+                                        routes of administration to use their own height scale.
 
-                                        When disabled, timeline heights are relative across substances and routes using average common doses.
+                                        When disabled, timeline heights are relative across substances
+                                        and routes using average common doses.
                                     """.trimIndent(),
                                     modifier = Modifier
                                         .padding(horizontal = horizontalPadding)
@@ -459,7 +461,8 @@ fun SettingsScreen(
             CardWithTitle(title = "AI assistant", innerPaddingHorizontal = 0.dp) {
                 SettingsSwitchRow(
                     text = "Enable AI assistant",
-                    description = "Off by default. Requires an API key configured in AI provider settings. Sends assistant prompts to the configured provider.",
+                    description = "Off by default. Requires an API key configured in AI provider settings." +
+                        " Sends assistant prompts to the configured provider.",
                     checked = aiAssistantEnabled,
                     onCheckedChange = {
                         performHaptic(HapticType.TOGGLE)
@@ -534,7 +537,8 @@ fun SettingsScreen(
                     uriHandler.openUri("https://github.com/isaakhanimann/psychonautwiki-journal-android")
                 }
                 Text(
-                    text = "Some features and improvements (for example the whole achievement-code) were built for the fork on codeberg (codeberg.org/psychonaut-journal)",
+                    text = "Some features and improvements (for example the whole achievement-code)" +
+                        " were built for the fork on codeberg (codeberg.org/psychonaut-journal)",
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier
                         .padding(horizontal = 15.dp)
@@ -785,7 +789,8 @@ private fun RedoseFractionsSection(
             style = MaterialTheme.typography.titleSmall
         )
         Text(
-            text = "redoseAt = ingestionTime + onset×${"%.2f".format(onsetFraction)} + comeup×${"%.2f".format(comeupFraction)} + peak×${"%.2f".format(peakFraction)}",
+            text = "redoseAt = ingestionTime + onset×${"%.2f".format(onsetFraction)}" +
+                " + comeup×${"%.2f".format(comeupFraction)} + peak×${"%.2f".format(peakFraction)}",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
