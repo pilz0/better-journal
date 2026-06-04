@@ -248,19 +248,41 @@ class AdministrationRouteTest {
     @Test
     fun testIntramuscularSitesAreMuscleBased() {
         val options = AdministrationRoute.INTRAMUSCULAR_SITE_OPTIONS
-        assertTrue(options.all { it.contains("Deltoid") || it.contains("Vastus Lateralis") || it.contains("Ventrogluteal") || it.contains("Dorsogluteal") })
+        assertTrue(
+            options.all {
+                it.contains("Deltoid") ||
+                    it.contains("Vastus Lateralis") ||
+                    it.contains("Ventrogluteal") ||
+                    it.contains("Dorsogluteal")
+            }
+        )
     }
 
     @Test
     fun testSubcutaneousSitesAreTissueBased() {
         val options = AdministrationRoute.SUBCUTANEOUS_SITE_OPTIONS
-        assertTrue(options.all { it.contains("abdomen") || it.contains("thigh") || it.contains("upper arm") || it.contains("lower back") })
+        assertTrue(
+            options.all {
+                it.contains("abdomen") ||
+                    it.contains("thigh") ||
+                    it.contains("upper arm") ||
+                    it.contains("lower back")
+            }
+        )
     }
 
     @Test
     fun testIntravenousSiteOptionsAreVeinBased() {
         val options = AdministrationRoute.INTRAVENOUS_SITE_OPTIONS
-        assertTrue(options.all { it.contains("Median Cubital") || it.contains("Cephalic") || it.contains("Basilic") || it.contains("Dorsal Hand") || it.contains("Median Antebrachial") })
+        assertTrue(
+            options.all {
+                it.contains("Median Cubital") ||
+                    it.contains("Cephalic") ||
+                    it.contains("Basilic") ||
+                    it.contains("Dorsal Hand") ||
+                    it.contains("Median Antebrachial")
+            }
+        )
     }
 
     @Test
