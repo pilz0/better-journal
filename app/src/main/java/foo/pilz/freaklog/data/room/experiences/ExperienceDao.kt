@@ -18,6 +18,7 @@
 
 package foo.pilz.freaklog.data.room.experiences
 
+import android.database.Cursor
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -574,4 +575,69 @@ interface ExperienceDao {
 
     @Query("SELECT * FROM timednote WHERE experienceId =:experienceId")
     suspend fun getTimedNotes(experienceId: Int): List<TimedNote>
+
+    // ── ContentProvider cursor queries ──────────────────────────────────────
+
+    @Query("""
+        SELECT id AS _id, substanceName AS substance_name, time AS time_epoch_s,
+               endTime AS end_time, creationDate AS creation_date,
+               administrationRoute AS administration_route, dose AS dose,
+               isDoseAnEstimate AS is_dose_estimate,
+               estimatedDoseStandardDeviation AS estimated_dose_sd, units AS units,
+               experienceId AS experience_id, notes AS notes,
+               stomachFullness AS stomach_fullness, consumerName AS consumer_name,
+               customUnitId AS custom_unit_id, webhookMessageId AS webhook_message_id,
+               administrationSite AS administration_site,
+               formulationName AS formulation_name, saltForm AS salt_form
+        FROM Ingestion WHERE id > :since ORDER BY id ASC LIMIT :limit
+    """)
+    fun providerIngestions(since: Int, limit: Int): Cursor
+
+    @Query("""
+        SELECT id AS _id, substanceName AS substance_name, time AS time_epoch_s,
+               dose AS dose, units AS units,
+               administrationRoute AS administration_route,
+               NULL AS category
+        FROM Ingestion WHERE id > :since ORDER BY id ASC LIMIT :limit
+    """)
+    fun providerIngestionsPublic(since: Int, limit: Int): Cursor
+
+    @Query("""
+        SELECT id AS _id, substanceName AS substance_name, time AS time_epoch_s,
+               dose AS dose, units AS units,
+               administrationRoute AS administration_route,
+               NULL AS category
+        FROM Ingestion WHERE id = :id
+    """)
+    fun providerIngestionPublicById(id: Int): Cursor
+
+    @Query("""
+        SELECT id AS _id, substanceName AS substance_name, time AS time_epoch_s,
+               endTime AS end_time, creationDate AS creation_date,
+               administrationRoute AS administration_route, dose AS dose,
+               isDoseAnEstimate AS is_dose_estimate,
+               estimatedDoseStandardDeviation AS estimated_dose_sd, units AS units,
+               experienceId AS experience_id, notes AS notes,
+               stomachFullness AS stomach_fullness, consumerName AS consumer_name,
+               customUnitId AS custom_unit_id, webhookMessageId AS webhook_message_id,
+               administrationSite AS administration_site,
+               formulationName AS formulation_name, saltForm AS salt_form
+        FROM Ingestion WHERE id = :id
+    """)
+    fun providerIngestionById(id: Int): Cursor
+
+    @Query("SELECT seq, ingestion_id, op FROM ingestion_change_log WHERE seq > :since ORDER BY seq ASC LIMIT :limit")
+    fun providerIngestionChanges(since: Long, limit: Int): Cursor
+
+    @Query("SELECT MIN(seq) AS min_seq, MAX(seq) AS max_seq, COUNT(*) AS row_count FROM ingestion_change_log")
+    fun providerIngestionChangesMeta(): Cursor
+
+    @Query("""
+        SELECT id AS _id, title, text,
+               creationDate AS creation_date_epoch_s,
+               sortDate AS sort_date_epoch_s,
+               isFavorite AS is_favorite
+        FROM Experience ORDER BY id ASC LIMIT :limit
+    """)
+    fun providerExperiences(limit: Int): Cursor
 }

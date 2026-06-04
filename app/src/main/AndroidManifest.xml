@@ -28,6 +28,11 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+
+    <permission
+        android:name="foo.pilz.freaklog.permission.READ_JOURNAL"
+        android:protectionLevel="signature" />
+
     <application
         android:name=".di.JournalApplication"
         android:allowBackup="false"
@@ -100,6 +105,13 @@
                 <action android:name="android.intent.action.TIMEZONE_CHANGED" />
             </intent-filter>
         </receiver>
+
+        <provider
+            android:name=".provider.JournalProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="true"
+            android:readPermission="foo.pilz.freaklog.permission.READ_JOURNAL"
+            android:writePermission="foo.pilz.freaklog.permission.READ_JOURNAL" />
 
     </application>
 

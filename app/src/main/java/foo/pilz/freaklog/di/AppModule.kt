@@ -26,6 +26,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
+import androidx.sqlite.db.SupportSQLiteDatabase
 import foo.pilz.freaklog.data.room.AppDatabase
 import foo.pilz.freaklog.data.room.experiences.CustomRecipeDao
 import foo.pilz.freaklog.data.room.reminders.ReminderDao
@@ -95,7 +96,20 @@ object AppModule {
             context,
             AppDatabase::class.java,
             "experiences_db"
-        ).build()
+        )
+            .addMigrations(AppDatabase.MIGRATION_21_22)
+            .addCallback(object : androidx.room.RoomDatabase.Callback() {
+                override fun onCreate(db: SupportSQLiteDatabase) {
+                    super.onCreate(db)
+                    db.execSQL("PRAGMA recursive_triggers = ON")
+                    AppDatabase.createChangeLogTriggers(db)
+                }
+                override fun onOpen(db: SupportSQLiteDatabase) {
+                    super.onOpen(db)
+                    db.execSQL("PRAGMA recursive_triggers = ON")
+                }
+            })
+            .build()
 
     @Singleton
     @Provides

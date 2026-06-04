@@ -70,6 +70,7 @@ class AppDatabaseMigrationTest {
             TEST_DB,
             AppDatabase.LATEST_SCHEMA_VERSION,
             /* validateDroppedTables = */ true,
+            AppDatabase.MIGRATION_21_22,
         ).close()
     }
 
@@ -81,6 +82,7 @@ class AppDatabaseMigrationTest {
             TEST_DB,
             AppDatabase.LATEST_SCHEMA_VERSION,
             /* validateDroppedTables = */ true,
+            AppDatabase.MIGRATION_21_22,
         ).close()
 
         // Now actually open the migrated database via Room. Room will run its
@@ -88,6 +90,7 @@ class AppDatabaseMigrationTest {
         // mis-aligned (column type, index, FK) this throws.
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val db = Room.databaseBuilder(context, AppDatabase::class.java, TEST_DB)
+            .addMigrations(AppDatabase.MIGRATION_21_22)
             .openHelperFactory(FrameworkSQLiteOpenHelperFactory())
             .build()
         try {
@@ -105,6 +108,52 @@ class AppDatabaseMigrationTest {
         } finally {
             db.close()
         }
+    }
+
+    @Test
+    fun migrate_v21_to_v22_creates_change_log_table_and_triggers() {
+        helper.createDatabase(TEST_DB, 21).apply { close() }
+        val db = helper.runMigrationsAndValidate(
+            TEST_DB,
+            22,
+            /* validateDroppedTables = */ true,
+            AppDatabase.MIGRATION_21_22,
+        )
+
+        // Verify the ingestion_change_log table exists.
+        val tableCursor = db.query(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='ingestion_change_log'"
+        )
+        tableCursor.use {
+            check(it.moveToFirst()) { "Expected ingestion_change_log table to exist" }
+        }
+
+        // Verify ingestion triggers exist (INSERT, UPDATE, DELETE).
+        val triggerCursor = db.query(
+            "SELECT name FROM sqlite_master WHERE type='trigger' AND tbl_name='Ingestion'"
+        )
+        triggerCursor.use {
+            check(it.count == 3) { "Expected 3 triggers on Ingestion table, got ${it.count}" }
+        }
+
+        // Verify the cap trigger exists.
+        val capCursor = db.query(
+            "SELECT name FROM sqlite_master WHERE type='trigger' AND name='ingestion_change_log_cap'"
+        )
+        capCursor.use {
+            check(it.moveToFirst()) { "Expected ingestion_change_log_cap trigger to exist" }
+        }
+
+        // Verify an INSERT trigger fires by inserting a test row.
+        db.execSQL("INSERT INTO Experience (title, text, creationDate, sortDate, isFavorite) VALUES ('test', '', 0, 0, 0)")
+        db.execSQL("INSERT INTO Ingestion (substanceName, time, administrationRoute, dose, isDoseAnEstimate, experienceId) VALUES ('Test', 0, 'ORAL', 1.0, 0, last_insert_rowid())")
+        val logCursor = db.query("SELECT * FROM ingestion_change_log WHERE op = 'INSERT'")
+        logCursor.use {
+            check(it.moveToFirst()) { "Expected INSERT trigger to log a row" }
+            assertEquals("INSERT", it.getString(it.getColumnIndexOrThrow("op")))
+        }
+
+        db.close()
     }
 
     companion object {
@@ -136,6 +185,7 @@ class AppDatabaseMigrationTest {
             17 to 18,
             18 to 19,
             19 to 20,
+            20 to 21,
         )
     }
 }

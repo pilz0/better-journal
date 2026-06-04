@@ -16,15 +16,16 @@
  * along with PsychonautWiki Journal.  If not, see https://www.gnu.org/licenses/gpl-3.0.en.html.
  */
 
-package foo.pilz.freaklog.ui
+package foo.pilz.freaklog.data.room.experiences.entities
 
-const val DOSE_DISCLAIMER =
-    "Always start with lower doses due to differences between individual body weight, tolerance, metabolism, and personal sensitivity."
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
-const val VOLUMETRIC_DOSE_ARTICLE_URL = "https://psychonautwiki.org/wiki/Volumetric_liquid_dosing"
-
-const val VERSION_NAME = "11.22"
-
-const val FULL_STOMACH_DISCLAIMER = "A full stomach may delay the onset of oral ingestions by approx. 3 hours."
-
-const val YOU = "You"
+@Entity(tableName = "ingestion_change_log")
+data class IngestionChangeLog(
+    @PrimaryKey(autoGenerate = true) val seq: Long = 0,
+    @ColumnInfo(name = "ingestion_id") val ingestionId: Int,
+    val op: String,
+    @ColumnInfo(name = "changed_at") val changedAt: Long,
+)

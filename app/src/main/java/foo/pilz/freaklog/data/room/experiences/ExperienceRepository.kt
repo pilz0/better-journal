@@ -18,6 +18,9 @@
 
 package foo.pilz.freaklog.data.room.experiences
 
+import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
+import foo.pilz.freaklog.provider.JournalContract
 import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.room.experiences.entities.Experience
@@ -48,28 +51,49 @@ class ExperienceRepository @Inject constructor(
     private val experienceDao: ExperienceDao,
     private val reminderDao: ReminderDao,
     private val webhookDao: foo.pilz.freaklog.data.room.webhooks.WebhookDao,
-    private val ingestionWebhookMessageDao: foo.pilz.freaklog.data.room.webhooks.IngestionWebhookMessageDao
+    private val ingestionWebhookMessageDao: foo.pilz.freaklog.data.room.webhooks.IngestionWebhookMessageDao,
+    @ApplicationContext private val context: Context
 ) {
+    private fun notifyJournalChanged() {
+        val resolver = context.contentResolver
+        resolver.notifyChange(JournalContract.ingestionsUri(context), null)
+        resolver.notifyChange(JournalContract.ingestionsPublicUri(context), null)
+        resolver.notifyChange(JournalContract.experiencesUri(context), null)
+        resolver.notifyChange(JournalContract.ingestionChangesUri(context), null)
+    }
+
     suspend fun insert(rating: ShulginRating) = experienceDao.insert(rating)
     suspend fun insert(customUnit: CustomUnit) = experienceDao.insert(customUnit).toInt()
     suspend fun insert(timedNote: TimedNote) = experienceDao.insert(timedNote)
-    suspend fun update(experience: Experience) = experienceDao.update(experience)
-    suspend fun update(ingestion: Ingestion) = experienceDao.update(ingestion)
+    suspend fun update(experience: Experience) {
+        experienceDao.update(experience)
+        notifyJournalChanged()
+    }
+    suspend fun update(ingestion: Ingestion) {
+        experienceDao.update(ingestion)
+        notifyJournalChanged()
+    }
     suspend fun update(rating: ShulginRating) = experienceDao.update(rating)
     suspend fun update(customUnit: CustomUnit) = experienceDao.update(customUnit)
     suspend fun update(timedNote: TimedNote) = experienceDao.update(timedNote)
 
-    suspend fun migrateBenzydamine() = experienceDao.migrateBenzydamine()
-    suspend fun migrateCannabisAndMushroomUnits() = experienceDao.migrateCannabisAndMushroomUnits()
+    suspend fun migrateBenzydamine() {
+        experienceDao.migrateBenzydamine()
+        notifyJournalChanged()
+    }
+    suspend fun migrateCannabisAndMushroomUnits() {
+        experienceDao.migrateCannabisAndMushroomUnits()
+        notifyJournalChanged()
+    }
     suspend fun insertIngestionExperienceAndCompanion(
         ingestion: Ingestion,
         experience: Experience,
         substanceCompanion: SubstanceCompanion
-    ) = experienceDao.insertIngestionExperienceAndCompanion(
-        ingestion,
-        experience,
-        substanceCompanion
-    )
+    ): Long {
+        val id = experienceDao.insertIngestionExperienceAndCompanion(ingestion, experience, substanceCompanion)
+        notifyJournalChanged()
+        return id
+    }
 
     suspend fun insertEverything(
         journalExport: JournalExport
@@ -77,31 +101,41 @@ class ExperienceRepository @Inject constructor(
         experienceDao.insertEverything(journalExport)
         journalExport.reminders.forEach { reminderDao.insert(it) }
         journalExport.webhooks.forEach { webhookDao.insert(it.toEntity()) }
+        notifyJournalChanged()
     }
 
     suspend fun insertIngestionAndCompanion(
         ingestion: Ingestion,
         substanceCompanion: SubstanceCompanion
-    ) = experienceDao.insertIngestionAndCompanion(
-        ingestion,
-        substanceCompanion
-    )
+    ): Long {
+        val id = experienceDao.insertIngestionAndCompanion(ingestion, substanceCompanion)
+        notifyJournalChanged()
+        return id
+    }
 
     suspend fun deleteEverything() {
         experienceDao.deleteEverything()
         reminderDao.deleteAll()
         ingestionWebhookMessageDao.deleteAll()
         webhookDao.deleteAll()
+        notifyJournalChanged()
     }
 
-    suspend fun delete(ingestion: Ingestion) = experienceDao.delete(ingestion)
+    suspend fun delete(ingestion: Ingestion) {
+        experienceDao.delete(ingestion)
+        notifyJournalChanged()
+    }
     suspend fun delete(customUnit: CustomUnit) = experienceDao.delete(customUnit)
 
-    suspend fun deleteEverythingOfExperience(experienceId: Int) =
+    suspend fun deleteEverythingOfExperience(experienceId: Int) {
         experienceDao.deleteEverythingOfExperience(experienceId)
+        notifyJournalChanged()
+    }
 
-    suspend fun delete(experience: Experience) =
+    suspend fun delete(experience: Experience) {
         experienceDao.delete(experience)
+        notifyJournalChanged()
+    }
 
     suspend fun delete(rating: ShulginRating) =
         experienceDao.delete(rating)
@@ -109,8 +143,10 @@ class ExperienceRepository @Inject constructor(
     suspend fun delete(timedNote: TimedNote) =
         experienceDao.delete(timedNote)
 
-    suspend fun delete(experienceWithIngestions: ExperienceWithIngestions) =
+    suspend fun delete(experienceWithIngestions: ExperienceWithIngestions) {
         experienceDao.deleteExperienceWithIngestions(experienceWithIngestions)
+        notifyJournalChanged()
+    }
 
     suspend fun deleteUnusedSubstanceCompanions() =
         experienceDao.deleteUnusedSubstanceCompanions()
