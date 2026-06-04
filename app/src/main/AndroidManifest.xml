@@ -31,7 +31,7 @@
 
     <permission
         android:name="foo.pilz.freaklog.permission.READ_JOURNAL"
-        android:protectionLevel="signature" />
+        android:protectionLevel="normal" />
 
     <application
         android:name=".di.JournalApplication"
