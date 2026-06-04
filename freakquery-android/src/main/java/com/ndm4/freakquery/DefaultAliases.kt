@@ -75,6 +75,12 @@ object DefaultAliases {
             "right sq arm" to "right upper arm",
             "left sq back" to "left lower back",
             "right sq back" to "right lower back",
+            "left thigh" to "left thigh",
+            "right thigh" to "right thigh",
+            "left upper arm" to "left upper arm",
+            "right upper arm" to "right upper arm",
+            "left lower back" to "left lower back",
+            "right lower back" to "right lower back",
         )
     )
 
