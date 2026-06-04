@@ -51,8 +51,11 @@ class JournalProvider : ContentProvider() {
     }
 
     override fun query(
-        uri: Uri, projection: Array<out String>?, selection: String?,
-        selectionArgs: Array<out String>?, sortOrder: String?
+        uri: Uri,
+        projection: Array<out String>?,
+        selection: String?,
+        selectionArgs: Array<out String>?,
+        sortOrder: String?,
     ): Cursor {
         val since = ProviderQueryParams.parseSince(uri.getQueryParameter(JournalContract.QUERY_SINCE))
         val limit = ProviderQueryParams.parseLimit(uri.getQueryParameter(JournalContract.QUERY_LIMIT))
@@ -89,7 +92,10 @@ class JournalProvider : ContentProvider() {
         throw UnsupportedOperationException("Read-only provider")
 
     override fun update(
-        uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<out String>?
+        uri: Uri,
+        values: ContentValues?,
+        selection: String?,
+        selectionArgs: Array<out String>?,
     ): Int = throw UnsupportedOperationException("Read-only provider")
 
     override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int =

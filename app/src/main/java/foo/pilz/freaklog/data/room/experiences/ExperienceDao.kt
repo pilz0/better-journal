@@ -27,6 +27,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
+import foo.pilz.freaklog.data.export.JournalExport
 import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.room.experiences.entities.Experience
@@ -43,9 +44,8 @@ import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestion
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanion
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithExperienceAndCustomUnit
-import foo.pilz.freaklog.data.export.JournalExport
-import kotlinx.coroutines.flow.Flow
 import java.time.Instant
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Escapes the wildcard characters in a parameter being used with a `LIKE ... ESCAPE '\'` clause,
@@ -578,7 +578,8 @@ interface ExperienceDao {
 
     // ── ContentProvider cursor queries ──────────────────────────────────────
 
-    @Query("""
+    @Query(
+        """
         SELECT id AS _id, substanceName AS substance_name, time AS time_epoch_s,
                endTime AS end_time, creationDate AS creation_date,
                administrationRoute AS administration_route, dose AS dose,
@@ -590,28 +591,34 @@ interface ExperienceDao {
                administrationSite AS administration_site,
                formulationName AS formulation_name, saltForm AS salt_form
         FROM Ingestion WHERE id > :since ORDER BY id ASC LIMIT :limit
-    """)
+        """
+    )
     fun providerIngestions(since: Int, limit: Int): Cursor
 
-    @Query("""
+    @Query(
+        """
         SELECT id AS _id, substanceName AS substance_name, time AS time_epoch_s,
                dose AS dose, units AS units,
                administrationRoute AS administration_route,
                NULL AS category
         FROM Ingestion WHERE id > :since ORDER BY id ASC LIMIT :limit
-    """)
+        """
+    )
     fun providerIngestionsPublic(since: Int, limit: Int): Cursor
 
-    @Query("""
+    @Query(
+        """
         SELECT id AS _id, substanceName AS substance_name, time AS time_epoch_s,
                dose AS dose, units AS units,
                administrationRoute AS administration_route,
                NULL AS category
         FROM Ingestion WHERE id = :id
-    """)
+        """
+    )
     fun providerIngestionPublicById(id: Int): Cursor
 
-    @Query("""
+    @Query(
+        """
         SELECT id AS _id, substanceName AS substance_name, time AS time_epoch_s,
                endTime AS end_time, creationDate AS creation_date,
                administrationRoute AS administration_route, dose AS dose,
@@ -623,7 +630,8 @@ interface ExperienceDao {
                administrationSite AS administration_site,
                formulationName AS formulation_name, saltForm AS salt_form
         FROM Ingestion WHERE id = :id
-    """)
+        """
+    )
     fun providerIngestionById(id: Int): Cursor
 
     @Query("SELECT seq, ingestion_id, op FROM ingestion_change_log WHERE seq > :since ORDER BY seq ASC LIMIT :limit")
@@ -632,12 +640,14 @@ interface ExperienceDao {
     @Query("SELECT MIN(seq) AS min_seq, MAX(seq) AS max_seq, COUNT(*) AS row_count FROM ingestion_change_log")
     fun providerIngestionChangesMeta(): Cursor
 
-    @Query("""
+    @Query(
+        """
         SELECT id AS _id, title, text,
                creationDate AS creation_date_epoch_s,
                sortDate AS sort_date_epoch_s,
                isFavorite AS is_favorite
         FROM Experience ORDER BY id ASC LIMIT :limit
-    """)
+        """
+    )
     fun providerExperiences(limit: Int): Cursor
 }

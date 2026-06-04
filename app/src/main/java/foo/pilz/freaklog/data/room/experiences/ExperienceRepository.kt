@@ -20,7 +20,7 @@ package foo.pilz.freaklog.data.room.experiences
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
-import foo.pilz.freaklog.provider.JournalContract
+import foo.pilz.freaklog.data.export.JournalExport
 import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.room.experiences.entities.Experience
@@ -35,16 +35,16 @@ import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestion
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsTimedNotesAndRatings
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanion
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithExperienceAndCustomUnit
-import foo.pilz.freaklog.data.export.JournalExport
 import foo.pilz.freaklog.data.room.reminders.ReminderDao
 import foo.pilz.freaklog.data.room.reminders.entities.Reminder
+import foo.pilz.freaklog.provider.JournalContract
+import java.time.Instant
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.flowOn
-import java.time.Instant
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Singleton
 class ExperienceRepository @Inject constructor(

@@ -27,14 +27,15 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import foo.pilz.freaklog.data.room.experiences.CustomRecipeDao
 import foo.pilz.freaklog.data.room.experiences.ExperienceDao
-import foo.pilz.freaklog.data.room.experiences.entities.CustomRecipe
-import foo.pilz.freaklog.data.room.experiences.entities.CustomRecipeComponent
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColorConverter
 import foo.pilz.freaklog.data.room.experiences.entities.AdministrationRouteConverter
+import foo.pilz.freaklog.data.room.experiences.entities.CustomRecipe
+import foo.pilz.freaklog.data.room.experiences.entities.CustomRecipeComponent
 import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.room.experiences.entities.Experience
 import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
+import foo.pilz.freaklog.data.room.experiences.entities.IngestionChangeLog
 import foo.pilz.freaklog.data.room.experiences.entities.InstantConverter
 import foo.pilz.freaklog.data.room.experiences.entities.ShulginRating
 import foo.pilz.freaklog.data.room.experiences.entities.Spray
@@ -48,7 +49,6 @@ import foo.pilz.freaklog.data.room.webhooks.IngestionWebhookMessageDao
 import foo.pilz.freaklog.data.room.webhooks.WebhookDao
 import foo.pilz.freaklog.data.room.webhooks.entities.IngestionWebhookMessage
 import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
-import foo.pilz.freaklog.data.room.experiences.entities.IngestionChangeLog
 
 @TypeConverters(InstantConverter::class, AdaptiveColorConverter::class, AdministrationRouteConverter::class)
 @Database(
@@ -158,18 +158,50 @@ abstract class AppDatabase : RoomDatabase() {
          * the database was created.
          */
         fun createChangeLogTriggers(db: SupportSQLiteDatabase) {
-            db.execSQL("CREATE TRIGGER IF NOT EXISTS `ingestion_change_log_insert` AFTER INSERT ON `Ingestion` BEGIN INSERT INTO `ingestion_change_log` (`ingestion_id`, `op`, `changed_at`) VALUES (NEW.`id`, 'INSERT', CAST(strftime('%s','now') AS INTEGER)); END")
+            db.execSQL(
+                "CREATE TRIGGER IF NOT EXISTS `ingestion_change_log_insert`" +
+                    " AFTER INSERT ON `Ingestion` BEGIN" +
+                    " INSERT INTO `ingestion_change_log`" +
+                    " (`ingestion_id`, `op`, `changed_at`)" +
+                    " VALUES (NEW.`id`, 'INSERT'," +
+                    " CAST(strftime('%s','now') AS INTEGER)); END"
+            )
 
-            db.execSQL("CREATE TRIGGER IF NOT EXISTS `ingestion_change_log_update` AFTER UPDATE ON `Ingestion` BEGIN INSERT INTO `ingestion_change_log` (`ingestion_id`, `op`, `changed_at`) VALUES (NEW.`id`, 'UPDATE', CAST(strftime('%s','now') AS INTEGER)); END")
+            db.execSQL(
+                "CREATE TRIGGER IF NOT EXISTS `ingestion_change_log_update`" +
+                    " AFTER UPDATE ON `Ingestion` BEGIN" +
+                    " INSERT INTO `ingestion_change_log`" +
+                    " (`ingestion_id`, `op`, `changed_at`)" +
+                    " VALUES (NEW.`id`, 'UPDATE'," +
+                    " CAST(strftime('%s','now') AS INTEGER)); END"
+            )
 
-            db.execSQL("CREATE TRIGGER IF NOT EXISTS `ingestion_change_log_delete` AFTER DELETE ON `Ingestion` BEGIN INSERT INTO `ingestion_change_log` (`ingestion_id`, `op`, `changed_at`) VALUES (OLD.`id`, 'DELETE', CAST(strftime('%s','now') AS INTEGER)); END")
+            db.execSQL(
+                "CREATE TRIGGER IF NOT EXISTS `ingestion_change_log_delete`" +
+                    " AFTER DELETE ON `Ingestion` BEGIN" +
+                    " INSERT INTO `ingestion_change_log`" +
+                    " (`ingestion_id`, `op`, `changed_at`)" +
+                    " VALUES (OLD.`id`, 'DELETE'," +
+                    " CAST(strftime('%s','now') AS INTEGER)); END"
+            )
 
-            db.execSQL("CREATE TRIGGER IF NOT EXISTS `ingestion_change_log_cap` AFTER INSERT ON `ingestion_change_log` BEGIN DELETE FROM `ingestion_change_log` WHERE `seq` <= NEW.`seq` - 1000; END")
+            db.execSQL(
+                "CREATE TRIGGER IF NOT EXISTS `ingestion_change_log_cap`" +
+                    " AFTER INSERT ON `ingestion_change_log` BEGIN" +
+                    " DELETE FROM `ingestion_change_log`" +
+                    " WHERE `seq` <= NEW.`seq` - 1000; END"
+            )
         }
 
         val MIGRATION_21_22 = object : Migration(21, 22) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("CREATE TABLE IF NOT EXISTS `ingestion_change_log` (`seq` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `ingestion_id` INTEGER NOT NULL, `op` TEXT NOT NULL, `changed_at` INTEGER NOT NULL)")
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `ingestion_change_log`" +
+                        " (`seq` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL," +
+                        " `ingestion_id` INTEGER NOT NULL," +
+                        " `op` TEXT NOT NULL," +
+                        " `changed_at` INTEGER NOT NULL)"
+                )
                 createChangeLogTriggers(db)
             }
         }
