@@ -188,7 +188,7 @@ class AdministrationRouteTest {
     }
 
     @Test
-    fun testIntravenous_hasInjectionSiteOptions() {
+    fun testIntravenous_hasIntravenousSiteOptions() {
         val options = AdministrationRoute.INTRAVENOUS.siteOptions
         assertEquals(10, options.size)
         assertTrue(options.contains("Left Median Cubital"))
@@ -199,12 +199,16 @@ class AdministrationRouteTest {
     fun testIntramuscular_hasInjectionSiteOptions() {
         val options = AdministrationRoute.INTRAMUSCULAR.siteOptions
         assertEquals(8, options.size)
+        assertTrue(options.contains("Left Deltoid"))
+        assertTrue(options.contains("Right Vastus Lateralis"))
     }
 
     @Test
     fun testSubcutaneous_hasInjectionSiteOptions() {
         val options = AdministrationRoute.SUBCUTANEOUS.siteOptions
         assertEquals(8, options.size)
+        assertTrue(options.contains("Left abdomen"))
+        assertTrue(options.contains("Right thigh"))
     }
 
     @Test
@@ -229,6 +233,34 @@ class AdministrationRouteTest {
     @Test
     fun testIntravenousSiteOptionsCount() {
         assertEquals(10, AdministrationRoute.INTRAVENOUS_SITE_OPTIONS.size)
+    }
+
+    @Test
+    fun testIntramuscularSiteOptionsCount() {
+        assertEquals(8, AdministrationRoute.INTRAMUSCULAR_SITE_OPTIONS.size)
+    }
+
+    @Test
+    fun testSubcutaneousSiteOptionsCount() {
+        assertEquals(8, AdministrationRoute.SUBCUTANEOUS_SITE_OPTIONS.size)
+    }
+
+    @Test
+    fun testIntramuscularSitesAreMuscleBased() {
+        val options = AdministrationRoute.INTRAMUSCULAR_SITE_OPTIONS
+        assertTrue(options.all { it.contains("Deltoid") || it.contains("Vastus Lateralis") || it.contains("Ventrogluteal") || it.contains("Dorsogluteal") })
+    }
+
+    @Test
+    fun testSubcutaneousSitesAreTissueBased() {
+        val options = AdministrationRoute.SUBCUTANEOUS_SITE_OPTIONS
+        assertTrue(options.all { it.contains("abdomen") || it.contains("thigh") || it.contains("upper arm") || it.contains("lower back") })
+    }
+
+    @Test
+    fun testIntravenousSiteOptionsAreVeinBased() {
+        val options = AdministrationRoute.INTRAVENOUS_SITE_OPTIONS
+        assertTrue(options.all { it.contains("Median Cubital") || it.contains("Cephalic") || it.contains("Basilic") || it.contains("Dorsal Hand") || it.contains("Median Antebrachial") })
     }
 
     @Test
