@@ -196,7 +196,7 @@ class AdministrationRouteTest {
     }
 
     @Test
-    fun testIntramuscular_hasInjectionSiteOptions() {
+    fun testIntramuscular_hasIntramuscularSiteOptions() {
         val options = AdministrationRoute.INTRAMUSCULAR.siteOptions
         assertEquals(8, options.size)
         assertTrue(options.contains("Left Deltoid"))
@@ -204,7 +204,7 @@ class AdministrationRouteTest {
     }
 
     @Test
-    fun testSubcutaneous_hasInjectionSiteOptions() {
+    fun testSubcutaneous_hasSubcutaneousSiteOptions() {
         val options = AdministrationRoute.SUBCUTANEOUS.siteOptions
         assertEquals(8, options.size)
         assertTrue(options.contains("Left abdomen"))
