@@ -168,7 +168,9 @@ Many substances can be inhaled to achieve an altered state of consciousness, how
     val siteOptions: List<String>
         get() = when (this) {
             INSUFFLATED -> NOSTRIL_OPTIONS
-            INTRAVENOUS, INTRAMUSCULAR, SUBCUTANEOUS -> INJECTION_SITE_OPTIONS
+            INTRAVENOUS -> INTRAVENOUS_SITE_OPTIONS
+            INTRAMUSCULAR -> INTRAMUSCULAR_SITE_OPTIONS
+            SUBCUTANEOUS -> SUBCUTANEOUS_SITE_OPTIONS
             TRANSDERMAL -> TRANSDERMAL_OPTIONS
             else -> emptyList()
         }
@@ -180,7 +182,7 @@ Many substances can be inhaled to achieve an altered state of consciousness, how
         const val SAFER_PLUGGING_ARTICLE_URL = "https://wiki.tripsit.me/wiki/Quick_Guide_to_Plugging"
 
         val NOSTRIL_OPTIONS = listOf("Left nostril", "Right nostril", "Both nostrils")
-        val INJECTION_SITE_OPTIONS = listOf(
+        val INTRAVENOUS_SITE_OPTIONS = listOf(
             "Left Median Cubital",
             "Left Cephalic",
             "Left Basilic",
@@ -191,6 +193,26 @@ Many substances can be inhaled to achieve an altered state of consciousness, how
             "Right Basilic",
             "Right Dorsal Hand",
             "Right Median Antebrachial",
+        )
+        val INTRAMUSCULAR_SITE_OPTIONS = listOf(
+            "Left Deltoid",
+            "Right Deltoid",
+            "Left Vastus Lateralis",
+            "Right Vastus Lateralis",
+            "Left Ventrogluteal",
+            "Right Ventrogluteal",
+            "Left Dorsogluteal",
+            "Right Dorsogluteal",
+        )
+        val SUBCUTANEOUS_SITE_OPTIONS = listOf(
+            "Left abdomen",
+            "Right abdomen",
+            "Left thigh",
+            "Right thigh",
+            "Left upper arm",
+            "Right upper arm",
+            "Left lower back",
+            "Right lower back",
         )
         val TRANSDERMAL_OPTIONS = listOf(
             "Left arm",

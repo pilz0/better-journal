@@ -198,13 +198,13 @@ class AdministrationRouteTest {
     @Test
     fun testIntramuscular_hasInjectionSiteOptions() {
         val options = AdministrationRoute.INTRAMUSCULAR.siteOptions
-        assertEquals(10, options.size)
+        assertEquals(8, options.size)
     }
 
     @Test
     fun testSubcutaneous_hasInjectionSiteOptions() {
         val options = AdministrationRoute.SUBCUTANEOUS.siteOptions
-        assertEquals(10, options.size)
+        assertEquals(8, options.size)
     }
 
     @Test
@@ -227,8 +227,8 @@ class AdministrationRouteTest {
     }
 
     @Test
-    fun testInjectionSiteOptionsCount() {
-        assertEquals(10, AdministrationRoute.INJECTION_SITE_OPTIONS.size)
+    fun testIntravenousSiteOptionsCount() {
+        assertEquals(10, AdministrationRoute.INTRAVENOUS_SITE_OPTIONS.size)
     }
 
     @Test
