@@ -34,6 +34,8 @@ import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
+import foo.pilz.freaklog.ui.utils.evaluateNumericExpression
+
 @HiltViewModel
 class ChooseDoseViewModel @Inject constructor(
     repository: SubstanceRepository,
@@ -52,7 +54,7 @@ class ChooseDoseViewModel @Inject constructor(
     var units by mutableStateOf("")
     private val purity: Double?
         get() {
-            val p = purityText.toDoubleOrNull()
+            val p = evaluateNumericExpression(purityText)
             return if (p != null && p > 0 && p <= 100) {
                 p
             } else {
@@ -71,8 +73,8 @@ class ChooseDoseViewModel @Inject constructor(
                 }
             }
         }
-    val dose: Double? get() = doseText.toDoubleOrNull()
-    val estimatedDoseStandardDeviation: Double? get() = estimatedDoseStandardDeviationText.toDoubleOrNull()
+    val dose: Double? get() = evaluateNumericExpression(doseText)
+    val estimatedDoseStandardDeviation: Double? get() = evaluateNumericExpression(estimatedDoseStandardDeviationText)
     val isValidDose: Boolean get() = dose != null
     val currentDoseClass: DoseClass? get() = roaDose?.getDoseClass(ingestionDose = dose)
 

@@ -528,8 +528,8 @@ fun EditCustomUnitSections(
                     keyboardActions = KeyboardActions(onDone = {
                         focusManager.clearFocus()
                     }),
-                    isError = doseText.toDoubleOrNull() == null,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    isError = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(doseText) == null,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                     singleLine = true,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -602,13 +602,13 @@ fun EditCustomUnitSections(
                             keyboardActions = KeyboardActions(onDone = {
                                 focusManager.clearFocus()
                             }),
-                            isError = estimatedDoseStandardDeviationText.toDoubleOrNull() == null,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            isError = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(estimatedDoseStandardDeviationText) == null,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )
-                        val mean = doseText.toDoubleOrNull()
-                        val standardDeviation = estimatedDoseStandardDeviationText.toDoubleOrNull()
+                        val mean = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(doseText)
+                        val standardDeviation = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(estimatedDoseStandardDeviationText)
                         val isExplanationShown = mean != null && standardDeviation != null
                         AnimatedVisibility(isExplanationShown) {
                             if (mean != null && standardDeviation != null) {
@@ -647,8 +647,8 @@ fun EditCustomUnitSections(
                         unit = unit,
                         unitPlural = unitPlural,
                         originalUnit = originalUnit,
-                        dose = doseText.toDoubleOrNull(),
-                        estimatedDoseStandardDeviation = estimatedDoseStandardDeviationText.toDoubleOrNull(),
+                        dose = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(doseText),
+                        estimatedDoseStandardDeviation = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(estimatedDoseStandardDeviationText),
                         isEstimate = isEstimate,
                         isArchived = isArchived,
                         note = "",

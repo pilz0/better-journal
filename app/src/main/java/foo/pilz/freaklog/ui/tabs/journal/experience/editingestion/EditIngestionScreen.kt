@@ -352,8 +352,8 @@ fun EditIngestionScreen(
                             keyboardActions = KeyboardActions(onDone = {
                                 focusManager.clearFocus()
                             }),
-                            isError = dose.toDoubleOrNull() == null,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            isError = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(dose) == null,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                             singleLine = true
                         )
                         Row(
@@ -385,13 +385,13 @@ fun EditIngestionScreen(
                                     keyboardActions = KeyboardActions(onDone = {
                                         focusManager.clearFocus()
                                     }),
-                                    isError = estimatedDoseStandardDeviation.toDoubleOrNull() == null,
-                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                    isError = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(estimatedDoseStandardDeviation) == null,
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                                     singleLine = true,
                                     modifier = Modifier.fillMaxWidth()
                                 )
-                                val mean = dose.toDoubleOrNull()
-                                val standardDeviation = estimatedDoseStandardDeviation.toDoubleOrNull()
+                                val mean = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(dose)
+                                val standardDeviation = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(estimatedDoseStandardDeviation)
                                 val isExplanationShown = mean != null && standardDeviation != null
                                 AnimatedVisibility(isExplanationShown) {
                                     if (mean != null && standardDeviation != null) {

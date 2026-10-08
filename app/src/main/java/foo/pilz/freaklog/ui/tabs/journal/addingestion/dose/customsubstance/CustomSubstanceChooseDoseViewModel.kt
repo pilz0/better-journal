@@ -48,7 +48,7 @@ class CustomSubstanceChooseDoseViewModel @Inject constructor(
     var purityText by mutableStateOf("100")
     private val purity: Double?
         get() {
-            val p = purityText.toDoubleOrNull()
+            val p = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(purityText)
             return if (p != null && p > 0 && p <= 100) {
                 p
             } else {
@@ -67,8 +67,8 @@ class CustomSubstanceChooseDoseViewModel @Inject constructor(
                 }
             }
         }
-    val dose: Double? get() = doseText.toDoubleOrNull()
-    val estimatedDoseStandardDeviation: Double? get() = estimatedDoseDeviationText.toDoubleOrNull()
+    val dose: Double? get() = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(doseText)
+    val estimatedDoseStandardDeviation: Double? get() = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(estimatedDoseDeviationText)
     val isValidDose: Boolean get() = dose != null
 
     fun onDoseTextChange(newDoseText: String) {

@@ -73,8 +73,8 @@ class ChooseDoseCustomUnitViewModel @Inject constructor(
         estimatedDoseDeviationText = newEstimatedDeviationText
     }
 
-    val dose: Double? get() = doseText.toDoubleOrNull()
-    val estimatedDoseDeviation: Double? get() = estimatedDoseDeviationText.toDoubleOrNull()
+    val dose: Double? get() = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(doseText)
+    val estimatedDoseDeviation: Double? get() = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(estimatedDoseDeviationText)
     val isValidDose: Boolean get() = dose != null
 
     private val customUnitDose: CustomUnitDose?

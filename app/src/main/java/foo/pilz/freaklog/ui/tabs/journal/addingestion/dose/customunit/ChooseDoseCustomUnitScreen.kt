@@ -337,13 +337,13 @@ fun ChooseDoseCustomUnitScreen(
                                 keyboardActions = KeyboardActions(onDone = {
                                     focusManager.clearFocus()
                                 }),
-                                isError = estimatedDoseDeviationText.toDoubleOrNull() == null,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                isError = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(estimatedDoseDeviationText) == null,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth()
                             )
-                            val mean = doseText.toDoubleOrNull()
-                            val standardDeviation = estimatedDoseDeviationText.toDoubleOrNull()
+                            val mean = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(doseText)
+                            val standardDeviation = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(estimatedDoseDeviationText)
                             val isExplanationShown = mean != null && standardDeviation != null
                             AnimatedVisibility(isExplanationShown) {
                                 if (mean != null && standardDeviation != null) {

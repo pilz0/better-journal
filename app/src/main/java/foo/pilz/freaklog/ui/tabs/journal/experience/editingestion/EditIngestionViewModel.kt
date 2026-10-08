@@ -238,8 +238,8 @@ class EditIngestionViewModel @Inject constructor(
                 it.notes = note
                 it.isDoseAnEstimate = isEstimate
                 it.experienceId = experienceId
-                it.dose = if (isKnown) dose.toDoubleOrNull() else null
-                it.estimatedDoseStandardDeviation = if (isEstimate) estimatedDoseStandardDeviation.toDoubleOrNull() else null
+                it.dose = if (isKnown) foo.pilz.freaklog.ui.utils.evaluateNumericExpression(dose) else null
+                it.estimatedDoseStandardDeviation = if (isEstimate) foo.pilz.freaklog.ui.utils.evaluateNumericExpression(estimatedDoseStandardDeviation) else null
                 it.units = units
                 it.customUnitId = customUnit?.id
                 it.time = selectedStartInstant
