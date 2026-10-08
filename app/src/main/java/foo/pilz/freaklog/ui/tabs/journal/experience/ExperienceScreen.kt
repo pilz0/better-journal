@@ -18,23 +18,8 @@
 
 package foo.pilz.freaklog.ui.tabs.journal.experience
 
-import kotlin.math.roundToInt
-import foo.pilz.freaklog.ui.tabs.settings.combinations.BloodPressureDisplay
-import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.SleepSessionSample
-import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.SleepHealthConnect
-import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateSample
-import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateHealthConnect
-import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.BloodPressureReading
-import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.BloodPressureHealthConnect
-import androidx.lifecycle.compose.LifecycleEventEffect
-import androidx.lifecycle.Lifecycle
-import androidx.health.connect.client.PermissionController
-import androidx.compose.material.icons.outlined.MonitorHeart
-import androidx.compose.material.icons.outlined.Bloodtype
-import androidx.compose.material.icons.filled.MonitorHeart
-import androidx.compose.material.icons.filled.Bloodtype
-import androidx.activity.compose.rememberLauncherForActivityResult
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -50,20 +35,24 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.automirrored.outlined.NoteAdd
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Bloodtype
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MonitorHeart
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Bloodtype
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.ExposurePlus2
+import androidx.compose.material.icons.outlined.MonitorHeart
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.SmartToy
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material.icons.outlined.Timer
@@ -99,7 +88,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.health.connect.client.PermissionController
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import foo.pilz.freaklog.data.room.experiences.entities.TimedNote
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.ui.FULL_STOMACH_DISCLAIMER
@@ -121,6 +113,13 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.models.ConsumerWithIngestion
 import foo.pilz.freaklog.ui.tabs.journal.experience.models.CumulativeDose
 import foo.pilz.freaklog.ui.tabs.journal.experience.models.OneExperienceScreenModel
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.AllTimelines
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.BloodPressureHealthConnect
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.BloodPressureReading
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateHealthConnect
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateSample
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.SleepHealthConnect
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.SleepSessionSample
+import foo.pilz.freaklog.ui.tabs.settings.combinations.BloodPressureDisplay
 import foo.pilz.freaklog.ui.tabs.settings.funny.AchievementDef
 import foo.pilz.freaklog.ui.tabs.settings.funny.TierBadge
 import foo.pilz.freaklog.ui.theme.JournalTheme
@@ -131,6 +130,7 @@ import foo.pilz.freaklog.ui.utils.rememberHaptic
 import kotlinx.coroutines.delay
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import kotlin.math.roundToInt
 
 @Composable
 fun ExperienceScreen(
@@ -1004,19 +1004,22 @@ private fun MyTimelineSection(
                         }
                         if (isHeartRateButtonVisible) {
                             IconButton(onClick = onToggleHeartRate) {
+                                val isShown = heartRateSamples.isNotEmpty()
                                 Icon(
-                                    if (heartRateSamples.isEmpty()) Icons.Outlined.MonitorHeart
-                                    else Icons.Filled.MonitorHeart,
-                                    contentDescription = if (heartRateSamples.isEmpty()) "Show heart rate"
-                                    else "Hide heart rate"
+                                    if (isShown) Icons.Filled.MonitorHeart else Icons.Outlined.MonitorHeart,
+                                    contentDescription = if (isShown) "Hide heart rate" else "Show heart rate"
                                 )
                             }
                         }
                         if (bloodPressureReadings.isNotEmpty()) {
                             IconButton(onClick = onToggleBloodPressureInSubstanceList) {
+                                val icon = if (isBloodPressureInSubstanceList) {
+                                    Icons.Filled.Bloodtype
+                                } else {
+                                    Icons.Outlined.Bloodtype
+                                }
                                 Icon(
-                                    if (isBloodPressureInSubstanceList) Icons.Filled.Bloodtype
-                                    else Icons.Outlined.Bloodtype,
+                                    icon,
                                     contentDescription = if (isBloodPressureInSubstanceList) {
                                         "Separate blood pressure list"
                                     } else {

@@ -18,7 +18,6 @@
 
 package foo.pilz.freaklog.ui.tabs.journal.addingestion.search
 
-import foo.pilz.freaklog.data.room.experiences.relations.SubstanceGroupWithItems
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -71,6 +70,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
+import foo.pilz.freaklog.data.room.experiences.relations.SubstanceGroupWithItems
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.search.suggestion.SuggestionRow
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.search.suggestion.models.Suggestion

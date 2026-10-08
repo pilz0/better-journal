@@ -18,8 +18,6 @@
 
 package foo.pilz.freaklog.ui.main.navigation.graphs
 
-import foo.pilz.freaklog.ui.tabs.journal.experience.bloodpressure.add.AddBloodPressureScreen
-import foo.pilz.freaklog.ui.tabs.journal.experience.bloodpressure.edit.EditBloodPressureScreen
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigation
@@ -30,6 +28,8 @@ import foo.pilz.freaklog.ui.tabs.journal.JournalScreen
 import foo.pilz.freaklog.ui.tabs.journal.allingestions.AllIngestionsScreen
 import foo.pilz.freaklog.ui.tabs.journal.calendar.CalendarJournalScreen
 import foo.pilz.freaklog.ui.tabs.journal.experience.ExperienceScreen
+import foo.pilz.freaklog.ui.tabs.journal.experience.bloodpressure.add.AddBloodPressureScreen
+import foo.pilz.freaklog.ui.tabs.journal.experience.bloodpressure.edit.EditBloodPressureScreen
 import foo.pilz.freaklog.ui.tabs.journal.experience.edit.EditExperienceScreen
 import foo.pilz.freaklog.ui.tabs.journal.experience.editingestion.EditIngestionScreen
 import foo.pilz.freaklog.ui.tabs.journal.experience.rating.add.AddRatingScreen

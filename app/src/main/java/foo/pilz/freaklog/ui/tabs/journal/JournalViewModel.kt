@@ -18,21 +18,6 @@
 
 package foo.pilz.freaklog.ui.tabs.journal
 
-import java.time.ZoneId
-import java.time.Instant
-import kotlin.random.Random
-import kotlinx.coroutines.flow.takeWhile
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.delay
-import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OUTLOOK_SKIN_OPEN_PROBABILITY
-import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OUTLOOK_SKIN_MIN_DELAY_MS
-import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OUTLOOK_SKIN_MAX_DELAY_MS
-import foo.pilz.freaklog.ui.tabs.journal.outlookskin.buildOutlookRows
-import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OutlookSkinPayload
-import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OutlookSkinController
-import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinEligibility
 import androidx.compose.runtime.mutableStateOf
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -40,16 +25,31 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.substances.repositories.SearchRepository
+import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OUTLOOK_SKIN_MAX_DELAY_MS
+import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OUTLOOK_SKIN_MIN_DELAY_MS
+import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OUTLOOK_SKIN_OPEN_PROBABILITY
+import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OutlookSkinController
+import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OutlookSkinPayload
+import foo.pilz.freaklog.ui.tabs.journal.outlookskin.buildOutlookRows
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
-import dagger.hilt.android.lifecycle.HiltViewModel
+import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinEligibility
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.ZoneId
 import javax.inject.Inject
+import kotlin.random.Random
 
 val IS_MIGRATED_0 = booleanPreferencesKey("is_migrated_0")
 val IS_MIGRATED_1 = booleanPreferencesKey("is_migrated_1")

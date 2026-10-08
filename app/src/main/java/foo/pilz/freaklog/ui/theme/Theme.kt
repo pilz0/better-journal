@@ -19,10 +19,9 @@
 package foo.pilz.freaklog.ui.theme
 
 
+import android.os.Build
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.runtime.compositionLocalOf
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -31,10 +30,11 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import foo.pilz.freaklog.ui.graph.style.LocalGraphStyle
-import foo.pilz.freaklog.ui.graph.style.themedGraphStyle
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import foo.pilz.freaklog.ui.graph.style.LocalGraphStyle
+import foo.pilz.freaklog.ui.graph.style.themedGraphStyle
 
 
 private val LightColors = lightColorScheme(

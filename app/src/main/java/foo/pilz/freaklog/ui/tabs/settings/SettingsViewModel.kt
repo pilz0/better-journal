@@ -18,20 +18,20 @@
 
 package foo.pilz.freaklog.ui.tabs.settings
 
-import foo.pilz.freaklog.ui.tabs.settings.funny.FunnyConfig
-import foo.pilz.freaklog.ui.tabs.settings.combinations.BloodPressureDisplay
 import android.net.Uri
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.export.*
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
+import foo.pilz.freaklog.ui.tabs.settings.combinations.BloodPressureDisplay
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
+import foo.pilz.freaklog.ui.tabs.settings.funny.FunnyConfig
 import foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthManager
 import foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAvailability
 import foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch

@@ -18,32 +18,31 @@
 
 package foo.pilz.freaklog.ui.main.navigation.graphs
 
-import foo.pilz.freaklog.ui.theme.LocalSharedTransitionScope
-import foo.pilz.freaklog.data.substances.AdministrationRoute
-import foo.pilz.freaklog.data.room.experiences.entities.CustomInteractionSeverity
-import foo.pilz.freaklog.ui.tabs.search.custom.customdurations.CustomDurationEditorScreen
-import foo.pilz.freaklog.ui.tabs.search.custom.customdurations.CustomDurationScreen
-import foo.pilz.freaklog.ui.tabs.search.custom.CustomInteractionsPickerScreen
-import foo.pilz.freaklog.ui.tabs.search.custom.CustomInteractionsListScreen
-import foo.pilz.freaklog.ui.tabs.search.custom.CustomCategoriesPickerScreen
-import foo.pilz.freaklog.ui.tabs.search.custom.CustomCrossTolerancePickerScreen
-import foo.pilz.freaklog.ui.tabs.search.custom.CustomToleranceEditorScreen
-import foo.pilz.freaklog.ui.tabs.search.custom.CustomRisksEditorScreen
-import foo.pilz.freaklog.ui.tabs.search.custom.CustomSubstanceScreen
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.toRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigation
-import foo.pilz.freaklog.ui.main.navigation.composableWithTransitions
+import foo.pilz.freaklog.data.room.experiences.entities.CustomInteractionSeverity
+import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.ui.main.navigation.DrugsTopLevelRoute
+import foo.pilz.freaklog.ui.main.navigation.composableWithTransitions
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.ExplainTimelineScreen
 import foo.pilz.freaklog.ui.tabs.safer.DoseExplanationScreen
 import foo.pilz.freaklog.ui.tabs.safer.VolumetricDosingScreen
 import foo.pilz.freaklog.ui.tabs.search.SearchScreen
 import foo.pilz.freaklog.ui.tabs.search.custom.AddCustomSubstanceScreen
+import foo.pilz.freaklog.ui.tabs.search.custom.CustomCategoriesPickerScreen
+import foo.pilz.freaklog.ui.tabs.search.custom.CustomCrossTolerancePickerScreen
+import foo.pilz.freaklog.ui.tabs.search.custom.CustomInteractionsListScreen
+import foo.pilz.freaklog.ui.tabs.search.custom.CustomInteractionsPickerScreen
+import foo.pilz.freaklog.ui.tabs.search.custom.CustomRisksEditorScreen
+import foo.pilz.freaklog.ui.tabs.search.custom.CustomSubstanceScreen
+import foo.pilz.freaklog.ui.tabs.search.custom.CustomToleranceEditorScreen
 import foo.pilz.freaklog.ui.tabs.search.custom.EditCustomSubstanceScreen
+import foo.pilz.freaklog.ui.tabs.search.custom.customdurations.CustomDurationEditorScreen
+import foo.pilz.freaklog.ui.tabs.search.custom.customdurations.CustomDurationScreen
 import foo.pilz.freaklog.ui.tabs.search.substance.SubstanceScreen
 import foo.pilz.freaklog.ui.tabs.search.substance.category.CategoryScreen
+import foo.pilz.freaklog.ui.theme.LocalSharedTransitionScope
 import kotlinx.serialization.Serializable
 
 fun NavGraphBuilder.searchGraph(navController: NavHostController) {

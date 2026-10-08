@@ -21,9 +21,9 @@ package foo.pilz.freaklog.ui.tabs.journal.experience.timeline
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.substances.classes.roa.curve.IngestionCurve
 import foo.pilz.freaklog.ui.graph.scene.builders.CurveSegment
-import foo.pilz.freaklog.ui.graph.scene.builders.RawPoint
 import foo.pilz.freaklog.ui.graph.scene.builders.NormalizedTimeRange
 import foo.pilz.freaklog.ui.graph.scene.builders.RawIngestion
+import foo.pilz.freaklog.ui.graph.scene.builders.RawPoint
 import foo.pilz.freaklog.ui.graph.scene.builders.RawTimelineCurve
 import foo.pilz.freaklog.ui.graph.scene.builders.TimelineGroup
 import foo.pilz.freaklog.ui.graph.scene.builders.buildRawCurve

@@ -18,20 +18,9 @@
 
 package foo.pilz.freaklog.ui.tabs.stats
 
-import kotlin.random.Random
-import kotlinx.coroutines.flow.takeWhile
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.delay
-import foo.pilz.freaklog.ui.tabs.stats.excelskin.randomExcelFileName
-import foo.pilz.freaklog.ui.tabs.stats.excelskin.EXCEL_SKIN_OPEN_PROBABILITY
-import foo.pilz.freaklog.ui.tabs.stats.excelskin.EXCEL_SKIN_MIN_DELAY_MS
-import foo.pilz.freaklog.ui.tabs.stats.excelskin.EXCEL_SKIN_MAX_DELAY_MS
-import foo.pilz.freaklog.ui.tabs.stats.excelskin.ExcelSkinPayload
-import foo.pilz.freaklog.ui.tabs.stats.excelskin.ExcelSkinController
-import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinEligibility
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
@@ -39,15 +28,25 @@ import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsAndCompanions
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit
 import foo.pilz.freaklog.data.substances.AdministrationRoute
-import dagger.hilt.android.lifecycle.HiltViewModel
+import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinEligibility
+import foo.pilz.freaklog.ui.tabs.stats.excelskin.EXCEL_SKIN_MAX_DELAY_MS
+import foo.pilz.freaklog.ui.tabs.stats.excelskin.EXCEL_SKIN_MIN_DELAY_MS
+import foo.pilz.freaklog.ui.tabs.stats.excelskin.EXCEL_SKIN_OPEN_PROBABILITY
+import foo.pilz.freaklog.ui.tabs.stats.excelskin.ExcelSkinController
+import foo.pilz.freaklog.ui.tabs.stats.excelskin.ExcelSkinPayload
+import foo.pilz.freaklog.ui.tabs.stats.excelskin.randomExcelFileName
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDateTime
@@ -57,6 +56,7 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
+import kotlin.random.Random
 
 @HiltViewModel
 class StatsViewModel @Inject constructor(

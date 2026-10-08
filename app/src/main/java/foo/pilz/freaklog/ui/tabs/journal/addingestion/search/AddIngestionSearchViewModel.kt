@@ -18,10 +18,11 @@
 
 package foo.pilz.freaklog.ui.tabs.journal.addingestion.search
 
-import foo.pilz.freaklog.data.room.experiences.SubstanceGroupRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
+import foo.pilz.freaklog.data.room.experiences.SubstanceGroupRepository
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit
@@ -32,7 +33,6 @@ import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.search.suggestion.models.CustomUnitDoseSuggestion
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.search.suggestion.models.DoseAndUnit
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.search.suggestion.models.Suggestion
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

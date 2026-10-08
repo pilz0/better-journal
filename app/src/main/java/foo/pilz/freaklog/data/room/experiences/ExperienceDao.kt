@@ -18,22 +18,6 @@
 
 package foo.pilz.freaklog.data.room.experiences
 
-import foo.pilz.freaklog.data.room.experiences.entities.CustomCategoryAssignment
-import foo.pilz.freaklog.data.room.experiences.entities.CustomCrossTolerance
-import foo.pilz.freaklog.data.room.experiences.entities.CustomInteraction
-import foo.pilz.freaklog.data.room.experiences.entities.CustomInteractionSeverity
-import foo.pilz.freaklog.data.room.experiences.entities.CustomRoa
-import foo.pilz.freaklog.data.room.experiences.entities.CustomRoaDose
-import foo.pilz.freaklog.data.room.experiences.entities.CustomRoaDuration
-import foo.pilz.freaklog.data.room.experiences.entities.SubstanceGroup
-import foo.pilz.freaklog.data.room.experiences.entities.SubstanceGroupItem
-import foo.pilz.freaklog.data.room.experiences.relations.CustomInteractionCount
-import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithDurations
-import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithEverything
-import foo.pilz.freaklog.data.room.experiences.relations.SubstanceGroupWithItems
-import foo.pilz.freaklog.data.substances.AdministrationRoute
-import kotlinx.coroutines.flow.firstOrNull
-import kotlin.enums.enumEntries
 import android.database.Cursor
 import androidx.room.Dao
 import androidx.room.Delete
@@ -44,6 +28,13 @@ import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
 import foo.pilz.freaklog.data.export.JournalExport
+import foo.pilz.freaklog.data.room.experiences.entities.CustomCategoryAssignment
+import foo.pilz.freaklog.data.room.experiences.entities.CustomCrossTolerance
+import foo.pilz.freaklog.data.room.experiences.entities.CustomInteraction
+import foo.pilz.freaklog.data.room.experiences.entities.CustomInteractionSeverity
+import foo.pilz.freaklog.data.room.experiences.entities.CustomRoa
+import foo.pilz.freaklog.data.room.experiences.entities.CustomRoaDose
+import foo.pilz.freaklog.data.room.experiences.entities.CustomRoaDuration
 import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.room.experiences.entities.Experience
@@ -52,7 +43,12 @@ import foo.pilz.freaklog.data.room.experiences.entities.IntakeLimit
 import foo.pilz.freaklog.data.room.experiences.entities.Location
 import foo.pilz.freaklog.data.room.experiences.entities.ShulginRating
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
+import foo.pilz.freaklog.data.room.experiences.entities.SubstanceGroup
+import foo.pilz.freaklog.data.room.experiences.entities.SubstanceGroupItem
 import foo.pilz.freaklog.data.room.experiences.entities.TimedNote
+import foo.pilz.freaklog.data.room.experiences.relations.CustomInteractionCount
+import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithDurations
+import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithEverything
 import foo.pilz.freaklog.data.room.experiences.relations.CustomUnitWithIngestions
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestions
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsAndCompanions
@@ -61,8 +57,12 @@ import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestion
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanion
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithExperienceAndCustomUnit
-import java.time.Instant
+import foo.pilz.freaklog.data.room.experiences.relations.SubstanceGroupWithItems
+import foo.pilz.freaklog.data.substances.AdministrationRoute
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
+import java.time.Instant
+import kotlin.enums.enumEntries
 
 /**
  * Escapes the wildcard characters in a parameter being used with a `LIKE ... ESCAPE '\'` clause,
@@ -758,11 +758,9 @@ interface ExperienceDao {
     fun getCustomSubstanceFlow(name: String): Flow<CustomSubstance?>
 
     @Query("SELECT * FROM customroaduration")
-
     suspend fun getAllCustomRoaDurations(): List<CustomRoaDuration>
 
     @Query("SELECT * FROM customroaduration")
-
     fun getAllCustomRoaDurationsFlow(): Flow<List<CustomRoaDuration>>
 
     @Query("SELECT * FROM customroaduration WHERE customSubstanceId = :substanceId")

@@ -18,15 +18,8 @@
 
 package foo.pilz.freaklog.ui.main
 
-import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Box
-import foo.pilz.freaklog.ui.tabs.stats.excelskin.ExcelStatsSkin
-import foo.pilz.freaklog.ui.tabs.stats.excelskin.ExcelSkinHostViewModel
-import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OutlookSkinHostViewModel
-import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OutlookInboxSkin
-import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.TeamsSkinHostViewModel
-import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.TeamsChatSkin
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
@@ -34,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -41,6 +35,8 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import foo.pilz.freaklog.ui.main.navigation.JournalTopLevelRoute
+import foo.pilz.freaklog.ui.main.navigation.graphs.AddIngestionRoute
 import foo.pilz.freaklog.ui.main.navigation.graphs.ExperienceRoute
 import foo.pilz.freaklog.ui.main.navigation.graphs.inventoryGraph
 import foo.pilz.freaklog.ui.main.navigation.graphs.journalGraph
@@ -48,9 +44,13 @@ import foo.pilz.freaklog.ui.main.navigation.graphs.saferGraph
 import foo.pilz.freaklog.ui.main.navigation.graphs.searchGraph
 import foo.pilz.freaklog.ui.main.navigation.graphs.settingsGraph
 import foo.pilz.freaklog.ui.main.navigation.graphs.statsGraph
-import foo.pilz.freaklog.ui.main.navigation.graphs.AddIngestionRoute
-import foo.pilz.freaklog.ui.main.navigation.JournalTopLevelRoute
 import foo.pilz.freaklog.ui.main.navigation.topLevelRoutes
+import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.TeamsChatSkin
+import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.TeamsSkinHostViewModel
+import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OutlookInboxSkin
+import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OutlookSkinHostViewModel
+import foo.pilz.freaklog.ui.tabs.stats.excelskin.ExcelSkinHostViewModel
+import foo.pilz.freaklog.ui.tabs.stats.excelskin.ExcelStatsSkin
 import foo.pilz.freaklog.ui.utils.HapticFeedbackProvider
 import foo.pilz.freaklog.ui.utils.HapticType
 import foo.pilz.freaklog.ui.utils.rememberHaptic

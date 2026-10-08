@@ -18,24 +18,21 @@
 
 package foo.pilz.freaklog.ui.main.navigation.graphs
 
-import foo.pilz.freaklog.ui.tabs.settings.substancegroups.edit.EditSubstanceGroupScreen
-import foo.pilz.freaklog.ui.tabs.settings.substancegroups.edit.AddSubstanceGroupScreen
-import foo.pilz.freaklog.ui.tabs.settings.substancegroups.edit.AddGroupItemPickerScreen
-import foo.pilz.freaklog.ui.tabs.settings.substancegroups.edit.AddGroupItemConfigScreen
-import foo.pilz.freaklog.ui.tabs.settings.substancegroups.SubstanceGroupsScreen
-import foo.pilz.freaklog.ui.tabs.settings.customsubstances.CustomSubstancesScreen
-import foo.pilz.freaklog.ui.tabs.search.custom.AddCustomSubstanceScreen
-import androidx.navigation.toRoute
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigation
+import androidx.navigation.toRoute
 import foo.pilz.freaklog.ui.main.navigation.SettingsTopLevelRoute
 import foo.pilz.freaklog.ui.main.navigation.composableWithTransitions
+import foo.pilz.freaklog.ui.tabs.search.custom.AddCustomSubstanceScreen
 import foo.pilz.freaklog.ui.tabs.settings.AiAssistantSettingsScreen
 import foo.pilz.freaklog.ui.tabs.settings.FAQScreen
 import foo.pilz.freaklog.ui.tabs.settings.SettingsScreen
 import foo.pilz.freaklog.ui.tabs.settings.colors.SubstanceColorsScreen
 import foo.pilz.freaklog.ui.tabs.settings.combinations.CombinationSettingsScreen
+import foo.pilz.freaklog.ui.tabs.settings.customformulations.CustomFormulationsScreen
+import foo.pilz.freaklog.ui.tabs.settings.customformulations.add.AddCustomFormulationScreen
+import foo.pilz.freaklog.ui.tabs.settings.customsubstances.CustomSubstancesScreen
 import foo.pilz.freaklog.ui.tabs.settings.customunits.CustomUnitsScreen
 import foo.pilz.freaklog.ui.tabs.settings.customunits.archive.CustomUnitArchiveScreen
 import foo.pilz.freaklog.ui.tabs.settings.customunits.edit.EditCustomUnitScreen
@@ -43,8 +40,11 @@ import foo.pilz.freaklog.ui.tabs.settings.freakquery.FreakQueryShellScreen
 import foo.pilz.freaklog.ui.tabs.settings.funny.AchievementsScreen
 import foo.pilz.freaklog.ui.tabs.settings.reminders.EditReminderScreen
 import foo.pilz.freaklog.ui.tabs.settings.reminders.RemindersScreen
-import foo.pilz.freaklog.ui.tabs.settings.customformulations.CustomFormulationsScreen
-import foo.pilz.freaklog.ui.tabs.settings.customformulations.add.AddCustomFormulationScreen
+import foo.pilz.freaklog.ui.tabs.settings.substancegroups.SubstanceGroupsScreen
+import foo.pilz.freaklog.ui.tabs.settings.substancegroups.edit.AddGroupItemConfigScreen
+import foo.pilz.freaklog.ui.tabs.settings.substancegroups.edit.AddGroupItemPickerScreen
+import foo.pilz.freaklog.ui.tabs.settings.substancegroups.edit.AddSubstanceGroupScreen
+import foo.pilz.freaklog.ui.tabs.settings.substancegroups.edit.EditSubstanceGroupScreen
 import foo.pilz.freaklog.ui.tabs.settings.webhooks.WebhookEditorScreen
 import foo.pilz.freaklog.ui.tabs.settings.webhooks.WebhooksListScreen
 import kotlinx.serialization.Serializable

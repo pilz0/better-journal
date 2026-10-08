@@ -1,7 +1,5 @@
 package foo.pilz.freaklog.ui.tabs.journal.experience.timeline
 
-import foo.pilz.freaklog.ui.utils.HapticType
-import foo.pilz.freaklog.ui.utils.rememberHaptic
 import android.graphics.Paint
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -52,7 +50,9 @@ import foo.pilz.freaklog.ui.graph.style.GraphStyle
 import foo.pilz.freaklog.ui.graph.style.LocalGraphStyle
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.TimeDisplayOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.getDurationText
+import foo.pilz.freaklog.ui.utils.HapticType
 import foo.pilz.freaklog.ui.utils.getShortTimeText
+import foo.pilz.freaklog.ui.utils.rememberHaptic
 import kotlinx.coroutines.delay
 import java.time.Duration
 import java.time.Instant

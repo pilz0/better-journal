@@ -18,9 +18,6 @@
 
 package foo.pilz.freaklog.ui.tabs.journal.experience.timeline.screen
 
-import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.BloodPressureReading
-import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateSample
-import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.SleepSessionSample
 import android.content.res.Configuration
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -53,6 +50,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import foo.pilz.freaklog.ui.tabs.journal.experience.TimelineDisplayOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.TimeDisplayOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.AllTimelines
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.BloodPressureReading
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateSample
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.SleepSessionSample
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 
 @Composable

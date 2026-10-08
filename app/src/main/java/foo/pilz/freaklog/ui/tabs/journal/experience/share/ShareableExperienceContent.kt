@@ -18,8 +18,6 @@
 
 package foo.pilz.freaklog.ui.tabs.journal.experience.share
 
-import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.BloodPressureReading
-import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateSample
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -44,6 +42,8 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.components.TimeDisplayOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.models.IngestionElement
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.AllTimelines
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.AllTimelinesModel
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.BloodPressureReading
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateSample
 import foo.pilz.freaklog.ui.utils.getDateWithWeekdayText
 import foo.pilz.freaklog.ui.utils.getShortTimeText
 import java.time.Instant

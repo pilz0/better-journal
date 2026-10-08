@@ -1,21 +1,21 @@
 package foo.pilz.freaklog.ui.tabs.settings.funny
 
-import foo.pilz.freaklog.ui.tabs.settings.funny.condition.SubstanceInfo
-import foo.pilz.freaklog.ui.tabs.settings.funny.condition.EvalContext
-import foo.pilz.freaklog.ui.tabs.settings.funny.condition.AchievementEngine
-import foo.pilz.freaklog.data.substances.classes.roa.DoseClass
-import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestions
 import android.content.Context
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRecipe
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
 import foo.pilz.freaklog.data.room.experiences.entities.ShulginRating
 import foo.pilz.freaklog.data.room.experiences.entities.TimedNote
+import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestions
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsTimedNotesAndRatings
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.substances.classes.InteractionType
-import foo.pilz.freaklog.ui.tabs.journal.addingestion.interactions.InteractionChecker
+import foo.pilz.freaklog.data.substances.classes.roa.DoseClass
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepositoryInterface
+import foo.pilz.freaklog.ui.tabs.journal.addingestion.interactions.InteractionChecker
+import foo.pilz.freaklog.ui.tabs.settings.funny.condition.AchievementEngine
+import foo.pilz.freaklog.ui.tabs.settings.funny.condition.EvalContext
+import foo.pilz.freaklog.ui.tabs.settings.funny.condition.SubstanceInfo
 import org.json.JSONArray
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit

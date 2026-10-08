@@ -18,7 +18,6 @@
 
 package foo.pilz.freaklog.ui.main.navigation.graphs
 
-import foo.pilz.freaklog.ui.tabs.journal.addingestion.group.SubstanceGroupFinishScreen
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.navigation
@@ -28,6 +27,7 @@ import foo.pilz.freaklog.ui.main.navigation.composableWithTransitions
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.ChooseDoseScreen
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.customsubstance.CustomSubstanceChooseDoseScreen
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.customunit.ChooseDoseCustomUnitScreen
+import foo.pilz.freaklog.ui.tabs.journal.addingestion.group.SubstanceGroupFinishScreen
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.interactions.CheckInteractionsScreen
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.route.ChooseRouteScreen
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.route.CustomSubstanceChooseRouteScreen
