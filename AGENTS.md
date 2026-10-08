@@ -85,7 +85,7 @@ app/src/main/java/foo/pilz/freaklog/
     │   │   └── experience/
     │   │       ├── edit/       # EditExperienceScreen + ViewModel
     │   │       ├── recommendations/ # AiChatBottomSheet
-    │   │       └── timeline/   # Timeline rendering (drawables, curve/, screen, utils)
+    │   │       └── timeline/   # AllTimelines, Health Connect vitals, curve/, screen
     │   ├── inventory/          # Inventory tab (optional — gated by Settings flag)
     │   │   ├── InventoryScreen.kt
     │   │   └── InventoryViewModel.kt
@@ -108,6 +108,7 @@ app/src/main/java/foo/pilz/freaklog/
     │   │   ├── lock/           # App-lock (biometrics / PIN) settings
     │   │   └── funny/          # Easter-egg screens
     │   └── stats/              # Statistics tab
+    ├── graph/                  # Scene-based graph engine (scene builders, painters, style)
     ├── theme/                  # Color, typography, theme (Material3)
     └── utils/
         ├── getDateFromString.kt
@@ -228,7 +229,7 @@ To upgrade: run `./gradlew versionCatalogUpdate --interactive --no-configuration
 
 ### Room database (`data/room/AppDatabase.kt`)
 
-Current schema version: **26**. All migrations from v1 to v26 are handled by `@AutoMigration`.
+Current schema version: **27**. All migrations from v1 to v27 are handled by `@AutoMigration`.
 The `16 → 17` step uses an `AutoMigrationSpec` (`AppDatabase.ReminderV16To17`) that
 back-fills `scheduleType = 'INTERVAL'` on legacy reminder rows so they don't silently
 disable when the new column default (`DAILY_AT_TIMES`) is applied without `timesOfDay`.
@@ -257,7 +258,9 @@ There is no schema version 13 — the migration jumps directly from 12 to 14
 | `IntakeLimit` | Per-substance dose or count cap over a sliding window (v24) |
 | `CustomRoa`, `CustomRoaDose`, `CustomRoaDuration` | Per-route bioavailability, dose thresholds and duration phases of a `CustomSubstance` (v25) |
 | `CustomInteraction`, `CustomCrossTolerance` | Interactions and cross-tolerances declared for a `CustomSubstance` (v25) |
-| `BloodPressureReading` | Manual blood pressure / pulse measurement within an experience (v26) |
+| `BloodPressureReading` | Legacy blood pressure rows written by 11.26 (v26). Still shown read-only; new readings go to Health Connect |
+| `SubstanceGroup`, `SubstanceGroupItem` | A named set of substance/route/dose presets that is logged in one go (v27) |
+| `CustomCategoryAssignment` | Category assigned to a `CustomSubstance` (v27) |
 
 **Relations** (in `experiences/relations/`):
 
@@ -396,15 +399,20 @@ Tabs are conditionally shown by `MainScreen` based on `MainScreenViewModel` flag
 
 ### Timeline rendering
 
-The timeline is drawn on a `Canvas` using a set of `*Timeline` drawable classes under `ui/tabs/journal/experience/timeline/drawables/timelines/`. Each class handles a different combination of known duration phases:
-- `TotalTimeline`, `OnsetTimeline`, `OnsetComeupTimeline`, `OnsetComeupPeakTimeline`, `OnsetComeupPeakTotalTimeline`, etc.
+Timelines use the scene-based graph engine ported from the Codeberg fork
+(`ui/graph/`): `AllTimelinesModel` turns ingestions into `TimelineGroup`s via
+`selectTimelineShape` / `buildRawCurve` (`TimelineCurveMath.kt`),
+`buildTimelineScene` turns those into `GraphPrimitive`s, and `paintScene`
+(`ComposeScenePainter.kt`) draws them. Colours and stroke sizes come from
+`LocalGraphStyle`, provided in `JournalTheme`. `AllTimelines` draws heart rate,
+sleep and blood pressure from Health Connect on top of the scene.
 
-There is also a **Bateman-curve** rendering path used on the ingestion-logging
-screen: `RoaDuration.toIngestionCurve()` produces an `IngestionCurve`
-(`BatemanCurve`) which is rendered by `IngestionCurveDrawable`. `isCertain`
-controls solid-vs-dotted strokes. `AllTimelinesModel` / `GroupDrawable` accept a
-`useBatemanCurve` flag (default `false`); only the dose-pick screen passes
-`true`, every other timeline surface keeps the legacy trapezoid rendering.
+There is also a **Bateman-curve** path used on the ingestion-logging screen:
+`RoaDuration.toIngestionCurve()` produces an `IngestionCurve` (`BatemanCurve`),
+which `AllTimelinesModel` samples into the same scene format when
+`useBatemanCurve = true`. `isCertain` controls solid-vs-dotted strokes. Only the
+dose-pick screen passes `true`. The widget still uses `AxisDrawable` for its own
+bitmap rendering.
 
 ### Tolerance calculator (`ui/tabs/safer/tolerance/`)
 
@@ -526,11 +534,20 @@ crypto library that this app does not use.
 | Export filter, encryption, backups | `data/export/`, `data/backup/`, `ui/tabs/settings/exportbackup/` | `buildJournalExportJson` is the single export path. Encryption is AES-256-GCM + PBKDF2 (the fork's "v1" layout); its Argon2/ChaCha20 "v2" format is **not** readable. `BackupWorker` gets dependencies through a Hilt `@EntryPoint` — there is no `HiltWorkerFactory`. |
 | Live timeline notification | `ui/tabs/journal/experience/notification/` | Foreground service of type `dataSync`; renders through `renderTimelineToBitmap`. |
 | Experience image sharing | `data/experienceshare/`, `ui/tabs/journal/experience/share/` | Shared through the `${applicationId}.fileprovider` `FileProvider`. |
-| Custom substance profiles | `data/room/experiences/CustomSubstance*.kt`, `data/substanceshare/`, `ui/tabs/search/custom/profile/` | `CustomSubstanceProfiles` is an in-memory cache so timelines and `InteractionChecker` can read profiles synchronously. Edit custom substances with `update`, never a REPLACE insert (it cascades to the profile tables). |
-| Vitals | `ui/tabs/journal/experience/vitals/` | Blood pressure is stored in Room, not in Health Connect. Heart rate is read from Health Connect only after the user opts in. |
-| Spreadsheet disguise | `ui/tabs/stats/excelskin/` | Opt-in easter egg. |
+| Custom substances | `data/room/experiences/CustomSubstanceRepository.kt`, `data/substanceshare/`, `ui/tabs/search/custom/`, `ui/tabs/settings/customsubstances/` | Upstream's editors (routes/durations, interactions, categories, tolerance, risks), copied as-is. Their DAO methods live in `ExperienceDao`. `CustomSubstanceProfiles` is an in-memory cache so timelines and `InteractionChecker` can read profiles synchronously. Edit custom substances with `update`, never a REPLACE insert (it cascades to the profile tables). |
+| Substance groups | `data/room/experiences/SubstanceGroupRepository.kt`, `ui/tabs/settings/substancegroups/`, `ui/tabs/journal/addingestion/group/` | Upstream lets group ingestions skip the experience; this app has no experience-less ingestions, so `SubstanceGroupFinishViewModel` keeps that toggle off. |
+| Vitals | `ui/tabs/journal/experience/timeline/{HeartRate,Sleep,BloodPressure}.kt`, `ui/tabs/journal/experience/bloodpressure/` | Heart rate, sleep and blood pressure are read from Health Connect after the user opts in (Settings → "Vitals on timeline") and drawn on the timeline. Blood pressure is written to Health Connect, as upstream does. |
+| Ultra fun mode | `ui/tabs/journal/experience/teamsskin/`, `ui/tabs/journal/outlookskin/`, `ui/tabs/stats/excelskin/`, `ui/tabs/settings/funny/UltraFunSkinEligibility.kt` | Opt-in. While a psychedelic is active the Teams/Outlook/Excel disguises appear at random; `MainScreen` hosts them through `*SkinController` singletons. |
+| Achievement condition language | `ui/tabs/settings/funny/condition/` | `evaluateAchievement` sends conditions that mention `ingestions`/`experiences` to upstream's engine; everything else uses this app's older predicate syntax. Upstream's first-unlock attribution (`AchievementUnlock` table) is not ported. |
 
-NFC transfer and the NFC keychain were deliberately not ported.
+Share files (`.substance`, `.group`, `.colors`) keep upstream's `gay.cybercrime.journal.*`
+format ids so they stay interchangeable. When porting more upstream code, rename the
+package but **not** those string literals.
+
+NFC transfer and the NFC keychain were deliberately not ported. Neither were upstream's
+settings/safer-tab redesign, its single-screen add-ingestion flow, and its `ScoreScreen` /
+`SurveyScreen` (both unreachable upstream; the survey posts device details to the upstream
+maintainer's server).
 
 ## Common patterns
 
@@ -574,6 +591,6 @@ NFC transfer and the NFC keychain were deliberately not ported.
 - `@Keep` annotation on `AdministrationRoute` is a workaround for an AGP/R8 bug stripping enum metadata used in Navigation Compose serialized routes (see issue tracker link in the source file)
 - `WebhookService.editWebhook` uses HTTP `PATCH`, which works on Android's okhttp-backed `HttpURLConnection` but throws `ProtocolException` on the JDK's plain `HttpURLConnection`; therefore `editWebhook` cannot be exercised by a plain JVM unit test. HTTP-level webhook tests use **MockWebServer** (`com.squareup.okhttp3:mockwebserver`).
 - The `generative-ai-android` SDK is intentionally **not** used — see [AI chatbot](#ai-chatbot-dataai). Use `GeminiRestClient` / `GeminiChatSession` instead so `thoughtSignature` is preserved.
-- `JournalExport` covers experiences (with ingestions, ratings, timed notes, locations and blood pressure), substance companions, custom substances with their profiles, custom units, intake limits, reminders and webhooks. Filtered (partial) exports leave out reminders and webhooks. Other settings are not part of the export payload.
+- `JournalExport` covers experiences (with ingestions, ratings, timed notes, locations and legacy blood pressure rows), substance companions, custom substances with their profiles, custom units, intake limits, substance groups, reminders and webhooks. Filtered (partial) exports leave out substance groups, reminders and webhooks. Other settings are not part of the export payload.
 - `compileSdk` is 37 because the current Compose / AndroidX releases refuse to build against anything lower. It has no runtime effect; `targetSdk` stays 36.
 - Use `androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel`; the `androidx.hilt.navigation.compose` one is deprecated.
