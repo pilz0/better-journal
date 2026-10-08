@@ -382,4 +382,12 @@ class ExperienceRepository @Inject constructor(
                     it.interactions.isNotEmpty() || it.crossTolerances.isNotEmpty()
             }
             .map { it.toShared() }
+
+    suspend fun insert(reading: foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading) = experienceDao.insert(reading)
+    suspend fun update(reading: foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading) = experienceDao.update(reading)
+    suspend fun delete(reading: foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading) = experienceDao.delete(reading)
+    fun getBloodPressureReadingsFlow(experienceId: Int): Flow<List<foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading>> =
+        experienceDao.getBloodPressureReadingsFlow(experienceId).flowOn(Dispatchers.IO).conflate()
+    suspend fun getAllBloodPressureReadings(): List<foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading> =
+        experienceDao.getAllBloodPressureReadings()
 }

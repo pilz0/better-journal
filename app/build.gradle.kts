@@ -204,6 +204,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material3.adaptive.navigation.suite.android)
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.health.connect)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)

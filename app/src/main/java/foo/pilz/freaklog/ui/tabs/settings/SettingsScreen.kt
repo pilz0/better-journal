@@ -158,6 +158,17 @@ fun SettingsScreen(
     navigateToFreakQueryShell: () -> Unit = {},
     navigateToAiAssistantSettings: () -> Unit,
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    // The setting only turns on once Health Connect has actually granted read access.
+    val heartRatePermissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.health.connect.client.PermissionController.createRequestPermissionResultContract()
+    ) { granted ->
+        if (granted.containsAll(foo.pilz.freaklog.ui.tabs.journal.experience.vitals.HeartRateHealthConnect.permissions)) {
+            viewModel.saveHeartRateEnabled(true)
+        } else {
+            viewModel.showMessage("Heart rate access was not granted")
+        }
+    }
     SettingsScreen(
         navigateToFAQ = navigateToFAQ,
         navigateToWebhook = navigateToWebhook,
@@ -181,6 +192,15 @@ fun SettingsScreen(
         saveIsTimelineHidden = viewModel::saveIsTimelineHidden,
         timelineNotificationAutoStart = viewModel.isTimelineNotificationAutoStartFlow.collectAsState().value,
         saveTimelineNotificationAutoStart = viewModel::saveTimelineNotificationAutoStart,
+        heartRateEnabled = viewModel.isHeartRateEnabledFlow.collectAsState().value,
+        onHeartRateEnabledChange = { enable ->
+            when {
+                !enable -> viewModel.saveHeartRateEnabled(false)
+                !foo.pilz.freaklog.ui.tabs.journal.experience.vitals.HeartRateHealthConnect.isAvailable(context) ->
+                    viewModel.showMessage("Health Connect is not available on this device")
+                else -> heartRatePermissionLauncher.launch(foo.pilz.freaklog.ui.tabs.journal.experience.vitals.HeartRateHealthConnect.permissions)
+            }
+        },
         areSubstanceHeightsIndependent = viewModel.areSubstanceHeightsIndependentFlow.collectAsState().value,
         saveAreSubstanceHeightsIndependent = viewModel::saveAreSubstanceHeightsIndependent,
         isStatsHidden = viewModel.isStatsHiddenFlow.collectAsState().value,
@@ -235,6 +255,8 @@ fun SettingsScreen(
     saveIsTimelineHidden: (Boolean) -> Unit,
     timelineNotificationAutoStart: Boolean = false,
     saveTimelineNotificationAutoStart: (Boolean) -> Unit = {},
+    heartRateEnabled: Boolean = false,
+    onHeartRateEnabledChange: (Boolean) -> Unit = {},
     areSubstanceHeightsIndependent: Boolean,
     saveAreSubstanceHeightsIndependent: (Boolean) -> Unit,
     isStatsHidden: Boolean,
@@ -408,6 +430,15 @@ fun SettingsScreen(
                     onCheckedChange = {
                         performHaptic(HapticType.TOGGLE)
                         saveTimelineNotificationAutoStart(it)
+                    }
+                )
+                HorizontalDivider()
+                SettingsSwitchRow(
+                    text = "Heart rate from Health Connect",
+                    checked = heartRateEnabled,
+                    onCheckedChange = {
+                        performHaptic(HapticType.TOGGLE)
+                        onHeartRateEnabledChange(it)
                     }
                 )
                 HorizontalDivider()

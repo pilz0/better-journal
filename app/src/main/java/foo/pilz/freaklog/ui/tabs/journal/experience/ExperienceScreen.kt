@@ -179,6 +179,9 @@ fun ExperienceScreen(
         onShareExperience = {
             (context as? androidx.activity.ComponentActivity)?.let(viewModel::shareExperience)
         },
+        vitalsContent = {
+            experience?.id?.let { foo.pilz.freaklog.ui.tabs.journal.experience.vitals.VitalsCard(experienceId = it) }
+        },
         isNotificationActive = isNotificationActive,
         onToggleNotification = {
             val needsPermission = !isNotificationActive &&
@@ -279,6 +282,7 @@ fun ExperienceScreen(
     isNotificationActive: Boolean = false,
     onToggleNotification: () -> Unit = {},
     onShareExperience: () -> Unit = {},
+    vitalsContent: @Composable () -> Unit = {},
 ) {
     Scaffold(
         topBar = {
@@ -356,6 +360,7 @@ fun ExperienceScreen(
                     timeDisplayOption = timeDisplayOption
                 )
             }
+            vitalsContent()
             val notes = oneExperienceScreenModel.notes
             if (notes.isNotBlank()) {
                 NotesSection(

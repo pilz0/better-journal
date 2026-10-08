@@ -143,7 +143,16 @@ data class ExperienceSerializable(
     val ingestions: List<IngestionSerializable> = emptyList(),
     val location: LocationSerializable? = null,
     val ratings: List<RatingSerializable> = emptyList(),
-    val timedNotes: List<TimedNoteSerializable> = emptyList()
+    val timedNotes: List<TimedNoteSerializable> = emptyList(),
+    val bloodPressure: List<BloodPressureSerializable> = emptyList()
+)
+
+@Serializable
+data class BloodPressureSerializable(
+    @Serializable(with = InstantSerializer::class) val time: Instant,
+    val systolic: Int,
+    val diastolic: Int,
+    val pulse: Int? = null,
 )
 
 @Serializable

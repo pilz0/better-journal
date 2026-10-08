@@ -41,6 +41,7 @@ suspend fun buildJournalExportJson(
         customSubstances = experienceRepository.getAllCustomSubstances(),
         intakeLimits = experienceRepository.getAllIntakeLimits(),
         customSubstanceDetails = experienceRepository.getAllCustomSubstanceDetails(),
+        bloodPressureReadings = experienceRepository.getAllBloodPressureReadings(),
     ).filtered(filter)
     val journalExport = data.toJournalExport(
         reminders = if (filter.isActive) emptyList() else experienceRepository.getAllReminders(),
@@ -57,7 +58,13 @@ fun ExportData.toJournalExport(
     reminders: List<Reminder> = emptyList(),
     webhooks: List<WebhookSerializable> = emptyList(),
 ): JournalExport = JournalExport(
-    experiences = experiences.map { it.toSerializable() },
+    experiences = experiences.map { experience ->
+        experience.toSerializable().copy(
+            bloodPressure = bloodPressureReadings
+                .filter { it.experienceId == experience.experience.id }
+                .map { BloodPressureSerializable(it.time, it.systolic, it.diastolic, it.pulse) }
+        )
+    },
     substanceCompanions = substanceCompanions,
     customSubstances = customSubstances,
     customUnits = customUnits.map {

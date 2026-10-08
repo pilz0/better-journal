@@ -54,6 +54,20 @@ class SettingsViewModel @Inject constructor(
         userPreferences.saveAreSubstanceHeightsIndependent(value)
     }
 
+    fun saveHeartRateEnabled(value: Boolean) = viewModelScope.launch {
+        userPreferences.saveHeartRateEnabled(value)
+    }
+
+    val isHeartRateEnabledFlow = userPreferences.isHeartRateEnabledFlow.stateIn(
+        initialValue = false,
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000)
+    )
+
+    fun showMessage(message: String) = viewModelScope.launch {
+        snackbarHostState.showSnackbar(message)
+    }
+
     fun saveTimelineNotificationAutoStart(value: Boolean) = viewModelScope.launch {
         userPreferences.saveTimelineNotificationAutoStartEnabled(value)
     }

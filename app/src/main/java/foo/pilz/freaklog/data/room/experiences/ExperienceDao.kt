@@ -335,6 +335,21 @@ interface ExperienceDao {
     suspend fun delete(customUnit: CustomUnit)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(reading: foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading): Long
+
+    @Update
+    suspend fun update(reading: foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading)
+
+    @Delete
+    suspend fun delete(reading: foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading)
+
+    @Query("SELECT * FROM bloodpressurereading WHERE experienceId = :experienceId ORDER BY time")
+    fun getBloodPressureReadingsFlow(experienceId: Int): Flow<List<foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading>>
+
+    @Query("SELECT * FROM bloodpressurereading ORDER BY time")
+    suspend fun getAllBloodPressureReadings(): List<foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(intakeLimit: IntakeLimit): Long
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
@@ -516,6 +531,17 @@ interface ExperienceDao {
                     experienceId = experienceID
                 )
                 insert(newRating)
+            }
+            experienceSerializable.bloodPressure.forEach {
+                insert(
+                    foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading(
+                        experienceId = experienceID,
+                        time = it.time,
+                        systolic = it.systolic,
+                        diastolic = it.diastolic,
+                        pulse = it.pulse,
+                    )
+                )
             }
         }
         journalExport.substanceCompanions.forEach { insert(it) }
