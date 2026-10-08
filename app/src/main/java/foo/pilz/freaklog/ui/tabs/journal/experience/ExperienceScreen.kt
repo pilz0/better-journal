@@ -35,6 +35,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.automirrored.outlined.NoteAdd
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -175,6 +176,9 @@ fun ExperienceScreen(
             navigateToAddIngestionSearch()
         },
         deleteExperience = { viewModel.deleteExperience(context) },
+        onShareExperience = {
+            (context as? androidx.activity.ComponentActivity)?.let(viewModel::shareExperience)
+        },
         isNotificationActive = isNotificationActive,
         onToggleNotification = {
             val needsPermission = !isNotificationActive &&
@@ -274,6 +278,7 @@ fun ExperienceScreen(
     matchedAchievements: List<AchievementDef> = emptyList(),
     isNotificationActive: Boolean = false,
     onToggleNotification: () -> Unit = {},
+    onShareExperience: () -> Unit = {},
 ) {
     Scaffold(
         topBar = {
@@ -292,6 +297,7 @@ fun ExperienceScreen(
                 addIngestion = addIngestion,
                 isNotificationActive = isNotificationActive,
                 onToggleNotification = onToggleNotification,
+                onShareExperience = onShareExperience,
             )
         },
         floatingActionButton = {
@@ -882,10 +888,14 @@ private fun ExperienceTopBar(
     addIngestion: () -> Unit,
     isNotificationActive: Boolean = false,
     onToggleNotification: () -> Unit = {},
+    onShareExperience: () -> Unit = {},
 ) {
     TopAppBar(
         title = { Text(oneExperienceScreenModel.title) },
         actions = {
+            IconButton(onClick = onShareExperience) {
+                Icon(androidx.compose.material.icons.Icons.Outlined.Share, contentDescription = "Share as image")
+            }
             IconButton(onClick = onToggleNotification) {
                 Icon(
                     if (isNotificationActive) {

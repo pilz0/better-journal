@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <cache-path
+        name="shared_substances"
+        path="shared_substances/" />
+    <cache-path
+        name="shared_substance_groups"
+        path="shared_substance_groups/" />
+    <cache-path
+        name="shared_substance_colors"
+        path="shared_substance_colors/" />
+    <cache-path
+        name="shared_experiences"
+        path="shared_experiences/" />
+    <cache-path
+        name="shared_nfc_qrs"
+        path="shared_nfc_qrs/" />
+</paths>

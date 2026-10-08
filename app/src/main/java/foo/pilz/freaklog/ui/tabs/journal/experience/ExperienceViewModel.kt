@@ -447,6 +447,30 @@ class ExperienceViewModel @Inject constructor(
         userPreferences.saveActiveNotificationExperienceId(null)
     }
 
+    /** Renders this experience (timeline plus ingestion list, no notes) to a PNG and opens the share sheet. */
+    fun shareExperience(activity: androidx.activity.ComponentActivity) {
+        viewModelScope.launch {
+            val experience = experienceRepo.getExperience(experienceId) ?: return@launch
+            val ingestions = ingestionElementsFlow.value
+            val model = foo.pilz.freaklog.ui.tabs.journal.experience.share.ShareableExperienceModel(
+                title = experience.title,
+                firstIngestionTime = ingestions.minOfOrNull {
+                    it.ingestionWithCompanionAndCustomUnit.ingestion.time
+                } ?: experience.sortDate,
+                locationName = experience.location?.name.orEmpty(),
+                ingestionElements = ingestions,
+                timelineModel = (timelineDisplayOptionFlow.value as? TimelineDisplayOption.Shown)?.allTimelinesModel,
+            )
+            foo.pilz.freaklog.data.experienceshare.shareExperienceImage(
+                activity = activity,
+                sanitizedTitle = foo.pilz.freaklog.data.experienceshare.sanitizeForShareFile(experience.title),
+                shareText = foo.pilz.freaklog.ui.tabs.journal.experience.share.buildShareText(model),
+            ) {
+                foo.pilz.freaklog.ui.tabs.journal.experience.share.ShareableExperienceContent(model)
+            }
+        }
+    }
+
     fun deleteExperience(context: Context) {
         viewModelScope.launch {
             if (userPreferences.activeNotificationExperienceIdFlow.firstOrNull() == experienceId) {
