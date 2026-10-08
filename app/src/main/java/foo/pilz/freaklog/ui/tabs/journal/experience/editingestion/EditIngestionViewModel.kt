@@ -82,6 +82,7 @@ class EditIngestionViewModel @Inject constructor(
     var administrationSite by mutableStateOf("")
     var saltForm by mutableStateOf("")
     var customUnit: CustomUnit? by mutableStateOf(null)
+    var ingestionCategory: foo.pilz.freaklog.data.substances.classes.IngestionCategory? by mutableStateOf(null)
     val otherCustomUnits = experienceRepo.getAllCustomUnitsFlow().combine(ingestionFlow) { customUnits, ing ->
         customUnits.filter {customUnit ->
             customUnit.administrationRoute == ing?.administrationRoute && customUnit.substanceName == ing.substanceName && customUnit.id != ing.customUnitId
@@ -126,6 +127,7 @@ class EditIngestionViewModel @Inject constructor(
             consumerName = ing.consumerName ?: ""
             administrationSite = ing.administrationSite ?: ""
             saltForm = ing.saltForm ?: ""
+            ingestionCategory = ing.category
             localDateTimeStartFlow.emit(ing.time.getLocalDateTime())
             val endTime = ing.endTime
             if (endTime != null) {
@@ -247,6 +249,7 @@ class EditIngestionViewModel @Inject constructor(
                 it.consumerName = consumerName.ifBlank { null }
                 it.administrationSite = administrationSite.ifBlank { null }
                 it.saltForm = saltForm.ifBlank { null }
+                it.category = ingestionCategory
                 experienceRepo.update(it)
                 
                 // Send webhook edit notification in background

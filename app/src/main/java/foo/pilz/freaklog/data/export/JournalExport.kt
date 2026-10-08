@@ -141,7 +141,8 @@ data class CustomUnitSerializable (
     var unit: String,
     var unitPlural: String?,
     val originalUnit: String,
-    var note: String
+    var note: String,
+    var defaultCategory: foo.pilz.freaklog.data.substances.classes.IngestionCategory? = null
 )
 
 @Serializable
@@ -167,7 +168,8 @@ data class IngestionSerializable(
     var consumerName: String? = null,
     var customUnitId: Int? = null,
     var administrationSite: String? = null,
-    var saltForm: String? = null
+    var saltForm: String? = null,
+    var category: foo.pilz.freaklog.data.substances.classes.IngestionCategory? = null
 )
 
 @Serializable

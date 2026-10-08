@@ -28,4 +28,5 @@ data class SubstanceCompanion(
     @PrimaryKey(autoGenerate = false)
     val substanceName: String,
     var color: AdaptiveColor,
+    var defaultCategory: foo.pilz.freaklog.data.substances.classes.IngestionCategory? = null,
 )

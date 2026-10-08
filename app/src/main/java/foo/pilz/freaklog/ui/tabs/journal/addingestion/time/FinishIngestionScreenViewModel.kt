@@ -105,6 +105,8 @@ class FinishIngestionScreenViewModel @Inject constructor(
     var enteredTitle by mutableStateOf(LocalDateTime.now().getStringOfPattern("dd MMMM yyyy"))
     val isEnteredTitleOk get() = enteredTitle.isNotEmpty()
     var consumerName by mutableStateOf("")
+    var ingestionCategory: foo.pilz.freaklog.data.substances.classes.IngestionCategory? by mutableStateOf(null)
+    var inheritedCategory: foo.pilz.freaklog.data.substances.classes.IngestionCategory? by mutableStateOf(null)
 
     /**
      * Mutable map of webhook-id -> "should send to this webhook" for the
@@ -121,6 +123,13 @@ class FinishIngestionScreenViewModel @Inject constructor(
             )
 
     init {
+        viewModelScope.launch {
+            val companion = experienceRepo.getSubstanceCompanionFlow(substanceName).first()
+            val customUnit = customUnitId?.let { experienceRepo.getCustomUnit(it) }
+            inheritedCategory = customUnit?.defaultCategory
+                ?: companion?.defaultCategory
+                ?: foo.pilz.freaklog.data.substances.classes.IngestionCategory.DEFAULT_INGESTION_CATEGORY
+        }
         viewModelScope.launch {
             // Pre-select every enabled webhook by default. We only mutate
             // entries that the user hasn't already touched.
@@ -447,7 +456,8 @@ class FinishIngestionScreenViewModel @Inject constructor(
             administrationSite = administrationSite.ifBlank { null },
             formulationName = selectedFormulationName,
             customFormulationId = selectedCustomFormulationId,
-            saltForm = saltForm.ifBlank { null }
+            saltForm = saltForm.ifBlank { null },
+            category = ingestionCategory
         )
     }
 

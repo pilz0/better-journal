@@ -45,5 +45,16 @@ data class Ingestion(
     var administrationSite: String? = null,
     var formulationName: String? = null,
     var customFormulationId: Int? = null,
-    var saltForm: String? = null
-)
+    var saltForm: String? = null,
+    var category: foo.pilz.freaklog.data.substances.classes.IngestionCategory? = null
+) {
+    fun computedCategory(
+        customUnit: CustomUnit?,
+        substanceCompanion: SubstanceCompanion?
+    ): foo.pilz.freaklog.data.substances.classes.IngestionCategory {
+        return category
+            ?: customUnit?.defaultCategory
+            ?: substanceCompanion?.defaultCategory
+            ?: foo.pilz.freaklog.data.substances.classes.IngestionCategory.DEFAULT_INGESTION_CATEGORY
+    }
+}

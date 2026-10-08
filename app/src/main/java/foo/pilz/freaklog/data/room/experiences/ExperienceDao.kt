@@ -456,7 +456,8 @@ interface ExperienceDao {
                     stomachFullness = ingestionSerializable.stomachFullness,
                     consumerName = ingestionSerializable.consumerName,
                     customUnitId = ingestionSerializable.customUnitId,
-                    saltForm = ingestionSerializable.saltForm
+                    saltForm = ingestionSerializable.saltForm,
+                    category = ingestionSerializable.category
                 )
                 insert(newIngestion)
             }
@@ -498,7 +499,8 @@ interface ExperienceDao {
                     unit = it.unit,
                     unitPlural = it.unitPlural,
                     originalUnit = it.originalUnit,
-                    note = it.note
+                    note = it.note,
+                    defaultCategory = it.defaultCategory
                 )
             )
         }

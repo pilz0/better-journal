@@ -89,6 +89,7 @@ import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.TimePointOrRangePicke
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.AdministrationSitePicker
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.SaltFormPicker
+import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.IngestionCategoryPicker
 import foo.pilz.freaklog.ui.theme.JournalTheme
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import kotlinx.coroutines.launch
@@ -147,7 +148,9 @@ fun EditIngestionScreen(
         saltForm = viewModel.saltForm,
         onSaltFormChange = viewModel::onChangeSaltForm,
         onResendWebhook = viewModel::resendWebhook,
-        hasEnabledWebhooks = viewModel.hasEnabledWebhooksFlow.collectAsState().value
+        hasEnabledWebhooks = viewModel.hasEnabledWebhooksFlow.collectAsState().value,
+        ingestionCategory = viewModel.ingestionCategory,
+        onIngestionCategoryChange = { viewModel.ingestionCategory = it }
     )
 }
 
@@ -194,7 +197,9 @@ fun EditIngestionScreenPreview() {
             saltForm = "",
             onSaltFormChange = {},
             onResendWebhook = {},
-            hasEnabledWebhooks = true
+            hasEnabledWebhooks = true,
+            ingestionCategory = null,
+            onIngestionCategoryChange = {}
         )
     }
 }
@@ -241,7 +246,9 @@ fun EditIngestionScreen(
     saltForm: String,
     onSaltFormChange: (String) -> Unit,
     onResendWebhook: () -> Unit,
-    hasEnabledWebhooks: Boolean
+    hasEnabledWebhooks: Boolean,
+    ingestionCategory: foo.pilz.freaklog.data.substances.classes.IngestionCategory?,
+    onIngestionCategoryChange: (foo.pilz.freaklog.data.substances.classes.IngestionCategory?) -> Unit
 ) {
     var isPresentingBottomSheet by rememberSaveable { mutableStateOf(false) }
     val skipPartiallyExpanded by remember { mutableStateOf(false) }
@@ -572,6 +579,13 @@ fun EditIngestionScreen(
                     saltForm = saltForm,
                     previousSaltForms = emptyList(),
                     onSaltFormChange = onSaltFormChange
+                )
+            }
+            CardWithTitle(title = "Category") {
+                IngestionCategoryPicker(
+                    ingestionCategory = ingestionCategory,
+                    inheritedCategory = null,
+                    onIngestionCategoryChange = onIngestionCategoryChange
                 )
             }
             ElevatedCard(

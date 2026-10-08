@@ -80,6 +80,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestions
 import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
+import foo.pilz.freaklog.data.substances.classes.IngestionCategory
 import foo.pilz.freaklog.ui.YOU
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.AdministrationSitePicker
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.SaltFormPicker
@@ -143,7 +144,10 @@ fun FinishIngestionScreen(
         },
         previousSaltForms = viewModel.previousSaltFormsFlow.collectAsState().value,
         saltForm = viewModel.saltForm,
-        onSaltFormChange = viewModel::changeSaltForm
+        onSaltFormChange = viewModel::changeSaltForm,
+        ingestionCategory = viewModel.ingestionCategory,
+        inheritedCategory = viewModel.inheritedCategory,
+        onIngestionCategoryChange = { viewModel.ingestionCategory = it }
     )
 }
 
@@ -202,7 +206,10 @@ fun FinishIngestionScreenPreview() {
         onFormulationChange = { _, _, _ -> },
         previousSaltForms = listOf("HCL", "Freebase"),
         saltForm = "",
-        onSaltFormChange = {}
+        onSaltFormChange = {},
+        ingestionCategory = null,
+        inheritedCategory = null,
+        onIngestionCategoryChange = {}
     )
 }
 
@@ -248,7 +255,10 @@ fun FinishIngestionScreen(
     onFormulationChange: (name: String?, isCustom: Boolean, customId: Int?) -> Unit,
     previousSaltForms: List<String>,
     saltForm: String,
-    onSaltFormChange: (String) -> Unit
+    onSaltFormChange: (String) -> Unit,
+    ingestionCategory: IngestionCategory?,
+    inheritedCategory: IngestionCategory?,
+    onIngestionCategoryChange: (IngestionCategory?) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
     Scaffold(
@@ -456,6 +466,13 @@ fun FinishIngestionScreen(
                         saltForm = saltForm,
                         previousSaltForms = previousSaltForms,
                         onSaltFormChange = onSaltFormChange
+                    )
+                }
+                CardWithTitle(title = "Category") {
+                    IngestionCategoryPicker(
+                        ingestionCategory = ingestionCategory,
+                        inheritedCategory = inheritedCategory,
+                        onIngestionCategoryChange = onIngestionCategoryChange
                     )
                 }
                 if (availableFormulations.isNotEmpty()) {

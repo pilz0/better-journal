@@ -272,7 +272,8 @@ class SettingsViewModel @Inject constructor(
                             stomachFullness = ingestion.stomachFullness,
                             consumerName = ingestion.consumerName,
                             customUnitId = ingestion.customUnitId,
-                            administrationSite = ingestion.administrationSite
+                            administrationSite = ingestion.administrationSite,
+                            category = ingestion.category
                         )
                     },
                     location = if (location != null) {
@@ -316,7 +317,8 @@ class SettingsViewModel @Inject constructor(
                     unit = it.unit,
                     unitPlural = it.unitPlural,
                     originalUnit = it.originalUnit,
-                    note = it.note
+                    note = it.note,
+                    defaultCategory = it.defaultCategory
                 )
             }
             val journalExport = JournalExport(

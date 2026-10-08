@@ -39,7 +39,8 @@ data class CustomUnit(
     var unit: String,
     var unitPlural: String? = null,
     var originalUnit: String,
-    var note: String
+    var note: String,
+    var defaultCategory: foo.pilz.freaklog.data.substances.classes.IngestionCategory? = null
 ) {
 
     fun getDoseOfOneUnitDescription(): String {
