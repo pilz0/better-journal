@@ -19,6 +19,17 @@
 package foo.pilz.freaklog.ui.tabs.journal.experience
 
 import android.content.Context
+import android.widget.Toast
+import androidx.health.connect.client.HealthConnectClient
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.BloodPressureHealthConnect
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.BloodPressureReading
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateHealthConnect
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateSample
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.SleepHealthConnect
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.SleepSessionSample
+import foo.pilz.freaklog.ui.tabs.settings.combinations.BloodPressureDisplay
+import foo.pilz.freaklog.ui.utils.stateInVm
+import kotlinx.coroutines.CancellationException
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -453,6 +464,120 @@ class ExperienceViewModel @Inject constructor(
         userPreferences.saveActiveNotificationExperienceId(null)
     }
 
+    private val localHeartRateSamples = MutableStateFlow<List<HeartRateSample>>(emptyList())
+    val heartRateSamplesFlow: StateFlow<List<HeartRateSample>> = localHeartRateSamples
+    private val localSleepSamples = MutableStateFlow<List<SleepSessionSample>>(emptyList())
+    val sleepSamplesFlow: StateFlow<List<SleepSessionSample>> = localSleepSamples
+    val sleepStagesEnabledFlow = userPreferences.areSleepStagesEnabledFlow.stateInVm(viewModelScope, false)
+    val isVitalsEnabledFlow = userPreferences.isVitalsEnabledFlow.stateInVm(viewModelScope, false)
+
+    @Suppress("TooGenericExceptionCaught")
+    fun toggleHeartRate(context: Context, requestPermission: () -> Unit = {}) {
+        viewModelScope.launch {
+            if (localHeartRateSamples.value.isNotEmpty() || localSleepSamples.value.isNotEmpty()) {
+                localHeartRateSamples.value = emptyList()
+                localSleepSamples.value = emptyList()
+                return@launch
+            }
+            val model = (timelineDisplayOptionFlow.value as? TimelineDisplayOption.Shown)
+                ?.allTimelinesModel ?: return@launch
+            try {
+                val grantedPermissions = HealthConnectClient.getOrCreate(context)
+                    .permissionController
+                    .getGrantedPermissions()
+                val isHeartRateGranted = grantedPermissions.containsAll(HeartRateHealthConnect.permissions)
+                val isSleepGranted = grantedPermissions.containsAll(SleepHealthConnect.permissions)
+                if (!isHeartRateGranted && !isSleepGranted) {
+                    requestPermission()
+                    return@launch
+                }
+                val end = model.startTime.plusSeconds(model.widthInSeconds.toLong())
+                val hrSamples = if (isHeartRateGranted) {
+                    HeartRateHealthConnect.read(context, model.startTime, end)
+                } else {
+                    emptyList()
+                }
+                val sleepSamples = if (isSleepGranted) {
+                    SleepHealthConnect.read(context, model.startTime, end)
+                } else {
+                    emptyList()
+                }
+                if (hrSamples.isEmpty() && sleepSamples.isEmpty()) {
+                    Toast.makeText(context, "No health data found", Toast.LENGTH_SHORT).show()
+                }
+                localHeartRateSamples.value = hrSamples
+                localSleepSamples.value = sleepSamples
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Toast.makeText(
+                    context,
+                    "Couldn't read health data: ${e.message ?: "unknown error"}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+
+    private val healthConnectBloodPressureReadings = MutableStateFlow<List<BloodPressureReading>>(emptyList())
+
+    /**
+     * Health Connect readings plus the ones older app versions stored in the journal database.
+     * The latter have a [LEGACY_BLOOD_PRESSURE_ID_PREFIX] id and cannot be edited.
+     */
+    val bloodPressureReadingsFlow: StateFlow<List<BloodPressureReading>> = combine(
+        healthConnectBloodPressureReadings,
+        experienceRepo.getBloodPressureReadingsFlow(experienceId),
+    ) { fromHealthConnect, legacy ->
+        val legacyReadings = legacy.map {
+            BloodPressureReading(
+                id = LEGACY_BLOOD_PRESSURE_ID_PREFIX + it.id,
+                time = it.time,
+                systolic = it.systolic.toDouble(),
+                diastolic = it.diastolic.toDouble(),
+            )
+        }
+        (fromHealthConnect + legacyReadings).sortedBy { it.time }
+    }.stateInVm(viewModelScope, emptyList())
+
+    val bloodPressureDisplayFlow = userPreferences.bloodPressureDisplayFlow.stateInVm(
+        viewModelScope,
+        BloodPressureDisplay.COMBINED
+    )
+
+    fun saveBloodPressureDisplay(value: BloodPressureDisplay) {
+        viewModelScope.launch { userPreferences.saveBloodPressureDisplay(value) }
+    }
+
+    @Suppress("TooGenericExceptionCaught")
+    fun loadBloodPressure(context: Context, requestPermission: () -> Unit = {}) {
+        viewModelScope.launch {
+            val model = (timelineDisplayOptionFlow.value as? TimelineDisplayOption.Shown)
+                ?.allTimelinesModel ?: return@launch
+            try {
+                if (!BloodPressureHealthConnect.isPermissionGranted(context)) {
+                    requestPermission()
+                    return@launch
+                }
+                val end = model.startTime.plusSeconds(model.widthInSeconds.toLong())
+                healthConnectBloodPressureReadings.value =
+                    BloodPressureHealthConnect.read(context, model.startTime, end)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Toast.makeText(
+                    context,
+                    "Couldn't read blood pressure: ${e.message ?: "unknown error"}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+
+    fun clearBloodPressure() {
+        healthConnectBloodPressureReadings.value = emptyList()
+    }
+
     /** Renders this experience (timeline plus ingestion list, no notes) to a PNG and opens the share sheet. */
     fun shareExperience(activity: androidx.activity.ComponentActivity) {
         viewModelScope.launch {
@@ -466,6 +591,8 @@ class ExperienceViewModel @Inject constructor(
                 locationName = experience.location?.name.orEmpty(),
                 ingestionElements = ingestions,
                 timelineModel = (timelineDisplayOptionFlow.value as? TimelineDisplayOption.Shown)?.allTimelinesModel,
+                heartRateSamples = localHeartRateSamples.value,
+                bloodPressureReadings = bloodPressureReadingsFlow.value,
             )
             foo.pilz.freaklog.data.experienceshare.shareExperienceImage(
                 activity = activity,
@@ -666,3 +793,5 @@ data class IngestionWithAssociatedData(
     val roaDuration: RoaDuration?,
     val roaDose: RoaDose?
 )
+
+const val LEGACY_BLOOD_PRESSURE_ID_PREFIX = "journal:"

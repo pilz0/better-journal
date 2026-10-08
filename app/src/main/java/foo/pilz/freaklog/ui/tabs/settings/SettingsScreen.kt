@@ -18,6 +18,16 @@
 
 package foo.pilz.freaklog.ui.tabs.settings
 
+import foo.pilz.freaklog.ui.tabs.settings.combinations.BloodPressureDisplay
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.SleepHealthConnect
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateHealthConnect
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.BloodPressureHealthConnect
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.foundation.layout.Box
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -159,14 +169,22 @@ fun SettingsScreen(
     navigateToAiAssistantSettings: () -> Unit,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    // The setting only turns on once Health Connect has actually granted read access.
-    val heartRatePermissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+    val vitalsPermissions = remember {
+        HeartRateHealthConnect.permissions +
+            SleepHealthConnect.permissions +
+            BloodPressureHealthConnect.permissions
+    }
+    // The setting only turns on once Health Connect has granted at least one kind of read access.
+    val vitalsPermissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
         androidx.health.connect.client.PermissionController.createRequestPermissionResultContract()
     ) { granted ->
-        if (granted.containsAll(foo.pilz.freaklog.ui.tabs.journal.experience.vitals.HeartRateHealthConnect.permissions)) {
-            viewModel.saveHeartRateEnabled(true)
+        if (granted.containsAll(HeartRateHealthConnect.permissions) ||
+            granted.containsAll(SleepHealthConnect.permissions) ||
+            granted.containsAll(BloodPressureHealthConnect.permissions)
+        ) {
+            viewModel.saveIsVitalsEnabled(true)
         } else {
-            viewModel.showMessage("Heart rate access was not granted")
+            viewModel.showMessage("Health Connect permission denied")
         }
     }
     SettingsScreen(
@@ -194,15 +212,17 @@ fun SettingsScreen(
         saveTimelineNotificationAutoStart = viewModel::saveTimelineNotificationAutoStart,
         excelSkinEnabled = viewModel.isExcelSkinEnabledFlow.collectAsState().value,
         saveExcelSkinEnabled = viewModel::saveExcelSkinEnabled,
-        heartRateEnabled = viewModel.isHeartRateEnabledFlow.collectAsState().value,
-        onHeartRateEnabledChange = { enable ->
-            when {
-                !enable -> viewModel.saveHeartRateEnabled(false)
-                !foo.pilz.freaklog.ui.tabs.journal.experience.vitals.HeartRateHealthConnect.isAvailable(context) ->
-                    viewModel.showMessage("Health Connect is not available on this device")
-                else -> heartRatePermissionLauncher.launch(foo.pilz.freaklog.ui.tabs.journal.experience.vitals.HeartRateHealthConnect.permissions)
-            }
+        isVitalsAvailable = remember {
+            HeartRateHealthConnect.isAvailable(context) || BloodPressureHealthConnect.isAvailable(context)
         },
+        isVitalsEnabled = viewModel.isVitalsEnabledFlow.collectAsState().value,
+        saveIsVitalsEnabled = { enable ->
+            if (enable) vitalsPermissionLauncher.launch(vitalsPermissions) else viewModel.saveIsVitalsEnabled(false)
+        },
+        sleepStagesEnabled = viewModel.sleepStagesEnabledFlow.collectAsState().value,
+        saveSleepStagesEnabled = viewModel::saveSleepStagesEnabled,
+        bloodPressureDisplay = viewModel.bloodPressureDisplayFlow.collectAsState().value,
+        saveBloodPressureDisplay = viewModel::saveBloodPressureDisplay,
         areSubstanceHeightsIndependent = viewModel.areSubstanceHeightsIndependentFlow.collectAsState().value,
         saveAreSubstanceHeightsIndependent = viewModel::saveAreSubstanceHeightsIndependent,
         isStatsHidden = viewModel.isStatsHiddenFlow.collectAsState().value,
@@ -259,8 +279,13 @@ fun SettingsScreen(
     saveTimelineNotificationAutoStart: (Boolean) -> Unit = {},
     excelSkinEnabled: Boolean = false,
     saveExcelSkinEnabled: (Boolean) -> Unit = {},
-    heartRateEnabled: Boolean = false,
-    onHeartRateEnabledChange: (Boolean) -> Unit = {},
+    isVitalsAvailable: Boolean = false,
+    isVitalsEnabled: Boolean = false,
+    saveIsVitalsEnabled: (Boolean) -> Unit = {},
+    sleepStagesEnabled: Boolean = false,
+    saveSleepStagesEnabled: (Boolean) -> Unit = {},
+    bloodPressureDisplay: BloodPressureDisplay = BloodPressureDisplay.COMBINED,
+    saveBloodPressureDisplay: (BloodPressureDisplay) -> Unit = {},
     areSubstanceHeightsIndependent: Boolean,
     saveAreSubstanceHeightsIndependent: (Boolean) -> Unit,
     isStatsHidden: Boolean,
@@ -447,13 +472,31 @@ fun SettingsScreen(
                 )
                 HorizontalDivider()
                 SettingsSwitchRow(
-                    text = "Heart rate from Health Connect",
-                    checked = heartRateEnabled,
+                    text = "Vitals on timeline",
+                    checked = isVitalsEnabled && isVitalsAvailable,
+                    description = if (isVitalsAvailable) {
+                        "Health Connect: heart rate, sleep, blood pressure"
+                    } else {
+                        "Health Connect is not available on this device"
+                    },
                     onCheckedChange = {
                         performHaptic(HapticType.TOGGLE)
-                        onHeartRateEnabledChange(it)
+                        if (isVitalsAvailable) saveIsVitalsEnabled(it)
                     }
                 )
+                if (isVitalsEnabled && isVitalsAvailable) {
+                    HorizontalDivider()
+                    SettingsSwitchRow(
+                        text = "Show detailed sleep stages",
+                        checked = sleepStagesEnabled,
+                        onCheckedChange = {
+                            performHaptic(HapticType.TOGGLE)
+                            saveSleepStagesEnabled(it)
+                        }
+                    )
+                    HorizontalDivider()
+                    BloodPressureDisplayRow(value = bloodPressureDisplay, onValueChange = saveBloodPressureDisplay)
+                }
                 HorizontalDivider()
                 SettingsSwitchRow(
                     text = "Independent substance heights",
@@ -685,6 +728,43 @@ fun SettingsScreen(
 }
 
 const val SHARE_APP_URL = "https://psychonautwiki.org/wiki/PsychonautWiki_Journal"
+
+@Composable
+private fun BloodPressureDisplayRow(
+    value: BloodPressureDisplay,
+    onValueChange: (BloodPressureDisplay) -> Unit,
+) {
+    var menuOpen by remember { mutableStateOf(false) }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = horizontalPadding),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text("Blood pressure", style = MaterialTheme.typography.bodyLarge)
+        Box {
+            TextButton(onClick = { menuOpen = true }) {
+                Text(value.displayName)
+                Icon(if (menuOpen) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown, null)
+            }
+            DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                BloodPressureDisplay.entries.forEach { display ->
+                    DropdownMenuItem(
+                        text = { Text(display.displayName) },
+                        onClick = {
+                            onValueChange(display)
+                            menuOpen = false
+                        },
+                        leadingIcon = {
+                            if (display == value) Icon(Icons.Default.Check, "Selected")
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
 
 @Composable
 private fun SettingsSwitchRow(

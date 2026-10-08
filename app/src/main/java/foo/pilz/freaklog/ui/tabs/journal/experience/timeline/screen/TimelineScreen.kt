@@ -18,6 +18,9 @@
 
 package foo.pilz.freaklog.ui.tabs.journal.experience.timeline.screen
 
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.BloodPressureReading
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateSample
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.SleepSessionSample
 import android.content.res.Configuration
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -60,6 +63,10 @@ fun TimelineScreen(
         title = viewModel.consumerName,
         timelineDisplayOption = viewModel.timelineDisplayOptionFlow.collectAsState().value,
         timeDisplayOption = viewModel.timeDisplayOptionFlow.collectAsState().value,
+        heartRateSamples = viewModel.heartRateSamplesFlow.collectAsState().value,
+        sleepSamples = viewModel.sleepSamplesFlow.collectAsState().value,
+        showSleepStages = viewModel.showSleepStagesFlow.collectAsState().value,
+        bloodPressureReadings = viewModel.bloodPressureReadingsFlow.collectAsState().value,
     )
 }
 
@@ -69,6 +76,10 @@ fun TimelineScreen(
      title: String,
      timelineDisplayOption: TimelineDisplayOption,
      timeDisplayOption: TimeDisplayOption,
+     heartRateSamples: List<HeartRateSample> = emptyList(),
+     sleepSamples: List<SleepSessionSample> = emptyList(),
+     showSleepStages: Boolean = false,
+     bloodPressureReadings: List<BloodPressureReading> = emptyList(),
 ) {
     Scaffold(
         topBar = {
@@ -104,6 +115,10 @@ fun TimelineScreen(
                             model = timelineDisplayOption.allTimelinesModel,
                             timeDisplayOption = timeDisplayOption,
                             isShowingCurrentTime = true,
+                            heartRateSamples = heartRateSamples,
+                            sleepSamples = sleepSamples,
+                            showSleepStages = showSleepStages,
+                            bloodPressureReadings = bloodPressureReadings,
                             modifier = Modifier
                                 .fillMaxHeight(if (isOrientationPortrait) 0.5f else 0.8f)
                                 .width(canvasWidth.dp)

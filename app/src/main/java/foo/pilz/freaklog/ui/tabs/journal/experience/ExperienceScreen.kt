@@ -18,6 +18,23 @@
 
 package foo.pilz.freaklog.ui.tabs.journal.experience
 
+import kotlin.math.roundToInt
+import foo.pilz.freaklog.ui.tabs.settings.combinations.BloodPressureDisplay
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.SleepSessionSample
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.SleepHealthConnect
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateSample
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateHealthConnect
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.BloodPressureReading
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.BloodPressureHealthConnect
+import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.Lifecycle
+import androidx.health.connect.client.PermissionController
+import androidx.compose.material.icons.outlined.MonitorHeart
+import androidx.compose.material.icons.outlined.Bloodtype
+import androidx.compose.material.icons.filled.MonitorHeart
+import androidx.compose.material.icons.filled.Bloodtype
+import androidx.activity.compose.rememberLauncherForActivityResult
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -127,6 +144,8 @@ fun ExperienceScreen(
     navigateToEditRatingScreen: (ratingId: Int) -> Unit,
     navigateToEditTimedNoteScreen: (timedNoteId: Int) -> Unit,
     navigateToTimelineScreen: (consumerName: String) -> Unit,
+    navigateToRecordBloodPressureScreen: () -> Unit,
+    navigateToEditBloodPressureScreen: (recordId: String) -> Unit,
     navigateBack: () -> Unit,
 ) {
     val ingestionsWithCompanions = viewModel.ingestionsWithCompanionsFlow.collectAsState().value
@@ -159,6 +178,49 @@ fun ExperienceScreen(
     ) { granted -> if (granted) viewModel.toggleNotification(context) }
     val isNotificationActive = viewModel.isNotificationActiveFlow.collectAsState().value
 
+    val timelineDisplayOption = viewModel.timelineDisplayOptionFlow.collectAsState().value
+    val healthPermissionLauncher = rememberLauncherForActivityResult(
+        PermissionController.createRequestPermissionResultContract()
+    ) { granted ->
+        if (granted.containsAll(HeartRateHealthConnect.permissions) ||
+            granted.containsAll(SleepHealthConnect.permissions)
+        ) {
+            viewModel.toggleHeartRate(context)
+        } else {
+            Toast.makeText(context, "Health Connect permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+    val isVitalsEnabled = viewModel.isVitalsEnabledFlow.collectAsState().value
+    val isHeartRateAvailable = remember { HeartRateHealthConnect.isAvailable(context) }
+    val bloodPressurePermissionLauncher = rememberLauncherForActivityResult(
+        PermissionController.createRequestPermissionResultContract()
+    ) { granted ->
+        if (granted.containsAll(BloodPressureHealthConnect.permissions)) {
+            viewModel.loadBloodPressure(context)
+        } else {
+            Toast.makeText(context, "Health Connect permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+    val bloodPressureDisplay = viewModel.bloodPressureDisplayFlow.collectAsState().value
+    val isBloodPressureAvailable = remember { BloodPressureHealthConnect.isAvailable(context) }
+    val isBloodPressureActive =
+        isVitalsEnabled && bloodPressureDisplay != BloodPressureDisplay.OFF && isBloodPressureAvailable
+    val isBloodPressureInSubstanceList = bloodPressureDisplay == BloodPressureDisplay.COMBINED
+    LaunchedEffect(isBloodPressureActive, timelineDisplayOption) {
+        if (isBloodPressureActive && timelineDisplayOption is TimelineDisplayOption.Shown) {
+            viewModel.loadBloodPressure(context) {
+                bloodPressurePermissionLauncher.launch(BloodPressureHealthConnect.permissions)
+            }
+        } else if (!isBloodPressureActive) {
+            viewModel.clearBloodPressure()
+        }
+    }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        if (isBloodPressureActive) {
+            viewModel.loadBloodPressure(context)
+        }
+    }
+
     if (showAiChat && isAiAssistantEnabled) {
         foo.pilz.freaklog.ui.tabs.journal.experience.recommendations.AiChatBottomSheet(
             experienceId = experience?.id ?: 0,
@@ -168,7 +230,7 @@ fun ExperienceScreen(
 
     ExperienceScreen(
         oneExperienceScreenModel = oneExperienceScreenModel,
-        timelineDisplayOption = viewModel.timelineDisplayOptionFlow.collectAsState().value,
+        timelineDisplayOption = timelineDisplayOption,
         isOralDisclaimerHidden = viewModel.isOralTimelineDisclaimerHidden.collectAsState().value,
         onChangeIsOralDisclaimerHidden = viewModel::saveOralDisclaimerIsHidden,
         addIngestion = {
@@ -179,9 +241,25 @@ fun ExperienceScreen(
         onShareExperience = {
             (context as? androidx.activity.ComponentActivity)?.let(viewModel::shareExperience)
         },
-        vitalsContent = {
-            experience?.id?.let { foo.pilz.freaklog.ui.tabs.journal.experience.vitals.VitalsCard(experienceId = it) }
+        heartRateSamples = viewModel.heartRateSamplesFlow.collectAsState().value,
+        sleepSamples = viewModel.sleepSamplesFlow.collectAsState().value,
+        sleepStagesEnabled = viewModel.sleepStagesEnabledFlow.collectAsState().value,
+        isHeartRateButtonVisible = isVitalsEnabled && isHeartRateAvailable,
+        onToggleHeartRate = {
+            viewModel.toggleHeartRate(context) {
+                healthPermissionLauncher.launch(HeartRateHealthConnect.permissions + SleepHealthConnect.permissions)
+            }
         },
+        bloodPressureReadings = viewModel.bloodPressureReadingsFlow.collectAsState().value,
+        isBloodPressureAvailable = isBloodPressureAvailable,
+        isBloodPressureInSubstanceList = isBloodPressureInSubstanceList,
+        onToggleBloodPressureInSubstanceList = {
+            viewModel.saveBloodPressureDisplay(
+                if (isBloodPressureInSubstanceList) BloodPressureDisplay.SEPARATE else BloodPressureDisplay.COMBINED
+            )
+        },
+        navigateToRecordBloodPressureScreen = navigateToRecordBloodPressureScreen,
+        navigateToEditBloodPressureScreen = navigateToEditBloodPressureScreen,
         isNotificationActive = isNotificationActive,
         onToggleNotification = {
             val needsPermission = !isNotificationActive &&
@@ -282,7 +360,17 @@ fun ExperienceScreen(
     isNotificationActive: Boolean = false,
     onToggleNotification: () -> Unit = {},
     onShareExperience: () -> Unit = {},
-    vitalsContent: @Composable () -> Unit = {},
+    heartRateSamples: List<HeartRateSample> = emptyList(),
+    sleepSamples: List<SleepSessionSample> = emptyList(),
+    sleepStagesEnabled: Boolean = false,
+    isHeartRateButtonVisible: Boolean = false,
+    onToggleHeartRate: () -> Unit = {},
+    bloodPressureReadings: List<BloodPressureReading> = emptyList(),
+    isBloodPressureAvailable: Boolean = false,
+    isBloodPressureInSubstanceList: Boolean = false,
+    onToggleBloodPressureInSubstanceList: () -> Unit = {},
+    navigateToRecordBloodPressureScreen: () -> Unit = {},
+    navigateToEditBloodPressureScreen: (recordId: String) -> Unit = {},
 ) {
     Scaffold(
         topBar = {
@@ -302,6 +390,8 @@ fun ExperienceScreen(
                 isNotificationActive = isNotificationActive,
                 onToggleNotification = onToggleNotification,
                 onShareExperience = onShareExperience,
+                isBloodPressureAvailable = isBloodPressureAvailable,
+                navigateToRecordBloodPressureScreen = navigateToRecordBloodPressureScreen,
             )
         },
         floatingActionButton = {
@@ -324,14 +414,25 @@ fun ExperienceScreen(
                 timeDisplayOption = timeDisplayOption,
                 isOralDisclaimerHidden = isOralDisclaimerHidden,
                 onChangeIsOralDisclaimerHidden = onChangeIsOralDisclaimerHidden,
+                heartRateSamples = heartRateSamples,
+                sleepSamples = sleepSamples,
+                sleepStagesEnabled = sleepStagesEnabled,
+                isHeartRateButtonVisible = isHeartRateButtonVisible,
+                onToggleHeartRate = onToggleHeartRate,
+                bloodPressureReadings = bloodPressureReadings,
+                isBloodPressureInSubstanceList = isBloodPressureInSubstanceList,
+                onToggleBloodPressureInSubstanceList = onToggleBloodPressureInSubstanceList,
             )
-            if (oneExperienceScreenModel.ingestionElements.isNotEmpty()) {
+            val bloodPressureInSubstances = isBloodPressureInSubstanceList && bloodPressureReadings.isNotEmpty()
+            if (oneExperienceScreenModel.ingestionElements.isNotEmpty() || bloodPressureInSubstances) {
                 MyIngestionList(
                     verticalCardPadding = verticalCardPadding,
                     oneExperienceScreenModel = oneExperienceScreenModel,
                     areDosageDotsHidden = areDosageDotsHidden,
                     navigateToIngestionScreen = navigateToIngestionScreen,
-                    timeDisplayOption = timeDisplayOption
+                    timeDisplayOption = timeDisplayOption,
+                    bloodPressureReadings = if (bloodPressureInSubstances) bloodPressureReadings else emptyList(),
+                    navigateToEditBloodPressureScreen = navigateToEditBloodPressureScreen,
                 )
             }
             val cumulativeDoses = oneExperienceScreenModel.cumulativeDoses
@@ -360,7 +461,15 @@ fun ExperienceScreen(
                     timeDisplayOption = timeDisplayOption
                 )
             }
-            vitalsContent()
+            if (bloodPressureReadings.isNotEmpty() && !isBloodPressureInSubstanceList) {
+                BloodPressureReadingsSection(
+                    verticalCardPadding = verticalCardPadding,
+                    readings = bloodPressureReadings,
+                    navigateToEditBloodPressureScreen = navigateToEditBloodPressureScreen,
+                    timeDisplayOption = timeDisplayOption,
+                    firstIngestionTime = oneExperienceScreenModel.firstIngestionTime
+                )
+            }
             val notes = oneExperienceScreenModel.notes
             if (notes.isNotBlank()) {
                 NotesSection(
@@ -720,17 +829,39 @@ private fun MyIngestionList(
     oneExperienceScreenModel: OneExperienceScreenModel,
     areDosageDotsHidden: Boolean,
     navigateToIngestionScreen: (ingestionId: Int) -> Unit,
-    timeDisplayOption: TimeDisplayOption
+    timeDisplayOption: TimeDisplayOption,
+    bloodPressureReadings: List<BloodPressureReading> = emptyList(),
+    navigateToEditBloodPressureScreen: (recordId: String) -> Unit = {},
 ) {
     ElevatedCard(modifier = Modifier.padding(vertical = verticalCardPadding)) {
         val redoseChipState by foo.pilz.freaklog.ui.tabs.journal.experience.redose.rememberRedoseChipState()
         CardTitle(
             title = oneExperienceScreenModel.firstIngestionTime.getDateWithWeekdayText()
         )
-        if (oneExperienceScreenModel.ingestionElements.isNotEmpty()) {
+        if (oneExperienceScreenModel.ingestionElements.isNotEmpty() || bloodPressureReadings.isNotEmpty()) {
             HorizontalDivider()
         }
-        oneExperienceScreenModel.ingestionElements.forEachIndexed { index, ingestionElement ->
+        val ingestionElements = oneExperienceScreenModel.ingestionElements
+        // Readings taken before the first ingestion come first, the rest follow the ingestion they came after.
+        val readingsBefore = bloodPressureReadings.filter { reading ->
+            ingestionElements.none { it.ingestionWithCompanionAndCustomUnit.ingestion.time <= reading.time }
+        }
+        readingsBefore.forEach { reading ->
+            BloodPressureReadingRow(
+                reading = reading,
+                timeDisplayOption = timeDisplayOption,
+                firstIngestionTime = oneExperienceScreenModel.firstIngestionTime,
+                onClick = { navigateToEditBloodPressureScreen(reading.id) }
+            )
+            HorizontalDivider()
+        }
+        ingestionElements.forEachIndexed { index, ingestionElement ->
+            val ingestionTime = ingestionElement.ingestionWithCompanionAndCustomUnit.ingestion.time
+            val nextIngestionTime =
+                ingestionElements.getOrNull(index + 1)?.ingestionWithCompanionAndCustomUnit?.ingestion?.time
+            val readingsAfter = bloodPressureReadings.filter {
+                it.time >= ingestionTime && (nextIngestionTime == null || it.time < nextIngestionTime)
+            }
             IngestionRow(
                 ingestionElement = ingestionElement,
                 areDosageDotsHidden = areDosageDotsHidden,
@@ -756,6 +887,15 @@ private fun MyIngestionList(
                 state = redoseChipState,
                 modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 2.dp)
             )
+            readingsAfter.forEach { reading ->
+                HorizontalDivider()
+                BloodPressureReadingRow(
+                    reading = reading,
+                    timeDisplayOption = timeDisplayOption,
+                    firstIngestionTime = oneExperienceScreenModel.firstIngestionTime,
+                    onClick = { navigateToEditBloodPressureScreen(reading.id) }
+                )
+            }
             val isLastIngestion =
                 index == oneExperienceScreenModel.ingestionElements.size - 1
             if (isLastIngestion) {
@@ -776,6 +916,58 @@ private fun MyIngestionList(
 }
 
 @Composable
+private fun BloodPressureReadingsSection(
+    verticalCardPadding: Dp,
+    readings: List<BloodPressureReading>,
+    navigateToEditBloodPressureScreen: (recordId: String) -> Unit,
+    timeDisplayOption: TimeDisplayOption,
+    firstIngestionTime: Instant,
+) {
+    ElevatedCard(modifier = Modifier.padding(vertical = verticalCardPadding)) {
+        CardTitle(title = "Blood pressure")
+        HorizontalDivider()
+        readings.forEachIndexed { index, reading ->
+            BloodPressureReadingRow(
+                reading = reading,
+                timeDisplayOption = timeDisplayOption,
+                firstIngestionTime = firstIngestionTime,
+                onClick = { navigateToEditBloodPressureScreen(reading.id) }
+            )
+            if (index < readings.size - 1) {
+                HorizontalDivider()
+            }
+        }
+    }
+}
+
+@Composable
+private fun BloodPressureReadingRow(
+    reading: BloodPressureReading,
+    timeDisplayOption: TimeDisplayOption,
+    firstIngestionTime: Instant,
+    onClick: () -> Unit,
+) {
+    // Readings stored by older app versions live in the journal database and have no edit screen.
+    val isEditable = !reading.id.startsWith(LEGACY_BLOOD_PRESSURE_ID_PREFIX)
+    Column(
+        modifier = Modifier
+            .clickable(enabled = isEditable, onClick = onClick)
+            .fillMaxWidth()
+            .padding(vertical = 5.dp, horizontal = horizontalPadding),
+    ) {
+        Text(
+            text = "${reading.systolic.roundToInt()}/${reading.diastolic.roundToInt()} mmHg",
+            style = MaterialTheme.typography.bodyLarge
+        )
+        NoteOrRatingTimeOrDurationText(
+            time = reading.time,
+            timeDisplayOption = timeDisplayOption,
+            firstIngestionTime = firstIngestionTime
+        )
+    }
+}
+
+@Composable
 private fun MyTimelineSection(
     timelineDisplayOption: TimelineDisplayOption,
     verticalCardPadding: Dp,
@@ -785,6 +977,14 @@ private fun MyTimelineSection(
     timeDisplayOption: TimeDisplayOption,
     isOralDisclaimerHidden: Boolean,
     onChangeIsOralDisclaimerHidden: (Boolean) -> Unit,
+    heartRateSamples: List<HeartRateSample> = emptyList(),
+    sleepSamples: List<SleepSessionSample> = emptyList(),
+    sleepStagesEnabled: Boolean = false,
+    isHeartRateButtonVisible: Boolean = false,
+    onToggleHeartRate: () -> Unit = {},
+    bloodPressureReadings: List<BloodPressureReading> = emptyList(),
+    isBloodPressureInSubstanceList: Boolean = false,
+    onToggleBloodPressureInSubstanceList: () -> Unit = {},
 ) {
     when (timelineDisplayOption) {
         TimelineDisplayOption.Hidden -> {}
@@ -801,6 +1001,29 @@ private fun MyTimelineSection(
                     Row {
                         TextButton(onClick = navigateToExplainTimeline) {
                             Text(text = "Info")
+                        }
+                        if (isHeartRateButtonVisible) {
+                            IconButton(onClick = onToggleHeartRate) {
+                                Icon(
+                                    if (heartRateSamples.isEmpty()) Icons.Outlined.MonitorHeart
+                                    else Icons.Filled.MonitorHeart,
+                                    contentDescription = if (heartRateSamples.isEmpty()) "Show heart rate"
+                                    else "Hide heart rate"
+                                )
+                            }
+                        }
+                        if (bloodPressureReadings.isNotEmpty()) {
+                            IconButton(onClick = onToggleBloodPressureInSubstanceList) {
+                                Icon(
+                                    if (isBloodPressureInSubstanceList) Icons.Filled.Bloodtype
+                                    else Icons.Outlined.Bloodtype,
+                                    contentDescription = if (isBloodPressureInSubstanceList) {
+                                        "Separate blood pressure list"
+                                    } else {
+                                        "Merge blood pressure into substances list"
+                                    }
+                                )
+                            }
                         }
                         IconButton(onClick = { navigateToTimelineScreen(YOU) }) {
                             Icon(
@@ -820,6 +1043,10 @@ private fun MyTimelineSection(
                         model = timelineModel,
                         timeDisplayOption = timeDisplayOption,
                         isShowingCurrentTime = true,
+                        heartRateSamples = heartRateSamples,
+                        sleepSamples = sleepSamples,
+                        showSleepStages = sleepStagesEnabled,
+                        bloodPressureReadings = bloodPressureReadings,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(200.dp)
@@ -894,6 +1121,8 @@ private fun ExperienceTopBar(
     isNotificationActive: Boolean = false,
     onToggleNotification: () -> Unit = {},
     onShareExperience: () -> Unit = {},
+    isBloodPressureAvailable: Boolean = false,
+    navigateToRecordBloodPressureScreen: () -> Unit = {},
 ) {
     TopAppBar(
         title = { Text(oneExperienceScreenModel.title) },
@@ -1106,6 +1335,22 @@ private fun ExperienceTopBar(
                         )
                     }
                 )
+                if (isBloodPressureAvailable) {
+                    DropdownMenuItem(
+                        text = { Text("Record Blood Pressure") },
+                        onClick = {
+                            navigateToRecordBloodPressureScreen()
+                            areAddOptionsExpanded = false
+                        },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Outlined.Bloodtype,
+                                contentDescription = "Record Blood Pressure",
+                                modifier = Modifier.size(ButtonDefaults.IconSize)
+                            )
+                        }
+                    )
+                }
             }
         }
     )

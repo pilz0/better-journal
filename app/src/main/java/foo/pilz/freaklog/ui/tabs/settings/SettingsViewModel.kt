@@ -18,6 +18,7 @@
 
 package foo.pilz.freaklog.ui.tabs.settings
 
+import foo.pilz.freaklog.ui.tabs.settings.combinations.BloodPressureDisplay
 import android.net.Uri
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -64,12 +65,32 @@ class SettingsViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000)
     )
 
-    fun saveHeartRateEnabled(value: Boolean) = viewModelScope.launch {
-        userPreferences.saveHeartRateEnabled(value)
+    fun saveIsVitalsEnabled(value: Boolean) = viewModelScope.launch {
+        userPreferences.saveIsVitalsEnabled(value)
     }
 
-    val isHeartRateEnabledFlow = userPreferences.isHeartRateEnabledFlow.stateIn(
+    fun saveSleepStagesEnabled(value: Boolean) = viewModelScope.launch {
+        userPreferences.saveAreSleepStagesEnabled(value)
+    }
+
+    fun saveBloodPressureDisplay(value: BloodPressureDisplay) = viewModelScope.launch {
+        userPreferences.saveBloodPressureDisplay(value)
+    }
+
+    val isVitalsEnabledFlow = userPreferences.isVitalsEnabledFlow.stateIn(
         initialValue = false,
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000)
+    )
+
+    val sleepStagesEnabledFlow = userPreferences.areSleepStagesEnabledFlow.stateIn(
+        initialValue = false,
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000)
+    )
+
+    val bloodPressureDisplayFlow = userPreferences.bloodPressureDisplayFlow.stateIn(
+        initialValue = BloodPressureDisplay.COMBINED,
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000)
     )

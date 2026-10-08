@@ -28,6 +28,8 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import foo.pilz.freaklog.ui.graph.style.LocalGraphStyle
+import foo.pilz.freaklog.ui.graph.style.themedGraphStyle
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 
@@ -122,7 +124,8 @@ fun JournalTheme(
             colorScheme = colorScheme,
             typography = JournalTypography,
             shapes = JournalShapes,
-            content = content
-        )
+        ) {
+            CompositionLocalProvider(LocalGraphStyle provides themedGraphStyle(), content = content)
+        }
     }
 }

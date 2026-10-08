@@ -65,7 +65,7 @@ import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
 import foo.pilz.freaklog.data.substances.parse.SubstanceParser
-import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.shapeAlpha
+import foo.pilz.freaklog.ui.graph.style.DefaultGraphStyle
 import foo.pilz.freaklog.ui.theme.md_theme_dark_primary
 import foo.pilz.freaklog.ui.theme.md_theme_light_primary
 import java.io.File
@@ -653,7 +653,7 @@ class TimelineWidgetWorker(
             // Fill a translucent area beneath the stroke.
             val fillPaint = Paint().apply {
                 this.color = Color.argb(
-                    (shapeAlpha * 255).toInt(),
+                    (DefaultGraphStyle.shapeAlpha * 255).toInt(),
                     Color.red(androidColor),
                     Color.green(androidColor),
                     Color.blue(androidColor)

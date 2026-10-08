@@ -18,6 +18,8 @@
 
 package foo.pilz.freaklog.ui.main.navigation.graphs
 
+import foo.pilz.freaklog.ui.tabs.journal.experience.bloodpressure.add.AddBloodPressureScreen
+import foo.pilz.freaklog.ui.tabs.journal.experience.bloodpressure.edit.EditBloodPressureScreen
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigation
@@ -63,6 +65,12 @@ fun NavGraphBuilder.journalGraph(navController: NavHostController) {
         composableWithTransitions<EditExperienceRoute> {
             EditExperienceScreen(navigateBack = navController::popBackStack)
         }
+        composableWithTransitions<RecordBloodPressureRoute> {
+            AddBloodPressureScreen(navigateBack = navController::popBackStack)
+        }
+        composableWithTransitions<EditBloodPressureRoute> {
+            EditBloodPressureScreen(navigateBack = navController::popBackStack)
+        }
         composableWithTransitions<AddRatingRoute> {
             AddRatingScreen(navigateBack = navController::popBackStack)
         }
@@ -106,6 +114,12 @@ fun NavGraphBuilder.journalGraph(navController: NavHostController) {
                 },
                 navigateToEditRatingScreen = { ratingId ->
                     navController.navigate(EditRatingRoute(ratingId))
+                },
+                navigateToRecordBloodPressureScreen = {
+                    navController.navigate(RecordBloodPressureRoute(experienceId))
+                },
+                navigateToEditBloodPressureScreen = { recordId ->
+                    navController.navigate(EditBloodPressureRoute(recordId = recordId, experienceId = experienceId))
                 },
                 navigateToTimelineScreen = { consumerName ->
                     navController.navigate(
@@ -194,3 +208,9 @@ object CalendarRoute
 
 @Serializable
 object AllIngestionsRoute
+
+@Serializable
+data class RecordBloodPressureRoute(val experienceId: Int)
+
+@Serializable
+data class EditBloodPressureRoute(val recordId: String, val experienceId: Int)

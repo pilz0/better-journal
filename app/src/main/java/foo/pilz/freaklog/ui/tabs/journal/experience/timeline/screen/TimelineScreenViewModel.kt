@@ -18,6 +18,15 @@
 
 package foo.pilz.freaklog.ui.tabs.journal.experience.timeline.screen
 
+import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.BloodPressureHealthConnect
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateHealthConnect
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.SleepHealthConnect
+import foo.pilz.freaklog.ui.tabs.settings.combinations.BloodPressureDisplay
+import foo.pilz.freaklog.ui.utils.isHealthConnectAvailable
+import foo.pilz.freaklog.ui.utils.stateInVm
+import kotlinx.coroutines.CancellationException
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -57,7 +66,8 @@ import javax.inject.Inject
 class TimelineScreenViewModel @Inject constructor(
     experienceRepo: ExperienceRepository,
     private val substanceRepo: SubstanceRepository,
-    userPreferences: UserPreferences,
+    private val userPreferences: UserPreferences,
+    @ApplicationContext private val context: Context,
     state: SavedStateHandle
 ) : ViewModel() {
 
@@ -221,4 +231,50 @@ class TimelineScreenViewModel @Inject constructor(
             )
         }
     }
+
+    @Suppress("TooGenericExceptionCaught")
+    private fun <T> healthConnectFlow(
+        enabledFlow: Flow<Boolean>,
+        isAvailable: () -> Boolean,
+        isPermissionGranted: suspend () -> Boolean,
+        read: suspend (start: Instant, end: Instant) -> List<T>,
+    ) = combine(timelineDisplayOptionFlow, enabledFlow) { option, isEnabled ->
+        (option as? TimelineDisplayOption.Shown)?.allTimelinesModel?.takeIf { isEnabled }
+    }.map { model ->
+        if (model == null || consumerName != YOU || !isAvailable()) return@map emptyList()
+        try {
+            if (!isPermissionGranted()) return@map emptyList()
+            read(model.startTime, model.startTime.plusSeconds(model.widthInSeconds.toLong()))
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            emptyList()
+        }
+    }.stateInVm(viewModelScope, emptyList<T>())
+
+    val heartRateSamplesFlow = healthConnectFlow(
+        enabledFlow = userPreferences.isVitalsEnabledFlow,
+        isAvailable = { HeartRateHealthConnect.isAvailable(context) },
+        isPermissionGranted = { HeartRateHealthConnect.isPermissionGranted(context) },
+        read = { start, end -> HeartRateHealthConnect.read(context, start, end) },
+    )
+
+    val sleepSamplesFlow = healthConnectFlow(
+        enabledFlow = userPreferences.isVitalsEnabledFlow,
+        isAvailable = { isHealthConnectAvailable(context) },
+        isPermissionGranted = { SleepHealthConnect.isPermissionGranted(context) },
+        read = { start, end -> SleepHealthConnect.read(context, start, end) },
+    )
+
+    val showSleepStagesFlow = userPreferences.areSleepStagesEnabledFlow.stateInVm(viewModelScope, false)
+
+    val bloodPressureReadingsFlow = healthConnectFlow(
+        enabledFlow = combine(
+            userPreferences.isVitalsEnabledFlow,
+            userPreferences.bloodPressureDisplayFlow,
+        ) { vitals, display -> vitals && display != BloodPressureDisplay.OFF },
+        isAvailable = { BloodPressureHealthConnect.isAvailable(context) },
+        isPermissionGranted = { BloodPressureHealthConnect.isPermissionGranted(context) },
+        read = { start, end -> BloodPressureHealthConnect.read(context, start, end) },
+    )
 }

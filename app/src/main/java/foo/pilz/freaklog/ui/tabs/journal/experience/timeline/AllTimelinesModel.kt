@@ -19,12 +19,22 @@
 package foo.pilz.freaklog.ui.tabs.journal.experience.timeline
 
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
-import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
+import foo.pilz.freaklog.data.substances.classes.roa.curve.IngestionCurve
+import foo.pilz.freaklog.ui.graph.scene.builders.CurveSegment
+import foo.pilz.freaklog.ui.graph.scene.builders.RawPoint
+import foo.pilz.freaklog.ui.graph.scene.builders.NormalizedTimeRange
+import foo.pilz.freaklog.ui.graph.scene.builders.RawIngestion
+import foo.pilz.freaklog.ui.graph.scene.builders.RawTimelineCurve
+import foo.pilz.freaklog.ui.graph.scene.builders.TimelineGroup
+import foo.pilz.freaklog.ui.graph.scene.builders.buildRawCurve
+import foo.pilz.freaklog.ui.graph.scene.builders.buildRawTimeRanges
+import foo.pilz.freaklog.ui.graph.scene.builders.normalizeCurve
+import foo.pilz.freaklog.ui.graph.scene.builders.selectTimelineShape
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.DataForOneEffectLine
-import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.AxisDrawable
-import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.drawables.GroupDrawable
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.curve.toIngestionCurve
 import java.time.Duration
 import java.time.Instant
+import kotlin.math.max
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
@@ -33,79 +43,123 @@ class AllTimelinesModel(
     val dataForRatings: List<DataForOneRating>,
     val timedNotes: List<DataForOneTimedNote>,
     areSubstanceHeightsIndependent: Boolean,
+    fixedTimeRange: ClosedRange<Instant>? = null,
     useBatemanCurve: Boolean = false,
 ) {
     val startTime: Instant
     val widthInSeconds: Float
-    val groupDrawables: List<GroupDrawable>
-    val axisDrawable: AxisDrawable
+    private val colors: List<AdaptiveColor>
+    private val colorlessGroups: List<TimelineGroup>
 
-    data class RoaGroup(
+    fun timelineGroups(isDarkTheme: Boolean): List<TimelineGroup> =
+        colorlessGroups.mapIndexed { index, group -> group.copy(color = colors[index].getComposeColor(isDarkTheme)) }
+
+    private data class RoaGroup(
         val color: AdaptiveColor,
-        val roaDuration: RoaDuration?,
-        val weightedLines: List<WeightedLine>
+        val ingestions: List<RawIngestion>,
+        val curve: RawTimelineCurve,
     )
 
     init {
         val ratingTimes = dataForRatings.map { it.time }
         val ingestionTimes = dataForLines.map { it.startTime }
         val noteTimes = timedNotes.map { it.time }
-        val allStartTimeCandidates = ratingTimes + ingestionTimes + noteTimes
-        startTime =
-            allStartTimeCandidates.reduce { acc, date -> if (acc.isBefore(date)) acc else date }
+        startTime = fixedTimeRange?.start
+            ?: ((ratingTimes + ingestionTimes + noteTimes).minOrNull() ?: Instant.now())
+
         val roaGroups = dataForLines.groupBy { it.substanceName }
             .flatMap { substanceGroup ->
-                val linesPerSubstance = substanceGroup.value
-                return@flatMap linesPerSubstance.groupBy { it.route }.map { routeGroup ->
+                substanceGroup.value.groupBy { it.route }.map { routeGroup ->
                     val linesPerRoute = routeGroup.value
-                    return@map RoaGroup(
+                    val ingestions = linesPerRoute.map { line ->
+                        RawIngestion(
+                            startSeconds = Duration.between(startTime, line.startTime).seconds.toFloat(),
+                            endSeconds = line.endTime?.let { Duration.between(startTime, it).seconds.toFloat() },
+                            horizontalWeight = line.horizontalWeight,
+                            height = line.height,
+                        )
+                    }
+                    val roaDuration = linesPerRoute.first().roaDuration
+                    val curve = if (useBatemanCurve) {
+                        batemanRawCurve(
+                            linesPerRoute.mapNotNull { line ->
+                                roaDuration?.toIngestionCurve(
+                                    WeightedLine(line.startTime, line.endTime, line.horizontalWeight, line.height),
+                                    startTime,
+                                )
+                            }
+                        )
+                    } else {
+                        buildRawCurve(selectTimelineShape(roaDuration), ingestions)
+                    }
+                    RoaGroup(
                         color = linesPerRoute.first().color,
-                        roaDuration = linesPerRoute.first().roaDuration,
-                        weightedLines = linesPerRoute.map {
-                            WeightedLine(
-                                startTime = it.startTime,
-                                endTime = it.endTime,
-                                horizontalWeight = it.horizontalWeight,
-                                height = it.height
-                            )
-                        })
+                        ingestions = ingestions,
+                        curve = curve,
+                    )
                 }
             }
-        val groupDrawables = roaGroups.map { group ->
-            GroupDrawable(
-                startTimeGraph = startTime,
-                color = group.color,
-                roaDuration = group.roaDuration,
-                weightedLines = group.weightedLines,
-                areSubstanceHeightsIndependent = areSubstanceHeightsIndependent,
-                useBatemanCurve = useBatemanCurve,
+
+        val overallMaxHeight = roaGroups.maxOfOrNull { it.curve.nonNormalisedHeight } ?: 1f
+        val rangesByGroup = roaGroups.map { buildRawTimeRanges(it.ingestions) }
+
+        widthInSeconds = if (fixedTimeRange != null) {
+            Duration.between(fixedTimeRange.start, fixedTimeRange.endInclusive).seconds.toFloat()
+        } else {
+            val maxWidthOfGroups = roaGroups.mapIndexed { index, group ->
+                val curveEnd = group.curve.endSeconds
+                val rangeEnd = rangesByGroup[index].maxOfOrNull { it.endSeconds } ?: 0f
+                max(curveEnd, rangeEnd)
+            }.maxOrNull() ?: 0f
+
+            val maxWidthRating = ratingTimes.maxOrNull()
+                ?.let { Duration.between(startTime, it).seconds.toFloat() } ?: 0f
+            val maxWidthNote = noteTimes.maxOrNull()
+                ?.let { Duration.between(startTime, it).seconds.toFloat() } ?: 0f
+
+            listOf(
+                maxWidthOfGroups,
+                maxWidthRating,
+                maxWidthNote,
+                2.hours.inWholeSeconds.toFloat(),
+            ).max() + 10.minutes.inWholeSeconds.toFloat()
+        }
+
+        colors = roaGroups.map { it.color }
+        colorlessGroups = roaGroups.mapIndexed { index, group ->
+            val referenceHeight =
+                if (areSubstanceHeightsIndependent) group.curve.nonNormalisedHeight else overallMaxHeight
+            TimelineGroup(
+                color = null,
+                curve = normalizeCurve(group.curve, referenceHeight, widthInSeconds),
+                timeRanges = rangesByGroup[index].map {
+                    NormalizedTimeRange(
+                        startFraction = it.startSeconds / widthInSeconds,
+                        endFraction = it.endSeconds / widthInSeconds,
+                        intersectionCount = it.intersectionCount,
+                    )
+                },
             )
         }
-        val overallMaxHeight = groupDrawables.maxOfOrNull { it.nonNormalisedHeight } ?: 1f
-        groupDrawables.forEach { it.normaliseHeight(overallMaxHeight) }
-        this.groupDrawables = groupDrawables
-        val maxWidthOfGroups: Float = groupDrawables.maxOfOrNull {
-            it.endOfLineRelativeToStartInSeconds
-        } ?: 0f
-        val latestRating = ratingTimes.maxOrNull()
-        val maxWidthRating: Float = if (latestRating != null) {
-            Duration.between(startTime, latestRating).seconds.toFloat()
-        } else {
-            0f
-        }
-        val latestNote = noteTimes.maxOrNull()
-        val maxWidthNote: Float = if (latestNote != null) {
-            Duration.between(startTime, latestNote).seconds.toFloat()
-        } else {
-            0f
-        }
-        val maxCandidates = listOf(
-            maxWidthOfGroups,
-            maxWidthRating,
-            maxWidthNote,
-            2.hours.inWholeSeconds.toFloat()
-        )
-        widthInSeconds = maxCandidates.max() + 10.minutes.inWholeSeconds.toFloat()
-        axisDrawable = AxisDrawable(startTime, widthInSeconds)
     }
+}
+
+private const val BATEMAN_SAMPLES = 200
+
+/** Samples the summed Bateman curves of one substance and route so the scene painter can draw them. */
+private fun batemanRawCurve(curves: List<IngestionCurve>): RawTimelineCurve {
+    if (curves.isEmpty()) return RawTimelineCurve(emptyList(), emptyList(), 0f, 0f)
+    val start = curves.minOf { it.ingestionStartSec }
+    val end = curves.maxOf { it.curveEndSec }
+    val step = max(1f, end - start) / BATEMAN_SAMPLES
+    val points = (0..BATEMAN_SAMPLES).map { index ->
+        val seconds = start + index * step
+        RawPoint(seconds = seconds, height = curves.sumOf { it.valueAt(seconds).toDouble() }.toFloat())
+    }
+    return RawTimelineCurve(
+        segments = listOf(CurveSegment(points, dotted = !curves.all { it.isCertain })),
+        ingestionDots = curves.map { RawPoint(it.ingestionStartSec, 0f, isIngestionDot = true) },
+        nonNormalisedHeight = points.maxOf { it.height },
+        endSeconds = end,
+    )
 }

@@ -67,6 +67,8 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
         val TIMELINE_NOTIFICATION_AUTO_START = booleanPreferencesKey("timeline_notification_auto_start")
         val ACTIVE_NOTIFICATION_EXPERIENCE_ID = intPreferencesKey("active_notification_experience_id")
         val HEART_RATE_ENABLED = booleanPreferencesKey("heart_rate_enabled")
+        val KEY_SLEEP_STAGES_ENABLED = booleanPreferencesKey("KEY_SLEEP_STAGES_ENABLED")
+        val KEY_BLOOD_PRESSURE_DISPLAY = stringPreferencesKey("KEY_BLOOD_PRESSURE_DISPLAY")
         val EXCEL_SKIN_ENABLED = booleanPreferencesKey("excel_skin_enabled")
         val BACKUP_DIR_URI = stringPreferencesKey("backup_dir_uri")
         val BACKUP_PASSWORD_SEALED = stringPreferencesKey("backup_password_sealed")
@@ -270,12 +272,35 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
         }
     }
 
-    /** Whether experiences show heart rate read from Health Connect. Off until the user opts in. */
-    val isHeartRateEnabledFlow: Flow<Boolean> = dataStore.data
+    /** Whether timelines show vitals read from Health Connect. Off until the user opts in. */
+    val isVitalsEnabledFlow: Flow<Boolean> = dataStore.data
         .map { it[PreferencesKeys.HEART_RATE_ENABLED] ?: false }
 
-    suspend fun saveHeartRateEnabled(value: Boolean) {
+    suspend fun saveIsVitalsEnabled(value: Boolean) {
         dataStore.edit { it[PreferencesKeys.HEART_RATE_ENABLED] = value }
+    }
+
+    val areSleepStagesEnabledFlow: Flow<Boolean> = dataStore.data
+        .map { it[PreferencesKeys.KEY_SLEEP_STAGES_ENABLED] ?: false }
+
+    suspend fun saveAreSleepStagesEnabled(value: Boolean) {
+        dataStore.edit { it[PreferencesKeys.KEY_SLEEP_STAGES_ENABLED] = value }
+    }
+
+    val bloodPressureDisplayFlow: Flow<BloodPressureDisplay> = dataStore.data
+        .map { preferences ->
+            try {
+                BloodPressureDisplay.valueOf(
+                    preferences[PreferencesKeys.KEY_BLOOD_PRESSURE_DISPLAY]
+                        ?: BloodPressureDisplay.COMBINED.name
+                )
+            } catch (_: IllegalArgumentException) {
+                BloodPressureDisplay.COMBINED
+            }
+        }
+
+    suspend fun saveBloodPressureDisplay(value: BloodPressureDisplay) {
+        dataStore.edit { it[PreferencesKeys.KEY_BLOOD_PRESSURE_DISPLAY] = value.name }
     }
 
     /** Opt-in easter egg: statistics can be shown disguised as a spreadsheet. */
@@ -437,4 +462,10 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
     suspend fun saveLastActiveEpochSeconds(value: Long) {
         dataStore.edit { prefs -> prefs[PreferencesKeys.KEY_LOCK_LAST_ACTIVE] = value }
     }
+}
+
+enum class BloodPressureDisplay(val displayName: String) {
+    OFF("Off"),
+    SEPARATE("Separate list"),
+    COMBINED("Combined"),
 }

@@ -18,6 +18,8 @@
 
 package foo.pilz.freaklog.ui.tabs.journal.experience.share
 
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.BloodPressureReading
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateSample
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -53,6 +55,8 @@ data class ShareableExperienceModel(
     val locationName: String,
     val ingestionElements: List<IngestionElement>,
     val timelineModel: AllTimelinesModel?,
+    val heartRateSamples: List<HeartRateSample> = emptyList(),
+    val bloodPressureReadings: List<BloodPressureReading> = emptyList(),
 )
 
 /** One line of the ingestion list: "14:30  100 µg LSD, sublingual". */
@@ -97,6 +101,8 @@ fun ShareableExperienceContent(model: ShareableExperienceModel) {
                     model = model.timelineModel,
                     isShowingCurrentTime = false,
                     timeDisplayOption = TimeDisplayOption.REGULAR,
+                    heartRateSamples = model.heartRateSamples,
+                    bloodPressureReadings = model.bloodPressureReadings,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp),
