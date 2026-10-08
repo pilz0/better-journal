@@ -75,6 +75,9 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
                 navigateToIntakeLimits = {
                     navController.navigate(IntakeLimitsRoute)
                 },
+                navigateToExportBackup = {
+                    navController.navigate(ExportBackupRoute)
+                },
                 navigateToFreakQueryShell = {
                     navController.navigate(FreakQueryShellRoute)
                 },
@@ -114,6 +117,9 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
         }
         composableWithTransitions<WebhookEditorRoute> {
             WebhookEditorScreen(navigateBack = navController::popBackStack)
+        }
+        composableWithTransitions<ExportBackupRoute> {
+            foo.pilz.freaklog.ui.tabs.settings.exportbackup.ExportBackupScreen()
         }
         addIntakeLimitGraph(navController)
         composableWithTransitions<IntakeLimitsRoute> {
@@ -185,6 +191,9 @@ object CustomUnitArchiveRoute
 
 @Serializable
 object CustomUnitsRoute
+
+@Serializable
+object ExportBackupRoute
 
 @Serializable
 object IntakeLimitsRoute

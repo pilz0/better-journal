@@ -63,6 +63,10 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
         // into the `webhook` table. See WebhookSeeder.
         val WEBHOOK_SEEDED = booleanPreferencesKey("webhook_seeded")
 
+        val BACKUP_DIR_URI = stringPreferencesKey("backup_dir_uri")
+        val BACKUP_PASSWORD_SEALED = stringPreferencesKey("backup_password_sealed")
+        val LAST_BACKUP_TIME = longPreferencesKey("last_backup_time")
+
         val AI_API_KEY = stringPreferencesKey("ai_api_key")
         val AI_MODEL_NAME = stringPreferencesKey("ai_model_name")
         val AI_ASSISTANT_ENABLED = booleanPreferencesKey("ai_assistant_enabled")
@@ -238,6 +242,29 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
 
     suspend fun markWebhookSeeded() {
         dataStore.edit { it[PreferencesKeys.WEBHOOK_SEEDED] = true }
+    }
+
+    val backupDirUriFlow: Flow<String?> = dataStore.data.map { it[PreferencesKeys.BACKUP_DIR_URI] }
+    val backupPasswordSealedFlow: Flow<String?> = dataStore.data.map { it[PreferencesKeys.BACKUP_PASSWORD_SEALED] }
+    val lastBackupTimeFlow: Flow<Instant?> = dataStore.data
+        .map { prefs -> prefs[PreferencesKeys.LAST_BACKUP_TIME]?.let(Instant::ofEpochMilli) }
+
+    suspend fun saveBackupConfig(dirUri: String, sealedPassword: String) {
+        dataStore.edit {
+            it[PreferencesKeys.BACKUP_DIR_URI] = dirUri
+            it[PreferencesKeys.BACKUP_PASSWORD_SEALED] = sealedPassword
+        }
+    }
+
+    suspend fun clearBackupConfig() {
+        dataStore.edit {
+            it.remove(PreferencesKeys.BACKUP_DIR_URI)
+            it.remove(PreferencesKeys.BACKUP_PASSWORD_SEALED)
+        }
+    }
+
+    suspend fun saveLastBackupTime(time: Instant) {
+        dataStore.edit { it[PreferencesKeys.LAST_BACKUP_TIME] = time.toEpochMilli() }
     }
 
     val webhookUseFreakQueryFlow: Flow<Boolean> = dataStore.data

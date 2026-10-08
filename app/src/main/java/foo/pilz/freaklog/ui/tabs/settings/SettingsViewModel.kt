@@ -247,105 +247,11 @@ class SettingsViewModel @Inject constructor(
 
     fun exportFile(uri: Uri) {
         viewModelScope.launch {
-            val experiencesWithIngestionsAndRatings =
-                experienceRepository.getAllExperiencesWithIngestionsTimedNotesAndRatingsSorted()
-            val experiencesSerializable = experiencesWithIngestionsAndRatings.map {
-                val location = it.experience.location
-                return@map ExperienceSerializable(
-                    title = it.experience.title,
-                    text = it.experience.text,
-                    creationDate = it.experience.creationDate,
-                    sortDate = it.experience.sortDate,
-                    isFavorite = it.experience.isFavorite,
-                    ingestions = it.ingestions.map { ingestion ->
-                        IngestionSerializable(
-                            substanceName = ingestion.substanceName,
-                            time = ingestion.time,
-                            endTime = ingestion.endTime,
-                            creationDate = ingestion.creationDate,
-                            administrationRoute = ingestion.administrationRoute,
-                            dose = ingestion.dose,
-                            estimatedDoseStandardDeviation = ingestion.estimatedDoseStandardDeviation,
-                            isDoseAnEstimate = ingestion.isDoseAnEstimate,
-                            units = ingestion.units,
-                            notes = ingestion.notes,
-                            stomachFullness = ingestion.stomachFullness,
-                            consumerName = ingestion.consumerName,
-                            customUnitId = ingestion.customUnitId,
-                            administrationSite = ingestion.administrationSite,
-                            category = ingestion.category
-                        )
-                    },
-                    location = if (location != null) {
-                        LocationSerializable(
-                            name = location.name,
-                            latitude = location.latitude,
-                            longitude = location.longitude
-                        )
-                    } else {
-                        null
-                    },
-                    ratings = it.ratings.map { rating ->
-                        RatingSerializable(
-                            option = rating.option,
-                            time = rating.time,
-                            creationDate = rating.creationDate
-                        )
-                    },
-                    timedNotes = it.timedNotes.map { timedNote ->
-                        TimedNoteSerializable(
-                            creationDate = timedNote.creationDate,
-                            time = timedNote.time,
-                            note = timedNote.note,
-                            color = timedNote.color,
-                            isPartOfTimeline = timedNote.isPartOfTimeline
-                        )
-                    }
-                )
-            }
-            val customUnitsSerializable = experienceRepository.getAllCustomUnitsSorted().map {
-                CustomUnitSerializable(
-                    id = it.id,
-                    substanceName = it.substanceName,
-                    name = it.name,
-                    creationDate = it.creationDate,
-                    administrationRoute = it.administrationRoute,
-                    dose = it.dose,
-                    estimatedDoseStandardDeviation = it.estimatedDoseStandardDeviation,
-                    isEstimate = it.isEstimate,
-                    isArchived = it.isArchived,
-                    unit = it.unit,
-                    unitPlural = it.unitPlural,
-                    originalUnit = it.originalUnit,
-                    note = it.note,
-                    defaultCategory = it.defaultCategory
-                )
-            }
-            val journalExport = JournalExport(
-                experiences = experiencesSerializable,
-                substanceCompanions = experienceRepository.getAllSubstanceCompanions(),
-                customSubstances = experienceRepository.getAllCustomSubstances(),
-                customUnits = customUnitsSerializable,
-                reminders = experienceRepository.getAllReminders(),
-                webhooks = webhookRepository.getAll().map {
-                    foo.pilz.freaklog.data.export.WebhookSerializable.fromEntity(it)
-                },
-                intakeLimits = experienceRepository.getAllIntakeLimits().map {
-                    foo.pilz.freaklog.data.export.IntakeLimitSerializable(
-                        substanceName = it.substanceName,
-                        creationDate = it.creationDate,
-                        limitType = it.limitType,
-                        maxDose = it.maxDose,
-                        unit = it.unit,
-                        maxCount = it.maxCount,
-                        windowSeconds = it.windowSeconds,
-                        warningPercent = it.warningPercent,
-                        isEnabled = it.isEnabled,
-                    )
-                }
-            )
             try {
-                val jsonList = Json.encodeToString(journalExport)
+                val jsonList = foo.pilz.freaklog.data.export.buildJournalExportJson(
+                    experienceRepository,
+                    webhookRepository
+                )
                 fileSystemConnection.saveTextInUri(uri, text = jsonList)
                 snackbarHostState.showSnackbar(
                     message = "Export successful",

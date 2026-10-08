@@ -41,6 +41,7 @@ import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Backup
 import androidx.compose.material.icons.outlined.Medication
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.Notifications
@@ -153,6 +154,7 @@ fun SettingsScreen(
     navigateToReminders: () -> Unit,
     navigateToAchievements: () -> Unit = {},
     navigateToIntakeLimits: () -> Unit = {},
+    navigateToExportBackup: () -> Unit = {},
     navigateToFreakQueryShell: () -> Unit = {},
     navigateToAiAssistantSettings: () -> Unit,
 ) {
@@ -166,6 +168,7 @@ fun SettingsScreen(
         navigateToReminders = navigateToReminders,
         navigateToAchievements = navigateToAchievements,
         navigateToIntakeLimits = navigateToIntakeLimits,
+        navigateToExportBackup = navigateToExportBackup,
         navigateToFreakQueryShell = navigateToFreakQueryShell,
         navigateToAiAssistantSettings = navigateToAiAssistantSettings,
         deleteEverything = viewModel::deleteEverything,
@@ -217,6 +220,7 @@ fun SettingsScreen(
     navigateToReminders: () -> Unit,
     navigateToAchievements: () -> Unit = {},
     navigateToIntakeLimits: () -> Unit = {},
+    navigateToExportBackup: () -> Unit = {},
     navigateToFreakQueryShell: () -> Unit = {},
     navigateToAiAssistantSettings: () -> Unit,
     deleteEverything: () -> Unit,
@@ -309,6 +313,14 @@ fun SettingsScreen(
                 ) {
                     performHaptic(HapticType.CLICK)
                     navigateToIntakeLimits()
+                }
+                HorizontalDivider()
+                SettingsButton(
+                    imageVector = Icons.Outlined.Backup,
+                    text = "Export & backup"
+                ) {
+                    performHaptic(HapticType.CLICK)
+                    navigateToExportBackup()
                 }
                 HorizontalDivider()
                 SettingsButton(
