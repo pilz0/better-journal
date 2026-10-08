@@ -19,5 +19,9 @@
 package foo.pilz.freaklog.ui.utils
 
 fun getInteractionExplanationURLForSubstance(substanceURL: String): String {
-    return "$substanceURL#Dangerous_interactions"
+    return if (substanceURL.startsWith("https://psychonautwiki.org")) {
+        "$substanceURL#Dangerous_interactions"
+    } else {
+        substanceURL
+    }
 }

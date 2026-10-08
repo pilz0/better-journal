@@ -30,7 +30,7 @@ class SubstanceWithCategoriesPreviewProvider : PreviewParameterProvider<Substanc
             substance = Substance(
                 name = "Example Substance",
                 commonNames = listOf("Hat", "Boot", "Hoodie", "Shirt", "Blouse"),
-                url = "https://psychonautwiki.org/wiki/Lsd",
+                url = "https://anodyne.wiki/substance/Lysergic%20acid%20diethylamide",
                 isApproved = true,
                 categories = listOf("entactogen, common"),
                 tolerance = Tolerance(

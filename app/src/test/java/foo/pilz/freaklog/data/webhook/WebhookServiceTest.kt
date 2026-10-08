@@ -153,13 +153,13 @@ class WebhookServiceTest {
             "user" to "Henry",
             "dose" to "100",
             "units" to "mg",
-            "substance" to "[Caffeine](<https://psychonautwiki.org/wiki/Caffeine>)",
+            "substance" to "[Caffeine](<https://anodyne.wiki/substance/Caffeine>)",
             "route" to "oral"
         )
         
         val result = webhookService.processTemplate(template, values)
         
-        assertEquals("Henry: 100 mg [Caffeine](<https://psychonautwiki.org/wiki/Caffeine>) via oral", result)
+        assertEquals("Henry: 100 mg [Caffeine](<https://anodyne.wiki/substance/Caffeine>) via oral", result)
     }
 
     @Test

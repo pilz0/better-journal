@@ -24,38 +24,28 @@ import org.junit.Test
 class InteractionUrlTest {
 
     @Test
-    fun testGetInteractionExplanationURL_basic() {
-        val url = getInteractionExplanationURLForSubstance("https://psychonautwiki.org/wiki/LSD")
-        assertEquals("https://psychonautwiki.org/wiki/LSD#Dangerous_interactions", url)
+    fun testGetInteractionExplanationURL_psychonautwiki() {
+        val url = getInteractionExplanationURLForSubstance("https://psychonautwiki.org/wiki/Kratom")
+        assertEquals("https://psychonautwiki.org/wiki/Kratom#Dangerous_interactions", url)
     }
 
     @Test
-    fun testGetInteractionExplanationURL_mdma() {
-        val url = getInteractionExplanationURLForSubstance("https://psychonautwiki.org/wiki/MDMA")
-        assertEquals("https://psychonautwiki.org/wiki/MDMA#Dangerous_interactions", url)
-    }
-
-    @Test
-    fun testGetInteractionExplanationURL_cocaine() {
-        val url = getInteractionExplanationURLForSubstance("https://psychonautwiki.org/wiki/Cocaine")
-        assertEquals("https://psychonautwiki.org/wiki/Cocaine#Dangerous_interactions", url)
-    }
-
-    @Test
-    fun testGetInteractionExplanationURL_cannabis() {
-        val url = getInteractionExplanationURLForSubstance("https://psychonautwiki.org/wiki/Cannabis")
-        assertEquals("https://psychonautwiki.org/wiki/Cannabis#Dangerous_interactions", url)
+    fun testGetInteractionExplanationURL_anodyne() {
+        val url = getInteractionExplanationURLForSubstance(
+            "https://anodyne.wiki/substance/Lysergic%20acid%20diethylamide"
+        )
+        assertEquals("https://anodyne.wiki/substance/Lysergic%20acid%20diethylamide", url)
     }
 
     @Test
     fun testGetInteractionExplanationURL_emptyString() {
         val url = getInteractionExplanationURLForSubstance("")
-        assertEquals("#Dangerous_interactions", url)
+        assertEquals("", url)
     }
 
     @Test
     fun testGetInteractionExplanationURL_differentDomain() {
         val url = getInteractionExplanationURLForSubstance("https://example.com/substance")
-        assertEquals("https://example.com/substance#Dangerous_interactions", url)
+        assertEquals("https://example.com/substance", url)
     }
 }

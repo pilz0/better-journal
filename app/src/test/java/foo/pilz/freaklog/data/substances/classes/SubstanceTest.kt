@@ -271,18 +271,18 @@ class SubstanceTest {
 
     @Test
     fun testInteractionExplanationURL() {
-        val substance = createTestSubstance(url = "https://psychonautwiki.org/wiki/LSD")
+        val substance = createTestSubstance(url = "https://anodyne.wiki/substance/Lysergic%20acid%20diethylamide")
         assertEquals(
-            "https://psychonautwiki.org/wiki/LSD#Dangerous_interactions",
+            "https://anodyne.wiki/substance/Lysergic%20acid%20diethylamide",
             substance.interactionExplanationURL
         )
     }
 
     @Test
     fun testInteractionExplanationURL_differentURL() {
-        val substance = createTestSubstance(url = "https://psychonautwiki.org/wiki/MDMA")
+        val substance = createTestSubstance(url = "https://anodyne.wiki/substance/3%2C4-Methylenedioxymethamphetamine")
         assertEquals(
-            "https://psychonautwiki.org/wiki/MDMA#Dangerous_interactions",
+            "https://anodyne.wiki/substance/3%2C4-Methylenedioxymethamphetamine",
             substance.interactionExplanationURL
         )
     }

@@ -120,8 +120,8 @@ class SubstanceClassTest {
 
     @Test
     fun testInteractionExplanationURL() {
-        val substance = createSubstance(url = "https://psychonautwiki.org/wiki/LSD")
-        assertEquals("https://psychonautwiki.org/wiki/LSD#Dangerous_interactions", substance.interactionExplanationURL)
+        val substance = createSubstance(url = "https://anodyne.wiki/substance/Lysergic%20acid%20diethylamide")
+        assertEquals("https://anodyne.wiki/substance/Lysergic%20acid%20diethylamide", substance.interactionExplanationURL)
     }
 
     @Test

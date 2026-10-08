@@ -67,7 +67,7 @@ class SubstanceParserTest {
                 "substances": [
                     {
                         "name": "LSD",
-                        "url": "https://psychonautwiki.org/wiki/LSD"
+                        "url": "https://anodyne.wiki/substance/Lysergic%20acid%20diethylamide"
                     }
                 ]
             }
@@ -105,7 +105,7 @@ class SubstanceParserTest {
                 "substances": [
                     {
                         "name": "MDMA",
-                        "url": "https://psychonautwiki.org/wiki/MDMA",
+                        "url": "https://anodyne.wiki/substance/3%2C4-Methylenedioxymethamphetamine",
                         "commonNames": ["Ecstasy", "Molly", "MDMA"]
                     }
                 ]
@@ -130,7 +130,7 @@ class SubstanceParserTest {
                 "substances": [
                     {
                         "name": "LSD",
-                        "url": "https://psychonautwiki.org/wiki/LSD",
+                        "url": "https://anodyne.wiki/substance/Lysergic%20acid%20diethylamide",
                         "tolerance": {
                             "full": "almost immediately",
                             "half": "5-7 days",
@@ -157,7 +157,7 @@ class SubstanceParserTest {
                 "substances": [
                     {
                         "name": "MDMA",
-                        "url": "https://psychonautwiki.org/wiki/MDMA",
+                        "url": "https://anodyne.wiki/substance/3%2C4-Methylenedioxymethamphetamine",
                         "interactions": {
                             "dangerous": ["MAOIs", "Lithium"],
                             "unsafe": ["Tramadol"],
@@ -187,7 +187,7 @@ class SubstanceParserTest {
                 "substances": [
                     {
                         "name": "MDMA",
-                        "url": "https://psychonautwiki.org/wiki/MDMA",
+                        "url": "https://anodyne.wiki/substance/3%2C4-Methylenedioxymethamphetamine",
                         "roas": [
                             {
                                 "name": "oral",
@@ -221,7 +221,7 @@ class SubstanceParserTest {
                 "substances": [
                     {
                         "name": "LSD",
-                        "url": "https://psychonautwiki.org/wiki/LSD",
+                        "url": "https://anodyne.wiki/substance/Lysergic%20acid%20diethylamide",
                         "roas": [
                             {
                                 "name": "sublingual",
@@ -258,7 +258,7 @@ class SubstanceParserTest {
                 "substances": [
                     {
                         "name": "Morphine",
-                        "url": "https://psychonautwiki.org/wiki/Morphine",
+                        "url": "https://anodyne.wiki/substance/Morphine",
                         "roas": [
                             {
                                 "name": "oral",
