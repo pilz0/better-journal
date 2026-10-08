@@ -143,7 +143,11 @@ app/src/main/java/foo/pilz/freaklog/
 ```
 
 > **Important:** The Gradle AAB output is `app-release.aab`, **not** `app-release-unsigned.aab`.
-> The Nix build is broken due to JitPack dependencies (compose-markdown).
+> The Nix build (`nix build .#apk` / `.#aab`, also exposed as `hydraJobs` for
+> x86_64-linux) resolves every dependency offline from `gradle.lock`. **Whenever
+> a dependency or plugin version changes, regenerate the lock** or the Nix build
+> fails at configuration time with "Plugin … was not found":
+> `nix run --inputs-from . gradle2nix -- -t assembleRelease -t bundleRelease`
 
 ## CI/CD (GitHub Actions)
 
@@ -537,7 +541,7 @@ All ViewModels use `@HiltViewModel` + `@Inject constructor`. Repositories and DA
 
 ## Known issues / limitations
 
-- Nix build is broken due to JitPack dependencies (`compose-markdown` from JitPack has no Nix derivation)
+- The Nix build goes stale whenever dependencies change without regenerating `gradle.lock` (see [Build commands](#build-commands)). JitPack artifacts are locked by hash like any other.
 - AAB files from Gradle are named `app-release.aab` (NOT `app-release-unsigned.aab`) — the release workflow reflects this
 - The AI chatbot requires a Google AI (Gemini) API key configured by the user in Settings
 - There is no schema version 13 — the migration jumps directly from 12 to 14 (`AutoMigration(from = 12, to = 14)`)

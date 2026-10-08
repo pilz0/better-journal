@@ -20,6 +20,11 @@ nix build .#aab
 ```
 The unsigned app bundle should be under `result/bin/`
 
+After changing any dependency or plugin version, regenerate `gradle.lock`:
+```
+nix run --inputs-from . gradle2nix -- -t assembleRelease -t bundleRelease
+```
+
 ## Building with Gradle
 
 ```bash

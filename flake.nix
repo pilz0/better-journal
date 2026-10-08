@@ -29,24 +29,50 @@
           };
         };
 
+        buildToolsVersion = "35.0.0";
+
         androidSdk = pkgs.androidenv.composeAndroidPackages {
           cmdLineToolsVersion = "9.0"; # Matches your previous intent
-          buildToolsVersions = [ "35.0.0" "34.0.0" ];
+          buildToolsVersions = [ buildToolsVersion "34.0.0" ];
           platformVersions = [ "36" "35" "34" "33" "31" ];
           abiVersions = [ "x86_64" ];
           includeEmulator = false;
         };
-      in
-      {
-        packages = {
-          default = self.packages.${system}.apk;
-          apk = gradle2nix.builders.${system}.buildGradlePackage {
-            pname = "freaklog apk release";
-            version = "11.21";
+
+        androidHome = "${androidSdk.androidsdk}/libexec/android-sdk";
+
+        # Single source of truth for the version is app/build.gradle.kts.
+        version = builtins.head (
+          builtins.match ".*versionName = \"([^\"]+)\".*" (builtins.readFile ./app/build.gradle.kts)
+        );
+
+        # Builds one unsigned release artifact. `artifact` is the path Gradle
+        # writes, `name` is the file name it gets under $out/bin.
+        mkFreaklog =
+          {
+            pname,
+            task,
+            artifact,
+            name,
+          }:
+          gradle2nix.builders.${system}.buildGradlePackage {
+            inherit pname version;
             lockFile = ./gradle.lock;
             src = ./.;
-            gradleBuildFlags = [ "assembleRelease" ];
-            ANDROID_HOME = "${androidSdk.androidsdk}/libexec/android-sdk";
+            gradleBuildFlags = [
+              task
+              # AGP otherwise downloads a prebuilt aapt2 from Maven, which is a
+              # per-OS artifact (so the lock would only work on the OS it was
+              # generated on) and is not runnable on NixOS. The SDK's copy is
+              # already patched by nixpkgs.
+              "-Pandroid.aapt2FromMavenOverride=${androidHome}/build-tools/${buildToolsVersion}/aapt2"
+              # `jvmToolchain(17)` must resolve to this JDK, not to whatever the
+              # host happens to have installed (or a download attempt).
+              "-Porg.gradle.java.installations.paths=${pkgs.jdk17.home}"
+              "-Porg.gradle.java.installations.auto-detect=false"
+              "-Porg.gradle.java.installations.auto-download=false"
+            ];
+            ANDROID_HOME = androidHome;
             preBuild = ''
               rm -f local.properties
               export ANDROID_USER_HOME=$(mktemp -d)
@@ -55,78 +81,31 @@
               mkdir -p $ANDROID_USER_HOME/tmp
             '';
             nativeBuildInputs = [
-              pkgs.jre17_minimal
+              pkgs.jdk17
               androidSdk.androidsdk
             ];
-            overrides = {
-               "com.android.tools.build:aapt2:8.13.2-14304508" = {
-                 "aapt2-8.13.2-14304508-linux.jar" = src:
-                  if pkgs.stdenv.isLinux then
-                    pkgs.runCommandCC src.name
-                      {
-                        nativeBuildInputs = [ pkgs.jdk pkgs.libgcc pkgs.autoPatchelfHook ];
-                        dontAutoPatchelf = true;
-                      } ''
-                      cp ${src} aapt2.jar
-                      jar xf aapt2.jar aapt2
-                      chmod +x aapt2
-                      autoPatchelf aapt2
-                      jar uf aapt2.jar aapt2
-                      cp aapt2.jar $out
-                    ''
-                  else
-                    src;
-              };
-            };
             installPhase = ''
-              mkdir -p $out/bin
-              cp app/build/outputs/apk/release/*.apk $out/bin/
+              mkdir -p $out/bin $out/nix-support
+              cp ${artifact} $out/bin/${name}
+              echo "file binary-dist $out/bin/${name}" > $out/nix-support/hydra-build-products
             '';
           };
-           aab = gradle2nix.builders.${system}.buildGradlePackage {
-             pname = "freaklog android app bundle";
-             version = "11.21";
-             lockFile = ./gradle.lock;
-             src = ./.;
-             gradleBuildFlags = [ "bundle" ];
-             ANDROID_HOME = "${androidSdk.androidsdk}/libexec/android-sdk";
-             preBuild = ''
-               rm -f local.properties
-               export ANDROID_USER_HOME=$(mktemp -d)
-               mkdir -p $ANDROID_USER_HOME/.android
-               export GRADLE_OPTS="-Djava.io.tmpdir=$ANDROID_USER_HOME/tmp"
-               mkdir -p $ANDROID_USER_HOME/tmp
-             '';
-             nativeBuildInputs = [
-               pkgs.jre17_minimal
-               androidSdk.androidsdk
-             ];
-             overrides = {
-               "com.android.tools.build:aapt2:8.13.2-14304508" = {
-                 "aapt2-8.13.2-14304508-linux.jar" = src:
-                    if pkgs.stdenv.isLinux then
-                      pkgs.runCommandCC src.name
-                        {
-                          nativeBuildInputs = [ pkgs.jdk pkgs.libgcc pkgs.autoPatchelfHook ];
-                          dontAutoPatchelf = true;
-                        } ''
-                        cp ${src} aapt2.jar
-                        jar xf aapt2.jar aapt2
-                        chmod +x aapt2
-                        autoPatchelf aapt2
-                        jar uf aapt2.jar aapt2
-                        cp aapt2.jar $out
-                      ''
-                    else
-                      src;
-               };
-             };
-             installPhase = ''
-               mkdir -p $out/bin
-               cp app/build/outputs/bundle/release/app-release.aab $out/bin/app-release-unsigned.aab
-               cp app/build/outputs/bundle/debug/app-debug.aab $out/bin/app-debug-unsigned.aab
-             '';
-           };
+      in
+      {
+        packages = {
+          default = self.packages.${system}.apk;
+          apk = mkFreaklog {
+            pname = "freaklog-apk-release";
+            task = "assembleRelease";
+            artifact = "app/build/outputs/apk/release/app-release-unsigned.apk";
+            name = "app-release-unsigned.apk";
+          };
+          aab = mkFreaklog {
+            pname = "freaklog-aab-release";
+            task = "bundleRelease";
+            artifact = "app/build/outputs/bundle/release/app-release.aab";
+            name = "app-release-unsigned.aab";
+          };
         };
 
         devShells.default = pkgs.mkShell {
@@ -140,5 +119,12 @@
         };
         formatter = pkgs.nixpkgs-fmt;
       }
-    );
+    )
+    // {
+      # The Android SDK is only packaged for x86_64-linux among Linux systems.
+      hydraJobs = {
+        apk.x86_64-linux = self.packages.x86_64-linux.apk;
+        aab.x86_64-linux = self.packages.x86_64-linux.aab;
+      };
+    };
 }
