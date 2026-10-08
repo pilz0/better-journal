@@ -31,6 +31,11 @@ class JournalApplication : Application() {
     @Inject
     lateinit var webhookSeeder: WebhookSeeder
 
+    // Injected only so it is created at startup: it loads custom substance profiles
+    // into memory before the first screen asks for them synchronously.
+    @Inject
+    lateinit var customSubstanceProfiles: foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles
+
     @Inject
     @ApplicationScope
     lateinit var applicationScope: CoroutineScope

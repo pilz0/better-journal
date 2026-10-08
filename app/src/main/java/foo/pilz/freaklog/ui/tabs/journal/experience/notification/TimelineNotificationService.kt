@@ -79,6 +79,8 @@ class TimelineNotificationService : Service() {
     @Inject
     lateinit var userPreferences: UserPreferences
     @Inject
+    lateinit var customProfiles: foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles
+    @Inject
     @ApplicationScope
     lateinit var appScope: CoroutineScope
 
@@ -103,6 +105,7 @@ class TimelineNotificationService : Service() {
                         experienceRepo,
                         substanceRepo,
                         userPreferences,
+                        customProfiles,
                     )
                     val result = renderer.render(experienceId) ?: return@launch
                     val manager = getSystemService(NotificationManager::class.java)
@@ -148,7 +151,7 @@ class TimelineNotificationService : Service() {
     }
 
     private suspend fun updateLoop() {
-        val renderer = TimelineNotificationRenderer(this, experienceRepo, substanceRepo, userPreferences)
+        val renderer = TimelineNotificationRenderer(this, experienceRepo, substanceRepo, userPreferences, customProfiles)
 
         while (true) {
             val result = renderer.render(experienceId)

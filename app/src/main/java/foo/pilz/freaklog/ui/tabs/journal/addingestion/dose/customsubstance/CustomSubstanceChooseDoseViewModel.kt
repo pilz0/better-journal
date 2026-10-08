@@ -37,6 +37,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CustomSubstanceChooseDoseViewModel @Inject constructor(
     experienceRepository: ExperienceRepository,
+    private val customProfiles: foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles,
     state: SavedStateHandle,
 ) : ViewModel() {
     var substanceName by mutableStateOf("")
@@ -70,6 +71,12 @@ class CustomSubstanceChooseDoseViewModel @Inject constructor(
     val dose: Double? get() = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(doseText)
     val estimatedDoseStandardDeviation: Double? get() = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(estimatedDoseDeviationText)
     val isValidDose: Boolean get() = dose != null
+
+    /** Dose thresholds the user stored for this substance and route, if any. */
+    val roaDose: foo.pilz.freaklog.data.substances.classes.roa.RoaDose?
+        get() = customProfiles.getRoa(substanceName, administrationRoute)?.roaDose
+    val currentDoseClass: foo.pilz.freaklog.data.substances.classes.roa.DoseClass?
+        get() = roaDose?.getDoseClass(ingestionDose = dose)
 
     fun onDoseTextChange(newDoseText: String) {
         doseText = newDoseText

@@ -28,11 +28,15 @@ import javax.inject.Singleton
 @Singleton
 class InteractionChecker @Inject constructor(
     private val substanceRepo: SubstanceRepository,
+    private val customProfiles: foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles,
 ) {
     fun getInteractionBetween(aName: String, bName: String): Interaction? {
         if (aName == bName) {
             return null
         }
+        // What the user declared for a custom substance wins over built-in data.
+        customProfiles.getInteraction(aName, bName) { substanceRepo.getSubstance(it)?.categories.orEmpty() }
+            ?.let { return Interaction(aName = aName, bName = bName, interactionType = it) }
         val interactionFromAToB = getInteractionFromAToB(aName, bName)
         val interactionFromBToA = getInteractionFromAToB(bName, aName)
         if (interactionFromAToB != null && interactionFromBToA != null) {

@@ -57,6 +57,7 @@ class ExportBackupViewModel @Inject constructor(
     private val userPreferences: UserPreferences,
     private val exportEncryption: ExportEncryption,
     private val backupPasswordStore: BackupPasswordStore,
+    private val customSubstanceRepository: foo.pilz.freaklog.data.room.experiences.CustomSubstanceRepository,
 ) : ViewModel() {
 
     val snackbarHostState = SnackbarHostState()
@@ -177,6 +178,44 @@ class ExportBackupViewModel @Inject constructor(
             "Decoding file failed"
         }
         snackbarHostState.showSnackbar(message)
+    }
+
+    /** A shared substance whose name is already taken, waiting for the user to pick replace or keep both. */
+    private val _substanceCollision = MutableStateFlow<foo.pilz.freaklog.data.substanceshare.SharedSubstance?>(null)
+    val substanceCollision: StateFlow<foo.pilz.freaklog.data.substanceshare.SharedSubstance?> = _substanceCollision.asStateFlow()
+
+    fun importSubstanceFile(uri: Uri) {
+        viewModelScope.launch {
+            when (val result = foo.pilz.freaklog.data.substanceshare.parseAndImport(appContext, uri, customSubstanceRepository)) {
+                is foo.pilz.freaklog.data.substanceshare.ImportResult.Imported -> snackbarHostState.showSnackbar("Imported ${result.name}")
+                is foo.pilz.freaklog.data.substanceshare.ImportResult.CollisionPending -> _substanceCollision.value = result.payload
+                is foo.pilz.freaklog.data.substanceshare.ImportResult.Failed -> snackbarHostState.showSnackbar(
+                    when (result.reason) {
+                        foo.pilz.freaklog.data.substanceshare.ImportFailure.OpenStream -> "File not found"
+                        foo.pilz.freaklog.data.substanceshare.ImportFailure.Parse -> "This is not a substance file"
+                        foo.pilz.freaklog.data.substanceshare.ImportFailure.UnsupportedFormat -> "This substance file needs a newer app version"
+                    }
+                )
+            }
+        }
+    }
+
+    fun resolveSubstanceCollision(replace: Boolean) {
+        val payload = _substanceCollision.value ?: return
+        _substanceCollision.value = null
+        viewModelScope.launch {
+            val name = if (replace) {
+                foo.pilz.freaklog.data.substanceshare.resolveCollisionReplace(payload, customSubstanceRepository)
+                payload.name
+            } else {
+                foo.pilz.freaklog.data.substanceshare.resolveCollisionKeepBoth(payload, customSubstanceRepository.getAllNames(), customSubstanceRepository)
+            }
+            snackbarHostState.showSnackbar("Imported $name")
+        }
+    }
+
+    fun dismissSubstanceCollision() {
+        _substanceCollision.value = null
     }
 
     fun enableAutomaticBackups(dirUri: Uri, password: String) {

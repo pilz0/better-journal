@@ -19,6 +19,7 @@
 package foo.pilz.freaklog.ui.main.navigation.graphs
 
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.toRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigation
 import foo.pilz.freaklog.ui.main.navigation.composableWithTransitions
@@ -75,8 +76,17 @@ fun NavGraphBuilder.searchGraph(navController: NavHostController) {
         composableWithTransitions<CategoryRoute> {
             CategoryScreen()
         }
-        composableWithTransitions<EditCustomSubstanceRoute> {
-            EditCustomSubstanceScreen(navigateBack = navController::popBackStack)
+        composableWithTransitions<EditCustomSubstanceRoute> { entry ->
+            val customSubstanceId = entry.toRoute<EditCustomSubstanceRoute>().customSubstanceId
+            EditCustomSubstanceScreen(
+                navigateBack = navController::popBackStack,
+                navigateToProfile = { navController.navigate(CustomSubstanceProfileRoute(customSubstanceId)) },
+            )
+        }
+        composableWithTransitions<CustomSubstanceProfileRoute> {
+            foo.pilz.freaklog.ui.tabs.search.custom.profile.CustomSubstanceProfileScreen(
+                navigateBack = navController::popBackStack
+            )
         }
         composableWithTransitions<AddCustomSubstanceRouteOnSearchGraph> {
             AddCustomSubstanceScreen(
@@ -104,6 +114,9 @@ data class CategoryRoute(val categoryName: String)
 
 @Serializable
 data class EditCustomSubstanceRoute(val customSubstanceId: Int)
+
+@Serializable
+data class CustomSubstanceProfileRoute(val customSubstanceId: Int)
 
 @Serializable
 object AddCustomSubstanceRouteOnSearchGraph

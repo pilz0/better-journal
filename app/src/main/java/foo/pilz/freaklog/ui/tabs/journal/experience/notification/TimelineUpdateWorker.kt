@@ -29,6 +29,7 @@ class TimelineUpdateWorker(
         fun experienceRepository(): ExperienceRepository
         fun substanceRepository(): SubstanceRepository
         fun userPreferences(): UserPreferences
+        fun customSubstanceProfiles(): foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles
     }
 
     companion object {
@@ -64,7 +65,8 @@ class TimelineUpdateWorker(
             applicationContext,
             deps.experienceRepository(),
             deps.substanceRepository(),
-            userPreferences
+            userPreferences,
+            deps.customSubstanceProfiles()
         )
         val result = renderer.render(experienceId)
 

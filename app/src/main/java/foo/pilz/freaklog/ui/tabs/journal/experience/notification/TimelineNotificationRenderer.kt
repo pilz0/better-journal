@@ -30,6 +30,7 @@ class TimelineNotificationRenderer(
     private val experienceRepo: ExperienceRepository,
     private val substanceRepo: SubstanceRepository,
     private val userPreferences: UserPreferences,
+    private val customProfiles: foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles,
 ) {
 
     data class RenderResult(
@@ -108,8 +109,10 @@ class TimelineNotificationRenderer(
         return DataForOneEffectLine(
             substanceName = ingestion.substanceName,
             route = ingestion.administrationRoute,
-            roaDuration = substanceRepo.getSubstance(ingestion.substanceName)
-                ?.getRoa(ingestion.administrationRoute)?.roaDuration,
+            roaDuration = (
+                substanceRepo.getSubstance(ingestion.substanceName)?.getRoa(ingestion.administrationRoute)
+                    ?: customProfiles.getRoa(ingestion.substanceName, ingestion.administrationRoute)
+                )?.roaDuration,
             height = 1f,
             horizontalWeight = 0.5f,
             color = ingestionWithCompanion.substanceCompanion?.color ?: AdaptiveColor.RED,

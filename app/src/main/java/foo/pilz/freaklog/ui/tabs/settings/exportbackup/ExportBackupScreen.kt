@@ -90,6 +90,10 @@ fun ExportBackupScreen(viewModel: ExportBackupViewModel = hiltViewModel()) {
     val launcherImport = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
     ) { uri -> importToConfirm = uri }
+    val substanceCollision = viewModel.substanceCollision.collectAsState().value
+    val launcherSubstance = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri -> uri?.let(viewModel::importSubstanceFile) }
     val launcherBackupFolder = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocumentTree()
     ) { uri -> backupFolderToSetUp = uri }
@@ -131,6 +135,16 @@ fun ExportBackupScreen(viewModel: ExportBackupViewModel = hiltViewModel()) {
                     Text("Import file")
                 }
             }
+            SectionCard("Custom substances") {
+                Text(
+                    "Adds a custom substance from a shared substance file, including its doses, durations " +
+                        "and interactions. To share one, open it in the search tab and use Doses & effects.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                OutlinedButton(onClick = { launcherSubstance.launch(arrayOf("*/*")) }, Modifier.fillMaxWidth()) {
+                    Text("Import substance file")
+                }
+            }
             SectionCard("Automatic backups") {
                 if (backupDirUri == null) {
                     Text(
@@ -155,6 +169,22 @@ fun ExportBackupScreen(viewModel: ExportBackupViewModel = hiltViewModel()) {
         }
     }
 
+    if (substanceCollision != null) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissSubstanceCollision,
+            title = { Text("${substanceCollision.name} already exists") },
+            text = { Text("Replace the existing custom substance, or keep both under different names?") },
+            confirmButton = {
+                TextButton(onClick = { viewModel.resolveSubstanceCollision(replace = false) }) { Text("Keep both") }
+            },
+            dismissButton = {
+                Row {
+                    TextButton(onClick = viewModel::dismissSubstanceCollision) { Text("Cancel") }
+                    TextButton(onClick = { viewModel.resolveSubstanceCollision(replace = true) }) { Text("Replace") }
+                }
+            },
+        )
+    }
     if (showSubstanceDialog) {
         SubstanceFilterDialog(
             allNames = usedSubstanceNames,

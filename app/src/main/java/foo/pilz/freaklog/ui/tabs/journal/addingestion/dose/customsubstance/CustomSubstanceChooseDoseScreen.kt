@@ -82,6 +82,8 @@ fun CustomSubstanceChooseDoseScreen(
         substanceName = viewModel.substanceName,
         administrationRoute = viewModel.administrationRoute,
         doseText = viewModel.doseText,
+        roaDose = viewModel.roaDose,
+        currentDoseClass = viewModel.currentDoseClass,
         onChangeDoseText = viewModel::onDoseTextChange,
         estimatedDoseStandardDeviationText = viewModel.estimatedDoseDeviationText,
         onChangeEstimatedStandardDeviationText = viewModel::onEstimatedDoseStandardDeviationTextChange,
@@ -163,6 +165,8 @@ fun CustomSubstanceChooseDoseScreen(
     isValidPurity: Boolean,
     convertedDoseAndUnitText: String?,
     units: String,
+    roaDose: foo.pilz.freaklog.data.substances.classes.roa.RoaDose? = null,
+    currentDoseClass: foo.pilz.freaklog.data.substances.classes.roa.DoseClass? = null,
 ) {
     Scaffold(
         topBar = {
@@ -221,6 +225,12 @@ fun CustomSubstanceChooseDoseScreen(
                         vertical = 10.dp
                     )
                 ) {
+                    if (currentDoseClass != null && roaDose != null) {
+                        foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.CurrentDoseClassInfo(
+                            currentDoseClass,
+                            roaDose
+                        )
+                    }
                     val focusManager = LocalFocusManager.current
                     val textStyle = MaterialTheme.typography.titleMedium
                     OutlinedTextField(

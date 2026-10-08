@@ -56,6 +56,10 @@ interface CustomSubstanceDao {
     @Query("SELECT * FROM customsubstance ORDER BY name")
     suspend fun getAllWithEverything(): List<CustomSubstanceWithEverything>
 
+    @Transaction
+    @Query("SELECT * FROM customsubstance")
+    fun getAllWithEverythingFlow(): Flow<List<CustomSubstanceWithEverything>>
+
     @Query("SELECT name FROM customsubstance")
     suspend fun getAllNames(): List<String>
 

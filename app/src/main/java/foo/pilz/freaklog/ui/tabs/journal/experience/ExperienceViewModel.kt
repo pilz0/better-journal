@@ -77,6 +77,7 @@ class ExperienceViewModel @Inject constructor(
     private val substanceRepo: SubstanceRepository,
     private val interactionChecker: InteractionChecker,
     private val userPreferences: UserPreferences,
+    private val customProfiles: foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles,
     combinationSettingsStorage: CombinationSettingsStorage,
     state: SavedStateHandle,
     @ApplicationContext context: Context,
@@ -239,11 +240,16 @@ class ExperienceViewModel @Inject constructor(
         }
 
     private val ingestionsWithAssociatedDataFlow: Flow<List<IngestionWithAssociatedData>> =
-        sortedIngestionsWithCompanionsFlow.map { ingestionsWithComps ->
+        sortedIngestionsWithCompanionsFlow.combine(customProfiles.byNameFlow) { ingestionsWithComps, profiles ->
             ingestionsWithComps.map { oneIngestionWithComp ->
                 val ingestion = oneIngestionWithComp.ingestion
                 val roa = substanceRepo.getSubstance(oneIngestionWithComp.ingestion.substanceName)
                     ?.getRoa(ingestion.administrationRoute)
+                    ?: foo.pilz.freaklog.data.room.experiences.findRoa(
+                        profiles,
+                        ingestion.substanceName,
+                        ingestion.administrationRoute
+                    )
                 val roaDuration = roa?.roaDuration
                 IngestionWithAssociatedData(
                     ingestionWithCompanionAndCustomUnit = oneIngestionWithComp,

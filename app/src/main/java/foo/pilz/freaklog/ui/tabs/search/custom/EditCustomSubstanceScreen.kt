@@ -44,11 +44,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @Composable
 fun EditCustomSubstanceScreen(
     navigateBack: () -> Unit,
+    navigateToProfile: () -> Unit = {},
     viewModel: EditCustomSubstanceViewModel = hiltViewModel()
 ) {
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Edit custom substance") }, actions = {
+                TextButton(onClick = navigateToProfile) { Text("Doses & effects") }
                 var isShowingDeleteDialog by remember { mutableStateOf(false) }
                 IconButton(
                     onClick = { isShowingDeleteDialog = true },

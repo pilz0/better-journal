@@ -53,27 +53,27 @@ class EditCustomSubstanceViewModel @Inject constructor(
             val customSubstance =
                 experienceRepo.getCustomSubstanceFlow(customSubstanceId).firstOrNull() ?: return@launch
             id = customSubstanceId
+            loaded = customSubstance
             name = customSubstance.name
             units = customSubstance.units
             description = customSubstance.description
         }
     }
 
+    private var loaded: CustomSubstance? = null
+
     fun onDoneTap() {
         viewModelScope.launch {
-            val customSubstance = CustomSubstance(
-                id,
-                name,
-                units,
-                description
-            )
-            experienceRepo.insert(customSubstance)
+            // Update in place: a REPLACE insert deletes the row first, which would cascade to the
+            // substance's routes, interactions and cross-tolerances.
+            val base = loaded ?: CustomSubstance(id, name, units, description)
+            experienceRepo.update(base.copy(name = name, units = units, description = description))
         }
     }
 
     fun deleteCustomSubstance() {
         viewModelScope.launch {
-            experienceRepo.delete(CustomSubstance(id, name, units, description))
+            experienceRepo.delete(loaded ?: CustomSubstance(id, name, units, description))
         }
     }
 }
