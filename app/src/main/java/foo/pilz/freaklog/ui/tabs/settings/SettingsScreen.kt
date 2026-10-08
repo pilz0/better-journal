@@ -192,6 +192,8 @@ fun SettingsScreen(
         saveIsTimelineHidden = viewModel::saveIsTimelineHidden,
         timelineNotificationAutoStart = viewModel.isTimelineNotificationAutoStartFlow.collectAsState().value,
         saveTimelineNotificationAutoStart = viewModel::saveTimelineNotificationAutoStart,
+        excelSkinEnabled = viewModel.isExcelSkinEnabledFlow.collectAsState().value,
+        saveExcelSkinEnabled = viewModel::saveExcelSkinEnabled,
         heartRateEnabled = viewModel.isHeartRateEnabledFlow.collectAsState().value,
         onHeartRateEnabledChange = { enable ->
             when {
@@ -255,6 +257,8 @@ fun SettingsScreen(
     saveIsTimelineHidden: (Boolean) -> Unit,
     timelineNotificationAutoStart: Boolean = false,
     saveTimelineNotificationAutoStart: (Boolean) -> Unit = {},
+    excelSkinEnabled: Boolean = false,
+    saveExcelSkinEnabled: (Boolean) -> Unit = {},
     heartRateEnabled: Boolean = false,
     onHeartRateEnabledChange: (Boolean) -> Unit = {},
     areSubstanceHeightsIndependent: Boolean,
@@ -430,6 +434,15 @@ fun SettingsScreen(
                     onCheckedChange = {
                         performHaptic(HapticType.TOGGLE)
                         saveTimelineNotificationAutoStart(it)
+                    }
+                )
+                HorizontalDivider()
+                SettingsSwitchRow(
+                    text = "Spreadsheet disguise for statistics",
+                    checked = excelSkinEnabled,
+                    onCheckedChange = {
+                        performHaptic(HapticType.TOGGLE)
+                        saveExcelSkinEnabled(it)
                     }
                 )
                 HorizontalDivider()

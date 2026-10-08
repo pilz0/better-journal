@@ -54,6 +54,16 @@ class SettingsViewModel @Inject constructor(
         userPreferences.saveAreSubstanceHeightsIndependent(value)
     }
 
+    fun saveExcelSkinEnabled(value: Boolean) = viewModelScope.launch {
+        userPreferences.saveExcelSkinEnabled(value)
+    }
+
+    val isExcelSkinEnabledFlow = userPreferences.isExcelSkinEnabledFlow.stateIn(
+        initialValue = false,
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000)
+    )
+
     fun saveHeartRateEnabled(value: Boolean) = viewModelScope.launch {
         userPreferences.saveHeartRateEnabled(value)
     }

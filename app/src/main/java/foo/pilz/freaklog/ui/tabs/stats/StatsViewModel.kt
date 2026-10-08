@@ -48,8 +48,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class StatsViewModel @Inject constructor(
-    experienceRepo: ExperienceRepository
+    experienceRepo: ExperienceRepository,
+    userPreferences: foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences,
 ) : ViewModel() {
+
+    val isExcelSkinEnabledFlow = userPreferences.isExcelSkinEnabledFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = false
+    )
 
     private val _optionFlow = MutableStateFlow(TimePickerOption.WEEKS_26)
     private val optionFlow = _optionFlow.asStateFlow()

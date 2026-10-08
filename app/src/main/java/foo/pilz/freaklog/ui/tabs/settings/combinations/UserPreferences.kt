@@ -67,6 +67,7 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
         val TIMELINE_NOTIFICATION_AUTO_START = booleanPreferencesKey("timeline_notification_auto_start")
         val ACTIVE_NOTIFICATION_EXPERIENCE_ID = intPreferencesKey("active_notification_experience_id")
         val HEART_RATE_ENABLED = booleanPreferencesKey("heart_rate_enabled")
+        val EXCEL_SKIN_ENABLED = booleanPreferencesKey("excel_skin_enabled")
         val BACKUP_DIR_URI = stringPreferencesKey("backup_dir_uri")
         val BACKUP_PASSWORD_SEALED = stringPreferencesKey("backup_password_sealed")
         val LAST_BACKUP_TIME = longPreferencesKey("last_backup_time")
@@ -275,6 +276,14 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
 
     suspend fun saveHeartRateEnabled(value: Boolean) {
         dataStore.edit { it[PreferencesKeys.HEART_RATE_ENABLED] = value }
+    }
+
+    /** Opt-in easter egg: statistics can be shown disguised as a spreadsheet. */
+    val isExcelSkinEnabledFlow: Flow<Boolean> = dataStore.data
+        .map { it[PreferencesKeys.EXCEL_SKIN_ENABLED] ?: false }
+
+    suspend fun saveExcelSkinEnabled(value: Boolean) {
+        dataStore.edit { it[PreferencesKeys.EXCEL_SKIN_ENABLED] = value }
     }
 
     val backupDirUriFlow: Flow<String?> = dataStore.data.map { it[PreferencesKeys.BACKUP_DIR_URI] }
