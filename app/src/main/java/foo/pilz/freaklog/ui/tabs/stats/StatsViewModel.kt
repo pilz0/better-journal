@@ -292,7 +292,8 @@ class StatsViewModel @Inject constructor(
         }
     }
 
-    private fun showExcelSkin() {
+    /** Also opened by hand from the statistics top bar, independent of ultra fun mode. */
+    fun showExcelSkin() {
         val fileName = randomExcelFileName()
         viewModelScope.launch {
             var started = false

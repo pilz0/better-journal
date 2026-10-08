@@ -36,6 +36,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.GridOn
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.ButtonDefaults
@@ -92,6 +93,7 @@ fun StatsScreen(
         statsModel = statsModel,
         onChangeConsumerName = viewModel::onChangeConsumer,
         consumerNamesSorted = viewModel.sortedConsumerNamesFlow.collectAsState().value,
+        onOpenSpreadsheet = viewModel::showExcelSkin,
     )
 }
 
@@ -123,6 +125,7 @@ fun StatsScreen(
     statsModel: StatsModel,
     onChangeConsumerName: (String?) -> Unit,
     consumerNamesSorted: List<String>,
+    onOpenSpreadsheet: () -> Unit = {},
 ) {
     val performHaptic = rememberHaptic()
     
@@ -131,6 +134,9 @@ fun StatsScreen(
             TopAppBar(
                 title = { Text(if (statsModel.consumerName == null) "Statistics" else "Statistics for ${statsModel.consumerName}") },
                 actions = {
+                    IconButton(onClick = onOpenSpreadsheet) {
+                        Icon(Icons.Outlined.GridOn, contentDescription = "Show as spreadsheet")
+                    }
                     if (consumerNamesSorted.isNotEmpty()) {
                         var isConsumerSelectionExpanded by remember { mutableStateOf(false) }
                         IconButton(onClick = { 

@@ -196,6 +196,18 @@ fun AddIngestionSearchScreen(
                 singleLine = true
             )
             LazyColumn {
+                if (filteredSubstanceGroups.isNotEmpty()) {
+                    stickyHeader {
+                        SectionHeader(title = "Substance groups")
+                    }
+                    items(filteredSubstanceGroups, key = { "sg_${it.group.id}" }) { group ->
+                        SubstanceGroupRow(
+                            group = group,
+                            onTap = { navigateToSubstanceGroupFinish(group.group.id) },
+                        )
+                        HorizontalDivider()
+                    }
+                }
                 if (suggestions.isNotEmpty()) {
                     stickyHeader {
                         SectionHeader(title = "Quick logging")
@@ -229,18 +241,6 @@ fun AddIngestionSearchScreen(
                         navigateToCustomSubstanceChooseRoute(customSubstance.name)
                     })
                     if (index < filteredCustomSubstances.size - 1) {
-                        HorizontalDivider()
-                    }
-                }
-                if (filteredSubstanceGroups.isNotEmpty()) {
-                    stickyHeader {
-                        SectionHeader(title = "Substance groups")
-                    }
-                    items(filteredSubstanceGroups, key = { "sg_${it.group.id}" }) { group ->
-                        SubstanceGroupRow(
-                            group = group,
-                            onTap = { navigateToSubstanceGroupFinish(group.group.id) },
-                        )
                         HorizontalDivider()
                     }
                 }

@@ -4,6 +4,7 @@ import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.widget.RemoteViews
 import androidx.compose.ui.graphics.toArgb
@@ -16,9 +17,7 @@ import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanion
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.DataForOneEffectLine
-import foo.pilz.freaklog.ui.tabs.journal.experience.components.TimeDisplayOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.AllTimelinesModel
-import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.renderTimelineToBitmap
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import kotlinx.coroutines.flow.first
 import java.time.Instant
@@ -66,13 +65,16 @@ class TimelineNotificationRenderer(
             PhaseCalculator.currentPhase(it.startTime, it.roaDuration, it.endTime)
         }
         val displayMetrics = context.resources.displayMetrics
-        val bitmap = renderTimelineToBitmap(
-            context = context,
+        // Drawn straight onto a Canvas: a service has no window, so a ComposeView cannot be measured here.
+        val isDarkTheme = context.resources.configuration.uiMode and
+            Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+        val bitmap = TimelineBitmapRenderer.render(
             model = model,
-            timeDisplayOption = TimeDisplayOption.REGULAR,
-            isShowingCurrentTime = true,
-            width = (BITMAP_WIDTH_DP * displayMetrics.density).toInt(),
-            height = (BITMAP_HEIGHT_DP * displayMetrics.density).toInt(),
+            widthPx = (BITMAP_WIDTH_DP * displayMetrics.density).toInt(),
+            heightPx = (BITMAP_HEIGHT_DP * displayMetrics.density).toInt(),
+            currentTime = now,
+            density = displayMetrics.density,
+            isDarkTheme = isDarkTheme,
         )
         val lines = dataForEffectLines.indices.map {
             toNotificationLine(dataForEffectLines[it], phaseResults[it], sorted[it].ingestion)
