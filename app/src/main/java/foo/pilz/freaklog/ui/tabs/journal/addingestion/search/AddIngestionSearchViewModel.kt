@@ -18,6 +18,7 @@
 
 package foo.pilz.freaklog.ui.tabs.journal.addingestion.search
 
+import foo.pilz.freaklog.data.room.experiences.SubstanceGroupRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
@@ -45,6 +46,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AddIngestionSearchViewModel @Inject constructor(
     experienceRepo: ExperienceRepository,
+    substanceGroupRepo: SubstanceGroupRepository,
     val substanceRepo: SubstanceRepository,
     private val searchRepo: SearchRepository,
 ) : ViewModel() {
@@ -74,6 +76,18 @@ class AddIngestionSearchViewModel @Inject constructor(
     )
 
     private val customUnitsFlow = experienceRepo.getCustomUnitsFlow(false)
+
+    val filteredSubstanceGroupsFlow =
+        substanceGroupRepo.getGroupsWithItemsFlow().combine(searchTextFlow) { groups, searchText ->
+            if (searchText.isBlank()) {
+                groups
+            } else {
+                groups.filter { group ->
+                    group.group.name.contains(searchText, ignoreCase = true) ||
+                        group.items.any { it.substanceName.contains(searchText, ignoreCase = true) }
+                }
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val filteredCustomUnitsFlow = combine(
         customUnitsFlow,

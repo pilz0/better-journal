@@ -18,6 +18,14 @@
 
 package foo.pilz.freaklog.ui.tabs.settings.colors
 
+import foo.pilz.freaklog.data.substanceshare.parseAndImportColors
+import foo.pilz.freaklog.data.substanceshare.SharedSubstanceColor
+import foo.pilz.freaklog.data.substanceshare.ImportFailure
+import foo.pilz.freaklog.data.substanceshare.ColorImportResult
+import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
+import androidx.compose.ui.graphics.toArgb
+import android.net.Uri
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
@@ -35,7 +43,39 @@ import javax.inject.Inject
 @HiltViewModel
 class SubstanceColorsViewModel @Inject constructor(
     private val experienceRepository: ExperienceRepository,
+    private val substanceRepository: SubstanceRepository,
 ) : ViewModel() {
+
+    private val _snackbar = MutableStateFlow<String?>(null)
+    val snackbar: StateFlow<String?> = _snackbar
+
+    /** Colours of the built-in substances, in the file format the upstream app also reads. */
+    fun colorsForExport(): List<SharedSubstanceColor> =
+        _substanceCompanionsFlow.value
+            .filter { substanceRepository.getSubstance(it.substanceName) != null }
+            .map { SharedSubstanceColor(it.substanceName, it.getDisplayColor().toArgb()) }
+
+    fun importColors(context: Context, uri: Uri) {
+        viewModelScope.launch {
+            _snackbar.value = when (val result = parseAndImportColors(context, uri, experienceRepository)) {
+                is ColorImportResult.Imported -> if (result.skipped > 0) {
+                    "Imported ${result.applied} colors, ${result.skipped} skipped"
+                } else {
+                    "Imported ${result.applied} colors"
+                }
+
+                is ColorImportResult.Failed -> when (result.reason) {
+                    ImportFailure.OpenStream -> "Could not open file"
+                    ImportFailure.Parse -> "Invalid colors file"
+                    ImportFailure.UnsupportedFormat -> "Unsupported file format"
+                }
+            }
+        }
+    }
+
+    fun consumeSnackbar() {
+        _snackbar.value = null
+    }
 
     private val _substanceCompanionsFlow = MutableStateFlow<List<SubstanceCompanion>>(emptyList())
     val substanceCompanionsFlow: StateFlow<List<SubstanceCompanion>> = _substanceCompanionsFlow

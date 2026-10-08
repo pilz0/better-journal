@@ -1,54 +1,106 @@
-/*
- * Copyright (c) 2022. Isaak Hanimann.
- * This file is part of PsychonautWiki Journal.
- *
- * PsychonautWiki Journal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or (at
- * your option) any later version.
- *
- * PsychonautWiki Journal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with PsychonautWiki Journal.  If not, see https://www.gnu.org/licenses/gpl-3.0.en.html.
- */
-
 package foo.pilz.freaklog.ui.tabs.search.custom
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import foo.pilz.freaklog.data.room.experiences.CustomSubstanceRepository
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
-import dagger.hilt.android.lifecycle.HiltViewModel
+import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
+import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithEverything
+import foo.pilz.freaklog.data.substances.classes.IngestionCategory
+import foo.pilz.freaklog.ui.utils.stateInVm
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AddCustomSubstanceViewModel @Inject constructor(
     val experienceRepo: ExperienceRepository,
+    private val customRepo: CustomSubstanceRepository,
 ) : ViewModel() {
 
-    var name by mutableStateOf("")
-    var units by mutableStateOf("")
-    var description by mutableStateOf("")
+    private val _idFlow = MutableStateFlow<Int?>(null)
+    val idFlow = _idFlow.asStateFlow()
 
-    val isValid get() = name.isNotBlank() && units.isNotBlank()
+    val nameFlow = MutableStateFlow("")
+    val unitsFlow = MutableStateFlow("")
+    val summaryFlow = MutableStateFlow("")
+    val categoryFlow = MutableStateFlow<IngestionCategory?>(null)
 
-    fun addCustomSubstance(onDone: (customSubstanceName: String) -> Unit) {
+    val substanceFlow = _idFlow
+        .flatMapLatest { id ->
+            if (id == null) flowOf(null) else customRepo.getWithEverythingFlow(id)
+        }
+        .stateInVm(viewModelScope, null as CustomSubstanceWithEverything?)
+
+    init {
         viewModelScope.launch {
-            val customSubstance = CustomSubstance(
-                name = name,
-                units = units,
-                description = description
+            val stub = CustomSubstance(name = "", units = "", description = "")
+            _idFlow.value = experienceRepo.insert(stub)
+        }
+    }
+
+    fun onNameChange(value: String) {
+        nameFlow.value = value
+        persistSubstance()
+    }
+
+    fun onUnitsChange(value: String) {
+        unitsFlow.value = value
+        persistSubstance()
+    }
+
+    fun onSummaryChange(value: String) {
+        summaryFlow.value = value
+        persistSubstance()
+    }
+
+    fun onCategoryChange(value: IngestionCategory?) {
+        categoryFlow.value = value
+        persistCategory()
+    }
+
+    private fun persistSubstance() {
+        viewModelScope.launch {
+            val current = substanceFlow.value?.substance ?: return@launch
+            val newName = nameFlow.value
+            val newUnits = unitsFlow.value
+            if (current.name != newName && newName.isNotBlank()) {
+                customRepo.renameCustom(current.name, newName)
+            }
+            if (current.units != newUnits) {
+                customRepo.setAllRoaDoseUnits(current.id, newUnits)
+            }
+            val updated = current.copy(
+                name = newName,
+                units = newUnits,
+                description = "",
+                summary = summaryFlow.value.ifBlank { null },
             )
-            experienceRepo.insert(customSubstance)
-            onDone(name)
+            experienceRepo.update(updated)
+        }
+    }
+
+    private fun persistCategory() {
+        viewModelScope.launch {
+            val name = nameFlow.value
+            if (name.isBlank()) return@launch
+            val companion = experienceRepo.getSubstanceCompanion(name)
+                ?: SubstanceCompanion(name)
+            experienceRepo.upsert(companion.copy(defaultCategory = categoryFlow.value))
+        }
+    }
+
+    fun deleteDraft() {
+        viewModelScope.launch {
+            val current = substanceFlow.value?.substance ?: return@launch
+            experienceRepo.delete(current)
         }
     }
 }

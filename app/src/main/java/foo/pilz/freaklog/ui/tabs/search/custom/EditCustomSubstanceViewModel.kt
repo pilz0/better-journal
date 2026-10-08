@@ -1,79 +1,123 @@
-/*
- * Copyright (c) 2022. Isaak Hanimann.
- * This file is part of PsychonautWiki Journal.
- *
- * PsychonautWiki Journal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or (at
- * your option) any later version.
- *
- * PsychonautWiki Journal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with PsychonautWiki Journal.  If not, see https://www.gnu.org/licenses/gpl-3.0.en.html.
- */
-
 package foo.pilz.freaklog.ui.tabs.search.custom
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
-import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
-import foo.pilz.freaklog.ui.main.navigation.graphs.EditCustomSubstanceRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.firstOrNull
+import foo.pilz.freaklog.data.room.experiences.CustomSubstanceRepository
+import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
+import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
+import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithEverything
+import foo.pilz.freaklog.data.substances.classes.IngestionCategory
+import foo.pilz.freaklog.data.substanceshare.shareCustomSubstance
+import foo.pilz.freaklog.ui.main.navigation.graphs.EditCustomSubstanceRoute
+import foo.pilz.freaklog.ui.utils.stateInVm
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class EditCustomSubstanceViewModel @Inject constructor(
     val experienceRepo: ExperienceRepository,
-    state: SavedStateHandle
+    private val customRepo: CustomSubstanceRepository,
+    state: SavedStateHandle,
 ) : ViewModel() {
 
-    var id = 0
-    var name by mutableStateOf("")
-    var units by mutableStateOf("")
-    var description by mutableStateOf("")
+    val id = state.toRoute<EditCustomSubstanceRoute>().customSubstanceId
 
-    val isValid get() = name.isNotBlank() && units.isNotBlank()
+    val substanceFlow = customRepo.getWithEverythingFlow(id)
+        .stateInVm(viewModelScope, null as CustomSubstanceWithEverything?)
+
+    val nameFlow = MutableStateFlow("")
+    val unitsFlow = MutableStateFlow("")
+    val summaryFlow = MutableStateFlow("")
+    val categoryFlow = MutableStateFlow<IngestionCategory?>(null)
+
+    private var hasHydrated = false
 
     init {
-        val editCustomSubstanceRoute = state.toRoute<EditCustomSubstanceRoute>()
-        val customSubstanceId = editCustomSubstanceRoute.customSubstanceId
         viewModelScope.launch {
-            val customSubstance =
-                experienceRepo.getCustomSubstanceFlow(customSubstanceId).firstOrNull() ?: return@launch
-            id = customSubstanceId
-            loaded = customSubstance
-            name = customSubstance.name
-            units = customSubstance.units
-            description = customSubstance.description
+            substanceFlow.collect { sub ->
+                if (sub != null && !hasHydrated) {
+                    nameFlow.value = sub.substance.name
+                    unitsFlow.value = sub.substance.units
+                    summaryFlow.value = sub.substance.summary
+                        ?: sub.substance.description.takeIf { it.isNotBlank() }
+                                ?: ""
+                    categoryFlow.value = experienceRepo
+                        .getSubstanceCompanion(sub.substance.name)?.defaultCategory
+                    hasHydrated = true
+                }
+            }
         }
     }
 
-    private var loaded: CustomSubstance? = null
+    fun onNameChange(value: String) {
+        nameFlow.value = value
+        persistSubstance()
+    }
 
-    fun onDoneTap() {
+    fun onUnitsChange(value: String) {
+        unitsFlow.value = value
+        persistSubstance()
+    }
+
+    fun onSummaryChange(value: String) {
+        summaryFlow.value = value
+        persistSubstance()
+    }
+
+    fun onCategoryChange(value: IngestionCategory?) {
+        categoryFlow.value = value
+        persistCategory()
+    }
+
+    private fun persistSubstance() {
+        if (!hasHydrated) return
         viewModelScope.launch {
-            // Update in place: a REPLACE insert deletes the row first, which would cascade to the
-            // substance's routes, interactions and cross-tolerances.
-            val base = loaded ?: CustomSubstance(id, name, units, description)
-            experienceRepo.update(base.copy(name = name, units = units, description = description))
+            val current = substanceFlow.value?.substance ?: return@launch
+            val newName = nameFlow.value
+            val newUnits = unitsFlow.value
+            if (current.name != newName && newName.isNotBlank()) {
+                customRepo.renameCustom(current.name, newName)
+            }
+            if (current.units != newUnits) {
+                customRepo.setAllRoaDoseUnits(current.id, newUnits)
+            }
+            val updated = current.copy(
+                name = newName,
+                units = newUnits,
+                description = "",
+                summary = summaryFlow.value.ifBlank { null },
+            )
+            experienceRepo.update(updated)
+        }
+    }
+
+    private fun persistCategory() {
+        if (!hasHydrated) return
+        viewModelScope.launch {
+            val name = nameFlow.value
+            val companion = experienceRepo.getSubstanceCompanion(name)
+                ?: SubstanceCompanion(name)
+            experienceRepo.upsert(companion.copy(defaultCategory = categoryFlow.value))
+        }
+    }
+
+    fun share(context: Context) {
+        viewModelScope.launch {
+            val current = customRepo.getWithEverything(id) ?: return@launch
+            shareCustomSubstance(context, current)
         }
     }
 
     fun deleteCustomSubstance() {
         viewModelScope.launch {
-            experienceRepo.delete(loaded ?: CustomSubstance(id, name, units, description))
+            val current = substanceFlow.value?.substance ?: return@launch
+            experienceRepo.delete(current)
         }
     }
 }

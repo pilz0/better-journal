@@ -52,7 +52,7 @@ import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
 
 @TypeConverters(InstantConverter::class, AdaptiveColorConverter::class, AdministrationRouteConverter::class)
 @Database(
-    version = 26,
+    version = 27,
     entities = [
         Experience::class,
         Ingestion::class,
@@ -76,6 +76,9 @@ import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
         foo.pilz.freaklog.data.room.experiences.entities.CustomRoaDuration::class,
         foo.pilz.freaklog.data.room.experiences.entities.CustomInteraction::class,
         foo.pilz.freaklog.data.room.experiences.entities.CustomCrossTolerance::class,
+        foo.pilz.freaklog.data.room.experiences.entities.CustomCategoryAssignment::class,
+        foo.pilz.freaklog.data.room.experiences.entities.SubstanceGroup::class,
+        foo.pilz.freaklog.data.room.experiences.entities.SubstanceGroupItem::class,
         foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading::class
     ],
     autoMigrations = [
@@ -102,6 +105,7 @@ import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
         AutoMigration (from = 23, to = 24),
         AutoMigration (from = 24, to = 25),
         AutoMigration (from = 25, to = 26),
+        AutoMigration (from = 26, to = 27),
     ]
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -113,7 +117,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun webhookDao(): WebhookDao
     abstract fun ingestionWebhookMessageDao(): IngestionWebhookMessageDao
     abstract fun customFormulationDao(): foo.pilz.freaklog.data.room.experiences.CustomFormulationDao
-    abstract fun customSubstanceDao(): foo.pilz.freaklog.data.room.experiences.CustomSubstanceDao
 
     /**
      * Legacy reminders (schema ≤ 16) only had interval-based scheduling. The v17 schema adds
@@ -161,7 +164,7 @@ abstract class AppDatabase : RoomDatabase() {
          * on the `@Database` annotation above. Exposed for migration tests so
          * they don't have to hard-code the value.
          */
-        const val LATEST_SCHEMA_VERSION: Int = 26
+        const val LATEST_SCHEMA_VERSION: Int = 27
 
         /**
          * Installs change-log triggers on the Ingestion table. Called from both

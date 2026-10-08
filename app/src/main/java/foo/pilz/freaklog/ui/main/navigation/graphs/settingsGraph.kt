@@ -18,6 +18,14 @@
 
 package foo.pilz.freaklog.ui.main.navigation.graphs
 
+import foo.pilz.freaklog.ui.tabs.settings.substancegroups.edit.EditSubstanceGroupScreen
+import foo.pilz.freaklog.ui.tabs.settings.substancegroups.edit.AddSubstanceGroupScreen
+import foo.pilz.freaklog.ui.tabs.settings.substancegroups.edit.AddGroupItemPickerScreen
+import foo.pilz.freaklog.ui.tabs.settings.substancegroups.edit.AddGroupItemConfigScreen
+import foo.pilz.freaklog.ui.tabs.settings.substancegroups.SubstanceGroupsScreen
+import foo.pilz.freaklog.ui.tabs.settings.customsubstances.CustomSubstancesScreen
+import foo.pilz.freaklog.ui.tabs.search.custom.AddCustomSubstanceScreen
+import androidx.navigation.toRoute
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigation
@@ -60,6 +68,8 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
                 navigateToCustomUnits = {
                     navController.navigate(CustomUnitsRoute)
                 },
+                navigateToCustomSubstances = { navController.navigate(CustomSubstancesRoute) },
+                navigateToSubstanceGroups = { navController.navigate(SubstanceGroupsRoute) },
                 navigateToCustomFormulations = {
                     navController.navigate(CustomFormulationsRoute)
                 },
@@ -84,6 +94,77 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
                 navigateToAiAssistantSettings = {
                     navController.navigate(AiAssistantSettingsRoute)
                 }
+            )
+        }
+        composableWithTransitions<CustomSubstancesRoute> {
+            CustomSubstancesScreen(
+                navigateToAddCustomSubstance = { navController.navigate(AddCustomSubstanceRouteOnSettingsGraph) },
+                navigateToEditCustomSubstance = { id -> navController.navigate(EditCustomSubstanceRoute(id)) },
+            )
+        }
+        composableWithTransitions<AddCustomSubstanceRouteOnSettingsGraph> {
+            AddCustomSubstanceScreen(
+                navigateBack = navController::popBackStack,
+                navigateToCustomDurationScreen = { substanceId, substanceName ->
+                    navController.navigate(CustomDurationRoute(substanceId, substanceName))
+                },
+                navigateToCategoriesPicker = { id ->
+                    navController.navigate(CustomCategoriesPickerRoute(id))
+                },
+                navigateToInteractionsList = { id ->
+                    navController.navigate(CustomInteractionsListRoute(id))
+                },
+                navigateToToleranceEditor = { id ->
+                    navController.navigate(CustomToleranceEditorRoute(id))
+                },
+                navigateToRisksEditor = { id ->
+                    navController.navigate(CustomRisksEditorRoute(id))
+                },
+            )
+        }
+        composableWithTransitions<SubstanceGroupsRoute> {
+            SubstanceGroupsScreen(
+                navigateToAddSubstanceGroup = { navController.navigate(AddSubstanceGroupRoute) },
+                navigateToEditSubstanceGroup = { id -> navController.navigate(EditSubstanceGroupRoute(id)) },
+            )
+        }
+        composableWithTransitions<AddSubstanceGroupRoute> {
+            AddSubstanceGroupScreen(
+                navigateBack = navController::popBackStack,
+                navigateToAddItem = { groupId -> navController.navigate(AddGroupItemPickerRoute(groupId)) },
+            )
+        }
+        composableWithTransitions<EditSubstanceGroupRoute> {
+            EditSubstanceGroupScreen(
+                navigateBack = navController::popBackStack,
+                navigateToAddItem = { groupId -> navController.navigate(AddGroupItemPickerRoute(groupId)) },
+            )
+        }
+        composableWithTransitions<AddGroupItemPickerRoute> { backStackEntry ->
+            val pickerRoute = backStackEntry.toRoute<AddGroupItemPickerRoute>()
+            AddGroupItemPickerScreen(
+                navigateBack = navController::popBackStack,
+                navigateToConfig = { substanceName, isCustom ->
+                    navController.navigate(
+                        AddGroupItemConfigRoute(
+                            groupId = pickerRoute.groupId,
+                            substanceName = substanceName,
+                            isCustomSubstance = isCustom,
+                        )
+                    )
+                },
+            )
+        }
+        composableWithTransitions<AddGroupItemConfigRoute> { backStackEntry ->
+            val configRoute = backStackEntry.toRoute<AddGroupItemConfigRoute>()
+            AddGroupItemConfigScreen(
+                navigateBack = navController::popBackStack,
+                onSaved = {
+                    navController.popBackStack(
+                        route = AddGroupItemPickerRoute(configRoute.groupId),
+                        inclusive = true,
+                    )
+                },
             )
         }
         composableWithTransitions<AiAssistantSettingsRoute> {
@@ -235,3 +316,28 @@ object CustomFormulationsRoute
 
 @Serializable
 object AddCustomFormulationRoute
+
+@Serializable
+object CustomSubstancesRoute
+
+@Serializable
+object AddCustomSubstanceRouteOnSettingsGraph
+
+@Serializable
+object SubstanceGroupsRoute
+
+@Serializable
+object AddSubstanceGroupRoute
+
+@Serializable
+data class EditSubstanceGroupRoute(val groupId: Int)
+
+@Serializable
+data class AddGroupItemPickerRoute(val groupId: Int)
+
+@Serializable
+data class AddGroupItemConfigRoute(
+    val groupId: Int,
+    val substanceName: String,
+    val isCustomSubstance: Boolean,
+)

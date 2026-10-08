@@ -18,6 +18,8 @@
 
 package foo.pilz.freaklog.data.substances.classes.roa
 
+import kotlin.math.max
+
 data class RoaDuration(
     val onset: DurationRange?,
     val comeup: DurationRange?,
@@ -25,4 +27,11 @@ data class RoaDuration(
     val offset: DurationRange?,
     val total: DurationRange?,
     val afterglow: DurationRange?
-)
+) {
+    fun totalDurationInSeconds(weight: Float, withAfterglow: Boolean): Float {
+        val phases = listOfNotNull(onset, comeup, peak, offset, afterglow.takeIf { withAfterglow })
+            .sumOf { it.interpolateAtValueInSeconds(weight)?.toDouble() ?: 0.0 }
+            .toFloat()
+        return max(total?.interpolateAtValueInSeconds(weight) ?: 0f, phases)
+    }
+}

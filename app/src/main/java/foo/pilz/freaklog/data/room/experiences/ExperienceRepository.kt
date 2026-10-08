@@ -18,6 +18,12 @@
 
 package foo.pilz.freaklog.data.room.experiences
 
+import foo.pilz.freaklog.data.room.experiences.entities.SubstanceGroup
+import foo.pilz.freaklog.data.room.experiences.entities.CustomRoa
+import foo.pilz.freaklog.data.room.experiences.entities.CustomRoaDose
+import foo.pilz.freaklog.data.room.experiences.entities.CustomRoaDuration
+import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithDurations
+import foo.pilz.freaklog.data.room.experiences.relations.SubstanceGroupWithItems
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import foo.pilz.freaklog.data.export.JournalExport
@@ -52,7 +58,6 @@ import kotlinx.coroutines.flow.flowOn
 
 @Singleton
 class ExperienceRepository @Inject constructor(
-    private val customSubstanceDao: CustomSubstanceDao,
     private val experienceDao: ExperienceDao,
     private val reminderDao: ReminderDao,
     private val webhookDao: foo.pilz.freaklog.data.room.webhooks.WebhookDao,
@@ -106,16 +111,26 @@ class ExperienceRepository @Inject constructor(
         experienceDao.insertEverything(journalExport)
         journalExport.reminders.forEach { reminderDao.insert(it) }
         journalExport.webhooks.forEach { webhookDao.insert(it.toEntity()) }
+        val validCustomUnitIds = journalExport.customUnits.map { it.id }.toSet()
+        journalExport.substanceGroups.forEach { group ->
+            experienceDao.insertSubstanceGroupWithItems(
+                group = SubstanceGroup(name = group.name),
+                items = group.items.map { item ->
+                    item.copy(customUnitId = item.customUnitId?.takeIf { it in validCustomUnitIds })
+                },
+            )
+        }
         // The substance rows were just inserted with new ids; attach each one's details by name.
         journalExport.customSubstanceDetails.forEach { shared ->
-            val substanceId = customSubstanceDao.getWithEverythingByName(shared.name)?.substance?.id
+            val substanceId = experienceDao.getCustomSubstanceWithEverythingByName(shared.name)?.substance?.id
                 ?: return@forEach
             val expansion = shared.expand()
-            expansion.roas.forEach { customSubstanceDao.insert(it.copy(customSubstanceId = substanceId)) }
-            expansion.doses.forEach { customSubstanceDao.insert(it.copy(customSubstanceId = substanceId)) }
-            expansion.durations.forEach { customSubstanceDao.insert(it.copy(customSubstanceId = substanceId)) }
-            expansion.interactions.forEach { customSubstanceDao.insert(it.copy(customSubstanceId = substanceId)) }
-            expansion.crossTolerances.forEach { customSubstanceDao.insert(it.copy(customSubstanceId = substanceId)) }
+            expansion.roas.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
+            expansion.doses.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
+            expansion.durations.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
+            expansion.interactions.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
+            expansion.categories.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
+            expansion.crossTolerances.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
         }
         notifyJournalChanged()
     }
@@ -376,7 +391,7 @@ class ExperienceRepository @Inject constructor(
 
     /** Details of every custom substance that has any; substances with only a name are left out. */
     suspend fun getAllCustomSubstanceDetails(): List<foo.pilz.freaklog.data.substanceshare.SharedSubstance> =
-        customSubstanceDao.getAllWithEverything()
+        experienceDao.getAllCustomSubstancesWithEverything()
             .filter {
                 it.roas.isNotEmpty() || it.doses.isNotEmpty() || it.durations.isNotEmpty() ||
                     it.interactions.isNotEmpty() || it.crossTolerances.isNotEmpty()
@@ -390,4 +405,143 @@ class ExperienceRepository @Inject constructor(
         experienceDao.getBloodPressureReadingsFlow(experienceId).flowOn(Dispatchers.IO).conflate()
     suspend fun getAllBloodPressureReadings(): List<foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading> =
         experienceDao.getAllBloodPressureReadings()
+
+    suspend fun upsert(substanceCompanion: SubstanceCompanion) =
+        experienceDao.upsert(substanceCompanion)
+
+    fun getCustomSubstanceFlow(name: String): Flow<CustomSubstance?> =
+        experienceDao.getCustomSubstanceFlow(name)
+
+    suspend fun getCustomSubstanceWithDurations(id: Int): CustomSubstanceWithDurations? =
+        experienceDao.getCustomSubstanceWithDurations(id)
+
+    suspend fun getAllCustomRoaDurations(): List<CustomRoaDuration> =
+        experienceDao.getAllCustomRoaDurations()
+
+    fun getAllCustomRoaDurationsFlow(): Flow<List<CustomRoaDuration>> =
+        experienceDao.getAllCustomRoaDurationsFlow()
+
+    suspend fun getCustomRoaDurations(substanceId: Int): List<CustomRoaDuration> =
+        experienceDao.getCustomRoaDurations(substanceId)
+
+    suspend fun getCustomRoaDurations(substanceName: String): List<CustomRoaDuration> =
+        experienceDao.getCustomRoaDurations(substanceName)
+
+    fun getCustomRoaDurationsFlow(substanceId: Int): Flow<List<CustomRoaDuration>> =
+        experienceDao.getCustomRoaDurationsFlow(substanceId)
+
+    suspend fun getAllIngestionsWithCompanions(): List<IngestionWithCompanion> =
+        experienceDao.getAllIngestionsWithCompanions()
+
+    fun getMaxExperienceIdFlow(): Flow<Int?> = experienceDao.getMaxExperienceIdFlow()
+        .flowOn(Dispatchers.IO)
+        .conflate()
+
+    suspend fun getIngestionsWithCompanionsSince(since: Instant) =
+        experienceDao.getIngestionsWithCompanionsSince(since)
+
+    suspend fun getAllStandaloneIngestions(): List<Ingestion> =
+        experienceDao.getAllStandaloneIngestions()
+
+    suspend fun getCustomUnitsByIds(ids: List<Int>): List<CustomUnit> =
+        if (ids.isEmpty()) emptyList() else experienceDao.getCustomUnitsByIds(ids)
+
+    suspend fun findMatchingCustomUnit(
+        substanceName: String,
+        name: String,
+        route: foo.pilz.freaklog.data.substances.AdministrationRoute,
+    ): CustomUnit? = experienceDao.findCustomUnitByKey(substanceName, name, route)
+
+    fun getAllExperiencesFlow() =
+        experienceDao.getAllExperiencesFlow()
+            .flowOn(Dispatchers.IO)
+            .conflate()
+
+    fun getAllCustomCategoryAssignmentsFlow() =
+        experienceDao.getAllCustomCategoryAssignmentsFlow()
+            .flowOn(Dispatchers.IO)
+            .conflate()
+
+    fun getCustomInteractionCountsFlow() =
+        experienceDao.getCustomInteractionCountsFlow()
+            .flowOn(Dispatchers.IO)
+            .conflate()
+
+    suspend fun getAllCustomSubstancesWithRoaDurations(): List<CustomSubstanceWithDurations> =
+        experienceDao.getAllCustomSubstancesWithRoaDurations()
+
+    suspend fun getAllSubstanceGroupsWithItems(): List<SubstanceGroupWithItems> =
+        experienceDao.getSubstanceGroupsWithItems()
+
+    suspend fun getSubstanceCompanion(substanceName: String): SubstanceCompanion? =
+        experienceDao.getSubstanceCompanion(substanceName)
+
+    suspend fun insert(customRoaDuration: CustomRoaDuration): Int =
+        experienceDao.insert(customRoaDuration).toInt()
+
+    suspend fun delete(customRoaDuration: CustomRoaDuration) =
+        experienceDao.delete(customRoaDuration)
+
+    suspend fun update(customRoaDuration: CustomRoaDuration) =
+        experienceDao.update(customRoaDuration)
+
+    suspend fun insert(customRoaDose: CustomRoaDose) =
+        experienceDao.insert(customRoaDose)
+
+    suspend fun update(customRoaDose: CustomRoaDose) =
+        experienceDao.update(customRoaDose)
+
+    suspend fun delete(customRoaDose: CustomRoaDose) =
+        experienceDao.delete(customRoaDose)
+
+    suspend fun upsertCustomRoaDose(substanceId: Int, dose: CustomRoaDose) =
+        experienceDao.upsertCustomRoaDose(substanceId, dose)
+
+    suspend fun getCustomRoaDoses(substanceId: Int): List<CustomRoaDose> =
+        experienceDao.getCustomRoaDoses(substanceId)
+
+    suspend fun getCustomRoaDoses(substanceName: String): List<CustomRoaDose> =
+        experienceDao.getCustomRoaDoses(substanceName)
+
+    fun getCustomRoaDosesFlow(substanceId: Int): Flow<List<CustomRoaDose>> =
+        experienceDao.getCustomRoaDosesFlow(substanceId)
+
+    fun getAllCustomRoaDosesFlow(): Flow<List<CustomRoaDose>> =
+        experienceDao.getAllCustomRoaDosesFlow()
+
+    suspend fun getCustomRoaDose(
+        substanceId: Int,
+        route: foo.pilz.freaklog.data.substances.AdministrationRoute
+    ): CustomRoaDose? =
+        experienceDao.getCustomRoaDose(substanceId, route)
+
+    suspend fun insert(customRoa: CustomRoa) =
+        experienceDao.insert(customRoa)
+
+    suspend fun update(customRoa: CustomRoa) =
+        experienceDao.update(customRoa)
+
+    suspend fun delete(customRoa: CustomRoa) =
+        experienceDao.delete(customRoa)
+
+    suspend fun getCustomRoas(substanceId: Int): List<CustomRoa> =
+        experienceDao.getCustomRoas(substanceId)
+
+    suspend fun getCustomRoa(
+        substanceId: Int,
+        route: foo.pilz.freaklog.data.substances.AdministrationRoute
+    ): CustomRoa? =
+        experienceDao.getCustomRoa(substanceId, route)
+
+    suspend fun updateCustomSubstanceDurations(
+        substance: CustomSubstance,
+        durations: List<CustomRoaDuration>
+    ) =
+        experienceDao.updateCustomSubstanceDurations(substance.id, durations)
+
+    suspend fun insertCustomSubstanceWithDurations(
+        substance: CustomSubstance,
+        durations: List<CustomRoaDuration>
+    ): Int =
+        experienceDao.insertCustomSubstanceWithDurations(substance, durations)
 }

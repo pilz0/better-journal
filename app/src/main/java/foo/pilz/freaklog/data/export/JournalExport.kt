@@ -48,7 +48,14 @@ data class JournalExport(
      * Routes, doses, durations, interactions and cross-tolerances of the
      * [customSubstances], matched to them by name on import.
      */
-    val customSubstanceDetails: List<foo.pilz.freaklog.data.substanceshare.SharedSubstance> = emptyList()
+    val customSubstanceDetails: List<foo.pilz.freaklog.data.substanceshare.SharedSubstance> = emptyList(),
+    val substanceGroups: List<SubstanceGroupSerializable> = emptyList(),
+)
+
+@Serializable
+data class SubstanceGroupSerializable(
+    val name: String,
+    val items: List<foo.pilz.freaklog.data.room.experiences.entities.SubstanceGroupItem> = emptyList(),
 )
 
 @Serializable

@@ -1,21 +1,3 @@
-/*
- * Copyright (c) 2022. Isaak Hanimann.
- * This file is part of PsychonautWiki Journal.
- *
- * PsychonautWiki Journal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or (at
- * your option) any later version.
- *
- * PsychonautWiki Journal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with PsychonautWiki Journal.  If not, see https://www.gnu.org/licenses/gpl-3.0.en.html.
- */
-
 package foo.pilz.freaklog.ui.tabs.search.custom
 
 import androidx.compose.foundation.layout.Arrangement
@@ -26,13 +8,21 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.SsidChart
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
@@ -40,7 +30,9 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import foo.pilz.freaklog.ui.theme.horizontalPadding
+import foo.pilz.freaklog.data.substances.classes.IngestionCategory
+import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.IngestionCategoryPicker
+import foo.pilz.freaklog.ui.theme.LocalSpacing
 
 @Preview
 @Composable
@@ -48,11 +40,12 @@ fun AddOrEditCustomSubstanceContentPreview() {
     AddOrEditCustomSubstanceContent(
         name = "Medication",
         units = "mg",
-        description = "My medication has a very long description to see how the text fits into the text field, to make sure it looks good.",
         onNameChange = {},
         onUnitsChange = {},
-        onDescriptionChange = {},
-        padding = PaddingValues(0.dp)
+        padding = PaddingValues(0.dp),
+        category = IngestionCategory.DEFAULT_INGESTION_CATEGORY,
+        onCategoryChange = {},
+        navigateToCustomDurationScreen = { },
     )
 }
 
@@ -63,16 +56,18 @@ fun AddOrEditCustomSubstanceContent(
     onNameChange: (String) -> Unit,
     units: String,
     onUnitsChange: (String) -> Unit,
-    description: String,
-    onDescriptionChange: (String) -> Unit
+    category: IngestionCategory?,
+    onCategoryChange: (IngestionCategory?) -> Unit,
+    navigateToCustomDurationScreen: (() -> Unit)? = null,
 ) {
+    val spacing = LocalSpacing.current
     Column(
         modifier = Modifier
             .padding(padding)
-            .padding(horizontal = horizontalPadding)
+            .padding(horizontal = spacing.screenHorizontal)
             .verticalScroll(rememberScrollState())
     ) {
-        Spacer(modifier = Modifier.height(5.dp))
+        Spacer(modifier = Modifier.height(spacing.sm))
         val focusManager = LocalFocusManager.current
         OutlinedTextField(
             value = name,
@@ -112,18 +107,50 @@ fun AddOrEditCustomSubstanceContent(
                 Text(text = "mL")
             }
         }
-        OutlinedTextField(
-            value = description,
-            onValueChange = onDescriptionChange,
-            label = { Text("Description") },
-            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Text,
-                capitalization = KeyboardCapitalization.Sentences
-            ),
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(5.dp))
+
+        Spacer(modifier = Modifier.height(spacing.sm))
+
+        OutlinedCard(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = spacing.lg, vertical = spacing.sm)
+            ) {
+                Text(
+                    text = "Default category for ingestions",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = "Ingestions with this substance will use this category by default "
+                            + "unless overridden by a custom unit or ingestion.",
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(vertical = spacing.xs)
+                )
+
+                IngestionCategoryPicker(
+                    category,
+                    onCategoryChange,
+                    inheritedCategory = null,
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(spacing.lg))
+
+        if (navigateToCustomDurationScreen != null) {
+            TextButton(
+                onClick = navigateToCustomDurationScreen
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.SsidChart,
+                    contentDescription = null
+                )
+                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                Text("Edit custom durations")
+            }
+        }
 
     }
 }

@@ -2,6 +2,7 @@ package foo.pilz.freaklog.data.room.experiences.relations
 
 import androidx.room.Embedded
 import androidx.room.Relation
+import foo.pilz.freaklog.data.room.experiences.entities.CustomCategoryAssignment
 import foo.pilz.freaklog.data.room.experiences.entities.CustomCrossTolerance
 import foo.pilz.freaklog.data.room.experiences.entities.CustomInteraction
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRoa
@@ -41,6 +42,12 @@ data class CustomSubstanceWithEverything(
     )
     val interactions: List<CustomInteraction> = emptyList(),
 
+    @Relation(
+        entity = CustomCategoryAssignment::class,
+        parentColumn = "id",
+        entityColumn = "customSubstanceId",
+    )
+    val categories: List<CustomCategoryAssignment> = emptyList(),
 
     @Relation(
         entity = CustomCrossTolerance::class,

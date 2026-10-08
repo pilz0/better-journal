@@ -18,6 +18,22 @@
 
 package foo.pilz.freaklog.data.room.experiences
 
+import foo.pilz.freaklog.data.room.experiences.entities.CustomCategoryAssignment
+import foo.pilz.freaklog.data.room.experiences.entities.CustomCrossTolerance
+import foo.pilz.freaklog.data.room.experiences.entities.CustomInteraction
+import foo.pilz.freaklog.data.room.experiences.entities.CustomInteractionSeverity
+import foo.pilz.freaklog.data.room.experiences.entities.CustomRoa
+import foo.pilz.freaklog.data.room.experiences.entities.CustomRoaDose
+import foo.pilz.freaklog.data.room.experiences.entities.CustomRoaDuration
+import foo.pilz.freaklog.data.room.experiences.entities.SubstanceGroup
+import foo.pilz.freaklog.data.room.experiences.entities.SubstanceGroupItem
+import foo.pilz.freaklog.data.room.experiences.relations.CustomInteractionCount
+import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithDurations
+import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithEverything
+import foo.pilz.freaklog.data.room.experiences.relations.SubstanceGroupWithItems
+import foo.pilz.freaklog.data.substances.AdministrationRoute
+import kotlinx.coroutines.flow.firstOrNull
+import kotlin.enums.enumEntries
 import android.database.Cursor
 import androidx.room.Dao
 import androidx.room.Delete
@@ -393,6 +409,7 @@ interface ExperienceDao {
         deleteAllRatings()
         deleteAllCustomUnits()
         deleteAllIntakeLimits()
+        deleteAllSubstanceGroups()
     }
 
     @Transaction
@@ -729,4 +746,383 @@ interface ExperienceDao {
         """
     )
     fun providerExperiences(limit: Int): Cursor
+
+    @Query("SELECT MAX(id) FROM experience")
+    fun getMaxExperienceIdFlow(): Flow<Int?>
+
+    @Transaction
+    @Query("SELECT * FROM customsubstance")
+    suspend fun getAllCustomSubstancesWithRoaDurations(): List<CustomSubstanceWithDurations>
+
+    @Query("SELECT * FROM customsubstance WHERE name = :name")
+    fun getCustomSubstanceFlow(name: String): Flow<CustomSubstance?>
+
+    @Query("SELECT * FROM customroaduration")
+
+    suspend fun getAllCustomRoaDurations(): List<CustomRoaDuration>
+
+    @Query("SELECT * FROM customroaduration")
+
+    fun getAllCustomRoaDurationsFlow(): Flow<List<CustomRoaDuration>>
+
+    @Query("SELECT * FROM customroaduration WHERE customSubstanceId = :substanceId")
+    suspend fun getCustomRoaDurations(substanceId: Int): List<CustomRoaDuration>
+
+    @Query("SELECT * FROM customroaduration WHERE customSubstanceId = (SELECT id FROM customsubstance WHERE name = :substanceName)")
+    suspend fun getCustomRoaDurations(substanceName: String): List<CustomRoaDuration>
+
+    @Query("SELECT * FROM customroaduration WHERE customSubstanceId = :substanceId")
+    fun getCustomRoaDurationsFlow(substanceId: Int): Flow<List<CustomRoaDuration>>
+
+    @Transaction
+    suspend fun getCustomSubstanceWithDurations(id: Int): CustomSubstanceWithDurations? {
+        val substance = getCustomSubstanceFlow(id).firstOrNull() ?: return null
+        val durations = getCustomRoaDurations(id)
+        return CustomSubstanceWithDurations(substance, durations)
+    }
+
+    @Transaction
+    @Query("SELECT * FROM ingestion WHERE time > :since")
+    suspend fun getIngestionsWithCompanionsSince(since: Instant): List<IngestionWithCompanionAndCustomUnit>
+
+    @Query("SELECT * FROM ingestion WHERE experienceId IS NULL ORDER BY time")
+    suspend fun getAllStandaloneIngestions(): List<Ingestion>
+
+    @Query("SELECT * FROM customunit WHERE id IN (:ids)")
+    suspend fun getCustomUnitsByIds(ids: List<Int>): List<CustomUnit>
+
+    @Query("SELECT * FROM customunit WHERE substanceName = :substanceName AND name = :name AND administrationRoute = :route LIMIT 1")
+    suspend fun findCustomUnitByKey(
+        substanceName: String,
+        name: String,
+        route: AdministrationRoute
+    ): CustomUnit?
+
+    @Query("SELECT * FROM experience")
+    fun getAllExperiencesFlow(): Flow<List<Experience>>
+
+    @Transaction
+    @Query("SELECT * FROM ingestion")
+    suspend fun getAllIngestionsWithCompanions(): List<IngestionWithCompanion>
+
+    @Query("DELETE FROM substancegroup")
+    suspend fun deleteAllSubstanceGroups()
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertIngestions(ingestions: List<Ingestion>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertRatings(ratings: List<ShulginRating>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTimedNotes(timedNotes: List<TimedNote>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(customRoaDuration: CustomRoaDuration): Long
+
+    @Delete
+    suspend fun delete(customRoaDuration: CustomRoaDuration)
+
+    @Query("DELETE FROM customroaduration WHERE route NOT IN (:route) AND customSubstanceId = :substanceId")
+    suspend fun deleteCustomDurationsForSubstanceExcept(
+        substanceId: Int,
+        route: List<AdministrationRoute>
+    )
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(customRoaDose: CustomRoaDose)
+
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun update(customRoaDose: CustomRoaDose)
+
+    @Delete
+    suspend fun delete(customRoaDose: CustomRoaDose)
+
+    @Query("SELECT * FROM customroadose WHERE customSubstanceId = :substanceId")
+    suspend fun getCustomRoaDoses(substanceId: Int): List<CustomRoaDose>
+
+    @Query("SELECT * FROM customroadose WHERE customSubstanceId = (SELECT id FROM customsubstance WHERE name = :substanceName)")
+    suspend fun getCustomRoaDoses(substanceName: String): List<CustomRoaDose>
+
+    @Query("SELECT * FROM customroadose WHERE customSubstanceId = :substanceId")
+    fun getCustomRoaDosesFlow(substanceId: Int): Flow<List<CustomRoaDose>>
+
+    @Query("SELECT * FROM customroadose")
+    fun getAllCustomRoaDosesFlow(): Flow<List<CustomRoaDose>>
+
+    @Query("SELECT * FROM customroadose WHERE customSubstanceId = :substanceId AND route = :route")
+    suspend fun getCustomRoaDose(substanceId: Int, route: AdministrationRoute): CustomRoaDose?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(customRoa: CustomRoa)
+
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun update(customRoa: CustomRoa)
+
+    @Delete
+    suspend fun delete(customRoa: CustomRoa)
+
+    @Query("SELECT * FROM customroa WHERE customSubstanceId = :substanceId")
+    suspend fun getCustomRoas(substanceId: Int): List<CustomRoa>
+
+    @Query("SELECT * FROM customroa WHERE customSubstanceId = :substanceId AND route = :route")
+    suspend fun getCustomRoa(substanceId: Int, route: AdministrationRoute): CustomRoa?
+
+    @Transaction
+    suspend fun updateCustomSubstanceDurations(
+        substanceId: Int,
+        durations: List<CustomRoaDuration>
+    ) {
+        deleteCustomDurationsForSubstanceExcept(
+            substanceId,
+            enumEntries<AdministrationRoute>()
+                .filter { route -> durations.any { it.route == route } }
+        )
+
+        for (d in durations) {
+            d.customSubstanceId = substanceId
+            insert(d)
+        }
+    }
+
+    @Transaction
+    suspend fun upsertCustomRoaDose(
+        substanceId: Int,
+        dose: CustomRoaDose,
+    ) {
+        dose.customSubstanceId = substanceId
+        insert(dose)
+    }
+
+    @Transaction
+    suspend fun insertCustomSubstanceWithDurations(
+        substance: CustomSubstance,
+        durations: List<CustomRoaDuration>
+    ): Int {
+        val id = insert(substance).toInt()
+        updateCustomSubstanceDurations(id, durations)
+        return id
+    }
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(customInteraction: CustomInteraction): Long
+
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun update(customInteraction: CustomInteraction)
+
+    @Delete
+    suspend fun delete(customInteraction: CustomInteraction)
+
+    @Query("DELETE FROM custominteraction WHERE id = :id")
+    suspend fun deleteCustomInteraction(id: Int)
+
+    @Query("SELECT * FROM custominteraction WHERE customSubstanceId = :substanceId")
+    suspend fun getCustomInteractions(substanceId: Int): List<CustomInteraction>
+
+    @Query("SELECT * FROM custominteraction WHERE customSubstanceId = :substanceId AND severity = :severity")
+    suspend fun getCustomInteractions(
+        substanceId: Int,
+        severity: CustomInteractionSeverity
+    ): List<CustomInteraction>
+
+    @Query("SELECT * FROM custominteraction WHERE customSubstanceId = (SELECT id FROM customsubstance WHERE name = :substanceName)")
+    suspend fun getCustomInteractions(substanceName: String): List<CustomInteraction>
+
+    @Query("SELECT * FROM custominteraction WHERE customSubstanceId = :substanceId")
+    fun getCustomInteractionsFlow(substanceId: Int): Flow<List<CustomInteraction>>
+
+    @Query("UPDATE customsubstance SET name = :new WHERE name = :old")
+    suspend fun renameCustomSubstanceRow(old: String, new: String)
+
+    @Query("UPDATE ingestion SET substanceName = :new WHERE substanceName = :old")
+    suspend fun renameInIngestions(old: String, new: String)
+
+    @Query("UPDATE customunit SET substanceName = :new WHERE substanceName = :old")
+    suspend fun renameInCustomUnits(old: String, new: String)
+
+    @Query("UPDATE custominteraction SET targetName = :new WHERE targetName = :old AND targetType = 'SUBSTANCE'")
+    suspend fun renameInCustomInteractionTargets(old: String, new: String)
+
+    @Query("UPDATE substancecompanion SET substanceName = :new WHERE substanceName = :old")
+    suspend fun renameSubstanceCompanion(old: String, new: String)
+
+    @Transaction
+    suspend fun renameCustomSubstance(old: String, new: String) {
+        if (old == new || new.isBlank()) return
+        renameCustomSubstanceRow(old, new)
+        renameSubstanceCompanion(old, new)
+        renameInIngestions(old, new)
+        renameInCustomUnits(old, new)
+        renameInCustomInteractionTargets(old, new)
+    }
+
+    @Query("UPDATE customroadose SET units = :new WHERE customSubstanceId = :substanceId")
+    suspend fun setAllCustomRoaDoseUnits(substanceId: Int, new: String)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(assignment: CustomCategoryAssignment)
+
+    @Delete
+    suspend fun delete(assignment: CustomCategoryAssignment)
+
+    @Query("DELETE FROM customcategoryassignment WHERE customSubstanceId = :substanceId AND categoryName = :categoryName")
+    suspend fun deleteCustomCategory(substanceId: Int, categoryName: String)
+
+    @Query("SELECT * FROM customcategoryassignment WHERE customSubstanceId = :substanceId")
+    suspend fun getCustomCategories(substanceId: Int): List<CustomCategoryAssignment>
+
+    @Query("SELECT * FROM customcategoryassignment WHERE customSubstanceId = :substanceId")
+    fun getCustomCategoriesFlow(substanceId: Int): Flow<List<CustomCategoryAssignment>>
+
+    @Query("SELECT * FROM customcategoryassignment")
+    fun getAllCustomCategoryAssignmentsFlow(): Flow<List<CustomCategoryAssignment>>
+
+    @Query("SELECT customSubstanceId, COUNT(*) as count FROM custominteraction GROUP BY customSubstanceId")
+    fun getCustomInteractionCountsFlow(): Flow<List<CustomInteractionCount>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(crossTolerance: CustomCrossTolerance)
+
+    @Delete
+    suspend fun delete(crossTolerance: CustomCrossTolerance)
+
+    @Query("DELETE FROM customcrosstolerance WHERE customSubstanceId = :substanceId AND categoryName = :categoryName")
+    suspend fun deleteCustomCrossTolerance(substanceId: Int, categoryName: String)
+
+    @Query("SELECT * FROM customcrosstolerance WHERE customSubstanceId = :substanceId")
+    suspend fun getCustomCrossTolerances(substanceId: Int): List<CustomCrossTolerance>
+
+    @Query("SELECT * FROM customcrosstolerance WHERE customSubstanceId = :substanceId")
+    fun getCustomCrossTolerancesFlow(substanceId: Int): Flow<List<CustomCrossTolerance>>
+
+    @Transaction
+    @Query("SELECT * FROM customsubstance WHERE id = :id")
+    fun getCustomSubstanceWithEverythingFlow(id: Int): Flow<CustomSubstanceWithEverything?>
+
+    @Transaction
+    @Query("SELECT * FROM customsubstance WHERE id = :id")
+    suspend fun getCustomSubstanceWithEverything(id: Int): CustomSubstanceWithEverything?
+
+    @Transaction
+    @Query("SELECT * FROM customsubstance WHERE name = :name")
+    suspend fun getCustomSubstanceWithEverythingByName(name: String): CustomSubstanceWithEverything?
+
+    @Transaction
+    @Query("SELECT * FROM customsubstance WHERE name IN (:names)")
+    suspend fun getCustomSubstancesWithEverythingByNames(names: List<String>): List<CustomSubstanceWithEverything>
+
+    @Query("SELECT name FROM customsubstance WHERE name IN (:names)")
+    suspend fun getExistingCustomSubstanceNames(names: List<String>): List<String>
+
+    @Transaction
+    suspend fun insertCustomSubstanceWithFullRoaInfo(
+        substance: CustomSubstance,
+        durations: List<CustomRoaDuration>,
+        doses: List<CustomRoaDose>,
+        roas: List<CustomRoa>,
+        interactions: List<CustomInteraction> = emptyList(),
+        categories: List<CustomCategoryAssignment> = emptyList(),
+        crossTolerances: List<CustomCrossTolerance> = emptyList(),
+    ): Int {
+        val id = insert(substance).toInt()
+        updateCustomSubstanceDurations(id, durations)
+        for (d in doses) {
+            d.customSubstanceId = id
+            insert(d)
+        }
+        for (r in roas) {
+            r.customSubstanceId = id
+            insert(r)
+        }
+        for (i in interactions) {
+            i.customSubstanceId = id
+            insert(i)
+        }
+        for (c in categories) {
+            c.customSubstanceId = id
+            insert(c)
+        }
+        for (t in crossTolerances) {
+            t.customSubstanceId = id
+            insert(t)
+        }
+        return id
+    }
+
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun update(customRoaDuration: CustomRoaDuration)
+
+    @Query("SELECT * FROM substancecompanion WHERE substanceName = :substanceName")
+    suspend fun getSubstanceCompanion(substanceName: String): SubstanceCompanion?
+
+    @Insert
+    suspend fun insert(group: SubstanceGroup): Long
+
+    @Insert
+    suspend fun insert(item: SubstanceGroupItem): Long
+
+    @Update
+    suspend fun update(group: SubstanceGroup)
+
+    @Delete
+    suspend fun delete(group: SubstanceGroup)
+
+    @Delete
+    suspend fun delete(item: SubstanceGroupItem)
+
+    @Query("SELECT * FROM substancegroup ORDER BY name COLLATE NOCASE ASC")
+    fun getSubstanceGroupsFlow(): Flow<List<SubstanceGroup>>
+
+    @Transaction
+    @Query("SELECT * FROM substancegroup ORDER BY name COLLATE NOCASE ASC")
+    fun getSubstanceGroupsWithItemsFlow(): Flow<List<SubstanceGroupWithItems>>
+
+    @Transaction
+    @Query("SELECT * FROM substancegroup WHERE id = :id")
+    fun getSubstanceGroupWithItemsFlow(id: Int): Flow<SubstanceGroupWithItems?>
+
+    @Transaction
+    @Query("SELECT * FROM substancegroup WHERE id = :id")
+    suspend fun getSubstanceGroupWithItems(id: Int): SubstanceGroupWithItems?
+
+    @Transaction
+    @Query("SELECT * FROM substancegroup WHERE name = :name")
+    suspend fun getSubstanceGroupWithItemsByName(name: String): SubstanceGroupWithItems?
+
+    @Transaction
+    @Query("SELECT * FROM substancegroup")
+    suspend fun getSubstanceGroupsWithItems(): List<SubstanceGroupWithItems>
+
+    @Query("DELETE FROM substancegroupitem WHERE groupId = :groupId")
+    suspend fun deleteSubstanceGroupItems(groupId: Int)
+
+    @Transaction
+    suspend fun replaceSubstanceGroupItems(groupId: Int, items: List<SubstanceGroupItem>) {
+        deleteSubstanceGroupItems(groupId)
+        for (i in items) {
+            i.groupId = groupId
+            insert(i)
+        }
+    }
+
+    @Transaction
+    suspend fun insertSubstanceGroupWithItems(
+        group: SubstanceGroup,
+        items: List<SubstanceGroupItem>
+    ): Int {
+        val id = insert(group).toInt()
+        for (i in items) {
+            i.groupId = id
+            insert(i)
+        }
+        return id
+    }
+
+    @Transaction
+    @Query("SELECT * FROM customsubstance ORDER BY name")
+    suspend fun getAllCustomSubstancesWithEverything(): List<CustomSubstanceWithEverything>
+
+    @Transaction
+    @Query("SELECT * FROM customsubstance")
+    fun getAllCustomSubstancesWithEverythingFlow(): Flow<List<CustomSubstanceWithEverything>>
 }

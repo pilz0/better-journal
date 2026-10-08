@@ -19,6 +19,9 @@
 package foo.pilz.freaklog.ui.theme
 
 
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.runtime.compositionLocalOf
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -125,7 +128,17 @@ fun JournalTheme(
             typography = JournalTypography,
             shapes = JournalShapes,
         ) {
-            CompositionLocalProvider(LocalGraphStyle provides themedGraphStyle(), content = content)
+            SharedTransitionLayout {
+                CompositionLocalProvider(
+                    LocalGraphStyle provides themedGraphStyle(),
+                    LocalSharedTransitionScope provides this@SharedTransitionLayout,
+                    content = content,
+                )
+            }
         }
     }
+}
+
+val LocalSharedTransitionScope = compositionLocalOf<SharedTransitionScope> {
+    error("No SharedTransitionScope provided")
 }

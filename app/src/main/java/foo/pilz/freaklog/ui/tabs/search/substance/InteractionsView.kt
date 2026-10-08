@@ -18,6 +18,9 @@
 
 package foo.pilz.freaklog.ui.tabs.search.substance
 
+import foo.pilz.freaklog.ui.theme.LocalSpacing
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -136,6 +139,23 @@ fun InteractionRowSubstanceScreen(
                         modifier = Modifier.size(17.dp)
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun InteractionsContent(rows: List<Pair<String, InteractionType>>) {
+    if (rows.isEmpty()) return
+    ElevatedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = LocalSpacing.current.screenHorizontal)
+    ) {
+        rows.forEachIndexed { index, (text, type) ->
+            InteractionRowSubstanceScreen(text = text, interactionType = type)
+            if (index < rows.lastIndex) {
+                HorizontalDivider()
             }
         }
     }

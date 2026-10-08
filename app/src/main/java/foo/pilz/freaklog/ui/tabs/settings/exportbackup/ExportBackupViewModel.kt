@@ -210,7 +210,7 @@ class ExportBackupViewModel @Inject constructor(
                 foo.pilz.freaklog.data.substanceshare.resolveCollisionReplace(payload, customSubstanceRepository)
                 payload.name
             } else {
-                foo.pilz.freaklog.data.substanceshare.resolveCollisionKeepBoth(payload, customSubstanceRepository.getAllNames(), customSubstanceRepository)
+                foo.pilz.freaklog.data.substanceshare.resolveCollisionKeepBoth(payload, experienceRepository.getAllCustomSubstances().map { it.name }.toSet(), customSubstanceRepository)
             }
             snackbarHostState.showSnackbar("Imported $name")
         }

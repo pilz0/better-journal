@@ -18,6 +18,8 @@
 
 package foo.pilz.freaklog.ui.tabs.settings
 
+import androidx.compose.material.icons.outlined.Workspaces
+import androidx.compose.material.icons.outlined.Science
 import foo.pilz.freaklog.ui.tabs.settings.combinations.BloodPressureDisplay
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.SleepHealthConnect
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateHealthConnect
@@ -160,6 +162,8 @@ fun SettingsScreen(
     navigateToComboSettings: () -> Unit,
     navigateToSubstanceColors: () -> Unit,
     navigateToCustomUnits: () -> Unit,
+    navigateToCustomSubstances: () -> Unit = {},
+    navigateToSubstanceGroups: () -> Unit = {},
     navigateToCustomFormulations: () -> Unit,
     navigateToReminders: () -> Unit,
     navigateToAchievements: () -> Unit = {},
@@ -193,6 +197,8 @@ fun SettingsScreen(
         navigateToComboSettings = navigateToComboSettings,
         navigateToSubstanceColors = navigateToSubstanceColors,
         navigateToCustomUnits = navigateToCustomUnits,
+        navigateToCustomSubstances = navigateToCustomSubstances,
+        navigateToSubstanceGroups = navigateToSubstanceGroups,
         navigateToCustomFormulations = navigateToCustomFormulations,
         navigateToReminders = navigateToReminders,
         navigateToAchievements = navigateToAchievements,
@@ -260,6 +266,8 @@ fun SettingsScreen(
     navigateToComboSettings: () -> Unit,
     navigateToSubstanceColors: () -> Unit,
     navigateToCustomUnits: () -> Unit,
+    navigateToCustomSubstances: () -> Unit = {},
+    navigateToSubstanceGroups: () -> Unit = {},
     navigateToCustomFormulations: () -> Unit,
     navigateToReminders: () -> Unit,
     navigateToAchievements: () -> Unit = {},
@@ -360,6 +368,22 @@ fun SettingsScreen(
                 ) {
                     performHaptic(HapticType.CLICK)
                     navigateToCustomUnits()
+                }
+                HorizontalDivider()
+                SettingsButton(
+                    imageVector = Icons.Outlined.Science,
+                    text = "Custom substances"
+                ) {
+                    performHaptic(HapticType.CLICK)
+                    navigateToCustomSubstances()
+                }
+                HorizontalDivider()
+                SettingsButton(
+                    imageVector = Icons.Outlined.Workspaces,
+                    text = "Substance groups"
+                ) {
+                    performHaptic(HapticType.CLICK)
+                    navigateToSubstanceGroups()
                 }
                 HorizontalDivider()
                 SettingsButton(

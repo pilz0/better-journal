@@ -42,11 +42,11 @@ import javax.inject.Singleton
  */
 @Singleton
 class CustomSubstanceProfiles @Inject constructor(
-    dao: CustomSubstanceDao,
+    dao: ExperienceDao,
     @ApplicationScope scope: CoroutineScope,
 ) {
     val byNameFlow: StateFlow<Map<String, CustomSubstanceWithEverything>> =
-        dao.getAllWithEverythingFlow()
+        dao.getAllCustomSubstancesWithEverythingFlow()
             .map { all -> all.associateBy { it.substance.name } }
             .stateIn(scope, SharingStarted.Eagerly, emptyMap())
 

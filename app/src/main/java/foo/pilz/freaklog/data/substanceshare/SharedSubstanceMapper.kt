@@ -1,5 +1,6 @@
 package foo.pilz.freaklog.data.substanceshare
 
+import foo.pilz.freaklog.data.room.experiences.entities.CustomCategoryAssignment
 import foo.pilz.freaklog.data.room.experiences.entities.CustomCrossTolerance
 import foo.pilz.freaklog.data.room.experiences.entities.CustomInteraction
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRoa
@@ -53,6 +54,7 @@ fun CustomSubstanceWithEverything.toShared(): SharedSubstance {
                 targetName = it.targetName,
             )
         },
+        categories = categories.map { it.categoryName },
         crossTolerances = crossTolerances.map { it.categoryName },
     )
 }
@@ -63,6 +65,7 @@ data class SharedSubstanceExpansion(
     val doses: List<CustomRoaDose>,
     val durations: List<CustomRoaDuration>,
     val interactions: List<CustomInteraction>,
+    val categories: List<CustomCategoryAssignment>,
     val crossTolerances: List<CustomCrossTolerance>,
 )
 
@@ -111,6 +114,7 @@ fun SharedSubstance.expand(targetName: String = name): SharedSubstanceExpansion 
             targetName = it.targetName
         )
     }
+    val categoryEntities = categories.map { CustomCategoryAssignment(categoryName = it) }
     val crossToleranceEntities = crossTolerances.map { CustomCrossTolerance(categoryName = it) }
     return SharedSubstanceExpansion(
         substance = sub,
@@ -118,6 +122,7 @@ fun SharedSubstance.expand(targetName: String = name): SharedSubstanceExpansion 
         doses = doseEntities,
         durations = durationEntities,
         interactions = interactionEntities,
+        categories = categoryEntities,
         crossTolerances = crossToleranceEntities,
     )
 }

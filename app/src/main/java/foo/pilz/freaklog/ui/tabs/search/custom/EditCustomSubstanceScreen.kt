@@ -1,31 +1,11 @@
-/*
- * Copyright (c) 2022. Isaak Hanimann.
- * This file is part of PsychonautWiki Journal.
- *
- * PsychonautWiki Journal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or (at
- * your option) any later version.
- *
- * PsychonautWiki Journal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with PsychonautWiki Journal.  If not, see https://www.gnu.org/licenses/gpl-3.0.en.html.
- */
-
 package foo.pilz.freaklog.ui.tabs.search.custom
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.outlined.IosShare
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -37,84 +17,95 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditCustomSubstanceScreen(
     navigateBack: () -> Unit,
-    navigateToProfile: () -> Unit = {},
-    viewModel: EditCustomSubstanceViewModel = hiltViewModel()
+    navigateToCustomDurationScreen: (substanceId: Int, substanceName: String) -> Unit,
+    navigateToCategoriesPicker: (customSubstanceId: Int) -> Unit,
+    navigateToInteractionsList: (customSubstanceId: Int) -> Unit,
+    navigateToToleranceEditor: (customSubstanceId: Int) -> Unit,
+    navigateToRisksEditor: (customSubstanceId: Int) -> Unit,
+    viewModel: EditCustomSubstanceViewModel = hiltViewModel(),
 ) {
+    var isShowingDeleteDialog by remember { mutableStateOf(false) }
+    val substance = viewModel.substanceFlow.collectAsStateWithLifecycle().value
+
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Edit custom substance") }, actions = {
-                TextButton(onClick = navigateToProfile) { Text("Doses & effects") }
-                var isShowingDeleteDialog by remember { mutableStateOf(false) }
-                IconButton(
-                    onClick = { isShowingDeleteDialog = true },
-                ) {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = "Delete substance",
-                    )
-                }
-                AnimatedVisibility(visible = isShowingDeleteDialog) {
-                    AlertDialog(
-                        onDismissRequest = { isShowingDeleteDialog = false },
-                        title = {
-                            Text(text = "Delete substance?")
-                        },
-                        confirmButton = {
-                            TextButton(
-                                onClick = {
-                                    isShowingDeleteDialog = false
-                                    viewModel.deleteCustomSubstance()
-                                    navigateBack()
-                                }
-                            ) {
-                                Text("Delete")
-                            }
-                        },
-                        dismissButton = {
-                            TextButton(
-                                onClick = { isShowingDeleteDialog = false }
-                            ) {
-                                Text("Cancel")
-                            }
-                        }
-                    )
-                }
-            })
+            TopAppBar(
+                title = { Text("Edit custom substance") },
+                navigationIcon = {
+                    IconButton(onClick = navigateBack) {
+                        Icon(Icons.Default.ChevronLeft, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    val context = LocalContext.current
+                    IconButton(onClick = { viewModel.share(context) }) {
+                        Icon(Icons.Outlined.IosShare, contentDescription = "Share")
+                    }
+                },
+            )
         },
-        floatingActionButton = {
-            if (viewModel.isValid) {
-                ExtendedFloatingActionButton(
-                    modifier = Modifier.imePadding(),
-                    onClick = {
-                        viewModel.onDoneTap()
-                        navigateBack()
-                    },
-                    icon = {
-                        Icon(
-                            Icons.Filled.Done,
-                            contentDescription = "Done"
-                        )
-                    },
-                    text = { Text("Done") },
-                )
-            }
-        }
     ) { padding ->
-        AddOrEditCustomSubstanceContent(
+        CustomSubstanceEditorContent(
             padding = padding,
-            name = viewModel.name,
-            units = viewModel.units,
-            description = viewModel.description,
-            onNameChange = { viewModel.name = it },
-            onUnitsChange = { viewModel.units = it },
-            onDescriptionChange = { viewModel.description = it }
+            name = viewModel.nameFlow.collectAsStateWithLifecycle().value,
+            onNameChange = viewModel::onNameChange,
+            units = viewModel.unitsFlow.collectAsStateWithLifecycle().value,
+            onUnitsChange = viewModel::onUnitsChange,
+            summary = viewModel.summaryFlow.collectAsStateWithLifecycle().value,
+            onSummaryChange = viewModel::onSummaryChange,
+            category = viewModel.categoryFlow.collectAsStateWithLifecycle().value,
+            onCategoryChange = viewModel::onCategoryChange,
+            onNavigateToRoutes = {
+                navigateToCustomDurationScreen(viewModel.id, viewModel.nameFlow.value)
+            },
+            routesCount = substance?.roaInfos?.size ?: 0,
+            onNavigateToCategories = { navigateToCategoriesPicker(viewModel.id) },
+            categoriesCount = substance?.categories?.size ?: 0,
+            onNavigateToInteractions = { navigateToInteractionsList(viewModel.id) },
+            interactionsCount = substance?.interactions?.size ?: 0,
+            onNavigateToTolerance = { navigateToToleranceEditor(viewModel.id) },
+            toleranceFilled = substance?.let { s ->
+                s.substance.toleranceFull != null ||
+                        s.substance.toleranceHalf != null ||
+                        s.substance.toleranceZero != null ||
+                        s.crossTolerances.isNotEmpty()
+            } ?: false,
+            onNavigateToRisks = { navigateToRisksEditor(viewModel.id) },
+            risksFilled = substance?.let { s ->
+                s.substance.effectsText != null ||
+                        s.substance.generalRisks != null ||
+                        s.substance.longTermRisks != null
+            } ?: false,
+            onDelete = { isShowingDeleteDialog = true },
         )
+
+        AnimatedVisibility(visible = isShowingDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { isShowingDeleteDialog = false },
+                title = { Text("Delete substance?") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            isShowingDeleteDialog = false
+                            viewModel.deleteCustomSubstance()
+                            navigateBack()
+                        },
+                    ) { Text("Delete") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { isShowingDeleteDialog = false }) {
+                        Text("Cancel")
+                    }
+                },
+            )
+        }
     }
 }

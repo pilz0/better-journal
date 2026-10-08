@@ -50,6 +50,13 @@ suspend fun buildJournalExportJson(
         } else {
             webhookRepository.getAll().map { WebhookSerializable.fromEntity(it) }
         },
+        substanceGroups = if (filter.isActive) {
+            emptyList()
+        } else {
+            experienceRepository.getAllSubstanceGroupsWithItems().map {
+                SubstanceGroupSerializable(name = it.group.name, items = it.sortedItems)
+            }
+        },
     )
     return Json.encodeToString(journalExport)
 }
@@ -57,7 +64,9 @@ suspend fun buildJournalExportJson(
 fun ExportData.toJournalExport(
     reminders: List<Reminder> = emptyList(),
     webhooks: List<WebhookSerializable> = emptyList(),
+    substanceGroups: List<SubstanceGroupSerializable> = emptyList(),
 ): JournalExport = JournalExport(
+    substanceGroups = substanceGroups,
     experiences = experiences.map { experience ->
         experience.toSerializable().copy(
             bloodPressure = bloodPressureReadings

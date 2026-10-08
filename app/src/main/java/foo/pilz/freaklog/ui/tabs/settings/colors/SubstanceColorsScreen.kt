@@ -18,6 +18,18 @@
 
 package foo.pilz.freaklog.ui.tabs.settings.colors
 
+import foo.pilz.freaklog.data.substanceshare.shareSubstanceColors
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.remember
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.FileDownload
+import androidx.compose.material.icons.Icons
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -51,8 +63,23 @@ fun SubstanceColorsScreen(
     LaunchedEffect(Unit) {
         viewModel.deleteUnusedSubstanceCompanions()
     }
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val snackbarText = viewModel.snackbar.collectAsState().value
+    LaunchedEffect(snackbarText) {
+        snackbarText?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.consumeSnackbar()
+        }
+    }
+    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let { viewModel.importColors(context, it) }
+    }
     SubstanceColorsScreenContent(
         substanceCompanions = viewModel.substanceCompanionsFlow.collectAsState().value,
+        onShare = { shareSubstanceColors(context, viewModel.colorsForExport()) },
+        onImport = { importLauncher.launch(arrayOf("application/json", "*/*")) },
+        snackbarHostState = snackbarHostState,
         updateColor = viewModel::updateColor,
         alreadyUsedColors = viewModel.alreadyUsedColorsFlow.collectAsState().value,
         otherColors = viewModel.otherColorsFlow.collectAsState().value
@@ -87,12 +114,26 @@ fun SubstanceColorsScreenContent(
     substanceCompanions: List<SubstanceCompanion>,
     updateColor: (color: AdaptiveColor, substanceName: String) -> Unit,
     alreadyUsedColors: List<AdaptiveColor>,
-    otherColors: List<AdaptiveColor>
+    otherColors: List<AdaptiveColor>,
+    onShare: () -> Unit = {},
+    onImport: () -> Unit = {},
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Substance colors") })
+            TopAppBar(
+                title = { Text("Substance colors") },
+                actions = {
+                    IconButton(onClick = onImport) {
+                        Icon(Icons.Outlined.FileDownload, contentDescription = "Import colors")
+                    }
+                    IconButton(onClick = onShare) {
+                        Icon(Icons.Outlined.Share, contentDescription = "Share colors")
+                    }
+                }
+            )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         LazyColumn(
             modifier = Modifier

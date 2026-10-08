@@ -18,6 +18,7 @@
 
 package foo.pilz.freaklog.ui.main.navigation.graphs
 
+import foo.pilz.freaklog.ui.tabs.journal.addingestion.group.SubstanceGroupFinishScreen
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.navigation
@@ -44,6 +45,9 @@ fun NavGraphBuilder.addIngestionGraph(navController: NavController) {
     ) {
         composableWithTransitions<AddIngestionSearchRoute> {
             AddIngestionSearchScreen(
+                navigateToSubstanceGroupFinish = { groupId ->
+                    navController.navigate(SubstanceGroupFinishRoute(groupId))
+                },
                 navigateToCheckInteractions = { substanceName ->
                     navController.navigate(CheckInteractionsRoute(substanceName))
                 },
@@ -94,6 +98,13 @@ fun NavGraphBuilder.addIngestionGraph(navController: NavController) {
                 }
             )
         }
+        composableWithTransitions<SubstanceGroupFinishRoute> {
+            SubstanceGroupFinishScreen(
+                dismissAddIngestionScreens = {
+                    navController.popBackStack(route = AddIngestionRoute, inclusive = true)
+                },
+            )
+        }
         composableWithTransitions<AddCustomSubstanceRouteOnAddIngestionGraph> { backStackEntry ->
             val route = backStackEntry.toRoute<AddCustomSubstanceRouteOnAddIngestionGraph>()
             AddCustomSubstanceAndContinueScreen(
@@ -102,6 +113,7 @@ fun NavGraphBuilder.addIngestionGraph(navController: NavController) {
                         popUpTo(AddIngestionSearchRoute)
                     }
                 },
+                navigateBack = navController::popBackStack,
                 initialName = route.searchText
             )
         }
@@ -313,3 +325,6 @@ object AdministrationRouteExplanationRouteOnJournalTab
 
 @Serializable
 data class AddCustomSubstanceRouteOnAddIngestionGraph(val searchText: String)
+
+@Serializable
+data class SubstanceGroupFinishRoute(val groupId: Int)

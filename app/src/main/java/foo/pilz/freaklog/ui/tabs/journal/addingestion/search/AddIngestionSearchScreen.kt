@@ -18,6 +18,7 @@
 
 package foo.pilz.freaklog.ui.tabs.journal.addingestion.search
 
+import foo.pilz.freaklog.data.room.experiences.relations.SubstanceGroupWithItems
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -87,6 +88,7 @@ fun AddIngestionSearchScreen(
     navigateToCustomSubstanceChooseRoute: (customSubstanceName: String) -> Unit,
     navigateToCustomUnitChooseDose: (customUnitId: Int) -> Unit,
     navigateToAddCustomSubstanceScreen: (searchText: String) -> Unit,
+    navigateToSubstanceGroupFinish: (groupId: Int) -> Unit,
     viewModel: AddIngestionSearchViewModel = hiltViewModel()
 ) {
     val searchText = viewModel.searchTextFlow.collectAsState().value
@@ -109,7 +111,9 @@ fun AddIngestionSearchScreen(
         },
         filteredSubstances = viewModel.filteredSubstancesFlow.collectAsState().value,
         filteredCustomUnits = viewModel.filteredCustomUnitsFlow.collectAsState().value,
-        filteredCustomSubstances = viewModel.filteredCustomSubstancesFlow.collectAsState().value
+        filteredCustomSubstances = viewModel.filteredCustomSubstancesFlow.collectAsState().value,
+        filteredSubstanceGroups = viewModel.filteredSubstanceGroupsFlow.collectAsState().value,
+        navigateToSubstanceGroupFinish = navigateToSubstanceGroupFinish,
     )
 }
 
@@ -130,7 +134,9 @@ fun AddIngestionSearchScreen(
     onChangeSearchText: (searchText: String) -> Unit,
     filteredSubstances: List<SubstanceModel>,
     filteredCustomUnits: List<CustomUnit>,
-    filteredCustomSubstances: List<CustomSubstance>
+    filteredCustomSubstances: List<CustomSubstance>,
+    filteredSubstanceGroups: List<SubstanceGroupWithItems> = emptyList(),
+    navigateToSubstanceGroupFinish: (groupId: Int) -> Unit = {},
 ) {
     val focusRequester = remember { FocusRequester() }
     var isFocused by remember { mutableStateOf(false) }
@@ -223,6 +229,18 @@ fun AddIngestionSearchScreen(
                         navigateToCustomSubstanceChooseRoute(customSubstance.name)
                     })
                     if (index < filteredCustomSubstances.size - 1) {
+                        HorizontalDivider()
+                    }
+                }
+                if (filteredSubstanceGroups.isNotEmpty()) {
+                    stickyHeader {
+                        SectionHeader(title = "Substance groups")
+                    }
+                    items(filteredSubstanceGroups, key = { "sg_${it.group.id}" }) { group ->
+                        SubstanceGroupRow(
+                            group = group,
+                            onTap = { navigateToSubstanceGroupFinish(group.group.id) },
+                        )
                         HorizontalDivider()
                     }
                 }
