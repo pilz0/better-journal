@@ -39,6 +39,7 @@ data class RoaDoseInfo(
 class EditIntakeLimitViewModel @Inject constructor(
     private val experienceRepo: ExperienceRepository,
     private val substanceRepo: SubstanceRepository,
+    private val customSubstanceRepo: foo.pilz.freaklog.data.room.experiences.CustomSubstanceRepository,
     state: SavedStateHandle,
 ) : ViewModel() {
 
@@ -97,8 +98,10 @@ class EditIntakeLimitViewModel @Inject constructor(
             }
             if (infos.isNotEmpty()) return infos
         }
-        // Custom substances carry no dose ranges yet.
-        return emptyList()
+        return customSubstanceRepo.getWithEverythingByName(name)
+            ?.roaInfos
+            ?.mapNotNull { info -> info.dose?.toRoaDose()?.let { RoaDoseInfo(info.route, it) } }
+            ?: emptyList()
     }
 
     private suspend fun load() {

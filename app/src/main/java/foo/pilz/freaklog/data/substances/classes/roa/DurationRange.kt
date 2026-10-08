@@ -18,6 +18,7 @@
 
 package foo.pilz.freaklog.data.substances.classes.roa
 
+@kotlinx.serialization.Serializable
 data class DurationRange(
     val min: Float?,
     val max: Float?,
@@ -28,7 +29,13 @@ data class DurationRange(
             max.toString().removeSuffix(".0")
         }${units?.shortText ?: ""}"
 
+    // Derived values: kept out of Room columns and out of serialized output.
+    @androidx.room.Ignore
+    @kotlinx.serialization.Transient
     val minInSec: Float? = if (units != null) min?.times(units.inSecondsMultiplier) else null
+
+    @androidx.room.Ignore
+    @kotlinx.serialization.Transient
     val maxInSec: Float? = if (units != null) max?.times(units.inSecondsMultiplier) else null
 
     fun interpolateAtValueInSeconds(value: Float): Float? {

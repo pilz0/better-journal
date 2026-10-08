@@ -52,7 +52,7 @@ import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
 
 @TypeConverters(InstantConverter::class, AdaptiveColorConverter::class, AdministrationRouteConverter::class)
 @Database(
-    version = 24,
+    version = 25,
     entities = [
         Experience::class,
         Ingestion::class,
@@ -70,7 +70,12 @@ import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
         IngestionWebhookMessage::class,
         IngestionChangeLog::class,
         foo.pilz.freaklog.data.room.experiences.entities.CustomFormulation::class,
-        foo.pilz.freaklog.data.room.experiences.entities.IntakeLimit::class
+        foo.pilz.freaklog.data.room.experiences.entities.IntakeLimit::class,
+        foo.pilz.freaklog.data.room.experiences.entities.CustomRoa::class,
+        foo.pilz.freaklog.data.room.experiences.entities.CustomRoaDose::class,
+        foo.pilz.freaklog.data.room.experiences.entities.CustomRoaDuration::class,
+        foo.pilz.freaklog.data.room.experiences.entities.CustomInteraction::class,
+        foo.pilz.freaklog.data.room.experiences.entities.CustomCrossTolerance::class
     ],
     autoMigrations = [
         AutoMigration (from = 1, to = 2),
@@ -94,6 +99,7 @@ import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
         AutoMigration (from = 20, to = 21, spec = AppDatabase.Migration20To21::class),
         AutoMigration (from = 22, to = 23),
         AutoMigration (from = 23, to = 24),
+        AutoMigration (from = 24, to = 25),
     ]
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -105,6 +111,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun webhookDao(): WebhookDao
     abstract fun ingestionWebhookMessageDao(): IngestionWebhookMessageDao
     abstract fun customFormulationDao(): foo.pilz.freaklog.data.room.experiences.CustomFormulationDao
+    abstract fun customSubstanceDao(): foo.pilz.freaklog.data.room.experiences.CustomSubstanceDao
 
     /**
      * Legacy reminders (schema ≤ 16) only had interval-based scheduling. The v17 schema adds
@@ -152,7 +159,7 @@ abstract class AppDatabase : RoomDatabase() {
          * on the `@Database` annotation above. Exposed for migration tests so
          * they don't have to hard-code the value.
          */
-        const val LATEST_SCHEMA_VERSION: Int = 24
+        const val LATEST_SCHEMA_VERSION: Int = 25
 
         /**
          * Installs change-log triggers on the Ingestion table. Called from both

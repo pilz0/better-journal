@@ -40,6 +40,7 @@ suspend fun buildJournalExportJson(
         substanceCompanions = experienceRepository.getAllSubstanceCompanions(),
         customSubstances = experienceRepository.getAllCustomSubstances(),
         intakeLimits = experienceRepository.getAllIntakeLimits(),
+        customSubstanceDetails = experienceRepository.getAllCustomSubstanceDetails(),
     ).filtered(filter)
     val journalExport = data.toJournalExport(
         reminders = if (filter.isActive) emptyList() else experienceRepository.getAllReminders(),
@@ -79,6 +80,7 @@ fun ExportData.toJournalExport(
     },
     reminders = reminders,
     webhooks = webhooks,
+    customSubstanceDetails = customSubstanceDetails,
     intakeLimits = intakeLimits.map {
         IntakeLimitSerializable(
             substanceName = it.substanceName,

@@ -32,4 +32,11 @@ data class CustomSubstance(
     val name: String,
     var units: String,
     var description: String,
+    var summary: String? = null,
+    var toleranceFull: String? = null,
+    var toleranceHalf: String? = null,
+    var toleranceZero: String? = null,
+    var effectsText: String? = null,
+    var generalRisks: String? = null,
+    var longTermRisks: String? = null,
 )

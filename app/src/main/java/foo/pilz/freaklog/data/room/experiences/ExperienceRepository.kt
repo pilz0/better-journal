@@ -25,6 +25,8 @@ import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.room.experiences.entities.Experience
 import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
+import foo.pilz.freaklog.data.substanceshare.expand
+import foo.pilz.freaklog.data.substanceshare.toShared
 import foo.pilz.freaklog.data.room.experiences.entities.IntakeLimit
 import foo.pilz.freaklog.data.room.experiences.entities.ShulginRating
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
@@ -50,6 +52,7 @@ import kotlinx.coroutines.flow.flowOn
 
 @Singleton
 class ExperienceRepository @Inject constructor(
+    private val customSubstanceDao: CustomSubstanceDao,
     private val experienceDao: ExperienceDao,
     private val reminderDao: ReminderDao,
     private val webhookDao: foo.pilz.freaklog.data.room.webhooks.WebhookDao,
@@ -103,6 +106,17 @@ class ExperienceRepository @Inject constructor(
         experienceDao.insertEverything(journalExport)
         journalExport.reminders.forEach { reminderDao.insert(it) }
         journalExport.webhooks.forEach { webhookDao.insert(it.toEntity()) }
+        // The substance rows were just inserted with new ids; attach each one's details by name.
+        journalExport.customSubstanceDetails.forEach { shared ->
+            val substanceId = customSubstanceDao.getWithEverythingByName(shared.name)?.substance?.id
+                ?: return@forEach
+            val expansion = shared.expand()
+            expansion.roas.forEach { customSubstanceDao.insert(it.copy(customSubstanceId = substanceId)) }
+            expansion.doses.forEach { customSubstanceDao.insert(it.copy(customSubstanceId = substanceId)) }
+            expansion.durations.forEach { customSubstanceDao.insert(it.copy(customSubstanceId = substanceId)) }
+            expansion.interactions.forEach { customSubstanceDao.insert(it.copy(customSubstanceId = substanceId)) }
+            expansion.crossTolerances.forEach { customSubstanceDao.insert(it.copy(customSubstanceId = substanceId)) }
+        }
         notifyJournalChanged()
     }
 
@@ -359,4 +373,13 @@ class ExperienceRepository @Inject constructor(
         since: Instant
     ): List<IngestionWithCompanionAndCustomUnit> =
         experienceDao.getIngestionsWithCustomUnitsForSubstanceSince(substanceName, since)
+
+    /** Details of every custom substance that has any; substances with only a name are left out. */
+    suspend fun getAllCustomSubstanceDetails(): List<foo.pilz.freaklog.data.substanceshare.SharedSubstance> =
+        customSubstanceDao.getAllWithEverything()
+            .filter {
+                it.roas.isNotEmpty() || it.doses.isNotEmpty() || it.durations.isNotEmpty() ||
+                    it.interactions.isNotEmpty() || it.crossTolerances.isNotEmpty()
+            }
+            .map { it.toShared() }
 }

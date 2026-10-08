@@ -43,7 +43,12 @@ data class JournalExport(
      * exports (which lacked this field) still decode cleanly.
      */
     val webhooks: List<WebhookSerializable> = emptyList(),
-    val intakeLimits: List<IntakeLimitSerializable> = emptyList()
+    val intakeLimits: List<IntakeLimitSerializable> = emptyList(),
+    /**
+     * Routes, doses, durations, interactions and cross-tolerances of the
+     * [customSubstances], matched to them by name on import.
+     */
+    val customSubstanceDetails: List<foo.pilz.freaklog.data.substanceshare.SharedSubstance> = emptyList()
 )
 
 @Serializable
