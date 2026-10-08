@@ -375,6 +375,47 @@ class FinishIngestionScreenViewModel @Inject constructor(
         selectedExperienceFlow.emit(closestExperience)
     }
 
+    var isShowingLimitWarning by mutableStateOf(false)
+        private set
+    var limitWarningStatuses by mutableStateOf<List<foo.pilz.freaklog.ui.tabs.settings.intakelimits.IntakeLimitStatus>>(emptyList())
+        private set
+    private var pendingDismiss: (() -> Unit)? = null
+
+    /** Saves right away unless the dose would cross an intake limit, in which case it asks first. */
+    fun onDoneClicked(dismiss: () -> Unit) {
+        viewModelScope.launch {
+            val breached = if (consumerName.isBlank()) {
+                foo.pilz.freaklog.ui.tabs.settings.intakelimits.loadBreachedIntakeLimits(
+                    experienceRepo = experienceRepo,
+                    substanceName = substanceName,
+                    pendingDose = dose,
+                    pendingUnits = units,
+                    pendingCustomUnitId = customUnitId,
+                )
+            } else {
+                emptyList()
+            }
+            if (breached.isEmpty()) {
+                createSaveAndDismissAfter(dismiss)
+            } else {
+                limitWarningStatuses = breached
+                pendingDismiss = dismiss
+                isShowingLimitWarning = true
+            }
+        }
+    }
+
+    fun confirmLimitWarningAndSave() {
+        isShowingLimitWarning = false
+        pendingDismiss?.let { createSaveAndDismissAfter(it) }
+        pendingDismiss = null
+    }
+
+    fun dismissLimitWarning() {
+        isShowingLimitWarning = false
+        pendingDismiss = null
+    }
+
     fun createSaveAndDismissAfter(dismiss: () -> Unit) {
         viewModelScope.launch {
             createAndSaveIngestion()

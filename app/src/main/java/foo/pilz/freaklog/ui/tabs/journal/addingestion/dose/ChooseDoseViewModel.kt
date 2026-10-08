@@ -23,6 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.substances.AdministrationRoute
@@ -33,10 +34,12 @@ import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.main.navigation.graphs.ChooseDoseRoute
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
 import foo.pilz.freaklog.ui.utils.evaluateNumericExpression
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 @HiltViewModel
 class ChooseDoseViewModel @Inject constructor(
     repository: SubstanceRepository,
+    private val experienceRepo: foo.pilz.freaklog.data.room.experiences.ExperienceRepository,
     state: SavedStateHandle,
 ) : ViewModel() {
     private val chooseDoseRoute = state.toRoute<ChooseDoseRoute>()
@@ -84,8 +87,33 @@ class ChooseDoseViewModel @Inject constructor(
         estimatedDoseStandardDeviationText = newEstimatedStandardDeviationText
     }
 
+    private var loadedIntakeLimits by mutableStateOf<List<foo.pilz.freaklog.data.room.experiences.entities.IntakeLimit>>(emptyList())
+    private var pastLimitIngestions by mutableStateOf<List<foo.pilz.freaklog.ui.tabs.settings.intakelimits.LimitIngestion>>(emptyList())
+
+    /** Live status of every enabled intake limit for this substance, including the dose being typed. */
+    val intakeLimitStatuses: List<foo.pilz.freaklog.ui.tabs.settings.intakelimits.IntakeLimitStatus>
+        get() {
+            if (loadedIntakeLimits.isEmpty()) return emptyList()
+            val now = java.time.Instant.now()
+            val pending = foo.pilz.freaklog.ui.tabs.settings.intakelimits.LimitIngestion(dose, units.ifBlank { null }, now)
+            return loadedIntakeLimits.map {
+                foo.pilz.freaklog.ui.tabs.settings.intakelimits.evaluateIntakeLimit(it, now, pastLimitIngestions, pending)
+            }
+        }
+
     init {
         units = roaDose?.units ?: ""
+        viewModelScope.launch { loadIntakeLimits() }
+    }
+
+    private suspend fun loadIntakeLimits() {
+        val limits = experienceRepo.getIntakeLimitsForSubstance(substance.name).filter { it.isEnabled }
+        if (limits.isEmpty()) return
+        val since = java.time.Instant.now().minusSeconds(limits.maxOf { it.windowSeconds })
+        pastLimitIngestions = experienceRepo
+            .getIngestionsWithCustomUnitsForSubstanceSince(substance.name, since)
+            .map { foo.pilz.freaklog.ui.tabs.settings.intakelimits.LimitIngestion(it.pureDose, it.originalUnit, it.ingestion.time) }
+        loadedIntakeLimits = limits
     }
 
 }

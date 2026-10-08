@@ -120,10 +120,7 @@ fun EditIngestionScreen(
         onChangeId = { viewModel.experienceId = it },
         navigateBack = navigateBack,
         deleteIngestion = viewModel::deleteIngestion,
-        onDone = {
-            viewModel.onDoneTap()
-            navigateBack()
-        },
+        onDone = { viewModel.onDoneClicked(onSaved = navigateBack) },
         ingestionTimePickerOption = viewModel.ingestionTimePickerOptionFlow.collectAsState().value,
         onChangeTimePickerOption = viewModel::onChangeTimePickerOption,
         onChangeStartDateOrTime = viewModel::onChangeStartTime,
@@ -152,6 +149,13 @@ fun EditIngestionScreen(
         ingestionCategory = viewModel.ingestionCategory,
         onIngestionCategoryChange = { viewModel.ingestionCategory = it }
     )
+    if (viewModel.isShowingLimitWarning) {
+        foo.pilz.freaklog.ui.tabs.settings.intakelimits.IntakeLimitWarningDialog(
+            statuses = viewModel.limitWarningStatuses,
+            onConfirm = viewModel::confirmLimitWarningAndSave,
+            onDismiss = viewModel::dismissLimitWarning,
+        )
+    }
 }
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)

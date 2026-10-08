@@ -42,7 +42,21 @@ data class JournalExport(
      * Multi-webhook configuration. Backwards-compatible default ensures older
      * exports (which lacked this field) still decode cleanly.
      */
-    val webhooks: List<WebhookSerializable> = emptyList()
+    val webhooks: List<WebhookSerializable> = emptyList(),
+    val intakeLimits: List<IntakeLimitSerializable> = emptyList()
+)
+
+@Serializable
+data class IntakeLimitSerializable(
+    val substanceName: String,
+    @Serializable(with = InstantSerializer::class) val creationDate: Instant = Instant.now(),
+    val limitType: foo.pilz.freaklog.data.room.experiences.entities.IntakeLimitType,
+    val maxDose: Double? = null,
+    val unit: String? = null,
+    val maxCount: Int? = null,
+    val windowSeconds: Long,
+    val warningPercent: Int,
+    val isEnabled: Boolean = true,
 )
 
 /**

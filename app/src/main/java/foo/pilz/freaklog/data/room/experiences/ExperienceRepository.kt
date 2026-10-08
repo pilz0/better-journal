@@ -25,6 +25,7 @@ import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.room.experiences.entities.Experience
 import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
+import foo.pilz.freaklog.data.room.experiences.entities.IntakeLimit
 import foo.pilz.freaklog.data.room.experiences.entities.ShulginRating
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
 import foo.pilz.freaklog.data.room.experiences.entities.TimedNote
@@ -33,6 +34,7 @@ import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestion
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsAndCompanions
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsCompanionsAndRatings
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsTimedNotesAndRatings
+import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanion
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithExperienceAndCustomUnit
 import foo.pilz.freaklog.data.room.reminders.ReminderDao
@@ -337,4 +339,24 @@ class ExperienceRepository @Inject constructor(
         }
         return Pair(ingestion.dose, ingestion.units)
     }
+
+    suspend fun getAllIntakeLimits(): List<IntakeLimit> = experienceDao.getIntakeLimits()
+    suspend fun insert(intakeLimit: IntakeLimit): Int = experienceDao.insert(intakeLimit).toInt()
+    suspend fun update(intakeLimit: IntakeLimit) = experienceDao.update(intakeLimit)
+    suspend fun delete(intakeLimit: IntakeLimit) = experienceDao.delete(intakeLimit)
+
+    fun getIntakeLimitsFlow(): Flow<List<IntakeLimit>> = experienceDao.getIntakeLimitsFlow()
+        .flowOn(Dispatchers.IO)
+        .conflate()
+
+    suspend fun getIntakeLimit(id: Int): IntakeLimit? = experienceDao.getIntakeLimit(id)
+
+    suspend fun getIntakeLimitsForSubstance(substanceName: String): List<IntakeLimit> =
+        experienceDao.getIntakeLimitsForSubstance(substanceName)
+
+    suspend fun getIngestionsWithCustomUnitsForSubstanceSince(
+        substanceName: String,
+        since: Instant
+    ): List<IngestionWithCompanionAndCustomUnit> =
+        experienceDao.getIngestionsWithCustomUnitsForSubstanceSince(substanceName, since)
 }

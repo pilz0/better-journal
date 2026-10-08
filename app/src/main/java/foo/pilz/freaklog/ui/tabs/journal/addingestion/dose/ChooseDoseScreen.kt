@@ -139,6 +139,7 @@ fun ChooseDoseScreen(
         onChangeOfUnits = { viewModel.units = it },
         navigateToCreateCustomUnit = navigateToCreateCustomUnit,
         roaDuration = viewModel.roaDuration,
+        intakeLimitStatuses = viewModel.intakeLimitStatuses,
     )
 }
 
@@ -234,6 +235,7 @@ fun ChooseDoseScreen(
     onChangeOfUnits: (units: String) -> Unit,
     navigateToCreateCustomUnit: () -> Unit,
     roaDuration: foo.pilz.freaklog.data.substances.classes.roa.RoaDuration? = null,
+    intakeLimitStatuses: List<foo.pilz.freaklog.ui.tabs.settings.intakelimits.IntakeLimitStatus> = emptyList(),
 ) {
     Scaffold(
         topBar = {
@@ -265,6 +267,12 @@ fun ChooseDoseScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(modifier = Modifier.height(4.dp))
+            if (intakeLimitStatuses.isNotEmpty()) {
+                foo.pilz.freaklog.ui.tabs.settings.intakelimits.IntakeLimitBannerContent(
+                    statuses = intakeLimitStatuses,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+            }
             ElevatedCard(
                 modifier = Modifier.padding(
                     horizontal = horizontalPadding,

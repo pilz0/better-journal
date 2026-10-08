@@ -329,6 +329,19 @@ class SettingsViewModel @Inject constructor(
                 reminders = experienceRepository.getAllReminders(),
                 webhooks = webhookRepository.getAll().map {
                     foo.pilz.freaklog.data.export.WebhookSerializable.fromEntity(it)
+                },
+                intakeLimits = experienceRepository.getAllIntakeLimits().map {
+                    foo.pilz.freaklog.data.export.IntakeLimitSerializable(
+                        substanceName = it.substanceName,
+                        creationDate = it.creationDate,
+                        limitType = it.limitType,
+                        maxDose = it.maxDose,
+                        unit = it.unit,
+                        maxCount = it.maxCount,
+                        windowSeconds = it.windowSeconds,
+                        warningPercent = it.warningPercent,
+                        isEnabled = it.isEnabled,
+                    )
                 }
             )
             try {

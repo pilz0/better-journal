@@ -72,6 +72,9 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
                 navigateToAchievements = {
                     navController.navigate(AchievementsRoute)
                 },
+                navigateToIntakeLimits = {
+                    navController.navigate(IntakeLimitsRoute)
+                },
                 navigateToFreakQueryShell = {
                     navController.navigate(FreakQueryShellRoute)
                 },
@@ -111,6 +114,22 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
         }
         composableWithTransitions<WebhookEditorRoute> {
             WebhookEditorScreen(navigateBack = navController::popBackStack)
+        }
+        addIntakeLimitGraph(navController)
+        composableWithTransitions<IntakeLimitsRoute> {
+            foo.pilz.freaklog.ui.tabs.settings.intakelimits.IntakeLimitsScreen(
+                navigateToAddIntakeLimit = { navController.navigate(AddIntakeLimitParentRoute) },
+                navigateToEditIntakeLimit = { limitId ->
+                    navController.navigate(EditIntakeLimitRoute(limitId = limitId))
+                }
+            )
+        }
+        composableWithTransitions<EditIntakeLimitRoute> {
+            foo.pilz.freaklog.ui.tabs.settings.intakelimits.EditIntakeLimitScreen(
+                navigateBack = {
+                    navController.popBackStack(route = IntakeLimitsRoute, inclusive = false)
+                }
+            )
         }
         composableWithTransitions<CustomUnitArchiveRoute> {
             CustomUnitArchiveScreen(navigateToEditCustomUnit = { customUnitId ->
@@ -166,6 +185,15 @@ object CustomUnitArchiveRoute
 
 @Serializable
 object CustomUnitsRoute
+
+@Serializable
+object IntakeLimitsRoute
+
+@Serializable
+data class EditIntakeLimitRoute(
+    val limitId: Int = -1,
+    val substanceName: String = "",
+)
 
 @Serializable
 object WebhooksListRoute

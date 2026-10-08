@@ -45,7 +45,22 @@ data class Spacing(
     val lg: Dp = 16.dp,
     val xl: Dp = 24.dp,
     val xxl: Dp = 32.dp,
-)
+    val iconXs: Dp = 16.dp,
+    val iconSm: Dp = 20.dp,
+    val iconMd: Dp = 24.dp,
+    val iconLg: Dp = 40.dp,
+    val iconXl: Dp = 64.dp,
+    val cornerSm: Dp = 2.dp,
+    val cornerMd: Dp = 4.dp,
+    val cornerLg: Dp = 12.dp,
+    val fabBottomPad: Dp = 52.dp,
+    val typographyScale: Float = 1.0f,
+) {
+    val screenHorizontal: Dp get() = lg
+    val cardPadding: Dp get() = md
+    val sectionGap: Dp get() = lg
+    val itemGap: Dp get() = sm
+}
 
 /**
  * Default [Spacing] instance. Hoisted to a top-level `val` so the Compose

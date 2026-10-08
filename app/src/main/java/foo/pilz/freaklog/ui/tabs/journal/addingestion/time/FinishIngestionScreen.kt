@@ -99,7 +99,7 @@ fun FinishIngestionScreen(
     val localDateTime = viewModel.localDateTimeStartFlow.collectAsState().value
     FinishIngestionScreen(
         createSaveAndDismissAfter = {
-            viewModel.createSaveAndDismissAfter(dismiss = dismissAddIngestionScreens)
+            viewModel.onDoneClicked(dismiss = dismissAddIngestionScreens)
         },
         ingestionTimePickerOption = viewModel.ingestionTimePickerOptionFlow.collectAsState().value,
         onChangeTimePickerOption = viewModel::onChangeTimePickerOption,
@@ -149,6 +149,13 @@ fun FinishIngestionScreen(
         inheritedCategory = viewModel.inheritedCategory,
         onIngestionCategoryChange = { viewModel.ingestionCategory = it }
     )
+    if (viewModel.isShowingLimitWarning) {
+        foo.pilz.freaklog.ui.tabs.settings.intakelimits.IntakeLimitWarningDialog(
+            statuses = viewModel.limitWarningStatuses,
+            onConfirm = viewModel::confirmLimitWarningAndSave,
+            onDismiss = viewModel::dismissLimitWarning,
+        )
+    }
 }
 
 @Preview

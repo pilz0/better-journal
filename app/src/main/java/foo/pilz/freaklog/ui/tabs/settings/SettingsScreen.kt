@@ -42,6 +42,7 @@ import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Medication
+import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.QuestionAnswer
@@ -151,6 +152,7 @@ fun SettingsScreen(
     navigateToCustomFormulations: () -> Unit,
     navigateToReminders: () -> Unit,
     navigateToAchievements: () -> Unit = {},
+    navigateToIntakeLimits: () -> Unit = {},
     navigateToFreakQueryShell: () -> Unit = {},
     navigateToAiAssistantSettings: () -> Unit,
 ) {
@@ -163,6 +165,7 @@ fun SettingsScreen(
         navigateToCustomFormulations = navigateToCustomFormulations,
         navigateToReminders = navigateToReminders,
         navigateToAchievements = navigateToAchievements,
+        navigateToIntakeLimits = navigateToIntakeLimits,
         navigateToFreakQueryShell = navigateToFreakQueryShell,
         navigateToAiAssistantSettings = navigateToAiAssistantSettings,
         deleteEverything = viewModel::deleteEverything,
@@ -213,6 +216,7 @@ fun SettingsScreen(
     navigateToCustomFormulations: () -> Unit,
     navigateToReminders: () -> Unit,
     navigateToAchievements: () -> Unit = {},
+    navigateToIntakeLimits: () -> Unit = {},
     navigateToFreakQueryShell: () -> Unit = {},
     navigateToAiAssistantSettings: () -> Unit,
     deleteEverything: () -> Unit,
@@ -297,6 +301,14 @@ fun SettingsScreen(
                 ) {
                     performHaptic(HapticType.CLICK)
                     navigateToCustomUnits()
+                }
+                HorizontalDivider()
+                SettingsButton(
+                    imageVector = Icons.Outlined.Speed,
+                    text = "Intake limits"
+                ) {
+                    performHaptic(HapticType.CLICK)
+                    navigateToIntakeLimits()
                 }
                 HorizontalDivider()
                 SettingsButton(

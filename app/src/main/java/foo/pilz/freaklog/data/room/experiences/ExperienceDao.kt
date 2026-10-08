@@ -32,6 +32,7 @@ import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.room.experiences.entities.Experience
 import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
+import foo.pilz.freaklog.data.room.experiences.entities.IntakeLimit
 import foo.pilz.freaklog.data.room.experiences.entities.Location
 import foo.pilz.freaklog.data.room.experiences.entities.ShulginRating
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
@@ -333,6 +334,40 @@ interface ExperienceDao {
     @Delete
     suspend fun delete(customUnit: CustomUnit)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(intakeLimit: IntakeLimit): Long
+
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun update(intakeLimit: IntakeLimit)
+
+    @Delete
+    suspend fun delete(intakeLimit: IntakeLimit)
+
+    @Query("SELECT * FROM intakelimit ORDER BY creationDate DESC")
+    fun getIntakeLimitsFlow(): Flow<List<IntakeLimit>>
+
+    @Query("SELECT * FROM intakelimit WHERE id = :id")
+    suspend fun getIntakeLimit(id: Int): IntakeLimit?
+
+    @Query("SELECT * FROM intakelimit WHERE substanceName = :substanceName")
+    suspend fun getIntakeLimitsForSubstance(substanceName: String): List<IntakeLimit>
+
+    @Query("SELECT * FROM intakelimit ORDER BY creationDate")
+    suspend fun getIntakeLimits(): List<IntakeLimit>
+
+    @Query("DELETE FROM intakelimit")
+    suspend fun deleteAllIntakeLimits()
+
+    @Transaction
+    @Query(
+        "SELECT * FROM ingestion WHERE substanceName = :substanceName AND time > :since" +
+            " AND consumerName IS NULL ORDER BY time DESC"
+    )
+    suspend fun getIngestionsWithCustomUnitsForSubstanceSince(
+        substanceName: String,
+        since: Instant
+    ): List<IngestionWithCompanionAndCustomUnit>
+
     @Transaction
     suspend fun deleteEverything() {
         deleteAllIngestions()
@@ -342,6 +377,7 @@ interface ExperienceDao {
         deleteAllCustomSubstances()
         deleteAllRatings()
         deleteAllCustomUnits()
+        deleteAllIntakeLimits()
     }
 
     @Transaction
@@ -501,6 +537,21 @@ interface ExperienceDao {
                     originalUnit = it.originalUnit,
                     note = it.note,
                     defaultCategory = it.defaultCategory
+                )
+            )
+        }
+        journalExport.intakeLimits.forEach {
+            insert(
+                IntakeLimit(
+                    substanceName = it.substanceName,
+                    creationDate = it.creationDate,
+                    limitType = it.limitType,
+                    maxDose = it.maxDose,
+                    unit = it.unit,
+                    maxCount = it.maxCount,
+                    windowSeconds = it.windowSeconds,
+                    warningPercent = it.warningPercent,
+                    isEnabled = it.isEnabled,
                 )
             )
         }

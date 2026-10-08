@@ -230,6 +230,51 @@ class EditIngestionViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000)
     )
 
+    var isShowingLimitWarning by mutableStateOf(false)
+        private set
+    var limitWarningStatuses by mutableStateOf<List<foo.pilz.freaklog.ui.tabs.settings.intakelimits.IntakeLimitStatus>>(emptyList())
+        private set
+    private var pendingSave: (() -> Unit)? = null
+
+    /** Saves right away unless the edited dose would cross an intake limit, in which case it asks first. */
+    fun onDoneClicked(onSaved: () -> Unit) {
+        viewModelScope.launch {
+            val ing = ingestion
+            val breached = if (ing != null && consumerName.isBlank()) {
+                foo.pilz.freaklog.ui.tabs.settings.intakelimits.loadBreachedIntakeLimits(
+                    experienceRepo = experienceRepo,
+                    substanceName = ing.substanceName,
+                    pendingDose = if (isKnown) evaluateNumericExpression(dose) else null,
+                    pendingUnits = units,
+                    pendingCustomUnitId = customUnit?.id,
+                    excludeIngestionId = ing.id,
+                )
+            } else {
+                emptyList()
+            }
+            if (breached.isEmpty()) {
+                onDoneTap()
+                onSaved()
+            } else {
+                limitWarningStatuses = breached
+                pendingSave = onSaved
+                isShowingLimitWarning = true
+            }
+        }
+    }
+
+    fun confirmLimitWarningAndSave() {
+        isShowingLimitWarning = false
+        onDoneTap()
+        pendingSave?.invoke()
+        pendingSave = null
+    }
+
+    fun dismissLimitWarning() {
+        isShowingLimitWarning = false
+        pendingSave = null
+    }
+
     fun onDoneTap() {
         viewModelScope.launch {
             val selectedStartInstant = localDateTimeStartFlow.firstOrNull()?.getInstant() ?: return@launch
