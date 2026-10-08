@@ -424,8 +424,34 @@ class ExperienceViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000)
         )
 
-    fun deleteExperience() {
+    val isNotificationActiveFlow by lazy {
+        userPreferences.activeNotificationExperienceIdFlow
+            .map { it == experienceId }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    }
+
+    /** Starts the live timeline notification for this experience, or stops it when it is already showing. */
+    fun toggleNotification(context: Context) {
         viewModelScope.launch {
+            if (isNotificationActiveFlow.value) {
+                stopNotification(context)
+            } else {
+                foo.pilz.freaklog.ui.tabs.journal.experience.notification.TimelineNotificationService.start(context, experienceId)
+            }
+        }
+    }
+
+    private suspend fun stopNotification(context: Context) {
+        foo.pilz.freaklog.ui.tabs.journal.experience.notification.TimelineNotificationService.stop(context)
+        foo.pilz.freaklog.ui.tabs.journal.experience.notification.TimelineUpdateWorker.cancel(context)
+        userPreferences.saveActiveNotificationExperienceId(null)
+    }
+
+    fun deleteExperience(context: Context) {
+        viewModelScope.launch {
+            if (userPreferences.activeNotificationExperienceIdFlow.firstOrNull() == experienceId) {
+                stopNotification(context)
+            }
             experienceRepo.deleteEverythingOfExperience(experienceId = experienceId)
         }
     }

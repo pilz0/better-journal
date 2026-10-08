@@ -84,6 +84,7 @@ class FinishIngestionScreenViewModel @Inject constructor(
     private val customFormulationRepository: CustomFormulationRepository,
     private val substanceRepository: SubstanceRepositoryInterface,
     @ApplicationScope private val externalScope: CoroutineScope,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val appContext: android.content.Context,
     state: SavedStateHandle
 ) : ViewModel() {
     
@@ -464,6 +465,12 @@ class FinishIngestionScreenViewModel @Inject constructor(
         // launching background work — SnapshotStateMap is not safe to read
         // from arbitrary threads.
         val selectionSnapshot: Map<Int, Boolean> = selectedWebhookIds.toMap()
+        // Refresh a running live notification, or start one if the user opted in.
+        foo.pilz.freaklog.ui.tabs.journal.experience.notification.TimelineNotificationService.refreshOrAutoStart(
+            appContext,
+            userPreferences,
+            newIngestion.experienceId
+        )
         // Send webhook notification in background
         externalScope.launch {
             sendWebhookForIngestion(newIngestion, selectionSnapshot)

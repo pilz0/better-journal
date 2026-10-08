@@ -33,6 +33,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.automirrored.outlined.NoteAdd
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -150,6 +152,11 @@ fun ExperienceScreen(
     )
 
     var showAiChat by remember { mutableStateOf(false) }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val notificationPermissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { granted -> if (granted) viewModel.toggleNotification(context) }
+    val isNotificationActive = viewModel.isNotificationActiveFlow.collectAsState().value
 
     if (showAiChat && isAiAssistantEnabled) {
         foo.pilz.freaklog.ui.tabs.journal.experience.recommendations.AiChatBottomSheet(
@@ -167,7 +174,21 @@ fun ExperienceScreen(
             viewModel.saveLastIngestionTimeOfExperience()
             navigateToAddIngestionSearch()
         },
-        deleteExperience = viewModel::deleteExperience,
+        deleteExperience = { viewModel.deleteExperience(context) },
+        isNotificationActive = isNotificationActive,
+        onToggleNotification = {
+            val needsPermission = !isNotificationActive &&
+                android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU &&
+                androidx.core.content.ContextCompat.checkSelfPermission(
+                    context,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+            if (needsPermission) {
+                notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                viewModel.toggleNotification(context)
+            }
+        },
         navigateToEditExperienceScreen = navigateToEditExperienceScreen,
         navigateToExplainTimeline = navigateToExplainTimeline,
         navigateToIngestionScreen = navigateToIngestionScreen,
@@ -251,6 +272,8 @@ fun ExperienceScreen(
     areDosageDotsHidden: Boolean,
     isTimelineHidden: Boolean,
     matchedAchievements: List<AchievementDef> = emptyList(),
+    isNotificationActive: Boolean = false,
+    onToggleNotification: () -> Unit = {},
 ) {
     Scaffold(
         topBar = {
@@ -266,7 +289,9 @@ fun ExperienceScreen(
                 saveIsFavorite = saveIsFavorite,
                 navigateToAddTimedNoteScreen = navigateToAddTimedNoteScreen,
                 navigateToAddRatingScreen = navigateToAddRatingScreen,
-                addIngestion = addIngestion
+                addIngestion = addIngestion,
+                isNotificationActive = isNotificationActive,
+                onToggleNotification = onToggleNotification,
             )
         },
         floatingActionButton = {
@@ -854,11 +879,27 @@ private fun ExperienceTopBar(
     saveIsFavorite: (Boolean) -> Unit,
     navigateToAddTimedNoteScreen: () -> Unit,
     navigateToAddRatingScreen: () -> Unit,
-    addIngestion: () -> Unit
+    addIngestion: () -> Unit,
+    isNotificationActive: Boolean = false,
+    onToggleNotification: () -> Unit = {},
 ) {
     TopAppBar(
         title = { Text(oneExperienceScreenModel.title) },
         actions = {
+            IconButton(onClick = onToggleNotification) {
+                Icon(
+                    if (isNotificationActive) {
+                        androidx.compose.material.icons.Icons.Filled.Notifications
+                    } else {
+                        androidx.compose.material.icons.Icons.Outlined.Notifications
+                    },
+                    contentDescription = if (isNotificationActive) {
+                        "Stop live notification"
+                    } else {
+                        "Start live notification"
+                    }
+                )
+            }
             if (isAiAssistantEnabled) {
                 IconButton(onClick = openAiChat) {
                     Icon(

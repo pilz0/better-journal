@@ -22,6 +22,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.SavedTimeDisplayOption
@@ -63,6 +64,8 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
         // into the `webhook` table. See WebhookSeeder.
         val WEBHOOK_SEEDED = booleanPreferencesKey("webhook_seeded")
 
+        val TIMELINE_NOTIFICATION_AUTO_START = booleanPreferencesKey("timeline_notification_auto_start")
+        val ACTIVE_NOTIFICATION_EXPERIENCE_ID = intPreferencesKey("active_notification_experience_id")
         val BACKUP_DIR_URI = stringPreferencesKey("backup_dir_uri")
         val BACKUP_PASSWORD_SEALED = stringPreferencesKey("backup_password_sealed")
         val LAST_BACKUP_TIME = longPreferencesKey("last_backup_time")
@@ -242,6 +245,27 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
 
     suspend fun markWebhookSeeded() {
         dataStore.edit { it[PreferencesKeys.WEBHOOK_SEEDED] = true }
+    }
+
+    val isTimelineNotificationAutoStartEnabledFlow: Flow<Boolean> = dataStore.data
+        .map { it[PreferencesKeys.TIMELINE_NOTIFICATION_AUTO_START] ?: false }
+
+    suspend fun saveTimelineNotificationAutoStartEnabled(value: Boolean) {
+        dataStore.edit { it[PreferencesKeys.TIMELINE_NOTIFICATION_AUTO_START] = value }
+    }
+
+    /** The experience the live notification is tracking, or null while it is off. */
+    val activeNotificationExperienceIdFlow: Flow<Int?> = dataStore.data
+        .map { it[PreferencesKeys.ACTIVE_NOTIFICATION_EXPERIENCE_ID] }
+
+    suspend fun saveActiveNotificationExperienceId(id: Int?) {
+        dataStore.edit {
+            if (id != null) {
+                it[PreferencesKeys.ACTIVE_NOTIFICATION_EXPERIENCE_ID] = id
+            } else {
+                it.remove(PreferencesKeys.ACTIVE_NOTIFICATION_EXPERIENCE_ID)
+            }
+        }
     }
 
     val backupDirUriFlow: Flow<String?> = dataStore.data.map { it[PreferencesKeys.BACKUP_DIR_URI] }

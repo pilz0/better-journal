@@ -54,6 +54,16 @@ class SettingsViewModel @Inject constructor(
         userPreferences.saveAreSubstanceHeightsIndependent(value)
     }
 
+    fun saveTimelineNotificationAutoStart(value: Boolean) = viewModelScope.launch {
+        userPreferences.saveTimelineNotificationAutoStartEnabled(value)
+    }
+
+    val isTimelineNotificationAutoStartFlow = userPreferences.isTimelineNotificationAutoStartEnabledFlow.stateIn(
+        initialValue = false,
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000)
+    )
+
     fun saveIsTimelineHidden(value: Boolean) = viewModelScope.launch {
         userPreferences.saveIsTimelineHidden(value)
     }

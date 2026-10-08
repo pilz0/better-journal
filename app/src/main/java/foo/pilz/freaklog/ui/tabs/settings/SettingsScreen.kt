@@ -179,6 +179,8 @@ fun SettingsScreen(
         saveDosageDotsAreHidden = viewModel::saveDosageDotsAreHidden,
         isTimelineHidden = viewModel.isTimelineHiddenFlow.collectAsState().value,
         saveIsTimelineHidden = viewModel::saveIsTimelineHidden,
+        timelineNotificationAutoStart = viewModel.isTimelineNotificationAutoStartFlow.collectAsState().value,
+        saveTimelineNotificationAutoStart = viewModel::saveTimelineNotificationAutoStart,
         areSubstanceHeightsIndependent = viewModel.areSubstanceHeightsIndependentFlow.collectAsState().value,
         saveAreSubstanceHeightsIndependent = viewModel::saveAreSubstanceHeightsIndependent,
         isStatsHidden = viewModel.isStatsHiddenFlow.collectAsState().value,
@@ -231,6 +233,8 @@ fun SettingsScreen(
     saveDosageDotsAreHidden: (Boolean) -> Unit,
     isTimelineHidden: Boolean,
     saveIsTimelineHidden: (Boolean) -> Unit,
+    timelineNotificationAutoStart: Boolean = false,
+    saveTimelineNotificationAutoStart: (Boolean) -> Unit = {},
     areSubstanceHeightsIndependent: Boolean,
     saveAreSubstanceHeightsIndependent: (Boolean) -> Unit,
     isStatsHidden: Boolean,
@@ -395,6 +399,15 @@ fun SettingsScreen(
                     onCheckedChange = {
                         performHaptic(HapticType.TOGGLE)
                         saveIsTimelineHidden(it)
+                    }
+                )
+                HorizontalDivider()
+                SettingsSwitchRow(
+                    text = "Live notification on new ingestion",
+                    checked = timelineNotificationAutoStart,
+                    onCheckedChange = {
+                        performHaptic(HapticType.TOGGLE)
+                        saveTimelineNotificationAutoStart(it)
                     }
                 )
                 HorizontalDivider()

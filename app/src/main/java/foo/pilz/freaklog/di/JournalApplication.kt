@@ -37,6 +37,7 @@ class JournalApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        foo.pilz.freaklog.ui.tabs.journal.experience.notification.TimelineNotificationChannel.create(this)
         applicationScope.launch {
             // Migrate the legacy single-webhook configuration into the new
             // multi-webhook tables on first launch after upgrade. Idempotent.
