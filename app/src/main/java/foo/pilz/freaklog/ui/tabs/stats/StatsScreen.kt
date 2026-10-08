@@ -85,14 +85,7 @@ fun StatsScreen(
     navigateToToleranceChart: () -> Unit = {},
 ) {
     val statsModel = viewModel.statsModelFlow.collectAsState().value
-    val isExcelSkinEnabled = viewModel.isExcelSkinEnabledFlow.collectAsState().value
-    // The file name is picked once per appearance so it does not change while the sheet is open.
-    var excelFileName by remember { mutableStateOf<String?>(null) }
-    androidx.compose.runtime.LaunchedEffect(isExcelSkinEnabled) {
-        if (isExcelSkinEnabled && kotlin.random.Random.nextDouble() < foo.pilz.freaklog.ui.tabs.stats.excelskin.EXCEL_SKIN_OPEN_PROBABILITY) {
-            excelFileName = foo.pilz.freaklog.ui.tabs.stats.excelskin.randomExcelFileName()
-        }
-    }
+    androidx.compose.runtime.LaunchedEffect(Unit) { viewModel.onStatsOpened() }
     StatsScreen(
         navigateToSubstanceCompanion = navigateToSubstanceCompanion,
         navigateToToleranceChart = navigateToToleranceChart,
@@ -100,24 +93,7 @@ fun StatsScreen(
         statsModel = statsModel,
         onChangeConsumerName = viewModel::onChangeConsumer,
         consumerNamesSorted = viewModel.sortedConsumerNamesFlow.collectAsState().value,
-        onOpenSpreadsheet = if (isExcelSkinEnabled) {
-            { excelFileName = foo.pilz.freaklog.ui.tabs.stats.excelskin.randomExcelFileName() }
-        } else {
-            null
-        },
     )
-    excelFileName?.let { fileName ->
-        androidx.compose.ui.window.Dialog(
-            onDismissRequest = { excelFileName = null },
-            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
-        ) {
-            foo.pilz.freaklog.ui.tabs.stats.excelskin.ExcelStatsSkin(
-                statItems = statsModel.statItems,
-                fileName = fileName,
-                onDismiss = { excelFileName = null },
-            )
-        }
-    }
 }
 
 @Preview
@@ -148,7 +124,6 @@ fun StatsScreen(
     statsModel: StatsModel,
     onChangeConsumerName: (String?) -> Unit,
     consumerNamesSorted: List<String>,
-    onOpenSpreadsheet: (() -> Unit)? = null,
 ) {
     val performHaptic = rememberHaptic()
     
@@ -157,14 +132,6 @@ fun StatsScreen(
             TopAppBar(
                 title = { Text(if (statsModel.consumerName == null) "Statistics" else "Statistics for ${statsModel.consumerName}") },
                 actions = {
-                    if (onOpenSpreadsheet != null) {
-                        IconButton(onClick = onOpenSpreadsheet) {
-                            Icon(
-                                androidx.compose.material.icons.Icons.Outlined.GridOn,
-                                contentDescription = "Show as spreadsheet"
-                            )
-                        }
-                    }
                     if (consumerNamesSorted.isNotEmpty()) {
                         var isConsumerSelectionExpanded by remember { mutableStateOf(false) }
                         IconButton(onClick = { 

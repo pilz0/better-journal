@@ -1,5 +1,10 @@
 package foo.pilz.freaklog.ui.tabs.settings.funny
 
+import foo.pilz.freaklog.ui.tabs.settings.funny.condition.SubstanceInfo
+import foo.pilz.freaklog.ui.tabs.settings.funny.condition.EvalContext
+import foo.pilz.freaklog.ui.tabs.settings.funny.condition.AchievementEngine
+import foo.pilz.freaklog.data.substances.classes.roa.DoseClass
+import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestions
 import android.content.Context
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRecipe
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
@@ -103,7 +108,58 @@ private fun unwrapOuter(condition: String, prefix: String): String? {
     return null
 }
 
+private val conditionEngine = AchievementEngine()
+private val CONDITION_LANGUAGE_REGEX = Regex("""\b(ingestions|experiences)\b""")
+
+/**
+ * Conditions written in the upstream app's condition language always query the `ingestions` or
+ * `experiences` collection; everything else is this app's older predicate syntax.
+ */
+internal fun usesConditionLanguage(condition: String): Boolean =
+    CONDITION_LANGUAGE_REGEX.containsMatchIn(condition)
+
+private fun AchievementContext.toEvalContext(): EvalContext {
+    val substancesByExperience = experiences.associate { experience ->
+        experience.experience.id to experience.ingestions.map { it.substanceName }.distinct()
+    }
+    return EvalContext(
+        experiences = experiences.map { ExperienceWithIngestions(it.experience, it.ingestions) },
+        ingestions = allIngestions,
+        substanceInfo = RepositorySubstanceInfo(substanceRepo),
+        interactionCount = { experienceId, filter ->
+            countInteractionsInList(
+                substances = substancesByExperience[experienceId].orEmpty(),
+                type = filter.name.lowercase(),
+                checker = interactionChecker,
+            )
+        },
+    )
+}
+
+class RepositorySubstanceInfo(
+    private val substanceRepo: SubstanceRepositoryInterface
+) : SubstanceInfo {
+    override fun categories(substanceName: String): Set<String> =
+        substanceRepo.getSubstance(substanceName)?.categories?.map { it.lowercase() }?.toSet()
+            ?: emptySet()
+
+    override fun doseClass(
+        substanceName: String,
+        route: AdministrationRoute,
+        dose: Double?,
+        units: String?,
+    ): DoseClass? {
+        val substance = substanceRepo.getSubstance(substanceName) ?: return null
+        val roaDose = substance.getRoa(route)?.roaDose ?: return null
+        return roaDose.getDoseClass(dose, units)
+    }
+}
+
 fun evaluateAchievement(condition: String, ctx: AchievementContext): Boolean {
+    if (usesConditionLanguage(condition)) {
+        return runCatching { conditionEngine.evaluate(condition, ctx.toEvalContext()) }.getOrDefault(false)
+    }
+
     splitTopLevel(condition, " & ")?.let { parts ->
         return parts.all { evaluateAchievement(it, ctx) }
     }

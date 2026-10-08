@@ -18,6 +18,21 @@
 
 package foo.pilz.freaklog.ui.tabs.journal
 
+import java.time.ZoneId
+import java.time.Instant
+import kotlin.random.Random
+import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.delay
+import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OUTLOOK_SKIN_OPEN_PROBABILITY
+import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OUTLOOK_SKIN_MIN_DELAY_MS
+import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OUTLOOK_SKIN_MAX_DELAY_MS
+import foo.pilz.freaklog.ui.tabs.journal.outlookskin.buildOutlookRows
+import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OutlookSkinPayload
+import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OutlookSkinController
+import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinEligibility
 import androidx.compose.runtime.mutableStateOf
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -45,7 +60,52 @@ class JournalViewModel @Inject constructor(
     searchRepository: SearchRepository,
     private val dataStore: DataStore<Preferences>,
     private val userPreferences: UserPreferences,
+    private val skinEligibility: UltraFunSkinEligibility,
+    private val outlookSkinController: OutlookSkinController,
 ) : ViewModel() {
+
+    init {
+        viewModelScope.launch {
+            skinEligibility.eligibleFlow.collectLatest { eligible ->
+                if (!eligible) {
+                    outlookSkinController.dismiss()
+                    return@collectLatest
+                }
+                while (true) {
+                    delay(Random.nextLong(OUTLOOK_SKIN_MIN_DELAY_MS, OUTLOOK_SKIN_MAX_DELAY_MS))
+                    if (outlookSkinController.state.value == null) {
+                        showOutlookSkin()
+                    }
+                }
+            }
+        }
+    }
+
+    fun onJournalOpened() {
+        viewModelScope.launch {
+            if (outlookSkinController.state.value == null &&
+                Random.nextDouble() < OUTLOOK_SKIN_OPEN_PROBABILITY &&
+                skinEligibility.eligibleFlow.first()
+            ) {
+                showOutlookSkin()
+            }
+        }
+    }
+
+    private fun showOutlookSkin() {
+        viewModelScope.launch {
+            var started = false
+            experienceRepo.getSortedExperienceWithIngestionsCompanionsAndRatingsFlow()
+                .map { experiences ->
+                    OutlookSkinPayload(buildOutlookRows(experiences, Instant.now(), ZoneId.systemDefault()))
+                }
+                .takeWhile { !started || outlookSkinController.state.value != null }
+                .collect { payload ->
+                    outlookSkinController.show(payload)
+                    started = true
+                }
+        }
+    }
 
 
     val isTimeRelativeToNow = mutableStateOf(false)

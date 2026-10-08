@@ -18,6 +18,7 @@
 
 package foo.pilz.freaklog.ui.tabs.settings
 
+import foo.pilz.freaklog.ui.tabs.settings.funny.FunnyConfig
 import androidx.compose.material.icons.outlined.Workspaces
 import androidx.compose.material.icons.outlined.Science
 import foo.pilz.freaklog.ui.tabs.settings.combinations.BloodPressureDisplay
@@ -216,8 +217,8 @@ fun SettingsScreen(
         saveIsTimelineHidden = viewModel::saveIsTimelineHidden,
         timelineNotificationAutoStart = viewModel.isTimelineNotificationAutoStartFlow.collectAsState().value,
         saveTimelineNotificationAutoStart = viewModel::saveTimelineNotificationAutoStart,
-        excelSkinEnabled = viewModel.isExcelSkinEnabledFlow.collectAsState().value,
-        saveExcelSkinEnabled = viewModel::saveExcelSkinEnabled,
+        isUltraFunModeEnabled = viewModel.funnyConfigFlow.collectAsState().value.let { it.enableFunny && it.teamsSkin },
+        saveUltraFunModeEnabled = { viewModel.saveFunnyConfig(FunnyConfig(enableFunny = it, teamsSkin = it)) },
         isVitalsAvailable = remember {
             HeartRateHealthConnect.isAvailable(context) || BloodPressureHealthConnect.isAvailable(context)
         },
@@ -285,8 +286,8 @@ fun SettingsScreen(
     saveIsTimelineHidden: (Boolean) -> Unit,
     timelineNotificationAutoStart: Boolean = false,
     saveTimelineNotificationAutoStart: (Boolean) -> Unit = {},
-    excelSkinEnabled: Boolean = false,
-    saveExcelSkinEnabled: (Boolean) -> Unit = {},
+    isUltraFunModeEnabled: Boolean = false,
+    saveUltraFunModeEnabled: (Boolean) -> Unit = {},
     isVitalsAvailable: Boolean = false,
     isVitalsEnabled: Boolean = false,
     saveIsVitalsEnabled: (Boolean) -> Unit = {},
@@ -487,11 +488,13 @@ fun SettingsScreen(
                 )
                 HorizontalDivider()
                 SettingsSwitchRow(
-                    text = "Spreadsheet disguise for statistics",
-                    checked = excelSkinEnabled,
+                    text = "Ultra fun mode",
+                    checked = isUltraFunModeEnabled,
+                    description = "Changes random elements of the UI during active psychedelic ingestions. " +
+                        "Tap anywhere or press back to return to the normal screen. It is purely cosmetic.",
                     onCheckedChange = {
                         performHaptic(HapticType.TOGGLE)
-                        saveExcelSkinEnabled(it)
+                        saveUltraFunModeEnabled(it)
                     }
                 )
                 HorizontalDivider()

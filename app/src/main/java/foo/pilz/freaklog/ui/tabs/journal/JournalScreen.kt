@@ -91,6 +91,7 @@ fun JournalScreen(
     val experiences = viewModel.experiences.collectAsState().value
     LaunchedEffect(Unit) {
         viewModel.maybeMigrate()
+        viewModel.onJournalOpened()
     }
     JournalScreen(
         navigateToExperiencePopNothing = navigateToExperiencePopNothing,

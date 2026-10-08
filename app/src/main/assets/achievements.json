@@ -382,5 +382,83 @@
     "description": "Journal spans over a full year",
     "condition": "journal_span_days(365)",
     "tier": "GOLD"
+  },
+  {
+    "id": "ket_cat",
+    "title": "KetCat <3",
+    "description": "Combine Mephedrone and Ketamine in one session",
+    "condition": "any(experiences) { it.has(\"Mephedrone\") && it.has(\"Ketamine\") }"
+  },
+  {
+    "id": "god_flip",
+    "title": "God Flip",
+    "description": "Combine LSD, Psilocybin mushrooms, MDMA, DMT in one session",
+    "condition": "any(experiences) { it.has(\"LSD\") && it.has(\"Psilocin\") && it.has(\"MDMA\") && it.has(\"DMT\") }"
+  },
+  {
+    "id": "night_owl",
+    "title": "Night Owl",
+    "description": "Take something between midnight and 4 AM",
+    "condition": "any(ingestions) { it.hour >= 0 && it.hour < 4 }"
+  },
+  {
+    "id": "eyeballing",
+    "title": "Eyeballing It",
+    "description": "Log a dose marked as an estimate",
+    "condition": "any(ingestions) { it.isEstimate }"
+  },
+  {
+    "id": "just_a_taste",
+    "title": "Just a Taste",
+    "description": "Take a threshold dose",
+    "condition": "any(ingestions) { it.doseLevel == threshold }"
+  },
+  {
+    "id": "boosting",
+    "title": "One More Won't Hurt",
+    "description": "Redose the same substance in one session",
+    "condition": "any(experiences) { e -> any(e.ingestions) { i -> e.ingestions.count { it.substance == i.substance } >= 2 } }"
+  },
+  {
+    "id": "wired",
+    "title": "Wired",
+    "description": "Log 50 caffeine ingestions",
+    "condition": "ingestions.count { it.substance == \"Caffeine\" } >= 50"
+  },
+  {
+    "id": "tired",
+    "title": "Tired",
+    "description": "Log 50 depressant ingestions",
+    "condition": "ingestions.count { \"depressant\" in it.categories } >= 50"
+  },
+  {
+    "id": "boofing",
+    "title": "The Scenic Route",
+    "description": "Take something rectally",
+    "condition": "any(ingestions) { it.route == RECTAL }"
+  },
+  {
+    "id": "white_light",
+    "title": "See the White Light",
+    "description": "Boof Caffeine.",
+    "condition": "any(ingestions) { it.route == RECTAL && it.substance == \"Caffeine\" }"
+  },
+  {
+    "id": "comfortably_numb",
+    "title": "Comfortably Numb",
+    "description": "Take Ketamine seven days in a row",
+    "condition": "ingestions.filter { it.substance == \"Ketamine\" }.streak >= 7"
+  },
+  {
+    "id": "how_did_we_get_here",
+    "title": "how did we get here",
+    "description": "Combine a stimulant, dissociative, depressant, psychedelic, and antipsychotic in one session",
+    "condition": "any(experiences) { it.hasCategory(\"stimulant\") && it.hasCategory(\"dissociative\") && it.hasCategory(\"depressant\") && it.hasCategory(\"psychedelic\") && it.hasCategory(\"antipsychotic\") }"
+  },
+  {
+    "id": "not_afraid_of_needles",
+    "title": "Not afraid of needles",
+    "description": "Inject something intramuscular, subcutaneous or intravenously",
+    "condition": "any(ingestions) { it.route == SUBCUTANEOUS || it.route == INTRAMUSCULAR || it.route == INTRAVENOUS }"
   }
 ]

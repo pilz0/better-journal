@@ -18,6 +18,18 @@
 
 package foo.pilz.freaklog.ui.tabs.stats
 
+import kotlin.random.Random
+import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.delay
+import foo.pilz.freaklog.ui.tabs.stats.excelskin.randomExcelFileName
+import foo.pilz.freaklog.ui.tabs.stats.excelskin.EXCEL_SKIN_OPEN_PROBABILITY
+import foo.pilz.freaklog.ui.tabs.stats.excelskin.EXCEL_SKIN_MIN_DELAY_MS
+import foo.pilz.freaklog.ui.tabs.stats.excelskin.EXCEL_SKIN_MAX_DELAY_MS
+import foo.pilz.freaklog.ui.tabs.stats.excelskin.ExcelSkinPayload
+import foo.pilz.freaklog.ui.tabs.stats.excelskin.ExcelSkinController
+import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinEligibility
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
@@ -49,14 +61,9 @@ import javax.inject.Inject
 @HiltViewModel
 class StatsViewModel @Inject constructor(
     experienceRepo: ExperienceRepository,
-    userPreferences: foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences,
+    private val skinEligibility: UltraFunSkinEligibility,
+    private val excelSkinController: ExcelSkinController,
 ) : ViewModel() {
-
-    val isExcelSkinEnabledFlow = userPreferences.isExcelSkinEnabledFlow.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = false
-    )
 
     private val _optionFlow = MutableStateFlow(TimePickerOption.WEEKS_26)
     private val optionFlow = _optionFlow.asStateFlow()
@@ -256,6 +263,48 @@ class StatsViewModel @Inject constructor(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000)
         )
+
+    init {
+        viewModelScope.launch {
+            skinEligibility.eligibleFlow.collectLatest { eligible ->
+                if (!eligible) {
+                    excelSkinController.dismiss()
+                    return@collectLatest
+                }
+                while (true) {
+                    delay(Random.nextLong(EXCEL_SKIN_MIN_DELAY_MS, EXCEL_SKIN_MAX_DELAY_MS))
+                    if (excelSkinController.state.value == null) {
+                        showExcelSkin()
+                    }
+                }
+            }
+        }
+    }
+
+    fun onStatsOpened() {
+        viewModelScope.launch {
+            if (excelSkinController.state.value == null &&
+                Random.nextDouble() < EXCEL_SKIN_OPEN_PROBABILITY &&
+                skinEligibility.eligibleFlow.first()
+            ) {
+                showExcelSkin()
+            }
+        }
+    }
+
+    private fun showExcelSkin() {
+        val fileName = randomExcelFileName()
+        viewModelScope.launch {
+            var started = false
+            statsModelFlow
+                .map { ExcelSkinPayload(statItems = it.statItems, fileName = fileName) }
+                .takeWhile { !started || excelSkinController.state.value != null }
+                .collect { payload ->
+                    excelSkinController.show(payload)
+                    started = true
+                }
+        }
+    }
 }
 
 data class StatsModel(

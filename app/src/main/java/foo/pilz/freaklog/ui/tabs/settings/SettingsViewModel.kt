@@ -18,6 +18,7 @@
 
 package foo.pilz.freaklog.ui.tabs.settings
 
+import foo.pilz.freaklog.ui.tabs.settings.funny.FunnyConfig
 import foo.pilz.freaklog.ui.tabs.settings.combinations.BloodPressureDisplay
 import android.net.Uri
 import androidx.compose.material3.SnackbarDuration
@@ -55,12 +56,12 @@ class SettingsViewModel @Inject constructor(
         userPreferences.saveAreSubstanceHeightsIndependent(value)
     }
 
-    fun saveExcelSkinEnabled(value: Boolean) = viewModelScope.launch {
-        userPreferences.saveExcelSkinEnabled(value)
+    fun saveFunnyConfig(funnyConfig: FunnyConfig) = viewModelScope.launch {
+        userPreferences.saveFunnyConfig(funnyConfig)
     }
 
-    val isExcelSkinEnabledFlow = userPreferences.isExcelSkinEnabledFlow.stateIn(
-        initialValue = false,
+    val funnyConfigFlow = userPreferences.funnyConfigFlow.stateIn(
+        initialValue = FunnyConfig(),
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000)
     )

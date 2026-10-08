@@ -18,6 +18,19 @@
 
 package foo.pilz.freaklog.ui.tabs.journal.experience
 
+import kotlin.random.Random
+import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.collectLatest
+import foo.pilz.freaklog.ui.tabs.journal.experience.notification.PhaseCalculator
+import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.TEAMS_SKIN_OPEN_PROBABILITY
+import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.TEAMS_SKIN_MIN_DELAY_MS
+import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.TEAMS_SKIN_MAX_DELAY_MS
+import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.randomGermanName
+import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.hasActivePsychedelic
+import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.SkinEligibilityEntry
+import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.TeamsSkinPayload
+import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.TeamsSkinController
 import android.content.Context
 import android.widget.Toast
 import androidx.health.connect.client.HealthConnectClient
@@ -89,6 +102,7 @@ class ExperienceViewModel @Inject constructor(
     private val interactionChecker: InteractionChecker,
     private val userPreferences: UserPreferences,
     private val customProfiles: foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles,
+    private val teamsSkinController: TeamsSkinController,
     combinationSettingsStorage: CombinationSettingsStorage,
     state: SavedStateHandle,
     @ApplicationContext context: Context,
@@ -747,6 +761,70 @@ class ExperienceViewModel @Inject constructor(
                 }
                 .filter { cumulativeDose ->
                     cumulativeDose.cumulativeRouteAndDose.isNotEmpty() && cumulativeDose.cumulativeRouteAndDose.any { it.hasMoreThanOneIngestion }
+                }
+        }
+    }
+
+    // Declared last: these read flows defined above, which must exist before the coroutine starts.
+    private val isPsychedelicActiveFlow: Flow<Boolean> = dataForEffectTimelinesFlow
+        .combine(currentTimeFlow) { lines, _ ->
+            hasActivePsychedelic(
+                lines.map { line ->
+                    SkinEligibilityEntry(
+                        isHallucinogen = substanceRepo.getSubstance(line.substanceName)?.isHallucinogen == true,
+                        phase = PhaseCalculator.currentPhase(line.startTime, line.roaDuration, line.endTime).phase
+                    )
+                }
+            )
+        }
+        .flowOn(Dispatchers.Default)
+        .distinctUntilChanged()
+
+    init {
+        viewModelScope.launch {
+            userPreferences.funnyConfigFlow
+                .combine(isPsychedelicActiveFlow) { fc, active -> fc.enableFunny && fc.teamsSkin && active }
+                .distinctUntilChanged()
+                .collectLatest { eligible ->
+                    if (!eligible) {
+                        teamsSkinController.dismiss()
+                        return@collectLatest
+                    }
+                    if (teamsSkinController.state.value == null &&
+                        Random.nextDouble() < TEAMS_SKIN_OPEN_PROBABILITY
+                    ) {
+                        showTeamsSkin()
+                    }
+                    while (true) {
+                        delay(Random.nextLong(TEAMS_SKIN_MIN_DELAY_MS, TEAMS_SKIN_MAX_DELAY_MS))
+                        if (teamsSkinController.state.value == null) {
+                            showTeamsSkin()
+                        }
+                    }
+                }
+        }
+    }
+
+    private fun showTeamsSkin() {
+        val contactName = randomGermanName()
+        viewModelScope.launch {
+            var started = false
+            combine(
+                ingestionsWithCompanionsFlow,
+                timelineDisplayOptionFlow,
+                timeDisplayOptionFlow
+            ) { ingestions, displayOption, timeDisplay ->
+                TeamsSkinPayload(
+                    ingestions = ingestions,
+                    timelineModel = (displayOption as? TimelineDisplayOption.Shown)?.allTimelinesModel,
+                    timeDisplayOption = timeDisplay,
+                    contactName = contactName
+                )
+            }
+                .takeWhile { !started || teamsSkinController.state.value != null }
+                .collect { payload ->
+                    teamsSkinController.show(payload)
+                    started = true
                 }
         }
     }

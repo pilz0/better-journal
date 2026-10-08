@@ -18,6 +18,7 @@
 
 package foo.pilz.freaklog.ui.tabs.settings.combinations
 
+import foo.pilz.freaklog.ui.tabs.settings.funny.FunnyConfig
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -69,7 +70,8 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
         val HEART_RATE_ENABLED = booleanPreferencesKey("heart_rate_enabled")
         val KEY_SLEEP_STAGES_ENABLED = booleanPreferencesKey("KEY_SLEEP_STAGES_ENABLED")
         val KEY_BLOOD_PRESSURE_DISPLAY = stringPreferencesKey("KEY_BLOOD_PRESSURE_DISPLAY")
-        val EXCEL_SKIN_ENABLED = booleanPreferencesKey("excel_skin_enabled")
+        val KEY_FUN_MODE = booleanPreferencesKey("KEY_FUN_MODE")
+        val KEY_TEAMS_SKIN = booleanPreferencesKey("KEY_TEAMS_SKIN")
         val BACKUP_DIR_URI = stringPreferencesKey("backup_dir_uri")
         val BACKUP_PASSWORD_SEALED = stringPreferencesKey("backup_password_sealed")
         val LAST_BACKUP_TIME = longPreferencesKey("last_backup_time")
@@ -303,12 +305,20 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
         dataStore.edit { it[PreferencesKeys.KEY_BLOOD_PRESSURE_DISPLAY] = value.name }
     }
 
-    /** Opt-in easter egg: statistics can be shown disguised as a spreadsheet. */
-    val isExcelSkinEnabledFlow: Flow<Boolean> = dataStore.data
-        .map { it[PreferencesKeys.EXCEL_SKIN_ENABLED] ?: false }
+    /** Opt-in easter eggs; [FunnyConfig.teamsSkin] is the "ultra fun mode" that disguises screens. */
+    val funnyConfigFlow: Flow<FunnyConfig> = dataStore.data
+        .map { preferences ->
+            FunnyConfig(
+                enableFunny = preferences[PreferencesKeys.KEY_FUN_MODE] ?: false,
+                teamsSkin = preferences[PreferencesKeys.KEY_TEAMS_SKIN] ?: false,
+            )
+        }
 
-    suspend fun saveExcelSkinEnabled(value: Boolean) {
-        dataStore.edit { it[PreferencesKeys.EXCEL_SKIN_ENABLED] = value }
+    suspend fun saveFunnyConfig(funnyConfig: FunnyConfig) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.KEY_FUN_MODE] = funnyConfig.enableFunny
+            preferences[PreferencesKeys.KEY_TEAMS_SKIN] = funnyConfig.teamsSkin
+        }
     }
 
     val backupDirUriFlow: Flow<String?> = dataStore.data.map { it[PreferencesKeys.BACKUP_DIR_URI] }
