@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.hilt.android)
@@ -12,7 +11,7 @@ plugins {
 
 android {
     namespace = "foo.pilz.freaklog"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "foo.pilz.freaklog"
@@ -35,7 +34,6 @@ android {
         // code scanning so reviewers can triage them. Flip to `true` once the
         // existing baseline is clean.
         abortOnError = false
-        sarifReport = true
     }
 
     testOptions {
@@ -73,10 +71,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = true
     }
-    kotlinOptions {
-        jvmTarget = "17"
-        freeCompilerArgs += listOf("-opt-in=kotlin.RequiresOptIn")
-    }
     buildFeatures {
         compose = true
     }
@@ -96,6 +90,9 @@ android {
 
 kotlin {
     jvmToolchain(17)
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
 }
 
 tasks.withType<Test>().configureEach {

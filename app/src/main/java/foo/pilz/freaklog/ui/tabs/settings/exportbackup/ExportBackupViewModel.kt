@@ -62,6 +62,8 @@ class ExportBackupViewModel @Inject constructor(
 
     val snackbarHostState = SnackbarHostState()
 
+    private val lenientJson = Json { ignoreUnknownKeys = true }
+
     val exportFilterFlow = MutableStateFlow(ExportFilter())
     val usedSubstanceNamesFlow = MutableStateFlow<List<String>>(emptyList())
 
@@ -167,7 +169,7 @@ class ExportBackupViewModel @Inject constructor(
     private suspend fun importPlaintext(text: String) {
         val message = try {
             val journalExport = withContext(Dispatchers.Default) {
-                Json { ignoreUnknownKeys = true }.decodeFromString<JournalExport>(text)
+                lenientJson.decodeFromString<JournalExport>(text)
             }
             experienceRepository.deleteEverything()
             experienceRepository.insertEverything(journalExport)

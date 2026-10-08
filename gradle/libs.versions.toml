@@ -1,53 +1,48 @@
 [versions]
-activityCompose = "1.10.1"
-agp = "8.13.2"
-compose = "2.6.0-beta01"
-composeBom = "2025.04.01"
-coreKtx = "1.15.0"
-coreSplashscreen = "1.0.1"
-datastorePreferences = "1.1.4"
-espressoCore = "3.6.1"
-glanceAppwidget = "1.1.1"
-hiltAndroidCompiler = "2.52"
-hiltNavigationCompose = "1.2.0"
+activityCompose = "1.13.0"
+agp = "9.4.1"
+compose = "2.10.1"
+composeBom = "2026.09.00"
+coreKtx = "1.19.1"
+coreSplashscreen = "1.2.0"
+datastorePreferences = "1.2.1"
+espressoCore = "3.7.0"
+glanceAppwidget = "1.2.0"
+hiltAndroidCompiler = "2.60.1"
+hiltNavigationCompose = "1.4.0"
 junit = "4.13.2"
-junitVersion = "1.2.1"
-kotlin = "2.0.21"
-kotlinxCoroutinesAndroid = "1.10.2"
-kotlinxCoroutinesCore = "1.10.2"
-kotlinxCoroutinesTest = "1.10.2"
-kotlinxSerializationJson = "1.8.1"
-lifecycleRuntimeKtx = "2.9.0"
+junitVersion = "1.3.0"
+kotlin = "2.4.21"
+kotlinxCoroutinesAndroid = "1.11.0"
+kotlinxCoroutinesCore = "1.11.0"
+kotlinxCoroutinesTest = "1.11.0"
+kotlinxSerializationJson = "1.11.0"
+lifecycleRuntimeKtx = "2.11.0"
 material3AdaptiveNavigationSuiteAndroid = "1.4.0"
-navigationCompose = "2.9.0"
-roomRuntime = "2.6.1"
-workRuntimeKtx = "2.10.0"
-desugar_jdk_libs = "2.1.4"
+navigationCompose = "2.10.2"
+roomRuntime = "2.8.5"
+workRuntimeKtx = "2.12.0"
+desugar_jdk_libs = "2.1.5"
 
-composeMarkdown = "0.5.4"
-ksp = "2.0.21-1.0.27"
+composeMarkdown = "0.7.2"
+ksp = "2.3.12"
 biometric = "1.1.0"
 
 # --- Test infrastructure ---
-# MockK 1.14+ ships kotlin-reflect/stdlib 2.2.x, which the project's Kotlin
-# 2.0.21 compiler cannot read ("metadata version 2.2.0, expected 2.0.0").
-# Stay on the latest 1.13.x until we bump the project to Kotlin 2.1+.
-mockk = "1.13.13"
+mockk = "1.14.11"
 turbine = "1.2.1"
-# Robolectric 4.15+ depends on Kotlin 2.2 stdlib for the same reason as MockK
-# above; stay on the latest 4.14.x line until the project Kotlin bump.
-robolectric = "4.14.1"
+robolectric = "4.17"
 assertk = "0.28.1"
-# Pinned to 4.x. The 5.x line moved to the `mockwebserver3` package, which is
-# a breaking API change; revisit when adopting OkHttp 5.
-mockwebserver = "4.12.0"
-orgJson = "20251224"
+# The `mockwebserver` artifact keeps the `okhttp3.mockwebserver` package in 5.x;
+# `mockwebserver3` is the new API and would be a breaking migration.
+mockwebserver = "5.5.0"
+orgJson = "20260814"
 testRunner = "1.7.0"
 testCore = "1.7.0"
 
 # --- Static analysis & coverage plugins ---
 detekt = "1.23.8"
-kover = "0.9.8"
+kover = "0.9.11"
 
 [libraries]
 android-desugarJdkLibs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
@@ -81,7 +76,7 @@ androidx-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 androidx-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 androidx-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtx" }
-androidx-health-connect = { module = "androidx.health.connect:connect-client", version = "1.1.0-alpha12" }
+androidx-health-connect = { module = "androidx.health.connect:connect-client", version = "1.1.0" }
 compose = { module = "com.kizitonwose.calendar:compose", version.ref = "compose" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroidCompiler" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltAndroidCompiler" }
@@ -108,7 +103,6 @@ detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hiltAndroidCompiler" }

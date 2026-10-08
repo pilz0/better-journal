@@ -46,7 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 
@@ -85,7 +85,7 @@ fun AddSprayScreenContent(
                 actions = {
                     if (canSave) {
                         Button(
-                            onClick = { onSave(name, sizeInMlValue!!, numSpraysValue!!) },
+                            onClick = { onSave(name, sizeInMlValue, numSpraysValue) },
                             modifier = Modifier.padding(end = 8.dp)
                         ) {
                             Text("Save")

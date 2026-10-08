@@ -15,7 +15,7 @@ Freaklog is an Android journal app (fork of [PsychonautWiki Journal](https://git
 | Async | Kotlin Coroutines + Flow |
 | AI | Custom Gemini REST client (`v1beta` `generateContent`) — see [AI chatbot](#ai-chatbot-dataai) |
 | Serialization | kotlinx.serialization (JSON) |
-| Build | Gradle (Kotlin DSL), AGP |
+| Build | Gradle 9 (Kotlin DSL), AGP 9 |
 | CI | GitHub Actions |
 
 ## Project structure
@@ -216,12 +216,13 @@ The upstream project uses `com.isaakhanimann.journal`. When porting upstream cod
 ## Dependency management
 
 All library versions live in `gradle/libs.versions.toml` (Gradle Version Catalog).  
-Plugin versions that can't use the catalog are pinned inline in the root `build.gradle.kts`:
-- Hilt: `id("com.google.dagger.hilt.android") version "2.54"`
-- KSP: `id("com.google.devtools.ksp") version "2.0.21-1.0.27"`
-- Room Gradle plugin: `id("androidx.room") version libs.versions.roomRuntime`
+Plugin versions live in the catalog too (`[plugins]`), including Hilt, KSP and the Room Gradle plugin.
 
-To upgrade: edit version strings in `libs.versions.toml` (and root `build.gradle.kts` for the inline pins above). The `nl.littlerobots.version-catalog-update` plugin is present to assist with automated upgrades.
+Toolchain: Gradle 9.8.0 (wrapper; keep it equal to nixpkgs' `gradle_9`, or the Nix build resolves a Kotlin stdlib the lock lacks), AGP 9.4.1, Kotlin 2.4.21, KSP 2.3.12, `compileSdk` 37, `targetSdk` 36, `minSdk` 31.
+AGP 9 compiles Kotlin itself, so the `org.jetbrains.kotlin.android` plugin is **not** applied; Kotlin options go in the
+top-level `kotlin { compilerOptions { … } }` block, not `android { kotlinOptions { … } }`.
+
+To upgrade: run `./gradlew versionCatalogUpdate --interactive --no-configuration-cache`, review `gradle/libs.versions.updates.toml`, and edit `libs.versions.toml`. Afterwards regenerate `gradle.lock` (see [Build commands](#build-commands)). The `nl.littlerobots.version-catalog-update` plugin is present to assist with automated upgrades.
 
 ## Data layer
 
@@ -574,4 +575,5 @@ NFC transfer and the NFC keychain were deliberately not ported.
 - `WebhookService.editWebhook` uses HTTP `PATCH`, which works on Android's okhttp-backed `HttpURLConnection` but throws `ProtocolException` on the JDK's plain `HttpURLConnection`; therefore `editWebhook` cannot be exercised by a plain JVM unit test. HTTP-level webhook tests use **MockWebServer** (`com.squareup.okhttp3:mockwebserver`).
 - The `generative-ai-android` SDK is intentionally **not** used — see [AI chatbot](#ai-chatbot-dataai). Use `GeminiRestClient` / `GeminiChatSession` instead so `thoughtSignature` is preserved.
 - `JournalExport` covers experiences (with ingestions, ratings, timed notes, locations and blood pressure), substance companions, custom substances with their profiles, custom units, intake limits, reminders and webhooks. Filtered (partial) exports leave out reminders and webhooks. Other settings are not part of the export payload.
-- `androidx.health.connect:connect-client` is pinned to `1.1.0-alpha12`: the stable `1.1.0` requires `compileSdk` 36.
+- `compileSdk` is 37 because the current Compose / AndroidX releases refuse to build against anything lower. It has no runtime effect; `targetSdk` stays 36.
+- Use `androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel`; the `androidx.hilt.navigation.compose` one is deprecated.

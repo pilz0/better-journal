@@ -29,3 +29,8 @@ devenv.local.yaml
 # pre-commit
 .pre-commit-config.yaml
 .worktrees/
+
+# Claude Code agent worktrees and local settings
+.claude/worktrees/
+.claude/settings.local.json
+.superpowers/

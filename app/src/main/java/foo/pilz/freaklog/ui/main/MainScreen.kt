@@ -25,7 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -126,7 +126,7 @@ fun MainScreen(
                                 performHaptic(HapticType.CLICK)
                                 if (selected) {
                                     val isAlreadyOnTopOfTab =
-                                        topLevelRoutes(hideSafer, hideStats, hideDrugs, showInventory).any { it.route == currentDestination?.route }
+                                        topLevelRoutes(hideSafer, hideStats, hideDrugs, showInventory).any { it.route == currentDestination.route }
                                     if (!isAlreadyOnTopOfTab) {
                                         navController.popBackStack()
                                     }

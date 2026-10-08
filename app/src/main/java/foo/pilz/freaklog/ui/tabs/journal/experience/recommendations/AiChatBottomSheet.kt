@@ -63,7 +63,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import dev.jeziellago.compose.markdowntext.MarkdownText
 import foo.pilz.freaklog.data.ai.AiChatViewModel
 import foo.pilz.freaklog.data.ai.ChatItem
@@ -259,8 +259,7 @@ private fun MessageBubble(message: ChatItem.Message) {
             } else {
                 MarkdownText(
                     markdown = message.text,
-                    color = contentColor,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium.copy(color = contentColor)
                 )
             }
         }
