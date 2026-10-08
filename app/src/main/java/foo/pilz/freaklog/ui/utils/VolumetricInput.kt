@@ -41,21 +41,27 @@ fun parseVolumeToMl(input: String): Double? {
 
 fun parseConcentrationToMgPerMl(input: String): Double? {
     val parts = input.split('/')
-    if (parts.size == 1) {
-        val (expr, unit) = splitTrailingUnit(input) ?: return null
-        val value = evaluateNumericExpression(expr) ?: return null
-        val factor = if (unit.isEmpty()) massUnitToMilligrams["mg"]!! else massUnitToMilligrams[unit] ?: return null
-        return value * factor
+    return when (parts.size) {
+        1 -> massInMg(input, "mg")
+        2 -> parseConcentrationWithVolume(parts)
+        else -> null
     }
-    if (parts.size != 2) return null
-    val (massExpr, massUnit) = splitTrailingUnit(parts[0]) ?: return null
+}
+
+private fun massInMg(input: String, defaultUnit: String): Double? {
+    val (expr, unit) = splitTrailingUnit(input) ?: return null
+    val value = evaluateNumericExpression(expr) ?: return null
+    val factor = if (unit.isEmpty()) massUnitToMilligrams[defaultUnit]!! else massUnitToMilligrams[unit] ?: return null
+    return value * factor
+}
+
+private fun parseConcentrationWithVolume(parts: List<String>): Double? {
+    val mass = massInMg(parts[0], "mg") ?: return null
     val (volumeExpr, volumeUnit) = splitTrailingUnit(parts[1].ifBlank { "1" }) ?: return null
-    val mass = evaluateNumericExpression(massExpr) ?: return null
     val volume = evaluateNumericExpression(volumeExpr.ifBlank { "1" }) ?: return null
-    val massFactor = if (massUnit.isEmpty()) massUnitToMilligrams["mg"]!! else massUnitToMilligrams[massUnit] ?: return null
     val volumeFactor = if (volumeUnit.isEmpty()) 1.0 else volumeUnitToMilliliters[volumeUnit] ?: return null
-    if (volume * volumeFactor == 0.0) return null
-    return mass * massFactor / (volume * volumeFactor)
+    val divisor = volume * volumeFactor
+    return if (divisor == 0.0) null else mass / divisor
 }
 
 fun formatVolume(ml: Double): String = when {

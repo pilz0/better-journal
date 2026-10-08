@@ -75,6 +75,7 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.rating.FloatingDoneButton
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.dose.RoaDosePreviewProvider
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.dose.RoaDoseView
 import foo.pilz.freaklog.ui.theme.horizontalPadding
+import foo.pilz.freaklog.ui.utils.evaluateNumericExpression
 import foo.pilz.freaklog.ui.utils.getShortTimeWithWeekdayText
 import java.time.Instant
 
@@ -647,8 +648,8 @@ fun EditCustomUnitSections(
                         unit = unit,
                         unitPlural = unitPlural,
                         originalUnit = originalUnit,
-                        dose = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(doseText),
-                        estimatedDoseStandardDeviation = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(estimatedDoseStandardDeviationText),
+                        dose = evaluateNumericExpression(doseText),
+                        estimatedDoseStandardDeviation = evaluateNumericExpression(estimatedDoseStandardDeviationText),
                         isEstimate = isEstimate,
                         isArchived = isArchived,
                         note = "",

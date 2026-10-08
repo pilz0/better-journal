@@ -24,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.navigation.toRoute
+import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.substances.classes.Substance
 import foo.pilz.freaklog.data.substances.classes.roa.DoseClass
@@ -31,11 +32,8 @@ import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.main.navigation.graphs.ChooseDoseRoute
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
-
 import foo.pilz.freaklog.ui.utils.evaluateNumericExpression
-
+import javax.inject.Inject
 @HiltViewModel
 class ChooseDoseViewModel @Inject constructor(
     repository: SubstanceRepository,

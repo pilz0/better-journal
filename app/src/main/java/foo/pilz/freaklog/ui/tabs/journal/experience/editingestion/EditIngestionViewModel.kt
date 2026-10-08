@@ -26,6 +26,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
@@ -33,14 +34,14 @@ import foo.pilz.freaklog.data.room.webhooks.IngestionWebhookMessageRepository
 import foo.pilz.freaklog.data.room.webhooks.WebhookRepository
 import foo.pilz.freaklog.data.room.webhooks.entities.IngestionWebhookMessage
 import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
+import foo.pilz.freaklog.di.ApplicationScope
 import foo.pilz.freaklog.ui.main.navigation.graphs.EditIngestionRoute
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.IngestionTimePickerOption
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.toPreservedString
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
+import foo.pilz.freaklog.ui.utils.evaluateNumericExpression
 import foo.pilz.freaklog.ui.utils.getInstant
 import foo.pilz.freaklog.ui.utils.getLocalDateTime
-import dagger.hilt.android.lifecycle.HiltViewModel
-import foo.pilz.freaklog.di.ApplicationScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -55,7 +56,6 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
-
 @HiltViewModel
 class EditIngestionViewModel @Inject constructor(
     private val experienceRepo: ExperienceRepository,
@@ -238,8 +238,8 @@ class EditIngestionViewModel @Inject constructor(
                 it.notes = note
                 it.isDoseAnEstimate = isEstimate
                 it.experienceId = experienceId
-                it.dose = if (isKnown) foo.pilz.freaklog.ui.utils.evaluateNumericExpression(dose) else null
-                it.estimatedDoseStandardDeviation = if (isEstimate) foo.pilz.freaklog.ui.utils.evaluateNumericExpression(estimatedDoseStandardDeviation) else null
+                it.dose = if (isKnown) evaluateNumericExpression(dose) else null
+                it.estimatedDoseStandardDeviation = if (isEstimate) evaluateNumericExpression(estimatedDoseStandardDeviation) else null
                 it.units = units
                 it.customUnitId = customUnit?.id
                 it.time = selectedStartInstant

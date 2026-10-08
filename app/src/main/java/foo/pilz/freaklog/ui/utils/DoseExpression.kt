@@ -64,7 +64,7 @@ private class ExpressionParser(private val text: String) {
                 index++
                 val value = parseExpression()
                 skipWhitespace()
-                if (currentChar() != ')') throw IllegalArgumentException("Expected closing parenthesis")
+                require(currentChar() == ')') { "Expected closing parenthesis" }
                 index++
                 return value
             }
@@ -81,9 +81,8 @@ private class ExpressionParser(private val text: String) {
         }
         val start = index
         while (index < text.length && (text[index].isDigit() || text[index] == '.')) index++
-        if (start == index) throw IllegalArgumentException("Expected number")
-        return text.substring(start, index).toDoubleOrNull()
-            ?: throw IllegalArgumentException("Invalid number")
+        require(start != index) { "Expected number" }
+        return requireNotNull(text.substring(start, index).toDoubleOrNull()) { "Invalid number" }
     }
 
     private fun skipWhitespace() {
