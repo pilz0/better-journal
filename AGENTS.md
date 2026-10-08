@@ -227,7 +227,7 @@ To upgrade: edit version strings in `libs.versions.toml` (and root `build.gradle
 
 ### Room database (`data/room/AppDatabase.kt`)
 
-Current schema version: **18**. All migrations from v1 to v18 are handled by `@AutoMigration`.
+Current schema version: **26**. All migrations from v1 to v26 are handled by `@AutoMigration`.
 The `16 → 17` step uses an `AutoMigrationSpec` (`AppDatabase.ReminderV16To17`) that
 back-fills `scheduleType = 'INTERVAL'` on legacy reminder rows so they don't silently
 disable when the new column default (`DAILY_AT_TIMES`) is applied without `timesOfDay`.
@@ -253,6 +253,10 @@ There is no schema version 13 — the migration jumps directly from 12 to 14
 | `InventoryItem` | Stash / inventory entry tracked by the Inventory tab |
 | `Webhook` | One Discord webhook destination (added in v18) |
 | `IngestionWebhookMessage` | Link table mapping `Ingestion` ↔ `Webhook` with the Discord `messageId` returned for that destination (added in v18) |
+| `IntakeLimit` | Per-substance dose or count cap over a sliding window (v24) |
+| `CustomRoa`, `CustomRoaDose`, `CustomRoaDuration` | Per-route bioavailability, dose thresholds and duration phases of a `CustomSubstance` (v25) |
+| `CustomInteraction`, `CustomCrossTolerance` | Interactions and cross-tolerances declared for a `CustomSubstance` (v25) |
+| `BloodPressureReading` | Manual blood pressure / pulse measurement within an experience (v26) |
 
 **Relations** (in `experiences/relations/`):
 
@@ -507,6 +511,26 @@ All ViewModels use `@HiltViewModel` + `@Inject constructor`. Repositories and DA
 | `ui/tabs/safer/tolerance/ToleranceCalculator.kt` | `ui/tabs/safer/tolerance/ToleranceCalculatorTest.kt` |
 | `ui/tabs/safer/tolerance/ToleranceTextParser.kt` | `ui/tabs/safer/tolerance/ToleranceTextParserTest.kt` |
 
+## Features ported from the Codeberg fork
+
+These came from `codeberg.org/psychonaut-journal/android` (package
+`gay.cybercrime.journal`). Several were adapted rather than copied because
+that app has a newer graph engine, different settings components and a Rust
+crypto library that this app does not use.
+
+| Feature | Where | Notes |
+|---------|-------|-------|
+| Ingestion category (medicinal / recreational) | `data/substances/classes/IngestionCategory.kt`, `Ingestion.computedCategory` | Falls back to the custom unit's, then the companion's default. |
+| Intake limits | `ui/tabs/settings/intakelimits/` | `IntakeLimitLogic` is pure; warnings hook into `FinishIngestionScreenViewModel.onDoneClicked` and `EditIngestionViewModel.onDoneClicked`. |
+| Export filter, encryption, backups | `data/export/`, `data/backup/`, `ui/tabs/settings/exportbackup/` | `buildJournalExportJson` is the single export path. Encryption is AES-256-GCM + PBKDF2 (the fork's "v1" layout); its Argon2/ChaCha20 "v2" format is **not** readable. `BackupWorker` gets dependencies through a Hilt `@EntryPoint` — there is no `HiltWorkerFactory`. |
+| Live timeline notification | `ui/tabs/journal/experience/notification/` | Foreground service of type `dataSync`; renders through `renderTimelineToBitmap`. |
+| Experience image sharing | `data/experienceshare/`, `ui/tabs/journal/experience/share/` | Shared through the `${applicationId}.fileprovider` `FileProvider`. |
+| Custom substance profiles | `data/room/experiences/CustomSubstance*.kt`, `data/substanceshare/`, `ui/tabs/search/custom/profile/` | `CustomSubstanceProfiles` is an in-memory cache so timelines and `InteractionChecker` can read profiles synchronously. Edit custom substances with `update`, never a REPLACE insert (it cascades to the profile tables). |
+| Vitals | `ui/tabs/journal/experience/vitals/` | Blood pressure is stored in Room, not in Health Connect. Heart rate is read from Health Connect only after the user opts in. |
+| Spreadsheet disguise | `ui/tabs/stats/excelskin/` | Opt-in easter egg. |
+
+NFC transfer and the NFC keychain were deliberately not ported.
+
 ## Common patterns
 
 ### Adding a new screen
@@ -549,4 +573,5 @@ All ViewModels use `@HiltViewModel` + `@Inject constructor`. Repositories and DA
 - `@Keep` annotation on `AdministrationRoute` is a workaround for an AGP/R8 bug stripping enum metadata used in Navigation Compose serialized routes (see issue tracker link in the source file)
 - `WebhookService.editWebhook` uses HTTP `PATCH`, which works on Android's okhttp-backed `HttpURLConnection` but throws `ProtocolException` on the JDK's plain `HttpURLConnection`; therefore `editWebhook` cannot be exercised by a plain JVM unit test. HTTP-level webhook tests use **MockWebServer** (`com.squareup.okhttp3:mockwebserver`).
 - The `generative-ai-android` SDK is intentionally **not** used — see [AI chatbot](#ai-chatbot-dataai). Use `GeminiRestClient` / `GeminiChatSession` instead so `thoughtSignature` is preserved.
-- `JournalExport` covers experiences, ingestions, ratings, timed notes, locations, substance companions, custom substances/units/recipes and reminders. It does **not** include webhook URLs or any other settings — those are not part of the export payload.
+- `JournalExport` covers experiences (with ingestions, ratings, timed notes, locations and blood pressure), substance companions, custom substances with their profiles, custom units, intake limits, reminders and webhooks. Filtered (partial) exports leave out reminders and webhooks. Other settings are not part of the export payload.
+- `androidx.health.connect:connect-client` is pinned to `1.1.0-alpha12`: the stable `1.1.0` requires `compileSdk` 36.
