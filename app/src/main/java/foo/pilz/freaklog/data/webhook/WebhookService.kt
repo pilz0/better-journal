@@ -159,14 +159,16 @@ class WebhookService internal constructor(
                 val requestUrl = URL("${webhookUrl}/messages/$messageId")
 
                 val connection = requestUrl.openConnection() as HttpURLConnection
-                connection.requestMethod = "DELETE"
-                connection.connectTimeout = 10000
-                connection.readTimeout = 10000
+                try {
+                    connection.requestMethod = "DELETE"
+                    connection.connectTimeout = 10000
+                    connection.readTimeout = 10000
 
-                val responseCode = connection.responseCode
-                connection.disconnect()
-
-                responseCode in 200..299
+                    val responseCode = connection.responseCode
+                    responseCode in 200..299
+                } finally {
+                    connection.disconnect()
+                }
             } catch (e: Exception) {
                 false
             }
@@ -283,33 +285,33 @@ class WebhookService internal constructor(
         }
 
         val connection = requestUrl.openConnection() as HttpURLConnection
-        connection.requestMethod = if (isEdit) "PATCH" else "POST"
-        connection.doOutput = true
-        connection.connectTimeout = 10000
-        connection.readTimeout = 10000
-        connection.setRequestProperty("Content-Type", "application/json")
+        try {
+            connection.requestMethod = if (isEdit) "PATCH" else "POST"
+            connection.doOutput = true
+            connection.connectTimeout = 10000
+            connection.readTimeout = 10000
+            connection.setRequestProperty("Content-Type", "application/json")
 
-        val jsonString = payload.toString()
-        connection.outputStream.use { os ->
-            os.write(jsonString.toByteArray())
-        }
+            val jsonString = payload.toString()
+            connection.outputStream.use { os ->
+                os.write(jsonString.toByteArray())
+            }
 
-        val responseCode = connection.responseCode
-        if (responseCode !in 200..299) {
+            val responseCode = connection.responseCode
+            if (responseCode !in 200..299) {
+                logger.warn("WebhookService", "HTTP error code:$responseCode")
+                throw IOException("HTTP error code: $responseCode")
+            }
+
+            if (!isEdit) {
+                val response = connection.inputStream.bufferedReader().use { it.readText() }
+                val json = Json.parseToJsonElement(response).jsonObject
+                json["id"]?.jsonPrimitive?.content
+            } else {
+                null
+            }
+        } finally {
             connection.disconnect()
-            logger.warn("WebhookService", "HTTP error code:$responseCode")
-            throw IOException("HTTP error code: $responseCode")
-        }
-
-        if (!isEdit) {
-            val response = connection.inputStream.bufferedReader().use { it.readText() }
-            connection.disconnect()
-
-            val json = Json.parseToJsonElement(response).jsonObject
-            json["id"]?.jsonPrimitive?.content
-        } else {
-            connection.disconnect()
-            null
         }
     }
 

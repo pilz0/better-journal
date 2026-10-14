@@ -220,6 +220,7 @@ fun FreakQueryShellScreenContent(
     }
 }
 
+@Suppress("DEPRECATION")
 @Composable
 private fun ShellEntry(
     entry: FreakQueryShellEntry,
