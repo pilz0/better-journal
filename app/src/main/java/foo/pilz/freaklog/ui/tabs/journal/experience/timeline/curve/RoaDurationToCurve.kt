@@ -52,20 +52,44 @@ fun RoaDuration.toIngestionCurve(
     if (ingestionEndSec < ingestionStartSec) return null
 
     val w = weightedLine.horizontalWeight.coerceIn(0f, 1f).toDouble()
+    val params = resolveParameters(w) ?: return null
+
+    val totalSec = total?.interpolatedSec(w)
+    val maxLength = totalSec?.let { (it * 1.2).toFloat() }
+        ?: ((params.targetTotal * 1.5).toFloat())
+
+    return BatemanCurve(
+        ka = params.ka,
+        ke = params.ke,
+        ingestionStartSec = ingestionStartSec,
+        ingestionEndSec = ingestionEndSec,
+        peakHeight = max(0f, weightedLine.height),
+        isCertain = params.isCertain,
+        tailEpsilon = TAIL_EPSILON,
+        maxCurveLengthSec = maxLength,
+    )
+}
+
+private data class BatemanParameters(
+    val ka: Double,
+    val ke: Double,
+    val targetTotal: Double,
+    val isCertain: Boolean,
+)
+
+private fun RoaDuration.resolveParameters(weight: Double): BatemanParameters? {
     val onsetSec = onset?.interpolatedSec(0.5)
     val comeupSec = comeup?.interpolatedSec(0.5)
-    val peakSec = peak?.interpolatedSec(w)
-    val offsetSec = offset?.interpolatedSec(w)
-    val totalSec = total?.interpolatedSec(w)
+    val peakSec = peak?.interpolatedSec(weight)
+    val offsetSec = offset?.interpolatedSec(weight)
+    val totalSec = total?.interpolatedSec(weight)
 
-    // Choose tmax (time of peak relative to ingestion start)
     val tmaxFromPhases = when {
         onsetSec != null && comeupSec != null -> onsetSec + comeupSec
         onsetSec != null -> onsetSec * 1.5
         else -> null
     }
 
-    // Choose total duration (from ingestion start to negligible-effect)
     val totalFromPhases = listOfNotNull(onsetSec, comeupSec, peakSec, offsetSec)
         .takeIf { it.isNotEmpty() }
         ?.sum()
@@ -73,41 +97,27 @@ fun RoaDuration.toIngestionCurve(
         ?: totalFromPhases
         ?: tmaxFromPhases?.let { it * 4.0 }
         ?: return null
+    if (targetTotal <= 0.0 || !targetTotal.isFinite()) return null
 
     val tmax = (tmaxFromPhases ?: (targetTotal * 0.25))
-        .coerceAtLeast(60.0) // never less than one minute
-        .coerceAtMost(targetTotal * 0.49) // tmax must be < total
-
-    // ke chosen so the unit Bateman shape decays to TAIL_EPSILON at targetTotal.
-    // The tail is dominated by ke, so e^(-ke·targetTotal) ≈ TAIL_EPSILON / unscaledPeak ≈ TAIL_EPSILON.
+        .coerceAtLeast(60.0)
+        .coerceAtMost(targetTotal * 0.49)
     val ke = (-ln(TAIL_EPSILON) / targetTotal).coerceAtLeast(1e-9)
+    if (tmax <= 0.0 || !tmax.isFinite() || ke <= 0.0 || !ke.isFinite()) return null
 
     val ka = BatemanCurve.solveKaForTmax(ke = ke, tmaxSec = tmax)
-        // If tmax is too close to 1/ke, shrink it until a solution exists.
         ?: BatemanCurve.solveKaForTmax(ke = ke, tmaxSec = 0.5 / ke)
         ?: return null
+    if (ka <= 0.0 || ka <= ke || !ka.isFinite()) return null
 
-    // We require at least three of {onset, comeup, peak, offset} (i.e. enough phases to define
-    // both the rise and the fall) to call the curve "certain". A `total`-only fallback is dotted.
     val phaseCount = listOf(onsetSec, comeupSec, peakSec, offsetSec).count { it != null }
     val isCertain = phaseCount >= 3
 
-    // Cap on how far past the nominal total the renderer is allowed to draw the tail. We allow
-    // a small overshoot so the dotted tail visibly approaches zero rather than being clipped at
-    // exactly TAIL_EPSILON. The fallback (no `total`) gets a larger multiplier because the
-    // estimated total is itself less reliable.
-    val maxLength = totalSec?.let { (it * 1.2).toFloat() }
-        ?: ((targetTotal * 1.5).toFloat())
-
-    return BatemanCurve(
+    return BatemanParameters(
         ka = ka,
         ke = ke,
-        ingestionStartSec = ingestionStartSec,
-        ingestionEndSec = ingestionEndSec,
-        peakHeight = max(0f, weightedLine.height),
+        targetTotal = targetTotal,
         isCertain = isCertain,
-        tailEpsilon = TAIL_EPSILON,
-        maxCurveLengthSec = maxLength,
     )
 }
 

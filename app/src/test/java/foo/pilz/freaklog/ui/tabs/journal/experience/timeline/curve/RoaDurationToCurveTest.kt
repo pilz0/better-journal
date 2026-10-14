@@ -97,6 +97,32 @@ class RoaDurationToCurveTest {
         )
     }
 
+    @Test
+    fun `zero total duration safely produces null curve without throwing`() {
+        val rd = RoaDuration(
+            onset = null,
+            comeup = null,
+            peak = null,
+            offset = null,
+            total = range(0f, 0f, DurationUnits.MINUTES),
+            afterglow = null,
+        )
+        assertNull(rd.toIngestionCurve(line(), origin))
+    }
+
+    @Test
+    fun `negative total duration safely produces null curve without throwing`() {
+        val rd = RoaDuration(
+            onset = null,
+            comeup = null,
+            peak = null,
+            offset = null,
+            total = range(-10f, -5f, DurationUnits.MINUTES),
+            afterglow = null,
+        )
+        assertNull(rd.toIngestionCurve(line(), origin))
+    }
+
     private fun range(min: Float, max: Float, units: DurationUnits) =
         DurationRange(min = min, max = max, units = units)
 
