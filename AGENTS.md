@@ -169,7 +169,7 @@ Workflows live in `.github/workflows/`:
 
 | Workflow file | Purpose |
 |---------------|---------|
-| `build.yml` | Wrapper validation, unit tests (3 shards), Detekt, Android Lint, Kover coverage gate, unsigned APK + AAB builds. Runs on every push/PR. |
+| `build.yml` | Wrapper validation, unit tests (3 shards), Detekt, Android Lint, Kover coverage gate, unsigned APK + AAB builds, Nix flake checks (`nix-checks`), and Nix package builds (`nix-build`, matrix: apk \| aab). Runs on every push/PR. |
 | `release.yml` | **Secret-handling.** Sign + Cloudflare R2 + Google Play + GitHub release + SLSA build provenance. Triggered by `workflow_run` on a successful `Build and test` run on `main` / tags, or `workflow_dispatch`. Pull-request events never reach this workflow. |
 | `codeql.yml` | CodeQL analysis for `java-kotlin` and `actions` languages with the `security-extended` query pack. |
 | `instrumented-tests.yml` | Connected Android tests on emulators (API 31/34/35). Triggered by the `run-instrumented-tests` PR label, `workflow_dispatch`, or nightly schedule. |
@@ -184,6 +184,8 @@ push/PR  ──► build.yml
               ├─ detekt    (SARIF → code scanning)
               ├─ lint      (SARIF → code scanning)
               ├─ build-app (matrix: apk | aab — unsigned)
+              ├─ nix-checks
+              ├─ nix-build (matrix: apk | aab)
               └─ ci-passed (aggregator status check)
 
 main/tag ──► build.yml succeeds ──workflow_run──► release.yml
