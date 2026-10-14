@@ -97,7 +97,7 @@ fun buildBloodPressurePolylines(
     startTime: Instant,
     widthInSeconds: Float,
 ): BloodPressurePolyLines {
-    if (readings.size < 2 || widthInSeconds <= 0f) return BloodPressurePolyLines(emptyList(), emptyList())
+    if (readings.isEmpty() || widthInSeconds <= 0f) return BloodPressurePolyLines(emptyList(), emptyList())
 
     val allValues = readings.flatMap { listOf(it.systolic, it.diastolic) }
     val minPressure = floor(allValues.min() / 25.0) * 25.0

@@ -52,4 +52,70 @@ class TimelineBitmapRendererTest {
         assertEquals(400, bitmap.width)
         assertEquals(120, bitmap.height)
     }
+
+    @Test
+    fun rendersWithCurrentTimeAtExactBoundaries() {
+        val start = Instant.parse("2026-01-01T12:00:00Z")
+        val model = AllTimelinesModel(
+            dataForLines = listOf(
+                DataForOneEffectLine(
+                    substanceName = "Caffeine",
+                    route = AdministrationRoute.ORAL,
+                    roaDuration = null,
+                    height = 1f,
+                    horizontalWeight = 0.5f,
+                    color = AdaptiveColor.BLUE,
+                    startTime = start,
+                    endTime = null,
+                )
+            ),
+            dataForRatings = emptyList(),
+            timedNotes = emptyList(),
+            areSubstanceHeightsIndependent = false,
+        )
+
+        // At exact start time
+        val atStart = TimelineBitmapRenderer.render(
+            model = model,
+            widthPx = 200,
+            heightPx = 100,
+            currentTime = start,
+            density = 1f,
+            isDarkTheme = false,
+        )
+        assertEquals(200, atStart.width)
+
+        // At exact end time
+        val endTime = model.startTime.plusSeconds(model.widthInSeconds.toLong())
+        val atEnd = TimelineBitmapRenderer.render(
+            model = model,
+            widthPx = 200,
+            heightPx = 100,
+            currentTime = endTime,
+            density = 1f,
+            isDarkTheme = false,
+        )
+        assertEquals(200, atEnd.width)
+
+        // Outside boundary (before start and after end)
+        val beforeStart = TimelineBitmapRenderer.render(
+            model = model,
+            widthPx = 200,
+            heightPx = 100,
+            currentTime = start.minusSeconds(10),
+            density = 1f,
+            isDarkTheme = false,
+        )
+        assertEquals(200, beforeStart.width)
+
+        val afterEnd = TimelineBitmapRenderer.render(
+            model = model,
+            widthPx = 200,
+            heightPx = 100,
+            currentTime = endTime.plusSeconds(10),
+            density = 1f,
+            isDarkTheme = false,
+        )
+        assertEquals(200, afterEnd.width)
+    }
 }

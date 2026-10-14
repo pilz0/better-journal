@@ -107,7 +107,7 @@ class CustomDurationEditorViewModel @Inject constructor(
         )
     }
 
-    fun onDone() {
+    fun onDone(onComplete: () -> Unit = {}) {
         viewModelScope.launch {
             roaDurationFlow.value?.let { experienceRepository.insert(it) }
             roaDoseFlow.value?.let { dose ->
@@ -126,14 +126,16 @@ class CustomDurationEditorViewModel @Inject constructor(
                     experienceRepository.delete(roa)
                 }
             }
+            onComplete()
         }
     }
 
-    fun onDelete() {
+    fun onDelete(onComplete: () -> Unit = {}) {
         viewModelScope.launch {
             roaDurationFlow.value?.let { experienceRepository.delete(it) }
             roaDoseFlow.value?.let { experienceRepository.delete(it) }
             roaFlow.value?.let { experienceRepository.delete(it) }
+            onComplete()
         }
     }
 }

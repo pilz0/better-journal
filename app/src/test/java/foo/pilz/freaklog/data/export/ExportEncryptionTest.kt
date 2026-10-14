@@ -70,6 +70,8 @@ class ExportEncryptionTest {
     fun `json detection tells plaintext from encrypted files`() {
         assertTrue(ExportEncryption.looksLikeJson(plaintext))
         assertTrue(ExportEncryption.looksLikeJson("  \n[1]".toByteArray()))
+        val bomJson = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) + plaintext
+        assertTrue(ExportEncryption.looksLikeJson(bomJson))
         assertFalse(ExportEncryption.looksLikeJson(byteArrayOf(0x50, 0x4A)))
         assertFalse(ExportEncryption.looksLikeJson(ByteArray(0)))
     }

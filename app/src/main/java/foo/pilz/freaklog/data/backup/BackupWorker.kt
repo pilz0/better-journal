@@ -132,10 +132,15 @@ class BackupWorker(
             }
         }
         backupsToPrune(idsByName.keys).forEach { name ->
-            DocumentsContract.deleteDocument(
-                resolver,
-                DocumentsContract.buildDocumentUriUsingTree(treeUri, idsByName.getValue(name))
-            )
+            val docId = idsByName[name] ?: return@forEach
+            try {
+                DocumentsContract.deleteDocument(
+                    resolver,
+                    DocumentsContract.buildDocumentUriUsingTree(treeUri, docId)
+                )
+            } catch (_: Exception) {
+                // Pruning failure shouldn't fail the whole backup run
+            }
         }
     }
 

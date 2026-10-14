@@ -128,7 +128,6 @@ fun CustomDurationEditorScreenPreview() {
                 onDoseChange = { },
                 onDone = { },
                 onDelete = { },
-                navigateBack = { },
                 animatedVisibilityScope = this@AnimatedVisibility,
                 sharedTransitionScope = this@SharedTransitionLayout,
             )
@@ -154,15 +153,15 @@ fun CustomDurationEditorScreen(
         roa = viewModel.roaFlow.collectAsStateWithLifecycle().value,
         onRoaChange = { viewModel.roaFlow.value = it },
         previewTimelineDisplayOption = viewModel.timelineDisplayOptionFlow.collectAsStateWithLifecycle().value,
-        onDone = viewModel::onDone,
-        onDelete = viewModel::onDelete,
-        navigateBack = navigateBack,
+        onDone = { viewModel.onDone(navigateBack) },
+        onDelete = { viewModel.onDelete(navigateBack) },
         sharedTransitionScope = sharedTransitionScope,
         animatedVisibilityScope = animatedVisibilityScope,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
+@Suppress("LongMethod", "LongParameterList")
 @Composable
 fun CustomDurationEditorScreen(
     substanceName: String,
@@ -177,7 +176,6 @@ fun CustomDurationEditorScreen(
     previewTimelineDisplayOption: TimelineDisplayOption,
     onDone: () -> Unit,
     onDelete: () -> Unit,
-    navigateBack: () -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope,
 ) {
@@ -214,7 +212,7 @@ fun CustomDurationEditorScreen(
                         !scrollState.canScrollForward && !scrollState.canScrollBackward
                         )
             ) {
-                FloatingActionButton(onClick = { onDone(); navigateBack() }) {
+                FloatingActionButton(onClick = onDone) {
                     Row(
                         modifier = Modifier.padding(horizontal = spacing.lg),
                         verticalAlignment = Alignment.CenterVertically,
@@ -478,10 +476,7 @@ fun CustomDurationEditorScreen(
 
         if (showDeleteDialog) {
             DeleteCustomDurationAlert(
-                onDelete = {
-                    onDelete()
-                    navigateBack()
-                },
+                onDelete = onDelete,
                 onClose = { showDeleteDialog = false }
             )
         }

@@ -104,7 +104,7 @@ class AllTimelinesModel(
         val rangesByGroup = roaGroups.map { buildRawTimeRanges(it.ingestions) }
 
         widthInSeconds = if (fixedTimeRange != null) {
-            Duration.between(fixedTimeRange.start, fixedTimeRange.endInclusive).seconds.toFloat()
+            max(1f, Duration.between(fixedTimeRange.start, fixedTimeRange.endInclusive).seconds.toFloat())
         } else {
             val maxWidthOfGroups = roaGroups.mapIndexed { index, group ->
                 val curveEnd = group.curve.endSeconds

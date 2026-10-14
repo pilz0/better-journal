@@ -40,7 +40,7 @@ object TimelineBitmapRenderer {
     private fun currentTimeMarker(model: AllTimelinesModel, currentTime: Instant): GraphPrimitive.VerticalMarker? {
         if (model.widthInSeconds <= 0f) return null
         val endTime = model.startTime.plusSeconds(model.widthInSeconds.toLong())
-        if (!model.startTime.isBefore(currentTime) || !endTime.isAfter(currentTime)) return null
+        if (currentTime.isBefore(model.startTime) || currentTime.isAfter(endTime)) return null
         val seconds = Duration.between(model.startTime, currentTime).seconds.toFloat()
         return GraphPrimitive.VerticalMarker(
             xFraction = seconds / model.widthInSeconds,

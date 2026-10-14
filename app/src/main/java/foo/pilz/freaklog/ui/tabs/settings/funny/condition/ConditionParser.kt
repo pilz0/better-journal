@@ -86,7 +86,7 @@ internal class Parser(private val tokens: List<Token>) {
     private fun parseLambda(): Lambda {
         expect(TokType.LBRACE)
         var param = "it"
-        if (check(TokType.IDENT) && tokens[pos + 1].type == TokType.ARROW) {
+        if (check(TokType.IDENT) && tokens.getOrNull(pos + 1)?.type == TokType.ARROW) {
             param = advance().text
             expect(TokType.ARROW)
         }

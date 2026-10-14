@@ -84,7 +84,7 @@ suspend fun renderComposableToBitmap(
         composeView.layout(0, 0, composeView.measuredWidth, composeView.measuredHeight)
 
         val bitmap =
-            createBitmap(composeView.measuredWidth, composeView.measuredHeight.coerceAtLeast(1))
+            createBitmap(composeView.measuredWidth.coerceAtLeast(1), composeView.measuredHeight.coerceAtLeast(1))
         composeView.draw(Canvas(bitmap))
         bitmap
     } finally {

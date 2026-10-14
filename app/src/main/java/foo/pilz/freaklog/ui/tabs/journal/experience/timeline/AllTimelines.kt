@@ -408,7 +408,7 @@ private fun currentTimeMarker(
 ): GraphPrimitive.VerticalMarker? {
     if (!isShowingCurrentTime || model.widthInSeconds <= 0f) return null
     val endTime = model.startTime.plusSeconds(model.widthInSeconds.toLong())
-    if (!model.startTime.isBefore(currentTime) || !endTime.isAfter(currentTime)) return null
+    if (currentTime.isBefore(model.startTime) || currentTime.isAfter(endTime)) return null
     val seconds = Duration.between(model.startTime, currentTime).seconds.toFloat()
     return GraphPrimitive.VerticalMarker(
         xFraction = seconds / model.widthInSeconds,

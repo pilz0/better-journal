@@ -9,8 +9,8 @@ const val MAX_DIASTOLIC = 180
 data class BloodPressureFieldErrors(val systolic: String?, val diastolic: String?)
 
 fun bloodPressureFieldErrors(systolic: String, diastolic: String): BloodPressureFieldErrors {
-    val sys = systolic.toDoubleOrNull()
-    val dia = diastolic.toDoubleOrNull()
+    val sys = systolic.trim().replace(',', '.').toDoubleOrNull()
+    val dia = diastolic.trim().replace(',', '.').toDoubleOrNull()
     val systolicError = when {
         systolic.isBlank() -> null
         sys == null -> "Enter a number"
@@ -30,8 +30,8 @@ fun bloodPressureFieldErrors(systolic: String, diastolic: String): BloodPressure
 }
 
 fun isBloodPressureInputValid(systolic: String, diastolic: String): Boolean {
-    val sys = systolic.toDoubleOrNull() ?: return false
-    val dia = diastolic.toDoubleOrNull() ?: return false
+    val sys = systolic.trim().replace(',', '.').toDoubleOrNull() ?: return false
+    val dia = diastolic.trim().replace(',', '.').toDoubleOrNull() ?: return false
     return sys in MIN_SYSTOLIC.toDouble()..MAX_SYSTOLIC.toDouble() &&
         dia in MIN_DIASTOLIC.toDouble()..MAX_DIASTOLIC.toDouble() &&
         sys > dia

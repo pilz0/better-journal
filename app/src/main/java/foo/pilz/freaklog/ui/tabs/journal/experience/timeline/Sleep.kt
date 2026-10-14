@@ -57,8 +57,8 @@ enum class SleepStageType {
 
 data class SleepStageSample(val start: Instant, val end: Instant, val stage: SleepStageType)
 data class SleepSessionSample(val stages: List<SleepStageSample>) {
-    val start get() = stages.minByOrNull { it.start }!!.start
-    val end get() = stages.maxByOrNull { it.end }!!.end
+    val start: Instant? get() = stages.minByOrNull { it.start }?.start
+    val end: Instant? get() = stages.maxByOrNull { it.end }?.end
 }
 
 object SleepHealthConnect {
@@ -94,8 +94,8 @@ object SleepHealthConnect {
             pageToken = response.pageToken
 
             for (record in response.records) {
-                result.add(SleepSessionSample(
-                    stages = record.stages.map {
+                val stages = if (record.stages.isNotEmpty()) {
+                    record.stages.map {
                         SleepStageSample(
                             start = it.startTime,
                             end = it.endTime,
@@ -111,11 +111,20 @@ object SleepHealthConnect {
                             },
                         )
                     }
-                ))
+                } else {
+                    listOf(
+                        SleepStageSample(
+                            start = record.startTime,
+                            end = record.endTime,
+                            stage = SleepStageType.Sleeping,
+                        )
+                    )
+                }
+                result.add(SleepSessionSample(stages = stages))
             }
         } while (pageToken != null)
 
-        return result.sortedBy { it.start }
+        return result.filter { it.start != null }.sortedBy { it.start }
     }
 
     fun flattenSleepSessions(sessions: List<SleepSessionSample>)
@@ -153,8 +162,9 @@ object SleepHealthConnect {
         startTime: Instant,
         widthInSeconds: Float,
         withSleepStages: Boolean = false,
-    ): List<GraphSleepLineShape>
-        = sessions.flatMap { sample ->
+    ): List<GraphSleepLineShape> {
+        if (widthInSeconds <= 0f) return emptyList()
+        return sessions.flatMap { sample ->
             sample.stages
                 .mapIndexed { index, stage ->
                     if (stage.stage.displayInTimeline) {
@@ -197,4 +207,5 @@ object SleepHealthConnect {
                     )
                 } }
         }
+    }
 }

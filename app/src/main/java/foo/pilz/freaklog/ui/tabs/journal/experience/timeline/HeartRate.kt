@@ -86,7 +86,7 @@ fun buildHeartRatePolylines(
     startTime: Instant,
     widthInSeconds: Float,
 ): List<List<Vec2>> {
-    if (samples.size < 2 || widthInSeconds <= 0f) return emptyList()
+    if (samples.isEmpty() || widthInSeconds <= 0f) return emptyList()
     val sortedBpms = samples.map { it.bpm }.sorted()
     val median = sortedBpms[sortedBpms.size / 2].toFloat()
     val maxDeviation = max(

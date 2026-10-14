@@ -253,7 +253,7 @@ class EditIngestionViewModel @Inject constructor(
                 emptyList()
             }
             if (breached.isEmpty()) {
-                onDoneTap()
+                performSave()
                 onSaved()
             } else {
                 limitWarningStatuses = breached
@@ -265,9 +265,12 @@ class EditIngestionViewModel @Inject constructor(
 
     fun confirmLimitWarningAndSave() {
         isShowingLimitWarning = false
-        onDoneTap()
-        pendingSave?.invoke()
+        val save = pendingSave
         pendingSave = null
+        viewModelScope.launch {
+            performSave()
+            save?.invoke()
+        }
     }
 
     fun dismissLimitWarning() {
@@ -277,30 +280,34 @@ class EditIngestionViewModel @Inject constructor(
 
     fun onDoneTap() {
         viewModelScope.launch {
-            val selectedStartInstant = localDateTimeStartFlow.firstOrNull()?.getInstant() ?: return@launch
-            val selectedEndInstant = localDateTimeEndFlow.firstOrNull()?.getInstant()
-            val timePickerOption = ingestionTimePickerOptionFlow.first()
-            val endTime = if (timePickerOption == IngestionTimePickerOption.TIME_RANGE) selectedEndInstant else null
-            ingestion?.let {
-                it.notes = note
-                it.isDoseAnEstimate = isEstimate
-                it.experienceId = experienceId
-                it.dose = if (isKnown) evaluateNumericExpression(dose) else null
-                it.estimatedDoseStandardDeviation = if (isEstimate) evaluateNumericExpression(estimatedDoseStandardDeviation) else null
-                it.units = units
-                it.customUnitId = customUnit?.id
-                it.time = selectedStartInstant
-                it.endTime = endTime
-                it.consumerName = consumerName.ifBlank { null }
-                it.administrationSite = administrationSite.ifBlank { null }
-                it.saltForm = saltForm.ifBlank { null }
-                it.category = ingestionCategory
-                experienceRepo.update(it)
-                
-                // Send webhook edit notification in background
-                externalScope.launch {
-                    editWebhookForIngestion(it)
-                }
+            performSave()
+        }
+    }
+
+    private suspend fun performSave() {
+        val selectedStartInstant = localDateTimeStartFlow.firstOrNull()?.getInstant() ?: return
+        val selectedEndInstant = localDateTimeEndFlow.firstOrNull()?.getInstant()
+        val timePickerOption = ingestionTimePickerOptionFlow.first()
+        val endTime = if (timePickerOption == IngestionTimePickerOption.TIME_RANGE) selectedEndInstant else null
+        ingestion?.let {
+            it.notes = note
+            it.isDoseAnEstimate = isEstimate
+            it.experienceId = experienceId
+            it.dose = if (isKnown) evaluateNumericExpression(dose) else null
+            it.estimatedDoseStandardDeviation = if (isEstimate) evaluateNumericExpression(estimatedDoseStandardDeviation) else null
+            it.units = units
+            it.customUnitId = customUnit?.id
+            it.time = selectedStartInstant
+            it.endTime = endTime
+            it.consumerName = consumerName.ifBlank { null }
+            it.administrationSite = administrationSite.ifBlank { null }
+            it.saltForm = saltForm.ifBlank { null }
+            it.category = ingestionCategory
+            experienceRepo.update(it)
+
+            // Send webhook edit notification in background
+            externalScope.launch {
+                editWebhookForIngestion(it)
             }
         }
     }

@@ -48,8 +48,8 @@ class AddBloodPressureViewModel @Inject constructor(
 
     fun onDoneTap() {
         if (!isInputValid) return
-        val systolic = systolic.toDoubleOrNull() ?: return
-        val diastolic = diastolic.toDoubleOrNull() ?: return
+        val systolic = systolic.trim().replace(',', '.').toDoubleOrNull() ?: return
+        val diastolic = diastolic.trim().replace(',', '.').toDoubleOrNull() ?: return
         val record = BloodPressureRecord(
             time = localDateTimeFlow.value.getInstant(),
             zoneOffset = null,

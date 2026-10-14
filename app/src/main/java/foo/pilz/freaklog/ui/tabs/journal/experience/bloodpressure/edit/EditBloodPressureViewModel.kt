@@ -78,8 +78,8 @@ class EditBloodPressureViewModel @Inject constructor(
         if (!isInputValid) return
 
         val metadata = metadata ?: return
-        val systolic = systolic.toDoubleOrNull() ?: return
-        val diastolic = diastolic.toDoubleOrNull() ?: return
+        val systolic = systolic.trim().replace(',', '.').toDoubleOrNull() ?: return
+        val diastolic = diastolic.trim().replace(',', '.').toDoubleOrNull() ?: return
 
         val record = BloodPressureRecord(
             time = localDateTimeFlow.value.getInstant(),

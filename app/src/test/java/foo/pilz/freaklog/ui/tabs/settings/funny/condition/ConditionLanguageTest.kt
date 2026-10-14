@@ -314,4 +314,10 @@ class ConditionLanguageTest {
         assertTrue(eval("""ingestions.filter { it.substance == "LSD" }.count >= 3""", ctx))
         assertFalse(eval("""ingestions.filter { it.substance == "MDMA" }.streak >= 2""", ctx))
     }
+
+    @Test
+    fun explicitLambdaParameter() {
+        val ctx = evalContext(ingestions = listOf(ingestion(substanceName = "MDMA")))
+        assertTrue(eval("""any(ingestions) { x -> x.substance == "MDMA" }""", ctx))
+    }
 }
