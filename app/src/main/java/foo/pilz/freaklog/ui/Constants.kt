@@ -28,3 +28,5 @@ const val VERSION_NAME = "11.22"
 const val FULL_STOMACH_DISCLAIMER = "A full stomach may delay the onset of oral ingestions by approx. 3 hours."
 
 const val YOU = "You"
+
+const val FREAKQUERY_GUIDE_URL = "https://freaklog.as214958.net/freakquery.html"
