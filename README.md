@@ -38,6 +38,12 @@ nix run --inputs-from . gradle2nix -- -t assembleRelease -t bundleRelease
 ./gradlew bundleRelease --no-daemon
 ```
 
+## AI agent docs and environment
+
+- Quickstart for coding agents: `/home/runner/work/better-journal/better-journal/docs/ai-agents.md`
+- Deep architecture reference: `/home/runner/work/better-journal/better-journal/AGENTS.md`
+- Copilot cloud-agent environment setup: `/home/runner/work/better-journal/better-journal/.github/workflows/copilot-setup-steps.yml`
+
 ## Attribution
 The original app was built by [https://github.com/isaakhanimann/](isaakhanimann) 
 
