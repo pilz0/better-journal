@@ -147,6 +147,59 @@
               ${pkgs.gnugrep}/bin/grep -q 'app/build/outputs/bundle/release/app-release.aab' "$flake_file"
               ${pkgs.coreutils}/bin/touch $out
             '';
+
+            nix-substances-json-valid = pkgs.runCommand "nix-substances-json-valid" { } ''
+              set -eu
+              if [ ! -s ${./app/src/main/assets/Substances.json} ]; then
+                echo "Substances.json is missing or empty"
+                exit 1
+              fi
+              substance_count="$(${pkgs.jq}/bin/jq '.substances | length' ${./app/src/main/assets/Substances.json})"
+              if [ "$substance_count" -le 0 ]; then
+                echo "Substances.json has no substances"
+                exit 1
+              fi
+              ${pkgs.coreutils}/bin/touch $out
+            '';
+
+            nix-room-schema-v27-present = pkgs.runCommand "nix-room-schema-v27-present" { } ''
+              set -eu
+              schema_file="${./app/schemas/foo.pilz.freaklog.data.room.AppDatabase/27.json}"
+              if [ ! -s "$schema_file" ]; then
+                echo "Room schema version 27 is missing or empty"
+                exit 1
+              fi
+              version="$(${pkgs.jq}/bin/jq '.formatVersion' "$schema_file")"
+              if [ "$version" != "1" ]; then
+                echo "Unexpected Room schema formatVersion: $version"
+                exit 1
+              fi
+              ${pkgs.coreutils}/bin/touch $out
+            '';
+
+            nix-no-legacy-package-leaks = pkgs.runCommand "nix-no-legacy-package-leaks" { } ''
+              set -eu
+              if ${pkgs.gnugrep}/bin/grep -rn "com\.isaakhanimann\.journal" ${./app/src/main} ; then
+                echo "Found legacy package references to com.isaakhanimann.journal in app/src/main"
+                exit 1
+              fi
+              ${pkgs.coreutils}/bin/touch $out
+            '';
+
+            nix-workflow-security-invariants = pkgs.runCommand "nix-workflow-security-invariants" { } ''
+              set -eu
+              for wf in ${./.github/workflows}/*.yml; do
+                ${pkgs.gnugrep}/bin/grep -q 'permissions: {}' "$wf" || {
+                  echo "Workflow $wf missing deny-all permissions: {}"
+                  exit 1
+                }
+                ${pkgs.gnugrep}/bin/grep -q 'step-security/harden-runner' "$wf" || {
+                  echo "Workflow $wf missing step-security/harden-runner"
+                  exit 1
+                }
+              done
+              ${pkgs.coreutils}/bin/touch $out
+            '';
           };
 
           devShells.default = pkgs.mkShell {
@@ -169,6 +222,10 @@
         nix-version-sync.x86_64-linux = self.checks.x86_64-linux.nix-version-sync;
         nix-gradle-lock-present.x86_64-linux = self.checks.x86_64-linux.nix-gradle-lock-present;
         nix-release-artifact-paths.x86_64-linux = self.checks.x86_64-linux.nix-release-artifact-paths;
+        nix-substances-json-valid.x86_64-linux = self.checks.x86_64-linux.nix-substances-json-valid;
+        nix-room-schema-v27-present.x86_64-linux = self.checks.x86_64-linux.nix-room-schema-v27-present;
+        nix-no-legacy-package-leaks.x86_64-linux = self.checks.x86_64-linux.nix-no-legacy-package-leaks;
+        nix-workflow-security-invariants.x86_64-linux = self.checks.x86_64-linux.nix-workflow-security-invariants;
       };
     };
 }
