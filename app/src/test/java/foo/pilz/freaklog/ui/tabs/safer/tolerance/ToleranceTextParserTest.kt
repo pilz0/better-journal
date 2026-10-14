@@ -45,4 +45,12 @@ class ToleranceTextParserTest {
 
         assertNull(ToleranceTextParser.parse(Tolerance(full = null, half = null, zero = null)))
     }
+
+    @Test
+    fun testZeroDaysCoercedToAtLeastHalfDays() {
+        val inverted = ToleranceTextParser.parse(Tolerance(full = null, half = "7 days", zero = "3 days"))
+        assertNotNull(inverted)
+        assertEquals(7f, inverted!!.halfLifeDays)
+        assertEquals(7f, inverted.zeroDays)
+    }
 }

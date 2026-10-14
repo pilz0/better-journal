@@ -50,4 +50,12 @@ class ToleranceCalculatorTest {
         val level = ToleranceCalculator.computeToleranceLevel((1..20).map { now.minus(it.toLong(), ChronoUnit.HOURS) }, parsed, now)
         assertEquals(1f, level, 0.001f)
     }
+
+    @Test
+    fun testFutureIngestionDoesNotBlowUp() {
+        val now = Instant.now()
+        val future = now.plus(5, ChronoUnit.DAYS)
+        val level = ToleranceCalculator.computeToleranceLevel(listOf(future), parsed, now)
+        assertEquals(1f, level, 0.001f)
+    }
 }

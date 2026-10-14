@@ -66,7 +66,7 @@ class ToleranceCalculator @Inject constructor(
             if (halfLifeSeconds <= 0) return 0f
 
             val sum = ingestionTimes.sumOf { time ->
-                val elapsedSeconds = Duration.between(time, now).seconds.toDouble()
+                val elapsedSeconds = Duration.between(time, now).seconds.toDouble().coerceAtLeast(0.0)
                 exp(-0.693 * elapsedSeconds / halfLifeSeconds)
             }
             return min(1f, sum.toFloat())

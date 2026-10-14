@@ -22,22 +22,24 @@ object ToleranceTextParser {
         if (text == null) return null
         val trimmed = text.trim().lowercase()
 
-        DESCRIPTIVE_MAP[trimmed]?.let { return it }
+        return DESCRIPTIVE_MAP[trimmed]
+            ?: parseRangeDuration(trimmed)
+            ?: parseSingleDuration(trimmed)
+    }
 
-        RANGE_PATTERN.find(trimmed)?.let { match ->
-            val low = match.groupValues[1].toFloat()
-            val high = match.groupValues[2].toFloat()
-            val unit = match.groupValues[3].lowercase()
-            return (low + high) / 2f * unitMultiplier(unit)
-        }
+    private fun parseRangeDuration(trimmed: String): Float? {
+        val match = RANGE_PATTERN.find(trimmed) ?: return null
+        val low = match.groupValues[1].toFloatOrNull() ?: return null
+        val high = match.groupValues[2].toFloatOrNull() ?: return null
+        val unit = match.groupValues[3].lowercase()
+        return (low + high) / 2f * unitMultiplier(unit)
+    }
 
-        SINGLE_PATTERN.find(trimmed)?.let { match ->
-            val value = match.groupValues[1].toFloat()
-            val unit = match.groupValues[2].lowercase()
-            return value * unitMultiplier(unit)
-        }
-
-        return null
+    private fun parseSingleDuration(trimmed: String): Float? {
+        val match = SINGLE_PATTERN.find(trimmed) ?: return null
+        val value = match.groupValues[1].toFloatOrNull() ?: return null
+        val unit = match.groupValues[2].lowercase()
+        return value * unitMultiplier(unit)
     }
 
     fun parse(tolerance: Tolerance): ParsedTolerance? {
@@ -47,7 +49,7 @@ object ToleranceTextParser {
         if (halfDays == null && zeroDays == null) return null
 
         val effectiveHalf = halfDays ?: (zeroDays!! * 0.5f)
-        val effectiveZero = zeroDays ?: (halfDays!! * 2.5f)
+        val effectiveZero = (zeroDays ?: (halfDays!! * 2.5f)).coerceAtLeast(effectiveHalf)
         val effectiveFull = parseDurationText(tolerance.full) ?: 0f
 
         return ParsedTolerance(

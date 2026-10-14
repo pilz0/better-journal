@@ -9,6 +9,7 @@ import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalTime
 import java.time.ZoneId
+import java.util.Locale
 
 /**
  * Pure functions for reminder scheduling math, kept free of Android dependencies so
@@ -120,7 +121,7 @@ object ReminderSchedule {
     /** Inverse of [parseTimesOfDay]. */
     fun formatTimesOfDay(times: List<LocalTime>): String =
         times.distinct().sorted().joinToString(",") {
-            "%02d:%02d".format(it.hour, it.minute)
+            String.format(Locale.ROOT, "%02d:%02d", it.hour, it.minute)
         }
 
     /** Treats a mask of 0 as "every day" so legacy rows without an explicit mask still fire. */
@@ -169,8 +170,11 @@ object ReminderSchedule {
 
             else -> {
                 val times = parseTimesOfDay(reminder.timesOfDay)
-                val timesStr = if (times.isEmpty()) "(no times set)"
-                else times.joinToString(", ") { "%02d:%02d".format(it.hour, it.minute) }
+                val timesStr = if (times.isEmpty()) {
+                    "(no times set)"
+                } else {
+                    times.joinToString(", ") { String.format(Locale.ROOT, "%02d:%02d", it.hour, it.minute) }
+                }
                 if (days == "Daily") "Daily at $timesStr" else "$days at $timesStr"
             }
         }

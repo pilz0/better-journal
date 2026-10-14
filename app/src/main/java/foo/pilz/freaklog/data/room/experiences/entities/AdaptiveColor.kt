@@ -19,13 +19,14 @@
 package foo.pilz.freaklog.data.room.experiences.entities
 
 import androidx.compose.ui.graphics.Color
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.KSerializer
+import java.util.Locale
 
 /**
  * Represents a color that can be associated with a substance, ingestion or timed note.
@@ -639,7 +640,7 @@ sealed interface AdaptiveColor {
      * Renders identically in light and dark themes (no automatic adaptation).
      */
     data class Custom(val argb: Int) : AdaptiveColor {
-        override val name: String get() = "$CUSTOM_PREFIX${"%08X".format(argb)}"
+        override val name: String get() = "$CUSTOM_PREFIX${String.format(Locale.ROOT, "%08X", argb)}"
         override val isPreferred: Boolean = false
         override fun getComposeColor(isDarkTheme: Boolean): Color = Color(argb)
     }
