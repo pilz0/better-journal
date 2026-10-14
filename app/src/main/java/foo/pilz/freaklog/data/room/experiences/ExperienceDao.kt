@@ -1098,8 +1098,7 @@ interface ExperienceDao {
     suspend fun replaceSubstanceGroupItems(groupId: Int, items: List<SubstanceGroupItem>) {
         deleteSubstanceGroupItems(groupId)
         for (i in items) {
-            i.groupId = groupId
-            insert(i)
+            insert(i.copy(id = 0, groupId = groupId))
         }
     }
 
@@ -1108,10 +1107,9 @@ interface ExperienceDao {
         group: SubstanceGroup,
         items: List<SubstanceGroupItem>
     ): Int {
-        val id = insert(group).toInt()
+        val id = insert(group.copy(id = 0)).toInt()
         for (i in items) {
-            i.groupId = id
-            insert(i)
+            insert(i.copy(id = 0, groupId = id))
         }
         return id
     }
