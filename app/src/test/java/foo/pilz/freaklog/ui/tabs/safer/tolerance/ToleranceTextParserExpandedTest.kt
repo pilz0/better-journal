@@ -504,5 +504,4 @@ class ToleranceTextParserExpandedTest {
     fun parsesHours_100() {
         assertEquals(12.5f, requireNotNull(ToleranceTextParser.parseDurationText("300 hours")), 0.0001f)
     }
-
 }

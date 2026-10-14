@@ -3199,18 +3199,18 @@
       "hash": "sha256-kM87O9Hun24lzWONUykn4lHnK3IZws21bTxBKVZwd0Q="
     }
   },
-  "com.github.jeziellago:compose-markdown:0.7.2": {
-    "compose-markdown-0.7.2.aar": {
-      "url": "https://jitpack.io/com/github/jeziellago/compose-markdown/0.7.2/compose-markdown-0.7.2.aar",
-      "hash": "sha256-DJ12UFx4Y//iDFjb962KDHUD2gvdM0O1R5kb5f5irJo="
+  "com.github.jeziellago:compose-markdown:0.7.3": {
+    "compose-markdown-0.7.3.aar": {
+      "url": "https://jitpack.io/com/github/jeziellago/compose-markdown/0.7.3/compose-markdown-0.7.3.aar",
+      "hash": "sha256-1mIwrFbbgRdITg+DyCj0/DRJ7ggBC8K3/WOUShfWMkI="
     },
-    "compose-markdown-0.7.2.module": {
-      "url": "https://jitpack.io/com/github/jeziellago/compose-markdown/0.7.2/compose-markdown-0.7.2.module",
-      "hash": "sha256-t/b/MWZcO1bn+KCgxgMI5Zf3Kz17aqgepKGc/U+q0Ak="
+    "compose-markdown-0.7.3.module": {
+      "url": "https://jitpack.io/com/github/jeziellago/compose-markdown/0.7.3/compose-markdown-0.7.3.module",
+      "hash": "sha256-zjwZ2NNaiAn880RPDEslmSNxwTYAQQ6IEJjmaCg/9lg="
     },
-    "compose-markdown-0.7.2.pom": {
-      "url": "https://jitpack.io/com/github/jeziellago/compose-markdown/0.7.2/compose-markdown-0.7.2.pom",
-      "hash": "sha256-BXS62klGBY/z1SrG6d9caRrOEMBoAn/S+baixZcvWA8="
+    "compose-markdown-0.7.3.pom": {
+      "url": "https://jitpack.io/com/github/jeziellago/compose-markdown/0.7.3/compose-markdown-0.7.3.pom",
+      "hash": "sha256-HyaYsR6UMq+Hn/utD22HKeEpiyn7/Q2LSDmIjNb0e6U="
     }
   },
   "com.google.auto:auto-common:1.2.1": {

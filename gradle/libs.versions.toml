@@ -1,11 +1,17 @@
 [versions]
 activityCompose = "1.13.0"
 agp = "9.4.1"
+assertk = "0.28.1"
+biometric = "1.1.0"
 compose = "2.10.1"
 composeBom = "2026.09.00"
+composeMarkdown = "0.7.3"
 coreKtx = "1.19.1"
 coreSplashscreen = "1.2.0"
 datastorePreferences = "1.2.1"
+desugar_jdk_libs = "2.1.5"
+# --- Static analysis & coverage plugins ---
+detekt = "1.23.8"
 espressoCore = "3.7.0"
 glanceAppwidget = "1.2.0"
 hiltAndroidCompiler = "2.60.1"
@@ -17,36 +23,28 @@ kotlinxCoroutinesAndroid = "1.11.0"
 kotlinxCoroutinesCore = "1.11.0"
 kotlinxCoroutinesTest = "1.11.0"
 kotlinxSerializationJson = "1.11.0"
+kover = "0.9.11"
+ksp = "2.3.12"
 lifecycleRuntimeKtx = "2.11.0"
 material3AdaptiveNavigationSuiteAndroid = "1.4.0"
-navigationCompose = "2.10.2"
-roomRuntime = "2.8.5"
-workRuntimeKtx = "2.12.0"
-desugar_jdk_libs = "2.1.5"
-
-composeMarkdown = "0.7.2"
-ksp = "2.3.12"
-biometric = "1.1.0"
-
 # --- Test infrastructure ---
 mockk = "1.14.11"
-turbine = "1.2.1"
-robolectric = "4.17"
-assertk = "0.28.1"
 # The `mockwebserver` artifact keeps the `okhttp3.mockwebserver` package in 5.x;
 # `mockwebserver3` is the new API and would be a breaking migration.
 mockwebserver = "5.5.0"
+navigationCompose = "2.10.2"
 orgJson = "20260814"
-testRunner = "1.7.0"
+robolectric = "4.17"
+roomRuntime = "2.8.5"
 testCore = "1.7.0"
-
-# --- Static analysis & coverage plugins ---
-detekt = "1.23.8"
-kover = "0.9.11"
+testRunner = "1.7.0"
+turbine = "1.2.1"
+workRuntimeKtx = "2.12.0"
 
 [libraries]
 android-desugarJdkLibs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
 androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
@@ -55,6 +53,7 @@ androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", vers
 androidx-glance = { module = "androidx.glance:glance", version.ref = "glanceAppwidget" }
 androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "glanceAppwidget" }
 androidx-glance-material3 = { module = "androidx.glance:glance-material3", version.ref = "glanceAppwidget" }
+androidx-health-connect = "androidx.health.connect:connect-client:1.1.0"
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 androidx-junit = { module = "androidx.test.ext:junit", version.ref = "junitVersion" }
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
@@ -76,8 +75,11 @@ androidx-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 androidx-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 androidx-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtx" }
-androidx-health-connect = { module = "androidx.health.connect:connect-client", version = "1.1.0" }
+assertk = { module = "com.willowtreeapps.assertk:assertk", version.ref = "assertk" }
 compose = { module = "com.kizitonwose.calendar:compose", version.ref = "compose" }
+compose-markdown = { module = "com.github.jeziellago:compose-markdown", version.ref = "composeMarkdown" }
+# Detekt formatting plugin (rules pulled in at runtime).
+detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroidCompiler" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltAndroidCompiler" }
 junit = { module = "junit:junit", version.ref = "junit" }
@@ -85,28 +87,21 @@ kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutine
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
-compose-markdown = { module = "com.github.jeziellago:compose-markdown", version.ref = "composeMarkdown" }
-androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
-
 # --- Test infrastructure ---
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockk" }
-turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
-robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
-assertk = { module = "com.willowtreeapps.assertk:assertk", version.ref = "assertk" }
 mockwebserver = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "mockwebserver" }
 org-json = { module = "org.json:json", version.ref = "orgJson" }
-
-# Detekt formatting plugin (rules pulled in at runtime).
-detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hiltAndroidCompiler" }
-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 androidx-room = { id = "androidx.room", version.ref = "roomRuntime" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hiltAndroidCompiler" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
