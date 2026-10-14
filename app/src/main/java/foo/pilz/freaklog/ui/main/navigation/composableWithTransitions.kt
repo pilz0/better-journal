@@ -20,6 +20,8 @@ package foo.pilz.freaklog.ui.main.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -49,14 +51,7 @@ inline fun <reified T : Any> NavGraphBuilder.composableWithTransitions(
             }
         },
         popEnterTransition = {
-            if (isChangingTab()) {
-                fadeIn(animationSpec = tween(tabSwitchTimeInMs))
-            } else {
-                slideInHorizontally(
-                    initialOffsetX = { -300 },
-                    animationSpec = tween(withinTabTransitionTimeInMs)
-                ) + fadeIn(animationSpec = tween(withinTabTransitionTimeInMs))
-            }
+            EnterTransition.None
         },
         enterTransition = {
             if (isChangingTab()) {
@@ -69,14 +64,7 @@ inline fun <reified T : Any> NavGraphBuilder.composableWithTransitions(
             }
         },
         popExitTransition = {
-            if (isChangingTab()) {
-                fadeOut(animationSpec = tween(tabSwitchTimeInMs))
-            } else {
-                slideOutHorizontally(
-                    targetOffsetX = { 300 },
-                    animationSpec = tween(withinTabTransitionTimeInMs)
-                ) + fadeOut(animationSpec = tween(withinTabTransitionTimeInMs))
-            }
+            ExitTransition.None
         },
         content = content
     )
