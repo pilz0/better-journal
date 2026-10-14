@@ -78,7 +78,7 @@
     {
       "name": "deliriant",
       "description": "Deliriants are considered to be true hallucinogens, because the visuals they produce are hard or impossible to tell apart from reality; they are also known for negative physical effects.",
-      "url": "https://psychonautwiki.org/wiki/Deliriant",
+      "url": "https://anodyne.wiki/class/deliriant",
       "color": 4278452378
     },
     {
@@ -3964,7 +3964,7 @@
         "Ortho",
         "Ortomephedrone"
       ],
-      "url": "https://psychonautwiki.org/wiki/Talk:2-MMC",
+      "url": "https://anodyne.wiki/substance/Orthophedrone",
       "isApproved": false,
       "tolerance": {
         "full": "develops with prolonged and repeated use",
@@ -17548,7 +17548,7 @@
       "commonNames": [
         "mCPP"
       ],
-      "url": "https://psychonautwiki.org/wiki/MCPP",
+      "url": "https://anodyne.wiki/substance/3-Chlorophenylpiperazine",
       "isApproved": true,
       "crossTolerances": [],
       "toxicities": [],

@@ -224,19 +224,19 @@ class SubstanceWithCategoriesPreviewProvider : PreviewParameterProvider<Substanc
                 Category(
                     name = "psychedelic",
                     description = "Psychedelics are drugs which alter the perception, causing a number of mental effects which manifest in many forms including altered states of consciousness, visual or tactile effects.",
-                    url = "https://psychonautwiki.org/wiki/Psychedelics",
+                    url = "https://anodyne.wiki/class/psychedelic",
                     color = Color(4287564543)
                 ),
                 Category(
                     name = "stimulant",
                     description = "Stimulants excite the nervous system and increase physiological function.",
-                    url = "https://psychonautwiki.org/wiki/Stimulants",
+                    url = "https://anodyne.wiki/class/stimulant",
                     color = Color(4278246860)
                 ),
                 Category(
                     name = "entactogen",
                     description = "Entactogens (also known as empathogens) are a class of psychoactive substances that produce distinctive emotional and social effects similar to those of MDMA.",
-                    url = "https://psychonautwiki.org/wiki/Entactogens",
+                    url = "https://anodyne.wiki/class/entactogen",
                     color = Color(4294904442)
                 )
             )

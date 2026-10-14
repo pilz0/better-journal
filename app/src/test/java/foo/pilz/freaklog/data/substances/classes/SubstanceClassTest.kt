@@ -11,7 +11,7 @@ class SubstanceClassTest {
         categories: List<String> = emptyList(),
         interactions: Interactions? = null,
         roas: List<Roa> = emptyList(),
-        url: String = "https://psychonautwiki.org/wiki/Test"
+        url: String = "https://anodyne.wiki/substance/Test"
     ) = Substance(
         name = "TestSubstance",
         commonNames = emptyList(),

@@ -294,7 +294,7 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: foo.pilz.freaklog
           releaseFiles: app/freaklog.aab
-          track: internal
+          tracks: internal
 
   create-release:
     name: Create GitHub release
