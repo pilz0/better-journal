@@ -1,5 +1,18 @@
 # AI Agent Guide — Freaklog Android
 
+## Start here (modern-LLM quickstart)
+
+If you only read one section, read this:
+
+- Read `/home/runner/work/better-journal/better-journal/docs/ai-agents.md` first for the compact task flow and command map.
+- Use `/home/runner/work/better-journal/better-journal/AGENTS.md` as the deep reference after that.
+- Build/test baseline:
+  - `./gradlew testDebugUnitTest --no-daemon`
+  - `./gradlew detekt --no-daemon`
+  - `./gradlew :app:lintDebug --no-daemon`
+- If dependency or plugin versions change, regenerate `gradle.lock` with:
+  - `nix run --inputs-from . gradle2nix -- -t assembleRelease -t bundleRelease`
+
 ## Repository overview
 
 Freaklog is an Android journal app (fork of [PsychonautWiki Journal](https://github.com/isaakhanimann/psychonautwiki-journal-android)) that lets users log and track substance ingestions, view timelines, calculate tolerance, and interact with an AI chatbot. Package name: `foo.pilz.freaklog`.

@@ -21,6 +21,7 @@ jobs:
   copilot-setup-steps:
     name: Copilot Setup Steps
     runs-on: ubuntu-latest
+    timeout-minutes: 59
     permissions:
       # Needed for actions/checkout below; Copilot uses its own token for any
       # git operations it performs after setup completes.
@@ -59,9 +60,13 @@ jobs:
         uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
         with:
           log-accepted-android-sdk-licenses: false
-          # The action's default also installs the legacy `tools` package,
-          # which sdkmanager no longer offers.
-          packages: platform-tools
+          # Install only what this repository needs for deterministic
+          # Gradle/AGP resolution (compileSdk 37 + modern build tools) and
+          # avoid the action's legacy `tools` default.
+          packages: |
+            platform-tools
+            platforms;android-37
+            build-tools;37.0.0
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@0b6dd653ba04f4f93bf581ec31e66cbd7dcb644d # v4.4.4
@@ -78,5 +83,6 @@ jobs:
       # requiring keystores or running any application code.
       - name: Warm Gradle caches
         run: |
+          ./gradlew --version --no-daemon
           ./gradlew help --no-daemon
           ./gradlew :app:dependencies --no-daemon
