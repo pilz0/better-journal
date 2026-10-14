@@ -71,6 +71,7 @@ fun WebhookEditorScreen(
     }
 }
 
+@Suppress("LongMethod")
 @Composable
 private fun WebhookEditorBody(
     padding: PaddingValues,
