@@ -116,6 +116,39 @@
             };
           };
 
+          checks = {
+            nix-version-sync = pkgs.runCommand "nix-version-sync" { } ''
+              set -eu
+              gradle_version="$(${pkgs.gnugrep}/bin/grep -E 'versionName = "[^"]+"' ${./app/build.gradle.kts} | ${pkgs.coreutils}/bin/head -n1 | ${pkgs.gnused}/bin/sed -E 's/.*versionName = "([^"]+)".*/\1/')"
+              if [ -z "$gradle_version" ]; then
+                echo "Failed to parse versionName from app/build.gradle.kts"
+                exit 1
+              fi
+              if [ "$gradle_version" != "${version}" ]; then
+                echo "Version mismatch: Gradle=$gradle_version Nix=${version}"
+                exit 1
+              fi
+              ${pkgs.coreutils}/bin/touch $out
+            '';
+
+            nix-gradle-lock-present = pkgs.runCommand "nix-gradle-lock-present" { } ''
+              set -eu
+              if [ ! -s ${./gradle.lock} ]; then
+                echo "gradle.lock is missing or empty"
+                exit 1
+              fi
+              ${pkgs.coreutils}/bin/touch $out
+            '';
+
+            nix-release-artifact-paths = pkgs.runCommand "nix-release-artifact-paths" { } ''
+              set -eu
+              flake_file=${./flake.nix}
+              ${pkgs.gnugrep}/bin/grep -q 'app/build/outputs/apk/release/app-release-unsigned.apk' "$flake_file"
+              ${pkgs.gnugrep}/bin/grep -q 'app/build/outputs/bundle/release/app-release.aab' "$flake_file"
+              ${pkgs.coreutils}/bin/touch $out
+            '';
+          };
+
           devShells.default = pkgs.mkShell {
             packages = with pkgs; [
               pkgs.jdk17
@@ -133,6 +166,9 @@
       hydraJobs = {
         apk.x86_64-linux = self.packages.x86_64-linux.apk;
         aab.x86_64-linux = self.packages.x86_64-linux.aab;
+        nix-version-sync.x86_64-linux = self.checks.x86_64-linux.nix-version-sync;
+        nix-gradle-lock-present.x86_64-linux = self.checks.x86_64-linux.nix-gradle-lock-present;
+        nix-release-artifact-paths.x86_64-linux = self.checks.x86_64-linux.nix-release-artifact-paths;
       };
     };
 }
