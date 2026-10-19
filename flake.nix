@@ -47,6 +47,8 @@
 
           androidHome = "${androidSdk.androidsdk}/libexec/android-sdk";
 
+          ai = import ./nix/ai { inherit pkgs; };
+
           # Single source of truth for the version is app/build.gradle.kts.
           version = builtins.head (
             builtins.match ".*versionName = \"([^\"]+)\".*" (builtins.readFile ./app/build.gradle.kts)
@@ -116,7 +118,14 @@
             };
           };
 
+          apps.ai-sync = {
+            type = "app";
+            program = pkgs.lib.getExe ai.sync;
+          };
+
           checks = {
+            ai-instructions-in-sync = ai.check self;
+
             nix-version-sync = pkgs.runCommand "nix-version-sync" { } ''
               set -eu
               gradle_version="$(${pkgs.gnugrep}/bin/grep -E 'versionName = "[^"]+"' ${./app/build.gradle.kts} | ${pkgs.coreutils}/bin/head -n1 | ${pkgs.gnused}/bin/sed -E 's/.*versionName = "([^"]+)".*/\1/')"
@@ -202,13 +211,28 @@
             '';
           };
 
+          # Also the environment for AI agents: Copilot's cloud agent loads it
+          # in .github/workflows/copilot-setup-steps.yml.
           devShells.default = pkgs.mkShell {
-            packages = with pkgs; [
+            packages = [
               pkgs.jdk17
               androidSdk.androidsdk
+              pkgs.ripgrep
+              pkgs.jq
+              ai.sync
             ];
+            JAVA_HOME = pkgs.jdk17.home;
+            ANDROID_HOME = androidHome;
+            ANDROID_SDK_ROOT = androidHome;
+            # Same deterministic defaults as CI.
+            TZ = "UTC";
+            LANG = "en_US.UTF-8";
             shellHook = ''
-              export JAVA_HOME=${pkgs.jdk17.home}
+              if root="$(git rev-parse --show-toplevel 2>/dev/null)"; then
+                for p in AGENTS.md .github/copilot-instructions.md; do
+                  cmp -s "${ai.tree}/$p" "$root/$p" || echo "warning: $p is out of date with nix/ai/, run: ai-sync" >&2
+                done
+              fi
             '';
           };
           formatter = pkgs.nixpkgs-fmt;
@@ -219,6 +243,7 @@
       hydraJobs = {
         apk.x86_64-linux = self.packages.x86_64-linux.apk;
         aab.x86_64-linux = self.packages.x86_64-linux.aab;
+        ai-instructions-in-sync.x86_64-linux = self.checks.x86_64-linux.ai-instructions-in-sync;
         nix-version-sync.x86_64-linux = self.checks.x86_64-linux.nix-version-sync;
         nix-gradle-lock-present.x86_64-linux = self.checks.x86_64-linux.nix-gradle-lock-present;
         nix-release-artifact-paths.x86_64-linux = self.checks.x86_64-linux.nix-release-artifact-paths;

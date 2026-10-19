@@ -1,0 +1,596 @@
+## Repository overview
+
+Freaklog is an Android journal app (fork of [PsychonautWiki Journal](https://github.com/isaakhanimann/psychonautwiki-journal-android)) that lets users log and track substance ingestions, view timelines, calculate tolerance, and interact with an AI chatbot. Package name: `foo.pilz.freaklog`.
+
+## Key technologies
+
+| Layer | Tech |
+|-------|------|
+| UI | Jetpack Compose + Material3 |
+| DI | Hilt (Dagger) |
+| DB | Room (SQLite) |
+| Nav | Navigation Compose |
+| Async | Kotlin Coroutines + Flow |
+| AI | Custom Gemini REST client (`v1beta` `generateContent`) — see [AI chatbot](#ai-chatbot-dataai) |
+| Serialization | kotlinx.serialization (JSON) |
+| Build | Gradle 9 (Kotlin DSL), AGP 9 |
+| CI | GitHub Actions |
+
+## Project structure
+
+```
+app/src/main/java/foo/pilz/freaklog/
+├── MainActivity.kt             # Entry point, sets up NavGraph + theme
+├── data/
+│   ├── ai/                     # AI chatbot (custom Gemini REST client)
+│   │   ├── AiChatbotRepository.kt   # Builds system prompt + creates GeminiChatSession
+│   │   ├── AiChatViewModel.kt       # StateFlow<List<ChatMessage>> conversation state
+│   │   ├── AiDateFormatter.kt       # Locale-stable date helpers used in prompts
+│   │   ├── AiTools.kt               # Function-calling tool declarations + dispatcher
+│   │   ├── GeminiChatSession.kt     # Stateful chat wrapper (history kept as raw JSON)
+│   │   └── GeminiRestClient.kt      # v1beta generateContent HTTP client
+│   ├── export/                 # JSON export/import serializers
+│   │   ├── InstantSerializer.kt
+│   │   └── JournalExport.kt    # @Serializable data classes for export
+│   ├── room/                   # Room database
+│   │   ├── AppDatabase.kt      # Database, version, auto-migrations + AutoMigrationSpec
+│   │   ├── SprayDao.kt / SprayRepository.kt
+│   │   ├── experiences/
+│   │   │   ├── ExperienceDao.kt
+│   │   │   ├── ExperienceRepository.kt
+│   │   │   ├── CustomRecipeDao.kt / CustomRecipeRepository.kt
+│   │   │   ├── entities/       # Experience, Ingestion, CustomUnit, Spray, …
+│   │   │   └── relations/      # ExperienceWithIngestions, IngestionWithCompanion, …
+│   │   ├── inventory/          # Stash / inventory tracking
+│   │   │   ├── InventoryDao.kt
+│   │   │   ├── InventoryItem.kt
+│   │   │   └── InventoryRepository.kt
+│   │   └── reminders/
+│   │       ├── ReminderDao.kt
+│   │       ├── RemindersRepository.kt
+│   │       └── entities/Reminder.kt
+│   ├── substances/             # Substance data (parsed from assets/Substances.json)
+│   │   ├── AdministrationRoute.kt   # Enum of routes (ORAL, INSUFFLATED, …)
+│   │   ├── classes/            # Substance, Roa, RoaDose, RoaDuration, Tolerance, …
+│   │   │   └── roa/curve/      # IngestionCurve / BatemanCurve projection model
+│   │   ├── parse/              # SubstanceParser (JSON → Kotlin models)
+│   │   └── repositories/       # SubstanceRepository, SearchRepository
+│   └── webhook/
+│       └── WebhookService.kt   # Discord webhook integration
+├── di/
+│   ├── AppModule.kt            # Provides DB, DAOs, DataStore, @ApplicationScope CoroutineScope
+│   ├── JournalApplication.kt   # @HiltAndroidApp Application class
+│   └── RepositoryModule.kt     # Binds SubstanceParser/Repository interfaces
+├── scheduled/
+│   ├── NotificationScheduler.kt    # Wraps AlarmManager, schedules next reminder fire
+│   ├── ReminderSchedule.kt         # Pure helper: next-fire math (interval / times-of-day)
+│   ├── ReminderReceiver.kt         # BroadcastReceiver fired by AlarmManager
+│   ├── ReminderActionReceiver.kt   # Handles notification action buttons (snooze/dismiss/log)
+│   └── BootCompletedReceiver.kt    # Re-arms all enabled reminders after device reboot
+└── ui/
+    ├── Constants.kt
+    ├── HeatmapWidgetProvider.kt # Glance AppWidget for heatmap
+    ├── WidgetHeatmapModel.kt    # Pure model used by the heatmap widget renderer
+    ├── WidgetProvider.kt        # Glance AppWidget (recent ingestions)
+    ├── WidgetTimelineModel.kt   # Pure model used by the timeline widget renderer
+    ├── main/                   # MainScreen, bottom navigation scaffold + navigation graphs
+    ├── tabs/
+    │   ├── journal/            # Journal tab (list, calendar, timeline, edit)
+    │   │   ├── JournalViewModel.kt
+    │   │   ├── calendar/       # CalendarJournalScreen + DayViewModel
+    │   │   ├── allingestions/  # AllIngestionsScreen
+    │   │   ├── components/     # ExperienceRow, RelativeDateText, …
+    │   │   └── experience/
+    │   │       ├── edit/       # EditExperienceScreen + ViewModel
+    │   │       ├── recommendations/ # AiChatBottomSheet
+    │   │       └── timeline/   # AllTimelines, Health Connect vitals, curve/, screen
+    │   ├── inventory/          # Inventory tab (optional — gated by Settings flag)
+    │   │   ├── InventoryScreen.kt
+    │   │   └── InventoryViewModel.kt
+    │   ├── safer/              # Harm-reduction screens
+    │   │   ├── tolerance/      # ToleranceCalculator, ToleranceTextParser, Screen
+    │   │   ├── spray/          # SprayCalculatorScreen + ViewModel
+    │   │   ├── DoseGuideScreen.kt / DoseExplanationScreen.kt
+    │   │   ├── ReagentTestingScreen.kt / DrugTestingScreen.kt
+    │   │   ├── RouteExplanationScreen.kt
+    │   │   ├── SaferHallucinogensScreen.kt
+    │   │   ├── SaferUseScreen.kt
+    │   │   └── VolumetricDosingScreen.kt
+    │   ├── search/             # Substance search + detail screens
+    │   ├── settings/           # Settings, webhook, export, reminders, …
+    │   │   ├── combinations/   # UserPreferences (DataStore)
+    │   │   ├── customunits/    # Custom unit management
+    │   │   ├── customrecipes/  # Custom recipe management
+    │   │   ├── reminders/      # Reminder management
+    │   │   ├── colors/         # Color preference screens
+    │   │   ├── lock/           # App-lock (biometrics / PIN) settings
+    │   │   └── funny/          # Easter-egg screens
+    │   └── stats/              # Statistics tab
+    ├── graph/                  # Scene-based graph engine (scene builders, painters, style)
+    ├── theme/                  # Color, typography, theme (Material3)
+    └── utils/
+        ├── getDateFromString.kt
+        ├── getInteractionExplanationURLForSubstance.kt
+        ├── getTimeDifferenceText.kt
+        ├── HapticFeedbackManager.kt / HapticProvider.kt
+        └── keyboard/
+```
+
+## Build commands
+
+```bash
+# Build debug APK
+./gradlew assembleDebug
+
+# Build release APK (unsigned)
+./gradlew assembleRelease --no-daemon
+
+# Build release AAB (unsigned)  — output: app/build/outputs/bundle/release/app-release.aab
+./gradlew bundleRelease --no-daemon
+
+# Run all unit tests
+./gradlew testDebugUnitTest --no-daemon
+
+# Run tests by package (mirrors the CI matrix shards)
+./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.data.*" --no-daemon
+./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.ui.*" --no-daemon
+./gradlew testDebugUnitTest -PtestExclude=foo.pilz.freaklog.data.*,foo.pilz.freaklog.ui.* --no-daemon
+
+# Static analysis (Detekt) and coverage (Kover) — see "Static analysis & coverage" below.
+./gradlew detekt --no-daemon
+./gradlew :app:koverHtmlReportDebug :app:koverXmlReportDebug :app:koverVerifyDebug --no-daemon
+```
+
+> **Important:** The Gradle AAB output is `app-release.aab`, **not** `app-release-unsigned.aab`.
+> The Nix build (`nix build .#apk` / `.#aab`, also exposed as `hydraJobs` for
+> x86_64-linux) resolves every dependency offline from `gradle.lock`. **Whenever
+> a dependency or plugin version changes, regenerate the lock** or the Nix build
+> fails at configuration time with "Plugin … was not found":
+> `nix run --inputs-from . gradle2nix -- -t assembleRelease -t bundleRelease`
+
+## CI/CD (GitHub Actions)
+
+Workflows live in `.github/workflows/`:
+
+| Workflow file | Purpose |
+|---------------|---------|
+| `build.yml` | Wrapper validation, unit tests (3 shards), Detekt, Android Lint, Kover coverage gate, unsigned APK + AAB builds, Nix flake checks (`nix-checks`), and Nix package builds (`nix-build`, matrix: apk \| aab). Runs on every push/PR. |
+| `release.yml` | **Secret-handling.** Sign + Cloudflare R2 + Google Play + GitHub release + SLSA build provenance. Triggered by `workflow_run` on a successful `Build and test` run on `main` / tags, or `workflow_dispatch`. Pull-request events never reach this workflow. |
+| `codeql.yml` | CodeQL analysis for `java-kotlin` and `actions` languages with the `security-extended` query pack. |
+| `instrumented-tests.yml` | Connected Android tests on emulators (API 31/34/35). Triggered by the `run-instrumented-tests` PR label, `workflow_dispatch`, or nightly schedule. |
+| `scorecard.yml` | OpenSSF Scorecard supply-chain analysis (uploaded as SARIF + published to scorecard.dev). |
+| `dependency-review.yml` | Blocks PRs that introduce known-vulnerable or AGPL dependencies. |
+
+```
+push/PR  ──► build.yml
+              ├─ wrapper-validation
+              ├─ test  (matrix: data | ui | misc)
+              ├─ coverage  (Kover, hard-gated minimum)
+              ├─ detekt    (SARIF → code scanning)
+              ├─ lint      (SARIF → code scanning)
+              ├─ build-app (matrix: apk | aab — unsigned)
+              ├─ nix-checks
+              ├─ nix-build (matrix: apk | aab)
+              └─ ci-passed (aggregator status check)
+
+main/tag ──► build.yml succeeds ──workflow_run──► release.yml
+                                                    ├─ sign           (env: signing)
+                                                    ├─ attest         (SLSA provenance)
+                                                    ├─ upload-s3      (env: production)
+                                                    ├─ upload-google-play (env: internal-track)
+                                                    └─ create-release (tags only, env: production)
+```
+
+### Permissions & supply-chain model
+
+- Every workflow declares `permissions: {}` (deny-all) at the top, with each
+  job granting the minimum it needs.
+- Every third-party action is pinned to a **full commit SHA** with the
+  human-readable tag in a comment. Dependabot will edit these in place.
+- Every job starts with **`step-security/harden-runner`** (audit mode).
+- The Gradle wrapper is validated on every PR.
+- Secrets only exist in `release.yml` and are scoped to GitHub Environments
+  (`signing`, `internal-track`, `production`). PR builds cannot read them.
+- Build artifacts are signed and an **SLSA build provenance** attestation is
+  produced via `actions/attest-build-provenance`.
+
+### Required secrets for CI
+
+| Secret | Purpose |
+|--------|---------|
+| `KEYSTORE` | Base64-encoded `.jks` keystore file |
+| `SIGNING_KEY_ALIAS` | Key alias inside the keystore |
+| `SIGNING_STORE_PASSWORD` | Keystore password |
+| `SIGNING_KEY_PASSWORD` | Key password |
+| `R2_ACCOUNT_ID` | Cloudflare R2 account ID |
+| `R2_ACCESS_KEY_ID` | Cloudflare R2 access key |
+| `R2_SECRET_ACCESS_KEY` | Cloudflare R2 secret key |
+| `R2_BUCKET` | Cloudflare R2 bucket name |
+| `SERVICE_ACCOUNT_JSON` | Google Play service account JSON (plain text) |
+| `GOOGLE_AI_API_KEY` | (optional) Google AI API key for the chatbot feature |
+
+## Package naming
+
+App package: `foo.pilz.freaklog`  
+The upstream project uses `com.isaakhanimann.journal`. When porting upstream code, convert **all** package references to `foo.pilz.freaklog`.
+
+## Dependency management
+
+All library versions live in `gradle/libs.versions.toml` (Gradle Version Catalog).  
+Plugin versions live in the catalog too (`[plugins]`), including Hilt, KSP and the Room Gradle plugin.
+
+Toolchain: Gradle 9.8.0 (wrapper; keep it equal to nixpkgs' `gradle_9`, or the Nix build resolves a Kotlin stdlib the lock lacks), AGP 9.4.1, Kotlin 2.4.21, KSP 2.3.12, `compileSdk` 37, `targetSdk` 36, `minSdk` 31.
+AGP 9 compiles Kotlin itself, so the `org.jetbrains.kotlin.android` plugin is **not** applied; Kotlin options go in the
+top-level `kotlin { compilerOptions { … } }` block, not `android { kotlinOptions { … } }`.
+
+To upgrade: run `./gradlew versionCatalogUpdate --interactive --no-configuration-cache`, review `gradle/libs.versions.updates.toml`, and edit `libs.versions.toml`. Afterwards regenerate `gradle.lock` (see [Build commands](#build-commands)). The `nl.littlerobots.version-catalog-update` plugin is present to assist with automated upgrades.
+
+## Data layer
+
+### Room database (`data/room/AppDatabase.kt`)
+
+Current schema version: **27**. All migrations from v1 to v27 are handled by `@AutoMigration`.
+The `16 → 17` step uses an `AutoMigrationSpec` (`AppDatabase.ReminderV16To17`) that
+back-fills `scheduleType = 'INTERVAL'` on legacy reminder rows so they don't silently
+disable when the new column default (`DAILY_AT_TIMES`) is applied without `timesOfDay`.
+
+There is no schema version 13 — the migration jumps directly from 12 to 14
+(`AutoMigration(from = 12, to = 14)`).
+
+**Entities:**
+
+| Entity | Description |
+|--------|-------------|
+| `Experience` | Top-level journal entry with title, date, notes |
+| `Ingestion` | A single substance dose within an experience |
+| `SubstanceCompanion` | Persisted colour assignment per substance name |
+| `CustomSubstance` | User-defined substance not in PsychonautWiki |
+| `CustomUnit` | Custom unit definition (e.g. "one tab = 100 µg") |
+| `ShulginRating` | Shulgin + / ++ / +++ scale rating entry |
+| `TimedNote` | Timestamped note within an experience |
+| `Spray` | Spray bottle definition for the spray calculator |
+| `Reminder` | Scheduled substance reminder |
+| `CustomRecipe` | A named recipe (mix of substances) |
+| `CustomRecipeComponent` | One ingredient line within a recipe |
+| `InventoryItem` | Stash / inventory entry tracked by the Inventory tab |
+| `Webhook` | One Discord webhook destination (added in v18) |
+| `IngestionWebhookMessage` | Link table mapping `Ingestion` ↔ `Webhook` with the Discord `messageId` returned for that destination (added in v18) |
+| `IntakeLimit` | Per-substance dose or count cap over a sliding window (v24) |
+| `CustomRoa`, `CustomRoaDose`, `CustomRoaDuration` | Per-route bioavailability, dose thresholds and duration phases of a `CustomSubstance` (v25) |
+| `CustomInteraction`, `CustomCrossTolerance` | Interactions and cross-tolerances declared for a `CustomSubstance` (v25) |
+| `BloodPressureReading` | Legacy blood pressure rows written by 11.26 (v26). Still shown read-only; new readings go to Health Connect |
+| `SubstanceGroup`, `SubstanceGroupItem` | A named set of substance/route/dose presets that is logged in one go (v27) |
+| `CustomCategoryAssignment` | Category assigned to a `CustomSubstance` (v27) |
+
+**Relations** (in `experiences/relations/`):
+
+- `ExperienceWithIngestions`
+- `ExperienceWithIngestionsAndCompanions`
+- `ExperienceWithIngestionsCompanionsAndRatings`
+- `ExperienceWithIngestionsTimedNotesAndRatings`
+- `IngestionWithCompanion`, `IngestionWithCompanionAndCustomUnit`, `IngestionWithExperienceAndCustomUnit`
+- `CustomUnitWithIngestions`, `CustomRecipeWithComponents`
+
+**Time storage:** All `Instant` values are stored as epoch milliseconds (Long) via `InstantConverter` and serialized via `InstantSerializer` (reads as Double for backwards-compat, writes as Long).
+
+### Substance data (`data/substances/`)
+
+Substance data is parsed from `app/src/main/assets/Substances.json` at startup by `SubstanceRepository`. The JSON is parsed into:
+
+```
+SubstanceFile
+  ├── List<Category>       — psychedelic, stimulant, depressant, …
+  └── List<Substance>
+        ├── name, commonNames, url, isApproved
+        ├── tolerance: Tolerance(full, half, zero)  — text descriptions
+        ├── crossTolerances: List<String>
+        ├── interactions: Interactions(dangerous, unsafe, uncertain)
+        └── roas: List<Roa>
+              ├── route: AdministrationRoute
+              ├── roaDose: RoaDose(units, lightMin, commonMin, strongMin, heavyMin)
+              ├── roaDuration: RoaDuration(onset, comeup, peak, offset, total, afterglow)
+              └── bioavailability: Bioavailability(min, max)
+```
+
+`SearchRepository` provides fuzzy substance name search.
+
+### Webhook (`data/webhook/WebhookService.kt`, `data/room/webhooks/`)
+
+Sends Discord webhook messages on ingestion log. Supports:
+- Template-based message formatting: `{user}: [{dose} {units} ]{substance} via {route}[ at {site}][\n> {note}]`
+- Optional blocks in `[…]` are omitted when any enclosed placeholder is empty
+- Exponential-backoff retry (up to 3 attempts)
+- `sendWebhook` / `editWebhook` / `deleteWebhookMessage`
+- `sendWebhook` and `editWebhook` return `WebhookResult(success, messageId, error)`; `deleteWebhookMessage` returns `Boolean` and handles failures internally
+
+**Multi-webhook model (schema v18):** Users can configure any number of
+`Webhook` rows from Settings → Webhooks. Each row has a name, URL, display
+name (`{user}`), per-webhook template (falls back to
+`WebhookService.DEFAULT_TEMPLATE` when blank), `isHyperlinked`, `isEnabled`
+(global on/off without deleting), and `sortOrder`.
+`IngestionWebhookMessage` is the link table that records the Discord
+`messageId` returned per `(ingestionId, webhookId)` pair, with
+`onDelete = CASCADE` on both foreign keys and a unique index on
+`(ingestionId, webhookId)`.
+
+**Legacy seeding:** On first launch after upgrade, `WebhookSeeder` (invoked
+from `JournalApplication.onCreate` on the `@ApplicationScope` scope) migrates
+the legacy single-webhook configuration: if `WEBHOOK_SEEDED` is unset and
+`WEBHOOK_URL` is non-blank, it inserts one `Webhook` row from
+`{WEBHOOK_URL, WEBHOOK_NAME, WEBHOOK_TEMPLATE}` and copies every existing
+`Ingestion.webhookMessageId` into a corresponding `IngestionWebhookMessage`
+row. The `Ingestion.webhookMessageId` column is kept for one release as a
+deprecation cycle and may be dropped in a future schema version with a
+`@DeleteColumn` spec. The seeder is idempotent and is also a no-op if the
+new table already contains at least one webhook.
+
+**Custom unit handling:** When sending or editing webhooks, custom units are
+automatically converted to their base units. For example, if a user logs
+"1 tab" and the custom unit defines "1 tab = 100 µg LSD", the webhook will
+display "100 µg LSD".
+
+**Per-ingestion selection:** During ingestion creation `FinishIngestionScreen`
+shows a "Send to" checklist of every enabled webhook (pre-checked). The list
+is hidden when no enabled webhooks exist. Selection state lives in
+`FinishIngestionScreenViewModel.selectedWebhookIds`.
+
+**Webhook operations:**
+- **Send** (`FinishIngestionScreenViewModel.sendWebhookForIngestion`): For
+  each selected enabled webhook, posts a Discord message and persists the
+  returned id as an `IngestionWebhookMessage` row. Failures only log; they
+  do not block ingestion creation.
+- **Edit** (`EditIngestionViewModel.editWebhookForIngestion`): Iterates the
+  ingestion's `IngestionWebhookMessage` rows; for each, looks up the linked
+  `Webhook` and PATCHes the existing Discord message. Skips rows whose
+  webhook is disabled or has been deleted.
+- **Delete** (`EditIngestionViewModel.deleteWebhookForIngestion`): Iterates
+  the same link rows, DELETEs the Discord message, then removes the link row.
+- **Resend** (`EditIngestionViewModel.resendWebhook`): Sends a fresh message
+  to every currently-enabled webhook and inserts the new
+  `IngestionWebhookMessage` rows. Existing link rows are preserved.
+
+**Export/import:** `JournalExport.webhooks` is an additive `List<WebhookSerializable>`
+field. Older exports without the field decode cleanly thanks to the default
+empty list. Imports use `webhookDao.insert` and let Room assign new ids.
+
+### AI chatbot (`data/ai/`)
+
+The AI chatbot does **not** use the archived `generative-ai-android` SDK. That SDK
+(v0.9.0) strips the `thoughtSignature` field that Gemini 2.5 / 3-series models attach
+to every `functionCall` part; omitting it on the next turn causes the API to return
+HTTP 400 ("Function call is missing a thought_signature"). Instead the app talks to
+Gemini directly:
+
+| File | Role |
+|------|------|
+| `GeminiRestClient.kt` | Minimal HTTP client for `https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`. Posts a raw `JSONObject`, returns a raw `JSONObject`, runs on `Dispatchers.IO`. |
+| `GeminiChatSession.kt` | Stateful chat wrapper. Stores conversation history as raw JSON `Part`s so `thoughtSignature` (and any other server-only fields) survive round-trips. |
+| `AiTools.kt` | Function-calling tool declarations the model may invoke (e.g. journal lookups). Also dispatches tool calls back to the right repository. |
+| `AiDateFormatter.kt` | Locale-stable date strings (fixed `yyyy-MM-dd HH:mm` pattern) rendered in the user's system timezone (`ZoneId.systemDefault()`). |
+| `AiChatbotRepository.kt` | Builds the harm-reduction system instruction from the current experience + recent history and constructs a fresh `GeminiChatSession` per call so settings changes (API key, model name) take effect immediately. |
+| `AiChatViewModel.kt` | Exposes the conversation as a `StateFlow<List<ChatMessage>>` to the UI (`AiChatBottomSheet`). |
+
+The API key and model name are user-configurable in Settings → AI and persisted via
+`UserPreferences` (DataStore).
+
+### Export / Import (`data/export/`)
+
+`JournalExport` is a `@Serializable` data class that holds the full journal state. Serialized to / from JSON using kotlinx.serialization. `InstantSerializer` stores `Instant` as epoch milliseconds.
+
+## UI layer
+
+### Navigation
+
+Routes and the `NavHost` are defined in `MainActivity.kt`. The bottom navigation bar exposes Journal, Search, Safer Use, Stats, Inventory and Settings — though Safer Use, Stats and Inventory are conditionally shown based on user preferences (see [Bottom navigation tabs](#bottom-navigation-tabs)).
+
+### Bottom navigation tabs
+
+| Tab | Package | Description |
+|-----|---------|-------------|
+| Journal | `ui/tabs/journal/` | Experience list, calendar view, timeline, add/edit |
+| Search | `ui/tabs/search/` | Substance search and detail pages |
+| Safer Use | `ui/tabs/safer/` | Harm-reduction tools (tolerance, dosing, reagent tests) |
+| Stats | `ui/tabs/stats/` | Usage statistics and charts |
+| Inventory | `ui/tabs/inventory/` | Stash tracking — **optional**, hidden unless enabled in Settings |
+| Settings | `ui/tabs/settings/` | Preferences, webhook, export/import, reminders, AI, lock |
+
+Tabs are conditionally shown by `MainScreen` based on `MainScreenViewModel` flags
+(`activateSaferFlow`, `isStatsHiddenFlow`, `isInventoryEnabledFlow`, `isDrugsHiddenFlow`).
+
+### Timeline rendering
+
+Timelines use the scene-based graph engine ported from the Codeberg fork
+(`ui/graph/`): `AllTimelinesModel` turns ingestions into `TimelineGroup`s via
+`selectTimelineShape` / `buildRawCurve` (`TimelineCurveMath.kt`),
+`buildTimelineScene` turns those into `GraphPrimitive`s, and `paintScene`
+(`ComposeScenePainter.kt`) draws them. Colours and stroke sizes come from
+`LocalGraphStyle`, provided in `JournalTheme`. `AllTimelines` draws heart rate,
+sleep and blood pressure from Health Connect on top of the scene.
+
+There is also a **Bateman-curve** path used on the ingestion-logging screen:
+`RoaDuration.toIngestionCurve()` produces an `IngestionCurve` (`BatemanCurve`),
+which `AllTimelinesModel` samples into the same scene format when
+`useBatemanCurve = true`. `isCertain` controls solid-vs-dotted strokes. Only the
+dose-pick screen passes `true`. The widget still uses `AxisDrawable` for its own
+bitmap rendering.
+
+### Tolerance calculator (`ui/tabs/safer/tolerance/`)
+
+`ToleranceTextParser` converts PsychonautWiki tolerance text (e.g. `"1-3 days"`, `"almost immediately"`) to float days. `ToleranceCalculator` applies an exponential-decay model to the ingestion history: `level = Σ exp(-0.693 * elapsed / halfLife)`, capped at 1.
+
+### Widgets (`ui/`)
+
+Two Glance AppWidgets:
+- `WidgetProvider` — shows the most recent ingestion
+- `HeatmapWidgetProvider` — shows an ingestion heatmap calendar
+
+### Scheduled reminders (`scheduled/`)
+
+Reminder firing is split between pure logic and Android plumbing:
+
+- `ReminderSchedule.kt` — pure helper that computes the next fire time from a
+  `Reminder` entity (interval-based or `DAILY_AT_TIMES`). Easy to unit-test on
+  the JVM.
+- `NotificationScheduler.kt` — wraps `AlarmManager`; calls `ReminderSchedule`
+  and registers/cancels exact alarms.
+- `ReminderReceiver.kt` — `BroadcastReceiver` fired by the alarm; posts the
+  notification and re-arms the next occurrence.
+- `ReminderActionReceiver.kt` — handles notification action buttons (snooze,
+  dismiss, log ingestion).
+- `BootCompletedReceiver.kt` — re-arms all enabled reminders after device
+  reboot. Reminders are also re-armed on `MainActivity` launch as a safety
+  net.
+
+`@ApplicationScope` (`CoroutineScope(SupervisorJob() + Dispatchers.Default)`)
+from `AppModule` is injected into ViewModels for fire-and-forget work that
+must outlive the UI scope — e.g. webhook send/edit/delete from
+`FinishIngestionScreenViewModel` and `EditIngestionViewModel`, and biometric
+auth bookkeeping in `BiometricAuthManager`. Note: `BootCompletedReceiver`
+currently rearms reminders on its own ad-hoc
+`CoroutineScope(SupervisorJob() + Dispatchers.IO)` and `MainActivity` rearms
+on `lifecycleScope`; neither uses the injected `@ApplicationScope` today.
+
+## Dependency injection (Hilt)
+
+`@HiltAndroidApp` is applied in `JournalApplication`.
+
+| Module | Location | Provides |
+|--------|----------|---------|
+| `AppModule` | `di/AppModule.kt` | `AppDatabase`, all DAOs, `DataStore<Preferences>`, `@ApplicationScope CoroutineScope` |
+| `RepositoryModule` | `di/RepositoryModule.kt` | Binds `SubstanceParserInterface`, `SubstanceRepositoryInterface`, `SearchRepositoryInterface` |
+
+All ViewModels use `@HiltViewModel` + `@Inject constructor`. Repositories and DAOs are `@Singleton`.
+
+## Testing conventions
+
+- JVM unit tests: `app/src/test/java/foo/pilz/freaklog/` — run on the host JVM
+  (optionally with Robolectric for tests that need a real Android runtime).
+- Android instrumented tests: `app/src/androidTest/java/foo/pilz/freaklog/` —
+  run on a device/emulator via `connectedDebugAndroidTest` (Robolectric is
+  not used here; these need real Android).
+- Frameworks available:
+  - **JUnit 4** (`@Test`, `assertEquals`, `assertNull`, `assertTrue`, …) — primary.
+  - **AssertK** (`assertk.assertThat(...).isEqualTo(...)`) — preferred for new code.
+  - **MockK** + **MockK-android** for Kotlin-idiomatic mocks (suspend, top-level).
+  - **Turbine** for `Flow`/`StateFlow` assertions.
+  - **kotlinx-coroutines-test** (`runTest`) for coroutine-driven tests.
+  - **Robolectric** when a real Android runtime is needed on the JVM.
+  - **MockWebServer** for HTTP testing.
+  - **androidx.room:room-testing** + `MigrationTestHelper` for Room schema tests.
+- JSON parsing tests use `org.json:json` from `testImplementation`.
+- Test fixture builders live in `app/src/test/java/foo/pilz/freaklog/testing/`
+  (`EntityBuilders.experience(...)`, `EntityBuilders.ingestion(...)`, plus
+  `RoomInMemoryExampleTest` showing the in-memory Room pattern). Reuse them
+  rather than constructing entities by hand.
+- Test JVMs run with **`-Duser.timezone=UTC`** and **`-Duser.language=en`**
+  (set in `app/build.gradle.kts`); never assume the host TZ/locale.
+- CI splits tests into 3 shards: `data.*`, `ui.*`, and **everything else** (via
+  `-PtestExclude` to exclude the first two patterns) — see `.github/workflows/build.yml`.
+- The legacy `isReturnDefaultValues = true` shim is **still on** for backwards
+  compatibility, but new tests that touch Android SDK classes should
+  `@RunWith(RobolectricTestRunner::class)` instead.
+- Room migration tests live in
+  `app/src/androidTest/java/foo/pilz/freaklog/data/room/AppDatabaseMigrationTest.kt`
+  and exercise every registered `AutoMigration`. When you add a new schema
+  version, also add the corresponding `from -> to` pair in `migrationPairs`.
+
+### Static analysis & coverage
+
+- **Detekt**: `./gradlew detekt`. Config in `config/detekt/detekt.yml`,
+  baseline in `config/detekt/baseline.xml`. SARIF uploaded to code scanning.
+- **Android Lint**: `./gradlew :app:lintDebug`. `checkDependencies = true`.
+  SARIF uploaded to code scanning. `abortOnError = false` while we're
+  cleaning up legacy issues; flip to `true` once clean.
+- **Kover (coverage)**: `./gradlew :app:koverHtmlReportDebug
+  :app:koverXmlReportDebug :app:koverVerifyDebug`. CI fails if coverage
+  drops below the floor configured in `app/build.gradle.kts`. Ratchet
+  upward as the suite grows.
+
+### Test file locations
+
+| Source file | Test file |
+|-------------|-----------|
+| `data/substances/classes/roa/RoaDose.kt` | `data/substances/classes/roa/RoaDoseTest.kt` |
+| `data/substances/classes/roa/DurationRange.kt` | `data/substances/classes/roa/DurationRangeTest.kt` |
+| `data/substances/classes/Substance.kt` | `data/substances/classes/SubstanceClassTest.kt` |
+| `data/webhook/WebhookService.kt` | `data/webhook/WebhookServiceTest.kt` |
+| `data/export/InstantSerializer.kt` | `data/export/InstantSerializerTest.kt` |
+| `ui/utils/getTimeDifferenceText.kt` | `ui/utils/GetTimeDifferenceTextTest.kt` |
+| `ui/utils/getInteractionExplanationURLForSubstance.kt` | `ui/utils/InteractionUrlTest.kt` |
+| `ui/tabs/safer/tolerance/ToleranceCalculator.kt` | `ui/tabs/safer/tolerance/ToleranceCalculatorTest.kt` |
+| `ui/tabs/safer/tolerance/ToleranceTextParser.kt` | `ui/tabs/safer/tolerance/ToleranceTextParserTest.kt` |
+
+## Features ported from the Codeberg fork
+
+These came from `codeberg.org/psychonaut-journal/android` (package
+`gay.cybercrime.journal`). Several were adapted rather than copied because
+that app has a newer graph engine, different settings components and a Rust
+crypto library that this app does not use.
+
+| Feature | Where | Notes |
+|---------|-------|-------|
+| Ingestion category (medicinal / recreational) | `data/substances/classes/IngestionCategory.kt`, `Ingestion.computedCategory` | Falls back to the custom unit's, then the companion's default. |
+| Intake limits | `ui/tabs/settings/intakelimits/` | `IntakeLimitLogic` is pure; warnings hook into `FinishIngestionScreenViewModel.onDoneClicked` and `EditIngestionViewModel.onDoneClicked`. |
+| Export filter, encryption, backups | `data/export/`, `data/backup/`, `ui/tabs/settings/exportbackup/` | `buildJournalExportJson` is the single export path. Encryption is AES-256-GCM + PBKDF2 (the fork's "v1" layout); its Argon2/ChaCha20 "v2" format is **not** readable. `BackupWorker` gets dependencies through a Hilt `@EntryPoint` — there is no `HiltWorkerFactory`. |
+| Live timeline notification | `ui/tabs/journal/experience/notification/` | Foreground service of type `dataSync`; renders through `renderTimelineToBitmap`. |
+| Experience image sharing | `data/experienceshare/`, `ui/tabs/journal/experience/share/` | Shared through the `${applicationId}.fileprovider` `FileProvider`. |
+| Custom substances | `data/room/experiences/CustomSubstanceRepository.kt`, `data/substanceshare/`, `ui/tabs/search/custom/`, `ui/tabs/settings/customsubstances/` | Upstream's editors (routes/durations, interactions, categories, tolerance, risks), copied as-is. Their DAO methods live in `ExperienceDao`. `CustomSubstanceProfiles` is an in-memory cache so timelines and `InteractionChecker` can read profiles synchronously. Edit custom substances with `update`, never a REPLACE insert (it cascades to the profile tables). |
+| Substance groups | `data/room/experiences/SubstanceGroupRepository.kt`, `ui/tabs/settings/substancegroups/`, `ui/tabs/journal/addingestion/group/` | Upstream lets group ingestions skip the experience; this app has no experience-less ingestions, so `SubstanceGroupFinishViewModel` keeps that toggle off. |
+| Vitals | `ui/tabs/journal/experience/timeline/{HeartRate,Sleep,BloodPressure}.kt`, `ui/tabs/journal/experience/bloodpressure/` | Heart rate, sleep and blood pressure are read from Health Connect after the user opts in (Settings → "Vitals on timeline") and drawn on the timeline. Blood pressure is written to Health Connect, as upstream does. |
+| Ultra fun mode | `ui/tabs/journal/experience/teamsskin/`, `ui/tabs/journal/outlookskin/`, `ui/tabs/stats/excelskin/`, `ui/tabs/settings/funny/UltraFunSkinEligibility.kt` | Opt-in. While a psychedelic is active the Teams/Outlook/Excel disguises appear at random; `MainScreen` hosts them through `*SkinController` singletons. |
+| Achievement condition language | `ui/tabs/settings/funny/condition/` | `evaluateAchievement` sends conditions that mention `ingestions`/`experiences` to upstream's engine; everything else uses this app's older predicate syntax. Upstream's first-unlock attribution (`AchievementUnlock` table) is not ported. |
+
+Share files (`.substance`, `.group`, `.colors`) keep upstream's `gay.cybercrime.journal.*`
+format ids so they stay interchangeable. When porting more upstream code, rename the
+package but **not** those string literals.
+
+NFC transfer and the NFC keychain were deliberately not ported. Neither were upstream's
+settings/safer-tab redesign, its single-screen add-ingestion flow, and its `ScoreScreen` /
+`SurveyScreen` (both unreachable upstream; the survey posts device details to the upstream
+maintainer's server).
+
+## Common patterns
+
+### Adding a new screen
+
+1. Create a `@Composable` function in `ui/tabs/<tab>/`
+2. Add a named route in the `NavHost` in `MainActivity.kt`
+3. Create a `@HiltViewModel` ViewModel with `@Inject constructor`
+4. Inject DAOs/repositories via the ViewModel constructor
+5. Collect `StateFlow`/`Flow` with `collectAsStateWithLifecycle()`
+
+### Adding a new Room entity
+
+1. Create the entity data class annotated with `@Entity`, `@PrimaryKey`
+2. Add it to the `entities` list in `AppDatabase.kt` and bump `version`
+3. Room can auto-migrate simple additions: add `AutoMigration(from = N, to = N+1)` if no `@RenameColumn`/`@DeleteColumn` spec is needed; otherwise write a manual `Migration` object
+4. Create a DAO interface annotated with `@Dao`
+5. Create a repository class annotated with `@Singleton @Inject constructor`
+6. Add a `@Provides` binding in `AppModule.kt` if it is a new DAO
+
+### Adding a new webhook template variable
+
+1. Add the key–value pair to the `values` map in `WebhookService.sendWebhookWithRetry()`
+2. Document it in the template hint shown in `WebhookSettingsScreen.kt`
+
+## Performance notes
+
+- **R8 full mode** (`android.enableR8.fullMode=true` in `gradle.properties`) — more aggressive dead-code elimination and inlining in release builds
+- **Gradle configuration cache** (`org.gradle.configuration-cache=true`) — avoids re-running configuration phase on unchanged builds
+- **Resource shrinking** (`isShrinkResources = true`) and **minification** (`isMinifyEnabled = true`) are on for release
+- **`ndk.debugSymbolLevel = "FULL"`** generates full native symbols for crash reporting
+- **Core library desugaring** (`isCoreLibraryDesugaringEnabled = true`) enables `java.time.*` APIs on API 31+
+
+## Known issues / limitations
+
+- The Nix build goes stale whenever dependencies change without regenerating `gradle.lock` (see [Build commands](#build-commands)). JitPack artifacts are locked by hash like any other.
+- AAB files from Gradle are named `app-release.aab` (NOT `app-release-unsigned.aab`) — the release workflow reflects this
+- The AI chatbot requires a Google AI (Gemini) API key configured by the user in Settings
+- There is no schema version 13 — the migration jumps directly from 12 to 14 (`AutoMigration(from = 12, to = 14)`)
+- The legacy `Ingestion.webhookMessageId` column is retained for one release as a deprecation cycle; new code reads message ids from the `ingestion_webhook_message` table. The column may be removed in a later schema version with a `@DeleteColumn` spec.
+- `@Keep` annotation on `AdministrationRoute` is a workaround for an AGP/R8 bug stripping enum metadata used in Navigation Compose serialized routes (see issue tracker link in the source file)
+- `WebhookService.editWebhook` uses HTTP `PATCH`, which works on Android's okhttp-backed `HttpURLConnection` but throws `ProtocolException` on the JDK's plain `HttpURLConnection`; therefore `editWebhook` cannot be exercised by a plain JVM unit test. HTTP-level webhook tests use **MockWebServer** (`com.squareup.okhttp3:mockwebserver`).
+- The `generative-ai-android` SDK is intentionally **not** used — see [AI chatbot](#ai-chatbot-dataai). Use `GeminiRestClient` / `GeminiChatSession` instead so `thoughtSignature` is preserved.
+- `JournalExport` covers experiences (with ingestions, ratings, timed notes, locations and legacy blood pressure rows), substance companions, custom substances with their profiles, custom units, intake limits, substance groups, reminders and webhooks. Filtered (partial) exports leave out substance groups, reminders and webhooks. Other settings are not part of the export payload.
+- `compileSdk` is 37 because the current Compose / AndroidX releases refuse to build against anything lower. It has no runtime effect; `targetSdk` stays 36.
+- Use `androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel`; the `androidx.hilt.navigation.compose` one is deprecated.

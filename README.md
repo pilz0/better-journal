@@ -40,9 +40,8 @@ nix run --inputs-from . gradle2nix -- -t assembleRelease -t bundleRelease
 
 ## AI agent docs and environment
 
-- Quickstart for coding agents: `/home/runner/work/better-journal/better-journal/docs/ai-agents.md`
-- Deep architecture reference: `/home/runner/work/better-journal/better-journal/AGENTS.md`
-- Copilot cloud-agent environment setup: `/home/runner/work/better-journal/better-journal/.github/workflows/copilot-setup-steps.yml`
+- Agent instructions: `AGENTS.md` and `.github/copilot-instructions.md`, generated from `nix/ai/` (edit there, then `nix run .#ai-sync`)
+- Agent environment: the flake devShell (`nix develop` or direnv); Copilot's cloud agent loads it in `.github/workflows/copilot-setup-steps.yml`
 
 ## Attribution
 The original app was built by [https://github.com/isaakhanimann/](isaakhanimann) 
