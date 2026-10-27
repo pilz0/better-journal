@@ -186,19 +186,11 @@ class SubstanceCompanionViewModel @Inject constructor(
      * Used by the "Usage frequency" section of the screen.
      */
     val frequencyFlow: StateFlow<SubstanceFrequency> = combine(allIngestionsFlow, currentTimeFlow) { ingestions, now ->
-        val zone = ZoneId.systemDefault()
-        val experienceIdsByRange = { from: Instant? ->
-            ingestions
-                .asSequence()
-                .filter { from == null || it.ingestion.time >= from }
-                .map { it.ingestion.experienceId }
-                .toSet()
-                .size
-        }
-        val last30 = experienceIdsByRange(now.atZone(zone).minusDays(30).toInstant())
-        val last12m = experienceIdsByRange(now.atZone(zone).minusMonths(12).toInstant())
-        val all = experienceIdsByRange(null)
-        SubstanceFrequency(last30Days = last30, last12Months = last12m, allTime = all)
+        SubstanceFrequency.compute(
+            ingestions = ingestions.map { it.ingestion },
+            now = now,
+            zone = ZoneId.systemDefault(),
+        )
     }.stateIn(
         initialValue = SubstanceFrequency(0, 0, 0),
         scope = viewModelScope,
@@ -221,7 +213,37 @@ data class SubstanceFrequency(
     val last30Days: Int,
     val last12Months: Int,
     val allTime: Int,
-)
+) {
+    companion object {
+        /**
+         * Counts distinct experiences in a single pass. The ranges are nested, so the
+         * narrower cutoffs are only checked once the wider one matched.
+         */
+        fun compute(ingestions: List<Ingestion>, now: Instant, zone: ZoneId): SubstanceFrequency {
+            val zonedNow = now.atZone(zone)
+            val last12MonthsFrom = zonedNow.minusMonths(12).toInstant()
+            val last30DaysFrom = zonedNow.minusDays(30).toInstant()
+            val allTime = HashSet<Int>()
+            val last12Months = HashSet<Int>()
+            val last30Days = HashSet<Int>()
+            for (ingestion in ingestions) {
+                val experienceId = ingestion.experienceId
+                allTime.add(experienceId)
+                if (ingestion.time >= last12MonthsFrom) {
+                    last12Months.add(experienceId)
+                    if (ingestion.time >= last30DaysFrom) {
+                        last30Days.add(experienceId)
+                    }
+                }
+            }
+            return SubstanceFrequency(
+                last30Days = last30Days.size,
+                last12Months = last12Months.size,
+                allTime = allTime.size,
+            )
+        }
+    }
+}
 
 data class IngestionsBurst(
     val timeUntil: String,

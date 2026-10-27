@@ -39,6 +39,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -226,9 +227,11 @@ fun SubstanceCompanionScreen(
                         }
                         HorizontalDivider()
                         burst.ingestions.forEachIndexed { index, ingestion ->
-                            IngestionRowOnSubstanceCompanionScreen(ingestionAndCustomUnit = ingestion)
-                            if (index < burst.ingestions.size - 1) {
-                                HorizontalDivider()
+                            key(ingestion.ingestion.id) {
+                                IngestionRowOnSubstanceCompanionScreen(ingestionAndCustomUnit = ingestion)
+                                if (index < burst.ingestions.size - 1) {
+                                    HorizontalDivider()
+                                }
                             }
                         }
                     }
@@ -324,12 +327,14 @@ private fun DosageChartCard(
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("Dosage over time", style = MaterialTheme.typography.titleMedium)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                DosageTimeRange.values().forEach { range ->
-                    FilterChip(
-                        selected = selectedTimeRange == range,
-                        onClick = { callbacks.onTimeRangeSelected(range) },
-                        label = { Text(range.displayText) },
-                    )
+                DosageTimeRange.entries.forEach { range ->
+                    key(range) {
+                        FilterChip(
+                            selected = selectedTimeRange == range,
+                            onClick = { callbacks.onTimeRangeSelected(range) },
+                            label = { Text(range.displayText) },
+                        )
+                    }
                 }
             }
             val effectiveMetric = if (dosageStats.hasMixedUnits && selectedMetric != DosageMetric.SESSION_COUNT) {
@@ -338,14 +343,16 @@ private fun DosageChartCard(
                 selectedMetric
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                DosageMetric.values().forEach { metric ->
-                    val isLockedByMixedUnits = dosageStats.hasMixedUnits && metric != DosageMetric.SESSION_COUNT
-                    FilterChip(
-                        selected = effectiveMetric == metric,
-                        onClick = { callbacks.onMetricSelected(metric) },
-                        label = { Text(metric.displayText) },
-                        enabled = !isLockedByMixedUnits,
-                    )
+                DosageMetric.entries.forEach { metric ->
+                    key(metric) {
+                        val isLockedByMixedUnits = dosageStats.hasMixedUnits && metric != DosageMetric.SESSION_COUNT
+                        FilterChip(
+                            selected = effectiveMetric == metric,
+                            onClick = { callbacks.onMetricSelected(metric) },
+                            label = { Text(metric.displayText) },
+                            enabled = !isLockedByMixedUnits,
+                        )
+                    }
                 }
             }
             DosageBarChart(
