@@ -134,6 +134,21 @@ class AiConversationTest {
     }
 
     @Test
+    fun refusalDiscardsStreamedTextFromHistory() = runTest {
+        val refusing = object : AiChatClient {
+            override val standard = AiApiStandard.ANTHROPIC_MESSAGES
+            override fun stream(request: AiChatRequest): Flow<AiStreamEvent> = flow {
+                emit(AiStreamEvent.TextDelta("Sure, here"))
+                throw AiException("declined", discardPartial = true)
+            }
+            override suspend fun listModels() = emptyList<String>()
+        }
+        val chat = conversation(refusing)
+        assertFailure { chat.send("hi").toList() }.hasMessage("declined")
+        assertThat(chat.messages.isEmpty()).isTrue()
+    }
+
+    @Test
     fun rollbackLastTurnReturnsTheUserText() = runTest {
         val client = ScriptedClient(text("one"), text("two"))
         val chat = conversation(client)

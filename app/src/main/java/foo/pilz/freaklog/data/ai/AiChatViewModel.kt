@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.ai.provider.AiConversation
+import foo.pilz.freaklog.data.ai.provider.AiException
 import foo.pilz.freaklog.data.ai.provider.AiTurnEvent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -202,7 +203,10 @@ class AiChatViewModel @Inject constructor(
                 throw ce
             } catch (t: Throwable) {
                 Log.e(TAG, "Chat turn failed", t)
-                turn.fail(t.message ?: t::class.java.simpleName)
+                turn.fail(
+                    message = t.message ?: t::class.java.simpleName,
+                    discardText = (t as? AiException)?.discardPartial == true,
+                )
             }
         }
     }
@@ -314,9 +318,9 @@ class AiChatViewModel @Inject constructor(
             }
         }
 
-        fun fail(message: String) {
+        fun fail(message: String, discardText: Boolean) {
             if (token != sessionToken) return
-            if (text.isBlank()) {
+            if (text.isBlank() || discardText) {
                 replaceMessage(bubbleId) {
                     it.copy(text = "Error: $message", isLoading = false, isStreaming = false, isError = true)
                 }

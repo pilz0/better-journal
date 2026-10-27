@@ -76,6 +76,13 @@ interface AiChatClient {
     suspend fun listModels(): List<String>
 }
 
-/** A readable failure talking to a provider. */
-class AiException(message: String, val httpCode: Int? = null, cause: Throwable? = null) :
-    IOException(message, cause)
+/**
+ * A readable failure talking to a provider. [discardPartial] means text streamed before the
+ * failure must not be kept as an answer (e.g. a mid-stream refusal).
+ */
+class AiException(
+    message: String,
+    val httpCode: Int? = null,
+    cause: Throwable? = null,
+    val discardPartial: Boolean = false,
+) : IOException(message, cause)

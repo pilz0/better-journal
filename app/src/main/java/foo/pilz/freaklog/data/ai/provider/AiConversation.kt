@@ -82,6 +82,9 @@ class AiConversation(
                 history += AiMessage.ToolResults(results)
                 partial.setLength(0)
             }
+        } catch (e: AiException) {
+            if (e.discardPartial) partial.setLength(0)
+            throw e
         } finally {
             if (!finished) repair(checkpoint, partial.toString())
         }
