@@ -95,6 +95,59 @@ class ExportFilterTest {
         ),
     )
 
+    @Test
+    fun `empty selection removes experiences and all dependent metadata`() {
+        val result = data.filtered(ExportFilter(substanceNames = emptySet()))
+        assertTrue(result.experiences.isEmpty())
+        assertTrue(result.customUnits.isEmpty())
+        assertTrue(result.customSubstances.isEmpty())
+        assertTrue(result.substanceCompanions.isEmpty())
+        assertTrue(result.intakeLimits.isEmpty())
+    }
+
+    @Test
+    fun `combined filters intersect instead of widening the selection`() {
+        val result = data.filtered(
+            ExportFilter(
+                substanceNames = setOf("LSD", "Cannabis"),
+                category = IngestionCategory.RECREATIONAL,
+                includeOtherConsumers = false,
+            )
+        )
+        assertEquals(listOf("LSD"), result.substances())
+        assertEquals(result, result.filtered(ExportFilter(substanceNames = setOf("LSD"))))
+        // Exporting must never scrub or prune the live journal data.
+        assertEquals(listOf("LSD", "Cannabis", "Caffeine"), data.substances())
+        assertEquals("private thoughts", data.experiences.first().experience.text)
+        assertEquals("strong", data.experiences.first().ingestions.first().notes)
+    }
+
+    @Test
+    fun `blood pressure readings follow their retained experience`() {
+        val readings = listOf(1, 2).map { id ->
+            foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading(
+                id = id, experienceId = id, time = now, systolic = 120, diastolic = 80,
+            )
+        }
+        val source = data.copy(bloodPressureReadings = readings)
+        val filtered = source.filtered(ExportFilter(substanceNames = setOf("LSD")))
+        assertEquals(listOf(readings.first()), filtered.bloodPressureReadings)
+        assertEquals(readings, source.bloodPressureReadings)
+        assertEquals(readings, source.filtered(ExportFilter(includeNotes = false)).bloodPressureReadings)
+    }
+
+    @Test
+    fun `custom substance profiles follow the selected substance`() {
+        val profiles = listOf("LSD", "Cannabis").map { name ->
+            foo.pilz.freaklog.data.substanceshare.SharedSubstance(
+                name = name, units = "mg", description = "profile",
+            )
+        }
+        val result = data.copy(customSubstanceDetails = profiles)
+            .filtered(ExportFilter(substanceNames = setOf("Cannabis")))
+        assertEquals(listOf(profiles.last()), result.customSubstanceDetails)
+    }
+
     private fun ExportData.substances() = experiences.flatMap { it.ingestions }.map { it.substanceName }
 
     @Test
