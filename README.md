@@ -10,6 +10,14 @@ A (partly vibecoded) fork from https://github.com/isaakhanimann/psychonautwiki-j
 > [!WARNING]  
 > migrating back to psylog/psychonautwiki journal might cause issues/requiere manual json edits because of custom roas
 
+## AI assistant
+Optional, off by default (Settings → AI assistant). It can search your journal and answer
+harm-reduction questions using the bundled substance data and, if enabled, anodyne.wiki.
+Bring your own provider: Google Gemini, OpenAI, Anthropic, OpenRouter, Mistral, Groq,
+DeepSeek, or a self-hosted OpenAI- or Anthropic-compatible server such as Ollama, LM Studio,
+llama.cpp or vLLM. API keys are stored encrypted on the device. Your messages and the
+journal data the assistant looks up are sent to the provider you choose.
+
 ## Building with nix
 ```
 nix build .#apk

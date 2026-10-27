@@ -1,6 +1,6 @@
 ## Repository overview
 
-Freaklog is an Android journal app (fork of [PsychonautWiki Journal](https://github.com/isaakhanimann/psychonautwiki-journal-android)) that lets users log and track substance ingestions, view timelines, calculate tolerance, and interact with an AI chatbot. Package name: `foo.pilz.freaklog`.
+Freaklog is an Android journal app (fork of [PsychonautWiki Journal](https://github.com/isaakhanimann/psychonautwiki-journal-android)) that lets users log and track substance ingestions, view timelines, calculate tolerance, and chat with an AI assistant (hosted or self-hosted models). Package name: `foo.pilz.freaklog`.
 
 ## Key technologies
 
@@ -11,7 +11,7 @@ Freaklog is an Android journal app (fork of [PsychonautWiki Journal](https://git
 | DB | Room (SQLite) |
 | Nav | Navigation Compose |
 | Async | Kotlin Coroutines + Flow |
-| AI | Custom Gemini REST client (`v1beta` `generateContent`) — see [AI chatbot](#ai-chatbot-dataai) |
+| AI | Own streaming clients for the OpenAI, Anthropic and Gemini APIs — see [AI assistant](#ai-assistant-dataai) |
 | Serialization | kotlinx.serialization (JSON) |
 | Build | Gradle 9 (Kotlin DSL), AGP 9 |
 | CI | GitHub Actions |
@@ -22,13 +22,17 @@ Freaklog is an Android journal app (fork of [PsychonautWiki Journal](https://git
 app/src/main/java/foo/pilz/freaklog/
 ├── MainActivity.kt             # Entry point, sets up NavGraph + theme
 ├── data/
-│   ├── ai/                     # AI chatbot (custom Gemini REST client)
-│   │   ├── AiChatbotRepository.kt   # Builds system prompt + creates GeminiChatSession
-│   │   ├── AiChatViewModel.kt       # StateFlow<List<ChatMessage>> conversation state
+│   ├── ai/                     # AI assistant (multi-provider, raw HTTP, no SDKs)
+│   │   ├── AiChatbotRepository.kt   # System prompt + AiConversation for the active profile
+│   │   ├── AiChatViewModel.kt       # Chat transcript state, streaming, Stop/Retry, profile switch
 │   │   ├── AiDateFormatter.kt       # Locale-stable date helpers used in prompts
-│   │   ├── AiTools.kt               # Function-calling tool declarations + dispatcher
-│   │   ├── GeminiChatSession.kt     # Stateful chat wrapper (history kept as raw JSON)
-│   │   └── GeminiRestClient.kt      # v1beta generateContent HTTP client
+│   │   ├── AiTools.kt               # Journal tools + dispatcher to the other tool sets
+│   │   ├── AiSubstanceTools.kt      # Substance info, interactions, tolerance, "still active"
+│   │   ├── AiToolLabels.kt          # Human-readable tool chips
+│   │   ├── ToolParam.kt             # JSON Schema helpers for tool declarations
+│   │   ├── anodyne/                 # AnodyneWiki API client + lookup tools
+│   │   ├── profiles/                # Provider profiles, presets, Keystore key encryption
+│   │   └── provider/                # AiConversation, SSE, OpenAI/Anthropic/Gemini clients
 │   ├── export/                 # JSON export/import serializers
 │   │   ├── InstantSerializer.kt
 │   │   └── JournalExport.kt    # @Serializable data classes for export
@@ -353,25 +357,38 @@ is hidden when no enabled webhooks exist. Selection state lives in
 field. Older exports without the field decode cleanly thanks to the default
 empty list. Imports use `webhookDao.insert` and let Room assign new ids.
 
-### AI chatbot (`data/ai/`)
+### AI assistant (`data/ai/`)
 
-The AI chatbot does **not** use the archived `generative-ai-android` SDK. That SDK
-(v0.9.0) strips the `thoughtSignature` field that Gemini 2.5 / 3-series models attach
-to every `functionCall` part; omitting it on the next turn causes the API to return
-HTTP 400 ("Function call is missing a thought_signature"). Instead the app talks to
-Gemini directly:
+The assistant talks to any provider that speaks one of three API standards, over raw
+HTTP (`HttpURLConnection`, no SDKs):
+
+| Standard | Client | Endpoint |
+|----------|--------|----------|
+| OpenAI Chat Completions | `provider/OpenAiChatClient.kt` | `POST {base}/chat/completions` (`stream: true`), `GET {base}/models` |
+| Anthropic Messages | `provider/AnthropicMessagesClient.kt` | `POST {base}/messages` (`stream: true`, `anthropic-version: 2023-06-01`), `GET {base}/models` |
+| Google Gemini | `provider/GeminiClient.kt` | `POST {base}/models/{m}:streamGenerateContent?alt=sse`, `GET {base}/models` |
+
+Self-hosted servers (Ollama, LM Studio, llama.cpp, vLLM, LiteLLM, ...) work through the
+OpenAI or Anthropic standard. The archived `generative-ai-android` SDK is not used: it
+strips Gemini's `thoughtSignature`, and the next request then fails with HTTP 400.
 
 | File | Role |
 |------|------|
-| `GeminiRestClient.kt` | Minimal HTTP client for `https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`. Posts a raw `JSONObject`, returns a raw `JSONObject`, runs on `Dispatchers.IO`. |
-| `GeminiChatSession.kt` | Stateful chat wrapper. Stores conversation history as raw JSON `Part`s so `thoughtSignature` (and any other server-only fields) survive round-trips. |
-| `AiTools.kt` | Function-calling tool declarations the model may invoke (e.g. journal lookups). Also dispatches tool calls back to the right repository. |
-| `AiDateFormatter.kt` | Locale-stable date strings (fixed `yyyy-MM-dd HH:mm` pattern) rendered in the user's system timezone (`ZoneId.systemDefault()`). |
-| `AiChatbotRepository.kt` | Builds the harm-reduction system instruction from the current experience + recent history and constructs a fresh `GeminiChatSession` per call so settings changes (API key, model name) take effect immediately. |
-| `AiChatViewModel.kt` | Exposes the conversation as a `StateFlow<List<ChatMessage>>` to the UI (`AiChatBottomSheet`). |
+| `provider/AiModels.kt` | Provider-neutral history (`AiMessage`), tool declarations (`AiToolSpec`), `AiChatClient`, `AiException`. An assistant message keeps the provider's raw content in `NativeContent` so Gemini `thoughtSignature`s and Anthropic signed `thinking` blocks are echoed back unchanged. |
+| `provider/AiConversation.kt` | The turn loop: stream a reply, run the requested tools, send the results back, at most 8 rounds. Repairs the history when a turn is stopped or fails (drops tool calls without results, keeps partial text, or rolls the turn back). |
+| `provider/AiHttp.kt`, `SseParser.kt` | Shared HTTP (JSON POST/GET, size caps, readable errors for 401/404/429/5xx and connection failures) and SSE parsing. Cancelling the collector disconnects the connection. |
+| `profiles/AiProfileStore.kt` | Saved provider profiles (`AiProfile`: preset, standard, base URL, model, max tokens) in DataStore. API keys are stored per profile, encrypted by `KeystoreAiKeyCipher` (AES-GCM, Android Keystore). Migrates the old plain-text `ai_api_key`/`ai_model_name` into a "Gemini" profile once. |
+| `profiles/AiProfile.kt` | `AiProviderPreset` (OpenAI, Anthropic, Gemini, OpenRouter, Mistral, Groq, DeepSeek, Ollama, LM Studio, custom) and `aiClientFor(standard, endpoint)`. |
+| `AiTools.kt`, `AiSubstanceTools.kt`, `anodyne/AiAnodyneTools.kt` | Tool declarations and implementations: journal search, bundled PsychonautWiki substance info, `InteractionChecker`, `ToleranceCalculator`, active ingestions, and AnodyneWiki lookups. |
+| `anodyne/AnodyneWikiClient.kt` | AnodyneWiki API (default `https://anodyne.wiki/api`, configurable). Substance pages can be megabytes, so they are streamed with `android.util.JsonReader` and only whitelisted fields are kept. |
+| `AiChatbotRepository.kt` | Builds the system instruction (current time, current experience or "whole journal") and a fresh `AiConversation` for the active profile on every call. |
+| `AiChatViewModel.kt` | Transcript state for `AiChatBottomSheet`: streamed text (UI updates batched to ~50 ms), Stop, Retry, tool chips, profile switching. |
 
-The API key and model name are user-configurable in Settings → AI and persisted via
-`UserPreferences` (DataStore).
+Settings → AI assistant (`ui/tabs/settings/ai/`) lists the profiles; the editor can fetch
+the provider's model list and send a test message. Cleartext `http://` is allowed app-wide
+(`res/xml/network_security_config.xml`) for LAN servers; the settings warn about
+non-local `http://` URLs. The assistant opens from an experience (with that experience as
+context) or from the Journal tab's top bar (whole journal).
 
 ### Export / Import (`data/export/`)
 
@@ -585,12 +602,13 @@ maintainer's server).
 
 - The Nix build goes stale whenever dependencies change without regenerating `gradle.lock` (see [Build commands](#build-commands)). JitPack artifacts are locked by hash like any other.
 - AAB files from Gradle are named `app-release.aab` (NOT `app-release-unsigned.aab`) — the release workflow reflects this
-- The AI chatbot requires a Google AI (Gemini) API key configured by the user in Settings
+- The AI assistant needs a provider profile configured by the user in Settings → AI assistant (hosted providers need an API key)
 - There is no schema version 13 — the migration jumps directly from 12 to 14 (`AutoMigration(from = 12, to = 14)`)
 - The legacy `Ingestion.webhookMessageId` column is retained for one release as a deprecation cycle; new code reads message ids from the `ingestion_webhook_message` table. The column may be removed in a later schema version with a `@DeleteColumn` spec.
 - `@Keep` annotation on `AdministrationRoute` is a workaround for an AGP/R8 bug stripping enum metadata used in Navigation Compose serialized routes (see issue tracker link in the source file)
 - `WebhookService.editWebhook` uses HTTP `PATCH`, which works on Android's okhttp-backed `HttpURLConnection` but throws `ProtocolException` on the JDK's plain `HttpURLConnection`; therefore `editWebhook` cannot be exercised by a plain JVM unit test. HTTP-level webhook tests use **MockWebServer** (`com.squareup.okhttp3:mockwebserver`).
-- The `generative-ai-android` SDK is intentionally **not** used — see [AI chatbot](#ai-chatbot-dataai). Use `GeminiRestClient` / `GeminiChatSession` instead so `thoughtSignature` is preserved.
+- No provider SDK is used — see [AI assistant](#ai-assistant-dataai). New provider features go into the `provider/` clients; keep `NativeContent` echoing intact so Gemini `thoughtSignature`s and Anthropic thinking signatures survive.
+- Robolectric has no Android Keystore, so tests use a fake `AiKeyCipher`.
 - `JournalExport` covers experiences (with ingestions, ratings, timed notes, locations and legacy blood pressure rows), substance companions, custom substances with their profiles, custom units, intake limits, substance groups, reminders and webhooks. Filtered (partial) exports leave out substance groups, reminders and webhooks. Other settings are not part of the export payload.
 - `compileSdk` is 37 because the current Compose / AndroidX releases refuse to build against anything lower. It has no runtime effect; `targetSdk` stays 36.
 - Use `androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel`; the `androidx.hilt.navigation.compose` one is deprecated.
