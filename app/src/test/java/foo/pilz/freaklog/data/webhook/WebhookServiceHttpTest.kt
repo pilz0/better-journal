@@ -240,6 +240,39 @@ class WebhookServiceHttpTest {
     }
 
     @Test
+    fun sendWebhook_includesErrorResponseBodyInFailure() = runBlocking {
+        repeat(3) { enqueue(400, """{"message":"Cannot send an empty message"}""") }
+
+        val result = service.sendWebhook(
+            url = baseUrl,
+            user = "u", substance = "s", dose = null, units = null,
+            isEstimate = false, route = "r", site = null, note = null,
+            template = "{user}", isHyperlinked = false,
+        )
+
+        assertFalse(result.success)
+        assertEquals(
+            """HTTP error code 400: {"message":"Cannot send an empty message"}""",
+            result.error?.message,
+        )
+    }
+
+    @Test
+    fun sendWebhook_omitsDetailWhenErrorResponseBodyIsEmpty() = runBlocking {
+        repeat(3) { enqueue(500) }
+
+        val result = service.sendWebhook(
+            url = baseUrl,
+            user = "u", substance = "s", dose = null, units = null,
+            isEstimate = false, route = "r", site = null, note = null,
+            template = "{user}", isHyperlinked = false,
+        )
+
+        assertFalse(result.success)
+        assertEquals("HTTP error code 500", result.error?.message)
+    }
+
+    @Test
     fun sendWebhook_withIsHyperlinkedTrue_wrapsSubstanceInMarkdownLink() = runBlocking {
         enqueue(200, """{"id":"x"}""")
 

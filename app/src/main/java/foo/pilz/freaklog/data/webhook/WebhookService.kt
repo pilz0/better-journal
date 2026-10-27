@@ -299,8 +299,10 @@ class WebhookService internal constructor(
 
             val responseCode = connection.responseCode
             if (responseCode !in 200..299) {
-                logger.warn("WebhookService", "HTTP error code:$responseCode")
-                throw IOException("HTTP error code: $responseCode")
+                val errorBody = connection.errorStream?.bufferedReader()?.use { it.readText() }
+                val detail = if (!errorBody.isNullOrBlank()) ": $errorBody" else ""
+                logger.warn("WebhookService", "HTTP error code:$responseCode$detail")
+                throw IOException("HTTP error code $responseCode$detail")
             }
 
             if (!isEdit) {
