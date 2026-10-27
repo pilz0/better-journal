@@ -77,7 +77,7 @@ class AiChatbotRepository @Inject constructor(
                 client = aiClientFor(profile.standard, AiEndpoint(profile.baseUrl, apiKey)),
                 model = profile.model,
                 system = buildSystemInstructionText(context),
-                tools = tools.specs,
+                tools = tools.specs(),
                 maxOutputTokens = profile.maxOutputTokens,
                 executeTool = { call -> tools.execute(call.name, call.args) },
             )

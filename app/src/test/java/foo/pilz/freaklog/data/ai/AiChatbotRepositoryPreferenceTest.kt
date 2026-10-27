@@ -9,6 +9,7 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
 import assertk.assertions.prop
+import foo.pilz.freaklog.data.ai.anodyne.AiAnodyneTools
 import foo.pilz.freaklog.data.ai.profiles.AiKeyCipher
 import foo.pilz.freaklog.data.ai.profiles.AiProfile
 import foo.pilz.freaklog.data.ai.profiles.AiProfileStore
@@ -53,7 +54,11 @@ class AiChatbotRepositoryPreferenceTest {
         )
         val preferences = UserPreferences(dataStore)
         val store = AiProfileStore(dataStore, PlainCipher)
-        val tools = AiTools(db.experienceDao(), mockk<AiSubstanceTools>(relaxed = true))
+        val tools = AiTools(
+            db.experienceDao(),
+            mockk<AiSubstanceTools>(relaxed = true),
+            mockk<AiAnodyneTools>(relaxed = true),
+        )
         val repository = AiChatbotRepository(db.experienceDao(), preferences, tools, store)
         return Triple(preferences, store, repository)
     }

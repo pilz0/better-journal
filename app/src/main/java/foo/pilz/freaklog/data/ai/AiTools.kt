@@ -1,6 +1,7 @@
 package foo.pilz.freaklog.data.ai
 
 import android.util.Log
+import foo.pilz.freaklog.data.ai.anodyne.AiAnodyneTools
 import foo.pilz.freaklog.data.ai.provider.AiToolSpec
 import foo.pilz.freaklog.data.room.experiences.ExperienceDao
 import kotlinx.coroutines.CancellationException
@@ -20,6 +21,7 @@ import javax.inject.Singleton
 class AiTools @Inject constructor(
     private val experienceDao: ExperienceDao,
     private val substanceTools: AiSubstanceTools,
+    private val anodyneTools: AiAnodyneTools,
 ) {
 
     companion object {
@@ -30,8 +32,9 @@ class AiTools @Inject constructor(
         const val ABSOLUTE_MAX_NOTES_CHARS = 8000
     }
 
-    /** Declarations of every tool, in the provider-neutral JSON Schema form. */
-    val specs: List<AiToolSpec> get() = journalSpecs + substanceTools.specs
+    /** Declarations of every available tool, in the provider-neutral JSON Schema form. */
+    suspend fun specs(): List<AiToolSpec> =
+        journalSpecs + substanceTools.specs + (if (anodyneTools.isEnabled()) anodyneTools.specs else emptyList())
 
     private val journalSpecs: List<AiToolSpec> = listOf(
         toolSpec(
@@ -108,7 +111,9 @@ class AiTools @Inject constructor(
                 "get_substance_usage_stats" -> getSubstanceUsageStats(
                     daysBack = (args["days_back"] as? Number)?.toInt() ?: 90
                 )
-                else -> substanceTools.execute(name, args) ?: errorResult("Unknown tool '$name'.")
+                else -> substanceTools.execute(name, args)
+                    ?: anodyneTools.execute(name, args)
+                    ?: errorResult("Unknown tool '$name'.")
             }
         } catch (ce: CancellationException) {
             throw ce

@@ -3,6 +3,7 @@ package foo.pilz.freaklog.data.ai
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isTrue
+import foo.pilz.freaklog.data.ai.anodyne.AiAnodyneTools
 import foo.pilz.freaklog.data.room.experiences.ExperienceDao
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsTimedNotesAndRatings
 import foo.pilz.freaklog.data.substances.AdministrationRoute
@@ -24,7 +25,10 @@ class AiToolsTest {
     private val substanceTools = mockk<AiSubstanceTools> {
         coEvery { execute(any(), any()) } returns null
     }
-    private val aiTools = AiTools(experienceDao, substanceTools)
+    private val anodyneTools = mockk<AiAnodyneTools> {
+        coEvery { execute(any(), any()) } returns null
+    }
+    private val aiTools = AiTools(experienceDao, substanceTools, anodyneTools)
 
     @Test
     fun executeUnknownToolReturnsErrorStatus() = runTest {

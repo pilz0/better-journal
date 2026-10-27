@@ -34,7 +34,18 @@ class AiSettingsViewModel @Inject constructor(
     val profilesWithKey: StateFlow<Set<String>> = profileStore.profilesWithKeyFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
+    val isAnodyneEnabled: StateFlow<Boolean> = userPreferences.aiAnodyneEnabledFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val anodyneBaseUrl: StateFlow<String> = userPreferences.aiAnodyneBaseUrlFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
     fun setEnabled(value: Boolean) = viewModelScope.launch { userPreferences.saveAiAssistantEnabled(value) }
+
+    fun setAnodyneEnabled(value: Boolean) = viewModelScope.launch { userPreferences.saveAiAnodyneEnabled(value) }
+
+    /** Blank resets to [foo.pilz.freaklog.data.ai.anodyne.AnodyneWikiClient.DEFAULT_BASE_URL]. */
+    fun setAnodyneBaseUrl(value: String) = viewModelScope.launch { userPreferences.saveAiAnodyneBaseUrl(value) }
 
     fun setActive(id: String) = viewModelScope.launch { profileStore.setActive(id) }
 }
