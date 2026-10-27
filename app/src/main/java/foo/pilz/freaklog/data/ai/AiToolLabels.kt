@@ -47,8 +47,15 @@ object AiToolLabels {
                     "${result.optInt("total_ingestions")} ingestions"
             "get_substance_info", "lookup_anodyne_wiki" -> result.optString("name", "found")
             "check_interactions" -> {
+                val unrecognized = result.optJSONArray("unrecognized_substances")
                 val found = result.optJSONArray("interactions")?.length() ?: 0
-                if (found == 0) "no known interactions" else "$found known interactions"
+                when {
+                    unrecognized != null && unrecognized.length() > 0 ->
+                        "unknown substance: " + (0 until unrecognized.length()).joinToString { unrecognized.optString(it) }
+                    found == 0 -> "no interactions on record"
+                    found == 1 -> "1 interaction found"
+                    else -> "$found interactions found"
+                }
             }
             "get_tolerance" -> result.optString("label", "estimated")
             "get_active_ingestions" -> {

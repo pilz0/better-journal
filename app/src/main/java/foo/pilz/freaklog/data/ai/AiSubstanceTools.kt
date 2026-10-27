@@ -35,6 +35,16 @@ class AiSubstanceTools @Inject constructor(
         private const val MAX_TEXT_CHARS = 800
         private const val MAX_ACTIVE_HOURS = 72
         private const val SECONDS_PER_HOUR = 3600L
+
+        /** Chemical or everyday names models tend to use that the bundled data doesn't list. */
+        private val ALIASES = mapOf(
+            "ethanol" to "Alcohol",
+            "ethyl alcohol" to "Alcohol",
+            "beer" to "Alcohol",
+            "wine" to "Alcohol",
+            "thc" to "Cannabis",
+            "weed" to "Cannabis",
+        )
     }
 
     val specs: List<AiToolSpec> = listOf(
@@ -49,7 +59,11 @@ class AiSubstanceTools @Inject constructor(
             "check_interactions",
             "Check every pair of the given substances for known interactions (dangerous, unsafe, uncertain) " +
                 "using the app's interaction checker. Pairs without data are listed as unknown, which does not mean safe.",
-            ToolParam.stringArray("substances", "Two to eight substance names.", required = true),
+            ToolParam.stringArray(
+                "substances",
+                "Two to eight substance names as PsychonautWiki names them, e.g. 'Alcohol' (not 'ethanol'), 'MDMA'.",
+                required = true,
+            ),
         ),
         toolSpec(
             "get_tolerance",
@@ -85,7 +99,10 @@ class AiSubstanceTools @Inject constructor(
         val all = substances.getAllSubstances()
         return all.firstOrNull { it.name.equals(q, ignoreCase = true) }
             ?: all.firstOrNull { s -> s.commonNames.any { it.equals(q, ignoreCase = true) } }
+            ?: ALIASES[q.lowercase()]?.let { alias -> substances.getSubstance(alias) }
     }
+
+    private fun isKnown(query: String): Boolean = customName(query) != null || resolve(query) != null
 
     private fun customName(query: String): String? =
         customProfiles.byNameFlow.value.keys.firstOrNull { it.equals(query.trim(), ignoreCase = true) }
@@ -164,6 +181,7 @@ class AiSubstanceTools @Inject constructor(
     }
 
     private fun checkInteractions(requested: List<String>): JSONObject {
+        val unrecognized = requested.filterNot(::isKnown)
         val names = requested.map(::canonicalName).distinctBy { it.lowercase() }
         if (names.size < 2) return toolError("Give at least two different substances.")
         if (names.size > MAX_INTERACTION_SUBSTANCES) {
@@ -186,7 +204,7 @@ class AiSubstanceTools @Inject constructor(
                 }
             }
         }
-        return JSONObject()
+        val result = JSONObject()
             .put("status", "success")
             .put("substances", JSONArray(names))
             .put("interactions", found)
@@ -196,6 +214,15 @@ class AiSubstanceTools @Inject constructor(
                 "Based on PsychonautWiki/TripSit interaction data and the user's custom substances. " +
                     "No data does not mean the combination is safe.",
             )
+        if (unrecognized.isNotEmpty()) {
+            result.put("unrecognized_substances", JSONArray(unrecognized)).put(
+                "warning",
+                "These names are not in the app's substance data, so their pairs could not be checked: " +
+                    unrecognized.joinToString() + ". Look up the name the app uses (get_substance_info) and " +
+                    "check again; do not tell the user the combination has no known interactions.",
+            )
+        }
+        return result
     }
 
     private suspend fun tolerance(query: String): JSONObject {

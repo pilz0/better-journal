@@ -63,10 +63,13 @@ class AiSubstanceToolsTest {
         ),
     )
 
+    private val alcohol = mdma.copy(name = "Alcohol", commonNames = listOf("Booze"), roas = emptyList())
+
     private val substances = mockk<SubstanceRepositoryInterface> {
         every { getSubstance(any()) } returns null
         every { getSubstance("MDMA") } returns mdma
-        every { getAllSubstances() } returns listOf(mdma)
+        every { getSubstance("Alcohol") } returns alcohol
+        every { getAllSubstances() } returns listOf(mdma, alcohol)
     }
     private val customProfiles = mockk<CustomSubstanceProfiles> {
         every { byNameFlow } returns MutableStateFlow(emptyMap())
@@ -114,6 +117,17 @@ class AiSubstanceToolsTest {
         assertThat(found.length()).isEqualTo(1)
         assertThat(found.getJSONObject(0).getString("risk")).isEqualTo("unsafe")
         assertThat(result.getJSONArray("no_data").length()).isEqualTo(2)
+        // Caffeine isn't in this test's substance data, so the model is told it couldn't be checked.
+        assertThat(result.getJSONArray("unrecognized_substances").getString(0)).isEqualTo("Caffeine")
+        assertThat(AiToolLabels.summarise("check_interactions", result)).isEqualTo("unknown substance: Caffeine")
+    }
+
+    @Test
+    fun chemicalNamesResolveToTheAppsNames() = runTest {
+        val result = tools.execute("check_interactions", mapOf("substances" to listOf("MDMA", "ethanol")))!!
+        assertThat(result.getJSONArray("substances").getString(1)).isEqualTo("Alcohol")
+        assertThat(result.has("unrecognized_substances")).isEqualTo(false)
+        assertThat(AiToolLabels.summarise("check_interactions", result)).isEqualTo("1 interaction found")
     }
 
     @Test
