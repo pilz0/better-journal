@@ -135,6 +135,38 @@ class ExperienceRepository @Inject constructor(
         notifyJournalChanged()
     }
 
+    suspend fun replaceEverything(
+        journalExport: JournalExport
+    ) {
+        experienceDao.replaceEverything(journalExport)
+        reminderDao.deleteAll()
+        journalExport.reminders.forEach { reminderDao.insert(it) }
+        ingestionWebhookMessageDao.deleteAll()
+        webhookDao.deleteAll()
+        journalExport.webhooks.forEach { webhookDao.insert(it.toEntity()) }
+        val validCustomUnitIds = journalExport.customUnits.map { it.id }.toSet()
+        journalExport.substanceGroups.forEach { group ->
+            experienceDao.insertSubstanceGroupWithItems(
+                group = SubstanceGroup(name = group.name),
+                items = group.items.map { item ->
+                    item.copy(customUnitId = item.customUnitId?.takeIf { it in validCustomUnitIds })
+                },
+            )
+        }
+        journalExport.customSubstanceDetails.forEach { shared ->
+            val substanceId = experienceDao.getCustomSubstanceWithEverythingByName(shared.name)?.substance?.id
+                ?: return@forEach
+            val expansion = shared.expand()
+            expansion.roas.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
+            expansion.doses.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
+            expansion.durations.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
+            expansion.interactions.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
+            expansion.categories.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
+            expansion.crossTolerances.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
+        }
+        notifyJournalChanged()
+    }
+
     suspend fun insertIngestionAndCompanion(
         ingestion: Ingestion,
         substanceCompanion: SubstanceCompanion

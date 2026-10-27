@@ -171,8 +171,7 @@ class ExportBackupViewModel @Inject constructor(
             val journalExport = withContext(Dispatchers.Default) {
                 lenientJson.decodeFromString<JournalExport>(text)
             }
-            experienceRepository.deleteEverything()
-            experienceRepository.insertEverything(journalExport)
+            experienceRepository.replaceEverything(journalExport)
             "Import successful"
         } catch (e: CancellationException) {
             throw e

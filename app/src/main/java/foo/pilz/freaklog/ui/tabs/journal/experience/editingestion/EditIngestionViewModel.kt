@@ -84,8 +84,11 @@ class EditIngestionViewModel @Inject constructor(
     var customUnit: CustomUnit? by mutableStateOf(null)
     var ingestionCategory: foo.pilz.freaklog.data.substances.classes.IngestionCategory? by mutableStateOf(null)
     val otherCustomUnits = experienceRepo.getAllCustomUnitsFlow().combine(ingestionFlow) { customUnits, ing ->
-        customUnits.filter {customUnit ->
-            customUnit.administrationRoute == ing?.administrationRoute && customUnit.substanceName == ing.substanceName && customUnit.id != ing.customUnitId
+        if (ing == null) return@combine emptyList()
+        customUnits.filter { customUnit ->
+            customUnit.administrationRoute == ing.administrationRoute &&
+                customUnit.substanceName == ing.substanceName &&
+                customUnit.id != ing.customUnitId
         }
     }.stateIn(
         initialValue = emptyList(),
@@ -218,12 +221,10 @@ class EditIngestionViewModel @Inject constructor(
         val selectedInstant = it.getInstant()
         val fromDate = selectedInstant.minus(2, ChronoUnit.DAYS)
         val toDate = selectedInstant.plus(2, ChronoUnit.DAYS)
-        return@map experienceRepo.getIngestionsWithExperiencesFlow(fromDate, toDate).firstOrNull()
-            ?: emptyList()
-    }.map { list ->
-        return@map list.map {
-            ExperienceOption(id = it.experience.id, title = it.experience.title)
-        }.distinct()
+        val list = experienceRepo.getIngestionsWithExperiencesFlow(fromDate, toDate).firstOrNull() ?: emptyList()
+        list.map { item ->
+            ExperienceOption(id = item.experience.id, title = item.experience.title)
+        }.distinctBy { option -> option.id }
     }.stateIn(
         initialValue = emptyList(),
         scope = viewModelScope,
@@ -288,7 +289,11 @@ class EditIngestionViewModel @Inject constructor(
         val selectedStartInstant = localDateTimeStartFlow.firstOrNull()?.getInstant() ?: return
         val selectedEndInstant = localDateTimeEndFlow.firstOrNull()?.getInstant()
         val timePickerOption = ingestionTimePickerOptionFlow.first()
-        val endTime = if (timePickerOption == IngestionTimePickerOption.TIME_RANGE) selectedEndInstant else null
+        val endTime = if (timePickerOption == IngestionTimePickerOption.TIME_RANGE && selectedEndInstant != null) {
+            maxOf(selectedStartInstant, selectedEndInstant)
+        } else {
+            null
+        }
         ingestion?.let {
             it.notes = note
             it.isDoseAnEstimate = isEstimate

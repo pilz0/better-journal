@@ -616,6 +616,14 @@ interface ExperienceDao {
     }
 
     @Transaction
+    suspend fun replaceEverything(
+        journalExport: JournalExport
+    ) {
+        deleteEverything()
+        insertEverything(journalExport)
+    }
+
+    @Transaction
     suspend fun insertIngestionAndCompanion(
         ingestion: Ingestion,
         substanceCompanion: SubstanceCompanion
