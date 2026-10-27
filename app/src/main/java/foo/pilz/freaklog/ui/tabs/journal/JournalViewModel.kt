@@ -187,8 +187,9 @@ class JournalViewModel @Inject constructor(
                         searchText = searchText,
                         filterCategories = emptyList(),
                         recentlyUsedSubstanceNamesSorted = emptyList()
-                    ).map { it.substance.name } + customSubstances.map { it.name }.filter {
-                        it.contains(other = searchText, ignoreCase = true)
+                    ).mapTo(HashSet()) { it.substance.name }
+                    customSubstances.mapNotNullTo(matchingSubstances) { customSubstance ->
+                        customSubstance.name.takeIf { it.contains(other = searchText, ignoreCase = true) }
                     }
 
                     // experience title, text or some consumed substance must contain search string or the consumer needs to match
@@ -197,8 +198,9 @@ class JournalViewModel @Inject constructor(
                             other = searchText,
                             ignoreCase = true
                         ) || it.ingestionsWithCompanions.any { ingestionWithCompanion ->
+                            // Use the ingestion's own name: the companion can be missing.
                             val isSubstanceAMatch =
-                                matchingSubstances.any { name -> name == ingestionWithCompanion.substanceCompanion?.substanceName }
+                                ingestionWithCompanion.ingestion.substanceName in matchingSubstances
                             val isConsumerAMatch =
                                 ingestionWithCompanion.ingestion.consumerName?.contains(
                                     searchText,
