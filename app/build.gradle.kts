@@ -95,15 +95,20 @@ kotlin {
     }
 }
 
+val testJavaVersion = providers.gradleProperty("testJavaVersion").getOrElse("17")
+val testLauncher = javaToolchains.launcherFor {
+    languageVersion.set(JavaLanguageVersion.of(testJavaVersion))
+}
+
 tasks.withType<Test>().configureEach {
+    javaLauncher.set(testLauncher)
     maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
 
-    // Force a deterministic locale and timezone so tests that touch
-    // `java.time` / `java.text` / `java.util.Locale` don't flake when CI
-    // runners are spread across regions.
-    systemProperty("user.timezone", "UTC")
-    systemProperty("user.language", "en")
-    systemProperty("user.country", "US")
+    // Defaults stay deterministic; compatibility CI deliberately varies these
+    // Gradle inputs, which are also tracked by the test task's up-to-date checks.
+    systemProperty("user.timezone", providers.gradleProperty("testTimezone").getOrElse("UTC"))
+    systemProperty("user.language", providers.gradleProperty("testLanguage").getOrElse("en"))
+    systemProperty("user.country", providers.gradleProperty("testCountry").getOrElse("US"))
     // Send Robolectric's internal log output to stdout so failures show
     // diagnostic context in the test report instead of being swallowed.
     systemProperty("robolectric.logging", "stdout")
