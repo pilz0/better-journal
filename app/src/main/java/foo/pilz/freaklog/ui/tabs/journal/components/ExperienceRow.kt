@@ -72,7 +72,9 @@ fun ExperienceRow(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val ingestions = experienceWithIngestionsCompanionsAndRatings.ingestionsWithCompanions.sortedBy { it.ingestion.time }
+        val ingestions = remember(experienceWithIngestionsCompanionsAndRatings) {
+            experienceWithIngestionsCompanionsAndRatings.ingestionsWithCompanions.sortedBy { it.ingestion.time }
+        }
         val experience = experienceWithIngestionsCompanionsAndRatings.experience
         ColorRectangle(ingestions = ingestions)
         Column {
