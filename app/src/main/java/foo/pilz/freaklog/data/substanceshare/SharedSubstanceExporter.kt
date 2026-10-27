@@ -36,5 +36,7 @@ fun shareCustomSubstance(context: Context, substance: CustomSubstanceWithEveryth
     context.startActivity(chooser)
 }
 
+private val SANITIZE_FILE_REGEX = Regex("[^A-Za-z0-9._-]")
+
 private fun String.sanitizeForFile(): String =
-    replace(Regex("[^A-Za-z0-9._-]"), "_").take(64).ifEmpty { "substance" }
+    replace(SANITIZE_FILE_REGEX, "_").take(64).ifEmpty { "substance" }

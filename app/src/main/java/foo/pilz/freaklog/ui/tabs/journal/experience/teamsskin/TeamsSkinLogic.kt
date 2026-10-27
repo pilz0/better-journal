@@ -29,8 +29,10 @@ fun germanNameFor(seed: Int): String = GERMAN_NAMES[Math.floorMod(seed, GERMAN_N
 
 fun randomGermanName(): String = GERMAN_NAMES.random()
 
+private val WHITESPACE_REGEX = Regex("\\s+")
+
 fun teamsInitials(name: String): String {
-    val words = name.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
+    val words = name.trim().split(WHITESPACE_REGEX).filter { it.isNotEmpty() }
     return when (words.size) {
         0 -> ""
         1 -> words.first().take(1).uppercase()
