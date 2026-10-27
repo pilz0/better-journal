@@ -7,6 +7,7 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.ceil
 import kotlin.math.exp
 import kotlin.math.min
 
@@ -16,38 +17,41 @@ class ToleranceCalculator @Inject constructor(
     private val experienceRepo: ExperienceRepository
 ) {
     suspend fun calculate(substanceName: String): ToleranceEstimate? {
-        val substance = substanceRepo.getSubstance(substanceName) ?: return null
+        val cleanedName = substanceName.trim()
+        val substance = substanceRepo.getSubstance(cleanedName)
+            ?: substanceRepo.getAllSubstances().firstOrNull { it.name.trim().equals(cleanedName, ignoreCase = true) }
+            ?: return null
         val tolerance = substance.tolerance ?: return null
         val parsed = ToleranceTextParser.parse(tolerance) ?: return null
 
-        val crossToleranceValues = substance.crossTolerances
+        val crossToleranceValues = substance.crossTolerances.map { it.trim().lowercase() }.toSet()
         val crossSubstanceNames = if (crossToleranceValues.isNotEmpty()) {
             substanceRepo.getAllSubstances()
                 .filter { other ->
-                    other.name != substanceName &&
-                    other.crossTolerances.any { ct -> crossToleranceValues.any { it.equals(ct, ignoreCase = true) } }
+                    !other.name.trim().equals(substance.name.trim(), ignoreCase = true) &&
+                    other.crossTolerances.any { it.trim().lowercase() in crossToleranceValues }
                 }
                 .map { it.name }
         } else {
             emptyList()
         }
 
-        val allNames = listOf(substanceName) + crossSubstanceNames
-        val since = Instant.now().minus(parsed.zeroDays.toLong().coerceAtLeast(1), ChronoUnit.DAYS)
+        val allNames = listOf(substance.name) + crossSubstanceNames
+        val now = Instant.now()
+        val since = now.minus(ceil(parsed.zeroDays.toDouble()).toLong().coerceAtLeast(1L), ChronoUnit.DAYS)
         val ingestions = experienceRepo.getIngestionsSince(allNames, since)
 
-        val now = Instant.now()
         val level = computeToleranceLevel(ingestions.map { it.time }, parsed, now)
 
-        val lastIngestion = experienceRepo.getLastIngestion(substanceName)
+        val lastIngestion = experienceRepo.getLastIngestion(substance.name)
         val contributors = ingestions
-            .filter { it.substanceName != substanceName }
-            .map { it.substanceName }
-            .distinct()
+            .filter { !it.substanceName.trim().equals(substance.name.trim(), ignoreCase = true) }
+            .map { it.substanceName.trim() }
+            .distinctBy { it.lowercase() }
 
         return ToleranceEstimate(
             toleranceLevel = level,
-            substanceName = substanceName,
+            substanceName = substance.name,
             lastIngestionTime = lastIngestion?.time,
             crossToleranceContributors = contributors,
             zeroDays = parsed.zeroDays,
