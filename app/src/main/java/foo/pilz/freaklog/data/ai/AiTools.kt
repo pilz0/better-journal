@@ -1,6 +1,7 @@
 package foo.pilz.freaklog.data.ai
 
 import android.util.Log
+import foo.pilz.freaklog.data.ai.provider.AiToolSpec
 import foo.pilz.freaklog.data.room.experiences.ExperienceDao
 import org.json.JSONArray
 import org.json.JSONObject
@@ -9,10 +10,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Implementations of the function-calling tools that the AI chatbot can invoke
- * to research the user's journal data. Each method receives the raw argument map
- * delivered by the Gemini SDK and returns a JSONObject that can be sent back to
- * the model as a `FunctionResponsePart`.
+ * Declarations and implementations of the function-calling tools that the AI assistant can
+ * invoke to research the user's journal data. [execute] receives the argument map parsed from
+ * the model's tool call and returns a JSONObject that is sent back as the tool result.
  */
 @Singleton
 class AiTools @Inject constructor(
@@ -26,6 +26,56 @@ class AiTools @Inject constructor(
         /** Hard cap on the size of any single notes blob returned to the model. */
         const val ABSOLUTE_MAX_NOTES_CHARS = 8000
     }
+
+    /** Declarations of every tool, in the provider-neutral JSON Schema form. */
+    val specs: List<AiToolSpec> = listOf(
+        tool(
+            name = "list_recent_experiences",
+            description = "List the most recent journal experiences (title, date, substances, id). " +
+                "Use this for an overview of recent sessions.",
+            Param.integer("limit", "Maximum number of experiences to return (default 10, max 50)."),
+        ),
+        tool(
+            name = "search_experiences",
+            description = "Full-text search the user's experience titles and notes for the given query. " +
+                "Use this when the user asks 'find my experience about X' or references words likely in titles/notes.",
+            Param.string("query", "Substring to search for in title or notes (case-insensitive).", required = true),
+            Param.integer("limit", "Maximum number of results (default 10, max 50)."),
+        ),
+        tool(
+            name = "search_experiences_by_substance",
+            description = "Find past experiences in which a given substance was logged. " +
+                "Use this for questions like 'when did I last take MDMA?' or 'show all my LSD trips'.",
+            Param.string("substance", "Substance name to search for (case-insensitive substring match).", required = true),
+            Param.integer("limit", "Maximum number of results (default 10, max 50)."),
+        ),
+        tool(
+            name = "get_experience_details",
+            description = "Fetch the full details of one past experience: notes, every ingestion, and Shulgin ratings. " +
+                "Call this after `search_experiences` or `list_recent_experiences` when more detail is needed. " +
+                "The `notes` field is capped (default 2000 chars); the response sets `notes_truncated` and " +
+                "`notes_total_chars` so you can decide whether to ask for a larger excerpt.",
+            Param.integer("experience_id", "The experience id returned by another tool.", required = true),
+            Param.integer(
+                "max_notes_chars",
+                "Optional cap on how many characters of the free-text notes to include " +
+                    "(default 2000, max 8000). Use a smaller value for quick lookups.",
+            ),
+        ),
+        tool(
+            name = "get_recent_ingestions",
+            description = "List individual ingestions across all experiences within the last N days, " +
+                "optionally filtered by substance.",
+            Param.integer("days_back", "How many days back to look (default 30, max 730)."),
+            Param.string("substance", "Optional substance name filter (case-insensitive substring match)."),
+        ),
+        tool(
+            name = "get_substance_usage_stats",
+            description = "Aggregate ingestion counts per substance over the last N days, sorted by frequency. " +
+                "Use this for usage-pattern questions ('what have I been using most this year?').",
+            Param.integer("days_back", "Window in days for the aggregation (default 90, max 1825)."),
+        ),
+    )
 
     suspend fun execute(name: String, args: Map<String, Any?>): JSONObject {
         return try {
@@ -215,4 +265,34 @@ class AiTools @Inject constructor(
 
     private fun errorResult(message: String): JSONObject =
         JSONObject().put("status", "error").put("message", message)
+
+    /** One tool parameter. [schema] is its JSON Schema without the description. */
+    private class Param(val name: String, val schema: JSONObject, val description: String, val required: Boolean) {
+        companion object {
+            fun string(name: String, description: String, required: Boolean = false) =
+                Param(name, JSONObject().put("type", "string"), description, required)
+
+            fun integer(name: String, description: String, required: Boolean = false) =
+                Param(name, JSONObject().put("type", "integer"), description, required)
+
+            fun stringArray(name: String, description: String, required: Boolean = false) = Param(
+                name,
+                JSONObject().put("type", "array").put("items", JSONObject().put("type", "string")),
+                description,
+                required,
+            )
+        }
+    }
+
+    private fun tool(name: String, description: String, vararg params: Param): AiToolSpec {
+        val properties = JSONObject()
+        val required = JSONArray()
+        params.forEach { p ->
+            properties.put(p.name, JSONObject(p.schema.toString()).put("description", p.description))
+            if (p.required) required.put(p.name)
+        }
+        val schema = JSONObject().put("type", "object").put("properties", properties)
+        if (required.length() > 0) schema.put("required", required)
+        return AiToolSpec(name, description, schema)
+    }
 }

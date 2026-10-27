@@ -223,7 +223,7 @@ fun ExperienceScreen(
 
     if (showAiChat && isAiAssistantEnabled) {
         foo.pilz.freaklog.ui.tabs.journal.experience.recommendations.AiChatBottomSheet(
-            experienceId = experience?.id ?: 0,
+            experienceId = experience?.id,
             onDismiss = { showAiChat = false }
         )
     }

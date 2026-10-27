@@ -33,7 +33,7 @@ class AiChatbotRepositoryPreferenceTest {
             .allowMainThreadQueries()
             .build()
         try {
-            val repository = AiChatbotRepository(db.experienceDao(), preferences)
+            val repository = AiChatbotRepository(db.experienceDao(), preferences, AiTools(db.experienceDao()))
             assertThat(repository.createChatSession(experienceId = null))
                 .isEqualTo(AiChatSessionResult.Disabled)
         } finally {

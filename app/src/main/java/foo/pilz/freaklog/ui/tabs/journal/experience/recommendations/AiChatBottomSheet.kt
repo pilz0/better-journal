@@ -32,7 +32,9 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -57,7 +59,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -71,7 +75,7 @@ import foo.pilz.freaklog.data.ai.ChatItem
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AiChatBottomSheet(
-    experienceId: Int,
+    experienceId: Int?,
     onDismiss: () -> Unit,
     viewModel: AiChatViewModel = hiltViewModel()
 ) {
@@ -110,6 +114,8 @@ fun AiChatBottomSheet(
                 else -> {
                     Transcript(
                         items = uiState.items,
+                        canRetry = uiState.canRetry && !uiState.isAssistantBusy,
+                        onRetry = { viewModel.retryLastTurn() },
                         modifier = Modifier.weight(1f)
                     )
 
@@ -122,8 +128,17 @@ fun AiChatBottomSheet(
                     }
 
                     InputBar(
-                        enabled = !uiState.isAssistantBusy,
-                        onSend = { viewModel.sendMessage(it) }
+                        isBusy = uiState.isAssistantBusy,
+                        onSend = { viewModel.sendMessage(it) },
+                        onStop = { viewModel.stop() }
+                    )
+                    Text(
+                        text = "AI answers can be wrong. Not medical advice.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(bottom = 8.dp)
                     )
                 }
             }
@@ -207,13 +222,23 @@ private fun ApiKeyMissingState() {
 }
 
 @Composable
-private fun Transcript(items: List<ChatItem>, modifier: Modifier = Modifier) {
+private fun Transcript(
+    items: List<ChatItem>,
+    canRetry: Boolean,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val listState = rememberLazyListState()
-    LaunchedEffect(items.size) {
+    val lastText = (items.lastOrNull() as? ChatItem.Message)?.text?.length ?: 0
+    LaunchedEffect(items.size, lastText) {
         if (items.isNotEmpty()) {
             listState.animateScrollToItem(items.lastIndex)
         }
     }
+    // Only the reply to the latest user message can be retried.
+    val lastUserIndex = items.indexOfLast { it is ChatItem.Message && it.isUser }
+    val lastReplyId = items.lastOrNull { it is ChatItem.Message && !it.isUser }
+        ?.takeIf { lastUserIndex >= 0 && items.indexOf(it) > lastUserIndex }?.id
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
         state = listState,
@@ -221,7 +246,10 @@ private fun Transcript(items: List<ChatItem>, modifier: Modifier = Modifier) {
     ) {
         items(items, key = { it.id }) { item ->
             when (item) {
-                is ChatItem.Message -> MessageBubble(item)
+                is ChatItem.Message -> MessageBubble(
+                    message = item,
+                    onRetry = if (canRetry && item.id == lastReplyId) onRetry else null
+                )
                 is ChatItem.ToolEvent -> ToolEventChip(item)
             }
         }
@@ -229,7 +257,7 @@ private fun Transcript(items: List<ChatItem>, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun MessageBubble(message: ChatItem.Message) {
+private fun MessageBubble(message: ChatItem.Message, onRetry: (() -> Unit)?) {
     val backgroundColor = when {
         message.isError -> MaterialTheme.colorScheme.errorContainer
         message.isUser -> MaterialTheme.colorScheme.primaryContainer
@@ -261,6 +289,38 @@ private fun MessageBubble(message: ChatItem.Message) {
                     markdown = message.text,
                     style = MaterialTheme.typography.bodyMedium.copy(color = contentColor)
                 )
+            }
+        }
+        val showCopy = !message.isUser && !message.isError && !message.isLoading &&
+            !message.isStreaming && message.text.isNotBlank()
+        if (showCopy || onRetry != null) {
+            MessageActions(text = message.text.takeIf { showCopy }, onRetry = onRetry)
+        }
+    }
+}
+
+@Composable
+private fun MessageActions(text: String?, onRetry: (() -> Unit)?) {
+    val clipboardManager = LocalClipboardManager.current
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        if (text != null) {
+            IconButton(
+                onClick = { clipboardManager.setText(AnnotatedString(text)) },
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    Icons.Outlined.ContentCopy,
+                    contentDescription = "Copy answer",
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        if (onRetry != null) {
+            TextButton(onClick = onRetry) {
+                Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(4.dp))
+                Text("Retry", style = MaterialTheme.typography.labelMedium)
             }
         }
     }
@@ -346,8 +406,9 @@ private fun SuggestionRow(
 
 @Composable
 private fun InputBar(
-    enabled: Boolean,
-    onSend: (String) -> Unit
+    isBusy: Boolean,
+    onSend: (String) -> Unit,
+    onStop: () -> Unit
 ) {
     var textState by remember { mutableStateOf(TextFieldValue("")) }
     val focusRequester = remember { FocusRequester() }
@@ -355,7 +416,7 @@ private fun InputBar(
 
     val send: () -> Unit = {
         val text = textState.text.trim()
-        if (text.isNotBlank() && enabled) {
+        if (text.isNotBlank() && !isBusy) {
             onSend(text)
             textState = TextFieldValue("")
             keyboardController?.hide()
@@ -380,13 +441,13 @@ private fun InputBar(
             keyboardActions = KeyboardActions(onSend = { send() })
         )
         Spacer(Modifier.width(4.dp))
-        if (!enabled) {
-            CircularProgressIndicator(
-                modifier = Modifier
-                    .size(40.dp)
-                    .padding(8.dp),
-                strokeWidth = 2.dp
-            )
+        if (isBusy) {
+            IconButton(onClick = onStop) {
+                Box(contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(modifier = Modifier.size(36.dp), strokeWidth = 2.dp)
+                    Icon(Icons.Filled.Stop, contentDescription = "Stop", modifier = Modifier.size(18.dp))
+                }
+            }
         } else {
             IconButton(onClick = send, enabled = textState.text.isNotBlank()) {
                 Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send")
