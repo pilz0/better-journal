@@ -39,7 +39,10 @@ class SprayRepository @Inject constructor(private val sprayDao: SprayDao) {
 
     suspend fun getSprayById(id: Int): Spray? = sprayDao.getSprayById(id)
 
-    suspend fun insert(spray: Spray): Long = sprayDao.insert(spray)
+    suspend fun insert(spray: Spray): Long {
+        if (spray.isPreferred) sprayDao.clearAllPreferred()
+        return sprayDao.insert(spray)
+    }
 
     suspend fun update(spray: Spray) = sprayDao.update(spray)
 

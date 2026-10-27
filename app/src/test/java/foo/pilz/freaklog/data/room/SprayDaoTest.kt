@@ -143,6 +143,27 @@ class SprayDaoTest {
     }
 
     @Test
+    fun `repository insert replaces the preferred spray`() = runTest {
+        val repository = SprayRepository(dao)
+        val first = Spray(name = "First", contentInMl = 10.0, numSprays = 100.0, isPreferred = true)
+        repository.insert(first)
+        val secondId = repository.insert(first.copy(name = "Second")).toInt()
+
+        assertThat(dao.getAllSprays().filter { it.isPreferred }.map { it.id }).containsExactly(secondId)
+        assertThat(repository.getPreferredSpray()?.id).isEqualTo(secondId)
+    }
+
+    @Test
+    fun `repository insert of a nonpreferred spray preserves the preference`() = runTest {
+        val repository = SprayRepository(dao)
+        val spray = Spray(name = "Preferred", contentInMl = 10.0, numSprays = 100.0, isPreferred = true)
+        val preferredId = repository.insert(spray).toInt()
+        repository.insert(spray.copy(name = "Other", isPreferred = false))
+
+        assertThat(dao.getAllSprays().filter { it.isPreferred }.map { it.id }).containsExactly(preferredId)
+    }
+
+    @Test
     fun `deleteAll removes all spray records`() = runTest {
         dao.insert(Spray(name = "Spray A", contentInMl = 10.0, numSprays = 100.0))
         dao.insert(Spray(name = "Spray B", contentInMl = 10.0, numSprays = 100.0))
