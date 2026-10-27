@@ -262,7 +262,7 @@ fun AddIngestionSearchScreen(
                         SectionHeader(title = "Substances")
                     }
                 }
-                items(filteredSubstances) { substance ->
+                items(filteredSubstances, key = { it.name }) { substance ->
                     SubstanceRowAddIngestion(substanceModel = substance, onTap = {
                         if (substance.hasSaferUse) {
                             navigateToCheckSaferUse(substance.name)

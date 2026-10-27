@@ -34,12 +34,22 @@ class SubstanceRepository @Inject constructor(
     substanceParser: SubstanceParserInterface,
 ) : SubstanceRepositoryInterface {
 
-    private var substanceFile: SubstanceFile
+    private val substanceFile: SubstanceFile
 
     init {
         val fileContent = getAssetsSubstanceFileContent()
         substanceFile = substanceParser.parseSubstanceFile(string = fileContent)
     }
+
+    private val categoriesMap: Map<String, Category> = substanceFile.categories.associateBy { it.name }
+    private val substancesWithCategoriesList: List<SubstanceWithCategories> = substanceFile.substances.map { substance ->
+        SubstanceWithCategories(
+            substance = substance,
+            categories = substanceFile.categories.filter { it.name in substance.categories }
+        )
+    }
+    private val substancesWithCategoriesMap: Map<String, SubstanceWithCategories> =
+        substancesWithCategoriesList.associateBy { it.substance.name }
 
     private fun getAssetsSubstanceFileContent(): String {
         return appContext.assets.open("Substances.json").bufferedReader().use { it.readText() }
@@ -50,14 +60,7 @@ class SubstanceRepository @Inject constructor(
     }
 
     override fun getAllSubstancesWithCategories(): List<SubstanceWithCategories> {
-        return substanceFile.substances.map { substance ->
-            SubstanceWithCategories(
-                substance = substance,
-                categories = substanceFile.categories.filter { category ->
-                    substance.categories.contains(category.name)
-                }
-            )
-        }
+        return substancesWithCategoriesList
     }
 
     override fun getAllCategories(): List<Category> {
@@ -69,15 +72,10 @@ class SubstanceRepository @Inject constructor(
     }
 
     override fun getCategory(categoryName: String): Category? {
-        return substanceFile.categories.firstOrNull { it.name == categoryName }
+        return categoriesMap[categoryName]
     }
 
     override fun getSubstanceWithCategories(substanceName: String): SubstanceWithCategories? {
-        val substance =
-            substanceFile.substances.firstOrNull { it.name == substanceName } ?: return null
-        return SubstanceWithCategories(
-            substance = substance,
-            categories = substanceFile.categories.filter { substance.categories.contains(it.name) }
-        )
+        return substancesWithCategoriesMap[substanceName]
     }
 }

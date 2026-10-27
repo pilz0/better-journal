@@ -165,6 +165,51 @@ class BatemanCurveTest {
         assertTrue("joint peak ($maxFine) must be at most the sum of peaks", maxFine <= 2.0f + 1e-3)
     }
 
+    @Test
+    fun `infusion tails extend beyond ingestion and decay near the relative threshold`() {
+        // The short infusion exceeds 1 / 0.05; the long infusion exceeds both thresholds.
+        for (duration in listOf(60f, 10_000f)) {
+            for (epsilon in listOf(0.05, 0.01)) {
+                val curve = BatemanCurve(
+                    ka = 1.0,
+                    ke = 0.001,
+                    ingestionStartSec = 120f,
+                    ingestionEndSec = 120f + duration,
+                    peakHeight = 3f,
+                    isCertain = true,
+                    tailEpsilon = epsilon,
+                )
+
+                assertTrue(curve.curveEndSec > curve.ingestionEndSec)
+                assertEquals(
+                    -ln(epsilon) / curve.ke,
+                    (curve.curveEndSec - curve.ingestionEndSec).toDouble(),
+                    0.002,
+                )
+                assertEquals(
+                    (epsilon * curve.peakHeight).toFloat(),
+                    curve.valueAt(curve.curveEndSec),
+                    (epsilon * curve.peakHeight * 0.02).toFloat(),
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `large peak height does not shorten the decay tail`() {
+        val curve = BatemanCurve(
+            ka = 1.0,
+            ke = 0.001,
+            ingestionStartSec = 120f,
+            ingestionEndSec = 120f,
+            peakHeight = 10_000f,
+            isCertain = true,
+        )
+
+        assertTrue(curve.curveEndSec > curve.ingestionEndSec)
+        assertEquals(0.05f * curve.peakHeight, curve.valueAt(curve.curveEndSec), 10f)
+    }
+
     private fun solve(ke: Double, tmax: Double): Double = BatemanCurve.solveKaForTmax(ke, tmax)!!
 
     private fun curve(

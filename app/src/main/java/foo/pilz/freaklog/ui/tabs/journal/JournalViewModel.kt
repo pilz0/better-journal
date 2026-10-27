@@ -149,6 +149,9 @@ class JournalViewModel @Inject constructor(
 
     val isFavoriteEnabledFlow = MutableStateFlow(false)
 
+    val isAiAssistantEnabledFlow = userPreferences.aiAssistantEnabledFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     fun onChangeFavorite(isFavorite: Boolean) {
         viewModelScope.launch {
             isFavoriteEnabledFlow.emit(isFavorite)
@@ -163,60 +166,57 @@ class JournalViewModel @Inject constructor(
         }
     }
 
-    val experiences =
-        experienceRepo.getSortedExperienceWithIngestionsCompanionsAndRatingsFlow()
-            .combine(searchTextFlow) { experiencesWithIngestions, searchText ->
-                Pair(first = experiencesWithIngestions, second = searchText)
-            }
-            .combine(experienceRepo.getCustomSubstancesFlow()) { pair, customSubstances ->
-                Pair(first = pair, second = customSubstances)
-            }
-            .combine(isFavoriteEnabledFlow) { pair, isFavoriteEnabled ->
-                var experiencesWithIngestions = pair.first.first
-                val searchText = pair.first.second
-                val customSubstances = pair.second
+    val experiences = combine(
+        experienceRepo.getSortedExperienceWithIngestionsCompanionsAndRatingsFlow(),
+        searchTextFlow,
+        experienceRepo.getCustomSubstancesFlow(),
+        isFavoriteEnabledFlow
+    ) { experiencesWithIngestionsRaw, searchText, customSubstances, isFavoriteEnabled ->
+        var experiencesWithIngestions = experiencesWithIngestionsRaw
 
-                if (isFavoriteEnabled) {
-                    // only favorites
-                    experiencesWithIngestions =
-                        experiencesWithIngestions.filter { it.experience.isFavorite }
-                }
-                if (searchText.isNotEmpty()) {
-                    // collect substances with matching names
-                    val matchingSubstances = searchRepository.getMatchingSubstances(
-                        searchText = searchText,
-                        filterCategories = emptyList(),
-                        recentlyUsedSubstanceNamesSorted = emptyList()
-                    ).map { it.substance.name } + customSubstances.map { it.name }.filter {
-                        it.contains(other = searchText, ignoreCase = true)
-                    }
+        if (isFavoriteEnabled) {
+            // only favorites
+            experiencesWithIngestions =
+                experiencesWithIngestions.filter { it.experience.isFavorite }
+        }
+        if (searchText.isNotEmpty()) {
+            // collect substances with matching names
+            val matchingSubstances = searchRepository.getMatchingSubstances(
+                searchText = searchText,
+                filterCategories = emptyList(),
+                recentlyUsedSubstanceNamesSorted = emptyList()
+            ).mapTo(HashSet()) { it.substance.name }
+            customSubstances.mapNotNullTo(matchingSubstances) { customSubstance ->
+                customSubstance.name.takeIf { it.contains(other = searchText, ignoreCase = true) }
+            }
 
-                    // experience title, text or some consumed substance must contain search string or the consumer needs to match
-                    experiencesWithIngestions = experiencesWithIngestions.filter {
-                        it.experience.title.contains(
-                            other = searchText,
-                            ignoreCase = true
-                        ) || it.ingestionsWithCompanions.any { ingestionWithCompanion ->
-                            val isSubstanceAMatch =
-                                matchingSubstances.any { name -> name == ingestionWithCompanion.substanceCompanion?.substanceName }
-                            val isConsumerAMatch =
-                                ingestionWithCompanion.ingestion.consumerName?.contains(
-                                    searchText,
-                                    ignoreCase = true
-                                )
-                                    ?: false
-                            isSubstanceAMatch || isConsumerAMatch
-                        } || it.experience.text.contains(
-                            other = searchText,
+            // experience title, text or some consumed substance must contain search string or the consumer needs to match
+            experiencesWithIngestions = experiencesWithIngestions.filter {
+                it.experience.title.contains(
+                    other = searchText,
+                    ignoreCase = true
+                ) || it.ingestionsWithCompanions.any { ingestionWithCompanion ->
+                    // Use the ingestion's own name: the companion can be missing.
+                    val isSubstanceAMatch =
+                        ingestionWithCompanion.ingestion.substanceName in matchingSubstances
+                    val isConsumerAMatch =
+                        ingestionWithCompanion.ingestion.consumerName?.contains(
+                            searchText,
                             ignoreCase = true
                         )
-                    }
-                }
-                return@combine experiencesWithIngestions
+                            ?: false
+                    isSubstanceAMatch || isConsumerAMatch
+                } || it.experience.text.contains(
+                    other = searchText,
+                    ignoreCase = true
+                )
             }
-            .stateIn(
-                initialValue = emptyList(),
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000)
-            )
+        }
+        return@combine experiencesWithIngestions
+    }
+        .stateIn(
+            initialValue = emptyList(),
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000)
+        )
 }

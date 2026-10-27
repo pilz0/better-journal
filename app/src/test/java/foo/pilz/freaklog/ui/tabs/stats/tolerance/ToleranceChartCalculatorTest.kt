@@ -199,6 +199,31 @@ class ToleranceChartCalculatorTest {
     }
 
     @Test
+    fun `zero tolerance at or before half tolerance produces only full windows`() {
+        val start = Instant.parse("2026-06-01T00:00:00Z")
+        for (zeroTolerance in listOf("2 days", "3 days")) {
+            every { substanceRepo.getSubstance("LSD") } returns createSubstance(
+                "LSD", halfTolerance = "3 days", zeroTolerance = zeroTolerance
+            )
+            // Separate windows also exercise subtraction without overlap masking an invalid interval.
+            val result = ToleranceChartCalculator.getToleranceWindows(
+                substanceAndDays = listOf(
+                    SubstanceAndDay("LSD", start),
+                    SubstanceAndDay("LSD", start.plus(Duration.ofDays(7))),
+                ),
+                substanceCompanions = emptyList(),
+                substanceRepository = substanceRepo,
+            )
+
+            assertThat(result).hasSize(2)
+            result.forEach { window ->
+                assertThat(window.toleranceType).isEqualTo(ToleranceType.FULL)
+                assertThat(Duration.between(window.start, window.end)).isEqualTo(Duration.ofDays(3))
+            }
+        }
+    }
+
+    @Test
     fun `assigns companion color to ToleranceWindow and falls back to Color Red`() {
         val sub = createSubstance("LSD", halfTolerance = "3 days", zeroTolerance = null)
         every { substanceRepo.getSubstance("LSD") } returns sub

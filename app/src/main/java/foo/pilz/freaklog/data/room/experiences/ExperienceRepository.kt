@@ -272,10 +272,10 @@ class ExperienceRepository @Inject constructor(
         experienceDao.getLatestIngestionOfEverySubstanceSinceDate(instant)
 
     suspend fun getIngestionsSince(substanceNames: List<String>, since: Instant): List<Ingestion> =
-        experienceDao.getIngestionsSince(substanceNames, since)
+        experienceDao.getIngestionsSince(substanceNames.map { it.trim().lowercase() }, since)
 
     suspend fun getLastIngestion(substanceName: String): Ingestion? =
-        experienceDao.getLastIngestion(substanceName)
+        experienceDao.getLastIngestion(substanceName.trim().lowercase())
 
     suspend fun getAllExperiencesWithIngestionsTimedNotesAndRatingsSorted(): List<ExperienceWithIngestionsTimedNotesAndRatings> =
         experienceDao.getAllExperiencesWithIngestionsTimedNotesAndRatingsSorted()

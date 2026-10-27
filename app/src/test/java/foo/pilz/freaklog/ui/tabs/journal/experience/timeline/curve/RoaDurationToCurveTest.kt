@@ -13,6 +13,7 @@ package foo.pilz.freaklog.ui.tabs.journal.experience.timeline.curve
 import foo.pilz.freaklog.data.substances.classes.roa.DurationRange
 import foo.pilz.freaklog.data.substances.classes.roa.DurationUnits
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
+import foo.pilz.freaklog.data.substances.classes.roa.curve.IngestionCurve
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.WeightedLine
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -122,6 +123,65 @@ class RoaDurationToCurveTest {
         )
         assertNull(rd.toIngestionCurve(line(), origin))
     }
+
+    @Test
+    fun `short total-only duration peaks at a quarter of the total`() {
+        val rd = RoaDuration(
+            onset = null,
+            comeup = null,
+            peak = null,
+            offset = null,
+            total = range(60f, 120f, DurationUnits.SECONDS),
+            afterglow = null,
+        )
+        val curve = rd.toIngestionCurve(line(weight = 0.5f), origin)
+        assertNotNull(curve)
+        // targetTotal = 90 s, so tmax = 22.5 s. A 60 s floor used to push tmax past the
+        // solvable range and fall back to ~15 s.
+        val peak = peakSec(curve!!)
+        assertTrue("peak $peak s should be near 22.5 s", peak in 20f..25f)
+        assertTrue("curve should outlast its peak", curve.curveEndSec > peak)
+        assertTrue("curve should be capped at 1.2 * total", curve.curveEndSec <= 90f * 1.2f + 1f)
+    }
+
+    @Test
+    fun `short phased duration peaks near onset+comeup`() {
+        val rd = RoaDuration(
+            onset = range(5f, 15f, DurationUnits.SECONDS),
+            comeup = range(10f, 20f, DurationUnits.SECONDS),
+            peak = range(30f, 60f, DurationUnits.SECONDS),
+            offset = range(20f, 40f, DurationUnits.SECONDS),
+            total = range(60f, 120f, DurationUnits.SECONDS),
+            afterglow = null,
+        )
+        val curve = rd.toIngestionCurve(line(weight = 0.5f), origin)
+        assertNotNull(curve)
+        assertTrue(curve!!.isCertain)
+        val peak = peakSec(curve)
+        assertTrue("peak $peak s should be near onset+comeup = 25 s", peak in 22f..28f)
+    }
+
+    @Test
+    fun `total of a few seconds does not throw on contradictory tmax bounds`() {
+        val rd = RoaDuration(
+            onset = null,
+            comeup = null,
+            peak = null,
+            offset = null,
+            total = range(4f, 8f, DurationUnits.SECONDS),
+            afterglow = null,
+        )
+        val curve = rd.toIngestionCurve(line(weight = 0.5f), origin)
+        assertNotNull(curve)
+        val peak = peakSec(curve!!)
+        assertTrue("peak $peak s should lie within the 6 s total", peak > 0f && peak < 6f)
+    }
+
+    /** Samples the curve every 0.1 s and returns the time of its maximum. */
+    private fun peakSec(curve: IngestionCurve): Float =
+        (1..(curve.curveEndSec * 10).toInt())
+            .map { it / 10f }
+            .maxByOrNull { curve.valueAt(it) }!!
 
     private fun range(min: Float, max: Float, units: DurationUnits) =
         DurationRange(min = min, max = max, units = units)

@@ -178,10 +178,10 @@ fun AllIngestionsScreenContent(
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     sections.forEach { section ->
-                        item {
+                        item(key = "header_${section.date}") {
                             SectionHeader(date = section.date)
                         }
-                        items(section.ingestions) { ingestionWithCompanion ->
+                        items(section.ingestions, key = { it.ingestion.id }) { ingestionWithCompanion ->
                             IngestionItem(
                                 ingestionWithCompanion = ingestionWithCompanion,
                                 isTimeRelative = isTimeRelative,
@@ -222,7 +222,7 @@ fun AllIngestionsScreenContent(
 
 @Composable
 fun SectionHeader(date: LocalDate) {
-    val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
+    val dateFormatter = remember { DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM) }
     Text(
         text = date.format(dateFormatter),
         style = MaterialTheme.typography.titleMedium,
@@ -296,9 +296,9 @@ fun IngestionItem(
 private fun getRelativeTimeString(time: Instant): String {
     val now = Instant.now()
     val duration = Duration.between(time, now)
-    
+
     return when {
-        duration.toMinutes() < 1 -> "now"
+        duration.isNegative || duration.toMinutes() < 1 -> "now"
         duration.toHours() < 1 -> "${duration.toMinutes()}m ago"
         duration.toDays() < 1 -> "${duration.toHours()}h ago"
         duration.toDays() < 7 -> "${duration.toDays()}d ago"

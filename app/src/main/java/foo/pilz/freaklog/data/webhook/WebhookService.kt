@@ -36,6 +36,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import java.io.IOException
 import java.net.HttpURLConnection
+import java.net.ProtocolException
 import java.net.URL
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -286,7 +287,11 @@ class WebhookService internal constructor(
 
         val connection = requestUrl.openConnection() as HttpURLConnection
         try {
-            connection.requestMethod = if (isEdit) "PATCH" else "POST"
+            if (isEdit) {
+                setPatchMethod(connection)
+            } else {
+                connection.requestMethod = "POST"
+            }
             connection.doOutput = true
             connection.connectTimeout = 10000
             connection.readTimeout = 10000
@@ -299,8 +304,10 @@ class WebhookService internal constructor(
 
             val responseCode = connection.responseCode
             if (responseCode !in 200..299) {
-                logger.warn("WebhookService", "HTTP error code:$responseCode")
-                throw IOException("HTTP error code: $responseCode")
+                val errorBody = connection.errorStream?.bufferedReader()?.use { it.readText() }
+                val detail = if (!errorBody.isNullOrBlank()) ": $errorBody" else ""
+                logger.warn("WebhookService", "HTTP error code:$responseCode$detail")
+                throw IOException("HTTP error code $responseCode$detail")
             }
 
             if (!isEdit) {
@@ -312,6 +319,29 @@ class WebhookService internal constructor(
             }
         } finally {
             connection.disconnect()
+        }
+    }
+
+    /**
+     * Android's okhttp-backed [HttpURLConnection] accepts `PATCH`, but the
+     * JDK's implementation (used by JVM unit tests) rejects it with a
+     * [ProtocolException]. There, write the protected `method` field declared
+     * on [HttpURLConnection] directly; if reflection is not permitted, fall
+     * back to `POST` with an `X-HTTP-Method-Override` header.
+     */
+    private fun setPatchMethod(connection: HttpURLConnection) {
+        try {
+            connection.requestMethod = "PATCH"
+        } catch (_: ProtocolException) {
+            try {
+                val field = generateSequence<Class<*>>(connection.javaClass) { it.superclass }
+                    .firstNotNullOf { cls -> cls.declaredFields.firstOrNull { it.name == "method" } }
+                field.isAccessible = true
+                field.set(connection, "PATCH")
+            } catch (_: Exception) {
+                connection.requestMethod = "POST"
+                connection.setRequestProperty("X-HTTP-Method-Override", "PATCH")
+            }
         }
     }
 

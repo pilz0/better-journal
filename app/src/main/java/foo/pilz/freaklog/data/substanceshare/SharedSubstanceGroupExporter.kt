@@ -51,5 +51,7 @@ suspend fun shareSubstanceGroup(
     context.startActivity(chooser)
 }
 
+private val SANITIZE_GROUP_FILE_REGEX = Regex("[^A-Za-z0-9._-]")
+
 private fun String.sanitizeForGroupFile(): String =
-    replace(Regex("[^A-Za-z0-9._-]"), "_").take(64).ifEmpty { "group" }
+    replace(SANITIZE_GROUP_FILE_REGEX, "_").take(64).ifEmpty { "group" }

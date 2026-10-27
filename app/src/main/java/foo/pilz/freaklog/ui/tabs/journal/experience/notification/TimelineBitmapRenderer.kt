@@ -24,6 +24,8 @@ object TimelineBitmapRenderer {
         density: Float,
         isDarkTheme: Boolean,
     ): Bitmap {
+        // createBitmap throws for non-positive sizes, which a broken display density can produce.
+        if (widthPx <= 0 || heightPx <= 0) return createBitmap(1, 1)
         val bitmap = createBitmap(widthPx, heightPx)
         val canvas = Canvas(bitmap)
         val baseScene = buildTimelineScene(model.timelineGroups(isDarkTheme), model.widthInSeconds, DefaultGraphStyle)

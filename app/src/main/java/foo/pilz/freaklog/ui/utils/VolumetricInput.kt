@@ -48,10 +48,10 @@ fun parseConcentrationToMgPerMl(input: String): Double? {
     }
 }
 
-private fun massInMg(input: String, defaultUnit: String): Double? {
+internal fun massInMg(input: String, defaultUnit: String): Double? {
     val (expr, unit) = splitTrailingUnit(input) ?: return null
     val value = evaluateNumericExpression(expr) ?: return null
-    val factor = if (unit.isEmpty()) massUnitToMilligrams[defaultUnit]!! else massUnitToMilligrams[unit] ?: return null
+    val factor = massUnitToMilligrams[unit.ifEmpty { defaultUnit }] ?: return null
     return value * factor
 }
 

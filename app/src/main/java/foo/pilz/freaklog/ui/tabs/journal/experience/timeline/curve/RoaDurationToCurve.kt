@@ -19,6 +19,7 @@ import java.time.Duration
 import java.time.Instant
 import kotlin.math.ln
 import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Threshold (fraction of peak) used in this file to derive `ke` from the requested total
@@ -99,9 +100,11 @@ private fun RoaDuration.resolveParameters(weight: Double): BatemanParameters? {
         ?: return null
     if (targetTotal <= 0.0 || !targetTotal.isFinite()) return null
 
-    val tmax = (tmaxFromPhases ?: (targetTotal * 0.25))
-        .coerceAtLeast(60.0)
-        .coerceAtMost(targetTotal * 0.49)
+    // A fixed 60 s floor would exceed the ceiling for short totals (e.g. inhaled DMT), so
+    // scale it down with the total; capping it at the ceiling keeps coerceIn from throwing.
+    val maxTmax = targetTotal * 0.49
+    val minTmax = min(60.0, targetTotal * 0.1).coerceAtLeast(5.0).coerceAtMost(maxTmax)
+    val tmax = (tmaxFromPhases ?: (targetTotal * 0.25)).coerceIn(minTmax, maxTmax)
     val ke = (-ln(TAIL_EPSILON) / targetTotal).coerceAtLeast(1e-9)
     if (tmax <= 0.0 || !tmax.isFinite() || ke <= 0.0 || !ke.isFinite()) return null
 

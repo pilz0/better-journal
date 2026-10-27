@@ -164,7 +164,7 @@ fun SearchScreen(
                 }
             } else {
                 LazyColumn {
-                    items(filteredCustomSubstances) { customSubstance ->
+                    items(filteredCustomSubstances, key = { "custom_${it.id}" }) { customSubstance ->
                         SubstanceRow(substanceModel = SubstanceModel(
                             name = customSubstance.name,
                             commonNames = emptyList(),
@@ -181,7 +181,7 @@ fun SearchScreen(
                         })
                         HorizontalDivider()
                     }
-                    items(filteredSubstances) { substance ->
+                    items(filteredSubstances, key = { it.name }) { substance ->
                         SubstanceRow(substanceModel = substance, onTap = {
                             performHaptic(HapticType.SELECTION)
                             onSubstanceTap(substance)

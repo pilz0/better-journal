@@ -54,15 +54,11 @@ class FileSystemConnection @Inject constructor(
         output.use { it.write(bytes) }
     }
 
+    /** @throws java.io.IOException when the destination cannot be opened or written. */
     fun saveTextInUri(uri: Uri, text: String) {
-        try {
-            val output = context.contentResolver.openOutputStream(uri) ?: return
-            output.bufferedWriter().use { it.write(text) }
-            output.close()
-        } catch (_: Exception) {
-            throw Exception("Failed To Save")
-        }
-
+        val output = context.contentResolver.openOutputStream(uri)
+            ?: throw java.io.IOException("Could not open output stream for URI: $uri")
+        output.bufferedWriter().use { it.write(text) }
     }
 
 

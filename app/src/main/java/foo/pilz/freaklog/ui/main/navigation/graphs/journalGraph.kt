@@ -59,6 +59,9 @@ fun NavGraphBuilder.journalGraph(navController: NavHostController) {
                 },
                 navigateToAllIngestions = {
                     navController.navigate(AllIngestionsRoute)
+                },
+                navigateToAiSettings = {
+                    navController.navigate(AiAssistantSettingsRoute)
                 }
             )
         }
@@ -106,6 +109,9 @@ fun NavGraphBuilder.journalGraph(navController: NavHostController) {
                     navController.navigate(EditIngestionRoute(ingestionId))
                 },
                 navigateBack = navController::popBackStack,
+                navigateToAiSettings = {
+                    navController.navigate(AiAssistantSettingsRoute)
+                },
                 navigateToAddRatingScreen = {
                     navController.navigate(AddRatingRoute(experienceId))
                 },

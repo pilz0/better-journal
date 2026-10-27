@@ -5,8 +5,6 @@ import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.hourLimitToSeparateIngestions
 import java.time.Duration
 import java.time.Instant
-import kotlin.math.max
-import kotlin.math.min
 
 enum class Phase(val displayName: String) {
     ONSET("onset"),
@@ -35,11 +33,15 @@ object PhaseCalculator {
         roaDuration: RoaDuration?,
         ingestionEndTime: Instant? = null,
     ): PhaseResult {
-        val elapsedSeconds = Duration.between(ingestionTime, Instant.now()).seconds.toFloat()
+        // Negative when the ingestion lies in the future (logged ahead of time or clock skew).
+        val sinceStartSeconds = Duration.between(ingestionTime, Instant.now()).seconds.toFloat()
+        val secondsUntilStart = (-sinceStartSeconds).coerceAtLeast(0f)
+        val elapsedSeconds = sinceStartSeconds.coerceAtLeast(0f)
         val rangeSeconds = ingestionEndTime
             ?.let { Duration.between(ingestionTime, it).seconds.toFloat().coerceAtLeast(0f) }
             ?: 0f
-        val effectElapsedSeconds = elapsedSeconds - rangeSeconds
+        // Measured from now, so a pending ingestion counts its wait in `remaining`.
+        val effectElapsedSeconds = sinceStartSeconds - rangeSeconds
 
         if (roaDuration == null) {
             return if (effectElapsedSeconds >= UNKNOWN_DURATION_FALLBACK_SECONDS) {
@@ -91,13 +93,20 @@ object PhaseCalculator {
         } else {
             null
         }
-        val interval = smartInterval(timeToNextSec)
+        // Refresh once a pending ingestion starts so the elapsed time begins counting.
+        val nextRefreshSec = if (secondsUntilStart > 0f) {
+            minOf(timeToNextSec, secondsUntilStart)
+        } else {
+            timeToNextSec
+        }
+        val interval = smartInterval(nextRefreshSec)
         return PhaseResult(phase, elapsedSeconds, remaining, interval)
     }
 
     fun smartInterval(timeToNextTransitionSec: Float): Long {
+        if (!timeToNextTransitionSec.isFinite()) return MAX_INTERVAL_SECONDS
         val raw = (timeToNextTransitionSec / 3).toLong()
-        return max(MIN_INTERVAL_SECONDS, min(MAX_INTERVAL_SECONDS, raw))
+        return raw.coerceIn(MIN_INTERVAL_SECONDS, MAX_INTERVAL_SECONDS)
     }
 
     fun combinedInterval(phaseResults: List<PhaseResult>): Long {

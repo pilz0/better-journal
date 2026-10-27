@@ -128,7 +128,11 @@ class BackupWorker(
             null
         )?.use { cursor ->
             while (cursor.moveToNext()) {
-                idsByName[cursor.getString(1)] = cursor.getString(0)
+                val name = cursor.getString(1)
+                val docId = cursor.getString(0)
+                if (name != null && docId != null) {
+                    idsByName[name] = docId
+                }
             }
         }
         backupsToPrune(idsByName.keys).forEach { name ->
