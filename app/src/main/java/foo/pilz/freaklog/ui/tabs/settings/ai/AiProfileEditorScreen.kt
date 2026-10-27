@@ -317,7 +317,7 @@ private fun ModelField(state: AiProfileEditorState, viewModel: AiProfileEditorVi
         } else if (state.models.isNotEmpty()) {
             Spacer(Modifier.size(12.dp))
             Text(
-                "${state.models.size} models available",
+                if (state.models.size == 1) "1 model available" else "${state.models.size} models available",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

@@ -22,7 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -359,6 +359,7 @@ private fun Transcript(
         }
     }
     // Only the reply to the latest user message can be retried.
+    val firstUserIndex = items.indexOfFirst { it is ChatItem.Message && it.isUser }
     val lastUserIndex = items.indexOfLast { it is ChatItem.Message && it.isUser }
     val lastReplyId = items.lastOrNull { it is ChatItem.Message && !it.isUser }
         ?.takeIf { lastUserIndex >= 0 && items.indexOf(it) > lastUserIndex }?.id
@@ -367,10 +368,12 @@ private fun Transcript(
         state = listState,
         contentPadding = PaddingValues(vertical = 8.dp)
     ) {
-        items(items, key = { it.id }) { item ->
+        itemsIndexed(items, key = { _, item -> item.id }) { index, item ->
             when (item) {
                 is ChatItem.Message -> MessageBubble(
                     message = item,
+                    // The welcome text before the first question gets no actions.
+                    showActions = firstUserIndex in 0 until index,
                     onRetry = if (canRetry && item.id == lastReplyId) onRetry else null
                 )
                 is ChatItem.ToolEvent -> ToolEventChip(item)
@@ -380,7 +383,7 @@ private fun Transcript(
 }
 
 @Composable
-private fun MessageBubble(message: ChatItem.Message, onRetry: (() -> Unit)?) {
+private fun MessageBubble(message: ChatItem.Message, showActions: Boolean, onRetry: (() -> Unit)?) {
     val backgroundColor = when {
         message.isError -> MaterialTheme.colorScheme.errorContainer
         message.isUser -> MaterialTheme.colorScheme.primaryContainer
@@ -414,7 +417,7 @@ private fun MessageBubble(message: ChatItem.Message, onRetry: (() -> Unit)?) {
                 )
             }
         }
-        val showCopy = !message.isUser && !message.isError && !message.isLoading &&
+        val showCopy = showActions && !message.isUser && !message.isError && !message.isLoading &&
             !message.isStreaming && message.text.isNotBlank()
         if (showCopy || onRetry != null) {
             MessageActions(text = message.text.takeIf { showCopy }, onRetry = onRetry)
