@@ -77,6 +77,6 @@ fun formatConcentration(mgPerMl: Double): String {
         mgPerMl >= 1.0 -> "${mgPerMl.toReadableString()}mg/ml"
         mgPerMl >= 0.001 -> "${(mgPerMl * 1000.0).toReadableString()}µg/ml"
         microgramsPerLiter >= 1.0 -> "${microgramsPerLiter.toReadableString()}µg/l"
-        else -> "${(mgPerMl * 1000.0).toReadableString()}mg/l"
+        else -> "${microgramsPerLiter.toReadableString()}µg/l"
     }
 }

@@ -40,13 +40,15 @@ class SubstanceRepositoryTest {
     }
 
     @Test
-    fun `cached list preserves substances and category order from the asset`() {
+    fun `cached list preserves substances and each substance's category order from the asset`() {
         val results = repository.getAllSubstancesWithCategories()
 
         assertThat(results).isNotEmpty()
         assertThat(results.map { it.substance }).isEqualTo(repository.getAllSubstances())
         results.forEach { result ->
-            val expectedCategories = repository.getAllCategories().filter { it.name in result.substance.categories }
+            val expectedCategories = result.substance.categories.mapNotNull { name ->
+                repository.getAllCategories().find { it.name == name }
+            }
             assertThat(result.categories).isEqualTo(expectedCategories)
         }
         assertThat(repository.getAllSubstancesWithCategories()).isSameInstanceAs(results)

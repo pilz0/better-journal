@@ -79,5 +79,9 @@ class VolumetricInputTest {
         assertEquals("1g/ml", formatConcentration(1000.0))
         assertEquals("67µg/l", formatConcentration(0.000067))
         assertEquals("500µg/ml", formatConcentration(0.5))
+        assertEquals("0.5µg/l", formatConcentration(0.0000005))
+        assertEquals("0.1µg/l", formatConcentration(0.0000001))
+        assertConcentration(0.0000005, formatConcentration(0.0000005))
+        assertConcentration(0.0000001, formatConcentration(0.0000001))
     }
 }

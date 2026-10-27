@@ -43,13 +43,14 @@ object ToleranceChartCalculator {
     }
 
     private fun removeMultipleSubstancesInADay(substanceAndDays: List<SubstanceAndDay>): List<SubstanceAndDay> {
+        val zoneId = ZoneId.systemDefault()
         return substanceAndDays
-            .groupBy { it.day.atZone(ZoneId.systemDefault()).toLocalDate() }
+            .groupBy { it.day.atZone(zoneId).toLocalDate() }
             .flatMap { (_, daySubstances) ->
                 daySubstances
                     .groupBy { it.substanceName }
                     .map { (_, sameSubstanceList) ->
-                        sameSubstanceList.minByOrNull { it.day }!!
+                        sameSubstanceList.minBy { it.day }
                     }
             }
     }
@@ -65,14 +66,14 @@ object ToleranceChartCalculator {
         substanceAndDayPairs: List<SubstanceAndDay>,
         substanceRepository: SubstanceRepository
     ): List<SubstanceInterval> {
+        val toleranceHoursBySubstance = mutableMapOf<String, Pair<Double?, Double?>>()
         return substanceAndDayPairs.flatMap { pair ->
-            val tolerance = substanceRepository.getSubstance(pair.substanceName)?.tolerance
+            val (halfToleranceHours, zeroToleranceHours) = toleranceHoursBySubstance.getOrPut(pair.substanceName) {
+                val tolerance = substanceRepository.getSubstance(pair.substanceName)?.tolerance
+                parseToleranceToHours(tolerance?.half) to parseToleranceToHours(tolerance?.zero)
+            }
             val result = mutableListOf<SubstanceInterval>()
             var startOfHalfTolerance = pair.day
-
-            // Parse tolerance strings to get hours
-            val halfToleranceHours = parseToleranceToHours(tolerance?.half)
-            val zeroToleranceHours = parseToleranceToHours(tolerance?.zero)
 
             if (halfToleranceHours != null && halfToleranceHours > 24) {
                 startOfHalfTolerance = pair.day.plus(Duration.ofHours(halfToleranceHours.toLong()))
@@ -222,8 +223,9 @@ object ToleranceChartCalculator {
         substanceIntervals: List<SubstanceInterval>,
         substanceCompanions: List<SubstanceCompanion>
     ): List<ToleranceWindow> {
+        val companionsBySubstance = substanceCompanions.associateBy { it.substanceName }
         return substanceIntervals.map { interval ->
-            val companion = substanceCompanions.find { it.substanceName == interval.substanceName }
+            val companion = companionsBySubstance[interval.substanceName]
             val color = companion?.color?.getComposeColor(false) ?: Color.Red
 
             ToleranceWindow(
