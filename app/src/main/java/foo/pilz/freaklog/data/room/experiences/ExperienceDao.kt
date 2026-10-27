@@ -1062,6 +1062,30 @@ interface ExperienceDao {
         return id
     }
 
+    @Suppress("LongParameterList")
+    @Transaction
+    suspend fun replaceCustomSubstanceWithFullRoaInfo(
+        existing: CustomSubstance,
+        substance: CustomSubstance,
+        durations: List<CustomRoaDuration>,
+        doses: List<CustomRoaDose>,
+        roas: List<CustomRoa>,
+        interactions: List<CustomInteraction> = emptyList(),
+        categories: List<CustomCategoryAssignment> = emptyList(),
+        crossTolerances: List<CustomCrossTolerance> = emptyList(),
+    ): Int {
+        delete(existing)
+        return insertCustomSubstanceWithFullRoaInfo(
+            substance = substance,
+            durations = durations,
+            doses = doses,
+            roas = roas,
+            interactions = interactions,
+            categories = categories,
+            crossTolerances = crossTolerances,
+        )
+    }
+
     @Update(onConflict = OnConflictStrategy.REPLACE)
     suspend fun update(customRoaDuration: CustomRoaDuration)
 
