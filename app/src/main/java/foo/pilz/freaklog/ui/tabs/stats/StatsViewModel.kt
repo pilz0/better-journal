@@ -154,11 +154,11 @@ class StatsViewModel @Inject constructor(
         val ingestions = experiences.flatMap { experience ->
             experience.ingestionsWithCompanionAndCustomUnit.filter { it.ingestion.consumerName == consumerName }
         }
+        val companionsByName = companions.associateBy { it.substanceName }
         return ingestions
             .groupBy { it.ingestion.substanceName }
             .mapNotNull { (substanceName, ingestionsForSubstance) ->
-                val companion = companions.firstOrNull { it.substanceName == substanceName }
-                    ?: return@mapNotNull null
+                val companion = companionsByName[substanceName] ?: return@mapNotNull null
                 ColorCount(
                     color = companion.color,
                     count = ingestionsForSubstance.size
@@ -172,19 +172,24 @@ class StatsViewModel @Inject constructor(
         consumerFlow,
         companionFlow
     ) { relevantExperiencesSorted, consumerName, companions ->
-        val allIngestions =
-            relevantExperiencesSorted.flatMap { experience -> experience.ingestionsWithCompanionAndCustomUnit.filter { it.ingestion.consumerName == consumerName } }
-        val experienceNamesMap =
-            relevantExperiencesSorted.map { experience ->
-                experience.ingestionsWithCompanionAndCustomUnit.filter { it.ingestion.consumerName == consumerName }.map { it.ingestion.substanceName }
+        val allIngestions = relevantExperiencesSorted.flatMap { experience ->
+            experience.ingestionsWithCompanionAndCustomUnit.filter { it.ingestion.consumerName == consumerName }
+        }
+        val experienceCountsBySubstance = relevantExperiencesSorted
+            .flatMap { experience ->
+                experience.ingestionsWithCompanionAndCustomUnit
+                    .filter { it.ingestion.consumerName == consumerName }
+                    .map { it.ingestion.substanceName }
                     .toSet()
-            }.flatten().groupBy { it }
+            }
+            .groupingBy { it }
+            .eachCount()
+        val companionsByName = companions.associateBy { it.substanceName }
         val map = allIngestions.groupBy { it.ingestion.substanceName }
         return@combine map.values.mapNotNull { groupedIngestions ->
             val name = groupedIngestions.firstOrNull()?.ingestion?.substanceName ?: return@mapNotNull null
-            val oneCompanion =
-                companions.firstOrNull { it.substanceName == name } ?: return@mapNotNull null
-            val experienceCounts = experienceNamesMap[name]?.size ?: 0
+            val oneCompanion = companionsByName[name] ?: return@mapNotNull null
+            val experienceCounts = experienceCountsBySubstance[name] ?: 0
             val ingestions = groupedIngestions.map { it.ingestion }
             StatItem(
                 substanceName = name,
@@ -221,39 +226,33 @@ class StatsViewModel @Inject constructor(
             estimatedDoseStandardDeviation = sumStandardDeviations.takeIf { it > 0 })
     }
 
-    val statsModelFlow: StateFlow<StatsModel> =
-        optionFlow.combine(startDateTextFlow) { option, startDateText ->
-            return@combine Pair(first = option, second = startDateText)
-        }.combine(statsFlowItem) { pair, substanceStats ->
-            return@combine Pair(first = pair, second = substanceStats)
-        }.combine(areThereAnyIngestionsFlow) { pair, areThere ->
-            return@combine Pair(first = pair, second = areThere)
-        }.combine(consumerFlow) { pair, consumerName ->
-            return@combine Pair(first = pair, second = consumerName)
-        }.combine(experienceChartBucketsFlow) { pair, chartBuckets ->
-            return@combine Pair(first = pair, second = chartBuckets)
-        }.map { pair ->
-            val statItems = pair.first.first.first.second
-            return@map StatsModel(
-                areThereAnyIngestions = pair.first.first.second,
-                selectedOption = pair.first.first.first.first.first,
-                startDateText = pair.first.first.first.first.second,
-                statItems = statItems,
-                chartBuckets = pair.second,
-                consumerName = pair.first.second
-            )
-        }.stateIn(
-            initialValue = StatsModel(
-                selectedOption = TimePickerOption.WEEKS_26,
-                areThereAnyIngestions = false,
-                startDateText = "",
-                statItems = emptyList(),
-                chartBuckets = emptyList(),
-                consumerName = null
-            ),
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000)
+    val statsModelFlow: StateFlow<StatsModel> = combine(
+        combine(optionFlow, startDateTextFlow, ::Pair),
+        statsFlowItem,
+        areThereAnyIngestionsFlow,
+        consumerFlow,
+        experienceChartBucketsFlow,
+    ) { (option, startDateText), substanceStats, areThere, consumerName, chartBuckets ->
+        StatsModel(
+            selectedOption = option,
+            startDateText = startDateText,
+            statItems = substanceStats,
+            areThereAnyIngestions = areThere,
+            chartBuckets = chartBuckets,
+            consumerName = consumerName,
         )
+    }.stateIn(
+        initialValue = StatsModel(
+            selectedOption = TimePickerOption.WEEKS_26,
+            areThereAnyIngestions = false,
+            startDateText = "",
+            statItems = emptyList(),
+            chartBuckets = emptyList(),
+            consumerName = null
+        ),
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000)
+    )
 
     val sortedConsumerNamesFlow =
         experienceRepo.getSortedIngestions(limit = 200).map { ingestions ->

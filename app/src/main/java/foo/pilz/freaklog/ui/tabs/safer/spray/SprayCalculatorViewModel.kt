@@ -133,7 +133,7 @@ class SprayCalculatorViewModel @Inject constructor(
     }
 
     private fun parseDecimal(value: String): Double? =
-        value.trim().replace(',', '.').toDoubleOrNull()
+        value.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it.isFinite() }
 
     private fun maybeUpdateTotalWeight() {
         val liquidMl = parseDecimal(_liquidAmountInMl.value) ?: return

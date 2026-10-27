@@ -87,4 +87,18 @@ class SprayCalculatorViewModelTest {
         // 5 ml * (100 sprays / 10 ml) = 50 sprays
         assertEquals(50.0, viewModel.getNumberOfSprays()!!, 0.001)
     }
+
+    @Test
+    fun `non-finite decimal inputs return null`() = runTest {
+        val viewModel = SprayCalculatorViewModel(repository)
+        advanceUntilIdle()
+
+        viewModel.setTotalWeight("NaN")
+        viewModel.setLiquidAmountInMl("Infinity")
+        viewModel.setPurityInPercent("-Infinity")
+
+        assertNull(viewModel.getConcentrationPerMl())
+        assertNull(viewModel.getDoseAdjustedToPurity())
+        assertNull(viewModel.getNumberOfSprays())
+    }
 }
