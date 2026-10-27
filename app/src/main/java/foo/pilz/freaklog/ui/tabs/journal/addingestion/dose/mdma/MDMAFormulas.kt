@@ -42,15 +42,18 @@ object MDMAFormulas {
      *
      * @param weightKg the user's body weight in kilograms
      * @param sex which mg/kg coefficient to use
+     * @return the rounded dose, or 0 if [weightKg] is not a finite positive number
      */
     fun maxDoseMg(weightKg: Double, sex: Sex): Double {
+        // roundToInt() throws on NaN, and infinite weights would saturate to Int.MAX_VALUE.
+        if (!weightKg.isFinite() || weightKg <= 0.0) return 0.0
         val coefficient = when (sex) {
             Sex.MALE -> MAX_MG_PER_KG_MALE
             Sex.FEMALE -> MAX_MG_PER_KG_FEMALE
         }
         val raw = weightKg * coefficient
-        // Round to nearest 5 mg for practicality, never below 0.
-        return (raw / 5.0).roundToInt().coerceAtLeast(0) * 5.0
+        // Round to nearest 5 mg for practicality.
+        return (raw / 5.0).roundToInt() * 5.0
     }
 
     /**
