@@ -416,6 +416,7 @@ interface ExperienceDao {
     suspend fun deleteEverythingOfExperience(experienceId: Int) {
         deleteIngestions(experienceId)
         deleteRatings(experienceId)
+        deleteTimedNotes(experienceId)
         deleteExperience(experienceId)
     }
 
@@ -435,6 +436,10 @@ interface ExperienceDao {
     @Transaction
     @Query("DELETE FROM shulginrating WHERE experienceId = :experienceId")
     suspend fun deleteRatings(experienceId: Int)
+
+    @Transaction
+    @Query("DELETE FROM timedNote WHERE experienceId = :experienceId")
+    suspend fun deleteTimedNotes(experienceId: Int)
 
     @Transaction
     @Query("DELETE FROM experience WHERE id = :experienceId")
