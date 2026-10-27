@@ -89,7 +89,7 @@ fun OutlookInboxSkin(
         OutlookTopBar()
         Box(modifier = Modifier.weight(1f)) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(rows) { row ->
+                items(rows, key = { it.experienceId }) { row ->
                     MailRow(row, onClick = { onOpenExperience(row.experienceId) })
                     HorizontalDivider(
                         color = DividerColor,

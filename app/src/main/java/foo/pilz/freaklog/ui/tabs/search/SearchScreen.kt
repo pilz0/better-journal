@@ -119,8 +119,7 @@ fun SearchScreen(
                     item {
                         Spacer(modifier = Modifier.width(4.dp))
                     }
-                    items(activeFilters.size) {
-                        val categoryChipModel = activeFilters[it]
+                    items(activeFilters, key = { it.chipName }) { categoryChipModel ->
                         CategoryChipDelete(categoryChipModel = categoryChipModel) {
                             onFilterTapped(categoryChipModel.chipName)
                         }

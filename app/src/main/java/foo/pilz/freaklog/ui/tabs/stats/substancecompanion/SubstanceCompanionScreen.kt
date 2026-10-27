@@ -204,7 +204,7 @@ fun SubstanceCompanionScreen(
                 }
                 Text(text = "Now")
             }
-            items(ingestionBursts) { burst ->
+            items(ingestionBursts, key = { it.experience.id }) { burst ->
                 TimeArrowUp(timeText = burst.timeUntil)
                 ElevatedCard(modifier = Modifier.padding(vertical = 5.dp)) {
                     Column(modifier = Modifier.padding(horizontal = horizontalPadding)) {

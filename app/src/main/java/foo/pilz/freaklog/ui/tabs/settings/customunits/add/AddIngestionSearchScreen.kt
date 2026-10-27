@@ -151,13 +151,13 @@ private fun AddIngestionSearchScreen(
                 singleLine = true
             )
             LazyColumn {
-                items(filteredSubstances) { substance ->
+                items(filteredSubstances, key = { "substance_${it.name}" }) { substance ->
                     SubstanceRowAddIngestion(substanceModel = substance, onTap = {
                         navigateToChooseRoute(substance.name)
                     })
                     HorizontalDivider()
                 }
-                items(filteredCustomSubstances) { customSubstance ->
+                items(filteredCustomSubstances, key = { "custom_${it.id}" }) { customSubstance ->
                     SubstanceRow(substanceModel = SubstanceModel(
                         name = customSubstance.name,
                         commonNames = emptyList(),
