@@ -222,6 +222,24 @@ class ParserExtensionsTest {
     }
 
     @Test
+    fun testGetOptionalDouble_nullValue() {
+        val json = JSONObject("""{"dose": null}""")
+        assertNull(json.getOptionalDouble("dose"))
+    }
+
+    @Test
+    fun testGetOptionalDouble_wrongType() {
+        val json = JSONObject("""{"dose": "a lot"}""")
+        assertNull(json.getOptionalDouble("dose"))
+    }
+
+    @Test
+    fun testGetOptionalBoolean_wrongType() {
+        val json = JSONObject("""{"isApproved": 42}""")
+        assertNull(json.getOptionalBoolean("isApproved"))
+    }
+
+    @Test
     fun testGetOptionalDouble_zero() {
         val json = JSONObject("""{"dose": 0}""")
         val result = json.getOptionalDouble("dose")

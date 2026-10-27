@@ -21,56 +21,43 @@ package foo.pilz.freaklog.data.substances.parse
 import org.json.JSONArray
 import org.json.JSONObject
 
-fun JSONObject.getOptionalJSONObject(name: String): JSONObject? {
-    return try {
-        getJSONObject(name)
-    } catch (e: Exception) {
-        null
-    }
-}
+// Most optional fields are absent for most substances, so these helpers check for a value
+// before reading it instead of letting get*() throw. Only a present value of the wrong type
+// still goes through the exception path.
+
+fun JSONObject.getOptionalJSONObject(name: String): JSONObject? = optJSONObject(name)
 
 fun JSONObject.getOptionalString(name: String): String? {
+    if (!has(name) || isNull(name)) return null
     return try {
-        if (isNull(name))
-            null
-        else
-            getString(name)
+        getString(name)
     } catch (e: Exception) {
         null
     }
 }
 
 fun JSONObject.getOptionalBoolean(name: String): Boolean? {
+    if (!has(name) || isNull(name)) return null
     return try {
-        if (isNull(name))
-            null
-        else
-            getBoolean(name)
+        getBoolean(name)
     } catch (e: Exception) {
         null
     }
 }
 
 fun JSONObject.getOptionalLong(name: String): Long? {
+    if (!has(name) || isNull(name)) return null
     return try {
-        if (isNull(name))
-            null
-        else
-            getLong(name)
+        getLong(name)
     } catch (e: Exception) {
         null
     }
 }
 
-fun JSONObject.getOptionalJSONArray(name: String): JSONArray? {
-    return try {
-        getJSONArray(name)
-    } catch (e: Exception) {
-        null
-    }
-}
+fun JSONObject.getOptionalJSONArray(name: String): JSONArray? = optJSONArray(name)
 
 fun JSONObject.getOptionalDouble(name: String): Double? {
+    if (!has(name) || isNull(name)) return null
     return try {
         getDouble(name)
     } catch (e: Exception) {
@@ -79,20 +66,12 @@ fun JSONObject.getOptionalDouble(name: String): Double? {
 }
 
 fun JSONArray.getOptionalString(index: Int): String? {
+    if (isNull(index)) return null
     return try {
-        if (isNull(index))
-            null
-        else
-            getString(index)
+        getString(index)
     } catch (e: Exception) {
         null
     }
 }
 
-fun JSONArray.getOptionalJSONObject(index: Int): JSONObject? {
-    return try {
-        getJSONObject(index)
-    } catch (e: Exception) {
-        null
-    }
-}
+fun JSONArray.getOptionalJSONObject(index: Int): JSONObject? = optJSONObject(index)
