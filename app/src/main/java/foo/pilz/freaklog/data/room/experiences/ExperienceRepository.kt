@@ -333,6 +333,9 @@ class ExperienceRepository @Inject constructor(
     suspend fun update(substanceCompanion: SubstanceCompanion) =
         experienceDao.update(substanceCompanion)
 
+    suspend fun updateSubstanceCompanions(substanceCompanions: List<SubstanceCompanion>) =
+        experienceDao.updateSubstanceCompanions(substanceCompanions)
+
     suspend fun insert(customSubstance: CustomSubstance): Int =
         experienceDao.insert(customSubstance).toInt()
 

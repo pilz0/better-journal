@@ -42,17 +42,21 @@ suspend fun parseAndImportColors(
 
     val existing = experienceRepository.getAllSubstanceCompanions().associateBy { it.substanceName }
     val plan = computeColorImport(envelope.colors, existing.keys)
-    plan.toApply.forEach { entry ->
-        val companion = existing[entry.substanceName] ?: return@forEach
-        experienceRepository.update(companion.copy(color = AdaptiveColor.Custom(entry.colorArgb)))
+    val companionsToUpdate = plan.toApply.mapNotNull { entry ->
+        val companion = existing[entry.substanceName] ?: return@mapNotNull null
+        companion.copy(color = AdaptiveColor.Custom(entry.colorArgb))
     }
-    return ColorImportResult.Imported(applied = plan.toApply.size, skipped = plan.skipped.size)
+    if (companionsToUpdate.isNotEmpty()) {
+        experienceRepository.updateSubstanceCompanions(companionsToUpdate)
+    }
+    return ColorImportResult.Imported(applied = companionsToUpdate.size, skipped = plan.skipped.size)
 }
 
 fun computeColorImport(
     colors: List<SharedSubstanceColor>,
     existingNames: Set<String>,
 ): ColorImportPlan {
-    val (toApply, skipped) = colors.partition { it.substanceName in existingNames }
+    val deduplicated = colors.distinctBy { it.substanceName }
+    val (toApply, skipped) = deduplicated.partition { it.substanceName in existingNames }
     return ColorImportPlan(toApply = toApply, skipped = skipped)
 }

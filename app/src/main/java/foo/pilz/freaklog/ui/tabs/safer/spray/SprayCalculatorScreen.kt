@@ -38,13 +38,13 @@ import androidx.compose.material.icons.outlined.SwapVert
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -54,6 +54,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -396,32 +397,34 @@ fun SpraySelectionDropdown(
                 )
             } else {
                 sprays.forEach { spray ->
-                    DropdownMenuItem(
-                        text = { 
-                             Column {
-                                 Text(spray.name)
-                                 Text(
-                                     "${spray.contentInMl.toReadableString()}ml / ${spray.numSprays.toReadableString()} sprays",
-                                     style = MaterialTheme.typography.bodySmall,
-                                     color = MaterialTheme.colorScheme.onSurfaceVariant
-                                 )
-                             }
-                        },
-                        trailingIcon = {
-                             IconButton(onClick = { 
-                                 onDeleteSpray(spray) 
-                                 // Don't close menu immediately upon delete to allow multiple deletes? 
-                                 // Or close it. Let's close for simplicity/safety.
-                                 expanded = false
-                             }) {
-                                 Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
-                             }
-                        },
-                        onClick = {
-                            onSelectSpray(spray.id)
-                            expanded = false
-                        }
-                    )
+                    key(spray.id) {
+                        DropdownMenuItem(
+                            text = { 
+                                 Column {
+                                     Text(spray.name)
+                                     Text(
+                                         "${spray.contentInMl.toReadableString()}ml / ${spray.numSprays.toReadableString()} sprays",
+                                         style = MaterialTheme.typography.bodySmall,
+                                         color = MaterialTheme.colorScheme.onSurfaceVariant
+                                     )
+                                 }
+                            },
+                            trailingIcon = {
+                                 IconButton(onClick = { 
+                                     onDeleteSpray(spray) 
+                                     // Don't close menu immediately upon delete to allow multiple deletes? 
+                                     // Or close it. Let's close for simplicity/safety.
+                                     expanded = false
+                                 }) {
+                                     Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+                                 }
+                            },
+                            onClick = {
+                                onSelectSpray(spray.id)
+                                expanded = false
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -454,13 +457,15 @@ fun WeightUnitDropdown(
             onDismissRequest = { expanded = false }
         ) {
             WeightUnit.entries.forEach { unit ->
-                DropdownMenuItem(
-                    text = { Text(unit.displayName) },
-                    onClick = {
-                        onUnitSelected(unit)
-                        expanded = false
-                    }
-                )
+                key(unit) {
+                    DropdownMenuItem(
+                        text = { Text(unit.displayName) },
+                        onClick = {
+                            onUnitSelected(unit)
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
     }

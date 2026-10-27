@@ -674,6 +674,9 @@ interface ExperienceDao {
     @Update(onConflict = OnConflictStrategy.REPLACE)
     suspend fun update(substanceCompanion: SubstanceCompanion)
 
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun updateSubstanceCompanions(substanceCompanions: List<SubstanceCompanion>)
+
     @Query("SELECT * FROM substancecompanion WHERE substanceName =:substanceName")
     fun getSubstanceCompanionFlow(substanceName: String): Flow<SubstanceCompanion?>
 
