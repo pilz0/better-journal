@@ -49,6 +49,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsCompanionsAndRatings
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit
 import foo.pilz.freaklog.ui.theme.horizontalPadding
@@ -150,9 +151,11 @@ fun ColorRectangle(ingestions: List<IngestionWithCompanionAndCustomUnit>) {
     val width = 11.dp
     val cornerRadius = 3.dp
     if (ingestions.size >= 2) {
-        val brush = remember(ingestions) {
+        val brush = remember(ingestions, isDarkTheme) {
             val colors =
-                ingestions.map { it.substanceCompanion!!.color.getComposeColor(isDarkTheme) }
+                ingestions.map {
+                    (it.substanceCompanion?.color ?: AdaptiveColor.RED).getComposeColor(isDarkTheme)
+                }
             Brush.verticalGradient(colors = colors)
         }
         Box(
@@ -163,16 +166,15 @@ fun ColorRectangle(ingestions: List<IngestionWithCompanionAndCustomUnit>) {
                 .background(brush),
         ) {}
     } else if (ingestions.size == 1) {
+        val color = (ingestions.first().substanceCompanion?.color ?: AdaptiveColor.RED).getComposeColor(
+            isDarkTheme
+        )
         Box(
             modifier = Modifier
                 .width(width)
                 .fillMaxHeight()
                 .clip(RoundedCornerShape(cornerRadius))
-                .background(
-                    ingestions.first().substanceCompanion!!.color.getComposeColor(
-                        isDarkTheme
-                    )
-                ),
+                .background(color),
         ) {}
     } else {
         Box(
