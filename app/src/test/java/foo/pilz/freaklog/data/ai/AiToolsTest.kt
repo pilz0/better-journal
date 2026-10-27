@@ -21,7 +21,10 @@ import java.time.Instant
 class AiToolsTest {
 
     private val experienceDao = mockk<ExperienceDao>()
-    private val aiTools = AiTools(experienceDao)
+    private val substanceTools = mockk<AiSubstanceTools> {
+        coEvery { execute(any(), any()) } returns null
+    }
+    private val aiTools = AiTools(experienceDao, substanceTools)
 
     @Test
     fun executeUnknownToolReturnsErrorStatus() = runTest {

@@ -459,23 +459,34 @@ private fun ToolEventChip(event: ChatItem.ToolEvent) {
         ChatItem.ToolEvent.Status.Error ->
             Icons.Filled.Warning to MaterialTheme.colorScheme.error
     }
-    Row(
+    var showDetails by remember { mutableStateOf(false) }
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 2.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .clickable { showDetails = !showDetails }
+            .padding(vertical = 2.dp)
     ) {
-        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(16.dp))
-        Spacer(Modifier.width(6.dp))
-        val argText = event.args.entries
-            .filter { (_, v) -> v != null && v.toString().isNotBlank() }
-            .joinToString(", ") { (k, v) -> "$k=$v" }
-        val summary = event.resultSummary?.let { " → $it" } ?: ""
-        Text(
-            text = "${event.toolName}($argText)$summary",
-            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(6.dp))
+            val summary = event.resultSummary?.let { " → $it" } ?: ""
+            Text(
+                text = "${event.label}$summary",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        if (showDetails) {
+            val argText = event.args.entries
+                .filter { (_, v) -> v != null && v.toString().isNotBlank() }
+                .joinToString(", ") { (k, v) -> "$k=$v" }
+            Text(
+                text = "${event.toolName}($argText)",
+                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 22.dp, top = 2.dp)
+            )
+        }
     }
 }
 

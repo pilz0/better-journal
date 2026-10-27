@@ -43,6 +43,8 @@ sealed interface ChatItem {
         override val id: String = java.util.UUID.randomUUID().toString(),
         val toolName: String,
         val args: Map<String, Any?>,
+        /** What the tool does, in words, e.g. "Searched the journal for “mdma”". */
+        val label: String = toolName,
         val status: Status = Status.Running,
         val resultSummary: String? = null
     ) : ChatItem {
@@ -77,9 +79,10 @@ data class AiChatUiState(
 
         /** Suggestions when the assistant is opened from the journal, without an experience. */
         val JOURNAL_SUGGESTIONS = listOf(
+            "What is still active from today?",
             "What did I take in the past 30 days?",
+            "Is it safe to combine what I took today with alcohol?",
             "What have I been using most this year?",
-            "When did I last take a break of a week or more?",
             "Find my favourite past experiences"
         )
     }
@@ -311,7 +314,11 @@ class AiChatViewModel @Inject constructor(
                     }
                 }
                 is AiTurnEvent.ToolStarted -> {
-                    val chip = ChatItem.ToolEvent(toolName = event.call.name, args = event.call.args)
+                    val chip = ChatItem.ToolEvent(
+                        toolName = event.call.name,
+                        args = event.call.args,
+                        label = AiToolLabels.describe(event.call.name, event.call.args),
+                    )
                     toolItemIds[event.key] = chip.id
                     if (text.isBlank()) {
                         insertBefore(bubbleId, chip)
@@ -323,7 +330,7 @@ class AiChatViewModel @Inject constructor(
                         bubbleId = next.id
                         text.setLength(0)
                     }
-                    _uiState.update { it.copy(statusMessage = "Running ${event.call.name}…") }
+                    _uiState.update { it.copy(statusMessage = AiToolLabels.progress(event.call.name)) }
                 }
                 is AiTurnEvent.ToolFinished -> {
                     val isError = event.result.optString("status") == "error"
@@ -332,7 +339,7 @@ class AiChatViewModel @Inject constructor(
                         updateToolEvent(id) {
                             it.copy(
                                 status = status,
-                                resultSummary = summariseToolResult(event.call.name, event.result)
+                                resultSummary = AiToolLabels.summarise(event.call.name, event.result)
                             )
                         }
                     }
@@ -377,23 +384,6 @@ class AiChatViewModel @Inject constructor(
             replaceMessage(bubbleId) {
                 it.copy(text = current, isLoading = false, isStreaming = streaming)
             }
-        }
-    }
-
-    private fun summariseToolResult(name: String, result: org.json.JSONObject): String {
-        if (result.optString("status") == "error") {
-            return result.optString("message", "tool failed")
-        }
-        return when (name) {
-            "list_recent_experiences" -> "${result.optJSONArray("experiences")?.length() ?: 0} experiences"
-            "search_experiences", "search_experiences_by_substance" ->
-                "${result.optJSONArray("matches")?.length() ?: 0} matches"
-            "get_experience_details" -> result.optString("title", "experience loaded")
-            "get_recent_ingestions" -> "${result.optInt("count")} ingestions in ${result.optInt("days_back")}d"
-            "get_substance_usage_stats" ->
-                "${result.optJSONArray("substances")?.length() ?: 0} substances, " +
-                    "${result.optInt("total_ingestions")} ingestions"
-            else -> "ok"
         }
     }
 

@@ -15,6 +15,7 @@ import foo.pilz.freaklog.data.ai.profiles.AiProfileStore
 import foo.pilz.freaklog.data.ai.profiles.AiProviderPreset
 import foo.pilz.freaklog.data.room.AppDatabase
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
+import io.mockk.mockk
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -52,7 +53,8 @@ class AiChatbotRepositoryPreferenceTest {
         )
         val preferences = UserPreferences(dataStore)
         val store = AiProfileStore(dataStore, PlainCipher)
-        val repository = AiChatbotRepository(db.experienceDao(), preferences, AiTools(db.experienceDao()), store)
+        val tools = AiTools(db.experienceDao(), mockk<AiSubstanceTools>(relaxed = true))
+        val repository = AiChatbotRepository(db.experienceDao(), preferences, tools, store)
         return Triple(preferences, store, repository)
     }
 

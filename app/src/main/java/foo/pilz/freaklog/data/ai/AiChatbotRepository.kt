@@ -108,7 +108,11 @@ class AiChatbotRepository @Inject constructor(
                 "Prefer calling a tool over guessing - the user's data is private to this device and you " +
                 "are the only way for them to query it conversationally. Always cite the dates and " +
                 "experience titles you found when summarising past sessions. Use Markdown for formatting " +
-                "(headings, lists, **bold**). Be concise.\n\n"
+                "(headings, lists, **bold**). Be concise.\n\n" +
+                "For substance facts (doses, durations, interactions, tolerance) use get_substance_info, " +
+                "check_interactions and get_tolerance instead of answering from memory, and say where the " +
+                "facts came from (the app's bundled PsychonautWiki data or anodyne.wiki). Before talking " +
+                "about redosing or combining substances, call get_active_ingestions to see what is still active.\n\n"
         )
         val now = ZonedDateTime.now(ZoneId.systemDefault())
         sb.append("Current local time: ${NOW_FORMATTER.format(now)} (${now.zone.id}).\n\n")
