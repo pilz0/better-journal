@@ -94,8 +94,9 @@ class AddIngestionSearchViewModel @Inject constructor(
         filteredSubstancesFlow,
         searchTextFlow
     ) { customUnit, filteredSubstances, searchText ->
+        val filteredSubstanceNames = filteredSubstances.map { it.name }.toSet()
         customUnit.filter { custom ->
-            filteredSubstances.any { it.name == custom.substanceName } || custom.name.contains(
+            custom.substanceName in filteredSubstanceNames || custom.name.contains(
                 other = searchText,
                 ignoreCase = true
             ) || custom.substanceName.contains(

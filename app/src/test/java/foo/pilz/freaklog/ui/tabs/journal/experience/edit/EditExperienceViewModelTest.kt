@@ -99,4 +99,37 @@ class EditExperienceViewModelTest {
             )
         }
     }
+
+    @Test
+    fun `changing location name clears stale gps coordinates`() = runTest(testDispatcher) {
+        val experience = Experience(
+            id = 42,
+            title = "Forest Journey",
+            text = "A calm evening walk.",
+            sortDate = Instant.ofEpochMilli(1700000000000L),
+            location = Location(name = "Black Forest", longitude = 8.2, latitude = 48.1),
+        )
+        coEvery { repository.getExperience(any()) } returns experience
+        coEvery { repository.update(experience = any<Experience>()) } returns Unit
+
+        val viewModel = EditExperienceViewModel(
+            repository = repository,
+            state = SavedStateHandle(mapOf("experienceId" to 42)),
+        )
+        advanceUntilIdle()
+
+        viewModel.enteredLocation = "Different City"
+        viewModel.onDoneTap()
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) {
+            repository.update(
+                experience = match<Experience> {
+                    it.location?.name == "Different City" &&
+                        it.location?.longitude == null &&
+                        it.location?.latitude == null
+                }
+            )
+        }
+    }
 }

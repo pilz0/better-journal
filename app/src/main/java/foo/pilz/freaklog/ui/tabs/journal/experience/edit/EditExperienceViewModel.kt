@@ -72,7 +72,12 @@ class EditExperienceViewModel @Inject constructor(
                 currentExperience.title = enteredTitle
                 currentExperience.text = enteredText
                 val location = if (enteredLocation.isNotBlank()) {
-                    Location(name = enteredLocation, longitude = oldLongitude, latitude = oldLatitude)
+                    val isLocationSame = enteredLocation == (currentExperience.location?.name ?: "")
+                    Location(
+                        name = enteredLocation,
+                        longitude = if (isLocationSame) oldLongitude else null,
+                        latitude = if (isLocationSame) oldLatitude else null
+                    )
                 } else {
                     null
                 }
