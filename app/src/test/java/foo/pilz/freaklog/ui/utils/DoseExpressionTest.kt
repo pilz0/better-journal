@@ -50,4 +50,12 @@ class DoseExpressionTest {
         assertNull(evaluateNumericExpression("((5 + 2)"))
         assertNull(evaluateNumericExpression("5 / 0")) // Division by zero produces infinite, which our parser filters
     }
+
+    @Test
+    fun evaluateNumericExpression_returnsNullForNonFiniteLiterals() {
+        assertNull(evaluateNumericExpression("NaN"))
+        assertNull(evaluateNumericExpression("Infinity"))
+        assertNull(evaluateNumericExpression("-Infinity"))
+        assertNull(evaluateNumericExpression("+Infinity"))
+    }
 }

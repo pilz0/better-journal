@@ -3,7 +3,7 @@ package foo.pilz.freaklog.ui.utils
 fun evaluateNumericExpression(input: String): Double? {
     val text = input.trim().replace(',', '.')
     if (text.isEmpty()) return null
-    text.toDoubleOrNull()?.let { return it }
+    text.toDoubleOrNull()?.takeIf { it.isFinite() }?.let { return it }
     return try {
         val parser = ExpressionParser(text)
         val result = parser.parseExpression()
