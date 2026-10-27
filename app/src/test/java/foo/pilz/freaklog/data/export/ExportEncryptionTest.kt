@@ -72,6 +72,10 @@ class ExportEncryptionTest {
         assertTrue(ExportEncryption.looksLikeJson("  \n[1]".toByteArray()))
         val bomJson = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) + plaintext
         assertTrue(ExportEncryption.looksLikeJson(bomJson))
+        val bomOnly = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) + "   ".toByteArray()
+        assertFalse(ExportEncryption.looksLikeJson(bomOnly))
+        val bomText = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) + "not json".toByteArray()
+        assertFalse(ExportEncryption.looksLikeJson(bomText))
         assertFalse(ExportEncryption.looksLikeJson(byteArrayOf(0x50, 0x4A)))
         assertFalse(ExportEncryption.looksLikeJson(ByteArray(0)))
     }

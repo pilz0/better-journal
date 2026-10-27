@@ -120,17 +120,23 @@ class ExportEncryption @Inject constructor() {
 
         /** Plaintext exports are JSON objects; anything else is treated as encrypted. */
         fun looksLikeJson(bytes: ByteArray): Boolean {
-            val content = if (bytes.size >= 3 &&
+            val start = if (bytes.size >= 3 &&
                 bytes[0] == 0xEF.toByte() &&
                 bytes[1] == 0xBB.toByte() &&
                 bytes[2] == 0xBF.toByte()
             ) {
-                bytes.copyOfRange(3, bytes.size)
+                3
             } else {
-                bytes
+                0
             }
-            val first = content.firstOrNull { !it.toInt().toChar().isWhitespace() } ?: return false
-            return first == '{'.code.toByte() || first == '['.code.toByte()
+            for (i in start until bytes.size) {
+                val c = bytes[i].toInt().toChar()
+                if (!c.isWhitespace()) {
+                    val b = bytes[i]
+                    return b == '{'.code.toByte() || b == '['.code.toByte()
+                }
+            }
+            return false
         }
     }
 }

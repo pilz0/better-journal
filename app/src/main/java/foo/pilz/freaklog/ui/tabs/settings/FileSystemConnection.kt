@@ -31,11 +31,10 @@ class FileSystemConnection @Inject constructor(
 ) {
     fun getTextFromUri(uri: Uri): String? {
         try {
-            val input = context.contentResolver.openInputStream(uri) ?: return null
-            val inputAsString = input.bufferedReader().use { it.readText() }
-            input.close()
-            return inputAsString
-        } catch (e: Exception) {
+            return context.contentResolver.openInputStream(uri)?.use { input ->
+                input.bufferedReader().use { it.readText() }
+            }
+        } catch (_: Exception) {
             return null
         }
     }

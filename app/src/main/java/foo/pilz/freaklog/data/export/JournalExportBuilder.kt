@@ -65,13 +65,24 @@ fun ExportData.toJournalExport(
     reminders: List<Reminder> = emptyList(),
     webhooks: List<WebhookSerializable> = emptyList(),
     substanceGroups: List<SubstanceGroupSerializable> = emptyList(),
+): JournalExport = toJournalExport(
+    reminders = reminders,
+    webhooks = webhooks,
+    substanceGroups = substanceGroups,
+    bpByExperienceId = bloodPressureReadings.groupBy { it.experienceId },
+)
+
+private fun ExportData.toJournalExport(
+    reminders: List<Reminder>,
+    webhooks: List<WebhookSerializable>,
+    substanceGroups: List<SubstanceGroupSerializable>,
+    bpByExperienceId: Map<Int, List<foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading>>,
 ): JournalExport = JournalExport(
     substanceGroups = substanceGroups,
     experiences = experiences.map { experience ->
+        val readings = bpByExperienceId[experience.experience.id].orEmpty()
         experience.toSerializable().copy(
-            bloodPressure = bloodPressureReadings
-                .filter { it.experienceId == experience.experience.id }
-                .map { BloodPressureSerializable(it.time, it.systolic, it.diastolic, it.pulse) }
+            bloodPressure = readings.map { BloodPressureSerializable(it.time, it.systolic, it.diastolic, it.pulse) }
         )
     },
     substanceCompanions = substanceCompanions,
