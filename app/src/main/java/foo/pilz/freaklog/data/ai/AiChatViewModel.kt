@@ -266,11 +266,7 @@ class AiChatViewModel @Inject constructor(
                 val items = state.items.mapNotNull { item ->
                     when {
                         item is ChatItem.Message && (item.isLoading || item.isStreaming) ->
-                            if (item.text.isBlank()) {
-                                item.copy(text = "Stopped.", isLoading = false, isStreaming = false, isStopped = true)
-                            } else {
-                                item.copy(isLoading = false, isStreaming = false, isStopped = true)
-                            }
+                            item.copy(isLoading = false, isStreaming = false, isStopped = true)
                         item is ChatItem.ToolEvent && item.status == ChatItem.ToolEvent.Status.Running ->
                             item.copy(status = ChatItem.ToolEvent.Status.Error, resultSummary = "stopped")
                         else -> item
@@ -311,6 +307,7 @@ class AiChatViewModel @Inject constructor(
                     if (now - lastFlush >= STREAM_UPDATE_INTERVAL_MS) {
                         lastFlush = now
                         flush(streaming = true)
+                        _uiState.update { it.copy(statusMessage = "Writing…") }
                     }
                 }
                 is AiTurnEvent.ToolStarted -> {

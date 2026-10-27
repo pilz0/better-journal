@@ -410,6 +410,12 @@ private fun MessageBubble(message: ChatItem.Message, showActions: Boolean, onRet
         ) {
             if (message.isLoading && message.text.isBlank()) {
                 TypingIndicator(color = contentColor)
+            } else if (message.isStopped && message.text.isBlank()) {
+                Text(
+                    "Stopped before an answer arrived.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = contentColor.copy(alpha = 0.7f)
+                )
             } else {
                 MarkdownText(
                     markdown = message.text,
@@ -420,15 +426,27 @@ private fun MessageBubble(message: ChatItem.Message, showActions: Boolean, onRet
         val showCopy = showActions && !message.isUser && !message.isError && !message.isLoading &&
             !message.isStreaming && message.text.isNotBlank()
         if (showCopy || onRetry != null) {
-            MessageActions(text = message.text.takeIf { showCopy }, onRetry = onRetry)
+            MessageActions(
+                text = message.text.takeIf { showCopy },
+                isStopped = message.isStopped && message.text.isNotBlank(),
+                onRetry = onRetry
+            )
         }
     }
 }
 
 @Composable
-private fun MessageActions(text: String?, onRetry: (() -> Unit)?) {
+private fun MessageActions(text: String?, isStopped: Boolean, onRetry: (() -> Unit)?) {
     val clipboardManager = LocalClipboardManager.current
     Row(verticalAlignment = Alignment.CenterVertically) {
+        if (isStopped) {
+            Text(
+                "Stopped",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
+        }
         if (text != null) {
             IconButton(
                 onClick = { clipboardManager.setText(AnnotatedString(text)) },
