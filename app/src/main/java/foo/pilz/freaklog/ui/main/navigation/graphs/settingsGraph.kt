@@ -25,9 +25,10 @@ import androidx.navigation.toRoute
 import foo.pilz.freaklog.ui.main.navigation.SettingsTopLevelRoute
 import foo.pilz.freaklog.ui.main.navigation.composableWithTransitions
 import foo.pilz.freaklog.ui.tabs.search.custom.AddCustomSubstanceScreen
-import foo.pilz.freaklog.ui.tabs.settings.AiAssistantSettingsScreen
 import foo.pilz.freaklog.ui.tabs.settings.FAQScreen
 import foo.pilz.freaklog.ui.tabs.settings.SettingsScreen
+import foo.pilz.freaklog.ui.tabs.settings.ai.AiAssistantSettingsScreen
+import foo.pilz.freaklog.ui.tabs.settings.ai.AiProfileEditorScreen
 import foo.pilz.freaklog.ui.tabs.settings.colors.SubstanceColorsScreen
 import foo.pilz.freaklog.ui.tabs.settings.combinations.CombinationSettingsScreen
 import foo.pilz.freaklog.ui.tabs.settings.customformulations.CustomFormulationsScreen
@@ -168,7 +169,15 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
             )
         }
         composableWithTransitions<AiAssistantSettingsRoute> {
-            AiAssistantSettingsScreen(navigateBack = navController::popBackStack)
+            AiAssistantSettingsScreen(
+                navigateBack = navController::popBackStack,
+                navigateToProfileEditor = { profileId ->
+                    navController.navigate(AiProfileEditorRoute(profileId.orEmpty()))
+                }
+            )
+        }
+        composableWithTransitions<AiProfileEditorRoute> {
+            AiProfileEditorScreen(navigateBack = navController::popBackStack)
         }
         composableWithTransitions<RemindersScreenRoute> {
             RemindersScreen(
@@ -310,6 +319,10 @@ data class EditCustomUnitRoute(val customUnitId: Int)
 
 @Serializable
 object AiAssistantSettingsRoute
+
+/** [profileId] is empty when adding a new provider profile. */
+@Serializable
+data class AiProfileEditorRoute(val profileId: String)
 
 @Serializable
 object CustomFormulationsRoute

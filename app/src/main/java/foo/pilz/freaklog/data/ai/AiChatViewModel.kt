@@ -5,6 +5,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import foo.pilz.freaklog.data.ai.profiles.AiProfile
+import foo.pilz.freaklog.data.ai.profiles.AiProfileStore
 import foo.pilz.freaklog.data.ai.provider.AiConversation
 import foo.pilz.freaklog.data.ai.provider.AiException
 import foo.pilz.freaklog.data.ai.provider.AiTurnEvent
@@ -14,6 +16,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -49,12 +52,17 @@ sealed interface ChatItem {
 
 data class AiChatUiState(
     val items: List<ChatItem> = emptyList(),
-    val isApiKeyMissing: Boolean = false,
+    /** Set when the assistant can't start until something is configured in Settings. */
+    val setupMessage: String? = null,
     val isAssistantDisabled: Boolean = false,
     val isContextLoading: Boolean = true,
     val isAssistantBusy: Boolean = false,
     val statusMessage: String? = null,
     val modelName: String? = null,
+    val profiles: List<AiProfile> = emptyList(),
+    val activeProfileId: String? = null,
+    /** What the assistant already knows about, e.g. "This experience: Saturday". */
+    val contextLabel: String? = null,
     /** The last turn can be sent again (it finished, failed or was stopped). */
     val canRetry: Boolean = false,
     val suggestionPrompts: List<String> = DEFAULT_SUGGESTIONS
@@ -66,12 +74,21 @@ data class AiChatUiState(
             "What did I take in the past 30 days?",
             "Find my favourite past experiences"
         )
+
+        /** Suggestions when the assistant is opened from the journal, without an experience. */
+        val JOURNAL_SUGGESTIONS = listOf(
+            "What did I take in the past 30 days?",
+            "What have I been using most this year?",
+            "When did I last take a break of a week or more?",
+            "Find my favourite past experiences"
+        )
     }
 }
 
 @HiltViewModel
 class AiChatViewModel @Inject constructor(
     private val repository: AiChatbotRepository,
+    private val profileStore: AiProfileStore,
 ) : ViewModel() {
 
     companion object {
@@ -96,6 +113,14 @@ class AiChatViewModel @Inject constructor(
      */
     private var sessionToken: Int = 0
 
+    init {
+        viewModelScope.launch {
+            combine(profileStore.profilesFlow, profileStore.activeProfileIdFlow, ::Pair).collect { (profiles, active) ->
+                _uiState.update { it.copy(profiles = profiles, activeProfileId = active) }
+            }
+        }
+    }
+
     fun initialize(expId: Int?) {
         if (initialized && experienceId == expId && conversation != null) return
         initialized = true
@@ -106,6 +131,15 @@ class AiChatViewModel @Inject constructor(
     fun clearChat() {
         activeJob?.cancel()
         startNewChat()
+    }
+
+    /** Makes [profileId] the active profile and starts a new chat with it. */
+    fun switchProfile(profileId: String) {
+        activeJob?.cancel()
+        viewModelScope.launch {
+            profileStore.setActive(profileId)
+            startNewChat()
+        }
     }
 
     private fun startNewChat() {
@@ -129,14 +163,14 @@ class AiChatViewModel @Inject constructor(
                     it.copy(
                         isContextLoading = false,
                         isAssistantDisabled = true,
-                        isApiKeyMissing = false,
+                        setupMessage = null,
                         modelName = null,
                     )
                 }
-                is AiChatSessionResult.MissingApiKey -> _uiState.update {
+                is AiChatSessionResult.NeedsSetup -> _uiState.update {
                     it.copy(
                         isContextLoading = false,
-                        isApiKeyMissing = true,
+                        setupMessage = result.message,
                         isAssistantDisabled = false,
                         modelName = null
                     )
@@ -144,7 +178,7 @@ class AiChatViewModel @Inject constructor(
                 is AiChatSessionResult.Failed -> _uiState.update {
                     it.copy(
                         isContextLoading = false,
-                        isApiKeyMissing = false,
+                        setupMessage = null,
                         isAssistantDisabled = false,
                         modelName = null,
                         items = listOf(
@@ -161,9 +195,15 @@ class AiChatViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isContextLoading = false,
-                            isApiKeyMissing = false,
+                            setupMessage = null,
                             isAssistantDisabled = false,
-                            modelName = result.modelName,
+                            modelName = result.profile.model,
+                            contextLabel = result.contextLabel,
+                            suggestionPrompts = if (experienceId == null) {
+                                AiChatUiState.JOURNAL_SUGGESTIONS
+                            } else {
+                                AiChatUiState.DEFAULT_SUGGESTIONS
+                            },
                             items = listOf(
                                 ChatItem.Message(
                                     text = "Hi! I'm your in-app journal assistant. I can search your past " +

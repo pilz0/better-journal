@@ -76,8 +76,7 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
         val BACKUP_PASSWORD_SEALED = stringPreferencesKey("backup_password_sealed")
         val LAST_BACKUP_TIME = longPreferencesKey("last_backup_time")
 
-        val AI_API_KEY = stringPreferencesKey("ai_api_key")
-        val AI_MODEL_NAME = stringPreferencesKey("ai_model_name")
+        // Provider profiles and their keys are kept by AiProfileStore.
         val AI_ASSISTANT_ENABLED = booleanPreferencesKey("ai_assistant_enabled")
 
         val WEBHOOK_USE_FREAKQUERY = booleanPreferencesKey("webhook_use_freakquery")
@@ -364,28 +363,6 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
     suspend fun saveHapticFeedbackEnabled(value: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.KEY_HAPTIC_FEEDBACK_ENABLED] = value
-        }
-    }
-
-    val aiApiKeyFlow: Flow<String> = dataStore.data
-        .map { preferences ->
-            preferences[PreferencesKeys.AI_API_KEY] ?: ""
-        }
-
-    suspend fun saveAiApiKey(value: String) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.AI_API_KEY] = value
-        }
-    }
-
-    val aiModelNameFlow: Flow<String> = dataStore.data
-        .map { preferences ->
-            preferences[PreferencesKeys.AI_MODEL_NAME] ?: "gemini-2.5-flash"
-        }
-
-    suspend fun saveAiModelName(value: String) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.AI_MODEL_NAME] = value
         }
     }
 

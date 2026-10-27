@@ -7,6 +7,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,14 +30,21 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -66,17 +74,21 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import dev.jeziellago.compose.markdowntext.MarkdownText
+import foo.pilz.freaklog.data.ai.AiChatUiState
 import foo.pilz.freaklog.data.ai.AiChatViewModel
 import foo.pilz.freaklog.data.ai.ChatItem
+import foo.pilz.freaklog.data.ai.profiles.AiProfile
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AiChatBottomSheet(
     experienceId: Int?,
     onDismiss: () -> Unit,
+    onOpenSettings: () -> Unit,
     viewModel: AiChatViewModel = hiltViewModel()
 ) {
     LaunchedEffect(experienceId) {
@@ -96,14 +108,15 @@ fun AiChatBottomSheet(
                 .padding(horizontal = 16.dp)
         ) {
             Header(
-                modelName = uiState.modelName,
-                statusMessage = uiState.statusMessage,
-                onClearChat = { viewModel.clearChat() }
+                uiState = uiState,
+                onClearChat = { viewModel.clearChat() },
+                onSwitchProfile = { viewModel.switchProfile(it) },
+                onOpenSettings = onOpenSettings
             )
 
             when {
-                uiState.isApiKeyMissing -> ApiKeyMissingState()
-                uiState.isAssistantDisabled -> AssistantDisabledState()
+                uiState.setupMessage != null -> SetupNeededState(uiState.setupMessage!!, onOpenSettings)
+                uiState.isAssistantDisabled -> AssistantDisabledState(onOpenSettings)
                 uiState.isContextLoading -> {
                     LinearProgressIndicator(
                         modifier = Modifier
@@ -148,10 +161,13 @@ fun AiChatBottomSheet(
 
 @Composable
 private fun Header(
-    modelName: String?,
-    statusMessage: String?,
-    onClearChat: () -> Unit
+    uiState: AiChatUiState,
+    onClearChat: () -> Unit,
+    onSwitchProfile: (String) -> Unit,
+    onOpenSettings: () -> Unit
 ) {
+    var pendingSwitch by remember { mutableStateOf<AiProfile?>(null) }
+    val hasConversation = uiState.items.any { it is ChatItem.Message && it.isUser }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -160,23 +176,31 @@ private fun Header(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = "AI Journal Assistant",
+                text = "AI assistant",
                 style = MaterialTheme.typography.titleLarge
             )
-            val subtitle = when {
-                statusMessage != null -> statusMessage
-                modelName != null -> "Model: $modelName"
-                else -> null
-            }
+            ProfileSwitcher(
+                profiles = uiState.profiles,
+                activeProfileId = uiState.activeProfileId,
+                modelName = uiState.modelName,
+                enabled = !uiState.isAssistantBusy,
+                onPick = { profile ->
+                    if (hasConversation) pendingSwitch = profile else onSwitchProfile(profile.id)
+                },
+                onManage = onOpenSettings
+            )
+            val subtitle = uiState.statusMessage ?: uiState.contextLabel
             if (subtitle != null) {
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
-        TextButton(onClick = onClearChat) {
+        TextButton(onClick = onClearChat, enabled = uiState.setupMessage == null) {
             Icon(
                 Icons.Filled.Refresh,
                 contentDescription = null,
@@ -186,10 +210,103 @@ private fun Header(
             Text("New chat")
         }
     }
+    pendingSwitch?.let { profile ->
+        AlertDialog(
+            onDismissRequest = { pendingSwitch = null },
+            title = { Text("Switch to ${profile.name}?") },
+            text = { Text("This starts a new chat. The current conversation will be cleared.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    pendingSwitch = null
+                    onSwitchProfile(profile.id)
+                }) { Text("Switch") }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingSwitch = null }) { Text("Cancel") }
+            }
+        )
+    }
+}
+
+/** Shows the active profile and model; tapping it lists the other saved profiles. */
+@Composable
+private fun ProfileSwitcher(
+    profiles: List<AiProfile>,
+    activeProfileId: String?,
+    modelName: String?,
+    enabled: Boolean,
+    onPick: (AiProfile) -> Unit,
+    onManage: () -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val active = profiles.firstOrNull { it.id == activeProfileId }
+    val label = when {
+        active == null -> "No provider"
+        modelName != null -> "${active.name} · $modelName"
+        else -> "${active.name} · ${active.model.ifBlank { "no model" }}"
+    }
+    Box {
+        Row(
+            modifier = Modifier
+                .clickable(enabled = enabled) { expanded = true }
+                .padding(vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false)
+            )
+            Icon(
+                Icons.Filled.ArrowDropDown,
+                contentDescription = "Switch AI provider",
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            profiles.forEach { profile ->
+                DropdownMenuItem(
+                    text = {
+                        Column {
+                            Text(profile.name)
+                            Text(
+                                text = profile.model.ifBlank { "no model chosen" },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    },
+                    leadingIcon = {
+                        if (profile.id == activeProfileId) {
+                            Icon(Icons.Filled.Check, contentDescription = "Active")
+                        } else {
+                            Spacer(Modifier.size(24.dp))
+                        }
+                    },
+                    onClick = {
+                        expanded = false
+                        if (profile.id != activeProfileId) onPick(profile)
+                    }
+                )
+            }
+            if (profiles.isNotEmpty()) HorizontalDivider()
+            DropdownMenuItem(
+                text = { Text("Manage providers…") },
+                leadingIcon = { Icon(Icons.Outlined.Settings, contentDescription = null) },
+                onClick = {
+                    expanded = false
+                    onManage()
+                }
+            )
+        }
+    }
 }
 
 @Composable
-private fun AssistantDisabledState() {
+private fun AssistantDisabledState(onOpenSettings: () -> Unit) {
     Column(modifier = Modifier.padding(vertical = 16.dp)) {
         Text(
             text = "AI assistant is disabled.",
@@ -197,27 +314,33 @@ private fun AssistantDisabledState() {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
-            text = "Enable it in Settings → AI assistant to start a chat session.",
+            text = "Turn it on in Settings → AI assistant to start a chat.",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(top = 4.dp)
         )
+        Button(onClick = onOpenSettings, modifier = Modifier.padding(top = 12.dp)) {
+            Text("Open AI settings")
+        }
     }
 }
 
 @Composable
-private fun ApiKeyMissingState() {
+private fun SetupNeededState(message: String, onOpenSettings: () -> Unit) {
     Column(modifier = Modifier.padding(vertical = 16.dp)) {
         Text(
-            text = "Gemini API key is missing.",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.error
+            text = message,
+            style = MaterialTheme.typography.titleMedium
         )
         Text(
-            text = "Open Settings → AI Chatbot to paste your Google AI Studio API key. " +
-                "The default model is gemini-2.5-flash; you can change it in the same place.",
+            text = "The assistant works with Gemini, OpenAI, Anthropic, OpenRouter and other providers, " +
+                "or with your own Ollama, LM Studio or other compatible server.",
             style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 4.dp)
         )
+        Button(onClick = onOpenSettings, modifier = Modifier.padding(top = 12.dp)) {
+            Text("Open AI settings")
+        }
     }
 }
 

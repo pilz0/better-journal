@@ -1,40 +1,54 @@
 package foo.pilz.freaklog.data.ai
 
 import android.util.Log
+import foo.pilz.freaklog.data.ai.profiles.AiProfile
+import foo.pilz.freaklog.data.ai.profiles.AiProfileStore
+import foo.pilz.freaklog.data.ai.profiles.aiClientFor
 import foo.pilz.freaklog.data.ai.provider.AiConversation
 import foo.pilz.freaklog.data.ai.provider.AiEndpoint
-import foo.pilz.freaklog.data.ai.provider.GeminiClient
 import foo.pilz.freaklog.data.room.experiences.ExperienceDao
+import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsCompanionsAndRatings
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import kotlinx.coroutines.flow.firstOrNull
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
 sealed interface AiChatSessionResult {
-    data class Ready(val conversation: AiConversation, val modelName: String) : AiChatSessionResult
+    /** [contextLabel] tells the user what the assistant already knows about. */
+    data class Ready(
+        val conversation: AiConversation,
+        val profile: AiProfile,
+        val contextLabel: String,
+    ) : AiChatSessionResult
+
     data object Disabled : AiChatSessionResult
-    data object MissingApiKey : AiChatSessionResult
+
+    /** Something is missing in Settings → AI assistant. */
+    data class NeedsSetup(val message: String) : AiChatSessionResult
     data class Failed(val message: String) : AiChatSessionResult
 }
 
 /**
- * Builds [AiConversation]s configured with a journal-aware system instruction and the
- * function-calling tools the model may invoke.
+ * Builds [AiConversation]s for the active provider profile, configured with a journal-aware
+ * system instruction and the function-calling tools the model may invoke.
  *
  * A fresh conversation is created on every call to [createChatSession] so that settings
- * changes (API key, model name) are picked up immediately.
+ * changes (profile, API key, model) are picked up immediately.
  */
 @Singleton
 class AiChatbotRepository @Inject constructor(
     private val experienceDao: ExperienceDao,
     private val userPreferences: UserPreferences,
     private val tools: AiTools,
+    private val profileStore: AiProfileStore,
 ) {
     companion object {
-        const val DEFAULT_MODEL_NAME = "gemini-2.5-flash"
-        const val GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
-        const val DEFAULT_MAX_OUTPUT_TOKENS = 16_000
         private const val TAG = "AiChatbotRepository"
+        private val NOW_FORMATTER = DateTimeFormatter.ofPattern("EEEE yyyy-MM-dd HH:mm", Locale.US)
     }
 
     suspend fun createChatSession(experienceId: Int?): AiChatSessionResult {
@@ -43,37 +57,46 @@ class AiChatbotRepository @Inject constructor(
             Log.d(TAG, "AI assistant is disabled – skipping session creation")
             return AiChatSessionResult.Disabled
         }
-
-        val apiKey = userPreferences.aiApiKeyFlow.firstOrNull().orEmpty()
-        if (apiKey.isBlank()) {
-            Log.w(TAG, "API key is empty – cannot create chat session")
-            return AiChatSessionResult.MissingApiKey
+        profileStore.migrateLegacySettings()
+        val profile = profileStore.activeProfile()
+            ?: return AiChatSessionResult.NeedsSetup("Add an AI provider to start chatting.")
+        val apiKey = profileStore.apiKey(profile.id)
+        if (profile.preset.requiresApiKey && apiKey.isBlank()) {
+            return AiChatSessionResult.NeedsSetup("The profile \"${profile.name}\" has no API key.")
+        }
+        if (profile.model.isBlank()) {
+            return AiChatSessionResult.NeedsSetup("Choose a model for the profile \"${profile.name}\".")
+        }
+        if (profile.baseUrl.isBlank()) {
+            return AiChatSessionResult.NeedsSetup("Enter the server address for \"${profile.name}\".")
         }
 
-        val configuredName = userPreferences.aiModelNameFlow.firstOrNull().orEmpty()
-        val modelName = configuredName.ifBlank { DEFAULT_MODEL_NAME }
-
         return try {
+            val context = loadContext(experienceId)
             val conversation = AiConversation(
-                client = GeminiClient(AiEndpoint(GEMINI_BASE_URL, apiKey)),
-                model = modelName,
-                system = buildSystemInstructionText(experienceId),
+                client = aiClientFor(profile.standard, AiEndpoint(profile.baseUrl, apiKey)),
+                model = profile.model,
+                system = buildSystemInstructionText(context),
                 tools = tools.specs,
-                maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS,
+                maxOutputTokens = profile.maxOutputTokens,
                 executeTool = { call -> tools.execute(call.name, call.args) },
             )
-            AiChatSessionResult.Ready(conversation, modelName)
+            val label = context?.experience?.title?.let { "This experience: $it" } ?: "Whole journal"
+            AiChatSessionResult.Ready(conversation, profile, label)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to initialise chat session: ${e.message}", e)
             AiChatSessionResult.Failed(e.message ?: e::class.java.simpleName)
         }
     }
 
+    private suspend fun loadContext(experienceId: Int?) =
+        experienceId?.let { experienceDao.getExperienceWithIngestionsCompanionsAndRatings(it) }
+
     // -----------------------------------------------------------------------------------------
     // System instruction
     // -----------------------------------------------------------------------------------------
 
-    private suspend fun buildSystemInstructionText(experienceId: Int?): String {
+    private fun buildSystemInstructionText(current: ExperienceWithIngestionsCompanionsAndRatings?): String {
         val sb = StringBuilder()
         sb.append(
             "You are the in-app assistant for FreakLog, a personal substance journal. " +
@@ -87,34 +110,37 @@ class AiChatbotRepository @Inject constructor(
                 "experience titles you found when summarising past sessions. Use Markdown for formatting " +
                 "(headings, lists, **bold**). Be concise.\n\n"
         )
-        if (experienceId != null) {
-            val current = experienceDao.getExperienceWithIngestionsCompanionsAndRatings(experienceId)
-            if (current != null) {
-                sb.append("## Current session\n")
-                sb.append("- Title: ${current.experience.title}\n")
-                sb.append("- Date: ${AI_DATE_FORMATTER.format(current.experience.sortDate)}\n")
-                sb.append("- Experience id (for tools): ${current.experience.id}\n")
-                if (current.ingestionsWithCompanions.isEmpty()) {
-                    sb.append("- No ingestions logged in this session yet.\n")
-                } else {
-                    sb.append("- Ingestions:\n")
-                    current.ingestionsWithCompanions
-                        .sortedBy { it.ingestion.time }
-                        .forEach { ic ->
-                            val ing = ic.ingestion
-                            val dose =
-                                ing.dose?.let { "$it ${ing.units.orEmpty()}".trim() } ?: "unknown dose"
-                            sb.append(
-                                "    - ${AI_DATE_FORMATTER.format(ing.time)} • ${ing.substanceName}" +
-                                    " • $dose • ${ing.administrationRoute.name}\n"
-                            )
-                        }
-                }
-                if (current.experience.text.isNotBlank()) {
-                    sb.append("- Notes excerpt: ${current.experience.text.take(400)}\n")
-                }
-                sb.append('\n')
+        val now = ZonedDateTime.now(ZoneId.systemDefault())
+        sb.append("Current local time: ${NOW_FORMATTER.format(now)} (${now.zone.id}).\n\n")
+        if (current == null) {
+            sb.append(
+                "The user opened you from the journal overview, not from a specific experience. " +
+                    "Use the tools to find the sessions they mean.\n\n"
+            )
+        } else {
+            sb.append("## Current session\n")
+            sb.append("- Title: ${current.experience.title}\n")
+            sb.append("- Date: ${AI_DATE_FORMATTER.format(current.experience.sortDate)}\n")
+            sb.append("- Experience id (for tools): ${current.experience.id}\n")
+            if (current.ingestionsWithCompanions.isEmpty()) {
+                sb.append("- No ingestions logged in this session yet.\n")
+            } else {
+                sb.append("- Ingestions:\n")
+                current.ingestionsWithCompanions
+                    .sortedBy { it.ingestion.time }
+                    .forEach { ic ->
+                        val ing = ic.ingestion
+                        val dose = ing.dose?.let { "$it ${ing.units.orEmpty()}".trim() } ?: "unknown dose"
+                        sb.append(
+                            "    - ${AI_DATE_FORMATTER.format(ing.time)} • ${ing.substanceName}" +
+                                " • $dose • ${ing.administrationRoute.name}\n"
+                        )
+                    }
             }
+            if (current.experience.text.isNotBlank()) {
+                sb.append("- Notes excerpt: ${current.experience.text.take(400)}\n")
+            }
+            sb.append('\n')
         }
         sb.append(
             "When the user asks about anything beyond what is summarised above (older experiences, " +
