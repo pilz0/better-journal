@@ -59,6 +59,9 @@ fun NavGraphBuilder.journalGraph(navController: NavHostController) {
                 },
                 navigateToAllIngestions = {
                     navController.navigate(AllIngestionsRoute)
+                },
+                navigateToAiSettings = {
+                    navController.navigate(AiAssistantSettingsRoute)
                 }
             )
         }

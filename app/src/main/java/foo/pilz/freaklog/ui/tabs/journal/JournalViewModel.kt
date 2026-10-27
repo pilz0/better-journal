@@ -149,6 +149,9 @@ class JournalViewModel @Inject constructor(
 
     val isFavoriteEnabledFlow = MutableStateFlow(false)
 
+    val isAiAssistantEnabledFlow = userPreferences.aiAssistantEnabledFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     fun onChangeFavorite(isFavorite: Boolean) {
         viewModelScope.launch {
             isFavoriteEnabledFlow.emit(isFavorite)
