@@ -23,6 +23,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import foo.pilz.freaklog.data.room.experiences.entities.Spray
 import kotlinx.coroutines.flow.Flow
@@ -45,6 +46,12 @@ interface SprayDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(spray: Spray): Long
 
+    @Transaction
+    suspend fun insertWithPreferred(spray: Spray): Long {
+        if (spray.isPreferred) clearAllPreferred()
+        return insert(spray)
+    }
+
     @Update
     suspend fun update(spray: Spray)
 
@@ -56,6 +63,12 @@ interface SprayDao {
 
     @Query("UPDATE spray SET isPreferred = 1 WHERE id = :id")
     suspend fun setPreferred(id: Int)
+
+    @Transaction
+    suspend fun setPreferredAtomic(id: Int) {
+        clearAllPreferred()
+        setPreferred(id)
+    }
 
     @Query("DELETE FROM spray")
     suspend fun deleteAll()
