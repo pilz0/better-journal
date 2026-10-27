@@ -40,6 +40,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -251,14 +252,16 @@ private fun SearchSection(
             expanded = expanded && suggestions.isNotEmpty(),
             onDismissRequest = { expanded = false }
         ) {
-            suggestions.forEach { name ->
-                DropdownMenuItem(
-                    text = { Text(name) },
-                    onClick = {
-                        expanded = false
-                        onSelectSubstance(name)
-                    }
-                )
+            suggestions.forEach { suggestion ->
+                key(suggestion) {
+                    DropdownMenuItem(
+                        text = { Text(suggestion) },
+                        onClick = {
+                            expanded = false
+                            onSelectSubstance(suggestion)
+                        }
+                    )
+                }
             }
         }
     }

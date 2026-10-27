@@ -35,13 +35,15 @@ class ToleranceViewModel @Inject constructor(
     var searchText by mutableStateOf("")
         private set
 
+    private val allSubstanceNames by lazy { substanceRepo.getAllSubstances().map { it.name } }
+
     val searchSuggestions: List<String> get() {
         if (searchText.isBlank()) return emptyList()
         val lower = searchText.lowercase()
-        return substanceRepo.getAllSubstances()
-            .map { it.name }
-            .filter { it.lowercase().contains(lower) }
+        return allSubstanceNames.asSequence()
+            .filter { it.contains(lower, ignoreCase = true) }
             .take(5)
+            .toList()
     }
 
     init {
