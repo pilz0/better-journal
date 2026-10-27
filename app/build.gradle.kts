@@ -107,6 +107,10 @@ tasks.withType<Test>().configureEach {
     // Send Robolectric's internal log output to stdout so failures show
     // diagnostic context in the test report instead of being swallowed.
     systemProperty("robolectric.logging", "stdout")
+    // The JDK's HttpURLConnection rejects PATCH; WebhookService then sets the
+    // protected `method` field reflectively, which JDK 17 only allows when
+    // java.net is opened to the unnamed module.
+    jvmArgs("--add-opens", "java.base/java.net=ALL-UNNAMED")
 
     testLogging {
         events("failed", "skipped")

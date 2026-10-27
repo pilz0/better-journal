@@ -42,14 +42,16 @@ import java.util.concurrent.TimeUnit
  *
  *  * [sendWebhook_returnsMessageIdFromWaitTrueResponse] — the value the fix
  *    now stores in `Ingestion.webhookMessageId`.
+ *  * [editWebhook_issuesPatchOnMessagesIdEndpointWithRenderedContent] — what
+ *    runs when an ingestion with a stored message id is edited.
  *  * [deleteWebhookMessage_issuesDeleteOnMessagesIdEndpointAndReturnsTrueOn204]
  *    — what runs once a message id is stored.
  *
- * `editWebhook` is intentionally NOT covered here: it issues a `PATCH`, which
- * the JDK's `HttpURLConnection.setRequestMethod` rejects with a
- * `ProtocolException`. Android's okhttp-backed `HttpURLConnection` does accept
- * `PATCH`, so the production code is correct on-device but cannot be exercised
- * from a plain JVM unit test without an HTTP-client refactor.
+ * `editWebhook` issues a `PATCH`, which the JDK's
+ * `HttpURLConnection.setRequestMethod` rejects with a `ProtocolException`
+ * (Android's okhttp-backed implementation accepts it). [WebhookService] then
+ * sets the method reflectively, which works here because the Gradle test task
+ * opens `java.base/java.net` to the unnamed module.
  */
 class WebhookServiceHttpTest {
 
@@ -424,6 +426,97 @@ class WebhookServiceHttpTest {
 
         val payload = JSONObject(takeRequest().body.readUtf8())
         assertEquals("done", payload.getString("content"))
+    }
+
+    // ---------------------------------------------------------------------
+    // editWebhook
+    // ---------------------------------------------------------------------
+
+    @Test
+    fun editWebhook_issuesPatchOnMessagesIdEndpointWithRenderedContent() = runBlocking {
+        enqueue(200, """{"id":"777","content":"edited"}""")
+
+        val result = service.editWebhook(
+            url = baseUrl,
+            messageId = "777",
+            user = "Alice",
+            substance = "Caffeine",
+            dose = 50.0,
+            units = "mg",
+            isEstimate = false,
+            route = "oral",
+            site = null,
+            note = null,
+            template = "{user}: {dose} {units} {substance} via {route}",
+            isHyperlinked = false,
+        )
+
+        assertTrue("expected success, got $result", result.success)
+        assertNull(result.error)
+        // Edits don't parse the response: the caller keeps its stored id.
+        assertNull(result.messageId)
+
+        val req = takeRequest()
+        assertEquals("PATCH", req.method)
+        // No `wait=true` here: Discord always returns the edited message.
+        assertEquals("/webhooks/abc/token/messages/777", req.path)
+        assertNull(req.getHeader("X-HTTP-Method-Override"))
+        assertEquals("application/json", req.getHeader("Content-Type"))
+        val payload = JSONObject(req.body.readUtf8())
+        assertEquals("Alice: 50 mg Caffeine via oral", payload.getString("content"))
+    }
+
+    @Test
+    fun editWebhook_stripsSingleTrailingSlashBeforeAppendingPath() = runBlocking {
+        enqueue(200, """{"id":"777"}""")
+
+        val result = service.editWebhook(
+            url = "$baseUrl/", messageId = "777",
+            user = "u", substance = "s", dose = null, units = null,
+            isEstimate = false, route = "r", site = null, note = null,
+            template = "{user}", isHyperlinked = false,
+        )
+
+        assertTrue(result.success)
+        assertEquals("/webhooks/abc/token/messages/777", takeRequest().path)
+    }
+
+    @Test
+    fun editWebhook_retriesOn500AndSucceedsOnLaterAttempt() = runBlocking {
+        enqueue(500, "boom")
+        enqueue(200, """{"id":"777"}""")
+
+        val result = service.editWebhook(
+            url = baseUrl, messageId = "777",
+            user = "u", substance = "s", dose = null, units = null,
+            isEstimate = false, route = "r", site = null, note = null,
+            template = "{user}", isHyperlinked = false,
+        )
+
+        assertTrue(result.success)
+        assertEquals(2, server.requestCount)
+        assertEquals("PATCH", takeRequest().method)
+        assertEquals("PATCH", takeRequest().method)
+    }
+
+    @Test
+    fun editWebhook_returnsFailureWithErrorBodyWhenMessageIsMissing() = runBlocking {
+        repeat(3) { enqueue(404, """{"message":"Unknown Message","code":10008}""") }
+
+        val result = service.editWebhook(
+            url = baseUrl, messageId = "missing",
+            user = "u", substance = "s", dose = null, units = null,
+            isEstimate = false, route = "r", site = null, note = null,
+            template = "{user}", isHyperlinked = false,
+        )
+
+        assertFalse(result.success)
+        assertNull(result.messageId)
+        assertEquals(
+            """HTTP error code 404: {"message":"Unknown Message","code":10008}""",
+            result.error?.message,
+        )
+        assertEquals(3, server.requestCount)
     }
 
     // ---------------------------------------------------------------------
