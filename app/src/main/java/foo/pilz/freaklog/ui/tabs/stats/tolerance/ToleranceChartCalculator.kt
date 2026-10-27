@@ -27,6 +27,9 @@ import java.time.ZoneId
 
 object ToleranceChartCalculator {
 
+    private val weeksPattern = Regex("""(\d+)(?:-(\d+))?\s*weeks?""", RegexOption.IGNORE_CASE)
+    private val daysPattern = Regex("""(\d+)(?:-(\d+))?\s*days?""", RegexOption.IGNORE_CASE)
+
     fun getToleranceWindows(
         substanceAndDays: List<SubstanceAndDay>,
         substanceCompanions: List<SubstanceCompanion>,
@@ -85,14 +88,16 @@ object ToleranceChartCalculator {
 
             if (zeroToleranceHours != null && zeroToleranceHours > 24) {
                 val startOfZeroTolerance = pair.day.plus(Duration.ofHours(zeroToleranceHours.toLong()))
-                result.add(
-                    SubstanceInterval(
-                        substanceName = pair.substanceName,
-                        start = startOfHalfTolerance,
-                        end = startOfZeroTolerance,
-                        toleranceType = ToleranceType.HALF
+                if (startOfZeroTolerance > startOfHalfTolerance) {
+                    result.add(
+                        SubstanceInterval(
+                            substanceName = pair.substanceName,
+                            start = startOfHalfTolerance,
+                            end = startOfZeroTolerance,
+                            toleranceType = ToleranceType.HALF
+                        )
                     )
-                )
+                }
             }
 
             result
@@ -103,14 +108,14 @@ object ToleranceChartCalculator {
         if (toleranceString == null) return null
         
         // Try to parse patterns like "1-2 weeks", "3-4 days", "2 weeks", etc.
-        val weeksMatch = Regex("(\\d+)(?:-(\\d+))?\\s*weeks?", RegexOption.IGNORE_CASE).find(toleranceString)
+        val weeksMatch = weeksPattern.find(toleranceString)
         if (weeksMatch != null) {
             val min = weeksMatch.groupValues[1].toDoubleOrNull() ?: return null
             val max = weeksMatch.groupValues[2].toDoubleOrNull() ?: min
             return ((min + max) / 2) * 7 * 24
         }
 
-        val daysMatch = Regex("(\\d+)(?:-(\\d+))?\\s*days?", RegexOption.IGNORE_CASE).find(toleranceString)
+        val daysMatch = daysPattern.find(toleranceString)
         if (daysMatch != null) {
             val min = daysMatch.groupValues[1].toDoubleOrNull() ?: return null
             val max = daysMatch.groupValues[2].toDoubleOrNull() ?: min
