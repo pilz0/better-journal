@@ -403,6 +403,7 @@ interface ExperienceDao {
     suspend fun deleteEverything() {
         deleteAllIngestions()
         deleteAllTimedNotes()
+        deleteAllBloodPressureReadings()
         deleteAllExperiences()
         deleteAllSubstanceCompanions()
         deleteAllCustomSubstances()
@@ -417,6 +418,7 @@ interface ExperienceDao {
         deleteIngestions(experienceId)
         deleteRatings(experienceId)
         deleteTimedNotes(experienceId)
+        deleteBloodPressureReadings(experienceId)
         deleteExperience(experienceId)
     }
 
@@ -430,6 +432,10 @@ interface ExperienceDao {
     suspend fun deleteAllTimedNotes()
 
     @Transaction
+    @Query("DELETE FROM bloodpressurereading")
+    suspend fun deleteAllBloodPressureReadings()
+
+    @Transaction
     @Query("DELETE FROM ingestion WHERE experienceId = :experienceId")
     suspend fun deleteIngestions(experienceId: Int)
 
@@ -440,6 +446,10 @@ interface ExperienceDao {
     @Transaction
     @Query("DELETE FROM timedNote WHERE experienceId = :experienceId")
     suspend fun deleteTimedNotes(experienceId: Int)
+
+    @Transaction
+    @Query("DELETE FROM bloodpressurereading WHERE experienceId = :experienceId")
+    suspend fun deleteBloodPressureReadings(experienceId: Int)
 
     @Transaction
     @Query("DELETE FROM experience WHERE id = :experienceId")

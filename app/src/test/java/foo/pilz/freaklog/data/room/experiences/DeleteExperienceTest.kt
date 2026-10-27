@@ -14,12 +14,14 @@ import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import assertk.assertThat
+import assertk.assertions.containsExactly
 import assertk.assertions.hasSize
 import assertk.assertions.isEmpty
 import assertk.assertions.isNotNull
 import assertk.assertions.isNull
 import foo.pilz.freaklog.data.room.AppDatabase
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
+import foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading
 import foo.pilz.freaklog.data.room.experiences.entities.ShulginRating
 import foo.pilz.freaklog.data.room.experiences.entities.ShulginRatingOption
 import foo.pilz.freaklog.data.room.experiences.entities.TimedNote
@@ -59,6 +61,14 @@ class DeleteExperienceTest {
         val id = dao.insert(EntityBuilders.experience(title = title)).toInt()
         dao.insert(EntityBuilders.ingestion(experienceId = id))
         dao.insert(
+            BloodPressureReading(
+                experienceId = id,
+                time = EntityBuilders.FIXED_INSTANT,
+                systolic = 120,
+                diastolic = 80,
+            )
+        )
+        dao.insert(
             ShulginRating(
                 time = EntityBuilders.FIXED_INSTANT,
                 option = ShulginRatingOption.PLUS,
@@ -93,5 +103,33 @@ class DeleteExperienceTest {
         assertThat(dao.getIngestionsWithCompanionsFlow(keptId).first()).hasSize(1)
         assertThat(dao.getRatingsFlow(keptId).first()).hasSize(1)
         assertThat(dao.getTimedNotes(keptId)).hasSize(1)
+    }
+
+    @Test
+    fun `deleteEverythingOfExperience removes only its blood pressure readings without cascades`() = runTest {
+        db.openHelper.writableDatabase.setForeignKeyConstraintsEnabled(false)
+        val deletedId = insertExperienceWithChildren("deleted")
+        val keptId = insertExperienceWithChildren("kept")
+        assertThat(dao.getAllBloodPressureReadings()).hasSize(2)
+
+        dao.deleteEverythingOfExperience(deletedId)
+
+        assertThat(dao.getExperience(deletedId)).isNull()
+        assertThat(dao.getExperience(keptId)).isNotNull()
+        assertThat(dao.getAllBloodPressureReadings().map { it.experienceId }).containsExactly(keptId)
+    }
+
+    @Test
+    fun `deleteEverything removes all blood pressure readings without cascades`() = runTest {
+        db.openHelper.writableDatabase.setForeignKeyConstraintsEnabled(false)
+        val firstId = insertExperienceWithChildren("first")
+        val secondId = insertExperienceWithChildren("second")
+        assertThat(dao.getAllBloodPressureReadings()).hasSize(2)
+
+        dao.deleteEverything()
+
+        assertThat(dao.getExperience(firstId)).isNull()
+        assertThat(dao.getExperience(secondId)).isNull()
+        assertThat(dao.getAllBloodPressureReadings()).isEmpty()
     }
 }
