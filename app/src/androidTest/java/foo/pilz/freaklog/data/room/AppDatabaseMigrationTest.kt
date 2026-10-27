@@ -24,7 +24,7 @@ import org.junit.runner.RunWith
 /**
  * Room database migration tests.
  *
- * Every `AutoMigration` registered in [AppDatabase] should be exercised here:
+ * Every migration registered in [AppDatabase] should be exercised here:
  *
  *   1. We create a database at the source schema version.
  *   2. We close it and re-open it at the target version, asking Room to apply
@@ -59,6 +59,7 @@ class AppDatabaseMigrationTest {
                 TEST_DB,
                 to,
                 /* validateDroppedTables = */ true,
+                AppDatabase.MIGRATION_21_22,
             ).close()
         }
     }
@@ -156,13 +157,78 @@ class AppDatabaseMigrationTest {
         db.close()
     }
 
+    @Test
+    fun migrate_v16_reminder_preserves_legacy_interval_and_user_fields() {
+        helper.createDatabase(TEST_DB, 16).use { db ->
+            db.execSQL(
+                "INSERT INTO reminder (id, title, hour, minute, isEnabled, intervalValue, intervalUnit)" +
+                    " VALUES (42, 'Legacy reminder', 9, 15, 1, 6, 'HOURS')"
+            )
+        }
+        helper.runMigrationsAndValidate(
+            TEST_DB, AppDatabase.LATEST_SCHEMA_VERSION, true, AppDatabase.MIGRATION_21_22,
+        ).use { db ->
+            db.query("SELECT * FROM reminder WHERE id = 42").use { cursor ->
+                check(cursor.moveToFirst())
+                assertEquals("Legacy reminder", cursor.getString(cursor.getColumnIndexOrThrow("title")))
+                assertEquals("INTERVAL", cursor.getString(cursor.getColumnIndexOrThrow("scheduleType")))
+                assertEquals(9, cursor.getInt(cursor.getColumnIndexOrThrow("hour")))
+                assertEquals(15, cursor.getInt(cursor.getColumnIndexOrThrow("minute")))
+                assertEquals(1, cursor.getInt(cursor.getColumnIndexOrThrow("isEnabled")))
+                assertEquals(6, cursor.getInt(cursor.getColumnIndexOrThrow("intervalValue")))
+                assertEquals("HOURS", cursor.getString(cursor.getColumnIndexOrThrow("intervalUnit")))
+            }
+        }
+    }
+
+    @Test
+    fun change_log_records_update_delete_and_keeps_only_latest_thousand_events() {
+        helper.createDatabase(TEST_DB, 21).close()
+        helper.runMigrationsAndValidate(TEST_DB, 22, true, AppDatabase.MIGRATION_21_22).use { db ->
+            db.execSQL("INSERT INTO Experience (id, title, text, creationDate, sortDate, isFavorite) VALUES (1, 'test', '', 0, 0, 0)")
+            db.execSQL(
+                "INSERT INTO Ingestion (id, substanceName, time, administrationRoute, dose, isDoseAnEstimate, experienceId)" +
+                    " VALUES (7, 'Test', 0, 'ORAL', 1.0, 0, 1)"
+            )
+            db.execSQL("UPDATE Ingestion SET dose = 2.0 WHERE id = 7")
+            db.execSQL("DELETE FROM Ingestion WHERE id = 7")
+            db.query("SELECT ingestion_id, op FROM ingestion_change_log ORDER BY seq").use { cursor ->
+                for (op in listOf("INSERT", "UPDATE", "DELETE")) {
+                    check(cursor.moveToNext())
+                    assertEquals(7, cursor.getInt(0))
+                    assertEquals(op, cursor.getString(1))
+                }
+                assertEquals(3, cursor.count)
+            }
+
+            db.beginTransaction()
+            try {
+                repeat(1005) {
+                    db.execSQL(
+                        "INSERT INTO ingestion_change_log (ingestion_id, op, changed_at) VALUES (?, 'INSERT', 0)",
+                        arrayOf<Any>(it),
+                    )
+                }
+                db.setTransactionSuccessful()
+            } finally {
+                db.endTransaction()
+            }
+            db.query("SELECT COUNT(*), MIN(ingestion_id), MAX(ingestion_id) FROM ingestion_change_log").use { cursor ->
+                check(cursor.moveToFirst())
+                assertEquals(1000, cursor.getInt(0))
+                assertEquals(5, cursor.getInt(1))
+                assertEquals(1004, cursor.getInt(2))
+            }
+        }
+    }
+
     companion object {
         private const val TEST_DB = "migration-test.db"
 
         /**
-         * Every consecutive pair of schema versions for which an
-         * `AutoMigration` is registered. Keep in sync with the
-         * `autoMigrations = [...]` block in [AppDatabase].
+         * Every consecutive pair of schema versions with a registered migration.
+         * Keep in sync with both the auto-migration list and the manual
+         * [AppDatabase.MIGRATION_21_22] step.
          *
          * Schema 13 was skipped, hence the (12, 14) pair.
          */
