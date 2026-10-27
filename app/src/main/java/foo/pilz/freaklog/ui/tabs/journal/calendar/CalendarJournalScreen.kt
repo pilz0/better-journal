@@ -171,7 +171,7 @@ fun SheetContent(
     dismissSheet: () -> Unit
 ) {
     LazyColumn {
-        items(experienceIds) { experienceId ->
+        items(experienceIds, key = { it }) { experienceId ->
             ExperienceRowWithFetch(
                 experienceId = experienceId,
                 navigateToExperiencePopNothing,

@@ -181,7 +181,7 @@ fun AllIngestionsScreenContent(
                         item {
                             SectionHeader(date = section.date)
                         }
-                        items(section.ingestions) { ingestionWithCompanion ->
+                        items(section.ingestions, key = { it.ingestion.id }) { ingestionWithCompanion ->
                             IngestionItem(
                                 ingestionWithCompanion = ingestionWithCompanion,
                                 isTimeRelative = isTimeRelative,

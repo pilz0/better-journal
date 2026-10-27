@@ -72,7 +72,7 @@ fun AchievementsScreen(
             contentPadding = PaddingValues(vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(unlocked) { achievement ->
+            items(unlocked, key = { it.def.id }) { achievement ->
                 AchievementCard(
                     title = achievement.def.title,
                     description = achievement.def.description,
@@ -95,7 +95,7 @@ fun AchievementsScreen(
                     )
                 }
 
-                items(locked) { achievement ->
+                items(locked, key = { it.def.id }) { achievement ->
                     AchievementCard(
                         title = achievement.def.title,
                         description = achievement.def.description,
