@@ -216,26 +216,6 @@ class SettingsViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000)
     )
 
-    val aiApiKeyFlow = userPreferences.aiApiKeyFlow.stateIn(
-        initialValue = "",
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
-
-    fun saveAiApiKey(value: String) = viewModelScope.launch {
-        userPreferences.saveAiApiKey(value)
-    }
-
-    val aiModelNameFlow = userPreferences.aiModelNameFlow.stateIn(
-        initialValue = "gemini-1.5-flash",
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
-
-    fun saveAiModelName(value: String) = viewModelScope.launch {
-        userPreferences.saveAiModelName(value)
-    }
-
     val aiAssistantEnabledFlow = userPreferences.aiAssistantEnabledFlow.stateIn(
         initialValue = false,
         scope = viewModelScope,

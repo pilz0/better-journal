@@ -146,6 +146,7 @@ fun ExperienceScreen(
     navigateToTimelineScreen: (consumerName: String) -> Unit,
     navigateToRecordBloodPressureScreen: () -> Unit,
     navigateToEditBloodPressureScreen: (recordId: String) -> Unit,
+    navigateToAiSettings: () -> Unit,
     navigateBack: () -> Unit,
 ) {
     val ingestionsWithCompanions = viewModel.ingestionsWithCompanionsFlow.collectAsState().value
@@ -223,8 +224,12 @@ fun ExperienceScreen(
 
     if (showAiChat && isAiAssistantEnabled) {
         foo.pilz.freaklog.ui.tabs.journal.experience.recommendations.AiChatBottomSheet(
-            experienceId = experience?.id ?: 0,
-            onDismiss = { showAiChat = false }
+            experienceId = experience?.id,
+            onDismiss = { showAiChat = false },
+            onOpenSettings = {
+                showAiChat = false
+                navigateToAiSettings()
+            }
         )
     }
 

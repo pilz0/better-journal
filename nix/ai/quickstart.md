@@ -22,7 +22,7 @@ Don't install JDKs or SDKs by hand. If a tool is missing, add it to `devShells.d
 - App entry + nav: `app/src/main/java/foo/pilz/freaklog/MainActivity.kt`
 - Room DB: `app/src/main/java/foo/pilz/freaklog/data/room/AppDatabase.kt`
 - Substance parsing: `app/src/main/java/foo/pilz/freaklog/data/substances/`
-- AI chatbot: `app/src/main/java/foo/pilz/freaklog/data/ai/`
+- AI assistant: `app/src/main/java/foo/pilz/freaklog/data/ai/` (settings UI in `ui/tabs/settings/ai/`)
 - UI tabs: `app/src/main/java/foo/pilz/freaklog/ui/tabs/`
 - Schedules/reminders: `app/src/main/java/foo/pilz/freaklog/scheduled/`
 - CI/workflows: `.github/workflows/`
@@ -54,7 +54,8 @@ nix run --inputs-from . gradle2nix -- -t assembleRelease -t bundleRelease
 
 - Android package namespace is `foo.pilz.freaklog` (not upstream `com.isaakhanimann.journal`).
 - Room schema version is `27` with an `@AutoMigration` chain in `AppDatabase.kt`.
-- AI chat uses the custom Gemini REST stack in `data/ai/`. Don't switch to the archived `generative-ai-android`.
+- The AI assistant uses its own raw-HTTP clients for the OpenAI, Anthropic and Gemini APIs in `data/ai/provider/`. Don't add provider SDKs (the archived `generative-ai-android` drops Gemini's `thoughtSignature`), and keep the raw `NativeContent` round-trip intact.
+- AI API keys are only stored encrypted (`AiProfileStore` + `AiKeyCipher`); never write them to plain preferences, logs or exports.
 - If dependencies or plugins change, regenerate `gradle.lock` (command above) or the Nix build breaks.
 
 ## Task-oriented guide
@@ -62,5 +63,5 @@ nix run --inputs-from . gradle2nix -- -t assembleRelease -t bundleRelease
 - **UI change:** read the screen, its ViewModel, and its route in `MainActivity.kt`.
 - **DB/entity change:** update the entity, DAO, `AppDatabase.kt` version/migrations, and tests.
 - **Workflow/CI change:** keep permissions minimal. Only change action pins for explicit upgrades.
-- **AI feature change:** update `AiChatbotRepository`, `GeminiChatSession`, and `AiTools` together.
+- **AI feature change:** provider protocol work goes in `data/ai/provider/` (one client per API standard, tested against MockWebServer); new tools go in `AiTools`/`AiSubstanceTools` with a label in `AiToolLabels` and a line in the system prompt in `AiChatbotRepository`.
 - **Toolchain/environment change:** edit `flake.nix` (devShell). Copilot's cloud agent uses the same shell via `.github/workflows/copilot-setup-steps.yml`.
