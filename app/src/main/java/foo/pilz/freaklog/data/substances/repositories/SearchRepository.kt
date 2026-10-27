@@ -47,10 +47,10 @@ class SearchRepository @Inject constructor(
         return if (searchText.isEmpty()) {
             prefilteredSubstances
         } else {
-            val searchString = searchText.replace(Regex("[- ]"), "")
+            val searchString = searchText.stripHyphensAndSpaces()
             // substances whose primary name begins with the search string
             val mainPrefixMatches = prefilteredSubstances.filter { substanceWithCategories ->
-                substanceWithCategories.substance.name.replace(Regex("[- ]"), "").startsWith(
+                substanceWithCategories.substance.name.stripHyphensAndSpaces().startsWith(
                     prefix = searchString, ignoreCase = true
                 )
             }
@@ -59,7 +59,7 @@ class SearchRepository @Inject constructor(
                 val allNames =
                     substanceWithCategories.substance.commonNames + substanceWithCategories.substance.name
                 allNames.any { name ->
-                    name.replace(Regex("[- ]"), "").startsWith(
+                    name.stripHyphensAndSpaces().startsWith(
                         prefix = searchString, ignoreCase = true
                     )
                 }
@@ -69,7 +69,7 @@ class SearchRepository @Inject constructor(
                 val allNames =
                     substanceWithCategories.substance.commonNames + substanceWithCategories.substance.name
                 allNames.any { name ->
-                    name.replace(Regex("[- ]"), "").contains(
+                    name.stripHyphensAndSpaces().contains(
                         other = searchString, ignoreCase = true
                     )
                 }
@@ -78,13 +78,16 @@ class SearchRepository @Inject constructor(
         }
     }
 
+    private fun String.stripHyphensAndSpaces(): String = filter { it != '-' && it != ' ' }
+
     private fun getSubstancesSorted(
         prefilteredSubstances: List<SubstanceWithCategories>,
         recentlyUsedSubstanceNamesSorted: List<String>
     ): List<SubstanceWithCategories> {
         val recentNames = recentlyUsedSubstanceNamesSorted.distinct()
+        val prefilteredNames = prefilteredSubstances.mapTo(HashSet()) { it.substance.name }
         val recentlyUsedMatches =
-            recentNames.filter { recent -> prefilteredSubstances.any { it.substance.name == recent } }
+            recentNames.filter { it in prefilteredNames }
                 .mapNotNull {
                     substanceRepo.getSubstanceWithCategories(
                         substanceName = it
