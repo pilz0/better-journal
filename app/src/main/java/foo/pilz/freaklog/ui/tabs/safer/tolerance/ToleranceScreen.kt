@@ -129,7 +129,7 @@ fun ToleranceScreen(
                             .padding(top = 16.dp, bottom = 4.dp)
                     )
                 }
-                items(recentTolerances) { estimate ->
+                items(recentTolerances, key = { it.substanceName }) { estimate ->
                     ToleranceSummaryCard(
                         estimate = estimate,
                         modifier = Modifier.padding(horizontal = horizontalPadding)

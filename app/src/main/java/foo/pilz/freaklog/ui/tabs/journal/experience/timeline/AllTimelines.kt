@@ -116,7 +116,8 @@ fun AllTimelines(
     }
 
     var dragPoint by remember { mutableStateOf<Offset?>(null) }
-    val verticalDistanceFromFinger = LocalDensity.current.run { 60.dp.toPx() }
+    val verticalDistanceFromFinger = remember(density) { density.run { 60.dp.toPx() } }
+    val reusablePath = remember { Path() }
 
     val scene = remember(model, graphStyle, isDarkTheme) {
         buildTimelineScene(model.timelineGroups(isDarkTheme), model.widthInSeconds, graphStyle)
@@ -178,11 +179,6 @@ fun AllTimelines(
             val canvasHeightWithVerticalLine = size.height
 
             val marker = currentTimeMarker(model, currentTime, isShowingCurrentTime, graphStyle)
-            val sceneToPaint = if (marker != null) {
-                scene.copy(primitives = scene.primitives + marker)
-            } else {
-                scene
-            }
             heartRatePolylines.forEach { polyline ->
                 if (polyline.size == 1) {
                     val point = polyline.single()
@@ -196,14 +192,14 @@ fun AllTimelines(
                     )
                     return@forEach
                 }
-                val path = Path()
+                reusablePath.reset()
                 polyline.forEachIndexed { index, point ->
                     val x = point.x * size.width
                     val y = point.y * canvasHeightWithVerticalLine
-                    if (index == 0) path.moveTo(x, y) else path.lineTo(x, y)
+                    if (index == 0) reusablePath.moveTo(x, y) else reusablePath.lineTo(x, y)
                 }
                 drawPath(
-                    path = path,
+                    path = reusablePath,
                     color = graphStyle.heartRateColor,
                     style = Stroke(
                         width = 1.5.dp.toPx(),
@@ -213,19 +209,31 @@ fun AllTimelines(
                 )
             }
 
-            paintScene(sceneToPaint, graphStyle, textMeasurer)
+            paintScene(scene, graphStyle, textMeasurer)
+            if (marker != null) {
+                val markerX = marker.xFraction * size.width
+                drawLine(
+                    color = Color(marker.color),
+                    start = Offset(markerX, canvasHeightWithVerticalLine),
+                    end = Offset(markerX, 0f),
+                    strokeWidth = graphStyle.markerStrokeWidth.toPx(),
+                    cap = StrokeCap.Round,
+                )
+            }
 
             drawBloodPressurePolyline(
                 points = bloodPressurePolylines.diastolic,
                 color = graphStyle.bloodPressureDiastolicColor,
                 outlineColor = cardColor,
                 canvasHeight = canvasHeightWithVerticalLine,
+                path = reusablePath,
             )
             drawBloodPressurePolyline(
                 points = bloodPressurePolylines.systolic,
                 color = graphStyle.bloodPressureSystolicColor,
                 outlineColor = cardColor,
                 canvasHeight = canvasHeightWithVerticalLine,
+                path = reusablePath,
             )
             if (bloodPressurePolylines.hasScale) {
                 drawBloodPressureScale(
@@ -238,28 +246,27 @@ fun AllTimelines(
             }
 
             sleepLines.forEach { line ->
-                drawPath(
-                    Path().apply {
-                        val lineHeight = SLEEP_GRAPH_LINE_HEIGHT.dp.toPx()
-                        val lineRoundingRadius = SLEEP_GRAPH_LINE_ROUNDING.dp.toPx()
-                        val linePos = canvasWithLabelsHeight - labelsHeight - SLEEP_GRAPH_LINE_MARGIN_BOTTOM.dp.toPx() - lineHeight
+                reusablePath.reset()
+                val lineHeight = SLEEP_GRAPH_LINE_HEIGHT.dp.toPx()
+                val lineRoundingRadius = SLEEP_GRAPH_LINE_ROUNDING.dp.toPx()
+                val linePos = canvasWithLabelsHeight - labelsHeight - SLEEP_GRAPH_LINE_MARGIN_BOTTOM.dp.toPx() - lineHeight
 
-                        val lineRounding = CornerRadius(lineRoundingRadius, lineRoundingRadius)
-                        val zeroRounding = CornerRadius(0f, 0f)
-                        addRoundRect(
-                            RoundRect(
-                                rect = Rect(
-                                    offset = Offset(line.x1 * size.width, linePos),
-                                    size = Size((line.x2 - line.x1) * size.width, lineHeight
-                                    )
-                                ),
-                                topLeft = if (line.roundLeft)      lineRounding else zeroRounding,
-                                bottomLeft = if (line.roundLeft)   lineRounding else zeroRounding,
-                                topRight = if (line.roundRight)    lineRounding else zeroRounding,
-                                bottomRight = if (line.roundRight) lineRounding else zeroRounding,
-                            )
-                        )
-                    },
+                val lineRounding = CornerRadius(lineRoundingRadius, lineRoundingRadius)
+                val zeroRounding = CornerRadius(0f, 0f)
+                reusablePath.addRoundRect(
+                    RoundRect(
+                        rect = Rect(
+                            offset = Offset(line.x1 * size.width, linePos),
+                            size = Size((line.x2 - line.x1) * size.width, lineHeight)
+                        ),
+                        topLeft = if (line.roundLeft)      lineRounding else zeroRounding,
+                        bottomLeft = if (line.roundLeft)   lineRounding else zeroRounding,
+                        topRight = if (line.roundRight)    lineRounding else zeroRounding,
+                        bottomRight = if (line.roundRight) lineRounding else zeroRounding,
+                    )
+                )
+                drawPath(
+                    path = reusablePath,
                     color = line.color,
                     alpha = 0.9f,
                 )
@@ -372,6 +379,7 @@ private fun DrawScope.drawBloodPressurePolyline(
     color: Color,
     outlineColor: Color,
     canvasHeight: Float,
+    path: Path,
 ) {
     if (points.isEmpty()) return
     val lineWidth = 1.5.dp.toPx()
@@ -382,7 +390,7 @@ private fun DrawScope.drawBloodPressurePolyline(
         drawCircle(color = color, radius = 2.dp.toPx(), center = center)
         return
     }
-    val path = Path()
+    path.reset()
     points.forEachIndexed { index, point ->
         val x = point.x * size.width
         val y = point.y * canvasHeight

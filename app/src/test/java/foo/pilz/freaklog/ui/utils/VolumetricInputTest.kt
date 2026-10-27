@@ -59,6 +59,15 @@ class VolumetricInputTest {
     }
 
     @Test
+    fun mass_rejectsUnknownOrVolumetricDefaultUnits() {
+        for (unit in listOf("ml", "drops", "unknown", "")) {
+            assertNull(massInMg("2", unit))
+            // An explicit mass unit still takes precedence over the default.
+            assertEquals(2000.0, massInMg("2g", unit)!!, 1e-9)
+        }
+    }
+
+    @Test
     fun format_roundTripsNicely() {
         assertEquals("1.5l", formatVolume(1500.0))
         assertEquals("500ml", formatVolume(500.0))

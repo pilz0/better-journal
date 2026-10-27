@@ -171,7 +171,7 @@ fun SheetContent(
     dismissSheet: () -> Unit
 ) {
     LazyColumn {
-        items(experienceIds) { experienceId ->
+        items(experienceIds, key = { it }) { experienceId ->
             ExperienceRowWithFetch(
                 experienceId = experienceId,
                 navigateToExperiencePopNothing,
@@ -225,7 +225,7 @@ fun Day(
                 )
             )
         }
-        LaunchedEffect(Unit) {
+        LaunchedEffect(day) {
             experienceInfoState.value = viewModel.getExperienceInfo(day)
         }
         val experienceInfos = experienceInfoState.value

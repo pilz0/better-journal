@@ -11,6 +11,7 @@
 package foo.pilz.freaklog.data.room
 
 import android.content.Context
+import android.database.sqlite.SQLiteConstraintException
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import assertk.assertThat
@@ -18,6 +19,7 @@ import assertk.assertions.containsExactly
 import assertk.assertions.hasSize
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
+import assertk.assertions.isInstanceOf
 import assertk.assertions.isNotNull
 import assertk.assertions.isNull
 import foo.pilz.freaklog.data.room.experiences.entities.Spray
@@ -140,6 +142,90 @@ class SprayDaoTest {
         dao.clearAllPreferred()
         val nonePreferred = dao.getPreferredSpray()
         assertThat(nonePreferred).isNull()
+    }
+
+    @Test
+    fun `setPreferredAtomic switches the preferred spray`() = runTest {
+        val spray = Spray(name = "First", contentInMl = 10.0, numSprays = 100.0, isPreferred = true)
+        val firstId = dao.insert(spray).toInt()
+        val secondId = dao.insert(spray.copy(name = "Second", isPreferred = false)).toInt()
+
+        dao.setPreferredAtomic(secondId)
+
+        assertThat(dao.getSprayById(firstId)?.isPreferred).isEqualTo(false)
+        assertThat(dao.getAllSprays().filter { it.isPreferred }.map { it.id }).containsExactly(secondId)
+    }
+
+    @Test
+    fun `insertWithPreferred clears the previous preferred spray`() = runTest {
+        val spray = Spray(name = "First", contentInMl = 10.0, numSprays = 100.0, isPreferred = true)
+        val firstId = dao.insert(spray).toInt()
+
+        val secondId = dao.insertWithPreferred(spray.copy(name = "Second")).toInt()
+
+        assertThat(dao.getSprayById(firstId)?.isPreferred).isEqualTo(false)
+        assertThat(dao.getAllSprays().filter { it.isPreferred }.map { it.id }).containsExactly(secondId)
+        assertThat(dao.getSprayById(secondId)?.name).isEqualTo("Second")
+    }
+
+    @Test
+    fun `setPreferredAtomic restores the preference when the update fails`() = runTest {
+        val spray = Spray(name = "First", contentInMl = 10.0, numSprays = 100.0, isPreferred = true)
+        val firstId = dao.insert(spray).toInt()
+        val secondId = dao.insert(spray.copy(name = "Second", isPreferred = false)).toInt()
+        db.openHelper.writableDatabase.execSQL(
+            """
+            CREATE TRIGGER reject_preferred_update BEFORE UPDATE OF isPreferred ON spray
+            WHEN NEW.isPreferred = 1
+            BEGIN SELECT RAISE(ABORT, 'Preferred update rejected'); END
+            """.trimIndent()
+        )
+
+        val failure = runCatching { dao.setPreferredAtomic(secondId) }.exceptionOrNull()
+
+        assertThat(failure).isNotNull().isInstanceOf(SQLiteConstraintException::class.java)
+        assertThat(dao.getAllSprays().filter { it.isPreferred }.map { it.id }).containsExactly(firstId)
+        assertThat(dao.getSprayById(secondId)?.isPreferred).isEqualTo(false)
+    }
+
+    @Test
+    fun `insertWithPreferred restores the preference when the insert fails`() = runTest {
+        val spray = Spray(name = "First", contentInMl = 10.0, numSprays = 100.0, isPreferred = true)
+        val firstId = dao.insert(spray).toInt()
+        db.openHelper.writableDatabase.execSQL(
+            """
+            CREATE TRIGGER reject_preferred_insert BEFORE INSERT ON spray
+            WHEN NEW.isPreferred = 1
+            BEGIN SELECT RAISE(ABORT, 'Preferred insert rejected'); END
+            """.trimIndent()
+        )
+
+        val failure = runCatching { dao.insertWithPreferred(spray.copy(name = "Second")) }.exceptionOrNull()
+
+        assertThat(failure).isNotNull().isInstanceOf(SQLiteConstraintException::class.java)
+        assertThat(dao.getAllSprays().map { it.id }).containsExactly(firstId)
+        assertThat(dao.getPreferredSpray()?.id).isEqualTo(firstId)
+    }
+
+    @Test
+    fun `repository insert replaces the preferred spray`() = runTest {
+        val repository = SprayRepository(dao)
+        val first = Spray(name = "First", contentInMl = 10.0, numSprays = 100.0, isPreferred = true)
+        repository.insert(first)
+        val secondId = repository.insert(first.copy(name = "Second")).toInt()
+
+        assertThat(dao.getAllSprays().filter { it.isPreferred }.map { it.id }).containsExactly(secondId)
+        assertThat(repository.getPreferredSpray()?.id).isEqualTo(secondId)
+    }
+
+    @Test
+    fun `repository insert of a nonpreferred spray preserves the preference`() = runTest {
+        val repository = SprayRepository(dao)
+        val spray = Spray(name = "Preferred", contentInMl = 10.0, numSprays = 100.0, isPreferred = true)
+        val preferredId = repository.insert(spray).toInt()
+        repository.insert(spray.copy(name = "Other", isPreferred = false))
+
+        assertThat(dao.getAllSprays().filter { it.isPreferred }.map { it.id }).containsExactly(preferredId)
     }
 
     @Test

@@ -53,6 +53,12 @@ fun Canvas.paintScene(scene: GraphScene, graphStyle: GraphStyle, density: Densit
         strokeWidth = markerStrokePx
         strokeCap = Paint.Cap.ROUND
     }
+    val strokeRoundRectPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = strokeWidthPx
+    }
+    val textPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    val rectF = RectF()
 
     scene.primitives.forEach { primitive ->
         when (primitive) {
@@ -85,31 +91,23 @@ fun Canvas.paintScene(scene: GraphScene, graphStyle: GraphStyle, density: Densit
                 val top = h - primitive.top * h
                 val bottom = h - primitive.bottom * h
                 val radius = if (primitive.corner == CornerRole.Bar) (right - left) * graphStyle.barCornerRatio else 0f
-                val paint = if (primitive.filled) {
-                    opaqueFill.also { it.color = primitive.color }
-                } else {
-                    Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                        style = Paint.Style.STROKE
-                        strokeWidth = strokeWidthPx
-                        color = primitive.color
-                    }
-                }
-                drawRoundRect(RectF(left, top, right, bottom), radius, radius, paint)
+                val paint = if (primitive.filled) opaqueFill else strokeRoundRectPaint
+                paint.color = primitive.color
+                rectF.set(left, top, right, bottom)
+                drawRoundRect(rectF, radius, radius, paint)
             }
             is GraphPrimitive.Text -> {
-                val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                    color = primitive.color
-                    textSize = with(density) {
-                        when (primitive.role) {
-                            TextRole.AxisHour, TextRole.AxisLabel -> graphStyle.axisLabelSize.toPx()
-                            TextRole.RatingSign, TextRole.Tooltip -> graphStyle.ratingSignSize.toPx()
-                        }
+                textPaint.color = primitive.color
+                textPaint.textSize = with(density) {
+                    when (primitive.role) {
+                        TextRole.AxisHour, TextRole.AxisLabel -> graphStyle.axisLabelSize.toPx()
+                        TextRole.RatingSign, TextRole.Tooltip -> graphStyle.ratingSignSize.toPx()
                     }
-                    textAlign = when (primitive.anchor) {
-                        TextAnchor.Start -> Paint.Align.LEFT
-                        TextAnchor.Center -> Paint.Align.CENTER
-                        TextAnchor.End -> Paint.Align.RIGHT
-                    }
+                }
+                textPaint.textAlign = when (primitive.anchor) {
+                    TextAnchor.Start -> Paint.Align.LEFT
+                    TextAnchor.Center -> Paint.Align.CENTER
+                    TextAnchor.End -> Paint.Align.RIGHT
                 }
                 drawText(primitive.text, primitive.pos.x * w, h - primitive.pos.y * h, textPaint)
             }

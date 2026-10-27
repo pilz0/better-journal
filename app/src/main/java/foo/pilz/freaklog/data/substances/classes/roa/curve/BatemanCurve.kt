@@ -73,9 +73,9 @@ data class BatemanCurve(
 
     override val curveEndSec: Float = run {
         val cap = min(maxCurveLengthSec.toDouble(), Double.MAX_VALUE / 2.0)
-        // The tail is dominated by the slower (ke) exponential, so:
-        // value(τ) ≈ scale * e^(-ke·τ) for large τ ⇒ τ_end ≈ -ln(tailEpsilon · unscaledPeak) / ke
-        val tailFromPeakEnd = -ln(tailEpsilon * unscaledPeak.coerceAtLeast(1e-12)) / ke
+        // After ingestion ends, the tail decays approximately as e^(-ke·s) relative
+        // to the peak. Its duration must not depend on the unscaled peak amplitude.
+        val tailFromPeakEnd = -ln(tailEpsilon) / ke
         val tau = max(0.0, tailFromPeakEnd) + infusionDurationSec
         (ingestionStartSec.toDouble() + min(tau, cap)).toFloat()
     }

@@ -403,6 +403,7 @@ interface ExperienceDao {
     suspend fun deleteEverything() {
         deleteAllIngestions()
         deleteAllTimedNotes()
+        deleteAllBloodPressureReadings()
         deleteAllExperiences()
         deleteAllSubstanceCompanions()
         deleteAllCustomSubstances()
@@ -416,6 +417,8 @@ interface ExperienceDao {
     suspend fun deleteEverythingOfExperience(experienceId: Int) {
         deleteIngestions(experienceId)
         deleteRatings(experienceId)
+        deleteTimedNotes(experienceId)
+        deleteBloodPressureReadings(experienceId)
         deleteExperience(experienceId)
     }
 
@@ -429,12 +432,24 @@ interface ExperienceDao {
     suspend fun deleteAllTimedNotes()
 
     @Transaction
+    @Query("DELETE FROM bloodpressurereading")
+    suspend fun deleteAllBloodPressureReadings()
+
+    @Transaction
     @Query("DELETE FROM ingestion WHERE experienceId = :experienceId")
     suspend fun deleteIngestions(experienceId: Int)
 
     @Transaction
     @Query("DELETE FROM shulginrating WHERE experienceId = :experienceId")
     suspend fun deleteRatings(experienceId: Int)
+
+    @Transaction
+    @Query("DELETE FROM timedNote WHERE experienceId = :experienceId")
+    suspend fun deleteTimedNotes(experienceId: Int)
+
+    @Transaction
+    @Query("DELETE FROM bloodpressurereading WHERE experienceId = :experienceId")
+    suspend fun deleteBloodPressureReadings(experienceId: Int)
 
     @Transaction
     @Query("DELETE FROM experience WHERE id = :experienceId")
@@ -624,10 +639,10 @@ interface ExperienceDao {
     @Query("SELECT * FROM timednote WHERE experienceId = :experienceId ORDER BY time")
     fun getTimedNotesFlowSorted(experienceId: Int): Flow<List<TimedNote>>
 
-    @Query("SELECT * FROM ingestion WHERE substanceName = :substanceName ORDER BY time DESC LIMIT 1")
+    @Query("SELECT * FROM ingestion WHERE LOWER(TRIM(substanceName)) = :substanceName ORDER BY time DESC LIMIT 1")
     suspend fun getLastIngestion(substanceName: String): Ingestion?
 
-    @Query("SELECT * FROM ingestion WHERE substanceName IN (:substanceNames) AND time > :since ORDER BY time DESC")
+    @Query("SELECT * FROM ingestion WHERE LOWER(TRIM(substanceName)) IN (:substanceNames) AND time > :since ORDER BY time DESC")
     suspend fun getIngestionsSince(substanceNames: List<String>, since: Instant): List<Ingestion>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
