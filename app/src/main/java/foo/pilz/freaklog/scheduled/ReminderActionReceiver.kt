@@ -8,6 +8,7 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import androidx.annotation.VisibleForTesting
 import androidx.core.app.NotificationManagerCompat
 import dagger.hilt.android.AndroidEntryPoint
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
@@ -21,6 +22,7 @@ import foo.pilz.freaklog.data.substances.AdministrationRoute
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -68,7 +70,8 @@ class ReminderActionReceiver : BroadcastReceiver() {
         }
     }
 
-    private suspend fun handleTake(reminder: Reminder) {
+    @VisibleForTesting
+    internal suspend fun handleTake(reminder: Reminder) {
         val substanceName = reminder.substanceName?.takeIf { it.isNotBlank() } ?: return
         val routeName = reminder.administrationRoute?.takeIf { it.isNotBlank() } ?: return
         val route = runCatching { AdministrationRoute.valueOf(routeName) }.getOrNull() ?: return
@@ -95,7 +98,9 @@ class ReminderActionReceiver : BroadcastReceiver() {
             val ingestion = newIngestion(reminder, route, attachTo.experience.id, now)
             experienceRepository.insertIngestionAndCompanion(ingestion, companion)
         } else {
-            val newId = (recent.maxOfOrNull { it.experience.id } ?: 0) + 1
+            // Take the next id after the global maximum: `recent` only covers the last two days,
+            // and inserting with an existing id would REPLACE (delete) an older experience.
+            val newId = (experienceRepository.getMaxExperienceIdFlow().firstOrNull() ?: 0) + 1
             val experience = Experience(
                 id = newId,
                 title = reminder.title.ifBlank { substanceName },
