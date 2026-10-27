@@ -101,4 +101,31 @@ class SprayCalculatorViewModelTest {
         assertNull(viewModel.getDoseAdjustedToPurity())
         assertNull(viewModel.getNumberOfSprays())
     }
+
+    @Test
+    fun `selectSpray updates totalWeight when liquid amount and weight per spray are set`() = runTest {
+        val secondSpray = Spray(
+            id = 2,
+            name = "Small 5ml",
+            contentInMl = 5.0,
+            numSprays = 100.0,
+            creationDate = Instant.now(),
+            isPreferred = false,
+        )
+        every { repository.getAllSpraysFlow() } returns flowOf(listOf(defaultSpray, secondSpray))
+
+        val viewModel = SprayCalculatorViewModel(repository)
+        backgroundScope.launch(kotlinx.coroutines.test.UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.spraysFlow.collect()
+        }
+        advanceUntilIdle()
+
+        viewModel.selectSpray(1)
+        viewModel.setLiquidAmountInMl("10")
+        viewModel.setWeightPerSpray("5")
+        assertEquals("500", viewModel.totalWeight.value)
+
+        viewModel.selectSpray(2)
+        assertEquals("1000", viewModel.totalWeight.value)
+    }
 }

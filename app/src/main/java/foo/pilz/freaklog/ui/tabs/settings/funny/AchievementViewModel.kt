@@ -31,6 +31,7 @@ class AchievementViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val defs = loadAchievements(context)
+    private val defsById = defs.associateBy { it.id }
 
     /** Tracks which IDs were unlocked on the previous emission, so we can
      *  fire popups only for genuinely new unlocks (not on cold-start). */
@@ -79,11 +80,11 @@ class AchievementViewModel @Inject constructor(
             )
         }
 
-        val currentlyUnlocked = results.filter { it.unlocked }.map { it.def.id }.toSet()
+        val currentlyUnlocked = results.asSequence().filter { it.unlocked }.map { it.def.id }.toSet()
         if (!isFirstEmission) {
             val newOnes = currentlyUnlocked - previouslyUnlocked
             newOnes.forEach { id ->
-                val def = defs.first { it.id == id }
+                val def = defsById[id] ?: return@forEach
                 viewModelScope.launch { _newlyUnlocked.emit(def) }
             }
         }

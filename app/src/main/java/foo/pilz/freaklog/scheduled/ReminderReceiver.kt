@@ -36,7 +36,10 @@ class ReminderReceiver : BroadcastReceiver() {
                 val reminder = remindersRepository.getReminderById(reminderId) ?: return@launch
                 notificationScheduler.postReminderNotification(reminder)
                 if (reminder.isEnabled) {
-                    notificationScheduler.scheduleReminder(reminder)
+                    notificationScheduler.scheduleReminder(
+                        reminder = reminder,
+                        fromMillis = System.currentTimeMillis() + 1000L,
+                    )
                 }
             } finally {
                 pendingResult.finish()

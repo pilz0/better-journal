@@ -53,11 +53,11 @@ class NotificationScheduler @Inject constructor(
      * Schedules the next firing of [reminder]. If the reminder is disabled or has no future
      * fire time the previously scheduled alarm is cancelled.
      */
-    fun scheduleReminder(reminder: Reminder) {
+    fun scheduleReminder(reminder: Reminder, fromMillis: Long = System.currentTimeMillis()) {
         // Always cancel any pending alarm first so an updated schedule replaces the old one.
         cancelReminder(reminder.id)
         if (!reminder.isEnabled) return
-        val nextFireAt = ReminderSchedule.nextFireAt(reminder, System.currentTimeMillis())
+        val nextFireAt = ReminderSchedule.nextFireAt(reminder, fromMillis)
             ?: return
         scheduleAt(reminder, nextFireAt)
     }

@@ -95,7 +95,7 @@ class ReminderActionReceiver : BroadcastReceiver() {
             color = AdaptiveColor.BLUE,
         )
         if (attachTo != null) {
-            val ingestion = newIngestion(reminder, route, attachTo.experience.id, now)
+            val ingestion = newIngestion(reminder, substanceName, route, attachTo.experience.id, now)
             experienceRepository.insertIngestionAndCompanion(ingestion, companion)
         } else {
             // Take the next id after the global maximum: `recent` only covers the last two days,
@@ -109,7 +109,7 @@ class ReminderActionReceiver : BroadcastReceiver() {
                 sortDate = now,
                 location = null,
             )
-            val ingestion = newIngestion(reminder, route, newId, now)
+            val ingestion = newIngestion(reminder, substanceName, route, newId, now)
             experienceRepository.insertIngestionExperienceAndCompanion(
                 ingestion = ingestion,
                 experience = experience,
@@ -120,11 +120,12 @@ class ReminderActionReceiver : BroadcastReceiver() {
 
     private fun newIngestion(
         reminder: Reminder,
+        substanceName: String,
         route: AdministrationRoute,
         experienceId: Int,
         now: Instant,
     ) = Ingestion(
-        substanceName = reminder.substanceName!!,
+        substanceName = substanceName,
         time = now,
         endTime = null,
         creationDate = now,

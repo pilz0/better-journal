@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,10 +38,13 @@ fun AchievementsScreen(
     viewModel: AchievementViewModel = hiltViewModel()
 ) {
     val achievements by viewModel.achievementsFlow.collectAsState()
-    val unlocked = achievements.filter { it.unlocked }
-    val locked = achievements.filter { !it.unlocked }
+    val (unlocked, locked) = remember(achievements) {
+        achievements.partition { it.unlocked }
+    }
 
-    val unlockedIds = unlocked.map { it.def.id }.toSet()
+    val unlockedIds = remember(unlocked) {
+        unlocked.map { it.def.id }.toSet()
+    }
 
     // Mark all currently-unlocked achievements as "seen" once the user opens
     // the list — this clears the unseen badge elsewhere. Keyed on the full
@@ -82,7 +86,7 @@ fun AchievementsScreen(
             }
 
             if (locked.isNotEmpty()) {
-                item {
+                item(key = "locked_header") {
                     Text(
                         text = "Locked",
                         style = MaterialTheme.typography.titleSmall,

@@ -97,6 +97,7 @@ class SprayCalculatorViewModel @Inject constructor(
 
     fun selectSpray(sprayId: Int) {
         _selectedSprayId.value = sprayId
+        maybeUpdateTotalWeight()
     }
 
     fun saveSelection() {

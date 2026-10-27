@@ -38,6 +38,25 @@ data class UnlockedAchievement(
     val unlocked: Boolean
 )
 
+class RepositorySubstanceInfo(
+    private val substanceRepo: SubstanceRepositoryInterface
+) : SubstanceInfo {
+    override fun categories(substanceName: String): Set<String> =
+        substanceRepo.getSubstance(substanceName)?.categories?.map { it.lowercase() }?.toSet()
+            ?: emptySet()
+
+    override fun doseClass(
+        substanceName: String,
+        route: AdministrationRoute,
+        dose: Double?,
+        units: String?,
+    ): DoseClass? {
+        val substance = substanceRepo.getSubstance(substanceName) ?: return null
+        val roaDose = substance.getRoa(route)?.roaDose ?: return null
+        return roaDose.getDoseClass(dose, units)
+    }
+}
+
 /**
  * Everything the achievement DSL can see. Using a bundle keeps the recursive
  * evaluator signature small and future-proof as we add more predicates.
@@ -51,10 +70,28 @@ data class AchievementContext(
     val customRecipes: List<CustomRecipe>,
     val substanceRepo: SubstanceRepositoryInterface,
     val interactionChecker: InteractionChecker
-)
+) {
+    val evalContext: EvalContext by lazy {
+        val substancesByExperience = experiences.associate { experience ->
+            experience.experience.id to experience.ingestions.map { it.substanceName }.distinct()
+        }
+        EvalContext(
+            experiences = experiences.map { ExperienceWithIngestions(it.experience, it.ingestions) },
+            ingestions = allIngestions,
+            substanceInfo = RepositorySubstanceInfo(substanceRepo),
+            interactionCount = { experienceId, filter ->
+                countInteractionsInList(
+                    substances = substancesByExperience[experienceId].orEmpty(),
+                    type = filter.name.lowercase(),
+                    checker = interactionChecker,
+                )
+            },
+        )
+    }
+}
 
 fun loadAchievements(context: Context): List<AchievementDef> {
-    val json = context.assets.open("achievements.json").bufferedReader().readText()
+    val json = context.assets.open("achievements.json").bufferedReader().use { it.readText() }
     val array = JSONArray(json)
     return (0 until array.length()).map { i ->
         val obj = array.getJSONObject(i)
@@ -118,46 +155,9 @@ private val CONDITION_LANGUAGE_REGEX = Regex("""\b(ingestions|experiences)\b""")
 internal fun usesConditionLanguage(condition: String): Boolean =
     CONDITION_LANGUAGE_REGEX.containsMatchIn(condition)
 
-private fun AchievementContext.toEvalContext(): EvalContext {
-    val substancesByExperience = experiences.associate { experience ->
-        experience.experience.id to experience.ingestions.map { it.substanceName }.distinct()
-    }
-    return EvalContext(
-        experiences = experiences.map { ExperienceWithIngestions(it.experience, it.ingestions) },
-        ingestions = allIngestions,
-        substanceInfo = RepositorySubstanceInfo(substanceRepo),
-        interactionCount = { experienceId, filter ->
-            countInteractionsInList(
-                substances = substancesByExperience[experienceId].orEmpty(),
-                type = filter.name.lowercase(),
-                checker = interactionChecker,
-            )
-        },
-    )
-}
-
-class RepositorySubstanceInfo(
-    private val substanceRepo: SubstanceRepositoryInterface
-) : SubstanceInfo {
-    override fun categories(substanceName: String): Set<String> =
-        substanceRepo.getSubstance(substanceName)?.categories?.map { it.lowercase() }?.toSet()
-            ?: emptySet()
-
-    override fun doseClass(
-        substanceName: String,
-        route: AdministrationRoute,
-        dose: Double?,
-        units: String?,
-    ): DoseClass? {
-        val substance = substanceRepo.getSubstance(substanceName) ?: return null
-        val roaDose = substance.getRoa(route)?.roaDose ?: return null
-        return roaDose.getDoseClass(dose, units)
-    }
-}
-
 fun evaluateAchievement(condition: String, ctx: AchievementContext): Boolean {
     if (usesConditionLanguage(condition)) {
-        return runCatching { conditionEngine.evaluate(condition, ctx.toEvalContext()) }.getOrDefault(false)
+        return runCatching { conditionEngine.evaluate(condition, ctx.evalContext) }.getOrDefault(false)
     }
 
     splitTopLevel(condition, " & ")?.let { parts ->
@@ -218,13 +218,13 @@ fun evaluateAchievement(condition: String, ctx: AchievementContext): Boolean {
 
         "min_substances" -> {
             val n = args.trim().toIntOrNull() ?: return false
-            ctx.allIngestions.map { it.substanceName }.distinct().size >= n
+            ctx.allIngestions.distinctBy { it.substanceName }.size >= n
         }
 
         "min_combo" -> {
             val n = args.trim().toIntOrNull() ?: return false
             ctx.experiences.any { exp ->
-                exp.ingestions.map { it.substanceName }.distinct().size >= n
+                exp.ingestions.distinctBy { it.substanceName }.size >= n
             }
         }
 
@@ -255,7 +255,7 @@ fun evaluateAchievement(condition: String, ctx: AchievementContext): Boolean {
 
         "min_routes" -> {
             val n = args.trim().toIntOrNull() ?: return false
-            ctx.allIngestions.map { it.administrationRoute }.distinct().size >= n
+            ctx.allIngestions.distinctBy { it.administrationRoute }.size >= n
         }
 
         "substance_count" -> {
@@ -268,7 +268,7 @@ fun evaluateAchievement(condition: String, ctx: AchievementContext): Boolean {
 
         "any_substance_count" -> {
             val n = args.trim().toIntOrNull() ?: return false
-            ctx.allIngestions.groupBy { it.substanceName }.any { it.value.size >= n }
+            ctx.allIngestions.groupingBy { it.substanceName }.eachCount().any { it.value >= n }
         }
 
         "route_count" -> {

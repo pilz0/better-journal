@@ -217,7 +217,7 @@ fun Day(
 ) {
     if (day.position == DayPosition.MonthDate) {
         val viewModel: DayViewModel = hiltViewModel()
-        val experienceInfoState: MutableState<ExperienceInfo> = remember {
+        val experienceInfoState: MutableState<ExperienceInfo> = remember(day) {
             mutableStateOf(
                 ExperienceInfo(
                     experienceIds = emptyList(),
