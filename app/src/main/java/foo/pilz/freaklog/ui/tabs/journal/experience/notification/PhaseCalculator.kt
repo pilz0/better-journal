@@ -5,8 +5,6 @@ import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.hourLimitToSeparateIngestions
 import java.time.Duration
 import java.time.Instant
-import kotlin.math.max
-import kotlin.math.min
 
 enum class Phase(val displayName: String) {
     ONSET("onset"),
@@ -96,8 +94,9 @@ object PhaseCalculator {
     }
 
     fun smartInterval(timeToNextTransitionSec: Float): Long {
+        if (!timeToNextTransitionSec.isFinite()) return MAX_INTERVAL_SECONDS
         val raw = (timeToNextTransitionSec / 3).toLong()
-        return max(MIN_INTERVAL_SECONDS, min(MAX_INTERVAL_SECONDS, raw))
+        return raw.coerceIn(MIN_INTERVAL_SECONDS, MAX_INTERVAL_SECONDS)
     }
 
     fun combinedInterval(phaseResults: List<PhaseResult>): Long {

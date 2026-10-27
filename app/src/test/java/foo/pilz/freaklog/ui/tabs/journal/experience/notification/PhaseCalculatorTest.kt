@@ -71,4 +71,19 @@ class PhaseCalculatorTest {
         )
         assertEquals(Phase.UNKNOWN, stillActive.phase)
     }
+
+    @Test
+    fun smartIntervalFallsBackToMaxForNonFiniteTransitions() {
+        assertEquals(1800L, PhaseCalculator.smartInterval(Float.NaN))
+        assertEquals(1800L, PhaseCalculator.smartInterval(Float.POSITIVE_INFINITY))
+        assertEquals(1800L, PhaseCalculator.smartInterval(Float.NEGATIVE_INFINITY))
+    }
+
+    @Test
+    fun smartIntervalClampsToBounds() {
+        assertEquals(60L, PhaseCalculator.smartInterval(-600f))
+        assertEquals(60L, PhaseCalculator.smartInterval(0f))
+        assertEquals(100L, PhaseCalculator.smartInterval(300f))
+        assertEquals(1800L, PhaseCalculator.smartInterval(Float.MAX_VALUE))
+    }
 }
