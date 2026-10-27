@@ -53,27 +53,31 @@ class EditExperienceViewModel @Inject constructor(
     init {
         val editExperienceRoute = state.toRoute<EditExperienceRoute>()
         viewModelScope.launch {
-            experience = repository.getExperience(id = editExperienceRoute.experienceId)!!
-            enteredTitle = experience!!.title
-            enteredText = experience!!.text
-            enteredLocation = experience!!.location?.name ?: ""
-            oldLongitude = experience!!.location?.longitude
-            oldLatitude = experience!!.location?.latitude
+            val exp = repository.getExperience(id = editExperienceRoute.experienceId)
+            experience = exp
+            if (exp != null) {
+                enteredTitle = exp.title
+                enteredText = exp.text
+                enteredLocation = exp.location?.name ?: ""
+                oldLongitude = exp.location?.longitude
+                oldLatitude = exp.location?.latitude
+            }
         }
     }
 
     fun onDoneTap() {
         if (enteredTitle.isNotEmpty()) {
+            val currentExperience = experience ?: return
             viewModelScope.launch {
-                experience!!.title = enteredTitle
-                experience!!.text = enteredText
+                currentExperience.title = enteredTitle
+                currentExperience.text = enteredText
                 val location = if (enteredLocation.isNotBlank()) {
                     Location(name = enteredLocation, longitude = oldLongitude, latitude = oldLatitude)
                 } else {
                     null
                 }
-                experience!!.location = location
-                repository.update(experience = experience!!)
+                currentExperience.location = location
+                repository.update(experience = currentExperience)
             }
         }
     }
