@@ -39,6 +39,7 @@ Don't install JDKs or SDKs by hand. If a tool is missing, add it to `devShells.d
 ```bash
 # Unit tests (full, then the CI shards)
 ./gradlew testDebugUnitTest --no-daemon
+./gradlew :app:testReleaseUnitTest :app:lintRelease --no-daemon
 ./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.data.*" --no-daemon
 ./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.ui.*" --no-daemon
 ./gradlew testDebugUnitTest -PtestExclude=foo.pilz.freaklog.data.*,foo.pilz.freaklog.ui.* --no-daemon

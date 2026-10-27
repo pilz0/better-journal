@@ -132,8 +132,9 @@ app/src/main/java/foo/pilz/freaklog/
 # Build release AAB (unsigned)  — output: app/build/outputs/bundle/release/app-release.aab
 ./gradlew bundleRelease --no-daemon
 
-# Run all unit tests
+# Run all unit tests (release components are enabled explicitly for AGP 9)
 ./gradlew testDebugUnitTest --no-daemon
+./gradlew :app:testReleaseUnitTest :app:lintRelease --no-daemon
 
 # Run tests by package (mirrors the CI matrix shards)
 ./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.data.*" --no-daemon
@@ -158,17 +159,19 @@ Workflows live in `.github/workflows/`:
 
 | Workflow file | Purpose |
 |---------------|---------|
-| `build.yml` | Wrapper validation, unit tests (3 shards), Detekt, Android Lint, Kover coverage gate, unsigned APK + AAB builds, Nix flake checks (`nix-checks`), and Nix package builds (`nix-build`, matrix: apk \| aab). Runs on every push/PR. |
+| `build.yml` | Wrapper validation, unit tests (3 shards), six JDK/locale/time-zone compatibility jobs, release tests/lint, Detekt, debug lint, Kover, Gradle/Nix APK + AAB builds, architecture checks, test APK compilation, Nix checks (including actionlint/ShellCheck), and the API 31–36 emulator workflow. Runs on every push/PR; all jobs feed `ci-passed`. |
 | `release.yml` | **Secret-handling.** Sign + Cloudflare R2 + Google Play + GitHub release + SLSA build provenance. Triggered by `workflow_run` on a successful `Build and test` run on `main` / tags, or `workflow_dispatch`. Pull-request events never reach this workflow. |
 | `codeql.yml` | CodeQL analysis for `java-kotlin` and `actions` languages with the `security-extended` query pack. |
-| `instrumented-tests.yml` | Connected Android tests on emulators (API 31/34/35). Triggered by the `run-instrumented-tests` PR label, `workflow_dispatch`, or nightly schedule. |
-| `scorecard.yml` | OpenSSF Scorecard supply-chain analysis (uploaded as SARIF + published to scorecard.dev). |
+| `instrumented-tests.yml` | Reusable connected Android tests on API 31–36, called by every build. Also runs weekly and via `workflow_dispatch` (one selected API). |
 | `dependency-review.yml` | Blocks PRs that introduce known-vulnerable or AGPL dependencies. |
 
 ```
 push/PR  ──► build.yml
               ├─ wrapper-validation
               ├─ test  (matrix: data | ui | misc)
+              ├─ compatibility (JDK 17/21 × Berlin/New York/Tokyo)
+              ├─ release-verification (unit tests + lint)
+              ├─ connected-tests (emulators: API 31–36)
               ├─ coverage  (Kover, hard-gated minimum)
               ├─ detekt    (SARIF → code scanning)
               ├─ lint      (SARIF → code scanning)
@@ -499,8 +502,11 @@ All ViewModels use `@HiltViewModel` + `@Inject constructor`. Repositories and DA
   (`EntityBuilders.experience(...)`, `EntityBuilders.ingestion(...)`, plus
   `RoomInMemoryExampleTest` showing the in-memory Room pattern). Reuse them
   rather than constructing entities by hand.
-- Test JVMs run with **`-Duser.timezone=UTC`** and **`-Duser.language=en`**
-  (set in `app/build.gradle.kts`); never assume the host TZ/locale.
+- Test JVMs default to **`-Duser.timezone=UTC`** and **`-Duser.language=en`**
+  (set in `app/build.gradle.kts`); never assume the host TZ/locale. Override
+  them with `-PtestTimezone`, `-PtestLanguage` and `-PtestCountry`. The
+  compatibility matrix uses these inputs and `-PtestJavaVersion=17|21` to
+  exercise six runtime/region combinations. Both JDKs are in the Nix devShell.
 - CI splits tests into 3 shards: `data.*`, `ui.*`, and **everything else** (via
   `-PtestExclude` to exclude the first two patterns) — see `.github/workflows/build.yml`.
 - The legacy `isReturnDefaultValues = true` shim is **still on** for backwards

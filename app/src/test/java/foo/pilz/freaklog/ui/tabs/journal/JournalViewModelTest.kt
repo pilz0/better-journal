@@ -42,6 +42,7 @@ class JournalViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
+        every { userPreferences.aiAssistantEnabledFlow } returns flowOf(false)
         every { skinEligibility.eligibleFlow } returns flowOf(false)
         every { searchRepo.getMatchingSubstances(any(), any(), any()) } returns emptyList()
     }
