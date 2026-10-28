@@ -5,6 +5,7 @@
 package foo.pilz.freaklog.data.room.inventory
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.time.Instant
 
@@ -14,7 +15,7 @@ import java.time.Instant
  * substance by name) plus a freeform note. Quantity tracking is explicitly
  * out of scope.
  */
-@Entity
+@Entity(indices = [Index(value = ["addedAt"]), Index(value = ["substanceName"])])
 data class InventoryItem(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,

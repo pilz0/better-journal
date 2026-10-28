@@ -259,6 +259,7 @@ class AppDatabaseMigrationTest {
             25 to 26,
             26 to 27,
             27 to 28,
+            28 to 29,
         )
     }
 }
