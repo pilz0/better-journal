@@ -143,4 +143,100 @@ class WidgetHeatmapModelTest {
         assertEquals(DayOfWeek.SATURDAY, model.endDate.dayOfWeek)
         assertFalse(model.endDate.isBefore(tuesday))
     }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `zero weeks is rejected`() {
+        WidgetHeatmapModel.build(today = today, ingestionDates = emptyList(), weeks = 0)
+    }
+
+    @Test
+    fun `a single week spans exactly Sunday to Saturday`() {
+        val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList(), weeks = 1)
+        assertEquals(7, model.cells.size)
+        assertEquals(LocalDate.of(2024, 6, 9), model.startDate)
+        assertEquals(today, model.endDate)
+        assertEquals(1, model.monthLabels.size)
+        assertEquals(0, model.monthLabels.first().column)
+    }
+
+    @Test
+    fun `cells cover consecutive days from startDate to endDate`() {
+        val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
+        model.cells.forEachIndexed { index, cell ->
+            assertEquals(model.startDate.plusDays(index.toLong()), cell.date)
+            assertEquals(index / 7, cell.column)
+            assertEquals(index % 7, cell.row)
+        }
+        assertEquals(model.endDate, model.cells.last().date)
+    }
+
+    @Test
+    fun `window boundaries are inclusive`() {
+        val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
+        val dates = listOf(
+            model.startDate.minusDays(1),
+            model.startDate,
+            model.endDate,
+            model.endDate.plusDays(1),
+        )
+        val counted = WidgetHeatmapModel.build(today = today, ingestionDates = dates)
+        assertEquals(2, counted.totalIngestions)
+        assertEquals(1, counted.cells.first().count)
+        assertEquals(1, counted.cells.last().count)
+    }
+
+    @Test
+    fun `totalIngestions sums counts of all visible cells`() {
+        val dates = listOf(today, today, today.minusDays(1), today.minusDays(30), today.minusYears(3))
+        val model = WidgetHeatmapModel.build(today = today, ingestionDates = dates)
+        assertEquals(4, model.totalIngestions)
+        assertEquals(model.totalIngestions, model.cells.sumOf { it.count })
+    }
+
+    @Test
+    fun `busiest day gets the top bucket and empty days stay at zero`() {
+        val busy = today.minusDays(2)
+        val quiet = today.minusDays(10)
+        val model = WidgetHeatmapModel.build(
+            today = today,
+            ingestionDates = List(25) { busy } + quiet,
+        )
+        assertEquals(WidgetHeatmapModel.INTENSITY_BUCKETS, model.cells.first { it.date == busy }.intensity)
+        assertEquals(1, model.cells.first { it.date == quiet }.intensity)
+        assertTrue(model.cells.filter { it.count == 0 }.all { it.intensity == 0 })
+    }
+
+    @Test
+    fun `bucketFor is non-decreasing in count`() {
+        var previous = 0
+        for (count in 0..100) {
+            val bucket = WidgetHeatmapModel.bucketFor(count = count, maxCount = 100)
+            assertTrue("bucket for $count ($bucket) dropped below $previous", bucket >= previous)
+            previous = bucket
+        }
+    }
+
+    @Test
+    fun `bucketFor treats negative inputs as empty`() {
+        assertEquals(0, WidgetHeatmapModel.bucketFor(count = -1, maxCount = 10))
+        assertEquals(0, WidgetHeatmapModel.bucketFor(count = 3, maxCount = -5))
+    }
+
+    @Test
+    fun `bucketFor clamps counts above maxCount to the top bucket`() {
+        assertEquals(
+            WidgetHeatmapModel.INTENSITY_BUCKETS,
+            WidgetHeatmapModel.bucketFor(count = 1_000, maxCount = 10),
+        )
+    }
+
+    @Test
+    fun `month labels start at the column of each month's first Sunday`() {
+        val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
+        model.monthLabels.drop(1).forEach { label ->
+            val sunday = model.startDate.plusDays(label.column * 7L)
+            assertEquals(label.month, sunday.month)
+            assertTrue("column ${label.column} is not the month's first Sunday", sunday.dayOfMonth <= 7)
+        }
+    }
 }

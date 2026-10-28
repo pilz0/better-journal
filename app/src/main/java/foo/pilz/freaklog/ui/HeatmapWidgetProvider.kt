@@ -149,12 +149,12 @@ class HeatmapWidgetWorker(
         val appWidgetId = inputData.getInt(HeatmapWorkerInput.APP_WIDGET_ID, -1)
         if (appWidgetId == -1) return Result.failure()
 
+        val database = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java,
+            "experiences_db"
+        ).build()
         return try {
-            val database = Room.databaseBuilder(
-                applicationContext,
-                AppDatabase::class.java,
-                "experiences_db"
-            ).build()
             val experienceDao = database.experienceDao()
 
             // Get all ingestions from the last year
@@ -170,6 +170,7 @@ class HeatmapWidgetWorker(
                 val path = generateHeatmapGraph(applicationContext, ingestions.map { it.ingestion.time }, appWidgetId)
                 Triple(true, path, ingestions.size.toString())
             } else {
+                File(applicationContext.cacheDir, "widget_heatmap_$appWidgetId.png").takeIf { it.exists() }?.delete()
                 Triple(false, null, "0")
             }
 
@@ -187,16 +188,19 @@ class HeatmapWidgetWorker(
                     this[HeatmapWidgetKeys.INGESTION_COUNT] = ingestionCount
                     if (imagePath != null) {
                         this[HeatmapWidgetKeys.HEATMAP_IMAGE_PATH] = imagePath
+                    } else {
+                        remove(HeatmapWidgetKeys.HEATMAP_IMAGE_PATH)
                     }
                 }
             }
 
             HeatmapAppWidget().update(applicationContext, glanceId)
-            database.close()
             Result.success()
         } catch (t: Throwable) {
             Log.e(TAG, "Error updating heatmap widget", t)
             Result.retry()
+        } finally {
+            database.close()
         }
     }
 
@@ -252,6 +256,7 @@ class HeatmapWidgetWorker(
         }
 
         // Draw cells
+        val cellRect = RectF()
         for (cell in model.cells) {
             val x = leftPadding + cell.column * (cellSize + cellGap)
             val y = topPadding + cell.row * (cellSize + cellGap)
@@ -260,11 +265,8 @@ class HeatmapWidgetWorker(
             } else {
                 palette[(cell.intensity - 1).coerceIn(0, palette.size - 1)]
             }
-            canvas.drawRoundRect(
-                RectF(x, y, x + cellSize, y + cellSize),
-                3f, 3f,
-                paint
-            )
+            cellRect.set(x, y, x + cellSize, y + cellSize)
+            canvas.drawRoundRect(cellRect, 3f, 3f, paint)
         }
 
         // Draw month labels along the top.
