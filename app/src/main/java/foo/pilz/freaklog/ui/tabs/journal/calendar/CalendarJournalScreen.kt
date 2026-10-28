@@ -189,11 +189,8 @@ fun ExperienceRowWithFetch(
     dismissSheet: () -> Unit
 ) {
     val viewModel: ExperienceFetchViewModel = hiltViewModel()
-    val experienceState: MutableState<ExperienceWithIngestionsCompanionsAndRatings?> = remember {
-        mutableStateOf(
-            null
-        )
-    }
+    val experienceState: MutableState<ExperienceWithIngestionsCompanionsAndRatings?> =
+        remember(experienceId) { mutableStateOf(null) }
     LaunchedEffect(key1 = experienceId) {
         experienceState.value = viewModel.getExperience(experienceId)
     }
@@ -288,7 +285,7 @@ fun HorizontalColorRectangle(
 ) {
     val isDarkTheme = isSystemInDarkTheme()
     if (colors.size >= 2) {
-        val brush = remember(colors) {
+        val brush = remember(colors, isDarkTheme) {
             val composeColors = colors.map { it.getComposeColor(isDarkTheme) }
             Brush.horizontalGradient(colors = composeColors)
         }
