@@ -83,11 +83,34 @@ data class WidgetTimelineModel(
         internal fun buildSubstanceDurations(
             substances: List<Substance>,
             customProfiles: Map<String, CustomSubstanceWithEverything>,
+            useIntranasalForRectal: Boolean = false,
         ): Map<String, Map<AdministrationRoute, RoaDuration?>> =
             substances.associate { substance ->
-                substance.name to substance.roas.associate { it.route to it.roaDuration }
+                val base = substance.roas.associate { it.route to it.roaDuration }
+                val roas = if (useIntranasalForRectal) {
+                    val effectiveRectal = substance.getEffectiveRoa(AdministrationRoute.RECTAL, true)?.roaDuration
+                    if (effectiveRectal != null) {
+                        base + (AdministrationRoute.RECTAL to effectiveRectal)
+                    } else {
+                        base
+                    }
+                } else {
+                    base
+                }
+                substance.name to roas
             } + customProfiles.mapValues { (_, profile) ->
-                profile.durations.associate { it.route to it.toRoaDuration() }
+                val base = profile.durations.associate { it.route to it.toRoaDuration() }
+                if (useIntranasalForRectal) {
+                    val effectiveRectal = (profile.durations.firstOrNull { it.route == AdministrationRoute.INSUFFLATED }
+                        ?: profile.durations.firstOrNull { it.route == AdministrationRoute.RECTAL })?.toRoaDuration()
+                    if (effectiveRectal != null) {
+                        base + (AdministrationRoute.RECTAL to effectiveRectal)
+                    } else {
+                        base
+                    }
+                } else {
+                    base
+                }
             }
 
         /** Default lookback when there is no early active ingestion. */

@@ -386,7 +386,8 @@ class ExperienceViewModel @Inject constructor(
             IngestionElement(
                 ingestionWithCompanionAndCustomUnit = ingestionWith.ingestionWithCompanionAndCustomUnit,
                 roaDuration = ingestionWith.roaDuration,
-                numDots = numDots
+                numDots = numDots,
+                roaDose = ingestionWith.roaDose
             )
         }
     }
@@ -713,7 +714,7 @@ class ExperienceViewModel @Inject constructor(
                     height = getStrengthRelativeToCommonDose(
                         ingestion = oneElement.ingestionWithCompanionAndCustomUnit,
                         allIngestions = ingestionElements.map { it.ingestionWithCompanionAndCustomUnit },
-                        roaDose = substances.firstOrNull { it.name == ingestion.substanceName }
+                        roaDose = oneElement.roaDose ?: substances.firstOrNull { it.name == ingestion.substanceName }
                             ?.getRoa(ingestion.administrationRoute)?.roaDose
                     ).toFloat(),
                     horizontalWeight = horizontalWeight,

@@ -240,7 +240,8 @@ class TimelineScreenViewModel @Inject constructor(
             IngestionElement(
                 ingestionWithCompanionAndCustomUnit = ingestionWith.ingestionWithCompanionAndCustomUnit,
                 roaDuration = ingestionWith.roaDuration,
-                numDots = numDots
+                numDots = numDots,
+                roaDose = ingestionWith.roaDose
             )
         }
     }

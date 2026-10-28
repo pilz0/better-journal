@@ -115,6 +115,44 @@ class WidgetTimelineModelTest {
     }
 
     @Test
+    fun `buildSubstanceDurations substitutes intranasal for rectal when enabled`() {
+        val sniffDuration = RoaDuration(
+            onset = mins(5f, 10f),
+            comeup = mins(10f, 15f),
+            peak = hours(1f, 1.5f),
+            offset = hours(1f, 1.5f),
+            total = hours(2f, 3f),
+            afterglow = null,
+        )
+        val ketamine = mockk<Substance> {
+            every { name } returns "Ketamine"
+            every { roas } returns listOf(
+                Roa(AdministrationRoute.INSUFFLATED, null, sniffDuration, null)
+            )
+            every { getEffectiveRoa(AdministrationRoute.RECTAL, true) } returns Roa(
+                AdministrationRoute.INSUFFLATED,
+                null,
+                sniffDuration,
+                null
+            )
+        }
+
+        val withoutToggle = WidgetTimelineModel.buildSubstanceDurations(
+            substances = listOf(ketamine),
+            customProfiles = emptyMap(),
+            useIntranasalForRectal = false,
+        )
+        assertEquals(null, withoutToggle["Ketamine"]?.get(AdministrationRoute.RECTAL))
+
+        val withToggle = WidgetTimelineModel.buildSubstanceDurations(
+            substances = listOf(ketamine),
+            customProfiles = emptyMap(),
+            useIntranasalForRectal = true,
+        )
+        assertEquals(sniffDuration, withToggle["Ketamine"]?.get(AdministrationRoute.RECTAL))
+    }
+
+    @Test
     fun `empty input returns default window with no groups`() {
         val model = WidgetTimelineModel.build(
             now = now,

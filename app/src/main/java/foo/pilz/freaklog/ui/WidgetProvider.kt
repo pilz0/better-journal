@@ -68,8 +68,10 @@ import foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.graph.style.DefaultGraphStyle
+import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import foo.pilz.freaklog.ui.theme.md_theme_dark_primary
 import foo.pilz.freaklog.ui.theme.md_theme_light_primary
+import kotlinx.coroutines.flow.first
 import java.io.File
 import java.io.FileOutputStream
 import java.time.Duration
@@ -82,6 +84,7 @@ interface WidgetEntryPoint {
     fun appDatabase(): AppDatabase
     fun substanceRepository(): SubstanceRepository
     fun customSubstanceProfiles(): CustomSubstanceProfiles
+    fun userPreferences(): UserPreferences
 }
 
 object WidgetKeys {
@@ -400,11 +403,13 @@ class TimelineWidgetWorker(
 
             val substanceRepo = entryPoint.substanceRepository()
             val customProfiles = entryPoint.customSubstanceProfiles()
+            val useIntranasalForRectal = entryPoint.userPreferences().useIntranasalForRectalFlow.first()
 
             // Use the same durations for both graph curves and phase text.
             val substanceDurations = WidgetTimelineModel.buildSubstanceDurations(
                 substances = substanceRepo.getAllSubstances(),
                 customProfiles = customProfiles.byNameFlow.value,
+                useIntranasalForRectal = useIntranasalForRectal,
             )
 
             val now = Instant.now()
