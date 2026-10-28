@@ -380,13 +380,13 @@ class TimelineWidgetWorker(
         val appWidgetId = inputData.getInt(WorkerInput.APP_WIDGET_ID, -1)
         if (appWidgetId == -1) return Result.failure()
 
+        // Get database instance; closed in `finally` so a failed update never leaks it.
+        val database = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java,
+            "experiences_db"
+        ).build()
         return try {
-            // Get database instance
-            val database = Room.databaseBuilder(
-                applicationContext,
-                AppDatabase::class.java,
-                "experiences_db"
-            ).build()
             val experienceDao = database.experienceDao()
 
             // Load substance data for accurate timeline durations
@@ -540,11 +540,12 @@ class TimelineWidgetWorker(
             }
 
             MyAppWidget().update(applicationContext, glanceId)
-            database.close()
             Result.success()
         } catch (t: Throwable) {
             Log.e(TAG, "Error updating widget", t)
             Result.retry()
+        } finally {
+            database.close()
         }
     }
 
@@ -559,8 +560,6 @@ class TimelineWidgetWorker(
         // Render at high resolution; Glance scales the bitmap to the widget size.
         val width = 1200
         val height = 320
-        val bitmap = createBitmap(width, height)
-        val canvas = Canvas(bitmap)
 
         val paddingLeft = 24f
         val paddingRight = 24f
@@ -574,7 +573,12 @@ class TimelineWidgetWorker(
         val graphWidth = graphRight - graphLeft
 
         val widthInSeconds = model.widthInSeconds
-        fun secToPixel(sec: Float): Float = graphLeft + (sec / widthInSeconds) * graphWidth
+        if (!TimelineGraphGeometry.canRender(widthInSeconds, graphWidth, graphHeight)) return null
+        fun secToPixel(sec: Float): Float =
+            TimelineGraphGeometry.secToPixel(sec, widthInSeconds, graphLeft, graphWidth)
+
+        val bitmap = createBitmap(width, height)
+        val canvas = Canvas(bitmap)
 
         // ---- background grid + hour ticks ----
         val gridColor = if (isDarkMode) {
@@ -798,6 +802,18 @@ class TimelineWidgetWorker(
             else -> "<1m"
         }
     }
+}
+
+/** Pure geometry helpers for the timeline graph, kept free of Android types for unit tests. */
+internal object TimelineGraphGeometry {
+    /** False when the time span or graph area would make the pixel mapping degenerate. */
+    fun canRender(widthInSeconds: Float, graphWidth: Float, graphHeight: Float): Boolean =
+        widthInSeconds.isPositiveFinite() && graphWidth.isPositiveFinite() && graphHeight.isPositiveFinite()
+
+    fun secToPixel(sec: Float, widthInSeconds: Float, graphLeft: Float, graphWidth: Float): Float =
+        if (widthInSeconds.isPositiveFinite()) graphLeft + (sec / widthInSeconds) * graphWidth else graphLeft
+
+    private fun Float.isPositiveFinite(): Boolean = isFinite() && this > 0f
 }
 
 fun enqueueRefresh(context: Context, appWidgetId: Int) {
