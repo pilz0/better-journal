@@ -20,9 +20,11 @@ package foo.pilz.freaklog.data.room.experiences
 
 import foo.pilz.freaklog.data.room.experiences.entities.CustomInteractionSeverity
 import foo.pilz.freaklog.data.room.experiences.entities.CustomInteractionTargetType
+import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
 import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithEverything
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.substances.classes.InteractionType
+import foo.pilz.freaklog.data.substances.classes.Tolerance
 import foo.pilz.freaklog.data.substances.classes.roa.Roa
 import foo.pilz.freaklog.di.ApplicationScope
 import kotlinx.coroutines.CoroutineScope
@@ -56,6 +58,24 @@ class CustomSubstanceProfiles @Inject constructor(
     fun getInteraction(aName: String, bName: String, categoriesOf: (String) -> List<String>): InteractionType? =
         findCustomInteraction(byNameFlow.value, aName, bName, categoriesOf)
 }
+
+/** The profile named [substanceName], ignoring case and surrounding spaces. */
+fun findProfile(
+    profiles: Map<String, CustomSubstanceWithEverything>,
+    substanceName: String,
+): CustomSubstanceWithEverything? {
+    val cleanedName = substanceName.trim()
+    return profiles[cleanedName]
+        ?: profiles.values.firstOrNull { it.substance.name.trim().equals(cleanedName, ignoreCase = true) }
+}
+
+/** The custom substance's tolerance texts, or null if none is set. */
+fun CustomSubstance.toTolerance(): Tolerance? =
+    if (toleranceFull == null && toleranceHalf == null && toleranceZero == null) {
+        null
+    } else {
+        Tolerance(full = toleranceFull, half = toleranceHalf, zero = toleranceZero)
+    }
 
 fun findRoa(
     profiles: Map<String, CustomSubstanceWithEverything>,
