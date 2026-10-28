@@ -43,15 +43,21 @@ data class BatemanCurve(
 ) : IngestionCurve {
 
     init {
-        require(ka > 0.0) { "ka must be positive" }
-        require(ke > 0.0) { "ke must be positive" }
+        require(ka.isFinite() && ka > 0.0) { "ka must be finite and positive" }
+        require(ke.isFinite() && ke > 0.0) { "ke must be finite and positive" }
         require(ka > ke) { "ka ($ka) must exceed ke ($ke)" }
+        require(ingestionStartSec.isFinite()) { "ingestionStartSec must be finite" }
+        require(ingestionEndSec.isFinite()) { "ingestionEndSec must be finite" }
         require(ingestionEndSec >= ingestionStartSec) {
             "ingestionEndSec ($ingestionEndSec) must be >= ingestionStartSec ($ingestionStartSec)"
         }
+        require(peakHeight.isFinite() && peakHeight >= 0f) { "peakHeight must be finite and non-negative" }
+        require(tailEpsilon.isFinite() && tailEpsilon > 0.0 && tailEpsilon < 1.0) {
+            "tailEpsilon must be in (0, 1)"
+        }
     }
 
-    private val infusionDurationSec: Double = (ingestionEndSec - ingestionStartSec).toDouble()
+    private val infusionDurationSec: Double = ingestionEndSec.toDouble() - ingestionStartSec.toDouble()
 
     /** Maximum of the unscaled point shape e^(-ke·τ) - e^(-ka·τ). */
     private val unscaledPointPeak: Double = run {
@@ -72,24 +78,31 @@ data class BatemanCurve(
     private val scale: Double = if (unscaledPeak > 0.0) peakHeight / unscaledPeak else 0.0
 
     override val curveEndSec: Float = run {
-        val cap = min(maxCurveLengthSec.toDouble(), Double.MAX_VALUE / 2.0)
+        val cap = min(maxCurveLengthSec.toDouble(), Float.MAX_VALUE.toDouble())
         // After ingestion ends, the tail decays approximately as e^(-ke·s) relative
         // to the peak. Its duration must not depend on the unscaled peak amplitude.
-        val tailFromPeakEnd = -ln(tailEpsilon) / ke
+        val tailFromPeakEnd = if (ke > 0.0) -ln(tailEpsilon) / ke else 0.0
         val tau = max(0.0, tailFromPeakEnd) + infusionDurationSec
-        (ingestionStartSec.toDouble() + min(tau, cap)).toFloat()
+        val endSec = max(ingestionEndSec.toDouble(), ingestionStartSec.toDouble() + min(tau, cap))
+        endSec.coerceAtMost(Float.MAX_VALUE.toDouble()).toFloat()
     }
 
     override fun valueAt(tSec: Float): Float {
-        val tau = (tSec - ingestionStartSec).toDouble()
+        if (!tSec.isFinite()) return 0.0f
+        val tau = tSec.toDouble() - ingestionStartSec.toDouble()
         if (tau <= 0.0) return 0.0f
         val raw = if (infusionDurationSec <= 0.0) {
             pointShape(tau)
         } else {
             infusionShape(tau, infusionDurationSec)
         }
-        if (raw <= 0.0) return 0.0f
-        return (scale * raw).toFloat()
+        if (raw <= 0.0 || !raw.isFinite()) return 0.0f
+        val scaled = scale * raw
+        return if (scaled.isFinite() && scaled > 0.0) {
+            scaled.coerceAtMost(Float.MAX_VALUE.toDouble()).toFloat()
+        } else {
+            0.0f
+        }
     }
 
     private fun pointShape(tau: Double): Double = exp(-ke * tau) - exp(-ka * tau)
@@ -112,7 +125,8 @@ data class BatemanCurve(
      */
     private fun findMaxInfusionShapeValue(t: Double): Double {
         // Coarse scan over [0, T + 4/ke], then golden-section refinement.
-        val end = t + 4.0 / ke
+        val safeTail = if (ke > 0.0) min(4.0 / ke, 1e9) else 1e9
+        val end = min(t + safeTail, Double.MAX_VALUE / 4.0)
         val steps = 200
         var bestTau = t
         var bestVal = infusionShape(t, t)
@@ -160,23 +174,34 @@ data class BatemanCurve(
          * lower [ke] (i.e. lengthen the total duration) or shorten the requested tmax.
          */
         fun solveKaForTmax(ke: Double, tmaxSec: Double): Double? {
-            require(ke > 0.0) { "ke must be positive" }
-            require(tmaxSec > 0.0) { "tmaxSec must be positive" }
+            require(ke.isFinite() && ke > 0.0) { "ke must be finite and positive" }
+            require(tmaxSec.isFinite() && tmaxSec > 0.0) { "tmaxSec must be finite and positive" }
             // tmax(ka) is strictly decreasing in ka with limit 1/ke as ka → ke⁺ and 0 as ka → ∞.
             val limit = 1.0 / ke
-            if (tmaxSec >= limit * 0.999) return null
+            if (!limit.isFinite() || tmaxSec >= limit * 0.999) return null
             var lo = ke * 1.0001
-            var hi = ke * 1_000_000.0
+            var hi = min(ke * 1_000_000.0, Double.MAX_VALUE)
             // Ensure tmax(hi) < tmaxSec < tmax(lo). With the bounds above this nearly always
             // holds; clamp defensively.
-            fun tmaxOf(ka: Double) = ln(ka / ke) / (ka - ke)
+            fun tmaxOf(ka: Double): Double {
+                val delta = ka - ke
+                if (delta <= 0.0) return 1.0 / ke
+                return ln(ka / ke) / delta
+            }
             if (tmaxOf(lo) <= tmaxSec) return lo
             if (tmaxOf(hi) >= tmaxSec) return hi
             repeat(80) {
-                val mid = Math.sqrt(lo * hi) // geometric bisection — ka spans many decades
+                val ratio = hi / lo
+                val mid = if (ratio.isFinite() && ratio > 0.0) lo * Math.sqrt(ratio) else Math.sqrt(lo * hi)
                 if (tmaxOf(mid) > tmaxSec) lo = mid else hi = mid
             }
-            return Math.sqrt(lo * hi)
+            val finalRatio = hi / lo
+            val result = if (finalRatio.isFinite() && finalRatio > 0.0) {
+                lo * Math.sqrt(finalRatio)
+            } else {
+                Math.sqrt(lo * hi)
+            }
+            return result.takeIf { it.isFinite() && it > ke }
         }
     }
 }
