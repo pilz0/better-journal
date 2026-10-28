@@ -159,4 +159,53 @@ class AchievementPredicateTest {
         assertEquals(1, first.experiences.size)
         assertEquals(1, first.ingestions.size)
     }
+
+    @Test
+    fun streakFunctions_handleEdgeCasesAndEmptyLists() {
+        assertEquals(0, longestConsecutiveDayStreak(emptyList()))
+        assertEquals(0, longestSoberStreak(emptyList()))
+        assertEquals(0L, journalSpanDays(emptyList()))
+
+        val single = listOf(testIngestion("MDMA"))
+        assertEquals(1, longestConsecutiveDayStreak(single))
+        assertEquals(0, longestSoberStreak(single))
+        assertEquals(0L, journalSpanDays(single))
+    }
+
+    @Test
+    fun streakFunctions_calculateCorrectStreaks() {
+        val now = Instant.now()
+        val day1 = testIngestion("MDMA").copy(time = now.minusSeconds(86400 * 3))
+        val day2 = testIngestion("MDMA").copy(time = now.minusSeconds(86400 * 2))
+        val day4 = testIngestion("MDMA").copy(time = now)
+
+        val list = listOf(day1, day2, day4)
+        assertEquals(2, longestConsecutiveDayStreak(list))
+        assertEquals(1, longestSoberStreak(list))
+        assertTrue(journalSpanDays(list) >= 3L)
+    }
+
+    @Test
+    fun evaluateAchievement_handlesMalformedConditionsSafely() {
+        val exp = ExperienceWithIngestionsTimedNotesAndRatings(
+            experience = testExperience(1),
+            ingestions = listOf(testIngestion("LSD")),
+            timedNotes = emptyList(),
+            ratings = emptyList(),
+        )
+        val ctx = AchievementContext(
+            experiences = listOf(exp),
+            allIngestions = exp.ingestions,
+            allTimedNotes = emptyList(),
+            allRatings = emptyList(),
+            customUnits = emptyList(),
+            customRecipes = emptyList(),
+            substanceRepo = substanceRepo,
+            interactionChecker = interactionChecker,
+        )
+
+        assertFalse(evaluateAchievement("invalid_func()", ctx))
+        assertFalse(evaluateAchievement("min_ingestions(not_a_number)", ctx))
+        assertFalse(evaluateAchievement("((((unterminated", ctx))
+    }
 }

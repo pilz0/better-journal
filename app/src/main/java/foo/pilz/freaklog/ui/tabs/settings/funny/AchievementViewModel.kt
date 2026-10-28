@@ -76,7 +76,7 @@ class AchievementViewModel @Inject constructor(
         val results = defs.map { def ->
             UnlockedAchievement(
                 def = def,
-                unlocked = evaluateAchievement(def.condition, ctx)
+                unlocked = runCatching { evaluateAchievement(def.condition, ctx) }.getOrDefault(false)
             )
         }
 

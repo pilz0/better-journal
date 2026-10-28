@@ -447,7 +447,7 @@ class ExperienceViewModel @Inject constructor(
             substanceRepo = substanceRepo,
             interactionChecker = interactionChecker
         )
-        defs.filter { evaluateAchievement(it.condition, ctx) }
+        defs.filter { runCatching { evaluateAchievement(it.condition, ctx) }.getOrDefault(false) }
     }.flowOn(Dispatchers.Default)
         .stateIn(
             initialValue = emptyList(),
