@@ -38,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -206,21 +207,23 @@ private fun AddInventoryDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
                 suggestions.take(5).forEach { s ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                name = s.name
-                                isCustom = s.isCustom
-                            }
-                    ) {
-                        Text(
-                            text = s.name + if (s.isCustom) "  (custom)" else "",
-                            style = MaterialTheme.typography.bodyMedium,
+                    key(s.name) {
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(12.dp)
-                        )
+                                .clickable {
+                                    name = s.name
+                                    isCustom = s.isCustom
+                                }
+                        ) {
+                            Text(
+                                text = s.name + if (s.isCustom) "  (custom)" else "",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp)
+                            )
+                        }
                     }
                 }
                 OutlinedTextField(

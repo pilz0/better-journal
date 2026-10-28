@@ -38,6 +38,10 @@ class InventoryViewModel @Inject constructor(
 
     fun setSearchText(text: String) { _searchText.value = text }
 
+    private val allBuiltinNames: List<String> by lazy {
+        substanceRepository.getAllSubstances().map { it.name }
+    }
+
     /**
      * Returns up to [limit] known substance names (PsychonautWiki + user-defined
      * custom substances) whose names start with the current search text.
@@ -45,11 +49,11 @@ class InventoryViewModel @Inject constructor(
     suspend fun suggestions(searchText: String, limit: Int = 10): List<Suggestion> {
         if (searchText.isBlank()) return emptyList()
         val trimmed = searchText.trim()
-        val builtin = substanceRepository.getAllSubstances()
+        val builtin = allBuiltinNames
             .asSequence()
-            .filter { it.name.contains(trimmed, ignoreCase = true) }
+            .filter { it.contains(trimmed, ignoreCase = true) }
             .take(limit)
-            .map { Suggestion(name = it.name, isCustom = false) }
+            .map { Suggestion(name = it, isCustom = false) }
             .toList()
         val custom = experienceRepository.getAllCustomSubstances()
             .asSequence()
