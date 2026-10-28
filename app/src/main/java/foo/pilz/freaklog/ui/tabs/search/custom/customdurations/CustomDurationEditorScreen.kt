@@ -53,6 +53,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -182,6 +183,11 @@ fun CustomDurationEditorScreen(
     val spacing = LocalSpacing.current
     var showDeleteDialog by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
+    // hidden if scrolled all the way down, unless there's not enough content to allow scrolling.
+    // derivedStateOf so the FAB only recomposes when this flips, not on every scroll pixel.
+    val isFabVisible by remember {
+        derivedStateOf { scrollState.canScrollForward || !scrollState.canScrollBackward }
+    }
 
     Scaffold(
         topBar = {
@@ -205,13 +211,7 @@ fun CustomDurationEditorScreen(
             )
         },
         floatingActionButton = {
-            DisappearingFAB(
-                // hidden if scrolled all the way down, unless there's not enough content to allow
-                // scrolling
-                scrollState.canScrollForward || (
-                        !scrollState.canScrollForward && !scrollState.canScrollBackward
-                        )
-            ) {
+            DisappearingFAB(isFabVisible) {
                 FloatingActionButton(onClick = onDone) {
                     Row(
                         modifier = Modifier.padding(horizontal = spacing.lg),
@@ -490,8 +490,8 @@ fun DurationInputRow(
     name: String,
 ) {
     val spacing = LocalSpacing.current
-    var minInput by remember { mutableStateOf(duration?.min?.toString() ?: "") }
-    var maxInput by remember { mutableStateOf(duration?.max?.toString() ?: "") }
+    var minInput by remember { mutableStateOf(duration?.min?.takeIf { it.isFinite() }?.toString() ?: "") }
+    var maxInput by remember { mutableStateOf(duration?.max?.takeIf { it.isFinite() }?.toString() ?: "") }
     var inputUnit by remember { mutableStateOf(duration?.units ?: DurationUnits.MINUTES) }
     var unitDropdownOpen by remember { mutableStateOf(false) }
     var unitDropdownSize by remember { mutableStateOf(Size.Zero) }
@@ -812,10 +812,7 @@ fun BioavailabilityInputRow(
 
 private fun validateNumberField(value: String): Boolean {
     if (value.isEmpty()) return true
-    try {
-        val num = value.toFloat()
-        return num >= 0
-    } catch (_: NumberFormatException) {
-        return false
-    }
+    // toFloatOrNull accepts "Infinity" and "NaN", which must not reach the timeline math
+    val num = value.toFloatOrNull() ?: return false
+    return num.isFinite() && num >= 0f
 }

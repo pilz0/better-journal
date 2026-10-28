@@ -19,19 +19,28 @@
 package foo.pilz.freaklog.ui.tabs.search.substance.roa
 
 import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.util.Locale
+
+// Ensure we use dot as decimal separator regardless of locale
+private val usSymbols = DecimalFormatSymbols(Locale.US)
+
+// DecimalFormat is not thread-safe, so each thread gets its own set, indexed by precision:
+// "#", "#.#", "#.##", "#.###"
+private val readableFormats = ThreadLocal.withInitial {
+    arrayOf("#", "#.#", "#.##", "#.###").map { DecimalFormat(it, usSymbols) }
+}
 
 fun Double.toReadableString(): String {
+    if (!this.isFinite()) return ""
     val absValue = kotlin.math.abs(this)
-    val df = when {
-        absValue >= 100 -> DecimalFormat("#")
-        absValue >= 10 -> DecimalFormat("#.#")
-        absValue >= 1 -> DecimalFormat("#.##")
-        else -> DecimalFormat("#.###")
+    val fractionDigits = when {
+        absValue >= 100 -> 0
+        absValue >= 10 -> 1
+        absValue >= 1 -> 2
+        else -> 3
     }
-    // Ensure we use dot as decimal separator regardless of locale
-    val symbols = java.text.DecimalFormatSymbols(java.util.Locale.US)
-    df.decimalFormatSymbols = symbols
-    return df.format(this)
+    return readableFormats.get()!![fractionDigits].format(this)
 }
 
 fun Double.toPreservedString(): String {

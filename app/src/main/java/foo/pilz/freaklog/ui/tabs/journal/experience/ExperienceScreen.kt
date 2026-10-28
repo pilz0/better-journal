@@ -651,6 +651,9 @@ private fun ConsumerSection(
             }
         }
         HorizontalDivider()
+        val allTimesSortedMap = remember(consumerWithIngestions.ingestionElements) {
+            consumerWithIngestions.ingestionElements.map { it.ingestionWithCompanionAndCustomUnit.ingestion.time }
+        }
         consumerWithIngestions.ingestionElements.forEachIndexed { index, ingestionElement ->
             IngestionRow(
                 ingestionElement = ingestionElement,
@@ -668,7 +671,7 @@ private fun ConsumerSection(
                     endTime = ingestion.endTime,
                     index = index,
                     timeDisplayOption = timeDisplayOption,
-                    allTimesSortedMap = consumerWithIngestions.ingestionElements.map { it.ingestionWithCompanionAndCustomUnit.ingestion.time }
+                    allTimesSortedMap = allTimesSortedMap
                 )
             }
             foo.pilz.freaklog.ui.tabs.journal.experience.redose.RedoseChip(
@@ -847,6 +850,9 @@ private fun MyIngestionList(
             HorizontalDivider()
         }
         val ingestionElements = oneExperienceScreenModel.ingestionElements
+        val allTimesSortedMap = remember(ingestionElements) {
+            ingestionElements.map { it.ingestionWithCompanionAndCustomUnit.ingestion.time }
+        }
         // Readings taken before the first ingestion come first, the rest follow the ingestion they came after.
         val readingsBefore = bloodPressureReadings.filter { reading ->
             ingestionElements.none { it.ingestionWithCompanionAndCustomUnit.ingestion.time <= reading.time }
@@ -883,7 +889,7 @@ private fun MyIngestionList(
                     endTime = ingestion.endTime,
                     index = index,
                     timeDisplayOption = timeDisplayOption,
-                    allTimesSortedMap = oneExperienceScreenModel.ingestionElements.map { it.ingestionWithCompanionAndCustomUnit.ingestion.time }
+                    allTimesSortedMap = allTimesSortedMap
                 )
             }
             foo.pilz.freaklog.ui.tabs.journal.experience.redose.RedoseChip(
