@@ -11,7 +11,9 @@
 package foo.pilz.freaklog.ui
 
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
+import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithEverything
 import foo.pilz.freaklog.data.substances.AdministrationRoute
+import foo.pilz.freaklog.data.substances.classes.Substance
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
 import java.time.Duration
 import java.time.Instant
@@ -78,6 +80,16 @@ data class WidgetTimelineModel(
     )
 
     companion object {
+        internal fun buildSubstanceDurations(
+            substances: List<Substance>,
+            customProfiles: Map<String, CustomSubstanceWithEverything>,
+        ): Map<String, Map<AdministrationRoute, RoaDuration?>> =
+            substances.associate { substance ->
+                substance.name to substance.roas.associate { it.route to it.roaDuration }
+            } + customProfiles.mapValues { (_, profile) ->
+                profile.durations.associate { it.route to it.toRoaDuration() }
+            }
+
         /** Default lookback when there is no early active ingestion. */
         internal const val DEFAULT_LOOKBACK_SECONDS = 60L * 60L          // 1 hour
         /** Default lookahead when there is no late effect ending. */

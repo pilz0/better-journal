@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -167,7 +167,7 @@ fun FreakQueryShellScreenContent(
                     .padding(horizontal = horizontalPadding),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                itemsIndexed(state.history, key = { index, _ -> index }) { _, entry ->
+                items(state.history, key = { it.id }) { entry ->
                     ShellEntry(entry = entry) {
                         onInputChange(entry.query)
                     }
