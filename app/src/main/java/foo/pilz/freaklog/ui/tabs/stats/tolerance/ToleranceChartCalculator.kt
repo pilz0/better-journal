@@ -20,6 +20,9 @@ package foo.pilz.freaklog.ui.tabs.stats.tolerance
 
 import androidx.compose.ui.graphics.Color
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
+import foo.pilz.freaklog.data.room.experiences.findProfile
+import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithEverything
+import foo.pilz.freaklog.data.room.experiences.toTolerance
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import java.time.Duration
 import java.time.Instant
@@ -34,10 +37,11 @@ object ToleranceChartCalculator {
     fun getToleranceWindows(
         substanceAndDays: List<SubstanceAndDay>,
         substanceCompanions: List<SubstanceCompanion>,
-        substanceRepository: SubstanceRepository
+        substanceRepository: SubstanceRepository,
+        customProfiles: Map<String, CustomSubstanceWithEverything> = emptyMap()
     ): List<ToleranceWindow> {
         val cleanedSubstanceAndDays = removeMultipleSubstancesInADay(substanceAndDays)
-        val substanceIntervals = getSubstanceIntervals(cleanedSubstanceAndDays, substanceRepository)
+        val substanceIntervals = getSubstanceIntervals(cleanedSubstanceAndDays, substanceRepository, customProfiles)
         val substanceIntervalsGroupedBySubstance = getSubstanceIntervalsGroupedBySubstance(substanceIntervals)
         val mergedSubstanceIntervals = getMergedSubstanceIntervals(substanceIntervalsGroupedBySubstance)
         return getToleranceWindows(mergedSubstanceIntervals, substanceCompanions)
@@ -65,12 +69,18 @@ object ToleranceChartCalculator {
 
     private fun getSubstanceIntervals(
         substanceAndDayPairs: List<SubstanceAndDay>,
-        substanceRepository: SubstanceRepository
+        substanceRepository: SubstanceRepository,
+        customProfiles: Map<String, CustomSubstanceWithEverything>
     ): List<SubstanceInterval> {
         val toleranceHoursBySubstance = mutableMapOf<String, Pair<Double?, Double?>>()
         return substanceAndDayPairs.flatMap { pair ->
             val (halfToleranceHours, zeroToleranceHours) = toleranceHoursBySubstance.getOrPut(pair.substanceName) {
-                val tolerance = substanceRepository.getSubstance(pair.substanceName)?.tolerance
+                val substance = substanceRepository.getSubstance(pair.substanceName)
+                val tolerance = if (substance != null) {
+                    substance.tolerance
+                } else {
+                    findProfile(customProfiles, pair.substanceName)?.substance?.toTolerance()
+                }
                 parseToleranceToHours(tolerance?.half) to parseToleranceToHours(tolerance?.zero)
             }
             val result = mutableListOf<SubstanceInterval>()

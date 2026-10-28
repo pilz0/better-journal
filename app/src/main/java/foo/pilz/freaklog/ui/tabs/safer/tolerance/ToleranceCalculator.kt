@@ -1,6 +1,10 @@
 package foo.pilz.freaklog.ui.tabs.safer.tolerance
 
+import foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
+import foo.pilz.freaklog.data.room.experiences.findProfile
+import foo.pilz.freaklog.data.room.experiences.toTolerance
+import foo.pilz.freaklog.data.substances.classes.Tolerance
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import java.time.Duration
 import java.time.Instant
@@ -14,24 +18,46 @@ import kotlin.math.min
 @Singleton
 class ToleranceCalculator @Inject constructor(
     private val substanceRepo: SubstanceRepository,
-    private val experienceRepo: ExperienceRepository
+    private val experienceRepo: ExperienceRepository,
+    private val customProfiles: CustomSubstanceProfiles,
 ) {
+    /** What the calculation needs from either a built-in or a custom substance. */
+    private class ToleranceSubject(
+        val name: String,
+        val tolerance: Tolerance?,
+        val crossTolerances: List<String>,
+    )
+
     suspend fun calculate(substanceName: String): ToleranceEstimate? {
         val cleanedName = substanceName.trim()
-        val substance = substanceRepo.getSubstance(cleanedName)
-            ?: substanceRepo.getAllSubstances().firstOrNull { it.name.trim().equals(cleanedName, ignoreCase = true) }
+        val profiles = customProfiles.byNameFlow.value
+        val substance = (substanceRepo.getSubstance(cleanedName)
+            ?: substanceRepo.getAllSubstances().firstOrNull { it.name.trim().equals(cleanedName, ignoreCase = true) })
+            ?.let { ToleranceSubject(it.name, it.tolerance, it.crossTolerances) }
+            ?: findProfile(profiles, cleanedName)?.let { profile ->
+                ToleranceSubject(
+                    name = profile.substance.name,
+                    tolerance = profile.substance.toTolerance(),
+                    crossTolerances = profile.crossTolerances.map { it.categoryName },
+                )
+            }
             ?: return null
         val tolerance = substance.tolerance ?: return null
         val parsed = ToleranceTextParser.parse(tolerance) ?: return null
 
         val crossToleranceValues = substance.crossTolerances.map { it.trim().lowercase() }.toSet()
         val crossSubstanceNames = if (crossToleranceValues.isNotEmpty()) {
-            substanceRepo.getAllSubstances()
-                .filter { other ->
-                    !other.name.trim().equals(substance.name.trim(), ignoreCase = true) &&
-                    other.crossTolerances.any { it.trim().lowercase() in crossToleranceValues }
-                }
+            val builtInNames = substanceRepo.getAllSubstances()
+                .filter { other -> other.crossTolerances.any { it.trim().lowercase() in crossToleranceValues } }
                 .map { it.name }
+            val customNames = profiles.values
+                .filter { other ->
+                    other.crossTolerances.any { it.categoryName.trim().lowercase() in crossToleranceValues }
+                }
+                .map { it.substance.name }
+            (builtInNames + customNames)
+                .filter { !it.trim().equals(substance.name.trim(), ignoreCase = true) }
+                .distinctBy { it.trim().lowercase() }
         } else {
             emptyList()
         }
