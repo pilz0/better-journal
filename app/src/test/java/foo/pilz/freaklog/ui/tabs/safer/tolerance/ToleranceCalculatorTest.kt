@@ -58,4 +58,19 @@ class ToleranceCalculatorTest {
         val level = ToleranceCalculator.computeToleranceLevel(listOf(future), parsed, now)
         assertEquals(1f, level, 0.001f)
     }
+
+    @Test
+    fun testNonFiniteHalfLifeReturnsZero() {
+        val now = Instant.now()
+        val recent = listOf(now.minus(1, ChronoUnit.HOURS))
+        val nanParsed = ParsedTolerance(fullDays = 0f, halfLifeDays = Float.NaN, zeroDays = 14f)
+        val infParsed = ParsedTolerance(fullDays = 0f, halfLifeDays = Float.POSITIVE_INFINITY, zeroDays = 14f)
+        val zeroParsed = ParsedTolerance(fullDays = 0f, halfLifeDays = 0f, zeroDays = 14f)
+        val negParsed = ParsedTolerance(fullDays = 0f, halfLifeDays = -5f, zeroDays = 14f)
+
+        assertEquals(0f, ToleranceCalculator.computeToleranceLevel(recent, nanParsed, now))
+        assertEquals(0f, ToleranceCalculator.computeToleranceLevel(recent, infParsed, now))
+        assertEquals(0f, ToleranceCalculator.computeToleranceLevel(recent, zeroParsed, now))
+        assertEquals(0f, ToleranceCalculator.computeToleranceLevel(recent, negParsed, now))
+    }
 }

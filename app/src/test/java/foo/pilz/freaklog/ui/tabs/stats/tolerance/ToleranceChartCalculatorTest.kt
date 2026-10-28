@@ -385,4 +385,22 @@ class ToleranceChartCalculatorTest {
         assertThat(window.contains(Instant.parse("2026-06-01T09:59:59Z"))).isFalse()
         assertThat(window.contains(Instant.parse("2026-06-01T20:00:01Z"))).isFalse()
     }
+
+    @Test
+    fun `extreme tolerance duration is ignored and does not throw exception`() {
+        val extreme = createSubstance(
+            name = "Extreme",
+            halfTolerance = "99999999999 weeks",
+            zeroTolerance = "99999999999 weeks"
+        )
+        every { substanceRepo.getSubstance("Extreme") } returns extreme
+
+        val day = Instant.parse("2026-06-01T10:00:00Z")
+        val result = ToleranceChartCalculator.getToleranceWindows(
+            substanceAndDays = listOf(SubstanceAndDay("Extreme", day)),
+            substanceCompanions = emptyList(),
+            substanceRepository = substanceRepo
+        )
+        assertThat(result).isEmpty()
+    }
 }

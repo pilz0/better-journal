@@ -38,7 +38,12 @@ class ToleranceCalculator @Inject constructor(
 
         val allNames = listOf(substance.name) + crossSubstanceNames
         val now = Instant.now()
-        val since = now.minus(ceil(parsed.zeroDays.toDouble()).toLong().coerceAtLeast(1L), ChronoUnit.DAYS)
+        val safeZeroDays = if (parsed.zeroDays.isFinite() && parsed.zeroDays > 0f) {
+            parsed.zeroDays.toDouble().coerceIn(1.0, 36500.0)
+        } else {
+            36500.0
+        }
+        val since = now.minus(ceil(safeZeroDays).toLong(), ChronoUnit.DAYS)
         val ingestions = experienceRepo.getIngestionsSince(allNames, since)
 
         val level = computeToleranceLevel(ingestions.map { it.time }, parsed, now)
@@ -67,13 +72,13 @@ class ToleranceCalculator @Inject constructor(
         ): Float {
             if (ingestionTimes.isEmpty()) return 0f
             val halfLifeSeconds = (parsedTolerance.halfLifeDays * 86400f).toDouble()
-            if (halfLifeSeconds <= 0) return 0f
+            if (halfLifeSeconds <= 0.0 || !halfLifeSeconds.isFinite()) return 0f
 
             val sum = ingestionTimes.sumOf { time ->
                 val elapsedSeconds = Duration.between(time, now).seconds.toDouble().coerceAtLeast(0.0)
                 exp(-0.693 * elapsedSeconds / halfLifeSeconds)
             }
-            return min(1f, sum.toFloat())
+            return if (sum.isFinite()) min(1f, sum.toFloat()).coerceAtLeast(0f) else 0f
         }
     }
 }

@@ -29,6 +29,7 @@ object ToleranceChartCalculator {
 
     private val weeksPattern = Regex("""(\d+)(?:-(\d+))?\s*weeks?""", RegexOption.IGNORE_CASE)
     private val daysPattern = Regex("""(\d+)(?:-(\d+))?\s*days?""", RegexOption.IGNORE_CASE)
+    private const val MAX_TOLERANCE_HOURS = 876000.0
 
     fun getToleranceWindows(
         substanceAndDays: List<SubstanceAndDay>,
@@ -75,8 +76,12 @@ object ToleranceChartCalculator {
             val result = mutableListOf<SubstanceInterval>()
             var startOfHalfTolerance = pair.day
 
-            if (halfToleranceHours != null && halfToleranceHours > 24) {
-                startOfHalfTolerance = pair.day.plus(Duration.ofHours(halfToleranceHours.toLong()))
+            val isHalfValid = halfToleranceHours != null &&
+                halfToleranceHours.isFinite() &&
+                halfToleranceHours > 24 &&
+                halfToleranceHours <= MAX_TOLERANCE_HOURS
+            if (isHalfValid) {
+                startOfHalfTolerance = pair.day.plus(Duration.ofHours(halfToleranceHours!!.toLong()))
                 result.add(
                     SubstanceInterval(
                         substanceName = pair.substanceName,
@@ -87,8 +92,12 @@ object ToleranceChartCalculator {
                 )
             }
 
-            if (zeroToleranceHours != null && zeroToleranceHours > 24) {
-                val startOfZeroTolerance = pair.day.plus(Duration.ofHours(zeroToleranceHours.toLong()))
+            val isZeroValid = zeroToleranceHours != null &&
+                zeroToleranceHours.isFinite() &&
+                zeroToleranceHours > 24 &&
+                zeroToleranceHours <= MAX_TOLERANCE_HOURS
+            if (isZeroValid) {
+                val startOfZeroTolerance = pair.day.plus(Duration.ofHours(zeroToleranceHours!!.toLong()))
                 if (startOfZeroTolerance > startOfHalfTolerance) {
                     result.add(
                         SubstanceInterval(
@@ -111,16 +120,18 @@ object ToleranceChartCalculator {
         // Try to parse patterns like "1-2 weeks", "3-4 days", "2 weeks", etc.
         val weeksMatch = weeksPattern.find(toleranceString)
         if (weeksMatch != null) {
-            val min = weeksMatch.groupValues[1].toDoubleOrNull() ?: return null
-            val max = weeksMatch.groupValues[2].toDoubleOrNull() ?: min
-            return ((min + max) / 2) * 7 * 24
+            val min = weeksMatch.groupValues[1].toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 } ?: return null
+            val max = weeksMatch.groupValues[2].toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 } ?: min
+            val hours = ((min + max) / 2) * 7 * 24
+            return hours.takeIf { it.isFinite() && it >= 0.0 }
         }
 
         val daysMatch = daysPattern.find(toleranceString)
         if (daysMatch != null) {
-            val min = daysMatch.groupValues[1].toDoubleOrNull() ?: return null
-            val max = daysMatch.groupValues[2].toDoubleOrNull() ?: min
-            return ((min + max) / 2) * 24
+            val min = daysMatch.groupValues[1].toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 } ?: return null
+            val max = daysMatch.groupValues[2].toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 } ?: min
+            val hours = ((min + max) / 2) * 24
+            return hours.takeIf { it.isFinite() && it >= 0.0 }
         }
 
         return null
