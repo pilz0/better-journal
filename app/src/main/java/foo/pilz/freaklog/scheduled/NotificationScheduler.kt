@@ -13,6 +13,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -65,20 +66,28 @@ class NotificationScheduler @Inject constructor(
     /** Schedules a single one-shot fire at [triggerAtMillis] for the given reminder. */
     fun scheduleAt(reminder: Reminder, triggerAtMillis: Long) {
         val pendingIntent = makeFirePendingIntent(reminder)
-        if (canScheduleExactAlarms()) {
-            alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                triggerAtMillis,
-                pendingIntent
-            )
-        } else {
-            // Fall back to inexact alarms if the user denied SCHEDULE_EXACT_ALARM. Better
-            // late than never.
+        try {
+            if (canScheduleExactAlarms()) {
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    triggerAtMillis,
+                    pendingIntent
+                )
+                return
+            }
+        } catch (e: SecurityException) {
+            // The permission can be revoked between checking it and setting the alarm.
+            Log.w("NotificationScheduler", "Exact alarm permission revoked; using an inexact alarm", e)
+        }
+        try {
+            // Fall back to inexact alarms if exact alarms are denied or revoked.
             alarmManager.setAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,
                 triggerAtMillis,
                 pendingIntent
             )
+        } catch (e: SecurityException) {
+            Log.w("NotificationScheduler", "Unable to schedule an inexact reminder alarm", e)
         }
     }
 

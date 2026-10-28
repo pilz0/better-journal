@@ -4,6 +4,9 @@
  */
 package foo.pilz.freaklog.scheduled
 
+import assertk.assertThat
+import assertk.assertions.isEqualTo
+import assertk.assertions.isNull
 import foo.pilz.freaklog.data.room.reminders.entities.Reminder
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -12,6 +15,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.DayOfWeek
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -180,6 +184,132 @@ class ReminderScheduleTest {
         // Next slot = Sat 09:00 (skip), Sun 09:00 (skip), Mon 09:00
         val expected = millis(LocalDate.of(2026, 1, 12), LocalTime.of(9, 0))
         assertEquals(expected, ReminderSchedule.nextFireAt(r, now, zone))
+    }
+
+    @Test
+    fun nextFireAt_dailyAtTimes_nearMaxMillis_returnsNull() {
+        assertThat(ReminderSchedule.nextFireAt(reminder(), Long.MAX_VALUE - 1000L, zone)).isNull()
+        assertThat(ReminderSchedule.nextFireAt(reminder(), Long.MAX_VALUE, zone)).isNull()
+    }
+
+    @Test
+    fun nextFireAt_dailyAtTimes_negativeMillis_returnsNextTime() {
+        val expected = millis(LocalDate.of(1970, 1, 1), LocalTime.of(8, 0))
+        assertThat(ReminderSchedule.nextFireAt(reminder(), -1L, zone)).isEqualTo(expected)
+    }
+
+    @Test
+    fun nextFireAt_dailyAtTimes_minMillis_skipsUnrepresentableTimes() {
+        val r = reminder(times = "00:00")
+        val nextDate = Instant.ofEpochMilli(Long.MIN_VALUE).atZone(zone).toLocalDate().plusDays(1)
+        val expected = millis(nextDate, LocalTime.MIDNIGHT)
+        assertThat(ReminderSchedule.nextFireAt(r, Long.MIN_VALUE, zone)).isEqualTo(expected)
+    }
+
+    @Test
+    fun nextFireAt_interval_legacyAnchorOutsideMillisRange_returnsNull() {
+        val r = reminder(scheduleType = ReminderSchedule.SCHEDULE_TYPE_INTERVAL)
+        assertThat(ReminderSchedule.nextFireAt(r, Long.MIN_VALUE, zone)).isNull()
+    }
+
+    @Test
+    fun nextFireAt_interval_negativeMillis_usesLegacyAnchor() {
+        val r = reminder(scheduleType = ReminderSchedule.SCHEDULE_TYPE_INTERVAL)
+        assertThat(ReminderSchedule.nextFireAt(r, -1L, zone)).isEqualTo(0L)
+    }
+
+    @Test
+    fun nextFireAt_interval_minMillis_returnsFutureAnchorWithoutSubtracting() {
+        val r = reminder(scheduleType = ReminderSchedule.SCHEDULE_TYPE_INTERVAL, startEpochMillis = 1L)
+        assertThat(ReminderSchedule.nextFireAt(r, Long.MIN_VALUE, zone)).isEqualTo(1L)
+    }
+
+    @Test
+    fun nextFireAt_interval_stepMultiplicationOverflow_returnsNull() {
+        val r = reminder(
+            scheduleType = ReminderSchedule.SCHEDULE_TYPE_INTERVAL,
+            intervalUnit = "Minutes",
+            startEpochMillis = 1L,
+        )
+        assertThat(ReminderSchedule.nextFireAt(r, Long.MAX_VALUE - 1000L, zone)).isNull()
+        assertThat(ReminderSchedule.nextFireAt(r, Long.MAX_VALUE, zone)).isNull()
+        assertThat(
+            ReminderSchedule.nextFireAt(
+                r.copy(intervalValue = Int.MAX_VALUE, intervalUnit = "Days"),
+                Long.MAX_VALUE - 1000L,
+                zone,
+            )
+        ).isNull()
+    }
+
+    @Test
+    fun nextFireAt_interval_anchorAdditionOverflow_returnsNull() {
+        val anchor = Long.MAX_VALUE - 30_000L
+        val r = reminder(
+            scheduleType = ReminderSchedule.SCHEDULE_TYPE_INTERVAL,
+            intervalUnit = "Minutes",
+            startEpochMillis = anchor,
+        )
+        assertThat(ReminderSchedule.nextFireAt(r, anchor, zone)).isNull()
+    }
+
+    @Test
+    fun nextFireAt_interval_horizonOverflow_preservesRepresentableFireTime() {
+        val anchor = Long.MAX_VALUE - 120_000L
+        val r = reminder(
+            scheduleType = ReminderSchedule.SCHEDULE_TYPE_INTERVAL,
+            intervalUnit = "Minutes",
+            startEpochMillis = anchor,
+        )
+        assertThat(ReminderSchedule.nextFireAt(r, anchor + 1L, zone)).isEqualTo(anchor + 60_000L)
+        assertThat(ReminderSchedule.nextFireAt(r.copy(startEpochMillis = Long.MAX_VALUE), anchor, zone))
+            .isEqualTo(Long.MAX_VALUE)
+    }
+
+    @Test
+    fun nextFireAt_interval_skippingDisallowedDayWouldOverflow_returnsNull() {
+        val anchor = Long.MAX_VALUE - 60_001L
+        val allowedDay = Instant.ofEpochMilli(anchor).atZone(zone).dayOfWeek.plus(1)
+        val r = reminder(
+            scheduleType = ReminderSchedule.SCHEDULE_TYPE_INTERVAL,
+            intervalUnit = "Minutes",
+            startEpochMillis = anchor,
+            daysMask = 1 shl (allowedDay.value - 1),
+        )
+        assertThat(ReminderSchedule.nextFireAt(r, anchor - 1L, zone)).isNull()
+    }
+
+    @Test
+    fun nextFireAt_dailyAtTimes_springDstGap_movesTimeForward() {
+        val berlin = ZoneId.of("Europe/Berlin")
+        val now = Instant.parse("2026-03-29T00:00:00Z").toEpochMilli()
+        val expected = Instant.parse("2026-03-29T01:30:00Z").toEpochMilli() // 03:30 CEST
+        assertThat(ReminderSchedule.nextFireAt(reminder(times = "02:30"), now, berlin)).isEqualTo(expected)
+    }
+
+    @Test
+    fun nextFireAt_dailyAtTimes_autumnDstOverlap_usesEarlierOffsetOnce() {
+        val berlin = ZoneId.of("Europe/Berlin")
+        val r = reminder(times = "02:30")
+        val now = Instant.parse("2026-10-25T00:00:00Z").toEpochMilli()
+        val firstOccurrence = Instant.parse("2026-10-25T00:30:00Z").toEpochMilli()
+        val nextDay = Instant.parse("2026-10-26T01:30:00Z").toEpochMilli()
+        assertThat(ReminderSchedule.nextFireAt(r, now, berlin)).isEqualTo(firstOccurrence)
+        assertThat(ReminderSchedule.nextFireAt(r, firstOccurrence, berlin)).isEqualTo(nextDay)
+    }
+
+    @Test
+    fun nextFireAt_interval_acrossDstTransitions_preservesElapsedInterval() {
+        val berlin = ZoneId.of("Europe/Berlin")
+        for (transition in listOf("2026-03-29T00:30:00Z", "2026-10-25T00:30:00Z")) {
+            val anchor = Instant.parse(transition).toEpochMilli()
+            val r = reminder(
+                scheduleType = ReminderSchedule.SCHEDULE_TYPE_INTERVAL,
+                intervalUnit = "Hours",
+                startEpochMillis = anchor,
+            )
+            assertThat(ReminderSchedule.nextFireAt(r, anchor, berlin)).isEqualTo(anchor + 3_600_000L)
+        }
     }
 
     @Test
