@@ -63,6 +63,21 @@ class SubstanceFrequencyTest {
     }
 
     @Test
+    fun `future ingestions count toward all time only`() {
+        val frequency = SubstanceFrequency.compute(
+            ingestions = listOf(
+                ingestion(1, "2026-04-29T12:00:00Z"),
+                ingestion(2, "2026-04-29T12:00:01Z"),
+                ingestion(3, "2026-06-01T08:00:00Z"),
+            ),
+            now = now,
+            zone = zone,
+        )
+
+        assertThat(frequency).isEqualTo(SubstanceFrequency(last30Days = 1, last12Months = 1, allTime = 3))
+    }
+
+    @Test
     fun `empty ingestions give zero counts`() {
         val frequency = SubstanceFrequency.compute(ingestions = emptyList(), now = now, zone = zone)
 

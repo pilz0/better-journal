@@ -35,6 +35,7 @@ import foo.pilz.freaklog.ui.tabs.stats.excelskin.EXCEL_SKIN_OPEN_PROBABILITY
 import foo.pilz.freaklog.ui.tabs.stats.excelskin.ExcelSkinController
 import foo.pilz.freaklog.ui.tabs.stats.excelskin.ExcelSkinPayload
 import foo.pilz.freaklog.ui.tabs.stats.excelskin.randomExcelFileName
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,6 +45,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.takeWhile
@@ -101,8 +103,10 @@ class StatsViewModel @Inject constructor(
         return@map dateTime.format(formatter)
     }
 
-    private val allExperiencesSortedFlow: Flow<List<ExperienceWithIngestionsAndCompanions>> =
+    // Shared so the pipelines below don't each re-collect (and re-query) the Room flow.
+    private val allExperiencesSortedFlow: StateFlow<List<ExperienceWithIngestionsAndCompanions>> =
         experienceRepo.getSortedExperiencesWithIngestionsAndCustomUnitsFlow()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val areThereAnyIngestionsFlow =
         allExperiencesSortedFlow.combine(consumerFlow) { experiences, consumerName ->
@@ -117,7 +121,8 @@ class StatsViewModel @Inject constructor(
                 .takeWhile { it.sortInstant > startDate }
         }
 
-    private val companionFlow = experienceRepo.getAllSubstanceCompanionsFlow()
+    private val companionFlow: StateFlow<List<SubstanceCompanion>> = experienceRepo.getAllSubstanceCompanionsFlow()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val experienceChartBucketsFlow: Flow<List<List<ColorCount>>> =
         relevantExperiencesSortedFlow.combine(optionFlow) { sortedExperiences, option ->
@@ -241,7 +246,7 @@ class StatsViewModel @Inject constructor(
             chartBuckets = chartBuckets,
             consumerName = consumerName,
         )
-    }.stateIn(
+    }.flowOn(Dispatchers.Default).stateIn(
         initialValue = StatsModel(
             selectedOption = TimePickerOption.WEEKS_26,
             areThereAnyIngestions = false,

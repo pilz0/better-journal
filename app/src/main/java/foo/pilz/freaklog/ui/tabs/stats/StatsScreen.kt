@@ -55,7 +55,6 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -68,6 +67,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.ui.YOU
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
 import foo.pilz.freaklog.ui.theme.JournalTheme
@@ -84,7 +84,8 @@ fun StatsScreen(
     navigateToSubstanceCompanion: (substanceName: String, consumerName: String?) -> Unit,
     navigateToToleranceChart: () -> Unit = {},
 ) {
-    val statsModel = viewModel.statsModelFlow.collectAsState().value
+    val statsModel by viewModel.statsModelFlow.collectAsStateWithLifecycle()
+    val consumerNamesSorted by viewModel.sortedConsumerNamesFlow.collectAsStateWithLifecycle()
     androidx.compose.runtime.LaunchedEffect(Unit) { viewModel.onStatsOpened() }
     StatsScreen(
         navigateToSubstanceCompanion = navigateToSubstanceCompanion,
@@ -92,7 +93,7 @@ fun StatsScreen(
         onTapOption = viewModel::onTapOption,
         statsModel = statsModel,
         onChangeConsumerName = viewModel::onChangeConsumer,
-        consumerNamesSorted = viewModel.sortedConsumerNamesFlow.collectAsState().value,
+        consumerNamesSorted = consumerNamesSorted,
         onOpenSpreadsheet = viewModel::showExcelSkin,
     )
 }

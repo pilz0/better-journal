@@ -75,7 +75,7 @@ internal fun formatSiValue(v: Double): String = when {
 }
 
 internal fun niceMax(maxVal: Double): Double {
-    if (maxVal <= 0) return 1.0
+    if (!maxVal.isFinite() || maxVal <= 0.0) return 1.0
     val mag = 10.0.pow(floor(log10(maxVal)))
     val norm = maxVal / mag
     val nice = when {
@@ -118,13 +118,17 @@ fun DosageBarChart(
     val heavyCol  = MaterialTheme.colorScheme.error.copy(alpha = 0.85f)
 
     // Y-values according to the selected metric
-    val yValues: List<Double> = when (metric) {
-        DosageMetric.TOTAL_DOSE        -> buckets.map { it.totalDose }
-        DosageMetric.SESSION_COUNT     -> buckets.map { it.sessionCount.toDouble() }
-        DosageMetric.AVG_DOSE_PER_SESSION -> buckets.map { it.avgDosePerSession }
+    val yValues: List<Double> = remember(buckets, metric) {
+        when (metric) {
+            DosageMetric.TOTAL_DOSE        -> buckets.map { it.totalDose }
+            DosageMetric.SESSION_COUNT     -> buckets.map { it.sessionCount.toDouble() }
+            DosageMetric.AVG_DOSE_PER_SESSION -> buckets.map { it.avgDosePerSession }
+        }
     }
-    val maxValue = yValues.maxOrNull()?.takeIf { it > 0 } ?: 1.0
-    val yMax = niceMax(maxValue)
+    val yMax = remember(yValues) {
+        val maxValue = yValues.maxOrNull()?.takeIf { it > 0 } ?: 1.0
+        niceMax(maxValue)
+    }
     val gridLines = 4
 
     val unit = buckets.first().unit
@@ -303,12 +307,14 @@ fun DosageBarChart(
                 val y0 = (chartH - (intercept / yMax * chartH)).toFloat()
                 val y1 = (chartH - ((intercept + slope * (n - 1)) / yMax * chartH)).toFloat()
 
-                drawLine(
-                    color       = trendLineColor,
-                    start       = Offset(yAxisLabelWidth + barSpacing / 2f, y0.coerceIn(0f, chartH)),
-                    end         = Offset(w - barSpacing / 2f,               y1.coerceIn(0f, chartH)),
-                    strokeWidth = 2.dp.toPx()
-                )
+                if (y0.isFinite() && y1.isFinite()) {
+                    drawLine(
+                        color       = trendLineColor,
+                        start       = Offset(yAxisLabelWidth + barSpacing / 2f, y0.coerceIn(0f, chartH)),
+                        end         = Offset(w - barSpacing / 2f,               y1.coerceIn(0f, chartH)),
+                        strokeWidth = 2.dp.toPx()
+                    )
+                }
             }
         }
     }
