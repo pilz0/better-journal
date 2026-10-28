@@ -103,13 +103,16 @@ private fun RoaDuration.resolveParameters(weight: Double): BatemanParameters? {
 
     // A fixed 60 s floor would exceed the ceiling for short totals (e.g. inhaled DMT), so
     // scale it down with the total; capping it at the ceiling keeps coerceIn from throwing.
-    val maxTmax = targetTotal * 0.49
+    val ke = (-ln(TAIL_EPSILON) / targetTotal).coerceAtLeast(1e-9)
+    // A Bateman peak can't come later than 1/ke (≈ 0.33 * total here). Clamp just below that
+    // limit instead of letting the solver fail, which used to collapse late peaks to 0.5/ke.
+    val maxTmax = (0.98 / ke).coerceAtMost(targetTotal * 0.49)
     val minTmax = min(60.0, targetTotal * 0.1).coerceAtLeast(5.0).coerceAtMost(maxTmax)
     val tmax = (tmaxFromPhases ?: (targetTotal * 0.25)).coerceIn(minTmax, maxTmax)
-    val ke = (-ln(TAIL_EPSILON) / targetTotal).coerceAtLeast(1e-9)
     if (tmax <= 0.0 || !tmax.isFinite() || ke <= 0.0 || !ke.isFinite()) return null
 
     val ka = BatemanCurve.solveKaForTmax(ke = ke, tmaxSec = tmax)
+        ?: BatemanCurve.solveKaForTmax(ke = ke, tmaxSec = 0.95 / ke)
         ?: BatemanCurve.solveKaForTmax(ke = ke, tmaxSec = 0.5 / ke)
         ?: return null
     if (ka <= 0.0 || ka <= ke || !ka.isFinite()) return null

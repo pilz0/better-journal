@@ -177,6 +177,40 @@ class RoaDurationToCurveTest {
         assertTrue("peak $peak s should lie within the 6 s total", peak > 0f && peak < 6f)
     }
 
+    @Test
+    fun `late peak beyond the Bateman limit is clamped instead of collapsing`() {
+        // total = 8 h, so the latest reachable Bateman peak is 1/ke = 8 h / ln(20) ≈ 2.67 h.
+        // onset+comeup = 3 h used to make the solver fail and fall back to 0.5/ke ≈ 1.33 h.
+        val late = phasedDuration(onsetCenterHours = 2f, comeupCenterHours = 1f)
+        val earlier = phasedDuration(onsetCenterHours = 1.5f, comeupCenterHours = 1f)
+        val lateCurve = late.toIngestionCurve(line(weight = 0.5f), origin)
+        val earlierCurve = earlier.toIngestionCurve(line(weight = 0.5f), origin)
+        assertNotNull(lateCurve)
+        assertNotNull(earlierCurve)
+        val latePeak = coarsePeakSec(lateCurve!!)
+        val earlierPeak = coarsePeakSec(earlierCurve!!)
+        assertTrue("late peak $latePeak s should stay near 1/ke ≈ 9600 s", latePeak > 2.4f * 3600f)
+        assertTrue(
+            "later onset ($latePeak s) must not peak before earlier onset ($earlierPeak s)",
+            latePeak >= earlierPeak
+        )
+    }
+
+    private fun phasedDuration(onsetCenterHours: Float, comeupCenterHours: Float) = RoaDuration(
+        onset = range(onsetCenterHours - 0.5f, onsetCenterHours + 0.5f, DurationUnits.HOURS),
+        comeup = range(comeupCenterHours - 0.5f, comeupCenterHours + 0.5f, DurationUnits.HOURS),
+        peak = range(1f, 2f, DurationUnits.HOURS),
+        offset = range(1f, 2f, DurationUnits.HOURS),
+        total = range(6f, 10f, DurationUnits.HOURS),
+        afterglow = null,
+    )
+
+    /** Samples the curve every 10 s and returns the time of its maximum. */
+    private fun coarsePeakSec(curve: IngestionCurve): Float =
+        (1..(curve.curveEndSec / 10).toInt())
+            .map { it * 10f }
+            .maxByOrNull { curve.valueAt(it) }!!
+
     /** Samples the curve every 0.1 s and returns the time of its maximum. */
     private fun peakSec(curve: IngestionCurve): Float =
         (1..(curve.curveEndSec * 10).toInt())

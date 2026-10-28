@@ -21,14 +21,17 @@ private val massUnitToMilligrams = mapOf(
     "kg" to 1_000_000.0,
 )
 
-private val trailingUnitRegex = Regex("^(.*?)(µ?[a-zA-Z]+)$")
+// Matches both the micro sign (U+00B5) and Greek small mu (U+03BC); units are normalized to the former.
+private val trailingUnitRegex = Regex("^(.*?)([µμ]?[a-zA-Z]+)$")
+
+private fun normalizeUnit(unit: String): String = unit.lowercase().replace('μ', 'µ')
 
 private fun splitTrailingUnit(input: String): Pair<String, String>? {
     val text = input.trim().replace(',', '.')
     if (text.isEmpty()) return null
     val match = trailingUnitRegex.matchEntire(text) ?: return text to ""
     val expr = match.groupValues[1].trim()
-    val unit = match.groupValues[2].lowercase()
+    val unit = normalizeUnit(match.groupValues[2])
     return expr to unit
 }
 
@@ -36,7 +39,7 @@ fun parseVolumeToMl(input: String): Double? {
     val (expr, unit) = splitTrailingUnit(input) ?: return null
     val value = evaluateNumericExpression(expr) ?: return null
     val factor = if (unit.isEmpty()) 1.0 else volumeUnitToMilliliters[unit] ?: return null
-    return value * factor
+    return (value * factor).takeIf { it.isFinite() }
 }
 
 fun parseConcentrationToMgPerMl(input: String): Double? {
@@ -51,8 +54,8 @@ fun parseConcentrationToMgPerMl(input: String): Double? {
 internal fun massInMg(input: String, defaultUnit: String): Double? {
     val (expr, unit) = splitTrailingUnit(input) ?: return null
     val value = evaluateNumericExpression(expr) ?: return null
-    val factor = massUnitToMilligrams[unit.ifEmpty { defaultUnit }] ?: return null
-    return value * factor
+    val factor = massUnitToMilligrams[normalizeUnit(unit.ifEmpty { defaultUnit })] ?: return null
+    return (value * factor).takeIf { it.isFinite() }
 }
 
 private fun parseConcentrationWithVolume(parts: List<String>): Double? {
@@ -61,16 +64,19 @@ private fun parseConcentrationWithVolume(parts: List<String>): Double? {
     val volume = evaluateNumericExpression(volumeExpr.ifBlank { "1" }) ?: return null
     val volumeFactor = if (volumeUnit.isEmpty()) 1.0 else volumeUnitToMilliliters[volumeUnit] ?: return null
     val divisor = volume * volumeFactor
-    return if (divisor == 0.0) null else mass / divisor
+    if (divisor <= 0.0 || !divisor.isFinite()) return null
+    return (mass / divisor).takeIf { it.isFinite() }
 }
 
 fun formatVolume(ml: Double): String = when {
+    !ml.isFinite() || ml < 0.0 -> ""
     ml >= 1000.0 -> "${(ml / 1000.0).toReadableString()}l"
     ml < 1.0 -> "${(ml * 1000.0).toReadableString()}µl"
     else -> "${ml.toReadableString()}ml"
 }
 
 fun formatConcentration(mgPerMl: Double): String {
+    if (!mgPerMl.isFinite() || mgPerMl < 0.0) return ""
     val microgramsPerLiter = mgPerMl * 1_000_000.0
     return when {
         mgPerMl >= 1000.0 -> "${(mgPerMl / 1000.0).toReadableString()}g/ml"
