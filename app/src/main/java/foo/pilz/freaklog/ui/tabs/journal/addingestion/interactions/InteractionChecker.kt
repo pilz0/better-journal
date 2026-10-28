@@ -72,13 +72,15 @@ class InteractionChecker @Inject constructor(
         }
     }
 
+    private val cleanedCache = ConcurrentHashMap<Interactions, CleanedInteractions>()
+
     private fun getInteractionFromAToB(
         fromSubstance: Substance?,
         toSubstance: Substance?,
         toName: String,
     ): InteractionType? {
         val interactions = fromSubstance?.interactions ?: return null
-        val cleaned = cleanInteractions(interactions)
+        val cleaned = cleanedCache.getOrPut(interactions) { cleanInteractions(interactions) }
 
         val directInteraction = getDirectInteraction(cleaned = cleaned, substanceName = toName)
         if (directInteraction != null) {
@@ -98,11 +100,11 @@ class InteractionChecker @Inject constructor(
     }
 
     private fun getDirectInteraction(cleaned: CleanedInteractions, substanceName: String): InteractionType? {
-        return if (isDirectMatch(cleaned.dangerous, substanceName)) {
+        return if (cleaned.dangerous.directSet.contains(substanceName)) {
             InteractionType.DANGEROUS
-        } else if (isDirectMatch(cleaned.unsafe, substanceName)) {
+        } else if (cleaned.unsafe.directSet.contains(substanceName)) {
             InteractionType.UNSAFE
-        } else if (isDirectMatch(cleaned.uncertain, substanceName)) {
+        } else if (cleaned.uncertain.directSet.contains(substanceName)) {
             InteractionType.UNCERTAIN
         } else {
             null
@@ -110,11 +112,11 @@ class InteractionChecker @Inject constructor(
     }
 
     private fun getWildcardInteraction(cleaned: CleanedInteractions, substanceName: String): InteractionType? {
-        return if (isWildcardMatch(cleaned.dangerous, substanceName)) {
+        return if (isWildcardMatch(cleaned.dangerous.wildcards, substanceName)) {
             InteractionType.DANGEROUS
-        } else if (isWildcardMatch(cleaned.unsafe, substanceName)) {
+        } else if (isWildcardMatch(cleaned.unsafe.wildcards, substanceName)) {
             InteractionType.UNSAFE
-        } else if (isWildcardMatch(cleaned.uncertain, substanceName)) {
+        } else if (isWildcardMatch(cleaned.uncertain.wildcards, substanceName)) {
             InteractionType.UNCERTAIN
         } else {
             null
@@ -122,11 +124,11 @@ class InteractionChecker @Inject constructor(
     }
 
     private fun getClassInteraction(cleaned: CleanedInteractions, categories: List<String>): InteractionType? {
-        return if (isClassMatch(cleaned.dangerous, categories)) {
+        return if (isClassMatch(cleaned.dangerous.all, categories)) {
             InteractionType.DANGEROUS
-        } else if (isClassMatch(cleaned.unsafe, categories)) {
+        } else if (isClassMatch(cleaned.unsafe.all, categories)) {
             InteractionType.UNSAFE
-        } else if (isClassMatch(cleaned.uncertain, categories)) {
+        } else if (isClassMatch(cleaned.uncertain.all, categories)) {
             InteractionType.UNCERTAIN
         } else {
             null
@@ -142,9 +144,9 @@ class InteractionChecker @Inject constructor(
         }
     }
 
-    private fun isWildcardMatch(interactions: List<String>, substanceName: String): Boolean {
-        return interactions.any { interaction ->
-            if (!interaction.contains('x', ignoreCase = true)) return@any false
+    private fun isWildcardMatch(wildcards: List<String>, substanceName: String): Boolean {
+        if (wildcards.isEmpty()) return false
+        return wildcards.any { interaction ->
             val regex = wildcardRegexCache.getOrPut(interaction) {
                 buildWildcardRegex(interaction)
             }
@@ -158,22 +160,33 @@ class InteractionChecker @Inject constructor(
         return Regex(pattern = pattern, option = RegexOption.IGNORE_CASE)
     }
 
-    private fun isDirectMatch(interactions: List<String>, substanceName: String): Boolean {
-        return interactions.contains(substanceName)
+    private fun cleanCategory(interactions: List<String>): CleanedCategory {
+        val extended = extendAndCleanInteractions(interactions)
+        return CleanedCategory(
+            directSet = extended.toSet(),
+            wildcards = extended.filter { it.contains('x', ignoreCase = true) },
+            all = extended,
+        )
     }
 
     private fun cleanInteractions(interactions: Interactions): CleanedInteractions {
         return CleanedInteractions(
-            dangerous = extendAndCleanInteractions(interactions.dangerous),
-            unsafe = extendAndCleanInteractions(interactions.unsafe),
-            uncertain = extendAndCleanInteractions(interactions.uncertain),
+            dangerous = cleanCategory(interactions.dangerous),
+            unsafe = cleanCategory(interactions.unsafe),
+            uncertain = cleanCategory(interactions.uncertain),
         )
     }
 
-    private data class CleanedInteractions(
-        val dangerous: List<String>,
-        val unsafe: List<String>,
-        val uncertain: List<String>,
+    private class CleanedCategory(
+        val directSet: Set<String>,
+        val wildcards: List<String>,
+        val all: List<String>,
+    )
+
+    private class CleanedInteractions(
+        val dangerous: CleanedCategory,
+        val unsafe: CleanedCategory,
+        val uncertain: CleanedCategory,
     )
 
     private fun extendAndCleanInteractions(interactions: List<String>): List<String> {
