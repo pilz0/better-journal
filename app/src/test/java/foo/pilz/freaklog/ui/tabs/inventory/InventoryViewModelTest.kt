@@ -65,6 +65,17 @@ class InventoryViewModelTest {
     }
 
     @Test
+    fun `suggestions deduplicate case-insensitively prioritizing custom`() = runTest {
+        coEvery { experienceRepo.getAllCustomSubstances() } returns listOf(
+            mockk { every { name } returns "mdma" }
+        )
+        val results = viewModel.suggestions("mdma")
+        assertThat(results).containsExactly(
+            InventoryViewModel.Suggestion(name = "mdma", isCustom = true)
+        )
+    }
+
+    @Test
     fun `suggestions cache builtin substances and do not query substance repository on every call`() = runTest {
         viewModel.suggestions("caff")
         viewModel.suggestions("ket")

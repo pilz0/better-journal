@@ -7,6 +7,7 @@ package foo.pilz.freaklog.ui.tabs.inventory
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.inventory.InventoryItem
 import foo.pilz.freaklog.data.room.inventory.InventoryRepository
@@ -24,6 +25,7 @@ class InventoryViewModel @Inject constructor(
     private val inventoryRepository: InventoryRepository,
     private val experienceRepository: ExperienceRepository,
     private val substanceRepository: SubstanceRepository,
+    private val customProfiles: CustomSubstanceProfiles? = null,
 ) : ViewModel() {
 
     val itemsFlow: StateFlow<List<InventoryItem>> = inventoryRepository.getAllFlow()
@@ -55,13 +57,16 @@ class InventoryViewModel @Inject constructor(
             .take(limit)
             .map { Suggestion(name = it, isCustom = false) }
             .toList()
-        val custom = experienceRepository.getAllCustomSubstances()
+        val customSubstances = customProfiles?.byNameFlow?.value?.values?.map { it.substance }
+            ?.takeIf { it.isNotEmpty() }
+            ?: experienceRepository.getAllCustomSubstances()
+        val custom = customSubstances
             .asSequence()
             .filter { it.name.contains(trimmed, ignoreCase = true) }
             .take(limit)
             .map { Suggestion(name = it.name, isCustom = true) }
             .toList()
-        return (custom + builtin).distinctBy { it.name }.take(limit)
+        return (custom + builtin).distinctBy { it.name.trim().lowercase() }.take(limit)
     }
 
     fun add(name: String, isCustom: Boolean, notes: String = "") = viewModelScope.launch {
