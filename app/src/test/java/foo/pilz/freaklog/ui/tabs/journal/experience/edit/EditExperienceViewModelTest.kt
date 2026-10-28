@@ -140,7 +140,8 @@ class EditExperienceViewModelTest {
             id = 42,
             title = "Forest Journey",
             text = "",
-            sortDate = Instant.EPOCH
+            sortDate = Instant.EPOCH,
+            location = null
         )
         val viewModel = EditExperienceViewModel(repository, SavedStateHandle(mapOf("experienceId" to 42)))
         advanceUntilIdle()
