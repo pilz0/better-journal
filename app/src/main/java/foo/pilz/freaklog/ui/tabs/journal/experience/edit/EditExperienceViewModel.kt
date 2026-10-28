@@ -25,11 +25,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.entities.Experience
 import foo.pilz.freaklog.data.room.experiences.entities.Location
 import foo.pilz.freaklog.ui.main.navigation.graphs.EditExperienceRoute
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -43,7 +43,7 @@ class EditExperienceViewModel @Inject constructor(
 
     var experience: Experience? = null
     var enteredTitle by mutableStateOf("")
-    val isEnteredTitleOk get() = enteredTitle.isNotEmpty()
+    val isEnteredTitleOk get() = enteredTitle.isNotBlank()
     var enteredText by mutableStateOf("")
     var enteredLocation by mutableStateOf("")
     private var oldLongitude: Double? = null
@@ -66,15 +66,19 @@ class EditExperienceViewModel @Inject constructor(
     }
 
     fun onDoneTap() {
-        if (enteredTitle.isNotEmpty()) {
+        if (isEnteredTitleOk) {
             val currentExperience = experience ?: return
             viewModelScope.launch {
-                currentExperience.title = enteredTitle
+                currentExperience.title = enteredTitle.trim()
                 currentExperience.text = enteredText
-                val location = if (enteredLocation.isNotBlank()) {
-                    val isLocationSame = enteredLocation == (currentExperience.location?.name ?: "")
+                val trimmedLocation = enteredLocation.trim()
+                val location = if (trimmedLocation.isNotBlank()) {
+                    val isLocationSame = trimmedLocation.equals(
+                        currentExperience.location?.name?.trim(),
+                        ignoreCase = true
+                    )
                     Location(
-                        name = enteredLocation,
+                        name = trimmedLocation,
                         longitude = if (isLocationSame) oldLongitude else null,
                         latitude = if (isLocationSame) oldLatitude else null
                     )

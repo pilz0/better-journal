@@ -17,6 +17,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import java.time.Instant
 import java.time.LocalDate
+import java.util.TimeZone
 
 class DayViewModelTest {
     private val experienceRepo = mockk<ExperienceRepository>()
@@ -77,6 +78,40 @@ class DayViewModelTest {
         assertThat(firstInfo.colors).containsExactly(AdaptiveColor.RED)
         assertThat(nextInfo.experienceIds).isEmpty()
         assertThat(nextInfo.colors).isEmpty()
+    }
+
+    @Test
+    fun `spring clock change uses a 23 hour calendar day`() = runTest {
+        verifyDayBounds(
+            LocalDate.of(2026, 3, 29),
+            "2026-03-28T23:00:00Z",
+            "2026-03-29T22:00:00Z"
+        )
+    }
+
+    @Test
+    fun `autumn clock change uses a 25 hour calendar day`() = runTest {
+        verifyDayBounds(
+            LocalDate.of(2026, 10, 25),
+            "2026-10-24T22:00:00Z",
+            "2026-10-25T23:00:00Z"
+        )
+    }
+
+    private suspend fun verifyDayBounds(date: LocalDate, start: String, end: String) {
+        val originalZone = TimeZone.getDefault()
+        try {
+            TimeZone.setDefault(TimeZone.getTimeZone("Europe/Berlin"))
+            coEvery { experienceRepo.getIngestionsWithCompanions(any(), any()) } returns emptyList()
+
+            viewModel.getExperienceInfo(day.copy(date = date))
+
+            coVerify(exactly = 1) {
+                experienceRepo.getIngestionsWithCompanions(Instant.parse(start), Instant.parse(end))
+            }
+        } finally {
+            TimeZone.setDefault(originalZone)
+        }
     }
 
     private fun ingestion(id: Int, experienceId: Int, color: AdaptiveColor?): IngestionWithCompanion =

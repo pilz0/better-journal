@@ -25,6 +25,16 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
+
+private val dateTimeFormatters = ConcurrentHashMap<Pair<String, Locale>, DateTimeFormatter>()
+
+private fun getDateTimeFormatter(pattern: String): DateTimeFormatter {
+    val locale = Locale.getDefault(Locale.Category.FORMAT)
+    return dateTimeFormatters.getOrPut(pattern to locale) {
+        DateTimeFormatter.ofPattern(pattern, locale)
+    }
+}
 
 fun getInstant(year: Int, month: Int, day: Int, hourOfDay: Int, minute: Int): Instant? {
     val dateTime = LocalDateTime.of(year, month, day, hourOfDay, minute)
@@ -33,7 +43,7 @@ fun getInstant(year: Int, month: Int, day: Int, hourOfDay: Int, minute: Int): In
 
 fun Instant.getStringOfPattern(pattern: String): String {
     val dateTime = LocalDateTime.ofInstant(this, ZoneId.systemDefault())
-    val formatter = DateTimeFormatter.ofPattern(pattern)
+    val formatter = getDateTimeFormatter(pattern)
     return dateTime.format(formatter)
 }
 
@@ -56,7 +66,7 @@ fun Instant.getShortTimeText(): String {
 }
 
 fun LocalDateTime.getStringOfPattern(pattern: String): String {
-    val formatter = DateTimeFormatter.ofPattern(pattern)
+    val formatter = getDateTimeFormatter(pattern)
     return format(formatter)
 }
 

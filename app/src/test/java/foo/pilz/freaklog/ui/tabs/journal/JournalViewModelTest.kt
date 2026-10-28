@@ -2,6 +2,7 @@ package foo.pilz.freaklog.ui.tabs.journal
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.lifecycle.viewModelScope
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.hasSize
@@ -15,23 +16,28 @@ import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinEligibility
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class JournalViewModelTest {
 
-    private val testDispatcher = StandardTestDispatcher()
+    private val testDispatcher = UnconfinedTestDispatcher()
     private val experienceRepo = mockk<ExperienceRepository>()
     private val searchRepo = mockk<SearchRepository>()
     private val dataStore = mockk<DataStore<Preferences>>()
@@ -53,7 +59,7 @@ class JournalViewModelTest {
     }
 
     @Test
-    fun `experiences flow filters favorites and handles null companions`() = runTest {
+    fun `experiences flow filters favorites and handles null companions`() = runBlocking {
         val exp1 = ExperienceWithIngestionsCompanionsAndRatings(
             experience = EntityBuilders.experience(id = 1, title = "First", isFavorite = false),
             ingestionsWithCompanions = listOf(
@@ -84,22 +90,34 @@ class JournalViewModelTest {
             outlookSkinController = outlookSkinController
         )
 
-        val collectJob = launch(UnconfinedTestDispatcher(testScheduler)) {
+        val collectJob = launch(start = CoroutineStart.UNDISPATCHED) {
             viewModel.experiences.collect()
         }
 
-        advanceUntilIdle()
-        assertThat(viewModel.experiences.value).hasSize(2)
+        val initialExperiences = withTimeout(5000) {
+            viewModel.experiences.first { it.size == 2 }
+        }
+        assertThat(initialExperiences).hasSize(2)
 
         viewModel.onChangeFavorite(true)
-        advanceUntilIdle()
-        assertThat(viewModel.experiences.value.map { it.experience.id }).containsExactly(2)
+        val favorites = withTimeout(5000) {
+            viewModel.experiences.first { it.map { experience -> experience.experience.id } == listOf(2) }
+        }
+        assertThat(favorites.map { it.experience.id }).containsExactly(2)
 
         viewModel.onChangeFavorite(false)
+        viewModel.search("Fir")
+        viewModel.search("Firs")
         viewModel.search("First")
-        advanceUntilIdle()
-        assertThat(viewModel.experiences.value.map { it.experience.id }).containsExactly(1)
+        val searchResults = withTimeout(5000) {
+            viewModel.experiences.first { it.map { experience -> experience.experience.id } == listOf(1) }
+        }
+        assertThat(searchResults.map { it.experience.id }).containsExactly(1)
+        verify(exactly = 0) { searchRepo.getMatchingSubstances("Fir", any(), any()) }
+        verify(exactly = 0) { searchRepo.getMatchingSubstances("Firs", any(), any()) }
+        verify(exactly = 1) { searchRepo.getMatchingSubstances("First", any(), any()) }
 
         collectJob.cancel()
+        viewModel.viewModelScope.cancel()
     }
 }

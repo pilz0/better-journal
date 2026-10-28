@@ -36,12 +36,17 @@ import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OutlookSkinPayload
 import foo.pilz.freaklog.ui.tabs.journal.outlookskin.buildOutlookRows
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinEligibility
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.takeWhile
@@ -63,6 +68,8 @@ class JournalViewModel @Inject constructor(
     private val skinEligibility: UltraFunSkinEligibility,
     private val outlookSkinController: OutlookSkinController,
 ) : ViewModel() {
+
+    private var outlookJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -93,7 +100,8 @@ class JournalViewModel @Inject constructor(
     }
 
     private fun showOutlookSkin() {
-        viewModelScope.launch {
+        outlookJob?.cancel()
+        outlookJob = viewModelScope.launch {
             var started = false
             experienceRepo.getSortedExperienceWithIngestionsCompanionsAndRatingsFlow()
                 .map { experiences ->
@@ -166,9 +174,10 @@ class JournalViewModel @Inject constructor(
         }
     }
 
+    @OptIn(FlowPreview::class)
     val experiences = combine(
         experienceRepo.getSortedExperienceWithIngestionsCompanionsAndRatingsFlow(),
-        searchTextFlow,
+        searchTextFlow.debounce(200),
         experienceRepo.getCustomSubstancesFlow(),
         isFavoriteEnabledFlow
     ) { experiencesWithIngestionsRaw, searchText, customSubstances, isFavoriteEnabled ->
@@ -214,6 +223,7 @@ class JournalViewModel @Inject constructor(
         }
         return@combine experiencesWithIngestions
     }
+        .flowOn(Dispatchers.Default)
         .stateIn(
             initialValue = emptyList(),
             scope = viewModelScope,
