@@ -16,6 +16,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
@@ -128,6 +129,53 @@ class EditExperienceViewModelTest {
                     it.location?.name == "Different City" &&
                         it.location?.longitude == null &&
                         it.location?.latitude == null
+                }
+            )
+        }
+    }
+
+    @Test
+    fun `blank title is invalid and cannot be saved`() = runTest(testDispatcher) {
+        coEvery { repository.getExperience(any()) } returns Experience(
+            id = 42,
+            title = "Forest Journey",
+            text = "",
+            sortDate = Instant.EPOCH
+        )
+        val viewModel = EditExperienceViewModel(repository, SavedStateHandle(mapOf("experienceId" to 42)))
+        advanceUntilIdle()
+
+        viewModel.enteredTitle = " \t\n "
+        assertFalse(viewModel.isEnteredTitleOk)
+        viewModel.onDoneTap()
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { repository.update(any<Experience>()) }
+    }
+
+    @Test
+    fun `saving trims title and preserves gps for whitespace and case changes in location`() = runTest(testDispatcher) {
+        coEvery { repository.getExperience(any()) } returns Experience(
+            id = 42,
+            title = "Forest Journey",
+            text = "",
+            sortDate = Instant.EPOCH,
+            location = Location(name = " Black Forest ", longitude = 8.2, latitude = 48.1)
+        )
+        coEvery { repository.update(any<Experience>()) } returns Unit
+        val viewModel = EditExperienceViewModel(repository, SavedStateHandle(mapOf("experienceId" to 42)))
+        advanceUntilIdle()
+
+        viewModel.enteredTitle = " Updated Forest Journey "
+        viewModel.enteredLocation = "  black forest  "
+        viewModel.onDoneTap()
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) {
+            repository.update(
+                match<Experience> {
+                    it.title == "Updated Forest Journey" &&
+                        it.location == Location(name = "black forest", longitude = 8.2, latitude = 48.1)
                 }
             )
         }

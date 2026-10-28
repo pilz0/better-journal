@@ -58,16 +58,16 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
-import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsCompanionsAndRatings
-import foo.pilz.freaklog.ui.tabs.journal.components.ExperienceRow
-import foo.pilz.freaklog.ui.theme.JournalTheme
-import foo.pilz.freaklog.ui.theme.horizontalPadding
 import com.kizitonwose.calendar.compose.VerticalCalendar
 import com.kizitonwose.calendar.compose.rememberCalendarState
 import com.kizitonwose.calendar.core.CalendarDay
 import com.kizitonwose.calendar.core.DayPosition
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
+import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
+import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsCompanionsAndRatings
+import foo.pilz.freaklog.ui.tabs.journal.components.ExperienceRow
+import foo.pilz.freaklog.ui.theme.JournalTheme
+import foo.pilz.freaklog.ui.theme.horizontalPadding
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
@@ -87,6 +87,7 @@ fun CalendarJournalScreenPreview() {
 fun CalendarJournalScreen(
     navigateToExperiencePopNothing: (experienceId: Int) -> Unit,
 ) {
+    val today = remember { LocalDate.now() }
     val currentMonth = remember { YearMonth.now() }
     val startMonth = remember { currentMonth.minusYears(20) }
     val endMonth = remember { currentMonth.plusMonths(10) }
@@ -106,7 +107,7 @@ fun CalendarJournalScreen(
                     val coroutineScope = rememberCoroutineScope()
                     TextButton(onClick = {
                         coroutineScope.launch {
-                            state.animateScrollToMonth(YearMonth.now().minusMonths(1))
+                            state.animateScrollToMonth(YearMonth.now())
                         }
                     }) {
                         Text(text = "Today")
@@ -146,6 +147,7 @@ fun CalendarJournalScreen(
             dayContent = { calendarDay ->
                 Day(
                     calendarDay,
+                    today,
                     navigateToExperiencePopNothing,
                     chooseBetweenExperiences = { experienceIds ->
                         experienceIdsToShowInSheet = experienceIds
@@ -209,6 +211,7 @@ fun ExperienceRowWithFetch(
 @Composable
 fun Day(
     day: CalendarDay,
+    today: LocalDate,
     navigateToExperiencePopNothing: (experienceId: Int) -> Unit,
     chooseBetweenExperiences: (experienceIds: List<Int>) -> Unit
 ) {
@@ -238,7 +241,7 @@ fun Day(
         } else {
             aspectRatioModifier
         }
-        val isToday = day.date == LocalDate.now()
+        val isToday = day.date == today
         val dayText = day.date.dayOfMonth.toString()
         Box(
             modifier = modifier
@@ -275,6 +278,8 @@ fun Day(
                 )
             }
         }
+    } else {
+        Box(modifier = Modifier.aspectRatio(1f))
     }
 }
 

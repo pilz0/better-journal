@@ -19,11 +19,11 @@
 package foo.pilz.freaklog.ui.tabs.journal.calendar
 
 import androidx.lifecycle.ViewModel
-import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
-import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
-import foo.pilz.freaklog.ui.utils.getInstant
 import com.kizitonwose.calendar.core.CalendarDay
 import dagger.hilt.android.lifecycle.HiltViewModel
+import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
+import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
+import java.time.ZoneId
 import javax.inject.Inject
 
 
@@ -33,8 +33,9 @@ class DayViewModel @Inject constructor(
 ) : ViewModel() {
 
     suspend fun getExperienceInfo(day: CalendarDay): ExperienceInfo {
-        val startOfDay = day.date.atStartOfDay().getInstant()
-        val endOfDay = startOfDay.plusMillis(24 * 60 * 60 * 1000)
+        val zone = ZoneId.systemDefault()
+        val startOfDay = day.date.atStartOfDay(zone).toInstant()
+        val endOfDay = day.date.plusDays(1).atStartOfDay(zone).toInstant()
         val ingestions = experienceRepo.getIngestionsWithCompanions(
             fromInstant = startOfDay,
             toInstant = endOfDay
