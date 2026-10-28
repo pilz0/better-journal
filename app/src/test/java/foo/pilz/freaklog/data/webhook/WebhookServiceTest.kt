@@ -228,4 +228,21 @@ class WebhookServiceTest {
         
         assertEquals("Bob: 100 mg Morphine via Intravenous (Left arm)\n> Medical setting", result)
     }
+
+    @Test
+    fun testProcessTemplate_defaultTemplateFormat() {
+        val template = WebhookService.DEFAULT_TEMPLATE
+        val values = mapOf(
+            "user" to "Eve",
+            "dose" to "200",
+            "units" to "mg",
+            "substance" to "MDMA",
+            "formulation" to "",
+            "route" to "Oral",
+            "site" to "",
+            "note" to "Festival"
+        )
+        val result = webhookService.processTemplate(template, values)
+        assertEquals("Eve: 200 mg MDMA via Oral\n> Festival", result)
+    }
 }

@@ -74,9 +74,12 @@ class WebhookService internal constructor(
     private val sortedSubstances = AnodyneAliases.map.keys.sortedByDescending { it.length }
 
     companion object {
-        const val DEFAULT_TEMPLATE = "{user}: [{dose} {units} ]{substance}[{formulation}] via {route}[ at {site}][\n> {note}]"
+        const val DEFAULT_TEMPLATE =
+            "{user}: [{dose} {units} ]{substance}[{formulation}] via {route}[ at {site}][\n> {note}]"
         private const val MAX_RETRIES = 3
         private const val SUBSTANCE_INFO_URL = "https://anodyne.wiki/substance/"
+        private val TEMPLATE_BRACKET_REGEX = Regex("\\[([^\\[\\]]+)\\]")
+        private val MARKDOWN_LINK_REGEX = Regex("\\[[^\\]]+\\]\\(<[^>]+>\\)")
     }
 
     suspend fun sendWebhook(
@@ -166,6 +169,13 @@ class WebhookService internal constructor(
                     connection.readTimeout = 10000
 
                     val responseCode = connection.responseCode
+                    try {
+                        if (responseCode in 200..299) {
+                            connection.inputStream?.close()
+                        } else {
+                            connection.errorStream?.close()
+                        }
+                    } catch (_: IOException) {}
                     responseCode in 200..299
                 } finally {
                     connection.disconnect()
@@ -315,6 +325,9 @@ class WebhookService internal constructor(
                 val json = Json.parseToJsonElement(response).jsonObject
                 json["id"]?.jsonPrimitive?.content
             } else {
+                try {
+                    connection.inputStream?.close()
+                } catch (_: IOException) {}
                 null
             }
         } finally {
@@ -347,9 +360,8 @@ class WebhookService internal constructor(
 
     fun processTemplate(template: String, values: Map<String, String>): String {
         var processed = template
-        
-        val pattern = "\\[([^\\[\\]]+)\\]".toRegex()
-        val matches = pattern.findAll(processed).toList().reversed()
+
+        val matches = TEMPLATE_BRACKET_REGEX.findAll(processed).toList().reversed()
 
         for (match in matches) {
             val fullMatch = match.value
@@ -395,7 +407,7 @@ class WebhookService internal constructor(
     }
 
     private fun markdownLinkRanges(text: String): List<IntRange> =
-        Regex("\\[[^\\]]+\\]\\(<[^>]+>\\)").findAll(text).map { it.range }.toList()
+        MARKDOWN_LINK_REGEX.findAll(text).map { it.range }.toList()
 
     private fun IntRange.isInsideMarkdownLink(linkRanges: List<IntRange>): Boolean =
         linkRanges.any { linkRange ->

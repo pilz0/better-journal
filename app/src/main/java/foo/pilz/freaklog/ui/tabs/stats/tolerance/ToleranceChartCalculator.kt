@@ -81,7 +81,7 @@ object ToleranceChartCalculator {
                 halfToleranceHours > 24 &&
                 halfToleranceHours <= MAX_TOLERANCE_HOURS
             if (isHalfValid) {
-                startOfHalfTolerance = pair.day.plus(Duration.ofHours(halfToleranceHours!!.toLong()))
+                startOfHalfTolerance = pair.day.plus(Duration.ofHours(halfToleranceHours.toLong()))
                 result.add(
                     SubstanceInterval(
                         substanceName = pair.substanceName,
@@ -97,7 +97,7 @@ object ToleranceChartCalculator {
                 zeroToleranceHours > 24 &&
                 zeroToleranceHours <= MAX_TOLERANCE_HOURS
             if (isZeroValid) {
-                val startOfZeroTolerance = pair.day.plus(Duration.ofHours(zeroToleranceHours!!.toLong()))
+                val startOfZeroTolerance = pair.day.plus(Duration.ofHours(zeroToleranceHours.toLong()))
                 if (startOfZeroTolerance > startOfHalfTolerance) {
                     result.add(
                         SubstanceInterval(
