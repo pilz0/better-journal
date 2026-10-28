@@ -39,6 +39,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +52,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
 import foo.pilz.freaklog.data.substances.classes.Tolerance
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
@@ -65,6 +67,7 @@ fun SubstanceCompanionScreen(
     viewModel: SubstanceCompanionViewModel = hiltViewModel(),
 ) {
     val companion = viewModel.thisCompanionFlow.collectAsState().value
+    val frequency by viewModel.frequencyFlow.collectAsStateWithLifecycle()
     if (companion == null) {
         Surface(
             modifier = Modifier.fillMaxSize(),
@@ -87,6 +90,7 @@ fun SubstanceCompanionScreen(
             selectedMetric = viewModel.selectedMetric.collectAsState().value,
             onMetricSelected = viewModel::setMetric,
             doseThresholds = viewModel.doseThresholds,
+            frequency = frequency,
         )
     }
 }
@@ -150,6 +154,7 @@ fun SubstanceCompanionScreen(
     selectedMetric: DosageMetric = DosageMetric.TOTAL_DOSE,
     onMetricSelected: (DosageMetric) -> Unit = {},
     doseThresholds: DoseThresholds? = null,
+    frequency: SubstanceFrequency = SubstanceFrequency(last30Days = 0, last12Months = 0, allTime = 0),
 ) {
     Scaffold(
         topBar = {
@@ -168,7 +173,7 @@ fun SubstanceCompanionScreen(
                 .padding(horizontal = horizontalPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            item {
+            item(key = "dosage_section") {
                 val unit = dosageStats.summary.unitsUsed.firstOrNull().orEmpty()
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -194,7 +199,11 @@ fun SubstanceCompanionScreen(
                 }
             }
 
-            item {
+            item(key = "frequency_section") {
+                SubstanceFrequencySection(frequency = frequency)
+            }
+
+            item(key = "tolerance_section") {
                 if (tolerance != null || crossTolerances.isNotEmpty()) {
                     CardWithTitle(title = "Tolerance", modifier = Modifier.fillMaxWidth()) {
                         ToleranceSection(

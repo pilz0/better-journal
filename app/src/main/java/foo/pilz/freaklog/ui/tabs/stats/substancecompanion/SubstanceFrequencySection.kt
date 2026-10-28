@@ -67,7 +67,7 @@ private fun FrequencyRow(label: String, value: Int, maxValue: Int) {
     ) {
         Text(
             text = label,
-            modifier = Modifier.fillMaxWidth(0.35f),
+            modifier = Modifier.weight(0.35f),
             style = MaterialTheme.typography.bodyMedium,
         )
         Box(
@@ -76,13 +76,16 @@ private fun FrequencyRow(label: String, value: Int, maxValue: Int) {
                 .height(10.dp)
                 .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(4.dp)),
         ) {
-            val ratio = (value.toFloat() / maxValue).coerceIn(0f, 1f)
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(ratio)
-                    .height(10.dp)
-                    .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(4.dp)),
-            )
+            val safeMax = maxValue.coerceAtLeast(1)
+            val ratio = (value.toFloat() / safeMax).coerceIn(0f, 1f)
+            if (ratio > 0f) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(ratio)
+                        .height(10.dp)
+                        .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(4.dp)),
+                )
+            }
         }
         Text(
             text = value.toString(),

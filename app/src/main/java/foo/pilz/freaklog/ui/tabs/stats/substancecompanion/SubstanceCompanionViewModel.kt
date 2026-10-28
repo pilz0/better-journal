@@ -33,10 +33,7 @@ import foo.pilz.freaklog.ui.main.navigation.graphs.SubstanceCompanionRoute
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.search.suggestion.models.CustomUnitDose
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
 import foo.pilz.freaklog.ui.utils.getTimeDifferenceText
-import java.time.Instant
-import java.time.Period
-import java.time.ZoneId
-import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,9 +42,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.Period
+import java.time.ZoneId
+import javax.inject.Inject
 
 @HiltViewModel
 class SubstanceCompanionViewModel @Inject constructor(
@@ -56,12 +59,13 @@ class SubstanceCompanionViewModel @Inject constructor(
     state: SavedStateHandle
 ) : ViewModel() {
 
+    // One shared ticker instead of a separate timer loop per collecting pipeline.
     private val currentTimeFlow: Flow<Instant> = flow {
         while (true) {
             emit(Instant.now())
             delay(timeMillis = 1000 * 10)
         }
-    }
+    }.shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000), replay = 1)
 
     private val substanceCompanionRoute = state.toRoute<SubstanceCompanionRoute>()
     private val substanceName = substanceCompanionRoute.substanceName
@@ -118,6 +122,7 @@ class SubstanceCompanionViewModel @Inject constructor(
     // don't each re-collect (and re-query) the underlying Room flow.
     private val allIngestionsFlow = experienceRepo.getSortedIngestionsWithExperienceAndCustomUnitFlow(substanceName)
         .map { list -> list.filter { it.ingestion.consumerName == consumerName } }
+        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val dosageStatsFlow: StateFlow<SubstanceDosageStatsModel> =
@@ -128,7 +133,7 @@ class SubstanceCompanionViewModel @Inject constructor(
                 now = currentTime,
                 zone = ZoneId.systemDefault(),
             )
-        }.stateIn(
+        }.flowOn(Dispatchers.Default).stateIn(
             initialValue = SubstanceDosageStatsModel(
                 buckets = emptyList(),
                 summary = SubstanceDosageSummary(
@@ -175,7 +180,7 @@ class SubstanceCompanionViewModel @Inject constructor(
                     lastDate = experienceStart
                 }
                 allIngestionBursts
-            }.stateIn(
+            }.flowOn(Dispatchers.Default).stateIn(
                 initialValue = emptyList(),
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000)
@@ -191,7 +196,7 @@ class SubstanceCompanionViewModel @Inject constructor(
             now = now,
             zone = ZoneId.systemDefault(),
         )
-    }.stateIn(
+    }.flowOn(Dispatchers.Default).stateIn(
         initialValue = SubstanceFrequency(0, 0, 0),
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000)
@@ -217,7 +222,8 @@ data class SubstanceFrequency(
     companion object {
         /**
          * Counts distinct experiences in a single pass. The ranges are nested, so the
-         * narrower cutoffs are only checked once the wider one matched.
+         * narrower cutoffs are only checked once the wider one matched. Future-dated
+         * ingestions count toward all time but not toward the past periods.
          */
         fun compute(ingestions: List<Ingestion>, now: Instant, zone: ZoneId): SubstanceFrequency {
             val zonedNow = now.atZone(zone)
@@ -229,7 +235,7 @@ data class SubstanceFrequency(
             for (ingestion in ingestions) {
                 val experienceId = ingestion.experienceId
                 allTime.add(experienceId)
-                if (ingestion.time >= last12MonthsFrom) {
+                if (ingestion.time <= now && ingestion.time >= last12MonthsFrom) {
                     last12Months.add(experienceId)
                     if (ingestion.time >= last30DaysFrom) {
                         last30Days.add(experienceId)
