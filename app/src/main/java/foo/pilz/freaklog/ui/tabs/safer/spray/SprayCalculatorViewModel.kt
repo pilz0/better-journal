@@ -134,61 +134,76 @@ class SprayCalculatorViewModel @Inject constructor(
     }
 
     private fun parseDecimal(value: String): Double? =
-        value.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it.isFinite() }
+        value.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 }
 
     private fun maybeUpdateTotalWeight() {
         val liquidMl = parseDecimal(_liquidAmountInMl.value) ?: return
         val weightPerSprayValue = parseDecimal(_weightPerSpray.value) ?: return
-        val sprays = spraysFlow.value
-        val selectedId = _selectedSprayId.value ?: return
-        val selectedSpray = sprays.find { it.id == selectedId } ?: return
-        if (selectedSpray.contentInMl <= 0.0 || selectedSpray.numSprays <= 0.0) return
+        val selectedSpray = _selectedSprayId.value?.let { id -> spraysFlow.value.find { it.id == id } } ?: return
+        val isSprayValid = selectedSpray.contentInMl > 0.0 &&
+            selectedSpray.numSprays > 0.0 &&
+            selectedSpray.contentInMl.isFinite() &&
+            selectedSpray.numSprays.isFinite()
+        if (!isSprayValid) return
 
         val numSprays = liquidMl * selectedSpray.numSprays / selectedSpray.contentInMl
         val result = numSprays * weightPerSprayValue
-        val resultText = result.toReadableString()
-        if (resultText != _totalWeight.value) {
-            _totalWeight.value = resultText
+        if (result.isFinite() && result > 0.0) {
+            val resultText = result.toReadableString()
+            if (resultText != _totalWeight.value) {
+                _totalWeight.value = resultText
+            }
         }
     }
 
     private fun maybeUpdateLiquidVolume() {
         val totalWeightValue = parseDecimal(_totalWeight.value) ?: return
-        val weightPerSprayValue = parseDecimal(_weightPerSpray.value) ?: return
-        if (weightPerSprayValue <= 0.0) return
-        val sprays = spraysFlow.value
-        val selectedId = _selectedSprayId.value ?: return
-        val selectedSpray = sprays.find { it.id == selectedId } ?: return
-        if (selectedSpray.numSprays <= 0.0) return
+        val weightPerSprayValue = parseDecimal(_weightPerSpray.value)?.takeIf { it > 0.0 } ?: return
+        val selectedSpray = _selectedSprayId.value?.let { id -> spraysFlow.value.find { it.id == id } } ?: return
+        val isSprayValid = selectedSpray.numSprays > 0.0 &&
+            selectedSpray.contentInMl > 0.0 &&
+            selectedSpray.numSprays.isFinite() &&
+            selectedSpray.contentInMl.isFinite()
+        if (!isSprayValid) return
 
         val numSprays = totalWeightValue / weightPerSprayValue
         val result = numSprays * selectedSpray.contentInMl / selectedSpray.numSprays
-        val resultText = result.toReadableString()
-        if (resultText != _liquidAmountInMl.value) {
-            _liquidAmountInMl.value = resultText
+        if (result.isFinite() && result > 0.0) {
+            val resultText = result.toReadableString()
+            if (resultText != _liquidAmountInMl.value) {
+                _liquidAmountInMl.value = resultText
+            }
         }
     }
 
     fun getDoseAdjustedToPurity(): Double? {
         val totalWeightValue = parseDecimal(_totalWeight.value) ?: return null
         val purityValue = parseDecimal(_purityInPercent.value) ?: return null
-        if (purityValue <= 0.0) return null
-        return totalWeightValue * 100 / purityValue
+        if (purityValue <= 0.0 || purityValue > 100.0 || totalWeightValue <= 0.0) return null
+        val result = totalWeightValue * 100.0 / purityValue
+        return result.takeIf { it.isFinite() && it > 0.0 }
     }
 
     fun getConcentrationPerMl(): Double? {
         val totalWeightValue = parseDecimal(_totalWeight.value) ?: return null
         val liquidMl = parseDecimal(_liquidAmountInMl.value) ?: return null
-        if (liquidMl <= 0.0) return null
-        return totalWeightValue / liquidMl
+        if (liquidMl <= 0.0 || totalWeightValue <= 0.0) return null
+        val result = totalWeightValue / liquidMl
+        return result.takeIf { it.isFinite() && it > 0.0 }
     }
 
     fun getNumberOfSprays(): Double? {
         val liquidMl = parseDecimal(_liquidAmountInMl.value) ?: return null
+        if (liquidMl <= 0.0) return null
         val sprays = spraysFlow.value
         val selectedId = _selectedSprayId.value ?: return null
         val selectedSpray = sprays.find { it.id == selectedId } ?: return null
-        if (selectedSpray.contentInMl <= 0.0) return null
-        return liquidMl * selectedSpray.numSprays / selectedSpray.contentInMl
+        val isSprayValid = selectedSpray.contentInMl > 0.0 &&
+            selectedSpray.numSprays > 0.0 &&
+            selectedSpray.contentInMl.isFinite() &&
+            selectedSpray.numSprays.isFinite()
+        if (!isSprayValid) return null
+        val result = liquidMl * selectedSpray.numSprays / selectedSpray.contentInMl
+        return result.takeIf { it.isFinite() && it > 0.0 }
     }
 }

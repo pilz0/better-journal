@@ -20,6 +20,8 @@ import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import java.time.Instant
+
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class SprayCalculatorViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
@@ -127,5 +129,44 @@ class SprayCalculatorViewModelTest {
 
         viewModel.selectSpray(2)
         assertEquals("1000", viewModel.totalWeight.value)
+    }
+
+    @Test
+    fun `purity over 100 percent or negative returns null`() = runTest {
+        val viewModel = SprayCalculatorViewModel(repository)
+        advanceUntilIdle()
+
+        viewModel.setTotalWeight("100")
+        viewModel.setPurityInPercent("120")
+        assertNull(viewModel.getDoseAdjustedToPurity())
+
+        viewModel.setPurityInPercent("-10")
+        assertNull(viewModel.getDoseAdjustedToPurity())
+    }
+
+    @Test
+    fun `invalid spray with non-finite or non-positive values does not crash liquid volume update`() = runTest {
+        val invalidSpray = Spray(
+            id = 3,
+            name = "Zero volume spray",
+            contentInMl = 0.0,
+            numSprays = 100.0,
+            creationDate = Instant.now(),
+            isPreferred = false,
+        )
+        every { repository.getAllSpraysFlow() } returns flowOf(listOf(defaultSpray, invalidSpray))
+
+        val viewModel = SprayCalculatorViewModel(repository)
+        backgroundScope.launch(kotlinx.coroutines.test.UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.spraysFlow.collect()
+        }
+        advanceUntilIdle()
+
+        viewModel.selectSpray(3)
+        viewModel.setWeightPerSpray("5")
+        viewModel.setTotalWeight("100")
+
+        // Should not crash or update to NaN/Infinity
+        assertEquals("", viewModel.liquidAmountInMl.value)
     }
 }
