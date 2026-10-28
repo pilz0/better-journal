@@ -64,10 +64,9 @@ import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import foo.pilz.freaklog.MainActivity
 import foo.pilz.freaklog.data.room.AppDatabase
+import foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
-import foo.pilz.freaklog.data.substances.AdministrationRoute
-import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
-import foo.pilz.freaklog.data.substances.parse.SubstanceParser
+import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.graph.style.DefaultGraphStyle
 import foo.pilz.freaklog.ui.theme.md_theme_dark_primary
 import foo.pilz.freaklog.ui.theme.md_theme_light_primary
@@ -81,27 +80,8 @@ import java.util.concurrent.TimeUnit
 @InstallIn(SingletonComponent::class)
 interface WidgetEntryPoint {
     fun appDatabase(): AppDatabase
-}
-
-private object WidgetSubstanceDurationsCache {
-    private var durations: Map<String, Map<AdministrationRoute, RoaDuration?>>? = null
-
-    @Synchronized
-    fun get(context: Context): Map<String, Map<AdministrationRoute, RoaDuration?>> {
-        durations?.let { return it }
-        return try {
-            val fileContent = context.assets.open("Substances.json").bufferedReader().use { it.readText() }
-            val substanceFile = SubstanceParser().parseSubstanceFile(fileContent)
-            substanceFile.substances.associate { substance ->
-                substance.name to substance.roas.associate { roa ->
-                    roa.route to roa.roaDuration
-                }
-            }.also { durations = it }
-        } catch (e: Exception) {
-            Log.w("WidgetProvider", "Failed to load substance durations", e)
-            emptyMap()
-        }
-    }
+    fun substanceRepository(): SubstanceRepository
+    fun customSubstanceProfiles(): CustomSubstanceProfiles
 }
 
 object WidgetKeys {
@@ -418,8 +398,14 @@ class TimelineWidgetWorker(
         return try {
             val experienceDao = database.experienceDao()
 
-            // Load substance data for accurate timeline durations
-            val substanceDurations = loadSubstanceDurations(applicationContext)
+            val substanceRepo = entryPoint.substanceRepository()
+            val customProfiles = entryPoint.customSubstanceProfiles()
+
+            // Use the same durations for both graph curves and phase text.
+            val substanceDurations = WidgetTimelineModel.buildSubstanceDurations(
+                substances = substanceRepo.getAllSubstances(),
+                customProfiles = customProfiles.byNameFlow.value,
+            )
 
             val now = Instant.now()
 
@@ -772,9 +758,6 @@ class TimelineWidgetWorker(
         }
         return file.absolutePath
     }
-
-    private fun loadSubstanceDurations(context: Context): Map<String, Map<AdministrationRoute, RoaDuration?>> =
-        WidgetSubstanceDurationsCache.get(context)
 
     private fun getAndroidColor(color: AdaptiveColor, isDarkTheme: Boolean): Int {
         // Delegate to the single source of truth in AdaptiveColor (also handles AdaptiveColor.Custom)

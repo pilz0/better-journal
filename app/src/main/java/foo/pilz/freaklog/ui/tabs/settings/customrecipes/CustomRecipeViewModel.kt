@@ -114,16 +114,13 @@ class CustomRecipeViewModel @Inject constructor(
         _components.value = _components.value + RecipeComponentState()
     }
 
-    fun updateComponent(index: Int, component: RecipeComponentState) {
+    fun updateComponent(id: String, component: RecipeComponentState) {
         val current = _components.value
-        if (index !in current.indices) return
-        _components.value = current.toMutableList().apply { set(index, component) }
+        _components.value = current.map { if (it.id == id) component.copy(id = id) else it }
     }
 
-    fun removeComponent(index: Int) {
-        val current = _components.value
-        if (index !in current.indices) return
-        _components.value = current.toMutableList().apply { removeAt(index) }
+    fun removeComponent(id: String) {
+        _components.value = _components.value.filterNot { it.id == id }
     }
 
     fun saveRecipe() {
@@ -205,5 +202,6 @@ data class RecipeComponentState(
     val estimatedDoseStandardDeviation: Double? = null,
     val units: String = "",
     val administrationRoute: AdministrationRoute = AdministrationRoute.ORAL,
-    val customUnitId: Int? = null
+    val customUnitId: Int? = null,
+    val id: String = java.util.UUID.randomUUID().toString()
 )

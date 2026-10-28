@@ -20,7 +20,7 @@ package foo.pilz.freaklog.ui.tabs.settings.customrecipes
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -104,11 +104,11 @@ fun AddEditCustomRecipeDialog(
                         .fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    itemsIndexed(components, key = { index, _ -> index }) { index, component ->
+                    items(components, key = { it.id }) { component ->
                         RecipeComponentEditor(
                             component = component,
-                            onUpdate = { viewModel.updateComponent(index, it) },
-                            onRemove = { viewModel.removeComponent(index) }
+                            onUpdate = { viewModel.updateComponent(component.id, it) },
+                            onRemove = { viewModel.removeComponent(component.id) }
                         )
                     }
 

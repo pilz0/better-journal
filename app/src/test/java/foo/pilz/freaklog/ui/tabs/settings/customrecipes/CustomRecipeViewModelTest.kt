@@ -16,6 +16,8 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
@@ -39,32 +41,61 @@ class CustomRecipeViewModelTest {
     }
 
     @Test
-    fun `updateComponent ignores invalid indices`() {
+    fun `updateComponent ignores unknown IDs`() {
         val viewModel = CustomRecipeViewModel(repository)
         viewModel.addComponent()
         val original = viewModel.components.value
 
-        viewModel.updateComponent(-1, RecipeComponentState(substanceName = "A"))
-        viewModel.updateComponent(1, RecipeComponentState(substanceName = "B"))
+        viewModel.updateComponent("missing", RecipeComponentState(substanceName = "A"))
+        viewModel.updateComponent("other", RecipeComponentState(substanceName = "B"))
 
         assertEquals(original, viewModel.components.value)
 
-        viewModel.updateComponent(0, RecipeComponentState(substanceName = "C"))
+        viewModel.updateComponent(original.single().id, RecipeComponentState(substanceName = "C"))
         assertEquals("C", viewModel.components.value.single().substanceName)
     }
 
     @Test
-    fun `removeComponent ignores invalid indices`() {
+    fun `removeComponent ignores unknown IDs`() {
         val viewModel = CustomRecipeViewModel(repository)
-        viewModel.removeComponent(0)
+        viewModel.removeComponent("missing")
         viewModel.addComponent()
 
-        viewModel.removeComponent(-1)
-        viewModel.removeComponent(1)
+        viewModel.removeComponent("missing")
+        viewModel.removeComponent("other")
         assertEquals(1, viewModel.components.value.size)
 
-        viewModel.removeComponent(0)
+        viewModel.removeComponent(viewModel.components.value.single().id)
         assertEquals(0, viewModel.components.value.size)
+    }
+
+    @Test
+    fun `component identity survives additions updates and removal of an earlier row`() {
+        val viewModel = CustomRecipeViewModel(repository)
+        viewModel.addComponent()
+        val first = viewModel.components.value.single()
+        viewModel.addComponent()
+        val second = viewModel.components.value.last()
+
+        assertNotEquals(first.id, second.id)
+        assertSame(first, viewModel.components.value.first())
+        val edited = second.copy(substanceName = "Custom", dose = 5.0)
+        assertEquals(second.id, edited.id)
+
+        viewModel.removeComponent(first.id)
+        viewModel.updateComponent(second.id, edited)
+        assertEquals(edited, viewModel.components.value.single())
+
+        // Replacing the row's values must also preserve its existing list key.
+        viewModel.updateComponent(second.id, RecipeComponentState(substanceName = "Updated"))
+        assertEquals(second.id, viewModel.components.value.single().id)
+        assertEquals("Updated", viewModel.components.value.single().substanceName)
+
+        // A stale callback for a removed row must not affect the surviving row.
+        viewModel.updateComponent(first.id, first.copy(substanceName = "Removed"))
+        viewModel.removeComponent(first.id)
+        assertEquals(second.id, viewModel.components.value.single().id)
+        assertEquals("Updated", viewModel.components.value.single().substanceName)
     }
 
     @Test
@@ -77,15 +108,15 @@ class CustomRecipeViewModelTest {
         viewModel.updateRecipeName("Recipe")
         repeat(3) { viewModel.addComponent() }
         viewModel.updateComponent(
-            0,
+            viewModel.components.value[0].id,
             RecipeComponentState(substanceName = "A", dose = Double.NaN, estimatedDoseStandardDeviation = Double.NaN)
         )
         viewModel.updateComponent(
-            1,
+            viewModel.components.value[1].id,
             RecipeComponentState(substanceName = "B", dose = -5.0, estimatedDoseStandardDeviation = -1.0)
         )
         viewModel.updateComponent(
-            2,
+            viewModel.components.value[2].id,
             RecipeComponentState(substanceName = "C", dose = 10.0, estimatedDoseStandardDeviation = 2.0)
         )
 
