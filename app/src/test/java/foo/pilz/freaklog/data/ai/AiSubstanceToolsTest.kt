@@ -80,9 +80,10 @@ class AiSubstanceToolsTest {
         every { getInteractionBetween("MDMA", "Alcohol") } returns
             Interaction("MDMA", "Alcohol", InteractionType.UNSAFE)
     }
+    private val toleranceCalculator = mockk<ToleranceCalculator>()
     private val experienceDao = mockk<ExperienceDao>()
     private val tools = AiSubstanceTools(
-        substances, customProfiles, interactionChecker, mockk<ToleranceCalculator>(), experienceDao,
+        substances, customProfiles, interactionChecker, toleranceCalculator, experienceDao,
     )
 
     @Test
@@ -150,5 +151,36 @@ class AiSubstanceToolsTest {
         }
         assertThat(statuses).isEqualTo(listOf("probably worn off", "probably still active", "unknown duration"))
         assertThat(AiToolLabels.summarise("get_active_ingestions", result)).contains("1 probably")
+    }
+
+    @Test
+    fun toleranceHandlesNonFiniteNumbersSafely() = runTest {
+        coEvery { toleranceCalculator.calculate("MDMA") } returns foo.pilz.freaklog.ui.tabs.safer.tolerance.ToleranceEstimate(
+            toleranceLevel = Float.NaN,
+            substanceName = "MDMA",
+            lastIngestionTime = null,
+            crossToleranceContributors = emptyList(),
+            zeroDays = Float.POSITIVE_INFINITY,
+            halfLifeDays = Float.NEGATIVE_INFINITY,
+        )
+
+        val result = tools.execute("get_tolerance", mapOf("substance" to "MDMA"))!!
+        assertThat(result.getString("status")).isEqualTo("success")
+        assertThat(result.isNull("tolerance_level_0_to_1")).isEqualTo(true)
+        assertThat(result.isNull("days_until_baseline_after_last_use")).isEqualTo(true)
+        assertThat(result.isNull("half_life_days")).isEqualTo(true)
+    }
+
+    @Test
+    fun activeIngestionsHandlesStringHoursBackAndNonFiniteDoses() = runTest {
+        val now = Instant.now()
+        coEvery { experienceDao.getIngestionsSince(any<Instant>(), any()) } returns listOf(
+            EntityBuilders.ingestion(substanceName = "MDMA", time = now.minus(1, ChronoUnit.HOURS), dose = Double.NaN),
+        )
+        val result = tools.execute("get_active_ingestions", mapOf("hours_back" to "24"))!!
+        assertThat(result.getString("status")).isEqualTo("success")
+        assertThat(result.getInt("hours_back")).isEqualTo(24)
+        val ing = result.getJSONArray("ingestions").getJSONObject(0)
+        assertThat(ing.isNull("dose")).isEqualTo(true)
     }
 }

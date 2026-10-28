@@ -45,18 +45,19 @@ object AiHttp {
         val conn = open(url, "POST", headers + ("Accept" to "text/event-stream, application/json"))
         withDisconnectOnCancel(conn) {
             send(conn, body)
-            val stream = responseStream(conn)
-            if (conn.contentType.orEmpty().contains("json", ignoreCase = true)) {
-                emit(SseEvent(null, readCapped(stream, conn.url.host)))
-            } else {
-                val parser = SseParser()
-                stream.bufferedReader(Charsets.UTF_8).use { reader ->
-                    while (true) {
-                        val line = reader.readLine() ?: break
-                        parser.feed(line)?.let { emit(it) }
+            responseStream(conn).use { stream ->
+                if (conn.contentType.orEmpty().contains("json", ignoreCase = true)) {
+                    emit(SseEvent(null, readCapped(stream, conn.url.host)))
+                } else {
+                    val parser = SseParser()
+                    stream.bufferedReader(Charsets.UTF_8).use { reader ->
+                        while (true) {
+                            val line = reader.readLine() ?: break
+                            parser.feed(line)?.let { emit(it) }
+                        }
                     }
+                    parser.finish()?.let { emit(it) }
                 }
-                parser.finish()?.let { emit(it) }
             }
         }
     }.flowOn(Dispatchers.IO)
@@ -113,7 +114,7 @@ object AiHttp {
         val code = mapNetworkErrors(conn) { conn.responseCode }
         if (code in 200..299) return conn.inputStream
         val body = try {
-            conn.errorStream?.let { readCapped(it, conn.url.host) }.orEmpty()
+            conn.errorStream?.use { readCapped(it, conn.url.host) }.orEmpty()
         } catch (_: IOException) {
             ""
         }
@@ -157,7 +158,7 @@ object AiHttp {
             error is JSONObject -> error.optString("message").ifBlank { error.toString() }
             error is String -> error
             json.has("message") -> json.optString("message")
-            json.has("detail") -> json.opt("detail").toString()
+            json.has("detail") -> json.opt("detail")?.toString()
             else -> null
         }
     }
@@ -197,22 +198,25 @@ object AiHttp {
      */
     private suspend fun <T> withDisconnectOnCancel(conn: HttpURLConnection, block: suspend () -> T): T =
         coroutineScope {
+            var completed = false
             val watcher = launch(Dispatchers.IO) {
                 try {
                     awaitCancellation()
                 } finally {
-                    conn.disconnect()
+                    if (!completed) conn.disconnect()
                 }
             }
             try {
-                block()
+                val result = block()
+                completed = true
+                result
             } catch (e: IOException) {
+                conn.disconnect()
                 // A read aborted by disconnect() surfaces as an IOException; report the cancellation instead.
                 coroutineContext.ensureActive()
                 throw e
             } finally {
                 watcher.cancel()
-                conn.disconnect()
             }
         }
 }

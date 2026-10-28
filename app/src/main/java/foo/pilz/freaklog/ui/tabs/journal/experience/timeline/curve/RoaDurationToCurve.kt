@@ -50,7 +50,7 @@ fun RoaDuration.toIngestionCurve(
     val ingestionEndSec = weightedLine.endTime?.let {
         Duration.between(graphStart, it).seconds.toFloat()
     } ?: ingestionStartSec
-    if (ingestionEndSec < ingestionStartSec) return null
+    if (!ingestionStartSec.isFinite() || !ingestionEndSec.isFinite() || ingestionEndSec < ingestionStartSec) return null
 
     val w = weightedLine.horizontalWeight.coerceIn(0f, 1f).toDouble()
     val params = resolveParameters(w) ?: return null
@@ -59,12 +59,13 @@ fun RoaDuration.toIngestionCurve(
     val maxLength = totalSec?.let { (it * 1.2).toFloat() }
         ?: ((params.targetTotal * 1.5).toFloat())
 
+    val peakHeight = if (weightedLine.height.isFinite()) max(0f, weightedLine.height) else 0f
     return BatemanCurve(
         ka = params.ka,
         ke = params.ke,
         ingestionStartSec = ingestionStartSec,
         ingestionEndSec = ingestionEndSec,
-        peakHeight = max(0f, weightedLine.height),
+        peakHeight = peakHeight,
         isCertain = params.isCertain,
         tailEpsilon = TAIL_EPSILON,
         maxCurveLengthSec = maxLength,

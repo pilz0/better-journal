@@ -68,7 +68,11 @@ class AnodyneWikiClient @Inject constructor() {
     /** Returns the cleaned substance page, or null when the wiki has no page with that name. */
     suspend fun substance(baseUrl: String, name: String): JSONObject? {
         val url = AiHttp.join(baseUrl, "substance/" + encodePathSegment(name.trim()))
-        return AiHttp.get(url, emptyMap()) { stream, _ -> parseSubstance(LimitedInputStream(stream)) }
+        return try {
+            AiHttp.get(url, emptyMap()) { stream, _ -> parseSubstance(LimitedInputStream(stream)) }
+        } catch (e: AiException) {
+            if (e.httpCode == 404) null else throw e
+        }
     }
 
     /** Searches titles and alternative names in the substance index. */

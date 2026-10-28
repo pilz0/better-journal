@@ -250,6 +250,8 @@ class AiChatViewModel @Inject constructor(
                     message = t.message ?: t::class.java.simpleName,
                     discardText = (t as? AiException)?.discardPartial == true,
                 )
+            } finally {
+                activeJob = null
             }
         }
     }
@@ -257,6 +259,7 @@ class AiChatViewModel @Inject constructor(
     /** Stops the reply that is streaming. Text received so far stays in the transcript. */
     fun stop() {
         val job = activeJob ?: return
+        activeJob = null
         val token = sessionToken
         viewModelScope.launch {
             // Wait until the conversation has repaired its history before allowing another send.
@@ -281,7 +284,9 @@ class AiChatViewModel @Inject constructor(
     fun retryLastTurn() {
         if (_uiState.value.isAssistantBusy) return
         val chat = conversation ?: return
-        val text = chat.rollbackLastTurn() ?: return
+        val text = chat.rollbackLastTurn()
+            ?: (_uiState.value.items.lastOrNull { it is ChatItem.Message && it.isUser } as? ChatItem.Message)?.text
+            ?: return
         _uiState.update { state ->
             val lastUser = state.items.indexOfLast { it is ChatItem.Message && it.isUser }
             state.copy(items = if (lastUser < 0) state.items else state.items.take(lastUser))
