@@ -299,8 +299,10 @@ private fun SubstanceStatCard(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                val routes = stat.routeCounts.joinToString(" · ") {
-                    "${it.administrationRoute.displayText.lowercase()} ${it.count}x"
+                val routes = remember(stat.routeCounts) {
+                    stat.routeCounts.joinToString(" · ") {
+                        "${it.administrationRoute.displayText.lowercase()} ${it.count}x"
+                    }
                 }
                 if (routes.isNotBlank()) {
                     Text(
@@ -312,14 +314,19 @@ private fun SubstanceStatCard(
                     )
                 }
                 stat.lastUsed?.let { lastUsed ->
+                    // Corrupt timestamps can fall outside the supported date range and throw
                     val formatted = remember(lastUsed) {
-                        LAST_USED_DATE_FORMATTER.format(lastUsed.atZone(ZoneId.systemDefault()))
+                        runCatching {
+                            LAST_USED_DATE_FORMATTER.format(lastUsed.atZone(ZoneId.systemDefault()))
+                        }.getOrNull()
                     }
-                    Text(
-                        text = "Last used $formatted",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                    if (formatted != null) {
+                        Text(
+                            text = "Last used $formatted",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
             Column(horizontalAlignment = Alignment.End) {
