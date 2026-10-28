@@ -95,6 +95,8 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
         val KEY_LOCK_ENABLED = booleanPreferencesKey("key_lock_enabled")
         val KEY_LOCK_TIME_OPTION = stringPreferencesKey("key_lock_time_option")
         val KEY_LOCK_LAST_ACTIVE = longPreferencesKey("key_lock_last_active_epoch_seconds")
+
+        val KEY_USE_INTRANASAL_FOR_RECTAL = booleanPreferencesKey("key_use_intranasal_for_rectal")
     }
 
     suspend fun saveTimeDisplayOption(value: SavedTimeDisplayOption) {
@@ -472,6 +474,16 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
 
     suspend fun saveLastActiveEpochSeconds(value: Long) {
         dataStore.edit { prefs -> prefs[PreferencesKeys.KEY_LOCK_LAST_ACTIVE] = value }
+    }
+
+    val useIntranasalForRectalFlow: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.KEY_USE_INTRANASAL_FOR_RECTAL] ?: false
+    }
+
+    suspend fun saveUseIntranasalForRectal(value: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[PreferencesKeys.KEY_USE_INTRANASAL_FOR_RECTAL] = value
+        }
     }
 }
 

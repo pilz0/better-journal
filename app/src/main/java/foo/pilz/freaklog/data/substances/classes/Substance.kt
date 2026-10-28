@@ -46,6 +46,14 @@ data class Substance(
         return roas.firstOrNull { it.route == route }
     }
 
+    fun getEffectiveRoa(route: AdministrationRoute, useIntranasalForRectal: Boolean = false): Roa? {
+        return if (useIntranasalForRectal && route == AdministrationRoute.RECTAL) {
+            getRoa(AdministrationRoute.INSUFFLATED) ?: getRoa(route)
+        } else {
+            getRoa(route)
+        }
+    }
+
     val hasInteractions: Boolean get() {
         return if (interactions == null) {
             false

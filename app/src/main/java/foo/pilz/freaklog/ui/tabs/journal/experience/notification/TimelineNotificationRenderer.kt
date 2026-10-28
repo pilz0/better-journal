@@ -53,8 +53,8 @@ class TimelineNotificationRenderer(
             .filter { it.ingestion.consumerName == null }
             .sortedBy { it.ingestion.time }
         if (sorted.isEmpty()) return null
-
-        val dataForEffectLines = sorted.map(::toEffectLine)
+        val useIntranasalForRectal = userPreferences.useIntranasalForRectalFlow.first()
+        val dataForEffectLines = sorted.map { toEffectLine(it, useIntranasalForRectal) }
         val model = AllTimelinesModel(
             dataForLines = dataForEffectLines,
             dataForRatings = emptyList(),
@@ -106,15 +106,18 @@ class TimelineNotificationRenderer(
                 .map { IngestionWithCompanion(it.ingestion, it.substanceCompanion) }
         }
 
-    private fun toEffectLine(ingestionWithCompanion: IngestionWithCompanion): DataForOneEffectLine {
+    private fun toEffectLine(
+        ingestionWithCompanion: IngestionWithCompanion,
+        useIntranasalForRectal: Boolean = false,
+    ): DataForOneEffectLine {
         val ingestion = ingestionWithCompanion.ingestion
+        val roa = substanceRepo.getSubstance(ingestion.substanceName)
+            ?.getEffectiveRoa(ingestion.administrationRoute, useIntranasalForRectal)
+            ?: customProfiles.getEffectiveRoa(ingestion.substanceName, ingestion.administrationRoute, useIntranasalForRectal)
         return DataForOneEffectLine(
             substanceName = ingestion.substanceName,
             route = ingestion.administrationRoute,
-            roaDuration = (
-                substanceRepo.getSubstance(ingestion.substanceName)?.getRoa(ingestion.administrationRoute)
-                    ?: customProfiles.getRoa(ingestion.substanceName, ingestion.administrationRoute)
-                )?.roaDuration,
+            roaDuration = roa?.roaDuration,
             height = 1f,
             horizontalWeight = 0.5f,
             color = ingestionWithCompanion.substanceCompanion?.color ?: AdaptiveColor.RED,

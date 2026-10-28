@@ -265,15 +265,20 @@ class ExperienceViewModel @Inject constructor(
         }
 
     private val ingestionsWithAssociatedDataFlow: Flow<List<IngestionWithAssociatedData>> =
-        sortedIngestionsWithCompanionsFlow.combine(customProfiles.byNameFlow) { ingestionsWithComps, profiles ->
+        combine(
+            sortedIngestionsWithCompanionsFlow,
+            customProfiles.byNameFlow,
+            userPreferences.useIntranasalForRectalFlow
+        ) { ingestionsWithComps, profiles, useIntranasalForRectal ->
             ingestionsWithComps.map { oneIngestionWithComp ->
                 val ingestion = oneIngestionWithComp.ingestion
                 val roa = substanceRepo.getSubstance(oneIngestionWithComp.ingestion.substanceName)
-                    ?.getRoa(ingestion.administrationRoute)
-                    ?: foo.pilz.freaklog.data.room.experiences.findRoa(
+                    ?.getEffectiveRoa(ingestion.administrationRoute, useIntranasalForRectal)
+                    ?: foo.pilz.freaklog.data.room.experiences.findEffectiveRoa(
                         profiles,
                         ingestion.substanceName,
-                        ingestion.administrationRoute
+                        ingestion.administrationRoute,
+                        useIntranasalForRectal
                     )
                 val roaDuration = roa?.roaDuration
                 IngestionWithAssociatedData(

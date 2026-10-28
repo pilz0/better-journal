@@ -53,6 +53,12 @@ class CustomSubstanceProfiles @Inject constructor(
     fun getRoa(substanceName: String, route: AdministrationRoute): Roa? =
         findRoa(byNameFlow.value, substanceName, route)
 
+    fun getEffectiveRoa(
+        substanceName: String,
+        route: AdministrationRoute,
+        useIntranasalForRectal: Boolean = false,
+    ): Roa? = findEffectiveRoa(byNameFlow.value, substanceName, route, useIntranasalForRectal)
+
     fun getInteraction(aName: String, bName: String, categoriesOf: (String) -> List<String>): InteractionType? =
         findCustomInteraction(byNameFlow.value, aName, bName, categoriesOf)
 }
@@ -62,6 +68,20 @@ fun findRoa(
     substanceName: String,
     route: AdministrationRoute,
 ): Roa? = profiles[substanceName]?.roaInfos?.firstOrNull { it.route == route }?.toRoa()
+
+fun findEffectiveRoa(
+    profiles: Map<String, CustomSubstanceWithEverything>,
+    substanceName: String,
+    route: AdministrationRoute,
+    useIntranasalForRectal: Boolean = false,
+): Roa? {
+    return if (useIntranasalForRectal && route == AdministrationRoute.RECTAL) {
+        findRoa(profiles, substanceName, AdministrationRoute.INSUFFLATED)
+            ?: findRoa(profiles, substanceName, route)
+    } else {
+        findRoa(profiles, substanceName, route)
+    }
+}
 
 /**
  * The most severe interaction either substance declares against the other.

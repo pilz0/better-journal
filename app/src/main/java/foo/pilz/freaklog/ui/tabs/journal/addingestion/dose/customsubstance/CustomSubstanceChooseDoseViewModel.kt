@@ -30,7 +30,9 @@ import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.ui.main.navigation.graphs.ChooseCustomSubstanceDoseRoute
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 
@@ -38,10 +40,14 @@ import javax.inject.Inject
 class CustomSubstanceChooseDoseViewModel @Inject constructor(
     experienceRepository: ExperienceRepository,
     private val customProfiles: foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles,
+    private val userPreferences: foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences,
     state: SavedStateHandle,
 ) : ViewModel() {
     var substanceName by mutableStateOf("")
     val administrationRoute: AdministrationRoute
+    private val useIntranasalForRectal: Boolean = runBlocking {
+        userPreferences.useIntranasalForRectalFlow.first()
+    }
     var units by mutableStateOf("mg")
     var isEstimate by mutableStateOf(false)
     var doseText by mutableStateOf("")
@@ -74,7 +80,7 @@ class CustomSubstanceChooseDoseViewModel @Inject constructor(
 
     /** Dose thresholds the user stored for this substance and route, if any. */
     val roaDose: foo.pilz.freaklog.data.substances.classes.roa.RoaDose?
-        get() = customProfiles.getRoa(substanceName, administrationRoute)?.roaDose
+        get() = customProfiles.getEffectiveRoa(substanceName, administrationRoute, useIntranasalForRectal)?.roaDose
     val currentDoseClass: foo.pilz.freaklog.data.substances.classes.roa.DoseClass?
         get() = roaDose?.getDoseClass(ingestionDose = dose)
 

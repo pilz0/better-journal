@@ -34,7 +34,9 @@ import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.main.navigation.graphs.ChooseDoseRoute
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
 import foo.pilz.freaklog.ui.utils.evaluateNumericExpression
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 private const val MAX_DOSE = 1_000_000.0
@@ -43,14 +45,19 @@ private const val MAX_DOSE = 1_000_000.0
 class ChooseDoseViewModel @Inject constructor(
     repository: SubstanceRepository,
     private val experienceRepo: foo.pilz.freaklog.data.room.experiences.ExperienceRepository,
+    private val userPreferences: foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences,
     state: SavedStateHandle,
 ) : ViewModel() {
     private val chooseDoseRoute = state.toRoute<ChooseDoseRoute>()
     val substance: Substance = repository.getSubstance(chooseDoseRoute.substanceName)!!
     val administrationRoute: AdministrationRoute = chooseDoseRoute.administrationRoute
-    val roaDose: RoaDose? = substance.getRoa(administrationRoute)?.roaDose
+    private val useIntranasalForRectal: Boolean = runBlocking {
+        userPreferences.useIntranasalForRectalFlow.first()
+    }
+    private val effectiveRoa = substance.getEffectiveRoa(administrationRoute, useIntranasalForRectal)
+    val roaDose: RoaDose? = effectiveRoa?.roaDose
     val roaDuration: foo.pilz.freaklog.data.substances.classes.roa.RoaDuration? =
-        substance.getRoa(administrationRoute)?.roaDuration
+        effectiveRoa?.roaDuration
     var isEstimate by mutableStateOf(false)
     var doseText by mutableStateOf("")
     var estimatedDoseStandardDeviationText by mutableStateOf("")

@@ -250,6 +250,8 @@ fun SettingsScreen(
         saveHapticFeedbackEnabled = viewModel::saveHapticFeedbackEnabled,
         aiAssistantEnabled = viewModel.aiAssistantEnabledFlow.collectAsState().value,
         saveAiAssistantEnabled = viewModel::saveAiAssistantEnabled,
+        useIntranasalForRectal = viewModel.useIntranasalForRectalFlow.collectAsState().value,
+        saveUseIntranasalForRectal = viewModel::saveUseIntranasalForRectal,
         isLockEnabled = viewModel.isLockEnabledFlow.collectAsState().value,
         saveLockEnabled = viewModel::saveLockEnabled,
         lockTimeOption = viewModel.lockTimeOptionFlow.collectAsState().value,
@@ -315,6 +317,8 @@ fun SettingsScreen(
     saveHapticFeedbackEnabled: (Boolean) -> Unit,
     aiAssistantEnabled: Boolean,
     saveAiAssistantEnabled: (Boolean) -> Unit,
+    useIntranasalForRectal: Boolean = false,
+    saveUseIntranasalForRectal: (Boolean) -> Unit = {},
     isLockEnabled: Boolean,
     saveLockEnabled: (Boolean) -> Unit,
     lockTimeOption: foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption,
@@ -597,6 +601,16 @@ fun SettingsScreen(
                         onSave = saveRedoseFractions
                     )
                 }
+                HorizontalDivider()
+                SettingsSwitchRow(
+                    text = "Use intranasal for rectal",
+                    description = "Uses intranasal dosing guidance, timeline effect curves, and duration for rectal administration.",
+                    checked = useIntranasalForRectal,
+                    onCheckedChange = {
+                        performHaptic(HapticType.TOGGLE)
+                        saveUseIntranasalForRectal(it)
+                    }
+                )
             }
 
             CardWithTitle(title = "Tools", innerPaddingHorizontal = 0.dp) {
