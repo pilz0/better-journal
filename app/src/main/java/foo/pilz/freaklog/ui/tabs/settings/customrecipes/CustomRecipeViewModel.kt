@@ -115,15 +115,15 @@ class CustomRecipeViewModel @Inject constructor(
     }
 
     fun updateComponent(index: Int, component: RecipeComponentState) {
-        _components.value = _components.value.toMutableList().apply {
-            set(index, component)
-        }
+        val current = _components.value
+        if (index !in current.indices) return
+        _components.value = current.toMutableList().apply { set(index, component) }
     }
 
     fun removeComponent(index: Int) {
-        _components.value = _components.value.toMutableList().apply {
-            removeAt(index)
-        }
+        val current = _components.value
+        if (index !in current.indices) return
+        _components.value = current.toMutableList().apply { removeAt(index) }
     }
 
     fun saveRecipe() {
@@ -143,9 +143,9 @@ class CustomRecipeViewModel @Inject constructor(
                     CustomRecipeComponent(
                         customRecipeId = existing.recipe.id,
                         substanceName = comp.substanceName,
-                        dose = comp.dose,
+                        dose = comp.dose?.takeIf { it.isFinite() && it >= 0.0 },
                         isDoseAnEstimate = comp.isDoseAnEstimate,
-                        estimatedDoseStandardDeviation = comp.estimatedDoseStandardDeviation,
+                        estimatedDoseStandardDeviation = comp.estimatedDoseStandardDeviation?.takeIf { it.isFinite() && it >= 0.0 },
                         units = comp.units.takeIf { it.isNotBlank() },
                         administrationRoute = comp.administrationRoute,
                         customUnitId = comp.customUnitId,
@@ -164,9 +164,9 @@ class CustomRecipeViewModel @Inject constructor(
                     CustomRecipeComponent(
                         customRecipeId = 0, // Will be set by repository
                         substanceName = comp.substanceName,
-                        dose = comp.dose,
+                        dose = comp.dose?.takeIf { it.isFinite() && it >= 0.0 },
                         isDoseAnEstimate = comp.isDoseAnEstimate,
-                        estimatedDoseStandardDeviation = comp.estimatedDoseStandardDeviation,
+                        estimatedDoseStandardDeviation = comp.estimatedDoseStandardDeviation?.takeIf { it.isFinite() && it >= 0.0 },
                         units = comp.units.takeIf { it.isNotBlank() },
                         administrationRoute = comp.administrationRoute,
                         customUnitId = comp.customUnitId,

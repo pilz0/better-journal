@@ -104,7 +104,7 @@ fun AddEditCustomRecipeDialog(
                         .fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    itemsIndexed(components) { index, component ->
+                    itemsIndexed(components, key = { index, _ -> index }) { index, component ->
                         RecipeComponentEditor(
                             component = component,
                             onUpdate = { viewModel.updateComponent(index, it) },
@@ -197,8 +197,8 @@ fun RecipeComponentEditor(
             ) {
                 OutlinedTextField(
                     value = component.dose?.toString() ?: "",
-                    onValueChange = { 
-                        onUpdate(component.copy(dose = it.toDoubleOrNull()))
+                    onValueChange = {
+                        onUpdate(component.copy(dose = it.trim().replace(',', '.').toDoubleOrNull()))
                     },
                     label = { Text("Dose") },
                     modifier = Modifier.weight(1f),
@@ -237,14 +237,16 @@ fun RecipeComponentEditor(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
-                    AdministrationRoute.values().forEach { route ->
-                        DropdownMenuItem(
-                            text = { Text(route.displayText) },
-                            onClick = {
-                                onUpdate(component.copy(administrationRoute = route))
-                                expanded = false
-                            }
-                        )
+                    AdministrationRoute.entries.forEach { route ->
+                        androidx.compose.runtime.key(route) {
+                            DropdownMenuItem(
+                                text = { Text(route.displayText) },
+                                onClick = {
+                                    onUpdate(component.copy(administrationRoute = route))
+                                    expanded = false
+                                }
+                            )
+                        }
                     }
                 }
             }
