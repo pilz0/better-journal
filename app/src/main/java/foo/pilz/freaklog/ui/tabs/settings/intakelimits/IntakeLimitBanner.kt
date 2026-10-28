@@ -32,37 +32,39 @@ fun IntakeLimitBannerContent(
         verticalArrangement = Arrangement.spacedBy(spacing.md)
     ) {
         statuses.forEach { status ->
-            Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
-                Text(
-                    text = "${status.limit.maxDescription()} per ${status.limit.windowDescription()}",
-                    style = MaterialTheme.typography.titleSmall
-                )
-                Text(
-                    text = status.currentLine(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                if (status.pendingValue > 0.0) {
+            androidx.compose.runtime.key(status.limit.id) {
+                Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
                     Text(
-                        text = status.projectedLine(),
+                        text = "${status.limit.maxDescription()} per ${status.limit.windowDescription()}",
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                    Text(
+                        text = status.currentLine(),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = status.severityColor()
-                    )
-                }
-                status.resetInfo()?.let { reset ->
-                    Text(
-                        text = reset,
-                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                }
-                if (status.ignoredIngestionCount > 0) {
-                    val count = status.ignoredIngestionCount
-                    Text(
-                        text = "$count earlier ${if (count == 1) "ingestion" else "ingestions"} in other units not counted",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    if (status.pendingValue > 0.0) {
+                        Text(
+                            text = status.projectedLine(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = status.severityColor()
+                        )
+                    }
+                    status.resetInfo()?.let { reset ->
+                        Text(
+                            text = reset,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    if (status.ignoredIngestionCount > 0) {
+                        val count = status.ignoredIngestionCount
+                        Text(
+                            text = "$count earlier ${if (count == 1) "ingestion" else "ingestions"} in other units not counted",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }
@@ -118,17 +120,19 @@ fun IntakeLimitWarningDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
                 statuses.forEach { status ->
-                    Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
-                        Text(
-                            text = "${status.limit.substanceName}: ${status.warningLine()}",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        status.resetInfo()?.let { reset ->
+                    androidx.compose.runtime.key(status.limit.id) {
+                        Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
                             Text(
-                                text = reset,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                text = "${status.limit.substanceName}: ${status.warningLine()}",
+                                style = MaterialTheme.typography.bodyMedium
                             )
+                            status.resetInfo()?.let { reset ->
+                                Text(
+                                    text = reset,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
