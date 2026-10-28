@@ -7,6 +7,13 @@ import java.time.Instant
 class GetTimeDifferenceTextTest {
 
     @Test
+    fun testSameOrFutureInstantIsJustNow() {
+        val from = Instant.parse("2024-01-01T12:05:00Z")
+        assertEquals("just now", getTimeDifferenceText(from, from))
+        assertEquals("just now", getTimeDifferenceText(from, Instant.parse("2024-01-01T12:00:00Z")))
+    }
+
+    @Test
     fun testMinutesDifference() {
         val from = Instant.parse("2024-01-01T12:00:00Z")
         val to = Instant.parse("2024-01-01T12:30:00Z")

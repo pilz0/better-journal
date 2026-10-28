@@ -3,6 +3,7 @@ package foo.pilz.freaklog.ui.tabs.safer.spray
 import foo.pilz.freaklog.data.room.SprayRepository
 import foo.pilz.freaklog.data.room.experiences.entities.Spray
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -42,6 +43,7 @@ class SprayCalculatorViewModelTest {
         every { repository.getAllSpraysFlow() } returns flowOf(listOf(defaultSpray))
         coEvery { repository.getPreferredSpray() } returns defaultSpray
         coEvery { repository.getAllSprays() } returns listOf(defaultSpray)
+        coEvery { repository.setPreferred(any()) } returns Unit
     }
 
     @After
@@ -168,5 +170,105 @@ class SprayCalculatorViewModelTest {
 
         // Should not crash or update to NaN/Infinity
         assertEquals("", viewModel.liquidAmountInMl.value)
+    }
+
+    @Test
+    fun `clearing weight per spray or liquid volume resets calculated total weight`() = runTest {
+        val viewModel = SprayCalculatorViewModel(repository)
+        backgroundScope.launch(kotlinx.coroutines.test.UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.spraysFlow.collect()
+        }
+        advanceUntilIdle()
+
+        viewModel.selectSpray(1)
+        viewModel.setLiquidAmountInMl("10")
+        viewModel.setWeightPerSpray("5")
+        assertEquals("500", viewModel.totalWeight.value)
+
+        viewModel.setWeightPerSpray("")
+        assertEquals("", viewModel.totalWeight.value)
+        assertEquals("10", viewModel.liquidAmountInMl.value)
+
+        viewModel.setWeightPerSpray("5")
+        assertEquals("500", viewModel.totalWeight.value)
+        viewModel.setLiquidAmountInMl("0")
+        assertEquals("", viewModel.totalWeight.value)
+    }
+
+    @Test
+    fun `clearing total weight or weight per spray resets calculated liquid volume`() = runTest {
+        val viewModel = SprayCalculatorViewModel(repository)
+        backgroundScope.launch(kotlinx.coroutines.test.UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.spraysFlow.collect()
+        }
+        advanceUntilIdle()
+
+        viewModel.selectSpray(1)
+        viewModel.setWeightPerSpray("5")
+        viewModel.setTotalWeight("500")
+        assertEquals("10", viewModel.liquidAmountInMl.value)
+
+        viewModel.setWeightPerSpray("0")
+        assertEquals("", viewModel.liquidAmountInMl.value)
+        assertEquals("500", viewModel.totalWeight.value)
+
+        viewModel.setWeightPerSpray("5")
+        assertEquals("10", viewModel.liquidAmountInMl.value)
+        viewModel.setTotalWeight("")
+        assertEquals("", viewModel.liquidAmountInMl.value)
+    }
+
+    @Test
+    fun `selecting a spray persists it as preferred immediately`() = runTest {
+        val viewModel = SprayCalculatorViewModel(repository)
+        advanceUntilIdle()
+
+        viewModel.selectSpray(1)
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { repository.setPreferred(1) }
+    }
+
+    @Test
+    fun `deleting the selected last spray clears selection and calculated output`() = runTest {
+        coEvery { repository.delete(any()) } returns Unit
+        coEvery { repository.getAllSprays() } returns emptyList()
+        val viewModel = SprayCalculatorViewModel(repository)
+        backgroundScope.launch(kotlinx.coroutines.test.UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.spraysFlow.collect()
+        }
+        advanceUntilIdle()
+
+        viewModel.selectSpray(1)
+        viewModel.setLiquidAmountInMl("10")
+        viewModel.setWeightPerSpray("5")
+        assertEquals("500", viewModel.totalWeight.value)
+
+        viewModel.deleteSpray(defaultSpray)
+        advanceUntilIdle()
+
+        assertNull(viewModel.selectedSprayId.value)
+        assertEquals("", viewModel.totalWeight.value)
+        assertNull(viewModel.getNumberOfSprays())
+    }
+
+    @Test
+    fun `addSpray ignores non-finite or non-positive parameters`() = runTest {
+        coEvery { repository.insert(any()) } returns 5L
+        val viewModel = SprayCalculatorViewModel(repository)
+        advanceUntilIdle()
+
+        viewModel.addSpray("Broken", Double.NaN, 100.0)
+        viewModel.addSpray("Broken", 10.0, 0.0)
+        viewModel.addSpray("Broken", -10.0, 100.0)
+        viewModel.addSpray("Broken", 10.0, Double.POSITIVE_INFINITY)
+        viewModel.addSpray("  ", 10.0, 100.0)
+        advanceUntilIdle()
+        coVerify(exactly = 0) { repository.insert(any()) }
+
+        viewModel.addSpray(" Valid ", 10.0, 100.0)
+        advanceUntilIdle()
+        coVerify(exactly = 1) { repository.insert(match { it.name == "Valid" }) }
+        assertEquals(5, viewModel.selectedSprayId.value)
     }
 }

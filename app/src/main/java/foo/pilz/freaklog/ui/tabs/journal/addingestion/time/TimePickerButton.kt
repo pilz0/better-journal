@@ -48,22 +48,24 @@ fun TimePickerButton(
     val context = LocalContext.current
     val dialogTheme =
         if (isSystemInDarkTheme()) R.style.DialogThemeDark else R.style.DialogThemeLight
-    val timePickerDialog = TimePickerDialog(
-        context,
-        dialogTheme,
-        { _, newHour: Int, newMinute: Int ->
-            onChange(
-                LocalDateTime.now()
-                    .withYear(localDateTime.year)
-                    .withMonth(localDateTime.monthValue)
-                    .withDayOfMonth(localDateTime.dayOfMonth)
-                    .withHour(newHour)
-                    .withMinute(newMinute)
-            )
-        }, localDateTime.hour, localDateTime.minute, DateFormat.is24HourFormat(context)
-    )
+    val showTimePickerDialog = {
+        TimePickerDialog(
+            context,
+            dialogTheme,
+            { _, newHour: Int, newMinute: Int ->
+                onChange(
+                    LocalDateTime.now()
+                        .withYear(localDateTime.year)
+                        .withMonth(localDateTime.monthValue)
+                        .withDayOfMonth(localDateTime.dayOfMonth)
+                        .withHour(newHour)
+                        .withMinute(newMinute)
+                )
+            }, localDateTime.hour, localDateTime.minute, DateFormat.is24HourFormat(context)
+        ).show()
+    }
     if (hasOutline) {
-        OutlinedButton(onClick = timePickerDialog::show, modifier = modifier.clearAndSetSemantics {  }) {
+        OutlinedButton(onClick = showTimePickerDialog, modifier = modifier.clearAndSetSemantics {  }) {
             Icon(
                 Icons.Outlined.Schedule,
                 contentDescription = "Open time picker"
@@ -72,7 +74,7 @@ fun TimePickerButton(
             Text(timeString)
         }
     } else {
-        TextButton(onClick = timePickerDialog::show, modifier = modifier.clearAndSetSemantics {  }) {
+        TextButton(onClick = showTimePickerDialog, modifier = modifier.clearAndSetSemantics {  }) {
             Icon(
                 Icons.Outlined.Schedule,
                 contentDescription = "Open time picker"

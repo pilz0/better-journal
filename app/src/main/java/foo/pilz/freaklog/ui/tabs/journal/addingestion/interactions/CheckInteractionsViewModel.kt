@@ -25,14 +25,15 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
 import foo.pilz.freaklog.data.substances.classes.InteractionType
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.main.navigation.graphs.CheckInteractionsRoute
 import foo.pilz.freaklog.ui.tabs.settings.combinations.CombinationSettingsStorage
+import foo.pilz.freaklog.ui.utils.JUST_NOW_TEXT
 import foo.pilz.freaklog.ui.utils.getTimeDifferenceText
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -101,34 +102,19 @@ class CheckInteractionsViewModel @Inject constructor(
             }
         val now = Instant.now()
         val messages = dangerousIngestions.map { ingestion ->
-            "Dangerous interaction with ${ingestion.substanceName} (taken ${
-                getTimeDifferenceText(
-                    fromInstant = ingestion.time,
-                    toInstant = now
-                )
-            } ago)."
+            "Dangerous interaction with ${ingestion.substanceName} (taken ${getTimeAgoText(ingestion.time, now)})."
         }.toMutableList()
         messages += dangerousExtras.map { extra ->
             "Dangerous interaction with $extra."
         }
         messages += unsafeIngestions.map { ingestion ->
-            "Unsafe interaction with ${ingestion.substanceName} (taken ${
-                getTimeDifferenceText(
-                    fromInstant = ingestion.time,
-                    toInstant = now
-                )
-            } ago)."
+            "Unsafe interaction with ${ingestion.substanceName} (taken ${getTimeAgoText(ingestion.time, now)})."
         }
         messages += unsafeExtras.map { extra ->
             "Unsafe interaction with $extra."
         }
         messages += uncertainIngestions.map { ingestion ->
-            "Uncertain interaction with ${ingestion.substanceName} (taken ${
-                getTimeDifferenceText(
-                    fromInstant = ingestion.time,
-                    toInstant = now
-                )
-            } ago)."
+            "Uncertain interaction with ${ingestion.substanceName} (taken ${getTimeAgoText(ingestion.time, now)})."
         }
         messages += uncertainExtras.map { extra ->
             "Uncertain interaction with $extra."
@@ -160,4 +146,9 @@ class CheckInteractionsViewModel @Inject constructor(
     )
 
 
+}
+
+private fun getTimeAgoText(time: Instant, now: Instant): String {
+    val difference = getTimeDifferenceText(fromInstant = time, toInstant = now)
+    return if (difference == JUST_NOW_TEXT) difference else "$difference ago"
 }

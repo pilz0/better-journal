@@ -51,7 +51,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -84,12 +83,6 @@ fun SprayCalculatorScreen(
     val doseAdjustedToPurity = viewModel.getDoseAdjustedToPurity()
     val concentrationPerMl = viewModel.getConcentrationPerMl()
     val numberOfSprays = viewModel.getNumberOfSprays()
-
-    DisposableEffect(Unit) {
-        onDispose {
-            viewModel.saveSelection()
-        }
-    }
 
     SprayCalculatorScreenContent(
         sprays = sprays,
@@ -263,7 +256,7 @@ fun SprayCalculatorScreenContent(
                         ) {
                            Column(modifier = Modifier.padding(16.dp)) {
                                Text(
-                                   text = "Pure substance needed:",
+                                   text = "Substance to weigh (adjusted for purity):",
                                    style = MaterialTheme.typography.labelMedium,
                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                )

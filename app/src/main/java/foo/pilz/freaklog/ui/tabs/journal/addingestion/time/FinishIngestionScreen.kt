@@ -594,7 +594,7 @@ fun NoteSection(
     var isShowingSuggestions by remember { mutableStateOf(true) }
     val focusManager = LocalFocusManager.current
     val coroutineScope = rememberCoroutineScope()
-    val bringIntoViewRequester = BringIntoViewRequester()
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
     Column {
         OutlinedTextField(
             value = note,
