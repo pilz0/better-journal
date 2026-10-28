@@ -50,7 +50,6 @@ import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import androidx.room.Room
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
@@ -59,6 +58,10 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 import foo.pilz.freaklog.MainActivity
 import foo.pilz.freaklog.data.room.AppDatabase
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
@@ -73,6 +76,33 @@ import java.io.FileOutputStream
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.TimeUnit
+
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface WidgetEntryPoint {
+    fun appDatabase(): AppDatabase
+}
+
+private object WidgetSubstanceDurationsCache {
+    private var durations: Map<String, Map<AdministrationRoute, RoaDuration?>>? = null
+
+    @Synchronized
+    fun get(context: Context): Map<String, Map<AdministrationRoute, RoaDuration?>> {
+        durations?.let { return it }
+        return try {
+            val fileContent = context.assets.open("Substances.json").bufferedReader().use { it.readText() }
+            val substanceFile = SubstanceParser().parseSubstanceFile(fileContent)
+            substanceFile.substances.associate { substance ->
+                substance.name to substance.roas.associate { roa ->
+                    roa.route to roa.roaDuration
+                }
+            }.also { durations = it }
+        } catch (e: Exception) {
+            Log.w("WidgetProvider", "Failed to load substance durations", e)
+            emptyMap()
+        }
+    }
+}
 
 object WidgetKeys {
     val INGESTIONS_TEXT = stringPreferencesKey("ingestionsText")
@@ -380,12 +410,11 @@ class TimelineWidgetWorker(
         val appWidgetId = inputData.getInt(WorkerInput.APP_WIDGET_ID, -1)
         if (appWidgetId == -1) return Result.failure()
 
-        // Get database instance; closed in `finally` so a failed update never leaks it.
-        val database = Room.databaseBuilder(
+        val entryPoint = EntryPointAccessors.fromApplication(
             applicationContext,
-            AppDatabase::class.java,
-            "experiences_db"
-        ).build()
+            WidgetEntryPoint::class.java
+        )
+        val database = entryPoint.appDatabase()
         return try {
             val experienceDao = database.experienceDao()
 
@@ -544,8 +573,6 @@ class TimelineWidgetWorker(
         } catch (t: Throwable) {
             Log.e(TAG, "Error updating widget", t)
             Result.retry()
-        } finally {
-            database.close()
         }
     }
 
@@ -746,21 +773,8 @@ class TimelineWidgetWorker(
         return file.absolutePath
     }
 
-    private fun loadSubstanceDurations(context: Context): Map<String, Map<AdministrationRoute, RoaDuration?>> {
-        return try {
-            val fileContent = context.assets.open("Substances.json").bufferedReader().use { it.readText() }
-            val parser = SubstanceParser()
-            val substanceFile = parser.parseSubstanceFile(fileContent)
-            substanceFile.substances.associate { substance ->
-                substance.name to substance.roas.associate { roa ->
-                    roa.route to roa.roaDuration
-                }
-            }
-        } catch (e: Exception) {
-            Log.w("WidgetProvider", "Failed to load substance durations", e)
-            emptyMap()
-        }
-    }
+    private fun loadSubstanceDurations(context: Context): Map<String, Map<AdministrationRoute, RoaDuration?>> =
+        WidgetSubstanceDurationsCache.get(context)
 
     private fun getAndroidColor(color: AdaptiveColor, isDarkTheme: Boolean): Int {
         // Delegate to the single source of truth in AdaptiveColor (also handles AdaptiveColor.Custom)

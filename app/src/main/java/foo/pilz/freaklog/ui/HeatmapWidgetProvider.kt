@@ -34,15 +34,14 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import androidx.room.Room
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import dagger.hilt.android.EntryPointAccessors
 import foo.pilz.freaklog.MainActivity
-import foo.pilz.freaklog.data.room.AppDatabase
 import java.io.File
 import java.io.FileOutputStream
 import java.time.Instant
@@ -149,11 +148,11 @@ class HeatmapWidgetWorker(
         val appWidgetId = inputData.getInt(HeatmapWorkerInput.APP_WIDGET_ID, -1)
         if (appWidgetId == -1) return Result.failure()
 
-        val database = Room.databaseBuilder(
+        val entryPoint = EntryPointAccessors.fromApplication(
             applicationContext,
-            AppDatabase::class.java,
-            "experiences_db"
-        ).build()
+            WidgetEntryPoint::class.java
+        )
+        val database = entryPoint.appDatabase()
         return try {
             val experienceDao = database.experienceDao()
 
@@ -199,8 +198,6 @@ class HeatmapWidgetWorker(
         } catch (t: Throwable) {
             Log.e(TAG, "Error updating heatmap widget", t)
             Result.retry()
-        } finally {
-            database.close()
         }
     }
 
