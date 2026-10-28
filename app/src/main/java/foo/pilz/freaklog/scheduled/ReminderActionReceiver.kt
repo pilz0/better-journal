@@ -8,6 +8,7 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.annotation.VisibleForTesting
 import androidx.core.app.NotificationManagerCompat
 import dagger.hilt.android.AndroidEntryPoint
@@ -64,6 +65,8 @@ class ReminderActionReceiver : BroadcastReceiver() {
                     ACTION_SKIP -> { /* no-op; just dismiss */ }
                 }
                 NotificationManagerCompat.from(context).cancel(reminderId)
+            } catch (t: Throwable) {
+                Log.e("ReminderActionReceiver", "Error processing reminder action $action for id $reminderId", t)
             } finally {
                 pendingResult.finish()
             }

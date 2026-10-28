@@ -25,7 +25,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
+import foo.pilz.freaklog.data.room.experiences.findRoa
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
@@ -67,6 +69,7 @@ class TimelineScreenViewModel @Inject constructor(
     experienceRepo: ExperienceRepository,
     private val substanceRepo: SubstanceRepository,
     private val userPreferences: UserPreferences,
+    private val customProfiles: CustomSubstanceProfiles,
     @ApplicationContext private val context: Context,
     state: SavedStateHandle
 ) : ViewModel() {
@@ -142,11 +145,16 @@ class TimelineScreenViewModel @Inject constructor(
     )
 
     private val ingestionsWithAssociatedDataFlow: Flow<List<IngestionWithAssociatedData>> =
-        sortedIngestionsWithCompanionsFlow.map { ingestionsWithComps ->
+        sortedIngestionsWithCompanionsFlow.combine(customProfiles.byNameFlow) { ingestionsWithComps, profiles ->
             ingestionsWithComps.map { oneIngestionWithComp ->
                 val ingestion = oneIngestionWithComp.ingestion
                 val roa = substanceRepo.getSubstance(oneIngestionWithComp.ingestion.substanceName)
                     ?.getRoa(ingestion.administrationRoute)
+                    ?: findRoa(
+                        profiles,
+                        ingestion.substanceName,
+                        ingestion.administrationRoute
+                    )
                 val roaDuration = roa?.roaDuration
                 IngestionWithAssociatedData(
                     ingestionWithCompanionAndCustomUnit = oneIngestionWithComp,
