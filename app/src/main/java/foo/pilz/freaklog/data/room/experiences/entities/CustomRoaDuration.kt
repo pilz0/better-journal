@@ -14,7 +14,6 @@ import kotlinx.serialization.Transient
 @Entity(
     primaryKeys = ["route", "customSubstanceId"],
     indices = [
-        Index(value = ["route", "customSubstanceId"], unique = true),
         Index(value = ["customSubstanceId"]),
     ],
     foreignKeys = [

@@ -105,6 +105,9 @@ interface ExperienceDao {
     @Query("SELECT * FROM customsubstance")
     suspend fun getAllCustomSubstances(): List<CustomSubstance>
 
+    @Query("SELECT name FROM customsubstance ORDER BY name ASC")
+    suspend fun getAllCustomSubstanceNames(): List<String>
+
     @Query("SELECT * FROM substancecompanion")
     suspend fun getAllSubstanceCompanions(): List<SubstanceCompanion>
 
@@ -341,7 +344,10 @@ interface ExperienceDao {
     }
 
     @Transaction
-    @Query("DELETE FROM substancecompanion WHERE substanceName NOT IN (SELECT substanceName FROM ingestion)")
+    @Query(
+        "DELETE FROM substancecompanion WHERE NOT EXISTS" +
+            " (SELECT 1 FROM ingestion WHERE ingestion.substanceName = substancecompanion.substanceName)"
+    )
     suspend fun deleteUnusedSubstanceCompanions()
 
     @Delete

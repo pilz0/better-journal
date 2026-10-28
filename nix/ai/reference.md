@@ -236,7 +236,7 @@ To upgrade: run `./gradlew versionCatalogUpdate --interactive --no-configuration
 
 ### Room database (`data/room/AppDatabase.kt`)
 
-Current schema version: **27**. All migrations from v1 to v27 are handled by `@AutoMigration`.
+Current schema version: **28**. All migrations from v1 to v28 are handled by `@AutoMigration`.
 The `16 → 17` step uses an `AutoMigrationSpec` (`AppDatabase.ReminderV16To17`) that
 back-fills `scheduleType = 'INTERVAL'` on legacy reminder rows so they don't silently
 disable when the new column default (`DAILY_AT_TIMES`) is applied without `timesOfDay`.

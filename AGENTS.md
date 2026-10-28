@@ -60,7 +60,7 @@ nix run --inputs-from . gradle2nix -- -t assembleRelease -t bundleRelease
 ## High-impact invariants
 
 - Android package namespace is `foo.pilz.freaklog` (not upstream `com.isaakhanimann.journal`).
-- Room schema version is `27` with an `@AutoMigration` chain in `AppDatabase.kt`.
+- Room schema version is `28` with an `@AutoMigration` chain in `AppDatabase.kt`.
 - The AI assistant uses its own raw-HTTP clients for the OpenAI, Anthropic and Gemini APIs in `data/ai/provider/`. Don't add provider SDKs (the archived `generative-ai-android` drops Gemini's `thoughtSignature`), and keep the raw `NativeContent` round-trip intact.
 - AI API keys are only stored encrypted (`AiProfileStore` + `AiKeyCipher`); never write them to plain preferences, logs or exports.
 - If dependencies or plugins change, regenerate `gradle.lock` (command above) or the Nix build breaks.
@@ -311,7 +311,7 @@ To upgrade: run `./gradlew versionCatalogUpdate --interactive --no-configuration
 
 ### Room database (`data/room/AppDatabase.kt`)
 
-Current schema version: **27**. All migrations from v1 to v27 are handled by `@AutoMigration`.
+Current schema version: **28**. All migrations from v1 to v28 are handled by `@AutoMigration`.
 The `16 → 17` step uses an `AutoMigrationSpec` (`AppDatabase.ReminderV16To17`) that
 back-fills `scheduleType = 'INTERVAL'` on legacy reminder rows so they don't silently
 disable when the new column default (`DAILY_AT_TIMES`) is applied without `timesOfDay`.

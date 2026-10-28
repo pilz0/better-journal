@@ -42,7 +42,7 @@ class ToleranceHistoryTest {
         db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-        val experienceRepo = ExperienceRepository(db.experienceDao(), mockk(), mockk(), mockk(), context)
+        val experienceRepo = ExperienceRepository(db, db.experienceDao(), mockk(), mockk(), mockk(), context)
         calculator = ToleranceCalculator(substanceRepo, experienceRepo)
         experienceId = db.experienceDao().insert(EntityBuilders.experience()).toInt()
     }

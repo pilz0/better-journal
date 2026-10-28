@@ -209,7 +209,7 @@ class ExportBackupViewModel @Inject constructor(
                 foo.pilz.freaklog.data.substanceshare.resolveCollisionReplace(payload, customSubstanceRepository)
                 payload.name
             } else {
-                val existingNames = experienceRepository.getAllCustomSubstances().map { it.name }.toSet()
+                val existingNames = experienceRepository.getAllCustomSubstanceNames().toSet()
                 foo.pilz.freaklog.data.substanceshare.resolveCollisionKeepBoth(
                     payload,
                     existingNames,

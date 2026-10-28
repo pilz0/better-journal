@@ -18,6 +18,8 @@
 
 package foo.pilz.freaklog.data.room.experiences
 
+import androidx.room.withTransaction
+import foo.pilz.freaklog.data.room.AppDatabase
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRecipe
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRecipeComponent
 import foo.pilz.freaklog.data.room.experiences.relations.CustomRecipeWithComponents
@@ -30,6 +32,7 @@ import javax.inject.Singleton
 
 @Singleton
 class CustomRecipeRepository @Inject constructor(
+    private val db: AppDatabase,
     private val customRecipeDao: CustomRecipeDao
 ) {
     
@@ -77,7 +80,9 @@ class CustomRecipeRepository @Inject constructor(
     
     suspend fun deleteAllRecipes() =
         withContext(Dispatchers.IO) {
-            customRecipeDao.deleteAllRecipes()
-            customRecipeDao.deleteAllComponents()
+            db.withTransaction {
+                customRecipeDao.deleteAllRecipes()
+                customRecipeDao.deleteAllComponents()
+            }
         }
 }

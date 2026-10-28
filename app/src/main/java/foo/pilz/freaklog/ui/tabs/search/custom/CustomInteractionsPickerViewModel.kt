@@ -71,8 +71,7 @@ class CustomInteractionsPickerViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            customSubstancesFlow.value = experienceRepo.getAllCustomSubstances()
-                .map { it.name }
+            customSubstancesFlow.value = experienceRepo.getAllCustomSubstanceNames()
                 .filter { name ->
                     val self = customRepo.getWithEverything(customSubstanceId)?.substance?.name
                     name != self

@@ -25,7 +25,6 @@ enum class CustomInteractionTargetType {
 @Entity(
     indices = [
         Index(value = ["customSubstanceId", "severity", "targetName"], unique = true),
-        Index(value = ["customSubstanceId"]),
     ],
     foreignKeys = [
         ForeignKey(

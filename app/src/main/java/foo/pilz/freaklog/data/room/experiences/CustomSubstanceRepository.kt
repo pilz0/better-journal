@@ -1,5 +1,7 @@
 package foo.pilz.freaklog.data.room.experiences
 
+import androidx.room.withTransaction
+import foo.pilz.freaklog.data.room.AppDatabase
 import foo.pilz.freaklog.data.room.experiences.entities.CustomCategoryAssignment
 import foo.pilz.freaklog.data.room.experiences.entities.CustomCrossTolerance
 import foo.pilz.freaklog.data.room.experiences.entities.CustomInteraction
@@ -20,6 +22,7 @@ import javax.inject.Singleton
 
 @Singleton
 class CustomSubstanceRepository @Inject constructor(
+    private val db: AppDatabase,
     private val dao: ExperienceDao,
 ) {
 
@@ -70,11 +73,13 @@ class CustomSubstanceRepository @Inject constructor(
     suspend fun deleteDuration(duration: CustomRoaDuration) = dao.delete(duration)
 
     suspend fun deleteRouteEverywhere(substanceId: Int, route: AdministrationRoute) {
-        dao.getCustomRoa(substanceId, route)?.let { dao.delete(it) }
-        dao.getCustomRoaDose(substanceId, route)?.let { dao.delete(it) }
-        dao.getCustomRoaDurations(substanceId)
-            .find { it.route == route }
-            ?.let { dao.delete(it) }
+        db.withTransaction {
+            dao.getCustomRoa(substanceId, route)?.let { dao.delete(it) }
+            dao.getCustomRoaDose(substanceId, route)?.let { dao.delete(it) }
+            dao.getCustomRoaDurations(substanceId)
+                .find { it.route == route }
+                ?.let { dao.delete(it) }
+        }
     }
 
     suspend fun upsertInteraction(substanceId: Int, interaction: CustomInteraction) {
