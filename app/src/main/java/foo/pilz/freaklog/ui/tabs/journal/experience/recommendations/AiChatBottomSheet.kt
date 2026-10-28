@@ -7,6 +7,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,7 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,12 +30,21 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -57,22 +67,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import dev.jeziellago.compose.markdowntext.MarkdownText
+import foo.pilz.freaklog.data.ai.AiChatUiState
 import foo.pilz.freaklog.data.ai.AiChatViewModel
 import foo.pilz.freaklog.data.ai.ChatItem
+import foo.pilz.freaklog.data.ai.profiles.AiProfile
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AiChatBottomSheet(
-    experienceId: Int,
+    experienceId: Int?,
     onDismiss: () -> Unit,
+    onOpenSettings: () -> Unit,
     viewModel: AiChatViewModel = hiltViewModel()
 ) {
     LaunchedEffect(experienceId) {
@@ -92,14 +108,15 @@ fun AiChatBottomSheet(
                 .padding(horizontal = 16.dp)
         ) {
             Header(
-                modelName = uiState.modelName,
-                statusMessage = uiState.statusMessage,
-                onClearChat = { viewModel.clearChat() }
+                uiState = uiState,
+                onClearChat = { viewModel.clearChat() },
+                onSwitchProfile = { viewModel.switchProfile(it) },
+                onOpenSettings = onOpenSettings
             )
 
             when {
-                uiState.isApiKeyMissing -> ApiKeyMissingState()
-                uiState.isAssistantDisabled -> AssistantDisabledState()
+                uiState.setupMessage != null -> SetupNeededState(uiState.setupMessage!!, onOpenSettings)
+                uiState.isAssistantDisabled -> AssistantDisabledState(onOpenSettings)
                 uiState.isContextLoading -> {
                     LinearProgressIndicator(
                         modifier = Modifier
@@ -110,6 +127,8 @@ fun AiChatBottomSheet(
                 else -> {
                     Transcript(
                         items = uiState.items,
+                        canRetry = uiState.canRetry && !uiState.isAssistantBusy,
+                        onRetry = { viewModel.retryLastTurn() },
                         modifier = Modifier.weight(1f)
                     )
 
@@ -122,8 +141,17 @@ fun AiChatBottomSheet(
                     }
 
                     InputBar(
-                        enabled = !uiState.isAssistantBusy,
-                        onSend = { viewModel.sendMessage(it) }
+                        isBusy = uiState.isAssistantBusy,
+                        onSend = { viewModel.sendMessage(it) },
+                        onStop = { viewModel.stop() }
+                    )
+                    Text(
+                        text = "AI answers can be wrong. Not medical advice.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(bottom = 8.dp)
                     )
                 }
             }
@@ -133,10 +161,13 @@ fun AiChatBottomSheet(
 
 @Composable
 private fun Header(
-    modelName: String?,
-    statusMessage: String?,
-    onClearChat: () -> Unit
+    uiState: AiChatUiState,
+    onClearChat: () -> Unit,
+    onSwitchProfile: (String) -> Unit,
+    onOpenSettings: () -> Unit
 ) {
+    var pendingSwitch by remember { mutableStateOf<AiProfile?>(null) }
+    val hasConversation = uiState.items.any { it is ChatItem.Message && it.isUser }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -145,23 +176,31 @@ private fun Header(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = "AI Journal Assistant",
+                text = "AI assistant",
                 style = MaterialTheme.typography.titleLarge
             )
-            val subtitle = when {
-                statusMessage != null -> statusMessage
-                modelName != null -> "Model: $modelName"
-                else -> null
-            }
+            ProfileSwitcher(
+                profiles = uiState.profiles,
+                activeProfileId = uiState.activeProfileId,
+                modelName = uiState.modelName,
+                enabled = !uiState.isAssistantBusy,
+                onPick = { profile ->
+                    if (hasConversation) pendingSwitch = profile else onSwitchProfile(profile.id)
+                },
+                onManage = onOpenSettings
+            )
+            val subtitle = uiState.statusMessage ?: uiState.contextLabel
             if (subtitle != null) {
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
-        TextButton(onClick = onClearChat) {
+        TextButton(onClick = onClearChat, enabled = uiState.setupMessage == null) {
             Icon(
                 Icons.Filled.Refresh,
                 contentDescription = null,
@@ -171,10 +210,103 @@ private fun Header(
             Text("New chat")
         }
     }
+    pendingSwitch?.let { profile ->
+        AlertDialog(
+            onDismissRequest = { pendingSwitch = null },
+            title = { Text("Switch to ${profile.name}?") },
+            text = { Text("This starts a new chat. The current conversation will be cleared.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    pendingSwitch = null
+                    onSwitchProfile(profile.id)
+                }) { Text("Switch") }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingSwitch = null }) { Text("Cancel") }
+            }
+        )
+    }
+}
+
+/** Shows the active profile and model; tapping it lists the other saved profiles. */
+@Composable
+private fun ProfileSwitcher(
+    profiles: List<AiProfile>,
+    activeProfileId: String?,
+    modelName: String?,
+    enabled: Boolean,
+    onPick: (AiProfile) -> Unit,
+    onManage: () -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val active = profiles.firstOrNull { it.id == activeProfileId }
+    val label = when {
+        active == null -> "No provider"
+        modelName != null -> "${active.name} · $modelName"
+        else -> "${active.name} · ${active.model.ifBlank { "no model" }}"
+    }
+    Box {
+        Row(
+            modifier = Modifier
+                .clickable(enabled = enabled) { expanded = true }
+                .padding(vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false)
+            )
+            Icon(
+                Icons.Filled.ArrowDropDown,
+                contentDescription = "Switch AI provider",
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            profiles.forEach { profile ->
+                DropdownMenuItem(
+                    text = {
+                        Column {
+                            Text(profile.name)
+                            Text(
+                                text = profile.model.ifBlank { "no model chosen" },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    },
+                    leadingIcon = {
+                        if (profile.id == activeProfileId) {
+                            Icon(Icons.Filled.Check, contentDescription = "Active")
+                        } else {
+                            Spacer(Modifier.size(24.dp))
+                        }
+                    },
+                    onClick = {
+                        expanded = false
+                        if (profile.id != activeProfileId) onPick(profile)
+                    }
+                )
+            }
+            if (profiles.isNotEmpty()) HorizontalDivider()
+            DropdownMenuItem(
+                text = { Text("Manage providers…") },
+                leadingIcon = { Icon(Icons.Outlined.Settings, contentDescription = null) },
+                onClick = {
+                    expanded = false
+                    onManage()
+                }
+            )
+        }
+    }
 }
 
 @Composable
-private fun AssistantDisabledState() {
+private fun AssistantDisabledState(onOpenSettings: () -> Unit) {
     Column(modifier = Modifier.padding(vertical = 16.dp)) {
         Text(
             text = "AI assistant is disabled.",
@@ -182,46 +314,68 @@ private fun AssistantDisabledState() {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
-            text = "Enable it in Settings → AI assistant to start a chat session.",
+            text = "Turn it on in Settings → AI assistant to start a chat.",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(top = 4.dp)
         )
+        Button(onClick = onOpenSettings, modifier = Modifier.padding(top = 12.dp)) {
+            Text("Open AI settings")
+        }
     }
 }
 
 @Composable
-private fun ApiKeyMissingState() {
+private fun SetupNeededState(message: String, onOpenSettings: () -> Unit) {
     Column(modifier = Modifier.padding(vertical = 16.dp)) {
         Text(
-            text = "Gemini API key is missing.",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.error
+            text = message,
+            style = MaterialTheme.typography.titleMedium
         )
         Text(
-            text = "Open Settings → AI Chatbot to paste your Google AI Studio API key. " +
-                "The default model is gemini-2.5-flash; you can change it in the same place.",
+            text = "The assistant works with Gemini, OpenAI, Anthropic, OpenRouter and other providers, " +
+                "or with your own Ollama, LM Studio or other compatible server.",
             style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 4.dp)
         )
+        Button(onClick = onOpenSettings, modifier = Modifier.padding(top = 12.dp)) {
+            Text("Open AI settings")
+        }
     }
 }
 
 @Composable
-private fun Transcript(items: List<ChatItem>, modifier: Modifier = Modifier) {
+private fun Transcript(
+    items: List<ChatItem>,
+    canRetry: Boolean,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val listState = rememberLazyListState()
-    LaunchedEffect(items.size) {
+    val lastText = (items.lastOrNull() as? ChatItem.Message)?.text?.length ?: 0
+    LaunchedEffect(items.size, lastText) {
         if (items.isNotEmpty()) {
             listState.animateScrollToItem(items.lastIndex)
         }
     }
+    // Only the reply to the latest user message can be retried.
+    val firstUserIndex = items.indexOfFirst { it is ChatItem.Message && it.isUser }
+    val lastUserIndex = items.indexOfLast { it is ChatItem.Message && it.isUser }
+    val lastReplyId = items.lastOrNull { it is ChatItem.Message && !it.isUser }
+        ?.takeIf { lastUserIndex >= 0 && items.indexOf(it) > lastUserIndex }?.id
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
         state = listState,
         contentPadding = PaddingValues(vertical = 8.dp)
     ) {
-        items(items, key = { it.id }) { item ->
+        itemsIndexed(items, key = { _, item -> item.id }) { index, item ->
             when (item) {
-                is ChatItem.Message -> MessageBubble(item)
+                is ChatItem.Message -> MessageBubble(
+                    message = item,
+                    // The welcome text before the first question gets no actions.
+                    showActions = firstUserIndex in 0 until index,
+                    onRetry = if (canRetry && item.id == lastReplyId) onRetry else null
+                )
                 is ChatItem.ToolEvent -> ToolEventChip(item)
             }
         }
@@ -229,7 +383,7 @@ private fun Transcript(items: List<ChatItem>, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun MessageBubble(message: ChatItem.Message) {
+private fun MessageBubble(message: ChatItem.Message, showActions: Boolean, onRetry: (() -> Unit)?) {
     val backgroundColor = when {
         message.isError -> MaterialTheme.colorScheme.errorContainer
         message.isUser -> MaterialTheme.colorScheme.primaryContainer
@@ -256,11 +410,61 @@ private fun MessageBubble(message: ChatItem.Message) {
         ) {
             if (message.isLoading && message.text.isBlank()) {
                 TypingIndicator(color = contentColor)
+            } else if (message.isStopped && message.text.isBlank()) {
+                Text(
+                    "Stopped before an answer arrived.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = contentColor.copy(alpha = 0.7f)
+                )
             } else {
                 MarkdownText(
                     markdown = message.text,
                     style = MaterialTheme.typography.bodyMedium.copy(color = contentColor)
                 )
+            }
+        }
+        val showCopy = showActions && !message.isUser && !message.isError && !message.isLoading &&
+            !message.isStreaming && message.text.isNotBlank()
+        if (showCopy || onRetry != null) {
+            MessageActions(
+                text = message.text.takeIf { showCopy },
+                isStopped = message.isStopped && message.text.isNotBlank(),
+                onRetry = onRetry
+            )
+        }
+    }
+}
+
+@Composable
+private fun MessageActions(text: String?, isStopped: Boolean, onRetry: (() -> Unit)?) {
+    val clipboardManager = LocalClipboardManager.current
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        if (isStopped) {
+            Text(
+                "Stopped",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
+        }
+        if (text != null) {
+            IconButton(
+                onClick = { clipboardManager.setText(AnnotatedString(text)) },
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    Icons.Outlined.ContentCopy,
+                    contentDescription = "Copy answer",
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        if (onRetry != null) {
+            TextButton(onClick = onRetry) {
+                Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(4.dp))
+                Text("Retry", style = MaterialTheme.typography.labelMedium)
             }
         }
     }
@@ -276,23 +480,34 @@ private fun ToolEventChip(event: ChatItem.ToolEvent) {
         ChatItem.ToolEvent.Status.Error ->
             Icons.Filled.Warning to MaterialTheme.colorScheme.error
     }
-    Row(
+    var showDetails by remember { mutableStateOf(false) }
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 2.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .clickable { showDetails = !showDetails }
+            .padding(vertical = 2.dp)
     ) {
-        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(16.dp))
-        Spacer(Modifier.width(6.dp))
-        val argText = event.args.entries
-            .filter { (_, v) -> v != null && v.toString().isNotBlank() }
-            .joinToString(", ") { (k, v) -> "$k=$v" }
-        val summary = event.resultSummary?.let { " → $it" } ?: ""
-        Text(
-            text = "${event.toolName}($argText)$summary",
-            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(6.dp))
+            val summary = event.resultSummary?.let { " → $it" } ?: ""
+            Text(
+                text = "${event.label}$summary",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        if (showDetails) {
+            val argText = event.args.entries
+                .filter { (_, v) -> v != null && v.toString().isNotBlank() }
+                .joinToString(", ") { (k, v) -> "$k=$v" }
+            Text(
+                text = "${event.toolName}($argText)",
+                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 22.dp, top = 2.dp)
+            )
+        }
     }
 }
 
@@ -346,8 +561,9 @@ private fun SuggestionRow(
 
 @Composable
 private fun InputBar(
-    enabled: Boolean,
-    onSend: (String) -> Unit
+    isBusy: Boolean,
+    onSend: (String) -> Unit,
+    onStop: () -> Unit
 ) {
     var textState by remember { mutableStateOf(TextFieldValue("")) }
     val focusRequester = remember { FocusRequester() }
@@ -355,7 +571,7 @@ private fun InputBar(
 
     val send: () -> Unit = {
         val text = textState.text.trim()
-        if (text.isNotBlank() && enabled) {
+        if (text.isNotBlank() && !isBusy) {
             onSend(text)
             textState = TextFieldValue("")
             keyboardController?.hide()
@@ -380,13 +596,13 @@ private fun InputBar(
             keyboardActions = KeyboardActions(onSend = { send() })
         )
         Spacer(Modifier.width(4.dp))
-        if (!enabled) {
-            CircularProgressIndicator(
-                modifier = Modifier
-                    .size(40.dp)
-                    .padding(8.dp),
-                strokeWidth = 2.dp
-            )
+        if (isBusy) {
+            IconButton(onClick = onStop) {
+                Box(contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(modifier = Modifier.size(36.dp), strokeWidth = 2.dp)
+                    Icon(Icons.Filled.Stop, contentDescription = "Stop", modifier = Modifier.size(18.dp))
+                }
+            }
         } else {
             IconButton(onClick = send, enabled = textState.text.isNotBlank()) {
                 Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send")

@@ -41,6 +41,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.outlined.SearchOff
+import androidx.compose.material.icons.outlined.SmartToy
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.ElevatedButton
@@ -60,8 +61,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -73,6 +77,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsCompanionsAndRatings
 import foo.pilz.freaklog.ui.tabs.journal.components.ExperienceRow
+import foo.pilz.freaklog.ui.tabs.journal.experience.recommendations.AiChatBottomSheet
 import foo.pilz.freaklog.ui.tabs.stats.EmptyScreenDisclaimer
 import foo.pilz.freaklog.ui.theme.JournalTheme
 import foo.pilz.freaklog.ui.theme.horizontalPadding
@@ -86,6 +91,7 @@ fun JournalScreen(
     navigateToAddIngestion: () -> Unit,
     navigateToCalendar: () -> Unit,
     navigateToAllIngestions: () -> Unit = {},
+    navigateToAiSettings: () -> Unit = {},
     viewModel: JournalViewModel = hiltViewModel()
 ) {
     val experiences = viewModel.experiences.collectAsState().value
@@ -93,7 +99,20 @@ fun JournalScreen(
         viewModel.maybeMigrate()
         viewModel.onJournalOpened()
     }
+    var showAssistant by rememberSaveable { mutableStateOf(false) }
+    val isAssistantEnabled = viewModel.isAiAssistantEnabledFlow.collectAsState().value
+    if (showAssistant && isAssistantEnabled) {
+        AiChatBottomSheet(
+            experienceId = null,
+            onDismiss = { showAssistant = false },
+            onOpenSettings = {
+                showAssistant = false
+                navigateToAiSettings()
+            }
+        )
+    }
     JournalScreen(
+        onOpenAssistant = if (isAssistantEnabled) ({ showAssistant = true }) else null,
         navigateToExperiencePopNothing = navigateToExperiencePopNothing,
         navigateToAddIngestion = {
             viewModel.resetAddIngestionTimes()
@@ -155,14 +174,23 @@ fun JournalScreen(
     isSearchEnabled: Boolean,
     onChangeIsSearchEnabled: (Boolean) -> Unit,
     experiences: List<ExperienceWithIngestionsCompanionsAndRatings>,
+    onOpenAssistant: (() -> Unit)? = null,
 ) {
     val performHaptic = rememberHaptic()
-    
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Journal") },
                 actions = {
+                    if (onOpenAssistant != null) {
+                        IconButton(onClick = {
+                            performHaptic(HapticType.CLICK)
+                            onOpenAssistant()
+                        }) {
+                            Icon(Icons.Outlined.SmartToy, contentDescription = "AI assistant")
+                        }
+                    }
                     IconToggleButton(
                         checked = isTimeRelativeToNow,
                         onCheckedChange = { 

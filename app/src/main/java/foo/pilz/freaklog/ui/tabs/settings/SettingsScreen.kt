@@ -612,8 +612,9 @@ fun SettingsScreen(
             CardWithTitle(title = "AI assistant", innerPaddingHorizontal = 0.dp) {
                 SettingsSwitchRow(
                     text = "Enable AI assistant",
-                    description = "Off by default. Requires an API key configured in AI provider settings." +
-                        " Sends assistant prompts to the configured provider.",
+                    description = "Off by default. Works with hosted providers or your own " +
+                        "OpenAI/Anthropic-compatible server, set up in AI provider settings." +
+                        " Sends assistant prompts to the provider you choose.",
                     checked = aiAssistantEnabled,
                     onCheckedChange = {
                         performHaptic(HapticType.TOGGLE)

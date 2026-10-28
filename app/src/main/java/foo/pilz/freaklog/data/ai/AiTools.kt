@@ -1,7 +1,10 @@
 package foo.pilz.freaklog.data.ai
 
 import android.util.Log
+import foo.pilz.freaklog.data.ai.anodyne.AiAnodyneTools
+import foo.pilz.freaklog.data.ai.provider.AiToolSpec
 import foo.pilz.freaklog.data.room.experiences.ExperienceDao
+import kotlinx.coroutines.CancellationException
 import org.json.JSONArray
 import org.json.JSONObject
 import java.time.Instant
@@ -9,14 +12,16 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Implementations of the function-calling tools that the AI chatbot can invoke
- * to research the user's journal data. Each method receives the raw argument map
- * delivered by the Gemini SDK and returns a JSONObject that can be sent back to
- * the model as a `FunctionResponsePart`.
+ * Declarations and implementations of the function-calling tools that the AI assistant can
+ * invoke: journal lookups here, substance knowledge in [AiSubstanceTools]. [execute] receives
+ * the argument map parsed from the model's tool call and returns a JSONObject that is sent
+ * back as the tool result.
  */
 @Singleton
 class AiTools @Inject constructor(
-    private val experienceDao: ExperienceDao
+    private val experienceDao: ExperienceDao,
+    private val substanceTools: AiSubstanceTools,
+    private val anodyneTools: AiAnodyneTools,
 ) {
 
     companion object {
@@ -26,6 +31,59 @@ class AiTools @Inject constructor(
         /** Hard cap on the size of any single notes blob returned to the model. */
         const val ABSOLUTE_MAX_NOTES_CHARS = 8000
     }
+
+    /** Declarations of every available tool, in the provider-neutral JSON Schema form. */
+    suspend fun specs(): List<AiToolSpec> =
+        journalSpecs + substanceTools.specs + (if (anodyneTools.isEnabled()) anodyneTools.specs else emptyList())
+
+    private val journalSpecs: List<AiToolSpec> = listOf(
+        toolSpec(
+            name = "list_recent_experiences",
+            description = "List the most recent journal experiences (title, date, substances, id). " +
+                "Use this for an overview of recent sessions.",
+            ToolParam.integer("limit", "Maximum number of experiences to return (default 10, max 50)."),
+        ),
+        toolSpec(
+            name = "search_experiences",
+            description = "Full-text search the user's experience titles and notes for the given query. " +
+                "Use this when the user asks 'find my experience about X' or references words likely in titles/notes.",
+            ToolParam.string("query", "Substring to search for in title or notes (case-insensitive).", required = true),
+            ToolParam.integer("limit", "Maximum number of results (default 10, max 50)."),
+        ),
+        toolSpec(
+            name = "search_experiences_by_substance",
+            description = "Find past experiences in which a given substance was logged. " +
+                "Use this for questions like 'when did I last take MDMA?' or 'show all my LSD trips'.",
+            ToolParam.string("substance", "Substance name to search for (case-insensitive substring match).", required = true),
+            ToolParam.integer("limit", "Maximum number of results (default 10, max 50)."),
+        ),
+        toolSpec(
+            name = "get_experience_details",
+            description = "Fetch the full details of one past experience: notes, every ingestion, and Shulgin ratings. " +
+                "Call this after `search_experiences` or `list_recent_experiences` when more detail is needed. " +
+                "The `notes` field is capped (default 2000 chars); the response sets `notes_truncated` and " +
+                "`notes_total_chars` so you can decide whether to ask for a larger excerpt.",
+            ToolParam.integer("experience_id", "The experience id returned by another tool.", required = true),
+            ToolParam.integer(
+                "max_notes_chars",
+                "Optional cap on how many characters of the free-text notes to include " +
+                    "(default 2000, max 8000). Use a smaller value for quick lookups.",
+            ),
+        ),
+        toolSpec(
+            name = "get_recent_ingestions",
+            description = "List individual ingestions across all experiences within the last N days, " +
+                "optionally filtered by substance.",
+            ToolParam.integer("days_back", "How many days back to look (default 30, max 730)."),
+            ToolParam.string("substance", "Optional substance name filter (case-insensitive substring match)."),
+        ),
+        toolSpec(
+            name = "get_substance_usage_stats",
+            description = "Aggregate ingestion counts per substance over the last N days, sorted by frequency. " +
+                "Use this for usage-pattern questions ('what have I been using most this year?').",
+            ToolParam.integer("days_back", "Window in days for the aggregation (default 90, max 1825)."),
+        ),
+    )
 
     suspend fun execute(name: String, args: Map<String, Any?>): JSONObject {
         return try {
@@ -53,8 +111,12 @@ class AiTools @Inject constructor(
                 "get_substance_usage_stats" -> getSubstanceUsageStats(
                     daysBack = (args["days_back"] as? Number)?.toInt() ?: 90
                 )
-                else -> errorResult("Unknown tool '$name'.")
+                else -> substanceTools.execute(name, args)
+                    ?: anodyneTools.execute(name, args)
+                    ?: errorResult("Unknown tool '$name'.")
             }
+        } catch (ce: CancellationException) {
+            throw ce
         } catch (t: Throwable) {
             Log.e("AiTools", "Error executing tool $name", t)
             errorResult("Tool '$name' failed: ${t.message}")
@@ -213,6 +275,5 @@ class AiTools @Inject constructor(
             .put("substances", arr)
     }
 
-    private fun errorResult(message: String): JSONObject =
-        JSONObject().put("status", "error").put("message", message)
+    private fun errorResult(message: String): JSONObject = toolError(message)
 }

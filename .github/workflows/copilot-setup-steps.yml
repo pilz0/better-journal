@@ -61,6 +61,8 @@ jobs:
 
       - name: Load Nix dev shell
         run: |
+          # The child shell expands these variables after entering the Nix environment.
+          # shellcheck disable=SC2016
           nix develop --command bash -c '
             tr ":" "\n" <<< "$PATH" | grep "^/nix/store/" >> "$GITHUB_PATH"
             for v in JAVA_HOME ANDROID_HOME ANDROID_SDK_ROOT; do

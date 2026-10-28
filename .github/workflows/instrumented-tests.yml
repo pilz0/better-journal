@@ -1,6 +1,9 @@
 ---
 name: Instrumented Tests
 on:
+  workflow_call:
+  schedule:
+    - cron: '17 3 * * 1'
   workflow_dispatch:
     inputs:
       api-level:
@@ -9,14 +12,12 @@ on:
         default: '34'
         type: choice
         options:
-          - '30'
           - '31'
           - '32'
           - '33'
           - '34'
           - '35'
-  pull_request:
-    types: [ labeled, synchronize ]
+          - '36'
 
 # Deny all permissions by default; each job grants the minimum required.
 permissions: {}
@@ -27,12 +28,6 @@ concurrency:
 
 jobs:
   androidTest:
-    # Run on workflow_dispatch OR on PRs that carry the
-    # `run-instrumented-tests` label.
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' &&
-        contains(github.event.pull_request.labels.*.name, 'run-instrumented-tests'))
     name: Connected Android Tests (API ${{ matrix.api-level }})
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -41,13 +36,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # On workflow_dispatch, use the user-supplied API level; otherwise run
-        # the supported floor (minSdk = 31) and the current target (35) in
-        # parallel for broad coverage.
+        # Every build covers all Android API levels from minSdk 31
+        # through targetSdk 36. Manual runs can select one API for diagnosis.
         api-level: >-
           ${{ github.event_name == 'workflow_dispatch' &&
               fromJSON(format('[{0}]', inputs.api-level)) ||
-              fromJSON('[31, 34, 35]') }}
+              fromJSON('[31, 32, 33, 34, 35, 36]') }}
     steps:
       - name: Harden the runner
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1

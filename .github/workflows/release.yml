@@ -172,7 +172,7 @@ jobs:
 
       - name: Setup Android SDK build-tools
         run: |
-          ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager "build-tools;35.0.0"
+          "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" "build-tools;35.0.0"
 
       - name: Sign artifact
         # Pinned to a specific commit (rather than @nightly) for supply-chain safety.

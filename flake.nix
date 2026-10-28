@@ -126,6 +126,13 @@
           checks = {
             ai-instructions-in-sync = ai.check self;
 
+            workflow-lint = pkgs.runCommand "workflow-lint" {
+              nativeBuildInputs = [ pkgs.actionlint pkgs.shellcheck ];
+            } ''
+              actionlint -shellcheck=shellcheck -pyflakes= ${./.github/workflows}/*.yml
+              touch $out
+            '';
+
             nix-version-sync = pkgs.runCommand "nix-version-sync" { } ''
               set -eu
               gradle_version="$(${pkgs.gnugrep}/bin/grep -E 'versionName = "[^"]+"' ${./app/build.gradle.kts} | ${pkgs.coreutils}/bin/head -n1 | ${pkgs.gnused}/bin/sed -E 's/.*versionName = "([^"]+)".*/\1/')"
@@ -216,12 +223,17 @@
           devShells.default = pkgs.mkShell {
             packages = [
               pkgs.jdk17
+              pkgs.jdk21
+              pkgs.actionlint
+              pkgs.shellcheck
               androidSdk.androidsdk
               pkgs.ripgrep
               pkgs.jq
               ai.sync
             ];
             JAVA_HOME = pkgs.jdk17.home;
+            JDK17_HOME = pkgs.jdk17.home;
+            JDK21_HOME = pkgs.jdk21.home;
             ANDROID_HOME = androidHome;
             ANDROID_SDK_ROOT = androidHome;
             # Same deterministic defaults as CI.
@@ -244,6 +256,7 @@
         apk.x86_64-linux = self.packages.x86_64-linux.apk;
         aab.x86_64-linux = self.packages.x86_64-linux.aab;
         ai-instructions-in-sync.x86_64-linux = self.checks.x86_64-linux.ai-instructions-in-sync;
+        workflow-lint.x86_64-linux = self.checks.x86_64-linux.workflow-lint;
         nix-version-sync.x86_64-linux = self.checks.x86_64-linux.nix-version-sync;
         nix-gradle-lock-present.x86_64-linux = self.checks.x86_64-linux.nix-gradle-lock-present;
         nix-release-artifact-paths.x86_64-linux = self.checks.x86_64-linux.nix-release-artifact-paths;

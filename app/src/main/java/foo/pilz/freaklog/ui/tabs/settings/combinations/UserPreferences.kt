@@ -76,9 +76,10 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
         val BACKUP_PASSWORD_SEALED = stringPreferencesKey("backup_password_sealed")
         val LAST_BACKUP_TIME = longPreferencesKey("last_backup_time")
 
-        val AI_API_KEY = stringPreferencesKey("ai_api_key")
-        val AI_MODEL_NAME = stringPreferencesKey("ai_model_name")
+        // Provider profiles and their keys are kept by AiProfileStore.
         val AI_ASSISTANT_ENABLED = booleanPreferencesKey("ai_assistant_enabled")
+        val AI_ANODYNE_ENABLED = booleanPreferencesKey("ai_anodyne_enabled")
+        val AI_ANODYNE_BASE_URL = stringPreferencesKey("ai_anodyne_base_url")
 
         val WEBHOOK_USE_FREAKQUERY = booleanPreferencesKey("webhook_use_freakquery")
         val WEBHOOK_FREAKQUERY_SEPARATOR = stringPreferencesKey("webhook_freakquery_separator")
@@ -367,28 +368,6 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
         }
     }
 
-    val aiApiKeyFlow: Flow<String> = dataStore.data
-        .map { preferences ->
-            preferences[PreferencesKeys.AI_API_KEY] ?: ""
-        }
-
-    suspend fun saveAiApiKey(value: String) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.AI_API_KEY] = value
-        }
-    }
-
-    val aiModelNameFlow: Flow<String> = dataStore.data
-        .map { preferences ->
-            preferences[PreferencesKeys.AI_MODEL_NAME] ?: "gemini-2.5-flash"
-        }
-
-    suspend fun saveAiModelName(value: String) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.AI_MODEL_NAME] = value
-        }
-    }
-
     val aiAssistantEnabledFlow: Flow<Boolean> = dataStore.data
         .map { preferences ->
             preferences[PreferencesKeys.AI_ASSISTANT_ENABLED] ?: false
@@ -397,6 +376,28 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
     suspend fun saveAiAssistantEnabled(value: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.AI_ASSISTANT_ENABLED] = value
+        }
+    }
+
+    /** Whether the assistant may look substances up on anodyne.wiki (only substance names are sent). */
+    val aiAnodyneEnabledFlow: Flow<Boolean> = dataStore.data
+        .map { preferences -> preferences[PreferencesKeys.AI_ANODYNE_ENABLED] ?: true }
+
+    suspend fun saveAiAnodyneEnabled(value: Boolean) {
+        dataStore.edit { preferences -> preferences[PreferencesKeys.AI_ANODYNE_ENABLED] = value }
+    }
+
+    /** Base URL of the AnodyneWiki-compatible API; blank means the default. */
+    val aiAnodyneBaseUrlFlow: Flow<String> = dataStore.data
+        .map { preferences -> preferences[PreferencesKeys.AI_ANODYNE_BASE_URL].orEmpty() }
+
+    suspend fun saveAiAnodyneBaseUrl(value: String) {
+        dataStore.edit { preferences ->
+            if (value.isBlank()) {
+                preferences.remove(PreferencesKeys.AI_ANODYNE_BASE_URL)
+            } else {
+                preferences[PreferencesKeys.AI_ANODYNE_BASE_URL] = value.trim()
+            }
         }
     }
 
