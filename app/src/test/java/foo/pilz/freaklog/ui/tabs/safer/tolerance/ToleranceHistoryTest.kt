@@ -45,7 +45,8 @@ class ToleranceHistoryTest {
             .allowMainThreadQueries()
             .build()
         val experienceRepo = ExperienceRepository(db, db.experienceDao(), mockk(), mockk(), mockk(), context)
-        val customProfiles = mockk<CustomSubstanceProfiles> { every { byNameFlow } returns MutableStateFlow(emptyMap()) }
+        val customProfiles =
+            mockk<CustomSubstanceProfiles> { every { byNameFlow } returns MutableStateFlow(emptyMap()) }
         calculator = ToleranceCalculator(substanceRepo, experienceRepo, customProfiles)
         experienceId = db.experienceDao().insert(EntityBuilders.experience()).toInt()
     }

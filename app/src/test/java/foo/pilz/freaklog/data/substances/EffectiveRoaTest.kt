@@ -13,9 +13,9 @@ package foo.pilz.freaklog.data.substances
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNull
+import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
 import foo.pilz.freaklog.data.room.experiences.findEffectiveRoa
 import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithEverything
-import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
 import foo.pilz.freaklog.data.substances.classes.Substance
 import foo.pilz.freaklog.data.substances.classes.roa.Roa
 import org.junit.Test

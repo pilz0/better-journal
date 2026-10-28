@@ -95,6 +95,7 @@ import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import kotlin.random.Random
 
+@Suppress("LargeClass")
 @HiltViewModel
 class ExperienceViewModel @Inject constructor(
     private val experienceRepo: ExperienceRepository,

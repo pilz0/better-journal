@@ -31,9 +31,9 @@ class ToleranceCalculator @Inject constructor(
     suspend fun calculate(substanceName: String): ToleranceEstimate? {
         val cleanedName = substanceName.trim()
         val profiles = customProfiles.byNameFlow.value
-        val substance = (substanceRepo.getSubstance(cleanedName)
-            ?: substanceRepo.getAllSubstances().firstOrNull { it.name.trim().equals(cleanedName, ignoreCase = true) })
-            ?.let { ToleranceSubject(it.name, it.tolerance, it.crossTolerances) }
+        val builtIn = substanceRepo.getSubstance(cleanedName)
+            ?: substanceRepo.getAllSubstances().firstOrNull { it.name.trim().equals(cleanedName, ignoreCase = true) }
+        val substance = builtIn?.let { ToleranceSubject(it.name, it.tolerance, it.crossTolerances) }
             ?: findProfile(profiles, cleanedName)?.let { profile ->
                 ToleranceSubject(
                     name = profile.substance.name,

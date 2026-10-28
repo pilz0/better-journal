@@ -101,8 +101,9 @@ data class WidgetTimelineModel(
             } + customProfiles.mapValues { (_, profile) ->
                 val base = profile.durations.associate { it.route to it.toRoaDuration() }
                 if (useIntranasalForRectal) {
-                    val effectiveRectal = (profile.durations.firstOrNull { it.route == AdministrationRoute.INSUFFLATED }
-                        ?: profile.durations.firstOrNull { it.route == AdministrationRoute.RECTAL })?.toRoaDuration()
+                    val candidate = profile.durations.firstOrNull { it.route == AdministrationRoute.INSUFFLATED }
+                        ?: profile.durations.firstOrNull { it.route == AdministrationRoute.RECTAL }
+                    val effectiveRectal = candidate?.toRoaDuration()
                     if (effectiveRectal != null) {
                         base + (AdministrationRoute.RECTAL to effectiveRectal)
                     } else {
