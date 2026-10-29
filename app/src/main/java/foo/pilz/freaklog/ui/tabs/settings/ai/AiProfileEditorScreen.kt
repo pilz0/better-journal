@@ -144,6 +144,7 @@ private fun EditorForm(state: AiProfileEditorState, viewModel: AiProfileEditorVi
             onSelect = { standard -> viewModel.edit { it.copy(standard = standard) } },
         )
         BaseUrlField(draft.baseUrl) { value -> viewModel.edit { it.copy(baseUrl = value) } }
+        AiLocalNetworkAccess()
         ApiKeyField(
             draft = draft,
             onChange = { value -> viewModel.edit { it.copy(apiKey = value) } },
@@ -217,8 +218,7 @@ private fun BaseUrlField(value: String, onChange: (String) -> Unit) {
         supportingText = {
             if (insecure) {
                 Text(
-                    "Unencrypted http:// – your messages and journal data can be read on the way. " +
-                        "Only use this on a network you trust, or put the server behind https."
+                    "HTTPS is required for LAN and remote servers. HTTP is allowed only on this device (localhost)."
                 )
             } else {
                 Text("The address the API paths are appended to, usually ending in /v1.")

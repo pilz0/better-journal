@@ -69,7 +69,8 @@ data class AchievementContext(
     val customUnits: List<CustomUnit>,
     val customRecipes: List<CustomRecipe>,
     val substanceRepo: SubstanceRepositoryInterface,
-    val interactionChecker: InteractionChecker
+    val interactionChecker: InteractionChecker,
+    val checkActive: () -> Unit = {},
 ) {
     val evalContext: EvalContext by lazy {
         val substancesByExperience = experiences.associate { experience ->
@@ -157,7 +158,13 @@ internal fun usesConditionLanguage(condition: String): Boolean =
 
 fun evaluateAchievement(condition: String, ctx: AchievementContext): Boolean {
     if (usesConditionLanguage(condition)) {
-        return runCatching { conditionEngine.evaluate(condition, ctx.evalContext) }.getOrDefault(false)
+        return try {
+            conditionEngine.evaluate(condition, ctx.evalContext, ctx.checkActive)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            false
+        }
     }
 
     splitTopLevel(condition, " & ")?.let { parts ->
@@ -337,6 +344,10 @@ fun evaluateAchievement(condition: String, ctx: AchievementContext): Boolean {
                 !it.administrationSite.isNullOrBlank()
         }
 
+        "has_repeated_substance" -> ctx.experiences.any { exp ->
+            val seen = hashSetOf<String>()
+            exp.ingestions.any { !seen.add(it.substanceName) }
+        }
         "has_redose_in_peak" -> hasRedoseInPeak(ctx)
 
         "interaction" -> {
@@ -481,14 +492,24 @@ internal fun hasRedoseInPeak(ctx: AchievementContext): Boolean {
                 0L
             }
             if (peakEndSec <= 0L) continue
-            val sorted = list.sortedBy { it.time }
-            for (i in sorted.indices) {
-                for (j in (i + 1) until sorted.size) {
-                    val delta = runCatching {
-                        ChronoUnit.SECONDS.between(sorted[i].time, sorted[j].time)
-                    }.getOrDefault(-1L)
-                    if (delta in 1..peakEndSec) return true
-                }
+            if (hasPairWithinPeak(list.map { it.time }.sorted(), peakEndSec)) return true
+        }
+    }
+    return false
+}
+
+internal fun hasPairWithinPeak(times: List<java.time.Instant>, peakEndSec: Long): Boolean {
+    var left = 0
+    for (right in times.indices) {
+        while (left < right) {
+            val delta = runCatching {
+                ChronoUnit.SECONDS.between(times[left], times[right])
+            }.getOrDefault(Long.MAX_VALUE)
+            if (delta > peakEndSec) {
+                left++
+            } else {
+                if (delta >= 1) return true
+                break
             }
         }
     }

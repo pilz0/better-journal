@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import foo.pilz.freaklog.data.ai.anodyne.AnodyneWikiClient
 import foo.pilz.freaklog.data.ai.profiles.AiProfile
+import foo.pilz.freaklog.data.ai.profiles.isInsecureRemoteUrl
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import java.net.URI
 
@@ -80,6 +81,7 @@ fun AiAssistantSettingsScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             EnableRow(isEnabled, viewModel::setEnabled)
+            AiLocalNetworkAccess()
             Text("Providers", style = MaterialTheme.typography.titleMedium)
             Text(
                 text = "Save one profile per provider or model and pick the one to use. You can also switch " +
@@ -155,7 +157,7 @@ private fun ProfileCard(
                 val warning = when {
                     profile.preset.requiresApiKey && !hasKey -> "No API key saved"
                     profile.model.isBlank() -> "No model chosen"
-                    profile.isInsecureRemote -> "Unencrypted connection (http://)"
+                    profile.isInsecureRemote -> "HTTPS required: edit this provider URL"
                     else -> null
                 }
                 if (warning != null) {
@@ -235,7 +237,16 @@ private fun AnodyneSection(
             },
             label = { Text("AnodyneWiki API URL") },
             placeholder = { Text(AnodyneWikiClient.DEFAULT_BASE_URL) },
-            supportingText = { Text("Leave empty for ${AnodyneWikiClient.DEFAULT_BASE_URL}, or use a compatible mirror.") },
+            isError = isInsecureRemoteUrl(draftUrl),
+            supportingText = {
+                Text(
+                    if (isInsecureRemoteUrl(draftUrl)) {
+                        "HTTPS is required for LAN and remote mirrors."
+                    } else {
+                        "Leave empty for ${AnodyneWikiClient.DEFAULT_BASE_URL}, or use a compatible mirror."
+                    }
+                )
+            },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
             trailingIcon = {

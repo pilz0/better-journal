@@ -10,8 +10,12 @@ fun SubstanceGroupWithItems.toShared(
     referencedCustomUnits: List<CustomUnit>,
 ): SharedGroup {
     val unitById = referencedCustomUnits.associateBy { it.id }
+    val referencedIds = mutableSetOf<Int>()
     val sharedItems = sortedItems.map { item ->
-        val ref = item.customUnitId?.let { unitById[it] }?.let {
+        val ref = item.customUnitId?.let { unitById[it] }?.takeIf {
+            it.substanceName == item.substanceName && it.administrationRoute == item.administrationRoute
+        }?.let {
+            referencedIds.add(it.id)
             SharedCustomUnitRef(
                 substanceName = it.substanceName,
                 name = it.name,
@@ -34,7 +38,7 @@ fun SubstanceGroupWithItems.toShared(
         name = group.name,
         items = sharedItems,
         customSubstances = referencedCustomSubstances.map { it.toShared() },
-        customUnits = referencedCustomUnits.map { it.toSharedCustomUnit() },
+        customUnits = referencedCustomUnits.filter { it.id in referencedIds }.map { it.toSharedCustomUnit() },
     )
 }
 

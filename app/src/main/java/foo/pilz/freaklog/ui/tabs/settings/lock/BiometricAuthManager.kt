@@ -11,6 +11,7 @@
 package foo.pilz.freaklog.ui.tabs.settings.lock
 
 import android.content.Context
+import android.os.SystemClock
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Log
@@ -33,7 +34,6 @@ import java.security.GeneralSecurityException
 import java.security.InvalidKeyException
 import java.security.KeyStore
 import java.security.SecureRandom
-import java.time.Instant
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -95,7 +95,8 @@ class BiometricAuthManager @Inject constructor(
     private val secureRandom: SecureRandom by lazy { SecureRandom() }
 
     val isLockEnabledFlow: Flow<Boolean> = userPreferences.isLockEnabledFlow
-    val lockTimeOptionFlow: Flow<LockTimeOption> = userPreferences.lockTimeOptionFlow
+    val lockTimeOptionFlow: StateFlow<LockTimeOption> = userPreferences.lockTimeOptionFlow
+        .stateIn(applicationScope, SharingStarted.Eagerly, LockTimeOption.IMMEDIATELY)
 
     private val _isUnlocked = kotlinx.coroutines.flow.MutableStateFlow(false)
     /** True when the user has authenticated for the current foreground session. */
@@ -122,6 +123,16 @@ class BiometricAuthManager @Inject constructor(
             // Newly enabling the lock should immediately require auth on next foreground.
             if (enabled) {
                 _isUnlocked.value = false
+                appContext.stopService(
+                    android.content.Intent(
+                        appContext,
+                        foo.pilz.freaklog.ui.tabs.journal.experience.notification.TimelineNotificationService::class.java
+                    )
+                )
+                appContext.getSystemService(android.app.NotificationManager::class.java).cancel(
+                    foo.pilz.freaklog.ui.tabs.journal.experience.notification.TimelineNotificationChannel.NOTIFICATION_ID
+                )
+                foo.pilz.freaklog.ui.refreshPrivateJournalPreviews(appContext)
             } else {
                 _isUnlocked.value = true
             }
@@ -132,15 +143,18 @@ class BiometricAuthManager @Inject constructor(
         applicationScope.launch { userPreferences.saveLockTimeOption(option) }
     }
 
+    private var lastPausedElapsedSeconds = 0L
+
     /** Should be called from the activity's `ON_PAUSE` lifecycle event. */
     fun onAppPaused() {
-        applicationScope.launch {
-            userPreferences.saveLastActiveEpochSeconds(Instant.now().epochSecond)
-        }
+        lastPausedElapsedSeconds = SystemClock.elapsedRealtime() / 1000
     }
 
     /** Should be called from the activity's `ON_RESUME` lifecycle event. */
     fun onAppResumed() {
+        val lastActive = lastPausedElapsedSeconds
+        val now = SystemClock.elapsedRealtime() / 1000
+        if (shouldLockNow(true, lockTimeOptionFlow.value, lastActive, now)) _isUnlocked.value = false
         applicationScope.launch {
             val enabled = userPreferences.isLockEnabledFlow.first()
             if (!enabled) {
@@ -148,8 +162,6 @@ class BiometricAuthManager @Inject constructor(
                 return@launch
             }
             val option = userPreferences.lockTimeOptionFlow.first()
-            val lastActive = userPreferences.lastActiveEpochSecondsFlow.first()
-            val now = Instant.now().epochSecond
             if (shouldLockNow(true, option, lastActive, now)) {
                 _isUnlocked.value = false
             }

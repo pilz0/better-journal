@@ -52,13 +52,13 @@ enum class AiProviderPreset(
     OLLAMA(
         "Ollama (self-hosted)", AiApiStandard.OPENAI_CHAT, "http://localhost:11434/v1",
         "", false,
-        "Replace localhost with the address of the computer running Ollama (start it with " +
-            "OLLAMA_HOST=0.0.0.0). Ollama also speaks the Anthropic standard at the same /v1 URL.",
+        "For another computer, use an HTTPS reverse proxy in front of Ollama. " +
+            "HTTP localhost is only for a server on this device. The Anthropic standard uses the same /v1 URL.",
     ),
     LM_STUDIO(
         "LM Studio (self-hosted)", AiApiStandard.OPENAI_CHAT, "http://localhost:1234/v1",
         "", false,
-        "Replace localhost with your computer's address and enable \"Serve on local network\" in LM Studio.",
+        "For another computer, use an HTTPS reverse proxy in front of LM Studio. HTTP localhost is only for this device.",
     ),
     CUSTOM_OPENAI(
         "Custom OpenAI-compatible", AiApiStandard.OPENAI_CHAT, "",

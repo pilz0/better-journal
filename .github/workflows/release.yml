@@ -82,6 +82,8 @@ jobs:
             run_id="$WORKFLOW_RUN_ID"
           fi
 
+          [[ "$run_id" =~ ^[0-9]+$ ]] || { echo "Invalid run ID" >&2; exit 1; }
+
           # Pull the canonical run metadata via the API. `head_branch` is the
           # ref short name (branch *or* tag); `head_sha` is the commit SHA.
           run_json="$(gh api "/repos/$GH_REPO/actions/runs/$run_id")"
@@ -91,6 +93,17 @@ jobs:
 
           if [ "$conclusion" != "success" ]; then
             echo "::error::Upstream run $run_id did not succeed (conclusion=$conclusion)" >&2
+            exit 1
+          fi
+
+          # A successful PR run (including a fork branch named main) is never
+          # a trusted signing producer. Apply this equally to manual selection.
+          build_workflow_id="$(gh api "/repos/$GH_REPO/actions/workflows/build.yml" --jq .id)"
+          if ! jq -e --arg repo "$GH_REPO" --argjson workflow "$build_workflow_id" '
+            .event == "push" and .status == "completed" and
+            .head_repository.full_name == $repo and .workflow_id == $workflow
+          ' <<<"$run_json" >/dev/null; then
+            echo "::error::Upstream run is not a trusted repository push build" >&2
             exit 1
           fi
 
@@ -187,8 +200,15 @@ jobs:
           buildToolsVersion: 35.0.0
 
       - name: Rename signed file
+        env:
+          SIGNED_FILE: ${{ steps.sign.outputs.signedFile }}
+          APP_TYPE: ${{ matrix.app-type }}
         run: |
-          mv "${{ steps.sign.outputs.signedFile }}" "freaklog.${{ matrix.app-type }}"
+          set -euo pipefail
+          [[ -f "$SIGNED_FILE" && ! -L "$SIGNED_FILE" && "$SIGNED_FILE" != *$'\n'* ]]
+          [[ "$SIGNED_FILE" == *."$APP_TYPE" ]]
+          [[ "$(dirname -- "$(realpath -- "$SIGNED_FILE")")" == "$PWD" ]]
+          mv -- "$SIGNED_FILE" "freaklog.$APP_TYPE"
 
       - name: Upload signed artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

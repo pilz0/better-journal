@@ -190,4 +190,24 @@ class AnthropicMessagesClientTest {
         assertThat(recorded.path).isEqualTo("/v1/models?limit=1000")
         assertThat(recorded.getHeader("anthropic-version")).isEqualTo("2023-06-01")
     }
+
+    @Test
+    fun manyTinyTextAndThinkingDeltasPreserveNativeContent() = runBlocking {
+        val events = buildList {
+            add(start(0, """{"type":"thinking","thinking":""}"""))
+            repeat(2000) { add(delta(0, """{"type":"thinking_delta","thinking":"h"}""")) }
+            add(delta(0, """{"type":"signature_delta","signature":"SIG"}"""))
+            add(stop(0))
+            add(start(1, """{"type":"text","text":""}"""))
+            repeat(2000) { add(delta(1, """{"type":"text_delta","text":"x"}""")) }
+            add(stop(1))
+            add(stopReason("end_turn"))
+        }
+        server.enqueue(sse(*events.toTypedArray()))
+        val completed = client.stream(request(AiMessage.User("hi"))).toList().last() as AiStreamEvent.Completed
+        assertThat(completed.message.text).isEqualTo("x".repeat(2000))
+        val native = completed.message.native!!.json
+        org.junit.Assert.assertTrue(native.toString().contains("h".repeat(2000)))
+        org.junit.Assert.assertTrue(native.toString().contains("SIG"))
+    }
 }

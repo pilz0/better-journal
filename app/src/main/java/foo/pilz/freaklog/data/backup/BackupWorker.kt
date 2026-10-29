@@ -98,6 +98,7 @@ class BackupWorker(
     }
 
     private fun writeBackup(treeUri: Uri, encrypted: ByteArray) {
+        require(treeUri.scheme == "content" && DocumentsContract.isTreeUri(treeUri)) { "Invalid backup tree" }
         val resolver = applicationContext.contentResolver
         val parent = DocumentsContract.buildDocumentUriUsingTree(
             treeUri,
@@ -106,6 +107,7 @@ class BackupWorker(
         val fileUri = DocumentsContract.createDocument(
             resolver, parent, "application/octet-stream", backupFileName(Instant.now(), ZoneId.systemDefault())
         ) ?: throw IOException("Could not create backup file")
+        requireBackupDocumentUri(treeUri, fileUri)
         resolver.openOutputStream(fileUri)?.use { it.write(encrypted) }
             ?: throw IOException("Could not write backup file")
     }
@@ -171,6 +173,15 @@ class BackupWorker(
     }
 
     companion object {
+        internal fun requireBackupDocumentUri(tree: Uri, document: Uri) {
+            require(
+                document.scheme == "content" && document.authority == tree.authority &&
+                    DocumentsContract.isTreeUri(document) &&
+                    DocumentsContract.getTreeDocumentId(document) == DocumentsContract.getTreeDocumentId(tree) &&
+                    document.pathSegments.let { it.size == 4 && it[2] == "document" && it[3].isNotBlank() }
+            ) { "Backup provider returned an invalid document URI" }
+        }
+
         private const val WORK_NAME = "encrypted_backup"
         private const val CHANNEL_ID = "backup"
         private const val NOTIFICATION_ID = 9002

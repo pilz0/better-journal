@@ -159,10 +159,10 @@ Workflows live in `.github/workflows/`:
 
 | Workflow file | Purpose |
 |---------------|---------|
-| `build.yml` | Wrapper validation, unit tests (3 shards), six JDK/locale/time-zone compatibility jobs, release tests/lint, Detekt, debug lint, Kover, Gradle/Nix APK + AAB builds, architecture checks, test APK compilation, Nix checks (including actionlint/ShellCheck), and the API 31–36 emulator workflow. Runs on every push/PR; all jobs feed `ci-passed`. |
+| `build.yml` | Wrapper validation, unit tests (3 shards), six JDK/locale/time-zone compatibility jobs, release tests/lint, Detekt, debug lint, Kover, Gradle/Nix APK + AAB builds, architecture checks, test APK compilation, Nix checks (including actionlint/ShellCheck), and the API 31–37 emulator workflow. Runs on every push/PR; all jobs feed `ci-passed`. |
 | `release.yml` | **Secret-handling.** Sign + Cloudflare R2 + Google Play + GitHub release + SLSA build provenance. Triggered by `workflow_run` on a successful `Build and test` run on `main` / tags, or `workflow_dispatch`. Pull-request events never reach this workflow. |
 | `codeql.yml` | CodeQL analysis for `java-kotlin` and `actions` languages with the `security-extended` query pack. |
-| `instrumented-tests.yml` | Reusable connected Android tests on API 31–36, called by every build. Also runs weekly and via `workflow_dispatch` (one selected API). |
+| `instrumented-tests.yml` | Reusable connected Android tests on API 31–37, called by every build. Also runs weekly and via `workflow_dispatch` (one selected API). |
 | `dependency-review.yml` | Blocks PRs that introduce known-vulnerable or AGPL dependencies. |
 
 ```
@@ -171,7 +171,7 @@ push/PR  ──► build.yml
               ├─ test  (matrix: data | ui | misc)
               ├─ compatibility (JDK 17/21 × Berlin/New York/Tokyo)
               ├─ release-verification (unit tests + lint)
-              ├─ connected-tests (emulators: API 31–36)
+              ├─ connected-tests (emulators: API 31–37)
               ├─ coverage  (Kover, hard-gated minimum)
               ├─ detekt    (SARIF → code scanning)
               ├─ lint      (SARIF → code scanning)
@@ -226,7 +226,7 @@ The upstream project uses `com.isaakhanimann.journal`. When porting upstream cod
 All library versions live in `gradle/libs.versions.toml` (Gradle Version Catalog).  
 Plugin versions live in the catalog too (`[plugins]`), including Hilt, KSP and the Room Gradle plugin.
 
-Toolchain: Gradle 9.8.0 (wrapper; keep it equal to nixpkgs' `gradle_9`, or the Nix build resolves a Kotlin stdlib the lock lacks), AGP 9.4.1, Kotlin 2.4.21, KSP 2.3.12, `compileSdk` 37, `targetSdk` 36, `minSdk` 31.
+Toolchain: Gradle 9.8.2 (the Nix build reads the version and checksum from the wrapper), AGP 9.5.0, Kotlin 2.4.21, KSP 2.3.12, `compileSdk` 37, `targetSdk` 37, `minSdk` 31.
 AGP 9 compiles Kotlin itself, so the `org.jetbrains.kotlin.android` plugin is **not** applied; Kotlin options go in the
 top-level `kotlin { compilerOptions { … } }` block, not `android { kotlinOptions { … } }`.
 
@@ -388,9 +388,12 @@ strips Gemini's `thoughtSignature`, and the next request then fails with HTTP 40
 | `AiChatViewModel.kt` | Transcript state for `AiChatBottomSheet`: streamed text (UI updates batched to ~50 ms), Stop, Retry, tool chips, profile switching. |
 
 Settings → AI assistant (`ui/tabs/settings/ai/`) lists the profiles; the editor can fetch
-the provider's model list and send a test message. Cleartext `http://` is allowed app-wide
-(`res/xml/network_security_config.xml`) for LAN servers; the settings warn about
-non-local `http://` URLs. The assistant opens from an experience (with that experience as
+the provider's model list and send a test message. HTTPS is required for LAN and remote
+servers, including AnodyneWiki mirrors. Cleartext `http://` is allowed only for
+`localhost`, `127.0.0.1`, and `::1` (`res/xml/network_security_config.xml`). Existing remote
+HTTP profiles must be edited to use HTTPS. On Android 17+, the settings and profile
+editor offer an explicit local-network permission control for self-hosted LAN servers.
+The assistant opens from an experience (with that experience as
 context) or from the Journal tab's top bar (whole journal).
 
 ### Export / Import (`data/export/`)
@@ -617,5 +620,14 @@ maintainer's server).
 - No provider SDK is used — see [AI assistant](#ai-assistant-dataai). New provider features go into the `provider/` clients; keep `NativeContent` echoing intact so Gemini `thoughtSignature`s and Anthropic thinking signatures survive.
 - Robolectric has no Android Keystore, so tests use a fake `AiKeyCipher`.
 - `JournalExport` covers experiences (with ingestions, ratings, timed notes, locations and legacy blood pressure rows), substance companions, custom substances with their profiles, custom units, intake limits, substance groups, reminders and webhooks. Filtered (partial) exports leave out substance groups, reminders and webhooks. Other settings are not part of the export payload.
-- `compileSdk` is 37 because the current Compose / AndroidX releases refuse to build against anything lower. It has no runtime effect; `targetSdk` stays 36.
+- `compileSdk` is 37 because the current Compose / AndroidX releases refuse to build against anything lower. `targetSdk` is also 37; LAN AI servers require the Android 17 `ACCESS_LOCAL_NETWORK` runtime permission, requested from AI settings or the profile editor.
 - Use `androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel`; the `androidx.hilt.navigation.compose` one is deprecated.
+
+### Journal security boundaries
+
+- Enabling app lock removes protected dialogs and the assistant from composition, cancels and clears active AI sessions, and hides widget/live-notification previews. Preview workers check the setting before reading journal records. Background session age uses monotonic elapsed time.
+- External journal-provider readers need explicit approval in Settings → Privacy. Grants bind the caller package to its signing certificates and can be revoked. An approved reader can read journal records in the background; approving it is a separate sharing decision from unlocking the app.
+- Automatic Anodyne requests contain recognized public substance identifiers from bundled data/static aliases. Arbitrary model text is rejected. Assistant Markdown and HTML images are disabled before image fetching.
+- Webhook requests require HTTPS outside exact loopback hosts. Changing a destination invalidates its saved message IDs; pending responses cannot reattach IDs from the old destination. FreakQuery runs on the configured template before ingestion fields are inserted as literal data. Templates, output, and decoded responses have size limits.
+- Shared files are unique snapshots; later shares never overwrite an earlier recipient's URI. Snapshots older than 24 hours are revoked and removed on the next share. Shared groups require matching substance/route references and included custom-unit definitions, with bounded input and bulk unit lookup.
+- Backup providers must return a content document in the selected authority and tree. Imported blood-pressure readings and image allocations are range checked. Achievement evaluation runs away from the UI thread with cancellation and execution budgets.

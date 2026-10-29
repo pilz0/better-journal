@@ -615,12 +615,16 @@ class ExperienceViewModel @Inject constructor(
                 heartRateSamples = localHeartRateSamples.value,
                 bloodPressureReadings = bloodPressureReadingsFlow.value,
             )
-            foo.pilz.freaklog.data.experienceshare.shareExperienceImage(
-                activity = activity,
-                sanitizedTitle = foo.pilz.freaklog.data.experienceshare.sanitizeForShareFile(experience.title),
-                shareText = foo.pilz.freaklog.ui.tabs.journal.experience.share.buildShareText(model),
-            ) {
-                foo.pilz.freaklog.ui.tabs.journal.experience.share.ShareableExperienceContent(model)
+            try {
+                foo.pilz.freaklog.data.experienceshare.shareExperienceImage(
+                    activity = activity,
+                    sanitizedTitle = foo.pilz.freaklog.data.experienceshare.sanitizeForShareFile(experience.title),
+                    shareText = foo.pilz.freaklog.ui.tabs.journal.experience.share.buildShareText(model),
+                ) {
+                    foo.pilz.freaklog.ui.tabs.journal.experience.share.ShareableExperienceContent(model)
+                }
+            } catch (e: IllegalArgumentException) {
+                android.widget.Toast.makeText(activity, e.message, android.widget.Toast.LENGTH_LONG).show()
             }
         }
     }

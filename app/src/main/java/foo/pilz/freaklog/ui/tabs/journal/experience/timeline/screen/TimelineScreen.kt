@@ -45,6 +45,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import foo.pilz.freaklog.ui.tabs.journal.experience.TimelineDisplayOption
@@ -96,9 +98,10 @@ fun TimelineScreen(
             verticalArrangement = Arrangement.SpaceEvenly,
         ) {
             val configuration = LocalConfiguration.current
-            val screenWidth = configuration.screenWidthDp.toFloat()
-            // screenWidthDp can be 0 (SCREEN_WIDTH_DP_UNDEFINED) during configuration changes,
-            // which would give the Slider an empty value range
+            val windowWidth = LocalWindowInfo.current.containerSize.width
+            val screenWidth = with(LocalDensity.current) { windowWidth.toDp().value }
+            // The window can be unmeasured during configuration changes; keep the
+            // Slider range valid until a positive width is available.
             val safeScreenWidth = screenWidth.takeIf { it.isFinite() && it > 0f } ?: 360f
             var canvasWidth by remember(safeScreenWidth) { mutableFloatStateOf(safeScreenWidth) }
             val isOrientationPortrait =

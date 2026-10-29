@@ -292,12 +292,15 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun exportFile(uri: Uri) {
+        if (biometricAuthManager.shouldLock.value) return
         viewModelScope.launch {
+            if (biometricAuthManager.shouldLock.value) return@launch
             try {
                 val jsonList = foo.pilz.freaklog.data.export.buildJournalExportJson(
                     experienceRepository,
                     webhookRepository
                 )
+                if (biometricAuthManager.shouldLock.value) return@launch
                 fileSystemConnection.saveTextInUri(uri, text = jsonList)
                 snackbarHostState.showSnackbar(
                     message = "Export successful",
@@ -313,7 +316,9 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun deleteEverything() {
+        if (biometricAuthManager.shouldLock.value) return
         viewModelScope.launch {
+            if (biometricAuthManager.shouldLock.value) return@launch
             experienceRepository.deleteEverything()
         }
     }

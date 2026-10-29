@@ -107,13 +107,18 @@ data class WebhookSerializable(
          * [REDACTED_TOKEN] so exported journals don't leak credentials.
          */
         fun redactUrl(url: String): String {
-            val trimmed = url.trimEnd('/')
-            val lastSlash = trimmed.lastIndexOf('/')
-            return if (lastSlash > 0 && lastSlash < trimmed.length - 1) {
-                trimmed.substring(0, lastSlash + 1) + REDACTED_TOKEN
-            } else {
-                url
+            val uri = runCatching { java.net.URI(url) }.getOrNull() ?: return ""
+            val parts = uri.path.orEmpty().trimEnd('/').split('/')
+            val marker = parts.indexOf("webhooks")
+            if (uri.scheme !in listOf("http", "https") || uri.host == null ||
+                marker < 0 || parts.size != marker + 3 || parts[marker + 1].isBlank()
+            ) {
+                return ""
             }
+            return java.net.URI(
+                uri.scheme, null, uri.host, uri.port,
+                parts.take(marker + 2).joinToString("/") + "/$REDACTED_TOKEN", null, null
+            ).toString()
         }
 
         fun fromEntity(webhook: Webhook): WebhookSerializable = WebhookSerializable(
@@ -135,7 +140,7 @@ data class WebhookSerializable(
         isHyperlinked = isHyperlinked,
         // Imported webhooks whose URL was redacted on export must be
         // re-enabled by the user after they restore the secret token.
-        isEnabled = isEnabled && !isRedacted(url),
+        isEnabled = isEnabled && !isRedacted(url) && foo.pilz.freaklog.data.webhook.isSecureWebhookUrl(url),
         sortOrder = sortOrder
     )
 }

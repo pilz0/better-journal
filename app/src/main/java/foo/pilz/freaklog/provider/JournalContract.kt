@@ -6,6 +6,7 @@ package foo.pilz.freaklog.provider
 
 import android.content.Context
 import android.net.Uri
+import androidx.core.net.toUri
 
 /**
  * Contract that defines ContentProvider URIs, paths, and column names so the
@@ -33,7 +34,7 @@ object JournalContract {
     fun ingestionChangesUri(context: Context): Uri = base(context, PATH_INGESTION_CHANGES)
 
     private fun base(context: Context, path: String): Uri =
-        Uri.parse("content://${authority(context)}/$path")
+        "content://${authority(context)}/$path".toUri()
 
     object Ingestions {
         const val ID = "_id"

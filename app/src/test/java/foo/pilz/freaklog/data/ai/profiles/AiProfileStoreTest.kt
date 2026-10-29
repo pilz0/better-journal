@@ -107,6 +107,12 @@ class AiProfileStoreTest {
     fun insecureRemoteDetection() {
         assertThat(isInsecureRemoteUrl("http://192.168.1.5:11434/v1")).isTrue()
         assertThat(isInsecureRemoteUrl("http://localhost:11434/v1")).isFalse()
+        assertThat(isInsecureRemoteUrl("http://127.0.0.1:11434/v1")).isFalse()
+        assertThat(isInsecureRemoteUrl("http://[::1]:11434/v1")).isFalse()
+        assertThat(isInsecureRemoteUrl("HTTP://LOCALHOST:11434/v1")).isFalse()
+        assertThat(isInsecureRemoteUrl("http://localhost.example.com/v1")).isTrue()
+        assertThat(isInsecureRemoteUrl("http://localhost@remote.example/v1")).isTrue()
+        assertThat(isInsecureRemoteUrl("https://192.168.1.5/v1")).isFalse()
         assertThat(isInsecureRemoteUrl("https://api.openai.com/v1")).isFalse()
     }
 }

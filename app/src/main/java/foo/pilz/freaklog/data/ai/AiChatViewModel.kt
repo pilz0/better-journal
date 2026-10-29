@@ -92,6 +92,7 @@ data class AiChatUiState(
 class AiChatViewModel @Inject constructor(
     private val repository: AiChatbotRepository,
     private val profileStore: AiProfileStore,
+    private val auth: foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthManager,
 ) : ViewModel() {
 
     companion object {
@@ -108,6 +109,7 @@ class AiChatViewModel @Inject constructor(
     private var initialized = false
     private var conversation: AiConversation? = null
     private var activeJob: Job? = null
+    private var contextJob: Job? = null
 
     /**
      * Monotonically increasing token incremented every time we start a new chat. UI updates from
@@ -117,6 +119,18 @@ class AiChatViewModel @Inject constructor(
     private var sessionToken: Int = 0
 
     init {
+        viewModelScope.launch {
+            auth.shouldLock.collect { locked ->
+                if (locked) {
+                    activeJob?.cancel()
+                    contextJob?.cancel()
+                    sessionToken++
+                    conversation = null
+                    initialized = false
+                    _uiState.value = AiChatUiState()
+                }
+            }
+        }
         viewModelScope.launch {
             combine(profileStore.profilesFlow, profileStore.activeProfileIdFlow, ::Pair).collect { (profiles, active) ->
                 _uiState.update { it.copy(profiles = profiles, activeProfileId = active) }
@@ -146,10 +160,12 @@ class AiChatViewModel @Inject constructor(
     }
 
     private fun startNewChat() {
+        if (auth.shouldLock.value) return
+        contextJob?.cancel()
         sessionToken++
         val token = sessionToken
         conversation = null
-        viewModelScope.launch {
+        contextJob = viewModelScope.launch {
             _uiState.update {
                 it.copy(
                     items = emptyList(),
@@ -160,7 +176,7 @@ class AiChatViewModel @Inject constructor(
                 )
             }
             val result = repository.createChatSession(experienceId)
-            if (token != sessionToken) return@launch
+            if (token != sessionToken || auth.shouldLock.value) return@launch
             when (result) {
                 is AiChatSessionResult.Disabled -> _uiState.update {
                     it.copy(
@@ -224,7 +240,7 @@ class AiChatViewModel @Inject constructor(
 
     fun sendMessage(messageText: String) {
         val text = messageText.trim()
-        if (text.isBlank() || _uiState.value.isAssistantBusy) return
+        if (auth.shouldLock.value || text.isBlank() || _uiState.value.isAssistantBusy) return
         val chat = conversation ?: return
         val token = sessionToken
 
@@ -282,7 +298,7 @@ class AiChatViewModel @Inject constructor(
 
     /** Sends the last user message again, replacing the reply it got. */
     fun retryLastTurn() {
-        if (_uiState.value.isAssistantBusy) return
+        if (auth.shouldLock.value || _uiState.value.isAssistantBusy) return
         val chat = conversation ?: return
         val text = chat.rollbackLastTurn()
             ?: (_uiState.value.items.lastOrNull { it is ChatItem.Message && it.isUser } as? ChatItem.Message)?.text

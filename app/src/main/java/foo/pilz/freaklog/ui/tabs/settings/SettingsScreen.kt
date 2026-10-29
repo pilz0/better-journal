@@ -646,6 +646,7 @@ fun SettingsScreen(
             }
 
             CardWithTitle(title = "Privacy", innerPaddingHorizontal = horizontalPadding) {
+                JournalClientsSection()
                 LockSettingsSection(
                     isLockEnabled = isLockEnabled,
                     lockTimeOption = lockTimeOption,

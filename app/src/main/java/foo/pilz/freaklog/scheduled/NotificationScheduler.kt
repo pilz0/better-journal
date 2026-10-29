@@ -44,11 +44,11 @@ class NotificationScheduler @Inject constructor(
     }
 
     /**
-     * Returns true if the OS allows this app to schedule exact alarms. On API < 31 this is
-     * always true; on API 31+ it depends on the SCHEDULE_EXACT_ALARM/USE_EXACT_ALARM grant.
+     * Returns true if the OS allows this app to schedule exact alarms. On all supported
+     * versions (API 31+) this depends on the SCHEDULE_EXACT_ALARM/USE_EXACT_ALARM grant.
      */
     fun canScheduleExactAlarms(): Boolean =
-        Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()
+        alarmManager.canScheduleExactAlarms()
 
     /**
      * Schedules the next firing of [reminder]. If the reminder is disabled or has no future
@@ -238,7 +238,6 @@ class NotificationScheduler @Inject constructor(
         private const val TEST_NOTIFICATION_ID = -1
 
         fun ensureNotificationChannel(context: Context) {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
             val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             if (nm.getNotificationChannel(CHANNEL_ID) != null) return
             val channel = NotificationChannel(

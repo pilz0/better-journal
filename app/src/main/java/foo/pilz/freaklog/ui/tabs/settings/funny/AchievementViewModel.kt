@@ -3,18 +3,22 @@ package foo.pilz.freaklog.ui.tabs.settings.funny
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import foo.pilz.freaklog.data.room.experiences.CustomRecipeRepository
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.interactions.InteractionChecker
-import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -62,6 +66,7 @@ class AchievementViewModel @Inject constructor(
         val allTimedNotes = experiences.flatMap { it.timedNotes }
         val allRatings = experiences.flatMap { it.ratings }
 
+        val evaluationContext = currentCoroutineContext()
         val ctx = AchievementContext(
             experiences = experiences,
             allIngestions = allIngestions,
@@ -70,10 +75,12 @@ class AchievementViewModel @Inject constructor(
             customUnits = customUnits,
             customRecipes = customRecipes,
             substanceRepo = substanceRepo,
-            interactionChecker = interactionChecker
+            interactionChecker = interactionChecker,
+            checkActive = { evaluationContext.ensureActive() },
         )
 
         val results = defs.map { def ->
+            currentCoroutineContext().ensureActive()
             UnlockedAchievement(
                 def = def,
                 unlocked = runCatching { evaluateAchievement(def.condition, ctx) }.getOrDefault(false)
@@ -92,7 +99,7 @@ class AchievementViewModel @Inject constructor(
         previouslyUnlocked = currentlyUnlocked
 
         results
-    }.stateIn(
+    }.flowOn(Dispatchers.Default).stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
         initialValue = defs.map { UnlockedAchievement(it, false) }
