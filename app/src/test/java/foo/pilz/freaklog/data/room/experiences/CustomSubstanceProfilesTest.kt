@@ -49,6 +49,19 @@ class CustomSubstanceProfilesTest {
     }
 
     @Test
+    fun `findRoa and findEffectiveRoa match case-insensitively and trim whitespace`() {
+        val profiles = mapOf(profile("Mystery"))
+        val roaLower = findRoa(profiles, "mystery", AdministrationRoute.ORAL)
+        assertEquals(DoseClass.COMMON, roaLower?.roaDose?.getDoseClass(ingestionDose = 15.0))
+
+        val roaSpaced = findRoa(profiles, "  Mystery  ", AdministrationRoute.ORAL)
+        assertEquals(14400f, roaSpaced?.roaDuration?.total?.minInSec)
+
+        val roaEffective = findEffectiveRoa(profiles, "  MYSTERY  ", AdministrationRoute.ORAL)
+        assertEquals(14400f, roaEffective?.roaDuration?.total?.minInSec)
+    }
+
+    @Test
     fun `unknown substances and routes have no roa`() {
         val profiles = mapOf(profile("Mystery"))
         assertNull(findRoa(profiles, "Mystery", AdministrationRoute.INSUFFLATED))
@@ -60,6 +73,7 @@ class CustomSubstanceProfilesTest {
         val profiles = mapOf(profile("Mystery", interaction(DANGEROUS, "alcohol")))
         assertEquals(InteractionType.DANGEROUS, findCustomInteraction(profiles, "Mystery", "Alcohol", noCategories))
         assertEquals(InteractionType.DANGEROUS, findCustomInteraction(profiles, "Alcohol", "Mystery", noCategories))
+        assertEquals(InteractionType.DANGEROUS, findCustomInteraction(profiles, "  mystery  ", "Alcohol", noCategories))
         assertNull(findCustomInteraction(profiles, "Mystery", "Caffeine", noCategories))
     }
 

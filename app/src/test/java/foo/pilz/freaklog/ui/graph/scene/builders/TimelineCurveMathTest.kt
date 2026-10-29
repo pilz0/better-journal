@@ -37,6 +37,107 @@ class TimelineCurveMathTest {
     }
 
     @Test
+    fun customDurationsWithMissingPhasesProduceValidShapes() {
+        // Missing onset (e.g. comeup + peak + offset)
+        val noOnset = RoaDuration(
+            onset = null, comeup = range(60f, 60f),
+            peak = range(120f, 120f), offset = range(180f, 180f),
+            total = null, afterglow = null,
+        )
+        assertEquals(TimelineShape.Full::class, selectTimelineShape(noOnset)::class)
+
+        // Missing comeup (onset + peak + offset)
+        val noComeup = RoaDuration(
+            onset = range(30f, 30f), comeup = null,
+            peak = range(120f, 120f), offset = range(180f, 180f),
+            total = null, afterglow = null,
+        )
+        assertEquals(TimelineShape.Full::class, selectTimelineShape(noComeup)::class)
+
+        // Peak + offset only
+        val peakOffset = RoaDuration(
+            onset = null, comeup = null,
+            peak = range(120f, 120f), offset = range(180f, 180f),
+            total = null, afterglow = null,
+        )
+        val peakOffsetShape = selectTimelineShape(peakOffset) as TimelineShape.Full
+        assertEquals(120f, peakOffsetShape.peak.minInSeconds)
+        assertEquals(180f, peakOffsetShape.offset.minInSeconds)
+        assertEquals(0f, peakOffsetShape.onset.minInSeconds)
+        assertEquals(0f, peakOffsetShape.comeup.minInSeconds)
+
+        // Comeup + peak + total (missing onset)
+        val comeupPeakTotal = RoaDuration(
+            onset = null, comeup = range(60f, 60f),
+            peak = range(120f, 120f), offset = null,
+            total = range(600f, 600f), afterglow = null,
+        )
+        assertEquals(TimelineShape.OnsetComeupPeakTotal::class, selectTimelineShape(comeupPeakTotal)::class)
+
+        // Peak + total
+        val peakTotal = RoaDuration(
+            onset = null, comeup = null,
+            peak = range(120f, 120f), offset = null,
+            total = range(600f, 600f), afterglow = null,
+        )
+        assertEquals(TimelineShape.OnsetComeupPeakTotal::class, selectTimelineShape(peakTotal)::class)
+
+        // Comeup + total
+        val comeupTotal = RoaDuration(
+            onset = null, comeup = range(60f, 60f),
+            peak = null, offset = null,
+            total = range(600f, 600f), afterglow = null,
+        )
+        assertEquals(TimelineShape.OnsetComeupTotal::class, selectTimelineShape(comeupTotal)::class)
+
+        // Single offset
+        val singleOffset = RoaDuration(
+            onset = null, comeup = null, peak = null, offset = range(300f, 300f),
+            total = null, afterglow = null,
+        )
+        val singleOffsetShape = selectTimelineShape(singleOffset) as TimelineShape.Total
+        assertEquals(300f, singleOffsetShape.total.minInSeconds)
+
+        // Peak alone (open-ended)
+        val peakOnly = RoaDuration(
+            onset = null, comeup = null, peak = range(120f, 120f), offset = null,
+            total = null, afterglow = null,
+        )
+        val peakOnlyShape = selectTimelineShape(peakOnly) as TimelineShape.OnsetComeupPeak
+        assertEquals(120f, peakOnlyShape.peak.minInSeconds)
+        assertEquals(0f, peakOnlyShape.onset.minInSeconds)
+        assertEquals(0f, peakOnlyShape.comeup.minInSeconds)
+    }
+
+    @Test
+    fun singleBoundDurationRangeResolvesCorrectly() {
+        val maxOnly = DurationRange(min = null, max = 3600f, units = DurationUnits.SECONDS)
+        val fullMax = maxOnly.toFullDurationRange()
+        assertEquals(3600f, fullMax?.minInSeconds)
+        assertEquals(3600f, fullMax?.maxInSeconds)
+
+        val minOnly = DurationRange(min = 1800f, max = null, units = DurationUnits.SECONDS)
+        val fullMin = minOnly.toFullDurationRange()
+        assertEquals(1800f, fullMin?.minInSeconds)
+        assertEquals(1800f, fullMin?.maxInSeconds)
+    }
+
+    @Test
+    fun customShapeProducesNonEmptySegmentsAndCurve() {
+        val shape = TimelineShape.Full(
+            onset = FullDurationRange(0f, 0f),
+            comeup = FullDurationRange(60f, 60f),
+            peak = FullDurationRange(120f, 120f),
+            offset = FullDurationRange(180f, 180f),
+        )
+        val ingestion = RawIngestion(startSeconds = 0f, endSeconds = null, horizontalWeight = 0.5f, height = 1f)
+        val curve = buildRawCurve(shape, listOf(ingestion))
+        assertTrue(curve.segments.isNotEmpty())
+        assertTrue(curve.segments.first().points.isNotEmpty())
+        assertTrue(curve.nonNormalisedHeight > 0f)
+    }
+
+    @Test
     fun samplePointsReturnsEmptyWhenStartAfterEnd() {
         val pts = sampleRangeCurve(startX = 100f, endX = 50f, hMax = 1f, onset = 10f, comeup = 10f, peak = 10f, offset = 10f)
         assertEquals(0, pts.size)

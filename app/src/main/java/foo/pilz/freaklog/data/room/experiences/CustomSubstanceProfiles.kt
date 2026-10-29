@@ -87,7 +87,7 @@ fun findRoa(
     profiles: Map<String, CustomSubstanceWithEverything>,
     substanceName: String,
     route: AdministrationRoute,
-): Roa? = profiles[substanceName]?.roaInfos?.firstOrNull { it.route == route }?.toRoa()
+): Roa? = findProfile(profiles, substanceName)?.roaInfos?.firstOrNull { it.route == route }?.toRoa()
 
 fun findEffectiveRoa(
     profiles: Map<String, CustomSubstanceWithEverything>,
@@ -115,7 +115,7 @@ fun findCustomInteraction(
     categoriesOf: (String) -> List<String>,
 ): InteractionType? {
     fun declaredBy(owner: String, other: String): List<InteractionType> =
-        profiles[owner]?.interactions.orEmpty()
+        findProfile(profiles, owner)?.interactions.orEmpty()
             .filter { interaction ->
                 when (interaction.targetType) {
                     CustomInteractionTargetType.CATEGORY ->

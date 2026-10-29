@@ -14,8 +14,9 @@ data class FullDurationRange(
 }
 
 fun DurationRange.toFullDurationRange(): FullDurationRange? {
-    val min = minInSec ?: return null
-    return FullDurationRange(min, maxInSec ?: min)
+    val min = minInSec ?: maxInSec ?: return null
+    val max = maxInSec ?: minInSec ?: return null
+    return FullDurationRange(min, max)
 }
 
 data class FullTimelineDurations(
