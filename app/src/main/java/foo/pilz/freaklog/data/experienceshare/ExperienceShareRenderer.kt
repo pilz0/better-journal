@@ -31,7 +31,7 @@ suspend fun shareExperienceImage(
     val uri = try {
         withContext(Dispatchers.IO) {
             val dir = File(activity.cacheDir, "shared_experiences").apply { mkdirs() }
-            val file = File(dir, "$sanitizedTitle-${System.currentTimeMillis()}.png")
+            val file = foo.pilz.freaklog.data.substanceshare.sharedSnapshot(activity, dir, sanitizedTitle, ".png")
             FileOutputStream(file).use { out ->
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
             }
@@ -83,6 +83,7 @@ suspend fun renderComposableToBitmap(
         composeView.measure(widthSpec, heightSpec)
         composeView.layout(0, 0, composeView.measuredWidth, composeView.measuredHeight)
 
+        requireShareImageSize(composeView.measuredWidth, composeView.measuredHeight)
         val bitmap =
             createBitmap(composeView.measuredWidth.coerceAtLeast(1), composeView.measuredHeight.coerceAtLeast(1))
         composeView.draw(Canvas(bitmap))
@@ -103,5 +104,11 @@ private suspend fun awaitNextDraw(view: View) = suspendCancellableCoroutine<Unit
     view.viewTreeObserver.addOnPreDrawListener(listener)
     cont.invokeOnCancellation {
         view.viewTreeObserver.removeOnPreDrawListener(listener)
+    }
+}
+
+internal fun requireShareImageSize(width: Int, height: Int) {
+    require(width > 0 && height > 0 && height <= 12_000 && width.toLong() * height <= 12_000_000L) {
+        "This experience is too large to share as one image."
     }
 }

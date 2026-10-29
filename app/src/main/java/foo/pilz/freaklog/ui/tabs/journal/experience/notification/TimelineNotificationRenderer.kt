@@ -48,6 +48,7 @@ class TimelineNotificationRenderer(
 
     /** @return null when there is nothing to show (no own ingestions for this target). */
     suspend fun render(experienceId: Int): RenderResult? {
+        if (userPreferences.isLockEnabledFlow.first()) return null
         val now = Instant.now()
         val sorted = loadIngestions(experienceId, now)
             .filter { it.ingestion.consumerName == null }
@@ -91,6 +92,7 @@ class TimelineNotificationRenderer(
             expandedViews = buildExpandedViews(bitmap, lines),
             startedAt = sorted.first().ingestion.time,
         )
+        if (userPreferences.isLockEnabledFlow.first()) return null
         return RenderResult(
             notification = notification,
             nextUpdateIntervalMs = PhaseCalculator.combinedInterval(phaseResults) * MILLIS_PER_SECOND,

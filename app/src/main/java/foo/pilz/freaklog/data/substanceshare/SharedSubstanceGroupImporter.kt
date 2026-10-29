@@ -29,7 +29,7 @@ suspend fun parseAndImportGroup(
     experienceRepo: ExperienceRepository,
 ): GroupImportResult {
     val text = try {
-        context.contentResolver.openInputStream(uri)?.use { it.bufferedReader().readText() }
+        context.contentResolver.openInputStream(uri)?.use { readSharedPayload(it) }
     } catch (e: Exception) {
         null
     } ?: return GroupImportResult.Failed(ImportFailure.OpenStream)
@@ -45,6 +45,7 @@ suspend fun parseAndImportGroup(
     }
 
     val payload = envelope.group
+    if (!payload.isSafeToImport()) return GroupImportResult.Failed(ImportFailure.Parse)
     val existing = groupRepo.getWithItemsByName(payload.name)
     return if (existing == null) {
         commitGroupImport(payload, payload.name, groupRepo, customSubstanceRepo, experienceRepo)
@@ -60,6 +61,7 @@ suspend fun resolveGroupCollisionReplace(
     customSubstanceRepo: CustomSubstanceRepository,
     experienceRepo: ExperienceRepository,
 ) {
+    require(payload.isSafeToImport()) { "Invalid shared group references or size" }
     val existing = groupRepo.getWithItemsByName(payload.name) ?: return
     groupRepo.delete(existing.group)
     commitGroupImport(payload, payload.name, groupRepo, customSubstanceRepo, experienceRepo)
@@ -72,6 +74,7 @@ suspend fun resolveGroupCollisionKeepBoth(
     customSubstanceRepo: CustomSubstanceRepository,
     experienceRepo: ExperienceRepository,
 ): String {
+    require(payload.isSafeToImport()) { "Invalid shared group references or size" }
     val newName = nextAvailableImportName(payload.name, existingNames)
     commitGroupImport(payload, newName, groupRepo, customSubstanceRepo, experienceRepo)
     return newName
@@ -84,6 +87,7 @@ private suspend fun commitGroupImport(
     customSubstanceRepo: CustomSubstanceRepository,
     experienceRepo: ExperienceRepository,
 ) {
+    require(payload.isSafeToImport()) { "Invalid shared group references or size" }
     val existingNames =
         customSubstanceRepo.getExistingNames(payload.customSubstances.map { it.name })
     for (sharedSub in payload.customSubstances) {
@@ -92,13 +96,16 @@ private suspend fun commitGroupImport(
         }
     }
     val unitIdByKey = mutableMapOf<Triple<String, String, AdministrationRoute>, Int>()
+    val existingUnits = experienceRepo.getAllCustomUnitsSorted().associateBy {
+        Triple(it.substanceName, it.name, it.administrationRoute)
+    }
     for (sharedUnit in payload.customUnits) {
-        val existing = experienceRepo.findMatchingCustomUnit(
-            substanceName = sharedUnit.substanceName,
-            name = sharedUnit.name,
-            route = sharedUnit.administrationRoute,
-        )
-        val id = existing?.id ?: experienceRepo.insert(sharedUnit.toEntity())
+        val existing = existingUnits[Triple(sharedUnit.substanceName, sharedUnit.name, sharedUnit.administrationRoute)]
+        val id = if (existing != null && existing.toSharedCustomUnit() == sharedUnit) {
+            existing.id
+        } else {
+            experienceRepo.insert(sharedUnit.toEntity())
+        }
         unitIdByKey[Triple(
             sharedUnit.substanceName,
             sharedUnit.name,
@@ -108,11 +115,6 @@ private suspend fun commitGroupImport(
     val items = payload.items.map { sharedItem ->
         val resolvedCustomUnitId = sharedItem.customUnitRef?.let { ref ->
             unitIdByKey[Triple(ref.substanceName, ref.name, ref.administrationRoute)]
-                ?: experienceRepo.findMatchingCustomUnit(
-                    ref.substanceName,
-                    ref.name,
-                    ref.administrationRoute
-                )?.id
         }
         SubstanceGroupItem(
             sortOrder = sharedItem.sortOrder,
@@ -127,4 +129,16 @@ private suspend fun commitGroupImport(
         )
     }
     groupRepo.create(SubstanceGroup(name = targetName), items)
+}
+
+internal fun SharedGroup.isSafeToImport(): Boolean {
+    if (items.size > 1000 || customUnits.size > 1000 || customSubstances.size > 1000) return false
+    val included = customUnits.map { Triple(it.substanceName, it.name, it.administrationRoute) }.toSet()
+    if (included.size != customUnits.size) return false
+    return items.all { item ->
+        item.customUnitRef?.let { ref ->
+            ref.substanceName == item.substanceName && ref.administrationRoute == item.administrationRoute &&
+                Triple(ref.substanceName, ref.name, ref.administrationRoute) in included
+        } ?: true
+    }
 }

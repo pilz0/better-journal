@@ -97,4 +97,21 @@ class AnodyneWikiClientTest {
         assertThat(AnodyneWikiClient.clean("C<sub>9</sub>H {wkp 'first-pass  metabolism'}{Ep}"))
             .isEqualTo("C9H first-pass metabolism")
     }
+
+    @Test(timeout = 5000)
+    fun malformedHtmlHasBoundedProcessingAndOutput() {
+        val result = AnodyneWikiClient.clean("<".repeat(1_000_000))
+        org.junit.Assert.assertTrue(result.length <= 12_000)
+    }
+
+    @Test
+    fun manyExactAliasesKeepResultLimitAndPriority() = runBlocking {
+        val entries = JSONArray().apply {
+            repeat(2000) { put(JSONObject().put("Title", "Page$it").put("Abr", "same")) }
+        }
+        server.enqueue(json(JSONObject().put("Entries", entries).toString()))
+        val matches = client.search(base(), "same", 10)
+        assertThat(matches.size).isEqualTo(10)
+        assertThat(matches.first().title).isEqualTo("Page0")
+    }
 }

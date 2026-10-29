@@ -544,7 +544,8 @@ interface ExperienceDao {
                     notes = ingestionSerializable.notes,
                     stomachFullness = ingestionSerializable.stomachFullness,
                     consumerName = ingestionSerializable.consumerName,
-                    customUnitId = ingestionSerializable.customUnitId,
+                    // Room assigns a new id to a unit exported without one (id 0), so nothing can refer to it.
+                    customUnitId = ingestionSerializable.customUnitId?.takeIf { it > 0 },
                     saltForm = ingestionSerializable.saltForm,
                     category = ingestionSerializable.category
                 )
@@ -571,6 +572,10 @@ interface ExperienceDao {
                 insert(newRating)
             }
             experienceSerializable.bloodPressure.forEach {
+                require(
+                    it.systolic in 1..400 && it.diastolic in 1..400 &&
+                        (it.pulse == null || it.pulse in 1..300)
+                ) { "Invalid blood-pressure measurement" }
                 insert(
                     foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading(
                         experienceId = experienceID,

@@ -15,6 +15,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import foo.pilz.freaklog.data.room.webhooks.entities.IngestionWebhookMessage
 
 @Dao
@@ -34,6 +35,19 @@ interface IngestionWebhookMessageDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(message: IngestionWebhookMessage): Long
+
+    @Query("SELECT url FROM webhook WHERE id = :webhookId")
+    suspend fun destination(webhookId: Int): String?
+
+    @Transaction
+    suspend fun insertForDestination(message: IngestionWebhookMessage, url: String): Long? =
+        if (destination(message.webhookId) == url) insert(message) else null
+
+    @Query(
+        "SELECT COUNT(*) FROM ingestion_webhook_message m JOIN webhook w ON w.id = m.webhookId " +
+            "WHERE m.id = :id AND m.messageId = :messageId AND w.url = :url"
+    )
+    suspend fun isCurrentDestination(id: Int, messageId: String, url: String): Boolean
 
     @Delete
     suspend fun delete(message: IngestionWebhookMessage)

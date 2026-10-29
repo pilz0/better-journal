@@ -139,26 +139,68 @@ private fun expressionAt(
 private fun Double.pow2(): Double = this * this
 
 private data class Seg(val sx: Float, val sy: Float, val ex: Float, val ey: Float) {
-    fun isInside(x: Float): Boolean = x in sx..<ex
-    fun heightAt(x: Float): Float {
-        val d = ex - sx
-        if (d == 0f) return 0f
-        val m = (ey - sy) / d
-        val b = sy - m * sx
-        return m * x + b
+    fun toPiece(): LinearPiece {
+        val slope = (ey.toDouble() - sy) / (ex.toDouble() - sx)
+        return LinearPiece(sx, ex, slope, sy - slope * sx)
     }
+}
+
+/** A straight line that counts on `[start, end)`. */
+internal class LinearPiece(val start: Float, val end: Float, val slope: Double, val intercept: Double)
+
+/**
+ * The sum of every piece covering each of [xs], in the order of [xs]. One sweep over sorted
+ * starts and ends keeps this O((pieces + xs) log) instead of rescanning every piece per x.
+ */
+internal fun sumLinearPiecesAt(pieces: List<LinearPiece>, xs: List<Float>): DoubleArray {
+    val live = pieces.filter { it.end > it.start && it.slope.isFinite() && it.intercept.isFinite() }
+    val byStart = live.sortedBy { it.start }
+    val byEnd = live.sortedBy { it.end }
+    val sums = DoubleArray(xs.size)
+    var opened = 0
+    var closed = 0
+    var slope = 0.0
+    var intercept = 0.0
+    for (i in xs.indices.sortedBy { xs[it] }) {
+        val x = xs[i]
+        if (x.isNaN()) continue
+        while (opened < byStart.size && byStart[opened].start <= x) {
+            slope += byStart[opened].slope
+            intercept += byStart[opened].intercept
+            opened++
+        }
+        while (closed < byEnd.size && byEnd[closed].end <= x) {
+            slope -= byEnd[closed].slope
+            intercept -= byEnd[closed].intercept
+            closed++
+        }
+        if (opened == closed) {
+            // Nothing covers x; drop accumulated rounding error.
+            slope = 0.0
+            intercept = 0.0
+        } else {
+            sums[i] = slope * x + intercept
+        }
+    }
+    return sums
 }
 
 private fun pointsToSegs(points: List<RawPoint>): List<Seg> =
     points.zipWithNext { a, b -> Seg(a.seconds, a.height, b.seconds, b.height) }
 
-private fun sumHeightAt(segs: List<Seg>, x: Float): Float =
-    segs.sumOf { if (it.isInside(x)) it.heightAt(x).toDouble() else 0.0 }.toFloat()
+private fun sumHeightsAt(segs: List<Seg>, xs: List<Float>): List<Float> =
+    sumLinearPiecesAt(segs.map { it.toPiece() }, xs).map { it.toFloat() }
 
 private fun superpose(segs: List<Seg>, ingestionXs: List<Float>): List<RawPoint> {
     val breakpointXs = segs.flatMap { listOf(it.sx, it.ex) }.distinct()
     val consideredXs = ingestionXs + breakpointXs
-    return consideredXs.map { x -> RawPoint(seconds = x, height = sumHeightAt(segs, x)) }.sortedBy { it.seconds }
+    val heights = sumHeightsAt(segs, consideredXs)
+    return consideredXs.mapIndexed { i, x -> RawPoint(seconds = x, height = heights[i]) }.sortedBy { it.seconds }
+}
+
+private fun ingestionDotsAt(segs: List<Seg>, xs: List<Float>): List<RawPoint> {
+    val heights = sumHeightsAt(segs, xs)
+    return xs.mapIndexed { i, x -> RawPoint(seconds = x, height = heights[i], isIngestionDot = true) }
 }
 
 private fun segmentsToSegs(segments: List<CurveSegment>): List<Seg> {
@@ -240,7 +282,7 @@ internal fun buildFull(shape: TimelineShape.Full, lines: List<RawIngestion>): Ra
     val nonNorm = points.maxOfOrNull { it.height } ?: 0.01f
     val end = points.maxOfOrNull { it.seconds }
         ?: (shape.onset.maxInSeconds + shape.comeup.maxInSeconds + shape.peak.maxInSeconds + shape.offset.maxInSeconds)
-    val ingestionDots = ingestionXs.map { RawPoint(seconds = it, height = sumHeightAt(segs, it), isIngestionDot = true) }
+    val ingestionDots = ingestionDotsAt(segs, ingestionXs)
     return RawTimelineCurve(
         segments = listOf(CurveSegment(points, dotted = false)),
         ingestionDots = ingestionDots,
@@ -379,7 +421,7 @@ fun buildRawCurve(shape: TimelineShape, lines: List<RawIngestion>): RawTimelineC
         val points = superpose(segs, ingestionSeconds)
         val nonNorm = points.maxOfOrNull { it.height }?.takeIf { it.isFinite() && it > 0f } ?: 0.01f
         val end = points.maxOfOrNull { it.seconds } ?: (ingestionSeconds.maxOrNull() ?: 0f)
-        val ingestionDots = ingestionSeconds.map { RawPoint(seconds = it, height = sumHeightAt(segs, it), isIngestionDot = true) }
+        val ingestionDots = ingestionDotsAt(segs, ingestionSeconds)
         return RawTimelineCurve(listOf(CurveSegment(points, dotted = false)), ingestionDots, nonNorm, end)
     }
 

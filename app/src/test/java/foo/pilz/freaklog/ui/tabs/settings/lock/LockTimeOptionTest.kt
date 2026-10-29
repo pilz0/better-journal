@@ -40,9 +40,9 @@ class LockTimeOptionTest {
     }
 
     @Test
-    fun `negative elapsed time is treated as zero`() {
-        // Clock skew shouldn't immediately lock when timeout > 0.
-        assertFalse(shouldLockNow(true, LockTimeOption.AFTER_5_MINUTES, 1_000L, 500L))
+    fun `backwards monotonic time fails closed`() {
+        // A reset or invalid monotonic timestamp cannot extend the unlocked session.
+        assertTrue(shouldLockNow(true, LockTimeOption.AFTER_5_MINUTES, 1_000L, 500L))
     }
 
     @Test

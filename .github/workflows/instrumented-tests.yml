@@ -18,6 +18,7 @@ on:
           - '34'
           - '35'
           - '36'
+          - '37'
 
 # Deny all permissions by default; each job grants the minimum required.
 permissions: {}
@@ -37,11 +38,11 @@ jobs:
       fail-fast: false
       matrix:
         # Every build covers all Android API levels from minSdk 31
-        # through targetSdk 36. Manual runs can select one API for diagnosis.
+        # through targetSdk 37. Manual runs can select one API for diagnosis.
         api-level: >-
           ${{ github.event_name == 'workflow_dispatch' &&
               fromJSON(format('[{0}]', inputs.api-level)) ||
-              fromJSON('[31, 32, 33, 34, 35, 36]') }}
+              fromJSON('[31, 32, 33, 34, 35, 36, 37]') }}
     steps:
       - name: Harden the runner
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
@@ -82,7 +83,8 @@ jobs:
         if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
-          api-level: ${{ matrix.api-level }}
+          # Google publishes API 37 as `android-37.0` (platform and system image).
+          api-level: ${{ matrix.api-level == 37 && '37.0' || matrix.api-level }}
           arch: x86_64
           target: google_apis
           force-avd-creation: false
@@ -93,13 +95,14 @@ jobs:
       - name: Run instrumented tests
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
-          api-level: ${{ matrix.api-level }}
+          # Google publishes API 37 as `android-37.0` (platform and system image).
+          api-level: ${{ matrix.api-level == 37 && '37.0' || matrix.api-level }}
           arch: x86_64
           target: google_apis
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: ./gradlew connectedDebugAndroidTest --no-daemon
+          script: bash .github/scripts/gradle-ci.sh connectedDebugAndroidTest --no-daemon
 
       - name: Upload androidTest results
         if: always()

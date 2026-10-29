@@ -21,7 +21,7 @@ fun shareCustomSubstance(context: Context, substance: CustomSubstanceWithEveryth
     val payload = json.encodeToString(envelope)
     val dir = File(context.cacheDir, "shared_substances").apply { mkdirs() }
     val sanitized = substance.substance.name.sanitizeForFile()
-    val file = File(dir, "$sanitized.substance")
+    val file = sharedSnapshot(context, dir, "$sanitized-share-", ".substance")
     file.writeText(payload)
     val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
     val intent = Intent(Intent.ACTION_SEND).apply {

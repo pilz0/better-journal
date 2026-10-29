@@ -88,7 +88,7 @@ fun ShareableExperienceContent(model: ShareableExperienceModel) {
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(model.title, style = MaterialTheme.typography.headlineSmall)
+            Text(model.title.take(1000), style = MaterialTheme.typography.headlineSmall, maxLines = 3)
             Text(
                 listOf(model.firstIngestionTime.getDateWithWeekdayText(), model.locationName)
                     .filter { it.isNotBlank() }

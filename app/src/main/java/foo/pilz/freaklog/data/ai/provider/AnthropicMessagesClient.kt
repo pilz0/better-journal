@@ -1,7 +1,9 @@
 package foo.pilz.freaklog.data.ai.provider
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URI
@@ -40,13 +42,16 @@ class AnthropicMessagesClient(private val endpoint: AiEndpoint) : AiChatClient {
             val suffix = if (category != null) " ($category)" else ""
             throw AiException("The model declined to answer this request$suffix.", discardPartial = true)
         }
+        message.finish()
         emit(AiStreamEvent.Completed(toAssistant(message.blocks.values.toList()), message.stopReason))
-    }
+    }.flowOn(Dispatchers.Default)
 
     /** Rebuilds the message's content blocks from the stream events. */
     private inner class MessageAccumulator {
         val blocks = sortedMapOf<Int, JSONObject>()
         private val toolInput = mutableMapOf<Int, StringBuilder>()
+        private val text = mutableMapOf<Int, StringBuilder>()
+        private val thinking = mutableMapOf<Int, StringBuilder>()
         var stopReason: String? = null
         var stopDetails: JSONObject? = null
 
@@ -65,12 +70,14 @@ class AnthropicMessagesClient(private val endpoint: AiEndpoint) : AiChatClient {
                 "content_block_start" -> {
                     val block = JSONObject(data.getJSONObject("content_block").toString())
                     blocks[index] = block
+                    if (block.has("text")) text[index] = StringBuilder(block.optString("text"))
+                    if (block.has("thinking")) thinking[index] = StringBuilder(block.optString("thinking"))
                     if (block.optString("type") == "tool_use") toolInput[index] = StringBuilder()
                     listOfNotNull(block.optString("text").takeIf { block.optString("type") == "text" && it.isNotEmpty() })
                 }
                 "content_block_delta" -> applyDelta(index, data.optJSONObject("delta"))
                 "content_block_stop" -> {
-                    toolInput.remove(index)?.let { blocks[index]?.put("input", AiJson.parseArguments(it.toString())) }
+                    finishBlock(index)
                     emptyList()
                 }
                 "message_delta" -> {
@@ -84,16 +91,26 @@ class AnthropicMessagesClient(private val endpoint: AiEndpoint) : AiChatClient {
             }
         }
 
+        private fun finishBlock(index: Int) {
+            text.remove(index)?.let { blocks[index]?.put("text", it.toString()) }
+            thinking.remove(index)?.let { blocks[index]?.put("thinking", it.toString()) }
+            toolInput.remove(index)?.let { blocks[index]?.put("input", AiJson.parseArguments(it.toString())) }
+        }
+
+        fun finish() = blocks.keys.forEach(::finishBlock)
+
         private fun applyDelta(index: Int, delta: JSONObject?): List<String> {
             val block = blocks[index] ?: return emptyList()
             when (delta?.optString("type")) {
                 "text_delta" -> {
                     val text = delta.optString("text")
-                    block.put("text", block.optString("text") + text)
+                    this.text.getOrPut(index) { StringBuilder(block.optString("text")) }.append(text)
                     return listOfNotNull(text.takeIf { it.isNotEmpty() })
                 }
                 "input_json_delta" -> toolInput[index]?.append(delta.optString("partial_json"))
-                "thinking_delta" -> block.put("thinking", block.optString("thinking") + delta.optString("thinking"))
+                "thinking_delta" -> thinking.getOrPut(index) {
+                    StringBuilder(block.optString("thinking"))
+                }.append(delta.optString("thinking"))
                 "signature_delta" -> block.put("signature", delta.optString("signature"))
             }
             return emptyList()

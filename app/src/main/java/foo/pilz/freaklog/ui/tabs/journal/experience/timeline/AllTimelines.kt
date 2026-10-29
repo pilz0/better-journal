@@ -364,14 +364,12 @@ private fun DrawScope.drawBloodPressureScale(
 }
 
 private fun roundBloodPressureTicks(min: Double, max: Double): List<Int> {
-    if (max <= min) return emptyList()
-    val ticks = mutableListOf<Int>()
-    var value = min.roundToInt()
-    while (value <= max) {
-        ticks.add(value)
-        value += 25
+    if (!min.isFinite() || !max.isFinite() || max <= min) return emptyList()
+    val first = min.roundToInt().toLong()
+    return (0 until 32).mapNotNull { index ->
+        val value = first + index * 25L
+        value.takeIf { it <= max && it in Int.MIN_VALUE.toLong()..Int.MAX_VALUE.toLong() }?.toInt()
     }
-    return ticks
 }
 
 private fun DrawScope.drawBloodPressurePolyline(

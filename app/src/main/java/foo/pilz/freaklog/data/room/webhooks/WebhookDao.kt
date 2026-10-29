@@ -15,6 +15,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
 import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
@@ -45,10 +46,25 @@ interface WebhookDao {
     suspend fun insert(webhook: Webhook): Long
 
     @Update
-    suspend fun update(webhook: Webhook)
+    suspend fun updateRow(webhook: Webhook)
 
     @Upsert
-    suspend fun upsert(webhook: Webhook): Long
+    suspend fun upsertRow(webhook: Webhook): Long
+
+    @Query("DELETE FROM ingestion_webhook_message WHERE webhookId = :webhookId")
+    suspend fun invalidateMessages(webhookId: Int)
+
+    @Transaction
+    suspend fun update(webhook: Webhook) {
+        if (getById(webhook.id)?.url != webhook.url) invalidateMessages(webhook.id)
+        updateRow(webhook)
+    }
+
+    @Transaction
+    suspend fun upsert(webhook: Webhook): Long {
+        if (getById(webhook.id)?.url != webhook.url) invalidateMessages(webhook.id)
+        return upsertRow(webhook)
+    }
 
     @Delete
     suspend fun delete(webhook: Webhook)

@@ -13,7 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="80dp"
         android:scaleType="fitXY"
-        android:contentDescription="Timeline visualization" />
+        android:contentDescription="@string/notification_timeline_description" />
 
     <LinearLayout
         android:id="@+id/timeline_rows"

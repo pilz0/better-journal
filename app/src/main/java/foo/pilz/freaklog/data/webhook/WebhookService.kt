@@ -79,7 +79,7 @@ class WebhookService internal constructor(
         private const val MAX_RETRIES = 3
         private const val SUBSTANCE_INFO_URL = "https://anodyne.wiki/substance/"
         private val TEMPLATE_BRACKET_REGEX = Regex("\\[([^\\[\\]]+)\\]")
-        private val MARKDOWN_LINK_REGEX = Regex("\\[[^\\]]+\\]\\(<[^>]+>\\)")
+        private val PLACEHOLDER_REGEX = Regex("\\{([a-zA-Z]+)\\}")
     }
 
     suspend fun sendWebhook(
@@ -159,7 +159,7 @@ class WebhookService internal constructor(
         withContext(Dispatchers.IO) {
             try {
                 val cleanUrl = if (url.endsWith("/")) url.dropLast(1) else url
-                val webhookUrl = URL(cleanUrl)
+                val webhookUrl = checkedWebhookUrl(cleanUrl)
                 val requestUrl = URL("${webhookUrl}/messages/$messageId")
 
                 val connection = requestUrl.openConnection() as HttpURLConnection
@@ -232,7 +232,8 @@ class WebhookService internal constructor(
             "formulation" to displayFormulation
         )
 
-        val content = processTemplate(template, values)
+        require(template.length <= 16_384) { "Webhook template is too large" }
+        val content = template
         val freakQueryContent = if (userPreferences?.webhookUseFreakQueryFlow?.first() != false) {
             val separator = userPreferences?.webhookFreakQuerySeparatorFlow?.first() ?: ", "
             val config = FreakQueryConfig(
@@ -244,11 +245,13 @@ class WebhookService internal constructor(
             content
         }
 
+        val literalContent = processTemplate(freakQueryContent, values)
         val finalContent = if (isHyperlinked) {
-            hyperlinkSubstancesInText(freakQueryContent, substanceInfoUrl, substance)
+            hyperlinkSubstancesInText(literalContent, substanceInfoUrl, substance)
         } else {
-            freakQueryContent
+            literalContent
         }
+        require(finalContent.length <= 32_768) { "Webhook message is too large" }
 
         val payload = buildJsonObject {
             put("content", finalContent)
@@ -286,7 +289,7 @@ class WebhookService internal constructor(
         messageId: String?
     ): String? = withContext(Dispatchers.IO) {
         val cleanUrl = if (url.endsWith("/")) url.dropLast(1) else url
-        val webhookUrl = URL(cleanUrl)
+        val webhookUrl = checkedWebhookUrl(cleanUrl)
 
         val requestUrl = if (isEdit && messageId != null) {
             URL("${webhookUrl}/messages/$messageId")
@@ -314,14 +317,14 @@ class WebhookService internal constructor(
 
             val responseCode = connection.responseCode
             if (responseCode !in 200..299) {
-                val errorBody = connection.errorStream?.bufferedReader()?.use { it.readText() }
+                val errorBody = connection.errorStream?.use { readBoundedResponse(it, connection.contentEncoding) }
                 val detail = if (!errorBody.isNullOrBlank()) ": $errorBody" else ""
                 logger.warn("WebhookService", "HTTP error code:$responseCode$detail")
                 throw IOException("HTTP error code $responseCode$detail")
             }
 
             if (!isEdit) {
-                val response = connection.inputStream.bufferedReader().use { it.readText() }
+                val response = connection.inputStream.use { readBoundedResponse(it, connection.contentEncoding) }
                 val json = Json.parseToJsonElement(response).jsonObject
                 json["id"]?.jsonPrimitive?.content
             } else {
@@ -359,30 +362,43 @@ class WebhookService internal constructor(
     }
 
     fun processTemplate(template: String, values: Map<String, String>): String {
-        var processed = template
-
-        val matches = TEMPLATE_BRACKET_REGEX.findAll(processed).toList().reversed()
-
-        for (match in matches) {
-            val fullMatch = match.value
+        require(template.length <= 16_384) { "Webhook template is too large" }
+        val blocks = TEMPLATE_BRACKET_REGEX.replace(template) { match ->
             val content = match.groupValues[1]
-            var keepBlock = true
-            for ((key, value) in values) {
-                if (content.contains("{$key}") && value.isEmpty()) {
-                    keepBlock = false
-                    break
+            if (PLACEHOLDER_REGEX.findAll(content).any { values[it.groupValues[1]] == "" }) "" else content
+        }
+        return buildString {
+            var start = 0
+            for (match in PLACEHOLDER_REGEX.findAll(blocks)) {
+                val replacement = values[match.groupValues[1]] ?: match.value
+                require(length.toLong() + match.range.first - start + replacement.length <= 32_768) {
+                    "Webhook message is too large"
                 }
+                append(blocks, start, match.range.first)
+                append(replacement)
+                start = match.range.last + 1
             }
-            if (keepBlock) {
-                processed = processed.replace(fullMatch, content)
-            } else {
-                processed = processed.replace(fullMatch, "")
-            }
+            require(length + blocks.length - start <= 32_768) { "Webhook message is too large" }
+            append(blocks, start, blocks.length)
         }
-        for ((key, value) in values) {
-            processed = processed.replace("{$key}", value)
+    }
+
+    private fun checkedWebhookUrl(url: String): URL {
+        require(isSecureWebhookUrl(url)) { "HTTPS is required for remote webhook destinations" }
+        return URL(url)
+    }
+
+    private fun readBoundedResponse(stream: java.io.InputStream, encoding: String?): String {
+        val decoded = if (encoding.equals("gzip", ignoreCase = true)) java.util.zip.GZIPInputStream(stream) else stream
+        val out = java.io.ByteArrayOutputStream()
+        val buffer = ByteArray(4096)
+        while (true) {
+            val read = decoded.read(buffer)
+            if (read < 0) break
+            if (out.size() + read > 65_536) throw IOException("Webhook response is too large")
+            out.write(buffer, 0, read)
         }
-        return processed
+        return out.toString("UTF-8")
     }
 
     private val cachedAnodyneAliasMap: Map<String, String> by lazy {
@@ -406,8 +422,23 @@ class WebhookService internal constructor(
         return "(?<!\\[|/|=)\\b(?:$combinedPattern)\\b(?!\\s*]\\(|>)".toRegex()
     }
 
-    private fun markdownLinkRanges(text: String): List<IntRange> =
-        MARKDOWN_LINK_REGEX.findAll(text).map { it.range }.toList()
+    private fun markdownLinkRanges(text: String): List<IntRange> = buildList {
+        var opening = -1
+        var index = 0
+        while (index < text.length) {
+            when (text[index]) {
+                '[' -> opening = index
+                ']' -> if (opening >= 0 && text.startsWith("(<", index + 1)) {
+                    val end = text.indexOf(">)", index + 3)
+                    if (end < 0) break
+                    add(opening..end + 1)
+                    opening = -1
+                    index = end + 1
+                }
+            }
+            index++
+        }
+    }
 
     private fun IntRange.isInsideMarkdownLink(linkRanges: List<IntRange>): Boolean =
         linkRanges.any { linkRange ->

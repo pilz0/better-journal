@@ -109,7 +109,9 @@ class TimelineNotificationService : Service() {
                     )
                     val result = renderer.render(experienceId) ?: return@launch
                     val manager = getSystemService(NotificationManager::class.java)
-                    manager.notify(TimelineNotificationChannel.NOTIFICATION_ID, result.notification)
+                    if (!userPreferences.isLockEnabledFlow.first()) {
+                        manager.notify(TimelineNotificationChannel.NOTIFICATION_ID, result.notification)
+                    }
                 }
             }
             return START_NOT_STICKY
@@ -161,7 +163,9 @@ class TimelineNotificationService : Service() {
             }
 
             val manager = getSystemService(NotificationManager::class.java)
-            manager.notify(TimelineNotificationChannel.NOTIFICATION_ID, result.notification)
+            if (!userPreferences.isLockEnabledFlow.first()) {
+                manager.notify(TimelineNotificationChannel.NOTIFICATION_ID, result.notification)
+            }
 
             delay(result.nextUpdateIntervalMs)
         }

@@ -28,6 +28,12 @@ class IngestionWebhookMessageRepository @Inject constructor(
 
     suspend fun insert(message: IngestionWebhookMessage): Long = dao.insert(message)
 
+    suspend fun insertForDestination(message: IngestionWebhookMessage, url: String): Long? =
+        dao.insertForDestination(message, url)
+
+    suspend fun isCurrentDestination(message: IngestionWebhookMessage, url: String): Boolean =
+        dao.isCurrentDestination(message.id, message.messageId, url)
+
     suspend fun delete(message: IngestionWebhookMessage) = dao.delete(message)
 
     suspend fun deleteByIngestion(ingestionId: Int) = dao.deleteByIngestion(ingestionId)

@@ -35,7 +35,7 @@ enum class LockTimeOption(val displayText: String, val timeoutSeconds: Long) {
  *
  * The journal should re-lock when:
  *  - lock is enabled, and
- *  - more time than [option].timeoutSeconds has passed since [lastActiveEpochSeconds].
+ *  - more time than [option].timeoutSeconds has passed since the monotonic [lastActiveSeconds] timestamp.
  *
  * For [LockTimeOption.IMMEDIATELY] any non-zero gap forces a re-lock so that switching
  * away from the app and back triggers re-authentication.
@@ -43,11 +43,12 @@ enum class LockTimeOption(val displayText: String, val timeoutSeconds: Long) {
 fun shouldLockNow(
     isLockEnabled: Boolean,
     option: LockTimeOption,
-    lastActiveEpochSeconds: Long,
-    nowEpochSeconds: Long,
+    lastActiveSeconds: Long,
+    nowSeconds: Long,
 ): Boolean {
     if (!isLockEnabled) return false
-    if (lastActiveEpochSeconds <= 0L) return true
-    val elapsed = (nowEpochSeconds - lastActiveEpochSeconds).coerceAtLeast(0L)
+    if (lastActiveSeconds <= 0L) return true
+    if (nowSeconds < lastActiveSeconds) return true
+    val elapsed = nowSeconds - lastActiveSeconds
     return elapsed >= option.timeoutSeconds
 }

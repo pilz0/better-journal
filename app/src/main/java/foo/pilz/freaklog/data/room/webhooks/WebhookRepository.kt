@@ -37,11 +37,20 @@ class WebhookRepository @Inject constructor(private val webhookDao: WebhookDao) 
 
     suspend fun count(): Int = webhookDao.count()
 
-    suspend fun insert(webhook: Webhook): Long = webhookDao.insert(webhook)
+    suspend fun insert(webhook: Webhook): Long {
+        require(!webhook.isEnabled || foo.pilz.freaklog.data.webhook.isSecureWebhookUrl(webhook.url))
+        return webhookDao.insert(webhook)
+    }
 
-    suspend fun update(webhook: Webhook) = webhookDao.update(webhook)
+    suspend fun update(webhook: Webhook) {
+        require(!webhook.isEnabled || foo.pilz.freaklog.data.webhook.isSecureWebhookUrl(webhook.url))
+        webhookDao.update(webhook)
+    }
 
-    suspend fun upsert(webhook: Webhook): Long = webhookDao.upsert(webhook)
+    suspend fun upsert(webhook: Webhook): Long {
+        require(!webhook.isEnabled || foo.pilz.freaklog.data.webhook.isSecureWebhookUrl(webhook.url))
+        return webhookDao.upsert(webhook)
+    }
 
     suspend fun delete(webhook: Webhook) = webhookDao.delete(webhook)
 

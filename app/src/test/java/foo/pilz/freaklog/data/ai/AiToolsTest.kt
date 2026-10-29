@@ -8,8 +8,11 @@ import foo.pilz.freaklog.data.room.experiences.ExperienceDao
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsTimedNotesAndRatings
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.testing.EntityBuilders
+import foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthManager
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -28,7 +31,9 @@ class AiToolsTest {
     private val anodyneTools = mockk<AiAnodyneTools> {
         coEvery { execute(any(), any()) } returns null
     }
-    private val aiTools = AiTools(experienceDao, substanceTools, anodyneTools)
+    private val locked = MutableStateFlow(false)
+    private val auth = mockk<BiometricAuthManager> { every { shouldLock } returns locked }
+    private val aiTools = AiTools(experienceDao, substanceTools, anodyneTools, auth)
 
     @Test
     fun executeUnknownToolReturnsErrorStatus() = runTest {
@@ -193,5 +198,13 @@ class AiToolsTest {
         val ingestions = result.getJSONArray("ingestions")
         assertThat(ingestions.length()).isEqualTo(1)
         assertThat(ingestions.getJSONObject(0).isNull("dose")).isTrue()
+    }
+
+    @Test
+    fun lockedJournalRejectsToolsBeforeReadingData() = runTest {
+        locked.value = true
+        val result = aiTools.execute("list_recent_experiences", emptyMap())
+        assertThat(result.getString("status")).isEqualTo("error")
+        io.mockk.coVerify(exactly = 0) { experienceDao.getRecentExperiencesWithIngestionsTimedNotesAndRatingsSorted(any()) }
     }
 }

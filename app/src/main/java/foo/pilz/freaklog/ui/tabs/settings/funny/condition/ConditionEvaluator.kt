@@ -20,7 +20,16 @@ internal sealed interface Value {
     data class Coll(val items: List<Value>) : Value
 }
 
-internal class Frame(val ctx: EvalContext, val env: Map<String, Value>)
+internal class EvaluationBudget(private val checkActive: () -> Unit = {}) {
+    private var remaining = 2_000_000
+    private val deadline = System.nanoTime() + 1_000_000_000L
+    fun step() {
+        checkActive()
+        check(--remaining >= 0 && System.nanoTime() <= deadline) { "Achievement evaluation budget exceeded" }
+    }
+}
+
+internal class Frame(val ctx: EvalContext, val env: Map<String, Value>, val budget: EvaluationBudget = EvaluationBudget())
 
 internal typealias Compiled = (Frame) -> Value
 
@@ -31,7 +40,15 @@ internal fun asBool(value: Value): Boolean = when (value) {
 
 internal class Compiler {
 
-    fun compile(expr: Expr): Compiled = when (expr) {
+    fun compile(expr: Expr): Compiled {
+        val compiled = compileExpression(expr)
+        return { frame ->
+            frame.budget.step()
+            compiled(frame)
+        }
+    }
+
+    private fun compileExpression(expr: Expr): Compiled = when (expr) {
         is NumLit -> constant(Value.Num(expr.value))
         is StrLit -> constant(Value.Str(expr.value))
         is Ident -> compileIdent(expr.name)
@@ -147,19 +164,19 @@ internal class Compiler {
             "any" -> { f ->
                 val c = coll(f)
                 require(c is Value.Coll) { "$name expects a collection" }
-                Value.Bool(c.items.any { asBool(body(Frame(f.ctx, f.env + (param to it)))) })
+                Value.Bool(c.items.any { asBool(body(Frame(f.ctx, f.env + (param to it), f.budget))) })
             }
 
             "all" -> { f ->
                 val c = coll(f)
                 require(c is Value.Coll) { "$name expects a collection" }
-                Value.Bool(c.items.all { asBool(body(Frame(f.ctx, f.env + (param to it)))) })
+                Value.Bool(c.items.all { asBool(body(Frame(f.ctx, f.env + (param to it), f.budget))) })
             }
 
             "none" -> { f ->
                 val c = coll(f)
                 require(c is Value.Coll) { "$name expects a collection" }
-                Value.Bool(c.items.none { asBool(body(Frame(f.ctx, f.env + (param to it)))) })
+                Value.Bool(c.items.none { asBool(body(Frame(f.ctx, f.env + (param to it), f.budget))) })
             }
 
             else -> { _ -> error("Unknown builtin '$name'") }
@@ -179,14 +196,14 @@ internal class Compiler {
                 recv is Value.Coll && name == "count" -> {
                     val b = body ?: error("count {} requires a lambda")
                     Value.Num(recv.items.count {
-                        asBool(b(Frame(f.ctx, f.env + (param!! to it))))
+                        asBool(b(Frame(f.ctx, f.env + (param!! to it), f.budget)))
                     }.toDouble())
                 }
 
                 recv is Value.Coll && name == "filter" -> {
                     val b = body ?: error("filter {} requires a lambda")
                     Value.Coll(recv.items.filter {
-                        asBool(b(Frame(f.ctx, f.env + (param!! to it))))
+                        asBool(b(Frame(f.ctx, f.env + (param!! to it), f.budget)))
                     })
                 }
 

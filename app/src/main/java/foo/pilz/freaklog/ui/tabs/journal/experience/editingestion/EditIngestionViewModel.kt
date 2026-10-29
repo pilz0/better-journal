@@ -343,7 +343,7 @@ class EditIngestionViewModel @Inject constructor(
 
         for (link in links) {
             val webhook: Webhook = webhookRepository.getById(link.webhookId)
-                ?.takeIf { it.isEnabled }
+                ?.takeIf { it.isEnabled && ingestionWebhookMessageRepository.isCurrentDestination(link, it.url) }
                 ?: continue
 
             val template = webhook.template.ifBlank {
@@ -384,6 +384,7 @@ class EditIngestionViewModel @Inject constructor(
         val links = ingestionWebhookMessageRepository.getByIngestion(ingestion.id)
         for (link in links) {
             val webhook = webhookRepository.getById(link.webhookId)
+                ?.takeIf { ingestionWebhookMessageRepository.isCurrentDestination(link, it.url) }
             if (webhook == null) {
                 // Webhook itself was already deleted; just drop the link row.
                 ingestionWebhookMessageRepository.delete(link)
@@ -454,12 +455,13 @@ class EditIngestionViewModel @Inject constructor(
                             saltForm = currentIngestion.saltForm
                         )
                         if (result.success && result.messageId != null) {
-                            ingestionWebhookMessageRepository.insert(
+                            ingestionWebhookMessageRepository.insertForDestination(
                                 IngestionWebhookMessage(
                                     ingestionId = currentIngestion.id,
                                     webhookId = webhook.id,
                                     messageId = result.messageId
-                                )
+                                ),
+                                webhook.url
                             )
                         } else {
                             android.util.Log.w(

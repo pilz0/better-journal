@@ -42,6 +42,8 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import dagger.hilt.android.EntryPointAccessors
 import foo.pilz.freaklog.MainActivity
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.first
 import java.io.File
 import java.io.FileOutputStream
 import java.time.Instant
@@ -68,9 +70,12 @@ class HeatmapWidgetProvider : GlanceAppWidgetReceiver() {
         appWidgetManager: android.appwidget.AppWidgetManager,
         appWidgetIds: IntArray
     ) {
-        super.onUpdate(context, appWidgetManager, appWidgetIds)
-        // Trigger refresh for each widget
-        appWidgetIds.forEach { appWidgetId ->
+        val registeredIds = appWidgetIds.filter {
+            isRegisteredWidget(context, HeatmapWidgetProvider::class.java, it)
+        }.toIntArray()
+        super.onUpdate(context, appWidgetManager, registeredIds)
+        // Trigger refresh for each registered widget.
+        registeredIds.forEach { appWidgetId ->
             enqueueHeatmapRefresh(context, appWidgetId)
         }
     }
@@ -81,6 +86,19 @@ class HeatmapAppWidget : GlanceAppWidget() {
     override val stateDefinition = PreferencesGlanceStateDefinition
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
+        val privateJournal = EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            WidgetEntryPoint::class.java
+        ).userPreferences().isLockEnabledFlow.first()
+        if (privateJournal) {
+            provideContent {
+                Text(
+                    "Journal locked",
+                    modifier = GlanceModifier.clickable(actionStartActivity(Intent(context, MainActivity::class.java)))
+                )
+            }
+            return
+        }
         provideContent {
             val prefs = currentState<Preferences>()
             val hasData = prefs[HeatmapWidgetKeys.HAS_DATA] ?: false
@@ -146,12 +164,16 @@ class HeatmapWidgetWorker(
 
     override suspend fun doWork(): Result {
         val appWidgetId = inputData.getInt(HeatmapWorkerInput.APP_WIDGET_ID, -1)
-        if (appWidgetId == -1) return Result.failure()
+        if (!isRegisteredWidget(applicationContext, HeatmapWidgetProvider::class.java, appWidgetId)) return Result.failure()
 
         val entryPoint = EntryPointAccessors.fromApplication(
             applicationContext,
             WidgetEntryPoint::class.java
         )
+        if (entryPoint.userPreferences().isLockEnabledFlow.first()) {
+            HeatmapAppWidget().updateAllPrivate(applicationContext)
+            return Result.success()
+        }
         val database = entryPoint.appDatabase()
         return try {
             val experienceDao = database.experienceDao()
@@ -195,9 +217,11 @@ class HeatmapWidgetWorker(
 
             HeatmapAppWidget().update(applicationContext, glanceId)
             Result.success()
-        } catch (t: Throwable) {
+        } catch (e: CancellationException) {
+            throw e
+        } catch (t: Exception) {
             Log.e(TAG, "Error updating heatmap widget", t)
-            Result.retry()
+            if (runAttemptCount < 2) Result.retry() else Result.failure()
         }
     }
 
@@ -297,6 +321,7 @@ class HeatmapWidgetWorker(
 }
 
 fun enqueueHeatmapRefresh(context: Context, appWidgetId: Int) {
+    if (!isRegisteredWidget(context, HeatmapWidgetProvider::class.java, appWidgetId)) return
     val work = OneTimeWorkRequestBuilder<HeatmapWidgetWorker>()
         .setInputData(workDataOf(HeatmapWorkerInput.APP_WIDGET_ID to appWidgetId))
         .build()
