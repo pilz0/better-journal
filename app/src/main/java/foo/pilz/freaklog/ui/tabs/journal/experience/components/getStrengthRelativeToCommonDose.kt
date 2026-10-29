@@ -41,8 +41,8 @@ fun getStrengthRelativeToCommonDose(
         ?: 1.0
 
     val relativeDose = ingestion.pureDose?.let { doseSnap ->
-        if (doseSnap.isFinite() && doseSnap > 0.0) doseSnap / commonDose else 1.0
+        if (doseSnap.isFinite() && doseSnap >= 0.0) doseSnap / commonDose else 1.0
     } ?: 1.0
 
-    return if (relativeDose.isFinite() && relativeDose > 0.0) relativeDose else 1.0
+    return if (relativeDose.isFinite() && relativeDose >= 0.0) relativeDose else 1.0
 }

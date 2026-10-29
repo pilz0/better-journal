@@ -196,6 +196,38 @@ class RoaDurationToCurveTest {
         )
     }
 
+    @Test
+    fun `phased duration with onset absent uses comeup as tmax`() {
+        val rd = RoaDuration(
+            onset = null,
+            comeup = range(30f, 30f, DurationUnits.MINUTES),
+            peak = range(1f, 1f, DurationUnits.HOURS),
+            offset = range(1f, 1f, DurationUnits.HOURS),
+            total = range(4f, 6f, DurationUnits.HOURS),
+            afterglow = null,
+        )
+        val curve = rd.toIngestionCurve(line(weight = 0.5f), origin)
+        assertNotNull(curve)
+        val peak = coarsePeakSec(curve!!)
+        assertTrue("peak $peak s should be near comeup = 1800 s", peak in 1500f..2100f)
+    }
+
+    @Test
+    fun `phased duration with only peak uses half peak as tmax`() {
+        val rd = RoaDuration(
+            onset = null,
+            comeup = null,
+            peak = range(2f, 2f, DurationUnits.HOURS),
+            offset = null,
+            total = range(6f, 8f, DurationUnits.HOURS),
+            afterglow = null,
+        )
+        val curve = rd.toIngestionCurve(line(weight = 0.5f), origin)
+        assertNotNull(curve)
+        val peak = coarsePeakSec(curve!!)
+        assertTrue("peak $peak s should be near peak * 0.5 = 3600 s", peak in 3000f..4200f)
+    }
+
     private fun phasedDuration(onsetCenterHours: Float, comeupCenterHours: Float) = RoaDuration(
         onset = range(onsetCenterHours - 0.5f, onsetCenterHours + 0.5f, DurationUnits.HOURS),
         comeup = range(comeupCenterHours - 0.5f, comeupCenterHours + 0.5f, DurationUnits.HOURS),

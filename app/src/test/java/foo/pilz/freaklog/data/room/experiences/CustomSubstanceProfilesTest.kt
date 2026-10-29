@@ -73,6 +73,7 @@ class CustomSubstanceProfilesTest {
         val profiles = mapOf(profile("Mystery", interaction(DANGEROUS, "alcohol")))
         assertEquals(InteractionType.DANGEROUS, findCustomInteraction(profiles, "Mystery", "Alcohol", noCategories))
         assertEquals(InteractionType.DANGEROUS, findCustomInteraction(profiles, "Alcohol", "Mystery", noCategories))
+        assertEquals(InteractionType.DANGEROUS, findCustomInteraction(profiles, "  mystery  ", "Alcohol", noCategories))
         assertNull(findCustomInteraction(profiles, "Mystery", "Caffeine", noCategories))
     }
 

@@ -60,7 +60,11 @@ class TimelineCurveMathTest {
             peak = range(120f, 120f), offset = range(180f, 180f),
             total = null, afterglow = null,
         )
-        assertEquals(TimelineShape.Full::class, selectTimelineShape(peakOffset)::class)
+        val peakOffsetShape = selectTimelineShape(peakOffset) as TimelineShape.Full
+        assertEquals(120f, peakOffsetShape.peak.minInSeconds)
+        assertEquals(180f, peakOffsetShape.offset.minInSeconds)
+        assertEquals(0f, peakOffsetShape.onset.minInSeconds)
+        assertEquals(0f, peakOffsetShape.comeup.minInSeconds)
 
         // Comeup + peak + total (missing onset)
         val comeupPeakTotal = RoaDuration(
@@ -91,14 +95,18 @@ class TimelineCurveMathTest {
             onset = null, comeup = null, peak = null, offset = range(300f, 300f),
             total = null, afterglow = null,
         )
-        assertEquals(TimelineShape.Total::class, selectTimelineShape(singleOffset)::class)
+        val singleOffsetShape = selectTimelineShape(singleOffset) as TimelineShape.Total
+        assertEquals(300f, singleOffsetShape.total.minInSeconds)
 
         // Peak alone (open-ended)
         val peakOnly = RoaDuration(
             onset = null, comeup = null, peak = range(120f, 120f), offset = null,
             total = null, afterglow = null,
         )
-        assertEquals(TimelineShape.OnsetComeupPeak::class, selectTimelineShape(peakOnly)::class)
+        val peakOnlyShape = selectTimelineShape(peakOnly) as TimelineShape.OnsetComeupPeak
+        assertEquals(120f, peakOnlyShape.peak.minInSeconds)
+        assertEquals(0f, peakOnlyShape.onset.minInSeconds)
+        assertEquals(0f, peakOnlyShape.comeup.minInSeconds)
     }
 
     @Test
