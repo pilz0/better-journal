@@ -83,8 +83,8 @@ jobs:
         if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
-          api-level: ${{ matrix.api-level }}
-          system-image-api-level: ${{ matrix.api-level == 37 && '37.0' || matrix.api-level }}
+          # Google publishes API 37 as `android-37.0` (platform and system image).
+          api-level: ${{ matrix.api-level == 37 && '37.0' || matrix.api-level }}
           arch: x86_64
           target: google_apis
           force-avd-creation: false
@@ -95,8 +95,8 @@ jobs:
       - name: Run instrumented tests
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
-          api-level: ${{ matrix.api-level }}
-          system-image-api-level: ${{ matrix.api-level == 37 && '37.0' || matrix.api-level }}
+          # Google publishes API 37 as `android-37.0` (platform and system image).
+          api-level: ${{ matrix.api-level == 37 && '37.0' || matrix.api-level }}
           arch: x86_64
           target: google_apis
           force-avd-creation: false
