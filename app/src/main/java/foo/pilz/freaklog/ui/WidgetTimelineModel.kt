@@ -15,6 +15,8 @@ import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithEver
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.substances.classes.Substance
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
+import foo.pilz.freaklog.ui.graph.scene.builders.LinearPiece
+import foo.pilz.freaklog.ui.graph.scene.builders.sumLinearPiecesAt
 import java.time.Duration
 import java.time.Instant
 
@@ -440,11 +442,14 @@ internal fun sampleSummedCurve(
         if (s.x0 in fromSeconds..toSeconds) xs.add(s.x0)
         if (s.x1 in fromSeconds..toSeconds) xs.add(s.x1)
     }
-    return xs.map { x ->
-        val total = segments.sumOf { seg ->
-            if (seg.contains(x)) seg.heightAt(x).toDouble() else 0.0
-        }
-        WidgetTimelineModel.SamplePoint(secondsFromStart = x, height = total.toFloat().coerceAtLeast(0f))
+    val positions = xs.toList()
+    val pieces = segments.map { seg ->
+        val slope = (seg.y1.toDouble() - seg.y0) / (seg.x1.toDouble() - seg.x0)
+        LinearPiece(seg.x0, seg.x1, slope, seg.y0 - slope * seg.x0)
+    }
+    val totals = sumLinearPiecesAt(pieces, positions)
+    return positions.mapIndexed { i, x ->
+        WidgetTimelineModel.SamplePoint(secondsFromStart = x, height = totals[i].toFloat().coerceAtLeast(0f))
     }
 }
 

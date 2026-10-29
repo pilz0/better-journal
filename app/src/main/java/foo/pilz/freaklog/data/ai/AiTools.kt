@@ -22,6 +22,7 @@ class AiTools @Inject constructor(
     private val experienceDao: ExperienceDao,
     private val substanceTools: AiSubstanceTools,
     private val anodyneTools: AiAnodyneTools,
+    private val auth: foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthManager,
 ) {
 
     companion object {
@@ -86,7 +87,8 @@ class AiTools @Inject constructor(
     )
 
     suspend fun execute(name: String, args: Map<String, Any?>): JSONObject {
-        return try {
+        if (auth.shouldLock.value) return errorResult("Unlock the journal to use assistant tools.")
+        val result = try {
             when (name) {
                 "list_recent_experiences" -> listRecentExperiences(
                     limit = intArg(args["limit"], 10)
@@ -120,6 +122,7 @@ class AiTools @Inject constructor(
             Log.e("AiTools", "Error executing tool $name", t)
             errorResult("Tool '$name' failed: ${t.message}")
         }
+        return if (auth.shouldLock.value) errorResult("Journal locked.") else result
     }
 
     private suspend fun listRecentExperiences(limit: Int): JSONObject {

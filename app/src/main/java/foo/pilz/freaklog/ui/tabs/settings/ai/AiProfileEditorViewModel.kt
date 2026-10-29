@@ -9,6 +9,7 @@ import foo.pilz.freaklog.data.ai.profiles.AiProfile
 import foo.pilz.freaklog.data.ai.profiles.AiProfileStore
 import foo.pilz.freaklog.data.ai.profiles.AiProviderPreset
 import foo.pilz.freaklog.data.ai.profiles.aiClientFor
+import foo.pilz.freaklog.data.ai.profiles.isInsecureRemoteUrl
 import foo.pilz.freaklog.data.ai.provider.AiApiStandard
 import foo.pilz.freaklog.data.ai.provider.AiChatRequest
 import foo.pilz.freaklog.data.ai.provider.AiEndpoint
@@ -58,7 +59,8 @@ data class AiProfileEditorState(
     val missingKey: Boolean
         get() = draft.preset.requiresApiKey && draft.apiKey.isBlank() && (!draft.hasSavedKey || draft.removeSavedKey)
     val canSave: Boolean
-        get() = draft.name.isNotBlank() && draft.baseUrl.isNotBlank() && draft.model.isNotBlank()
+        get() = draft.name.isNotBlank() && draft.baseUrl.isNotBlank() &&
+            !isInsecureRemoteUrl(draft.baseUrl) && draft.model.isNotBlank()
 }
 
 @HiltViewModel

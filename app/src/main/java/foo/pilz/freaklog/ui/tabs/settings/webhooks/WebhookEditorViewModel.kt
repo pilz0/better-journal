@@ -74,7 +74,7 @@ class WebhookEditorViewModel @Inject constructor(
     }
 
     val canSave: Boolean
-        get() = url.isNotBlank() && name.isNotBlank() && isPrefsLoaded
+        get() = foo.pilz.freaklog.data.webhook.isSecureWebhookUrl(url) && name.isNotBlank() && isPrefsLoaded
 
     fun save(onDone: () -> Unit) {
         if (!isPrefsLoaded) return

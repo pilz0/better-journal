@@ -12,13 +12,14 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Tools that look substances up on AnodyneWiki. Only the substance name or search text leaves
+ * Tools that look substances up on AnodyneWiki. Only a recognized public substance name leaves
  * the device. They can be turned off, and pointed at another compatible server, in the AI settings.
  */
 @Singleton
 class AiAnodyneTools @Inject constructor(
     private val client: AnodyneWikiClient,
     private val userPreferences: UserPreferences,
+    private val substances: foo.pilz.freaklog.data.substances.repositories.SubstanceRepository,
 ) {
     companion object {
         private const val SEARCH_LIMIT = 10
@@ -28,9 +29,8 @@ class AiAnodyneTools @Inject constructor(
         toolSpec(
             "search_anodyne_wiki",
             "Search the AnodyneWiki substance index (a pharmacology and harm-reduction wiki) by name, " +
-                "abbreviation or part of a name. Use it to find the exact page title before lookup_anodyne_wiki, " +
-                "or when a substance is missing from the bundled data.",
-            ToolParam.string("query", "Name, abbreviation or part of a name.", required = true),
+                "or abbreviation from the bundled public substance list. Use it to find the exact page title before lookup_anodyne_wiki.",
+            ToolParam.string("query", "Recognized public substance name or abbreviation.", required = true),
         ),
         toolSpec(
             "lookup_anodyne_wiki",
@@ -52,10 +52,18 @@ class AiAnodyneTools @Inject constructor(
     suspend fun execute(name: String, args: Map<String, Any?>): JSONObject? {
         if (name !in names) return null
         if (!isEnabled()) return toolError("AnodyneWiki lookups are turned off in the app's AI settings.")
-        return when (name) {
-            "search_anodyne_wiki" -> search(args["query"] as? String ?: "")
-            else -> lookup(args["substance"] as? String ?: "")
-        }
+        val raw = args[if (name == "search_anodyne_wiki") "query" else "substance"] as? String ?: ""
+        val approved = approvedPublicName(raw)
+            ?: return toolError("Only recognized public substance names can be sent to AnodyneWiki.")
+        return if (name == "search_anodyne_wiki") search(approved) else lookup(approved)
+    }
+
+    internal fun approvedPublicName(input: String): String? {
+        val names = substances.getAllSubstances().map { it.name } +
+            com.ndm4.freakquery.AnodyneAliases.map.values
+        return names.firstOrNull { it.equals(input.trim(), ignoreCase = true) }
+            ?: com.ndm4.freakquery.AnodyneAliases.map.entries
+                .firstOrNull { it.key.equals(input.trim(), ignoreCase = true) }?.value
     }
 
     private suspend fun search(query: String): JSONObject {

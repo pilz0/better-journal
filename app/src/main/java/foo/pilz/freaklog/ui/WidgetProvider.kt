@@ -71,6 +71,7 @@ import foo.pilz.freaklog.ui.graph.style.DefaultGraphStyle
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import foo.pilz.freaklog.ui.theme.md_theme_dark_primary
 import foo.pilz.freaklog.ui.theme.md_theme_light_primary
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import java.io.File
 import java.io.FileOutputStream
@@ -146,6 +147,19 @@ class MyAppWidget : GlanceAppWidget() {
 
     @SuppressLint("RestrictedApi")
     override suspend fun provideGlance(context: Context, id: GlanceId) {
+        val privateJournal = EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            WidgetEntryPoint::class.java
+        ).userPreferences().isLockEnabledFlow.first()
+        if (privateJournal) {
+            provideContent {
+                Text(
+                    "Journal locked",
+                    modifier = GlanceModifier.clickable(actionStartActivity(Intent(context, MainActivity::class.java)))
+                )
+            }
+            return
+        }
         provideContent {
             val size = LocalSize.current
             val prefs = currentState<Preferences>()
@@ -391,12 +405,16 @@ class TimelineWidgetWorker(
 
     override suspend fun doWork(): Result {
         val appWidgetId = inputData.getInt(WorkerInput.APP_WIDGET_ID, -1)
-        if (appWidgetId == -1) return Result.failure()
+        if (!isRegisteredWidget(applicationContext, MyWidgetProvider::class.java, appWidgetId)) return Result.failure()
 
         val entryPoint = EntryPointAccessors.fromApplication(
             applicationContext,
             WidgetEntryPoint::class.java
         )
+        if (entryPoint.userPreferences().isLockEnabledFlow.first()) {
+            MyAppWidget().updateAllPrivate(applicationContext)
+            return Result.success()
+        }
         val database = entryPoint.appDatabase()
         return try {
             val experienceDao = database.experienceDao()
@@ -561,9 +579,11 @@ class TimelineWidgetWorker(
 
             MyAppWidget().update(applicationContext, glanceId)
             Result.success()
-        } catch (t: Throwable) {
+        } catch (e: CancellationException) {
+            throw e
+        } catch (t: Exception) {
             Log.e(TAG, "Error updating widget", t)
-            Result.retry()
+            if (runAttemptCount < 2) Result.retry() else Result.failure()
         }
     }
 

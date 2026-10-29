@@ -79,7 +79,7 @@ jobs:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Run Unit Tests
-        run: ./gradlew testDebugUnitTest ${{ matrix.test-args }} --no-daemon
+        run: bash .github/scripts/gradle-ci.sh testDebugUnitTest ${{ matrix.test-args }} --no-daemon
 
       - name: Publish JUnit results
         # action-junit-report requires `checks: write`, but PRs from forks always get a
@@ -162,7 +162,7 @@ jobs:
           TEST_LANGUAGE: ${{ matrix.environment.language }}
           TEST_COUNTRY: ${{ matrix.environment.country }}
         run: |
-          ./gradlew :app:testDebugUnitTest --no-daemon \
+          bash .github/scripts/gradle-ci.sh :app:testDebugUnitTest --no-daemon \
             "-PtestJavaVersion=$TEST_JAVA_VERSION" "-PtestTimezone=$TEST_TIMEZONE" "-PtestLanguage=$TEST_LANGUAGE" "-PtestCountry=$TEST_COUNTRY" \
             --tests 'foo.pilz.freaklog.scheduled.ReminderSchedule*' \
             --tests 'foo.pilz.freaklog.data.export.*' \
@@ -176,7 +176,7 @@ jobs:
           path: |
             app/build/reports/tests/
             app/build/test-results/
-          if-no-files-found: error
+          if-no-files-found: warn
 
   release-verification:
     name: Release unit tests and lint
@@ -207,7 +207,7 @@ jobs:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Test and analyze the release variant
-        run: ./gradlew :app:testReleaseUnitTest :app:lintRelease --no-daemon
+        run: bash .github/scripts/gradle-ci.sh :app:testReleaseUnitTest :app:lintRelease --no-daemon
 
       - name: Upload release verification reports
         if: always()
@@ -255,11 +255,11 @@ jobs:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Generate Kover XML + HTML reports
-        run: ./gradlew :app:koverXmlReportDebug :app:koverHtmlReportDebug --no-daemon
+        run: bash .github/scripts/gradle-ci.sh :app:koverXmlReportDebug :app:koverHtmlReportDebug --no-daemon
 
       # Fail the job if coverage falls below the threshold defined in app/build.gradle.kts.
       - name: Verify coverage thresholds
-        run: ./gradlew :app:koverVerifyDebug --no-daemon
+        run: bash .github/scripts/gradle-ci.sh :app:koverVerifyDebug --no-daemon
 
       - name: Upload coverage report
         if: always()
@@ -299,7 +299,7 @@ jobs:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Run Detekt
-        run: ./gradlew detekt --no-daemon
+        run: bash .github/scripts/gradle-ci.sh detekt --no-daemon
 
       - name: Upload Detekt SARIF to code scanning
         if: always()
@@ -347,7 +347,7 @@ jobs:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Run Android Lint
-        run: ./gradlew :app:lintDebug --no-daemon
+        run: bash .github/scripts/gradle-ci.sh :app:lintDebug --no-daemon
 
       - name: Upload Lint SARIF to code scanning
         if: always()
@@ -396,11 +396,11 @@ jobs:
 
       - name: Build APK
         if: matrix.app-type == 'apk'
-        run: ./gradlew assembleRelease --no-daemon
+        run: bash .github/scripts/gradle-ci.sh assembleRelease --no-daemon
 
       - name: Build AAB
         if: matrix.app-type == 'aab'
-        run: ./gradlew bundleRelease --no-daemon
+        run: bash .github/scripts/gradle-ci.sh bundleRelease --no-daemon
 
       - name: Upload unsigned APK
         if: matrix.app-type == 'apk'
@@ -575,7 +575,7 @@ jobs:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Assemble Debug AndroidTest APK
-        run: ./gradlew assembleDebugAndroidTest --no-daemon
+        run: bash .github/scripts/gradle-ci.sh assembleDebugAndroidTest --no-daemon
 
   # Aggregator job whose status can be used as a single required check in
   # branch protection.

@@ -57,6 +57,7 @@ class ExportBackupViewModel @Inject constructor(
     private val userPreferences: UserPreferences,
     private val exportEncryption: ExportEncryption,
     private val backupPasswordStore: BackupPasswordStore,
+    private val auth: foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthManager,
     private val customSubstanceRepository: foo.pilz.freaklog.data.room.experiences.CustomSubstanceRepository,
 ) : ViewModel() {
 
@@ -99,18 +100,22 @@ class ExportBackupViewModel @Inject constructor(
     }
 
     fun exportPlaintextFile(uri: Uri) = export { json ->
+        check(!auth.shouldLock.value) { "Journal locked" }
         fileSystemConnection.saveBytesInUri(uri, json.toByteArray())
     }
 
     fun exportEncryptedFile(uri: Uri) = export { json ->
         val encrypted = exportEncryption.encrypt(json.toByteArray())
+        check(!auth.shouldLock.value) { "Journal locked" }
         fileSystemConnection.saveBytesInUri(uri, encrypted.data)
         _exportPassphrase.value = encrypted.passphrase
     }
 
     @Suppress("TooGenericExceptionCaught")
     private fun export(write: (json: String) -> Unit) {
+        if (auth.shouldLock.value) return
         viewModelScope.launch {
+            if (auth.shouldLock.value) return@launch
             val message = try {
                 withContext(Dispatchers.Default) {
                     write(buildJournalExportJson(experienceRepository, webhookRepository, exportFilterFlow.value))
@@ -236,7 +241,9 @@ class ExportBackupViewModel @Inject constructor(
     }
 
     fun enableAutomaticBackups(dirUri: Uri, password: String) {
+        if (auth.shouldLock.value) return
         viewModelScope.launch {
+            if (auth.shouldLock.value) return@launch
             // Without a persisted grant the worker loses access to the folder after a reboot.
             appContext.contentResolver.takePersistableUriPermission(
                 dirUri,
@@ -256,6 +263,7 @@ class ExportBackupViewModel @Inject constructor(
     }
 
     fun backupNow() {
+        if (auth.shouldLock.value) return
         BackupWorker.backupNow(appContext)
         viewModelScope.launch { snackbarHostState.showSnackbar("Backup started") }
     }

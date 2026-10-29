@@ -53,4 +53,14 @@ class ToleranceTextParserTest {
         assertEquals(7f, inverted!!.halfLifeDays)
         assertEquals(7f, inverted.zeroDays)
     }
+
+    @Test
+    fun overlongTextIsNotParsed() {
+        assertNull(ToleranceTextParser.parseDurationText("1".repeat(ToleranceTextParser.MAX_TEXT_LENGTH) + " days"))
+    }
+
+    @Test
+    fun numberAfterDecimalPointStillParses() {
+        assertEquals(2.3f, ToleranceTextParser.parseDurationText("1.2.3 days")!!, 1e-4f)
+    }
 }

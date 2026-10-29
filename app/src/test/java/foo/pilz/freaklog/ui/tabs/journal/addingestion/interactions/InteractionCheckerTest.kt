@@ -11,6 +11,7 @@
 package foo.pilz.freaklog.ui.tabs.journal.addingestion.interactions
 
 import assertk.assertThat
+import assertk.assertions.containsExactly
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
 import assertk.assertions.isNull
@@ -21,6 +22,8 @@ import foo.pilz.freaklog.data.substances.classes.Substance
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Before
 import org.junit.Test
 
@@ -70,6 +73,20 @@ class InteractionCheckerTest {
         )
         // Default: no custom profile interactions
         every { customProfiles.getInteraction(any(), any(), any()) } returns null
+    }
+
+    @Test
+    fun `interactions among names skip pairs of two unknown names`() {
+        val mdma = fakeSubstance("MDMA", dangerous = listOf("MAOI"), unsafe = listOf("Unknown 1"))
+        every { customProfiles.byNameFlow } returns MutableStateFlow(emptyMap())
+        every { substanceRepo.getSubstance(any()) } returns null
+        every { substanceRepo.getSubstance("MDMA") } returns mdma
+        val unknown = (1..2_000).map { "Unknown $it" }
+
+        val result = checker.getInteractionsAmong(listOf("Unknown 1", "MDMA", "MAOI") + unknown)
+
+        assertThat(result.map { it.aName to it.bName }).containsExactly("Unknown 1" to "MDMA", "MDMA" to "MAOI")
+        verify(exactly = 0) { customProfiles.getInteraction("Unknown 1", "Unknown 2", any()) }
     }
 
     @Test

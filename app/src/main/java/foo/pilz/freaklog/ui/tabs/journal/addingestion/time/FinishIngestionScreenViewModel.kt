@@ -27,6 +27,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import dagger.hilt.android.lifecycle.HiltViewModel
+import foo.pilz.freaklog.data.room.experiences.CustomFormulationRepository
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.room.experiences.entities.Experience
@@ -38,15 +40,13 @@ import foo.pilz.freaklog.data.room.webhooks.WebhookRepository
 import foo.pilz.freaklog.data.room.webhooks.entities.IngestionWebhookMessage
 import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
 import foo.pilz.freaklog.data.substances.AdministrationRoute
+import foo.pilz.freaklog.data.substances.repositories.SubstanceRepositoryInterface
+import foo.pilz.freaklog.di.ApplicationScope
 import foo.pilz.freaklog.ui.main.navigation.graphs.FinishIngestionRoute
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import foo.pilz.freaklog.ui.utils.getInstant
 import foo.pilz.freaklog.ui.utils.getLocalDateTime
 import foo.pilz.freaklog.ui.utils.getStringOfPattern
-import dagger.hilt.android.lifecycle.HiltViewModel
-import foo.pilz.freaklog.data.room.experiences.CustomFormulationRepository
-import foo.pilz.freaklog.data.substances.repositories.SubstanceRepositoryInterface
-import foo.pilz.freaklog.di.ApplicationScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -565,12 +565,13 @@ class FinishIngestionScreenViewModel @Inject constructor(
                     saltForm = ingestion.saltForm
                 )
                 if (result.success && result.messageId != null) {
-                    ingestionWebhookMessageRepository.insert(
+                    ingestionWebhookMessageRepository.insertForDestination(
                         IngestionWebhookMessage(
                             ingestionId = ingestion.id,
                             webhookId = webhook.id,
                             messageId = result.messageId
-                        )
+                        ),
+                        webhook.url
                     )
                 } else {
                     android.util.Log.w(

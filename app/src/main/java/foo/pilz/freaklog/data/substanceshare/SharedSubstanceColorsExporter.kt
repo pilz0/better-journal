@@ -19,7 +19,7 @@ fun shareSubstanceColors(context: Context, colors: List<SharedSubstanceColor>) {
     )
     val payload = json.encodeToString(SharedSubstanceColorsEnvelope.serializer(), envelope)
     val dir = File(context.cacheDir, "shared_substance_colors").apply { mkdirs() }
-    val file = File(dir, "substance_colors.colors")
+    val file = sharedSnapshot(context, dir, "substance_colors-", ".colors")
     file.writeText(payload)
     val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
     val intent = Intent(Intent.ACTION_SEND).apply {

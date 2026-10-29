@@ -397,14 +397,8 @@ class ExperienceViewModel @Inject constructor(
         sortedIngestionsWithCompanionsFlow.combine(combinationSettingsStorage.enabledInteractionsFlow) { ingestions, enabledInteractions ->
             val interactionsToCheck =
                 ingestions.filter { it.ingestion.consumerName == null }.map { it.ingestion.substanceName }.plus(enabledInteractions).distinct()
-            return@combine interactionsToCheck.flatMapIndexed { index: Int, interaction: String ->
-                return@flatMapIndexed interactionsToCheck.drop(index + 1).mapNotNull { other ->
-                    interactionChecker.getInteractionBetween(
-                        interaction,
-                        other
-                    )
-                }
-            }.sortedByDescending { it.interactionType.dangerCount }
+            return@combine interactionChecker.getInteractionsAmong(interactionsToCheck)
+                .sortedByDescending { it.interactionType.dangerCount }
         }
             .flowOn(Dispatchers.IO) // if this wasn't on the background the navigation from journal screen to this screen would jump
             .stateIn(
@@ -615,12 +609,16 @@ class ExperienceViewModel @Inject constructor(
                 heartRateSamples = localHeartRateSamples.value,
                 bloodPressureReadings = bloodPressureReadingsFlow.value,
             )
-            foo.pilz.freaklog.data.experienceshare.shareExperienceImage(
-                activity = activity,
-                sanitizedTitle = foo.pilz.freaklog.data.experienceshare.sanitizeForShareFile(experience.title),
-                shareText = foo.pilz.freaklog.ui.tabs.journal.experience.share.buildShareText(model),
-            ) {
-                foo.pilz.freaklog.ui.tabs.journal.experience.share.ShareableExperienceContent(model)
+            try {
+                foo.pilz.freaklog.data.experienceshare.shareExperienceImage(
+                    activity = activity,
+                    sanitizedTitle = foo.pilz.freaklog.data.experienceshare.sanitizeForShareFile(experience.title),
+                    shareText = foo.pilz.freaklog.ui.tabs.journal.experience.share.buildShareText(model),
+                ) {
+                    foo.pilz.freaklog.ui.tabs.journal.experience.share.ShareableExperienceContent(model)
+                }
+            } catch (e: IllegalArgumentException) {
+                android.widget.Toast.makeText(activity, e.message, android.widget.Toast.LENGTH_LONG).show()
             }
         }
     }

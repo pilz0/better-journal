@@ -1,5 +1,6 @@
 package foo.pilz.freaklog.data.ai.provider
 
+import foo.pilz.freaklog.data.ai.profiles.isInsecureRemoteUrl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.coroutineScope
@@ -45,14 +46,16 @@ object AiHttp {
         val conn = open(url, "POST", headers + ("Accept" to "text/event-stream, application/json"))
         withDisconnectOnCancel(conn) {
             send(conn, body)
-            responseStream(conn).use { stream ->
+            LimitedResponseStream(responseStream(conn)).use { stream ->
                 if (conn.contentType.orEmpty().contains("json", ignoreCase = true)) {
                     emit(SseEvent(null, readCapped(stream, conn.url.host)))
                 } else {
                     val parser = SseParser()
+                    var lines = 0
                     stream.bufferedReader(Charsets.UTF_8).use { reader ->
                         while (true) {
                             val line = reader.readLine() ?: break
+                            if (++lines > 100_000) throw AiException("The provider sent too many stream events.")
                             parser.feed(line)?.let { emit(it) }
                         }
                     }
@@ -90,14 +93,28 @@ object AiHttp {
         } catch (e: java.net.MalformedURLException) {
             throw AiException("Invalid URL: $url", cause = e)
         }
-        if (parsed.protocol != "http" && parsed.protocol != "https") {
-            throw AiException("Only http:// and https:// URLs are supported.")
+        val transportError = when {
+            parsed.protocol != "http" && parsed.protocol != "https" -> "Only http:// and https:// URLs are supported."
+            isInsecureRemoteUrl(url) ->
+                "HTTPS is required for remote servers. HTTP is allowed only on this device (localhost)."
+            else -> null
         }
+        if (transportError != null) throw AiException(transportError)
         return (parsed.openConnection() as HttpURLConnection).apply {
             requestMethod = method
             connectTimeout = CONNECT_TIMEOUT_MS
             readTimeout = READ_TIMEOUT_MS
             headers.forEach { (k, v) -> setRequestProperty(k, v) }
+        }
+    }
+
+    private class LimitedResponseStream(input: InputStream) : java.io.FilterInputStream(input) {
+        private var count = 0L
+        override fun read(): Int = super.read().also { if (it >= 0) add(1) }
+        override fun read(b: ByteArray, off: Int, len: Int): Int = super.read(b, off, len).also { if (it > 0) add(it) }
+        private fun add(size: Int) {
+            count += size
+            if (count > MAX_JSON_BYTES) throw AiException("The provider response is too large.")
         }
     }
 
@@ -175,7 +192,9 @@ object AiHttp {
         is AiException -> e
         is UnknownHostException -> AiException("Can't resolve $host. Check the base URL and your connection.", cause = e)
         is ConnectException -> AiException("Can't connect to $host. Is the server running and reachable?", cause = e)
-        is SocketTimeoutException -> AiException("$host didn't answer in time.", cause = e)
+        is SocketTimeoutException -> AiException(
+            "$host didn't answer in time. For LAN servers, check local network access in AI settings.", cause = e
+        )
         is javax.net.ssl.SSLException -> AiException("Secure connection to $host failed: ${e.message}", cause = e)
         else -> e
     }

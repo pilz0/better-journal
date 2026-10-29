@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  Cleartext (http://) is allowed so the AI assistant can reach self-hosted model
-  servers on a local network (Ollama, LM Studio, llama.cpp, ...), which rarely
-  have TLS. The app's built-in network requests all use https://; plain http is
-  only used for addresses the user types into the AI settings, and the settings
-  warn when such an address is not on this device.
--->
+<!-- Self-hosted LAN servers require HTTPS; HTTP is limited to this device. -->
 <network-security-config>
-    <base-config cleartextTrafficPermitted="true">
+    <base-config cleartextTrafficPermitted="false">
         <trust-anchors>
             <certificates src="system" />
         </trust-anchors>
     </base-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">::1</domain>
+        <domain includeSubdomains="false">[::1]</domain>
+    </domain-config>
 </network-security-config>

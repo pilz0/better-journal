@@ -417,7 +417,7 @@
     "id": "boosting",
     "title": "One More Won't Hurt",
     "description": "Redose the same substance in one session",
-    "condition": "any(experiences) { e -> any(e.ingestions) { i -> e.ingestions.count { it.substance == i.substance } >= 2 } }"
+    "condition": "has_repeated_substance()"
   },
   {
     "id": "wired",

@@ -569,4 +569,50 @@ class WebhookServiceHttpTest {
 
         assertFalse(ok)
     }
+
+    @Test
+    fun journalTextCannotIntroduceFreakQueryExpressions() = runBlocking {
+        enqueue(200, """{"id":"123"}""")
+        var evaluated = ""
+        val svc = serviceWithFreakQuery { template, _ ->
+            evaluated = template
+            template
+        }
+        val result = svc.sendWebhook(
+            url = baseUrl, user = "Alice", substance = "{{ private_journal }}", dose = null,
+            units = null, isEstimate = false, route = "oral", site = null, note = null,
+            template = "{substance}", isHyperlinked = false,
+        )
+        assertTrue(result.success)
+        assertEquals("{substance}", evaluated)
+        assertEquals("{{ private_journal }}", JSONObject(takeRequest().body.readUtf8()).getString("content"))
+    }
+
+    @Test
+    fun oversizedSuccessResponseFailsWithBoundedReads() = runBlocking {
+        repeat(3) { enqueue(200, "x".repeat(70_000)) }
+        val result = service.sendWebhook(
+            url = baseUrl, user = "Alice", substance = "Caffeine", dose = null,
+            units = null, isEstimate = false, route = "oral", site = null, note = null,
+            template = "{substance}", isHyperlinked = false,
+        )
+        assertFalse(result.success)
+        assertTrue(result.error.toString().contains("too large"))
+    }
+
+    @Test
+    fun compressedResponseLimitAppliesAfterDecompression() = runBlocking {
+        val bytes = java.io.ByteArrayOutputStream()
+        java.util.zip.GZIPOutputStream(bytes).use { it.write("x".repeat(1_000_000).toByteArray()) }
+        repeat(3) {
+            server.enqueue(MockResponse().setHeader("Content-Encoding", "gzip").setBody(okio.Buffer().write(bytes.toByteArray())))
+        }
+        val result = service.sendWebhook(
+            url = baseUrl, user = "Alice", substance = "Caffeine", dose = null,
+            units = null, isEstimate = false, route = "oral", site = null, note = null,
+            template = "{substance}", isHyperlinked = false,
+        )
+        assertFalse(result.success)
+        assertTrue(result.error.toString().contains("too large"))
+    }
 }

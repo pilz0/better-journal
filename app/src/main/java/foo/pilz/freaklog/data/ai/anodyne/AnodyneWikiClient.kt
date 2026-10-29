@@ -4,6 +4,8 @@ import android.util.JsonReader
 import android.util.JsonToken
 import foo.pilz.freaklog.data.ai.provider.AiException
 import foo.pilz.freaklog.data.ai.provider.AiHttp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.FilterInputStream
@@ -48,14 +50,26 @@ class AnodyneWikiClient @Inject constructor() {
         )
         private val MACRO_WITH_TEXT = Regex("""\{\w+\s+'([^']*)'\}""")
         private val OTHER_MACRO = Regex("""\{[^{}]*\}""")
-        private val HTML_TAG = Regex("""<[^>]+>""")
         private val WHITESPACE = Regex("""\s+""")
 
+        private fun stripHtml(text: String): String = buildString {
+            var start = 0
+            while (start < text.length) {
+                val opening = text.indexOf('<', start)
+                val closing = if (opening >= 0) text.indexOf('>', opening + 1) else -1
+                if (closing < 0) {
+                    append(text, start, text.length)
+                    break
+                }
+                append(text, start, opening)
+                start = closing + 1
+            }
+        }
+
         /** Removes HTML tags, wiki macros and entities from a field. */
-        fun clean(text: String): String = text
+        fun clean(text: String): String = stripHtml(text.take(MAX_TEXT_CHARS * 8))
             .replace(MACRO_WITH_TEXT, "$1")
             .replace(OTHER_MACRO, "")
-            .replace(HTML_TAG, "")
             .replace("&nbsp;", " ")
             .replace("&amp;", "&")
             .replace(WHITESPACE, " ")
@@ -77,13 +91,22 @@ class AnodyneWikiClient @Inject constructor() {
 
     /** Searches titles and alternative names in the substance index. */
     suspend fun search(baseUrl: String, query: String, limit: Int): List<AnodyneIndexEntry> {
-        val q = query.trim().lowercase()
-        val index = index(baseUrl)
-        val exact = index.filter { e -> e.title.lowercase() == q || e.aliases.any { it.lowercase() == q } }
-        val partial = index.filter { e ->
-            e !in exact && (e.title.lowercase().contains(q) || e.aliases.any { it.lowercase().contains(q) })
+        val entries = index(baseUrl)
+        return withContext(Dispatchers.Default) {
+            val q = query.trim().lowercase()
+            val cap = limit.coerceIn(0, 50)
+            val exact = mutableListOf<AnodyneIndexEntry>()
+            val partial = mutableListOf<AnodyneIndexEntry>()
+            for (entry in entries) {
+                val names = listOf(entry.title) + entry.aliases
+                if (names.any { it.equals(q, ignoreCase = true) }) {
+                    if (exact.size < cap) exact.add(entry)
+                } else if (partial.size < cap && names.any { it.contains(q, ignoreCase = true) }) {
+                    partial.add(entry)
+                }
+            }
+            (exact + partial).take(cap)
         }
-        return (exact + partial).take(limit)
     }
 
     private suspend fun index(baseUrl: String): List<AnodyneIndexEntry> {
@@ -92,7 +115,7 @@ class AnodyneWikiClient @Inject constructor() {
             if (url == baseUrl && now - cachedAt < INDEX_TTL_MS) return entries
         }
         val json = AiHttp.getJson(AiHttp.join(baseUrl, "index/substance"), emptyMap())
-        val entries = parseIndex(json)
+        val entries = withContext(Dispatchers.Default) { parseIndex(json) }
         cachedIndex = baseUrl to entries
         cachedAt = now
         return entries
@@ -100,6 +123,7 @@ class AnodyneWikiClient @Inject constructor() {
 
     internal fun parseIndex(json: JSONObject): List<AnodyneIndexEntry> {
         val array = json.optJSONArray("Entries") ?: throw AiException("The wiki index has an unexpected format.")
+        if (array.length() > 50_000) throw AiException("The wiki index has too many entries.")
         return (0 until array.length()).mapNotNull { i ->
             val entry = array.optJSONObject(i) ?: return@mapNotNull null
             val title = entry.optString("Title").takeIf { it.isNotBlank() } ?: return@mapNotNull null

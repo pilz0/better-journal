@@ -21,8 +21,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -51,6 +52,7 @@ fun BiometricAuthWrapper(
     content: @Composable () -> Unit,
 ) {
     val locked by manager.shouldLock.collectAsState()
+    val protectedState = rememberSaveableStateHolder()
 
     // Trigger the system prompt automatically when entering the locked state.
     LaunchedEffect(locked) {
@@ -63,8 +65,6 @@ fun BiometricAuthWrapper(
         }
     }
 
-    content()
-
     if (locked) {
         LockScreen(
             // Recompute availability on each composition so the unlock button doesn't
@@ -75,6 +75,8 @@ fun BiometricAuthWrapper(
                 manager.authenticate(activity = activity)
             },
         )
+    } else {
+        protectedState.SaveableStateProvider("journal") { content() }
     }
 }
 

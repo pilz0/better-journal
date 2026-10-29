@@ -115,7 +115,7 @@ class ExperienceRepository @Inject constructor(
             experienceDao.insertEverything(journalExport)
             journalExport.reminders.forEach { reminderDao.insert(it) }
             journalExport.webhooks.forEach { webhookDao.insert(it.toEntity()) }
-            val validCustomUnitIds = journalExport.customUnits.map { it.id }.toSet()
+            val validCustomUnitIds = journalExport.customUnits.map { it.id }.filter { it > 0 }.toSet()
             journalExport.substanceGroups.forEach { group ->
                 experienceDao.insertSubstanceGroupWithItems(
                     group = SubstanceGroup(name = group.name),
@@ -150,7 +150,7 @@ class ExperienceRepository @Inject constructor(
             ingestionWebhookMessageDao.deleteAll()
             webhookDao.deleteAll()
             journalExport.webhooks.forEach { webhookDao.insert(it.toEntity()) }
-            val validCustomUnitIds = journalExport.customUnits.map { it.id }.toSet()
+            val validCustomUnitIds = journalExport.customUnits.map { it.id }.filter { it > 0 }.toSet()
             journalExport.substanceGroups.forEach { group ->
                 experienceDao.insertSubstanceGroupWithItems(
                     group = SubstanceGroup(name = group.name),

@@ -16,7 +16,10 @@ import foo.pilz.freaklog.data.ai.profiles.AiProfileStore
 import foo.pilz.freaklog.data.ai.profiles.AiProviderPreset
 import foo.pilz.freaklog.data.room.AppDatabase
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
+import foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthManager
+import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -58,6 +61,7 @@ class AiChatbotRepositoryPreferenceTest {
             db.experienceDao(),
             mockk<AiSubstanceTools>(relaxed = true),
             mockk<AiAnodyneTools>(relaxed = true),
+            mockk<BiometricAuthManager> { every { shouldLock } returns MutableStateFlow(false) },
         )
         val repository = AiChatbotRepository(db.experienceDao(), preferences, tools, store)
         return Triple(preferences, store, repository)

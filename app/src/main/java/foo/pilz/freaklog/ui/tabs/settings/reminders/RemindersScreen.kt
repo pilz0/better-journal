@@ -5,7 +5,6 @@
 package foo.pilz.freaklog.ui.tabs.settings.reminders
 
 import android.content.Intent
-import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -56,12 +55,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import foo.pilz.freaklog.data.room.reminders.entities.Reminder
 import foo.pilz.freaklog.scheduled.ReminderSchedule
 
@@ -114,7 +113,7 @@ fun RemindersScreen(
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
-            if (!canExact && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (!canExact) {
                 ExactAlarmBanner(
                     onOpenSettings = {
                         val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)

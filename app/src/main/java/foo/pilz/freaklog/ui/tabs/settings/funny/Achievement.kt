@@ -12,6 +12,7 @@ import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.substances.classes.InteractionType
 import foo.pilz.freaklog.data.substances.classes.roa.DoseClass
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepositoryInterface
+import foo.pilz.freaklog.ui.tabs.journal.addingestion.interactions.Interaction
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.interactions.InteractionChecker
 import foo.pilz.freaklog.ui.tabs.settings.funny.condition.AchievementEngine
 import foo.pilz.freaklog.ui.tabs.settings.funny.condition.EvalContext
@@ -69,7 +70,8 @@ data class AchievementContext(
     val customUnits: List<CustomUnit>,
     val customRecipes: List<CustomRecipe>,
     val substanceRepo: SubstanceRepositoryInterface,
-    val interactionChecker: InteractionChecker
+    val interactionChecker: InteractionChecker,
+    val checkActive: () -> Unit = {},
 ) {
     val evalContext: EvalContext by lazy {
         val substancesByExperience = experiences.associate { experience ->
@@ -157,7 +159,13 @@ internal fun usesConditionLanguage(condition: String): Boolean =
 
 fun evaluateAchievement(condition: String, ctx: AchievementContext): Boolean {
     if (usesConditionLanguage(condition)) {
-        return runCatching { conditionEngine.evaluate(condition, ctx.evalContext) }.getOrDefault(false)
+        return try {
+            conditionEngine.evaluate(condition, ctx.evalContext, ctx.checkActive)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            false
+        }
     }
 
     splitTopLevel(condition, " & ")?.let { parts ->
@@ -337,6 +345,10 @@ fun evaluateAchievement(condition: String, ctx: AchievementContext): Boolean {
                 !it.administrationSite.isNullOrBlank()
         }
 
+        "has_repeated_substance" -> ctx.experiences.any { exp ->
+            val seen = hashSetOf<String>()
+            exp.ingestions.any { !seen.add(it.substanceName) }
+        }
         "has_redose_in_peak" -> hasRedoseInPeak(ctx)
 
         "interaction" -> {
@@ -371,43 +383,20 @@ private fun hasInteractionInList(
     substances: List<String>,
     type: String,
     checker: InteractionChecker
-): Boolean {
-    for (i in substances.indices) {
-        for (j in (i + 1) until substances.size) {
-            val interaction = checker.getInteractionBetween(substances[i], substances[j])
-            val matches = when (type) {
-                "dangerous" -> interaction?.interactionType == InteractionType.DANGEROUS
-                "unsafe" -> interaction?.interactionType == InteractionType.UNSAFE
-                "uncertain" -> interaction?.interactionType == InteractionType.UNCERTAIN
-                "any" -> interaction != null
-                else -> false
-            }
-            if (matches) return true
-        }
-    }
-    return false
-}
+): Boolean = checker.getInteractionsAmong(substances).any { it.matchesType(type) }
 
 private fun countInteractionsInList(
     substances: List<String>,
     type: String,
     checker: InteractionChecker
-): Int {
-    var count = 0
-    for (i in substances.indices) {
-        for (j in (i + 1) until substances.size) {
-            val interaction = checker.getInteractionBetween(substances[i], substances[j])
-            val matches = when (type) {
-                "dangerous" -> interaction?.interactionType == InteractionType.DANGEROUS
-                "unsafe" -> interaction?.interactionType == InteractionType.UNSAFE
-                "uncertain" -> interaction?.interactionType == InteractionType.UNCERTAIN
-                "any" -> interaction != null
-                else -> false
-            }
-            if (matches) count++
-        }
-    }
-    return count
+): Int = checker.getInteractionsAmong(substances).count { it.matchesType(type) }
+
+private fun Interaction.matchesType(type: String): Boolean = when (type) {
+    "dangerous" -> interactionType == InteractionType.DANGEROUS
+    "unsafe" -> interactionType == InteractionType.UNSAFE
+    "uncertain" -> interactionType == InteractionType.UNCERTAIN
+    "any" -> true
+    else -> false
 }
 
 internal fun longestConsecutiveDayStreak(ingestions: List<Ingestion>): Int {
@@ -481,14 +470,24 @@ internal fun hasRedoseInPeak(ctx: AchievementContext): Boolean {
                 0L
             }
             if (peakEndSec <= 0L) continue
-            val sorted = list.sortedBy { it.time }
-            for (i in sorted.indices) {
-                for (j in (i + 1) until sorted.size) {
-                    val delta = runCatching {
-                        ChronoUnit.SECONDS.between(sorted[i].time, sorted[j].time)
-                    }.getOrDefault(-1L)
-                    if (delta in 1..peakEndSec) return true
-                }
+            if (hasPairWithinPeak(list.map { it.time }.sorted(), peakEndSec)) return true
+        }
+    }
+    return false
+}
+
+internal fun hasPairWithinPeak(times: List<java.time.Instant>, peakEndSec: Long): Boolean {
+    var left = 0
+    for (right in times.indices) {
+        while (left < right) {
+            val delta = runCatching {
+                ChronoUnit.SECONDS.between(times[left], times[right])
+            }.getOrDefault(Long.MAX_VALUE)
+            if (delta > peakEndSec) {
+                left++
+            } else {
+                if (delta >= 1) return true
+                break
             }
         }
     }

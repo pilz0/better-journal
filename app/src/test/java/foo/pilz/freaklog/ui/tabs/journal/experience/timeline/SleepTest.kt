@@ -57,4 +57,17 @@ class SleepTest {
         assertTrue(shapes[0].roundLeft)
         assertTrue(shapes[0].roundRight)
     }
+
+    @Test(timeout = 5000)
+    fun manyAlternatingStagesRemainSeparate() {
+        val start = Instant.parse("2026-01-01T00:00:00Z")
+        val stages = List(20_000) { i ->
+            SleepStageSample(
+                start.plusSeconds(i.toLong()), start.plusSeconds(i + 1L),
+                if (i % 2 == 0) SleepStageType.Sleeping else SleepStageType.Awake
+            )
+        }
+        val shapes = SleepHealthConnect.buildGraphShapes(listOf(SleepSessionSample(stages)), start, 20_000f)
+        assertEquals(20_000, shapes.size)
+    }
 }

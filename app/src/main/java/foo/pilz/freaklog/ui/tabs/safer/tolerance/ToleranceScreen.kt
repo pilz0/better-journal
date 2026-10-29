@@ -509,8 +509,8 @@ private fun ToleranceBadge(estimate: ToleranceEstimate) {
 private fun RecoveryInfoCell(
     label: String,
     value: String,
-    valueColor: Color = MaterialTheme.colorScheme.onSurface,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    valueColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(

@@ -97,6 +97,8 @@ private fun WebhookEditorBody(
         )
         OutlinedTextField(
             value = viewModel.url,
+            isError = viewModel.url.isNotBlank() && !foo.pilz.freaklog.data.webhook.isSecureWebhookUrl(viewModel.url),
+            supportingText = { Text("HTTPS is required for remote destinations. HTTP is allowed only on this device.") },
             onValueChange = { viewModel.url = it },
             label = { Text("Discord webhook URL") },
             singleLine = true,

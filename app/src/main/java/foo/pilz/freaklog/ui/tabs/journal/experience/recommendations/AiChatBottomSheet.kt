@@ -68,6 +68,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -384,6 +385,8 @@ private fun Transcript(
 
 @Composable
 private fun MessageBubble(message: ChatItem.Message, showActions: Boolean, onRetry: (() -> Unit)?) {
+    val context = LocalContext.current
+    val images = remember(context) { assistantImageLoader(context) }
     val backgroundColor = when {
         message.isError -> MaterialTheme.colorScheme.errorContainer
         message.isUser -> MaterialTheme.colorScheme.primaryContainer
@@ -419,6 +422,7 @@ private fun MessageBubble(message: ChatItem.Message, showActions: Boolean, onRet
             } else {
                 MarkdownText(
                     markdown = message.text,
+                    imageLoader = images,
                     style = MaterialTheme.typography.bodyMedium.copy(color = contentColor)
                 )
             }

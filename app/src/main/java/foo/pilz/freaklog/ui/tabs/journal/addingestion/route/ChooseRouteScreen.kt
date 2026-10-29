@@ -47,13 +47,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 
@@ -230,8 +228,7 @@ fun InjectionDialog(
 
 @Composable
 fun RouteBox(route: AdministrationRoute, titleStyle: TextStyle) {
-    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    val screenHeightPx = with(LocalDensity.current) { screenHeight.toPx() }
+    val screenHeightPx = LocalWindowInfo.current.containerSize.height
     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(

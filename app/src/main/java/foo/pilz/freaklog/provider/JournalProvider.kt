@@ -18,6 +18,7 @@ class JournalProvider : ContentProvider() {
     @InstallIn(SingletonComponent::class)
     interface ProviderEntryPoint {
         fun experienceDao(): ExperienceDao
+        fun biometricAuthManager(): foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthManager
     }
 
     private val code = object {
@@ -57,6 +58,7 @@ class JournalProvider : ContentProvider() {
         selectionArgs: Array<out String>?,
         sortOrder: String?,
     ): Cursor {
+        JournalClientAccess(context!!.applicationContext).enforce(callingPackage)
         val since = ProviderQueryParams.parseSince(uri.getQueryParameter(JournalContract.QUERY_SINCE))
         val limit = ProviderQueryParams.parseLimit(uri.getQueryParameter(JournalContract.QUERY_LIMIT))
         val cursor = when (matcher.match(uri)) {

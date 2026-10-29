@@ -47,6 +47,16 @@
 
           androidHome = "${androidSdk.androidsdk}/libexec/android-sdk";
 
+          # Keep the offline Nix build on exactly the wrapper's Gradle distribution.
+          wrapperProperties = builtins.readFile ./gradle/wrapper/gradle-wrapper.properties;
+          gradleVersion = builtins.head (builtins.match ".*gradle-([0-9.]+)-bin[.]zip.*" wrapperProperties);
+          gradleHash = builtins.head (builtins.match ".*distributionSha256Sum=([0-9a-f]+).*" wrapperProperties);
+          gradle = (pkgs.gradle-packages.mkGradle {
+            version = gradleVersion;
+            hash = "sha256:${gradleHash}";
+            defaultJava = pkgs.jdk17;
+          }).wrapped;
+
           ai = import ./nix/ai { inherit pkgs; };
 
           # Single source of truth for the version is app/build.gradle.kts.
@@ -65,8 +75,7 @@
             }:
             gradle2nix.builders.${system}.buildGradlePackage {
               inherit pname version;
-              # AGP 9 needs Gradle 9; nixpkgs' default `gradle` is still the 8.x line.
-              gradle = pkgs.gradle_9;
+              inherit gradle;
               lockFile = ./gradle.lock;
               src = ./.;
               gradleBuildFlags = [

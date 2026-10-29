@@ -72,6 +72,29 @@ class InteractionChecker @Inject constructor(
         }
     }
 
+    /**
+     * Every interaction between two of [names], in pair order. Only a substance with built-in or
+     * custom data can declare an interaction, so pairs of two unknown names are skipped: the work
+     * grows with known × all names instead of all × all.
+     */
+    fun getInteractionsAmong(names: List<String>): List<Interaction> {
+        val distinct = names.distinct()
+        val profiles = customProfiles.byNameFlow.value
+        val hasData = distinct.map { substanceRepo.getSubstance(it) != null || profiles.containsKey(it) }
+        val pairs = mutableListOf<Pair<Int, Int>>()
+        for (i in distinct.indices) {
+            if (!hasData[i]) continue
+            for (j in distinct.indices) {
+                // A pair of two known names is visited from both sides; keep it once.
+                if (j == i || (hasData[j] && j < i)) continue
+                pairs += if (i < j) i to j else j to i
+            }
+        }
+        return pairs.sortedWith(compareBy({ it.first }, { it.second })).mapNotNull { (a, b) ->
+            getInteractionBetween(distinct[a], distinct[b])
+        }
+    }
+
     private val cleanedCache = ConcurrentHashMap<Interactions, CleanedInteractions>()
 
     private fun getInteractionFromAToB(

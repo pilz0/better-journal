@@ -185,14 +185,16 @@ object SleepHealthConnect {
                     } else null
                 }
                 .filterNotNull()
-                .fold(emptyList<GraphSleepLineShape>()) { acc, shape ->
+                .fold(mutableListOf<GraphSleepLineShape>()) { acc, shape ->
                     // collapses consecutive segments of equal color into a single segment
                     acc.lastOrNull()?.let { last ->
                         if (last.color == shape.color) {
-                            return@fold acc.subList(0, acc.size - 1) + last.copy(x2 = shape.x2)
+                            acc[acc.lastIndex] = last.copy(x2 = shape.x2)
+                            return@fold acc
                         }
                     }
-                    acc + shape
+                    acc.add(shape)
+                    acc
                 }
                 .filterNot { (it.x2 < 0f) xor (it.x1 > 1f) } // remove segments that wouldn't be visible
                 .let { it.mapIndexed { index, shape ->

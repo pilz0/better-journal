@@ -245,4 +245,34 @@ class WebhookServiceTest {
         val result = webhookService.processTemplate(template, values)
         assertEquals("Eve: 200 mg MDMA via Oral\n> Festival", result)
     }
+
+    @Test
+    fun replacementValuesAreLiteralAndCannotCascade() {
+        val values = mapOf("substance" to "{note}[{user}]", "note" to "private", "user" to "Alice")
+        assertEquals("{note}[{user}] private", webhookService.processTemplate("{substance} {note}", values))
+    }
+
+    @Test
+    fun templatesAndExpandedMessagesHaveAllocationLimits() {
+        org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
+            webhookService.processTemplate("x".repeat(16_385), emptyMap())
+        }
+        org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
+            webhookService.processTemplate("{note}".repeat(100), mapOf("note" to "x".repeat(1000)))
+        }
+        assertEquals("x".repeat(1000), webhookService.processTemplate("[{note}]".repeat(1000), mapOf("note" to "x")))
+    }
+
+    @Test
+    fun secureDestinationsAllowOnlyHttpsAndExactLoopbackHttp() {
+        listOf("https://example.com/hook", "http://127.0.0.1/hook", "http://[::1]/hook").forEach {
+            org.junit.Assert.assertTrue(isSecureWebhookUrl(it))
+        }
+        listOf(
+            "http://192.168.1.2/hook", "http://example.com/hook",
+            "http://localhost.evil/hook", "https://user:secret@example.com"
+        ).forEach {
+            org.junit.Assert.assertFalse(isSecureWebhookUrl(it))
+        }
+    }
 }
