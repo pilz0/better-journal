@@ -118,9 +118,8 @@ class SubstanceColorsViewModel @Inject constructor(
 
     val otherColorsFlow: StateFlow<List<AdaptiveColor>> =
         alreadyUsedColorsFlow.map { alreadyUsedColors ->
-            AdaptiveColor.entries.filter {
-                !alreadyUsedColors.contains(it)
-            }
+            val usedSet = alreadyUsedColors.toSet()
+            AdaptiveColor.entries.filter { it !in usedSet }
         }.stateIn(
             initialValue = emptyList(),
             scope = viewModelScope,

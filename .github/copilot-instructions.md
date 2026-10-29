@@ -60,7 +60,7 @@ nix run --inputs-from . gradle2nix -- -t assembleRelease -t bundleRelease
 ## High-impact invariants
 
 - Android package namespace is `foo.pilz.freaklog` (not upstream `com.isaakhanimann.journal`).
-- Room schema version is `27` with an `@AutoMigration` chain in `AppDatabase.kt`.
+- Room schema version is `29` with an `@AutoMigration` chain in `AppDatabase.kt`.
 - The AI assistant uses its own raw-HTTP clients for the OpenAI, Anthropic and Gemini APIs in `data/ai/provider/`. Don't add provider SDKs (the archived `generative-ai-android` drops Gemini's `thoughtSignature`), and keep the raw `NativeContent` round-trip intact.
 - AI API keys are only stored encrypted (`AiProfileStore` + `AiKeyCipher`); never write them to plain preferences, logs or exports.
 - If dependencies or plugins change, regenerate `gradle.lock` (command above) or the Nix build breaks.

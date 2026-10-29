@@ -45,7 +45,7 @@ class SubstanceRepository @Inject constructor(
     private val substancesWithCategoriesList: List<SubstanceWithCategories> = substanceFile.substances.map { substance ->
         SubstanceWithCategories(
             substance = substance,
-            categories = substanceFile.categories.filter { it.name in substance.categories }
+            categories = substance.categories.mapNotNull { categoriesMap[it] }
         )
     }
     private val substancesWithCategoriesMap: Map<String, SubstanceWithCategories> =

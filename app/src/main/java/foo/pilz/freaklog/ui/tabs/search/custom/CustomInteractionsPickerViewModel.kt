@@ -63,15 +63,15 @@ class CustomInteractionsPickerViewModel @Inject constructor(
 
         Sections(
             substances = (filter(allBuiltinSubstances) + filter(customs)).distinct(),
-            categories = filter(allBuiltinCategories),
-            common = filter(allCommon),
+            // distinct: the picker uses the names as LazyColumn keys, which must be unique
+            categories = filter(allBuiltinCategories).distinct(),
+            common = filter(allCommon).distinct(),
         )
     }.stateInVm(viewModelScope, Sections())
 
     init {
         viewModelScope.launch {
-            customSubstancesFlow.value = experienceRepo.getAllCustomSubstances()
-                .map { it.name }
+            customSubstancesFlow.value = experienceRepo.getAllCustomSubstanceNames()
                 .filter { name ->
                     val self = customRepo.getWithEverything(customSubstanceId)?.substance?.name
                     name != self

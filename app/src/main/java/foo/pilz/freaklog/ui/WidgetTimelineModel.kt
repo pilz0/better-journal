@@ -11,7 +11,9 @@
 package foo.pilz.freaklog.ui
 
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
+import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithEverything
 import foo.pilz.freaklog.data.substances.AdministrationRoute
+import foo.pilz.freaklog.data.substances.classes.Substance
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
 import java.time.Duration
 import java.time.Instant
@@ -78,6 +80,40 @@ data class WidgetTimelineModel(
     )
 
     companion object {
+        internal fun buildSubstanceDurations(
+            substances: List<Substance>,
+            customProfiles: Map<String, CustomSubstanceWithEverything>,
+            useIntranasalForRectal: Boolean = false,
+        ): Map<String, Map<AdministrationRoute, RoaDuration?>> =
+            substances.associate { substance ->
+                val base = substance.roas.associate { it.route to it.roaDuration }
+                val roas = if (useIntranasalForRectal) {
+                    val effectiveRectal = substance.getEffectiveRoa(AdministrationRoute.RECTAL, true)?.roaDuration
+                    if (effectiveRectal != null) {
+                        base + (AdministrationRoute.RECTAL to effectiveRectal)
+                    } else {
+                        base
+                    }
+                } else {
+                    base
+                }
+                substance.name to roas
+            } + customProfiles.mapValues { (_, profile) ->
+                val base = profile.durations.associate { it.route to it.toRoaDuration() }
+                if (useIntranasalForRectal) {
+                    val candidate = profile.durations.firstOrNull { it.route == AdministrationRoute.INSUFFLATED }
+                        ?: profile.durations.firstOrNull { it.route == AdministrationRoute.RECTAL }
+                    val effectiveRectal = candidate?.toRoaDuration()
+                    if (effectiveRectal != null) {
+                        base + (AdministrationRoute.RECTAL to effectiveRectal)
+                    } else {
+                        base
+                    }
+                } else {
+                    base
+                }
+            }
+
         /** Default lookback when there is no early active ingestion. */
         internal const val DEFAULT_LOOKBACK_SECONDS = 60L * 60L          // 1 hour
         /** Default lookahead when there is no late effect ending. */

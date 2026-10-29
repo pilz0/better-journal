@@ -7,6 +7,7 @@ package foo.pilz.freaklog.scheduled
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,6 +43,8 @@ class BootCompletedReceiver : BroadcastReceiver() {
             try {
                 NotificationScheduler.ensureNotificationChannel(context)
                 notificationScheduler.rescheduleAll()
+            } catch (t: Throwable) {
+                Log.e("BootCompletedReceiver", "Failed to reschedule reminders on boot/time change", t)
             } finally {
                 pendingResult.finish()
             }

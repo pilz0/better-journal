@@ -30,7 +30,7 @@ import kotlin.math.sqrt
 
 sealed class Suggestion(open val sortInstant: Instant) {
 
-    abstract fun isInSearch(searchText: String, substanceNames: List<String>): Boolean
+    abstract fun isInSearch(searchText: String, substanceNames: Set<String>): Boolean
 
     data class PureSubstanceSuggestion(
         val administrationRoute: AdministrationRoute,
@@ -39,7 +39,7 @@ sealed class Suggestion(open val sortInstant: Instant) {
         val dosesAndUnit: List<DoseAndUnit>,
         override val sortInstant: Instant
     ) : Suggestion(sortInstant = sortInstant) {
-        override fun isInSearch(searchText: String, substanceNames: List<String>): Boolean {
+        override fun isInSearch(searchText: String, substanceNames: Set<String>): Boolean {
             return substanceNames.contains(substanceName)
         }
     }
@@ -50,7 +50,7 @@ sealed class Suggestion(open val sortInstant: Instant) {
         val dosesAndUnit: List<CustomUnitDoseSuggestion>,
         override val sortInstant: Instant
     ) : Suggestion(sortInstant = sortInstant) {
-        override fun isInSearch(searchText: String, substanceNames: List<String>): Boolean {
+        override fun isInSearch(searchText: String, substanceNames: Set<String>): Boolean {
             if (searchText.isEmpty()) {
                 return true
             }
@@ -74,7 +74,7 @@ sealed class Suggestion(open val sortInstant: Instant) {
         val dosesAndUnit: List<DoseAndUnit>,
         override val sortInstant: Instant
     ) : Suggestion(sortInstant = sortInstant) {
-        override fun isInSearch(searchText: String, substanceNames: List<String>): Boolean {
+        override fun isInSearch(searchText: String, substanceNames: Set<String>): Boolean {
             if (searchText.isEmpty()) {
                 return true
             }

@@ -32,6 +32,29 @@ class MDMAFormulasTest {
     }
 
     @Test
+    fun `max dose is zero for negative weight`() {
+        assertEquals(0.0, MDMAFormulas.maxDoseMg(-70.0, MDMAFormulas.Sex.MALE), 0.0)
+        assertEquals(0.0, MDMAFormulas.maxDoseMg(-0.0, MDMAFormulas.Sex.FEMALE), 0.0)
+    }
+
+    @Test
+    fun `max dose is zero for non-finite weight`() {
+        for (sex in MDMAFormulas.Sex.entries) {
+            assertEquals(0.0, MDMAFormulas.maxDoseMg(Double.NaN, sex), 0.0)
+            assertEquals(0.0, MDMAFormulas.maxDoseMg(Double.POSITIVE_INFINITY, sex), 0.0)
+            assertEquals(0.0, MDMAFormulas.maxDoseMg(Double.NEGATIVE_INFINITY, sex), 0.0)
+        }
+    }
+
+    @Test
+    fun `max dose rounds tiny positive weights to the nearest 5 mg`() {
+        // 1 kg * 1.5 = 1.5 -> 0; 2 kg * 1.5 = 3 -> 5
+        assertEquals(0.0, MDMAFormulas.maxDoseMg(1.0, MDMAFormulas.Sex.MALE), 0.001)
+        assertEquals(5.0, MDMAFormulas.maxDoseMg(2.0, MDMAFormulas.Sex.MALE), 0.001)
+        assertEquals(0.0, MDMAFormulas.maxDoseMg(Double.MIN_VALUE, MDMAFormulas.Sex.FEMALE), 0.001)
+    }
+
+    @Test
     fun `desirable effect peaks near optimal dose`() {
         val atOptimal = MDMAFormulas.desirableEffectAt(MDMAFormulas.OPTIMAL_DOSE_MG)
         val atLow = MDMAFormulas.desirableEffectAt(20.0)

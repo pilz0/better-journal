@@ -105,6 +105,9 @@ interface ExperienceDao {
     @Query("SELECT * FROM customsubstance")
     suspend fun getAllCustomSubstances(): List<CustomSubstance>
 
+    @Query("SELECT name FROM customsubstance ORDER BY name ASC")
+    suspend fun getAllCustomSubstanceNames(): List<String>
+
     @Query("SELECT * FROM substancecompanion")
     suspend fun getAllSubstanceCompanions(): List<SubstanceCompanion>
 
@@ -266,7 +269,7 @@ interface ExperienceDao {
     ): Flow<List<IngestionWithExperienceAndCustomUnit>>
 
     @Transaction
-    @Query("SELECT * FROM ingestion WHERE time > :fromInstant AND time < :toInstant")
+    @Query("SELECT * FROM ingestion WHERE time >= :fromInstant AND time < :toInstant")
     suspend fun getIngestionsWithCompanions(
         fromInstant: Instant,
         toInstant: Instant
@@ -341,7 +344,10 @@ interface ExperienceDao {
     }
 
     @Transaction
-    @Query("DELETE FROM substancecompanion WHERE substanceName NOT IN (SELECT substanceName FROM ingestion)")
+    @Query(
+        "DELETE FROM substancecompanion WHERE NOT EXISTS" +
+            " (SELECT 1 FROM ingestion WHERE ingestion.substanceName = substancecompanion.substanceName)"
+    )
     suspend fun deleteUnusedSubstanceCompanions()
 
     @Delete
@@ -616,6 +622,14 @@ interface ExperienceDao {
     }
 
     @Transaction
+    suspend fun replaceEverything(
+        journalExport: JournalExport
+    ) {
+        deleteEverything()
+        insertEverything(journalExport)
+    }
+
+    @Transaction
     suspend fun insertIngestionAndCompanion(
         ingestion: Ingestion,
         substanceCompanion: SubstanceCompanion
@@ -665,6 +679,9 @@ interface ExperienceDao {
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
     suspend fun update(substanceCompanion: SubstanceCompanion)
+
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun updateSubstanceCompanions(substanceCompanions: List<SubstanceCompanion>)
 
     @Query("SELECT * FROM substancecompanion WHERE substanceName =:substanceName")
     fun getSubstanceCompanionFlow(substanceName: String): Flow<SubstanceCompanion?>
@@ -1060,6 +1077,30 @@ interface ExperienceDao {
             insert(t)
         }
         return id
+    }
+
+    @Suppress("LongParameterList")
+    @Transaction
+    suspend fun replaceCustomSubstanceWithFullRoaInfo(
+        existing: CustomSubstance,
+        substance: CustomSubstance,
+        durations: List<CustomRoaDuration>,
+        doses: List<CustomRoaDose>,
+        roas: List<CustomRoa>,
+        interactions: List<CustomInteraction> = emptyList(),
+        categories: List<CustomCategoryAssignment> = emptyList(),
+        crossTolerances: List<CustomCrossTolerance> = emptyList(),
+    ): Int {
+        delete(existing)
+        return insertCustomSubstanceWithFullRoaInfo(
+            substance = substance,
+            durations = durations,
+            doses = doses,
+            roas = roas,
+            interactions = interactions,
+            categories = categories,
+            crossTolerances = crossTolerances,
+        )
     }
 
     @Update(onConflict = OnConflictStrategy.REPLACE)

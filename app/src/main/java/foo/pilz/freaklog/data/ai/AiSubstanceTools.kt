@@ -88,7 +88,7 @@ class AiSubstanceTools @Inject constructor(
             "get_substance_info" -> substanceInfo(args["name"] as? String ?: "")
             "check_interactions" -> checkInteractions(stringListArg(args["substances"]))
             "get_tolerance" -> tolerance(args["substance"] as? String ?: "")
-            else -> activeIngestions((args["hours_back"] as? Number)?.toInt() ?: 24)
+            else -> activeIngestions(intArg(args["hours_back"], 24))
         }
     }
 
@@ -164,10 +164,10 @@ class AiSubstanceTools @Inject constructor(
             val json = JSONObject().put("route", roa.route.name)
             roa.roaDose?.let { dose ->
                 json.put("dose_units", dose.units)
-                    .put("light_from", dose.lightMin ?: JSONObject.NULL)
-                    .put("common_from", dose.commonMin ?: JSONObject.NULL)
-                    .put("strong_from", dose.strongMin ?: JSONObject.NULL)
-                    .put("heavy_from", dose.heavyMin ?: JSONObject.NULL)
+                    .put("light_from", dose.lightMin?.takeIf { it.isFinite() } ?: JSONObject.NULL)
+                    .put("common_from", dose.commonMin?.takeIf { it.isFinite() } ?: JSONObject.NULL)
+                    .put("strong_from", dose.strongMin?.takeIf { it.isFinite() } ?: JSONObject.NULL)
+                    .put("heavy_from", dose.heavyMin?.takeIf { it.isFinite() } ?: JSONObject.NULL)
             }
             roa.roaDuration?.let { d ->
                 listOf(
@@ -230,15 +230,20 @@ class AiSubstanceTools @Inject constructor(
         val name = canonicalName(query)
         val estimate = toleranceCalculator.calculate(name)
             ?: return toolError("There is no tolerance data for '$name'.")
+        val toleranceLevel = if (estimate.toleranceLevel.isFinite()) {
+            (estimate.toleranceLevel * 100).roundToInt() / 100.0
+        } else {
+            JSONObject.NULL
+        }
         return JSONObject()
             .put("status", "success")
             .put("substance", estimate.substanceName)
-            .put("tolerance_level_0_to_1", (estimate.toleranceLevel * 100).roundToInt() / 100.0)
+            .put("tolerance_level_0_to_1", toleranceLevel)
             .put("label", estimate.label)
             .put("last_ingestion", estimate.lastIngestionTime?.let { AI_DATE_FORMATTER.format(it) } ?: JSONObject.NULL)
             .put("cross_tolerance_from", JSONArray(estimate.crossToleranceContributors))
-            .put("days_until_baseline_after_last_use", estimate.zeroDays.toDouble())
-            .put("half_life_days", estimate.halfLifeDays.toDouble())
+            .put("days_until_baseline_after_last_use", estimate.zeroDays.takeIf { it.isFinite() }?.toDouble() ?: JSONObject.NULL)
+            .put("half_life_days", estimate.halfLifeDays.takeIf { it.isFinite() }?.toDouble() ?: JSONObject.NULL)
             .put("note", "A rough estimate from logged ingestions; tolerance varies between people.")
     }
 
@@ -256,14 +261,15 @@ class AiSubstanceTools @Inject constructor(
             val json = JSONObject()
                 .put("time", AI_DATE_FORMATTER.format(ing.time))
                 .put("substance", ing.substanceName)
-                .put("dose", ing.dose ?: JSONObject.NULL)
+                .put("dose", ing.dose?.takeIf { it.isFinite() } ?: JSONObject.NULL)
                 .put("units", ing.units ?: JSONObject.NULL)
                 .put("route", ing.administrationRoute.name)
                 .put("experience_id", ing.experienceId)
-            if (totalSeconds == null) {
+            if (totalSeconds == null || !totalSeconds.isFinite() || totalSeconds <= 0f) {
                 json.put("status", "unknown duration")
             } else {
-                val end = ing.time.plusSeconds(totalSeconds.toLong())
+                val safeSeconds = totalSeconds.coerceIn(1f, 2_592_000f).toLong()
+                val end = ing.time.plusSeconds(safeSeconds)
                 json.put("expected_end", AI_DATE_FORMATTER.format(end))
                     .put("status", if (now.isBefore(end)) "probably still active" else "probably worn off")
             }

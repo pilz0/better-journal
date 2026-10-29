@@ -37,15 +37,17 @@ fun AlcoholCalculator(
 
     val calculatedGrams by remember {
         derivedStateOf {
-            val volume = volumeText.toDoubleOrNull()
-            val percentage = percentageText.toDoubleOrNull()
+            // toDoubleOrNull() also accepts "NaN" and "Infinity"; only show real, positive amounts.
+            val volume = volumeText.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 }
+            val percentage = percentageText.toDoubleOrNull()?.takeIf { it > 0.0 && it <= 100.0 }
             if (volume != null && percentage != null) {
-                volume * (percentage / 100.0) * density
+                (volume * (percentage / 100.0) * density).takeIf { it.isFinite() }
             } else {
                 null
             }
         }
     }
+    val grams = calculatedGrams
 
     ElevatedCard(
         modifier = Modifier.padding(
@@ -95,20 +97,16 @@ fun AlcoholCalculator(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            if (calculatedGrams != null) {
+            if (grams != null) {
                 Text(
-                    text = "= ${calculatedGrams!!.toReadableString()} g Ethanol",
+                    text = "= ${grams.toReadableString()} g Ethanol",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
                 
                 Button(
-                    onClick = {
-                        calculatedGrams?.let {
-                            onApplyDose(it.toReadableString())
-                        }
-                    },
+                    onClick = { onApplyDose(grams.toReadableString()) },
                     modifier = Modifier.align(Alignment.End)
                 ) {
                     Text("Use this dose")

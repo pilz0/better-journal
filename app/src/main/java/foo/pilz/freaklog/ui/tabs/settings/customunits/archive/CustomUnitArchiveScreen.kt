@@ -107,7 +107,7 @@ fun CustomUnitArchiveScreenContent(
                 modifier = Modifier
                     .fillMaxSize()
             ) {
-                items(customUnits) { customUnit ->
+                items(customUnits, key = { it.id }) { customUnit ->
                     CustomUnitRow(
                         customUnit = customUnit,
                         navigateToEditCustomUnit = navigateToEditCustomUnit

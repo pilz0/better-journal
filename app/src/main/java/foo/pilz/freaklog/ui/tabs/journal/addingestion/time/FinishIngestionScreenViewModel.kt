@@ -292,9 +292,9 @@ class FinishIngestionScreenViewModel @Inject constructor(
                 localDateTimeEndFlow.emit(clonedIngestionTime.plus(30, ChronoUnit.MINUTES).getLocalDateTime())
                 updateTitleBasedOnTime(clonedIngestionTime)
             } else if (lastIngestionTimeOfExperience != null) {
-                val wasLastIngestionOfExperienceMoreThan20HoursAgo =
-                    lastIngestionTimeOfExperience < Instant.now().minus(20, ChronoUnit.HOURS)
-                if (wasLastIngestionOfExperienceMoreThan20HoursAgo) {
+                val wasLastIngestionOfExperienceLessThan20HoursAgo =
+                    lastIngestionTimeOfExperience > Instant.now().minus(20, ChronoUnit.HOURS)
+                if (wasLastIngestionOfExperienceLessThan20HoursAgo) {
                     localDateTimeStartFlow.emit(lastIngestionTimeOfExperience.getLocalDateTime())
                     localDateTimeEndFlow.emit(lastIngestionTimeOfExperience.plus(30, ChronoUnit.MINUTES).getLocalDateTime())
                     updateTitleBasedOnTime(lastIngestionTimeOfExperience)
@@ -344,6 +344,11 @@ class FinishIngestionScreenViewModel @Inject constructor(
         if (startTime > endTime) {
             val newStartTime = endTime.minus(30, ChronoUnit.MINUTES)
             localDateTimeStartFlow.emit(newStartTime.getLocalDateTime())
+            // The corrected start can fall outside the selected experience or on another day.
+            updateExperiencesBasedOnSelectedTime()
+            if (!hasTitleBeenChanged) {
+                updateTitleBasedOnTime(newStartTime)
+            }
         }
     }
 
@@ -482,8 +487,10 @@ class FinishIngestionScreenViewModel @Inject constructor(
         val ingestionTimePickerOption = ingestionTimePickerOptionFlow.first()
         val endTime = when (ingestionTimePickerOption) {
             IngestionTimePickerOption.POINT_IN_TIME -> null
-            IngestionTimePickerOption.TIME_RANGE -> localDateTimeEndFlow.first()
-                .atZone(ZoneId.systemDefault()).toInstant()
+            IngestionTimePickerOption.TIME_RANGE -> maxOf(
+                localDateTimeEndFlow.first().atZone(ZoneId.systemDefault()).toInstant(),
+                time
+            )
         }
         return Ingestion(
             substanceName = substanceName,

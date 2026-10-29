@@ -79,7 +79,8 @@ class AllTimelinesModel(
                             height = line.height,
                         )
                     }
-                    val roaDuration = linesPerRoute.first().roaDuration
+                    val roaDuration = linesPerRoute.firstNotNullOfOrNull { it.roaDuration }
+                        ?: linesPerRoute.first().roaDuration
                     val curve = if (useBatemanCurve) {
                         batemanRawCurve(
                             linesPerRoute.mapNotNull { line ->
@@ -151,6 +152,7 @@ private fun batemanRawCurve(curves: List<IngestionCurve>): RawTimelineCurve {
     if (curves.isEmpty()) return RawTimelineCurve(emptyList(), emptyList(), 0f, 0f)
     val start = curves.minOf { it.ingestionStartSec }
     val end = curves.maxOf { it.curveEndSec }
+    if (!start.isFinite() || !end.isFinite() || end < start) return RawTimelineCurve(emptyList(), emptyList(), 0f, 0f)
     val step = max(1f, end - start) / BATEMAN_SAMPLES
     val points = (0..BATEMAN_SAMPLES).map { index ->
         val seconds = start + index * step

@@ -36,8 +36,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -47,6 +47,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import foo.pilz.freaklog.data.room.inventory.InventoryItem
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import kotlinx.coroutines.launch
 
@@ -56,8 +58,9 @@ fun InventoryScreen(
     navigateToAddIngestionForSubstance: (name: String, isCustom: Boolean) -> Unit,
     viewModel: InventoryViewModel = hiltViewModel()
 ) {
-    val items by viewModel.itemsFlow.collectAsState()
+    val items by viewModel.itemsFlow.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
+    var itemToDelete by remember { mutableStateOf<InventoryItem?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -124,6 +127,9 @@ fun InventoryScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = horizontalPadding)
+                            .clickable {
+                                navigateToAddIngestionForSubstance(item.substanceName, item.isCustom)
+                            }
                     ) {
                         Row(
                             modifier = Modifier
@@ -152,7 +158,7 @@ fun InventoryScreen(
                                     )
                                 }
                             }
-                            IconButton(onClick = { viewModel.delete(item) }) {
+                            IconButton(onClick = { itemToDelete = item }) {
                                 Icon(Icons.Outlined.Delete, contentDescription = "Delete")
                             }
                         }
@@ -160,6 +166,29 @@ fun InventoryScreen(
                 }
             }
         }
+    }
+
+    itemToDelete?.let { item ->
+        AlertDialog(
+            onDismissRequest = { itemToDelete = null },
+            title = { Text("Delete inventory item?") },
+            text = { Text("Remove \"${item.substanceName}\" from your inventory?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.delete(item)
+                        itemToDelete = null
+                    }
+                ) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { itemToDelete = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 
     if (showAdd) {
@@ -206,21 +235,23 @@ private fun AddInventoryDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
                 suggestions.take(5).forEach { s ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                name = s.name
-                                isCustom = s.isCustom
-                            }
-                    ) {
-                        Text(
-                            text = s.name + if (s.isCustom) "  (custom)" else "",
-                            style = MaterialTheme.typography.bodyMedium,
+                    key(s.name) {
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(12.dp)
-                        )
+                                .clickable {
+                                    name = s.name
+                                    isCustom = s.isCustom
+                                }
+                        ) {
+                            Text(
+                                text = s.name + if (s.isCustom) "  (custom)" else "",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp)
+                            )
+                        }
                     }
                 }
                 OutlinedTextField(

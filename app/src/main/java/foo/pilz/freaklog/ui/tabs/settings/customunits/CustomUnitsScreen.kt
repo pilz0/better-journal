@@ -175,7 +175,7 @@ fun CustomUnitsScreenContent(
                 }
             } else {
                 LazyColumn {
-                    items(filteredUnits) { customUnit ->
+                    items(filteredUnits, key = { it.id }) { customUnit ->
                         CustomUnitRow(
                             customUnit = customUnit,
                             navigateToEditCustomUnit = navigateToEditCustomUnit

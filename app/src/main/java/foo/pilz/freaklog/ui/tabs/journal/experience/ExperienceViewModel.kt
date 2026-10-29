@@ -95,6 +95,7 @@ import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import kotlin.random.Random
 
+@Suppress("LargeClass")
 @HiltViewModel
 class ExperienceViewModel @Inject constructor(
     private val experienceRepo: ExperienceRepository,
@@ -265,15 +266,20 @@ class ExperienceViewModel @Inject constructor(
         }
 
     private val ingestionsWithAssociatedDataFlow: Flow<List<IngestionWithAssociatedData>> =
-        sortedIngestionsWithCompanionsFlow.combine(customProfiles.byNameFlow) { ingestionsWithComps, profiles ->
+        combine(
+            sortedIngestionsWithCompanionsFlow,
+            customProfiles.byNameFlow,
+            userPreferences.useIntranasalForRectalFlow
+        ) { ingestionsWithComps, profiles, useIntranasalForRectal ->
             ingestionsWithComps.map { oneIngestionWithComp ->
                 val ingestion = oneIngestionWithComp.ingestion
                 val roa = substanceRepo.getSubstance(oneIngestionWithComp.ingestion.substanceName)
-                    ?.getRoa(ingestion.administrationRoute)
-                    ?: foo.pilz.freaklog.data.room.experiences.findRoa(
+                    ?.getEffectiveRoa(ingestion.administrationRoute, useIntranasalForRectal)
+                    ?: foo.pilz.freaklog.data.room.experiences.findEffectiveRoa(
                         profiles,
                         ingestion.substanceName,
-                        ingestion.administrationRoute
+                        ingestion.administrationRoute,
+                        useIntranasalForRectal
                     )
                 val roaDuration = roa?.roaDuration
                 IngestionWithAssociatedData(
@@ -381,7 +387,8 @@ class ExperienceViewModel @Inject constructor(
             IngestionElement(
                 ingestionWithCompanionAndCustomUnit = ingestionWith.ingestionWithCompanionAndCustomUnit,
                 roaDuration = ingestionWith.roaDuration,
-                numDots = numDots
+                numDots = numDots,
+                roaDose = ingestionWith.roaDose
             )
         }
     }
@@ -447,7 +454,7 @@ class ExperienceViewModel @Inject constructor(
             substanceRepo = substanceRepo,
             interactionChecker = interactionChecker
         )
-        defs.filter { evaluateAchievement(it.condition, ctx) }
+        defs.filter { runCatching { evaluateAchievement(it.condition, ctx) }.getOrDefault(false) }
     }.flowOn(Dispatchers.Default)
         .stateIn(
             initialValue = emptyList(),
@@ -708,7 +715,7 @@ class ExperienceViewModel @Inject constructor(
                     height = getStrengthRelativeToCommonDose(
                         ingestion = oneElement.ingestionWithCompanionAndCustomUnit,
                         allIngestions = ingestionElements.map { it.ingestionWithCompanionAndCustomUnit },
-                        roaDose = substances.firstOrNull { it.name == ingestion.substanceName }
+                        roaDose = oneElement.roaDose ?: substances.firstOrNull { it.name == ingestion.substanceName }
                             ?.getRoa(ingestion.administrationRoute)?.roaDose
                     ).toFloat(),
                     horizontalWeight = horizontalWeight,

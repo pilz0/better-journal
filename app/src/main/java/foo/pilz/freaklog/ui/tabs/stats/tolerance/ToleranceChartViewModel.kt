@@ -20,10 +20,11 @@ package foo.pilz.freaklog.ui.tabs.stats.tolerance
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -37,7 +38,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ToleranceChartViewModel @Inject constructor(
     private val experienceRepository: ExperienceRepository,
-    private val substanceRepository: SubstanceRepository
+    private val substanceRepository: SubstanceRepository,
+    private val customProfiles: CustomSubstanceProfiles
 ) : ViewModel() {
 
     companion object {
@@ -57,8 +59,9 @@ class ToleranceChartViewModel @Inject constructor(
         experienceRepository.getSortedIngestionsWithSubstanceCompanionsFlow(MAX_INGESTIONS_TO_LOAD),
         experienceRepository.getAllSubstanceCompanionsFlow(),
         _sinceDate,
-        _additionalSubstanceDays
-    ) { ingestions, companions, since, additionalDays ->
+        _additionalSubstanceDays,
+        customProfiles.byNameFlow
+    ) { ingestions, companions, since, additionalDays, profiles ->
         val relevantIngestions = ingestions.filter { it.ingestion.time > since }
 
         val persistedSubstanceDays = relevantIngestions.map { ingestion ->
@@ -73,7 +76,8 @@ class ToleranceChartViewModel @Inject constructor(
         val toleranceWindows = ToleranceChartCalculator.getToleranceWindows(
             substanceAndDays = allSubstanceDays,
             substanceCompanions = companions,
-            substanceRepository = substanceRepository
+            substanceRepository = substanceRepository,
+            customProfiles = profiles
         ).sortedBy { it.substanceName }
 
         val substanceNamesInIngestions = relevantIngestions.map { it.ingestion.substanceName }.toSet()

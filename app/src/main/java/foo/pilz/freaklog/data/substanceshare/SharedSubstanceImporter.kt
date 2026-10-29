@@ -54,8 +54,7 @@ suspend fun resolveCollisionReplace(
     repository: CustomSubstanceRepository,
 ) {
     val existing = repository.getWithEverythingByName(payload.name) ?: return
-    repository.delete(existing.substance)
-    repository.insertFromShared(payload.expand())
+    repository.replaceFromShared(existing.substance, payload.expand())
 }
 
 suspend fun resolveCollisionKeepBoth(

@@ -38,6 +38,25 @@ data class UnlockedAchievement(
     val unlocked: Boolean
 )
 
+class RepositorySubstanceInfo(
+    private val substanceRepo: SubstanceRepositoryInterface
+) : SubstanceInfo {
+    override fun categories(substanceName: String): Set<String> =
+        substanceRepo.getSubstance(substanceName)?.categories?.map { it.lowercase() }?.toSet()
+            ?: emptySet()
+
+    override fun doseClass(
+        substanceName: String,
+        route: AdministrationRoute,
+        dose: Double?,
+        units: String?,
+    ): DoseClass? {
+        val substance = substanceRepo.getSubstance(substanceName) ?: return null
+        val roaDose = substance.getRoa(route)?.roaDose ?: return null
+        return roaDose.getDoseClass(dose, units)
+    }
+}
+
 /**
  * Everything the achievement DSL can see. Using a bundle keeps the recursive
  * evaluator signature small and future-proof as we add more predicates.
@@ -51,10 +70,28 @@ data class AchievementContext(
     val customRecipes: List<CustomRecipe>,
     val substanceRepo: SubstanceRepositoryInterface,
     val interactionChecker: InteractionChecker
-)
+) {
+    val evalContext: EvalContext by lazy {
+        val substancesByExperience = experiences.associate { experience ->
+            experience.experience.id to experience.ingestions.map { it.substanceName }.distinct()
+        }
+        EvalContext(
+            experiences = experiences.map { ExperienceWithIngestions(it.experience, it.ingestions) },
+            ingestions = allIngestions,
+            substanceInfo = RepositorySubstanceInfo(substanceRepo),
+            interactionCount = { experienceId, filter ->
+                countInteractionsInList(
+                    substances = substancesByExperience[experienceId].orEmpty(),
+                    type = filter.name.lowercase(),
+                    checker = interactionChecker,
+                )
+            },
+        )
+    }
+}
 
 fun loadAchievements(context: Context): List<AchievementDef> {
-    val json = context.assets.open("achievements.json").bufferedReader().readText()
+    val json = context.assets.open("achievements.json").bufferedReader().use { it.readText() }
     val array = JSONArray(json)
     return (0 until array.length()).map { i ->
         val obj = array.getJSONObject(i)
@@ -118,46 +155,9 @@ private val CONDITION_LANGUAGE_REGEX = Regex("""\b(ingestions|experiences)\b""")
 internal fun usesConditionLanguage(condition: String): Boolean =
     CONDITION_LANGUAGE_REGEX.containsMatchIn(condition)
 
-private fun AchievementContext.toEvalContext(): EvalContext {
-    val substancesByExperience = experiences.associate { experience ->
-        experience.experience.id to experience.ingestions.map { it.substanceName }.distinct()
-    }
-    return EvalContext(
-        experiences = experiences.map { ExperienceWithIngestions(it.experience, it.ingestions) },
-        ingestions = allIngestions,
-        substanceInfo = RepositorySubstanceInfo(substanceRepo),
-        interactionCount = { experienceId, filter ->
-            countInteractionsInList(
-                substances = substancesByExperience[experienceId].orEmpty(),
-                type = filter.name.lowercase(),
-                checker = interactionChecker,
-            )
-        },
-    )
-}
-
-class RepositorySubstanceInfo(
-    private val substanceRepo: SubstanceRepositoryInterface
-) : SubstanceInfo {
-    override fun categories(substanceName: String): Set<String> =
-        substanceRepo.getSubstance(substanceName)?.categories?.map { it.lowercase() }?.toSet()
-            ?: emptySet()
-
-    override fun doseClass(
-        substanceName: String,
-        route: AdministrationRoute,
-        dose: Double?,
-        units: String?,
-    ): DoseClass? {
-        val substance = substanceRepo.getSubstance(substanceName) ?: return null
-        val roaDose = substance.getRoa(route)?.roaDose ?: return null
-        return roaDose.getDoseClass(dose, units)
-    }
-}
-
 fun evaluateAchievement(condition: String, ctx: AchievementContext): Boolean {
     if (usesConditionLanguage(condition)) {
-        return runCatching { conditionEngine.evaluate(condition, ctx.toEvalContext()) }.getOrDefault(false)
+        return runCatching { conditionEngine.evaluate(condition, ctx.evalContext) }.getOrDefault(false)
     }
 
     splitTopLevel(condition, " & ")?.let { parts ->
@@ -218,13 +218,13 @@ fun evaluateAchievement(condition: String, ctx: AchievementContext): Boolean {
 
         "min_substances" -> {
             val n = args.trim().toIntOrNull() ?: return false
-            ctx.allIngestions.map { it.substanceName }.distinct().size >= n
+            ctx.allIngestions.distinctBy { it.substanceName }.size >= n
         }
 
         "min_combo" -> {
             val n = args.trim().toIntOrNull() ?: return false
             ctx.experiences.any { exp ->
-                exp.ingestions.map { it.substanceName }.distinct().size >= n
+                exp.ingestions.distinctBy { it.substanceName }.size >= n
             }
         }
 
@@ -255,7 +255,7 @@ fun evaluateAchievement(condition: String, ctx: AchievementContext): Boolean {
 
         "min_routes" -> {
             val n = args.trim().toIntOrNull() ?: return false
-            ctx.allIngestions.map { it.administrationRoute }.distinct().size >= n
+            ctx.allIngestions.distinctBy { it.administrationRoute }.size >= n
         }
 
         "substance_count" -> {
@@ -268,7 +268,7 @@ fun evaluateAchievement(condition: String, ctx: AchievementContext): Boolean {
 
         "any_substance_count" -> {
             val n = args.trim().toIntOrNull() ?: return false
-            ctx.allIngestions.groupBy { it.substanceName }.any { it.value.size >= n }
+            ctx.allIngestions.groupingBy { it.substanceName }.eachCount().any { it.value >= n }
         }
 
         "route_count" -> {
@@ -412,14 +412,17 @@ private fun countInteractionsInList(
 
 internal fun longestConsecutiveDayStreak(ingestions: List<Ingestion>): Int {
     val dates = ingestions
-        .map { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
+        .mapNotNull {
+            runCatching { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }.getOrNull()
+        }
         .distinct()
         .sorted()
     if (dates.isEmpty()) return 0
     var longest = 1
     var current = 1
     for (i in 1 until dates.size) {
-        if (ChronoUnit.DAYS.between(dates[i - 1], dates[i]) == 1L) {
+        val daysBetween = runCatching { ChronoUnit.DAYS.between(dates[i - 1], dates[i]) }.getOrDefault(0L)
+        if (daysBetween == 1L) {
             current++
             longest = maxOf(longest, current)
         } else {
@@ -432,25 +435,27 @@ internal fun longestConsecutiveDayStreak(ingestions: List<Ingestion>): Int {
 /** Longest gap, in days, between consecutive ingestion dates (i.e. longest sober streak). */
 internal fun longestSoberStreak(ingestions: List<Ingestion>): Int {
     val dates = ingestions
-        .map { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }
+        .mapNotNull {
+            runCatching { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }.getOrNull()
+        }
         .distinct()
         .sorted()
     if (dates.size < 2) return 0
     var longest = 0L
     for (i in 1 until dates.size) {
         // gap of 1 day means consecutive; sober days in between = gap - 1
-        val gap = ChronoUnit.DAYS.between(dates[i - 1], dates[i]) - 1
+        val gap = runCatching { ChronoUnit.DAYS.between(dates[i - 1], dates[i]) - 1 }.getOrDefault(0L)
         if (gap > longest) longest = gap
     }
-    return longest.toInt().coerceAtLeast(0)
+    return longest.coerceIn(0L, Int.MAX_VALUE.toLong()).toInt()
 }
 
 internal fun journalSpanDays(ingestions: List<Ingestion>): Long {
     if (ingestions.size < 2) return 0
     val times = ingestions.map { it.time }
-    val first = times.min()
-    val last = times.max()
-    return ChronoUnit.DAYS.between(first, last)
+    val first = times.minOrNull() ?: return 0
+    val last = times.maxOrNull() ?: return 0
+    return runCatching { ChronoUnit.DAYS.between(first, last).coerceAtLeast(0L) }.getOrDefault(0L)
 }
 
 /**
@@ -466,15 +471,22 @@ internal fun hasRedoseInPeak(ctx: AchievementContext): Boolean {
             val substance = ctx.substanceRepo.getSubstance(key.first) ?: continue
             val roa = substance.roas.firstOrNull { it.route == key.second } ?: continue
             val duration = roa.roaDuration ?: continue
-            val onsetMax = duration.onset?.maxInSec ?: 0f
-            val comeupMax = duration.comeup?.maxInSec ?: 0f
-            val peakMax = duration.peak?.maxInSec ?: 0f
-            val peakEndSec = (onsetMax + comeupMax + peakMax).toLong()
+            val onsetMax = duration.onset?.maxInSec?.takeIf { it.isFinite() && it >= 0f } ?: 0f
+            val comeupMax = duration.comeup?.maxInSec?.takeIf { it.isFinite() && it >= 0f } ?: 0f
+            val peakMax = duration.peak?.maxInSec?.takeIf { it.isFinite() && it >= 0f } ?: 0f
+            val sum = onsetMax.toDouble() + comeupMax.toDouble() + peakMax.toDouble()
+            val peakEndSec = if (sum.isFinite() && sum > 0.0) {
+                sum.coerceAtMost(Long.MAX_VALUE.toDouble()).toLong()
+            } else {
+                0L
+            }
             if (peakEndSec <= 0L) continue
             val sorted = list.sortedBy { it.time }
             for (i in sorted.indices) {
                 for (j in (i + 1) until sorted.size) {
-                    val delta = ChronoUnit.SECONDS.between(sorted[i].time, sorted[j].time)
+                    val delta = runCatching {
+                        ChronoUnit.SECONDS.between(sorted[i].time, sorted[j].time)
+                    }.getOrDefault(-1L)
                     if (delta in 1..peakEndSec) return true
                 }
             }

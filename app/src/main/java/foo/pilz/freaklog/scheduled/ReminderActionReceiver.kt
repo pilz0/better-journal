@@ -8,6 +8,7 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.annotation.VisibleForTesting
 import androidx.core.app.NotificationManagerCompat
 import dagger.hilt.android.AndroidEntryPoint
@@ -64,6 +65,8 @@ class ReminderActionReceiver : BroadcastReceiver() {
                     ACTION_SKIP -> { /* no-op; just dismiss */ }
                 }
                 NotificationManagerCompat.from(context).cancel(reminderId)
+            } catch (t: Throwable) {
+                Log.e("ReminderActionReceiver", "Error processing reminder action $action for id $reminderId", t)
             } finally {
                 pendingResult.finish()
             }
@@ -95,7 +98,7 @@ class ReminderActionReceiver : BroadcastReceiver() {
             color = AdaptiveColor.BLUE,
         )
         if (attachTo != null) {
-            val ingestion = newIngestion(reminder, route, attachTo.experience.id, now)
+            val ingestion = newIngestion(reminder, substanceName, route, attachTo.experience.id, now)
             experienceRepository.insertIngestionAndCompanion(ingestion, companion)
         } else {
             // Take the next id after the global maximum: `recent` only covers the last two days,
@@ -109,7 +112,7 @@ class ReminderActionReceiver : BroadcastReceiver() {
                 sortDate = now,
                 location = null,
             )
-            val ingestion = newIngestion(reminder, route, newId, now)
+            val ingestion = newIngestion(reminder, substanceName, route, newId, now)
             experienceRepository.insertIngestionExperienceAndCompanion(
                 ingestion = ingestion,
                 experience = experience,
@@ -120,11 +123,12 @@ class ReminderActionReceiver : BroadcastReceiver() {
 
     private fun newIngestion(
         reminder: Reminder,
+        substanceName: String,
         route: AdministrationRoute,
         experienceId: Int,
         now: Instant,
     ) = Ingestion(
-        substanceName = reminder.substanceName!!,
+        substanceName = substanceName,
         time = now,
         endTime = null,
         creationDate = now,

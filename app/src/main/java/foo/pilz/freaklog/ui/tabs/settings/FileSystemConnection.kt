@@ -21,6 +21,7 @@ package foo.pilz.freaklog.ui.tabs.settings
 import android.content.Context
 import android.net.Uri
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -31,18 +32,32 @@ class FileSystemConnection @Inject constructor(
 ) {
     fun getTextFromUri(uri: Uri): String? {
         try {
-            val input = context.contentResolver.openInputStream(uri) ?: return null
-            val inputAsString = input.bufferedReader().use { it.readText() }
-            input.close()
-            return inputAsString
-        } catch (e: Exception) {
+            return context.contentResolver.openInputStream(uri)?.use { input ->
+                input.bufferedReader().use { it.readText() }
+            }
+        } catch (_: Exception) {
             return null
         }
     }
 
+    /** @throws IllegalArgumentException if the file exceeds [MAX_FILE_SIZE]. */
     fun getBytesFromUri(uri: Uri): ByteArray? =
         try {
-            context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+            context.contentResolver.openInputStream(uri)?.use { stream ->
+                val output = ByteArrayOutputStream()
+                val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                var bytesRead = stream.read(buffer)
+                while (bytesRead != -1) {
+                    require(output.size() + bytesRead <= MAX_FILE_SIZE) {
+                        "File exceeds maximum allowed size (50MB)"
+                    }
+                    output.write(buffer, 0, bytesRead)
+                    bytesRead = stream.read(buffer)
+                }
+                output.toByteArray()
+            }
+        } catch (e: IllegalArgumentException) {
+            throw e
         } catch (_: Exception) {
             null
         }
@@ -58,8 +73,12 @@ class FileSystemConnection @Inject constructor(
     fun saveTextInUri(uri: Uri, text: String) {
         val output = context.contentResolver.openOutputStream(uri)
             ?: throw java.io.IOException("Could not open output stream for URI: $uri")
-        output.bufferedWriter().use { it.write(text) }
+        output.use { stream ->
+            stream.bufferedWriter().use { it.write(text) }
+        }
     }
 
-
+    companion object {
+        private const val MAX_FILE_SIZE = 50 * 1024 * 1024
+    }
 }

@@ -15,6 +15,7 @@ import javax.inject.Inject
 data class FreakQueryShellEntry(
     val query: String,
     val output: String,
+    val id: String = java.util.UUID.randomUUID().toString(),
 )
 
 data class FreakQueryShellState(

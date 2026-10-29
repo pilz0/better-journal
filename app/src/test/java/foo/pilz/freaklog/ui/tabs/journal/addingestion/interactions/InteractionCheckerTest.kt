@@ -201,4 +201,27 @@ class InteractionCheckerTest {
         val result = checker.getInteractionBetween("Caffeine", "Water")
         assertThat(result).isNull()
     }
+
+    @Test
+    fun `wildcard match handles regex special characters safely`() {
+        val subA = fakeSubstance("SubA", dangerous = listOf("2C-x (HCl)+salt [test]"))
+        val subB = fakeSubstance("2C-B- (HCl)+salt [test]")
+        every { substanceRepo.getSubstance("SubA") } returns subA
+        every { substanceRepo.getSubstance("2C-B- (HCl)+salt [test]") } returns subB
+
+        val result = checker.getInteractionBetween("SubA", "2C-B- (HCl)+salt [test]")
+        assertThat(result).isNotNull()
+        assertThat(result!!.interactionType).isEqualTo(InteractionType.DANGEROUS)
+    }
+
+    @Test
+    fun `wildcard match does not match non-wildcard substances with different names`() {
+        val subA = fakeSubstance("SubA", dangerous = listOf("Hydroxyzine"))
+        val subB = fakeSubstance("OtherDrug")
+        every { substanceRepo.getSubstance("SubA") } returns subA
+        every { substanceRepo.getSubstance("OtherDrug") } returns subB
+
+        val result = checker.getInteractionBetween("SubA", "OtherDrug")
+        assertThat(result).isNull()
+    }
 }

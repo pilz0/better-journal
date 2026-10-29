@@ -18,11 +18,11 @@
 
 package foo.pilz.freaklog.ui.tabs.journal.experience.components
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material3.Icon
@@ -58,8 +58,8 @@ fun InteractionRow(interaction: Interaction) {
                 color = Color.Black,
             )
             Spacer(modifier = Modifier.weight(1f))
-            LazyRow {
-                items(interaction.interactionType.dangerCount) {
+            Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                repeat(interaction.interactionType.dangerCount) {
                     Icon(
                         imageVector = Icons.Outlined.WarningAmber,
                         contentDescription = "Warning",

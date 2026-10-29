@@ -63,6 +63,7 @@ class ReminderActionReceiverTest {
         dao = db.experienceDao()
         receiver = ReminderActionReceiver().apply {
             experienceRepository = ExperienceRepository(
+                db = db,
                 experienceDao = dao,
                 reminderDao = db.reminderDao(),
                 webhookDao = db.webhookDao(),

@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
@@ -165,7 +164,7 @@ fun CheckInteractionsScreen(
                 val verticalPaddingInside = 4.dp
                 LazyColumn {
                     if (dangerousInteractions.isNotEmpty()) {
-                        items(dangerousInteractions) {
+                        items(dangerousInteractions, key = { "dangerous_$it" }) {
                             InteractionRow(
                                 text = it,
                                 interactionType = InteractionType.DANGEROUS,
@@ -174,7 +173,7 @@ fun CheckInteractionsScreen(
                         }
                     }
                     if (unsafeInteractions.isNotEmpty()) {
-                        items(unsafeInteractions) {
+                        items(unsafeInteractions, key = { "unsafe_$it" }) {
                             InteractionRow(
                                 text = it, interactionType = InteractionType.UNSAFE,
                                 verticalPaddingInside = verticalPaddingInside,
@@ -182,14 +181,14 @@ fun CheckInteractionsScreen(
                         }
                     }
                     if (uncertainInteractions.isNotEmpty()) {
-                        items(uncertainInteractions) {
+                        items(uncertainInteractions, key = { "uncertain_$it" }) {
                             InteractionRow(
                                 text = it, interactionType = InteractionType.UNCERTAIN,
                                 verticalPaddingInside = verticalPaddingInside,
                             )
                         }
                     }
-                    item {
+                    item(key = "explanation_button") {
                         InteractionExplanationButton(substanceURL = substanceUrl)
                     }
                 }
@@ -261,8 +260,8 @@ fun InteractionRow(
                 style = MaterialTheme.typography.titleMedium,
             )
             Spacer(modifier = Modifier.weight(1f))
-            LazyRow {
-                items(interactionType.dangerCount) {
+            Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                repeat(interactionType.dangerCount) {
                     Icon(
                         imageVector = Icons.Outlined.WarningAmber,
                         contentDescription = "Warning",

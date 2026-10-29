@@ -18,6 +18,9 @@
 
 package foo.pilz.freaklog.data.substances.classes.roa
 
+import assertk.assertThat
+import assertk.assertions.isEqualTo
+import assertk.assertions.isNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -25,6 +28,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RoaDoseTest {
+
+    private val invalidDoses = listOf(Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, -10.0)
+    private val numDotsUpTo4 = RoaDose::class.java.getDeclaredMethod("getNumDotsUpTo4", Double::class.javaPrimitiveType).apply {
+        isAccessible = true
+    }
 
     // Standard dose ranges for testing (e.g., LSD-like substance)
     private val standardRoaDose = RoaDose(
@@ -72,6 +80,13 @@ class RoaDoseTest {
     )
 
     // ===== getDoseClass Tests =====
+
+    @Test
+    fun testGetDoseClass_invalidDose() {
+        invalidDoses.forEach { dose ->
+            assertThat(standardRoaDose.getDoseClass(dose)).isNull()
+        }
+    }
 
     @Test
     fun testGetDoseClass_threshold() {
@@ -158,6 +173,60 @@ class RoaDoseTest {
     }
 
     // ===== getNumDots Tests =====
+
+    @Test
+    fun testGetNumDots_invalidDose() {
+        invalidDoses.forEach { dose ->
+            assertThat(standardRoaDose.getNumDots(dose)).isNull()
+        }
+    }
+
+    @Test
+    fun testGetNumDots_invalidHeavyMin() {
+        (invalidDoses + 0.0).forEach { heavyMin ->
+            val roaDose = standardRoaDose.copy(heavyMin = heavyMin)
+            assertThat(roaDose.getNumDots(0.0)).isNull()
+            assertThat(roaDose.getNumDots(400.0)).isNull()
+        }
+    }
+
+    @Test
+    fun testGetNumDots_overflow() {
+        assertThat(standardRoaDose.getNumDots(Double.MAX_VALUE)).isNull()
+        assertThat(emptyRoaDose.copy(heavyMin = Double.MIN_VALUE).getNumDots(1.0)).isNull()
+        val roaDose = emptyRoaDose.copy(heavyMin = 1.0)
+        assertThat(roaDose.getNumDots(536_870_911.0)).isEqualTo(2_147_483_644)
+        assertThat(roaDose.getNumDots(536_870_912.0)).isNull()
+    }
+
+    @Test
+    fun testGetNumDotsUpTo4_invalidDose() {
+        invalidDoses.forEach { dose ->
+            assertThat(numDotsUpTo4.invoke(standardRoaDose, dose)).isEqualTo(0)
+        }
+    }
+
+    @Test
+    fun testGetNumDotsUpTo4_invalidHeavyMin() {
+        (invalidDoses + 0.0).forEach { heavyMin ->
+            val roaDose = emptyRoaDose.copy(heavyMin = heavyMin)
+            assertThat(numDotsUpTo4.invoke(roaDose, 0.0)).isEqualTo(0)
+            assertThat(numDotsUpTo4.invoke(roaDose, 400.0)).isEqualTo(0)
+        }
+    }
+
+    @Test
+    fun testGetNumDots_zeroDose() {
+        assertThat(standardRoaDose.getNumDots(0.0)).isEqualTo(0)
+    }
+
+    @Test
+    fun testGetNumDots_onlyHeavyMin() {
+        val roaDose = emptyRoaDose.copy(heavyMin = 300.0)
+        assertThat(roaDose.getNumDots(100.0)).isEqualTo(0)
+        assertThat(roaDose.getNumDots(300.0)).isEqualTo(4)
+        assertThat(roaDose.getNumDots(600.0)).isEqualTo(8)
+    }
 
     @Test
     fun testGetNumDots_threshold() {
@@ -276,6 +345,13 @@ class RoaDoseTest {
     }
 
     // ===== getStrengthRelativeToCommonDose Tests =====
+
+    @Test
+    fun testStrengthRelativeToCommon_invalidDose() {
+        invalidDoses.forEach { dose ->
+            assertThat(standardRoaDose.getStrengthRelativeToCommonDose(dose)).isNull()
+        }
+    }
 
     @Test
     fun testStrengthRelativeToCommon_atCommon() {

@@ -60,7 +60,7 @@ nix run --inputs-from . gradle2nix -- -t assembleRelease -t bundleRelease
 ## High-impact invariants
 
 - Android package namespace is `foo.pilz.freaklog` (not upstream `com.isaakhanimann.journal`).
-- Room schema version is `27` with an `@AutoMigration` chain in `AppDatabase.kt`.
+- Room schema version is `29` with an `@AutoMigration` chain in `AppDatabase.kt`.
 - The AI assistant uses its own raw-HTTP clients for the OpenAI, Anthropic and Gemini APIs in `data/ai/provider/`. Don't add provider SDKs (the archived `generative-ai-android` drops Gemini's `thoughtSignature`), and keep the raw `NativeContent` round-trip intact.
 - AI API keys are only stored encrypted (`AiProfileStore` + `AiKeyCipher`); never write them to plain preferences, logs or exports.
 - If dependencies or plugins change, regenerate `gradle.lock` (command above) or the Nix build breaks.
@@ -311,7 +311,7 @@ To upgrade: run `./gradlew versionCatalogUpdate --interactive --no-configuration
 
 ### Room database (`data/room/AppDatabase.kt`)
 
-Current schema version: **27**. All migrations from v1 to v27 are handled by `@AutoMigration`.
+Current schema version: **29**. All migrations from v1 to v29 are handled by `@AutoMigration`.
 The `16 → 17` step uses an `AutoMigrationSpec` (`AppDatabase.ReminderV16To17`) that
 back-fills `scheduleType = 'INTERVAL'` on legacy reminder rows so they don't silently
 disable when the new column default (`DAILY_AT_TIMES`) is applied without `timesOfDay`.
@@ -512,6 +512,7 @@ bitmap rendering.
 ### Tolerance calculator (`ui/tabs/safer/tolerance/`)
 
 `ToleranceTextParser` converts PsychonautWiki tolerance text (e.g. `"1-3 days"`, `"almost immediately"`) to float days. `ToleranceCalculator` applies an exponential-decay model to the ingestion history: `level = Σ exp(-0.693 * elapsed / halfLife)`, capped at 1.
+Substances are looked up in the bundled data first, then in `CustomSubstanceProfiles` (by name, ignoring case), using the custom tolerance texts. Cross-tolerance contributors are every built-in or custom substance that shares one of the substance's cross-tolerance categories (trimmed, case-insensitive). The stats tolerance chart (`ToleranceChartCalculator`) falls back to custom tolerance texts the same way, and the search suggestions include custom substance names.
 
 ### Widgets (`ui/`)
 
@@ -632,7 +633,7 @@ crypto library that this app does not use.
 | Export filter, encryption, backups | `data/export/`, `data/backup/`, `ui/tabs/settings/exportbackup/` | `buildJournalExportJson` is the single export path. Encryption is AES-256-GCM + PBKDF2 (the fork's "v1" layout); its Argon2/ChaCha20 "v2" format is **not** readable. `BackupWorker` gets dependencies through a Hilt `@EntryPoint` — there is no `HiltWorkerFactory`. |
 | Live timeline notification | `ui/tabs/journal/experience/notification/` | Foreground service of type `dataSync`; renders through `renderTimelineToBitmap`. |
 | Experience image sharing | `data/experienceshare/`, `ui/tabs/journal/experience/share/` | Shared through the `${applicationId}.fileprovider` `FileProvider`. |
-| Custom substances | `data/room/experiences/CustomSubstanceRepository.kt`, `data/substanceshare/`, `ui/tabs/search/custom/`, `ui/tabs/settings/customsubstances/` | Upstream's editors (routes/durations, interactions, categories, tolerance, risks), copied as-is. Their DAO methods live in `ExperienceDao`. `CustomSubstanceProfiles` is an in-memory cache so timelines and `InteractionChecker` can read profiles synchronously. Edit custom substances with `update`, never a REPLACE insert (it cascades to the profile tables). |
+| Custom substances | `data/room/experiences/CustomSubstanceRepository.kt`, `data/substanceshare/`, `ui/tabs/search/custom/`, `ui/tabs/settings/customsubstances/` | Upstream's editors (routes/durations, interactions, categories, tolerance, risks), copied as-is. Their DAO methods live in `ExperienceDao`. `CustomSubstanceProfiles` is an in-memory cache so timelines, `InteractionChecker` and the tolerance calculators can read profiles synchronously. Edit custom substances with `update`, never a REPLACE insert (it cascades to the profile tables). |
 | Substance groups | `data/room/experiences/SubstanceGroupRepository.kt`, `ui/tabs/settings/substancegroups/`, `ui/tabs/journal/addingestion/group/` | Upstream lets group ingestions skip the experience; this app has no experience-less ingestions, so `SubstanceGroupFinishViewModel` keeps that toggle off. |
 | Vitals | `ui/tabs/journal/experience/timeline/{HeartRate,Sleep,BloodPressure}.kt`, `ui/tabs/journal/experience/bloodpressure/` | Heart rate, sleep and blood pressure are read from Health Connect after the user opts in (Settings → "Vitals on timeline") and drawn on the timeline. Blood pressure is written to Health Connect, as upstream does. |
 | Ultra fun mode | `ui/tabs/journal/experience/teamsskin/`, `ui/tabs/journal/outlookskin/`, `ui/tabs/stats/excelskin/`, `ui/tabs/settings/funny/UltraFunSkinEligibility.kt` | Opt-in. While a psychedelic is active the Teams/Outlook/Excel disguises appear at random; `MainScreen` hosts them through `*SkinController` singletons. |

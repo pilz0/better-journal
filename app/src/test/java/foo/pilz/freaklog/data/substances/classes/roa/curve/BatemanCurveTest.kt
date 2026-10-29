@@ -12,6 +12,7 @@ package foo.pilz.freaklog.data.substances.classes.roa.curve
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import kotlin.math.ln
@@ -208,6 +209,81 @@ class BatemanCurveTest {
 
         assertTrue(curve.curveEndSec > curve.ingestionEndSec)
         assertEquals(0.05f * curve.peakHeight, curve.valueAt(curve.curveEndSec), 10f)
+    }
+
+    @Test
+    fun `solveKaForTmax rejects non-finite or non-positive inputs`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            BatemanCurve.solveKaForTmax(Double.NaN, 600.0)
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            BatemanCurve.solveKaForTmax(0.001, Double.POSITIVE_INFINITY)
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            BatemanCurve.solveKaForTmax(-0.001, 600.0)
+        }
+    }
+
+    @Test
+    fun `BatemanCurve rejects non-finite or invalid parameters in constructor`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            BatemanCurve(
+                ka = Double.NaN,
+                ke = 0.001,
+                ingestionStartSec = 0f,
+                ingestionEndSec = 0f,
+                peakHeight = 1f,
+                isCertain = true,
+            )
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            BatemanCurve(
+                ka = 1.0,
+                ke = 0.001,
+                ingestionStartSec = Float.NaN,
+                ingestionEndSec = 0f,
+                peakHeight = 1f,
+                isCertain = true,
+            )
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            BatemanCurve(
+                ka = 1.0,
+                ke = 0.001,
+                ingestionStartSec = 10f,
+                ingestionEndSec = 5f,
+                peakHeight = 1f,
+                isCertain = true,
+            )
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            BatemanCurve(
+                ka = 1.0,
+                ke = 0.001,
+                ingestionStartSec = 0f,
+                ingestionEndSec = 0f,
+                peakHeight = -1f,
+                isCertain = true,
+            )
+        }
+    }
+
+    @Test
+    fun `valueAt handles non-finite input safely`() {
+        val curve = curve(tmaxSec = 600.0, totalSec = 6_000.0, peakHeight = 1f)
+        assertEquals(0f, curve.valueAt(Float.NaN), 0f)
+        assertEquals(0f, curve.valueAt(Float.POSITIVE_INFINITY), 0f)
+        assertEquals(0f, curve.valueAt(Float.NEGATIVE_INFINITY), 0f)
+    }
+
+    @Test
+    fun `solveKaForTmax handles extreme values without geometric bisection overflow`() {
+        val ke = 1e-12
+        val tmax = 1e11
+        val ka = BatemanCurve.solveKaForTmax(ke, tmax)
+        if (ka != null) {
+            assertTrue("ka must be finite and > ke", ka.isFinite() && ka > ke)
+        }
     }
 
     private fun solve(ke: Double, tmax: Double): Double = BatemanCurve.solveKaForTmax(ke, tmax)!!

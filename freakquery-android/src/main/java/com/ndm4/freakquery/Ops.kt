@@ -40,7 +40,7 @@ internal object Grouping {
     }
 
     fun groupSum(group: Rows, config: FreakQueryConfig): Double =
-        group.sumOf { Units.toMg(Aliases.rowGet(config, it, "dose"), Aliases.rowGet(config, it, "unit")) }
+        group.sumOf { Units.toMgOrNull(Aliases.rowGet(config, it, "dose"), Aliases.rowGet(config, it, "unit")) ?: 0.0 }
 
     fun mainSubstance(group: Rows, config: FreakQueryConfig): String =
         group.groupingBy { Aliases.canonicalValue(config, "substance", Aliases.rowGet(config, it, "substance") ?: "") }

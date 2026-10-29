@@ -167,7 +167,7 @@ fun FreakQueryShellScreenContent(
                     .padding(horizontal = horizontalPadding),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(state.history) { entry ->
+                items(state.history, key = { it.id }) { entry ->
                     ShellEntry(entry = entry) {
                         onInputChange(entry.query)
                     }

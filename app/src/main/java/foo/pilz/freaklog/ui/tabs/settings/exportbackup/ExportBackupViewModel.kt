@@ -128,9 +128,8 @@ class ExportBackupViewModel @Inject constructor(
     /** Imports a plaintext export right away; an encrypted one waits for [importWithPassphrase]. */
     fun handleImportFile(uri: Uri) {
         viewModelScope.launch {
-            val bytes = fileSystemConnection.getBytesFromUri(uri)
+            val bytes = readImportBytes(uri) ?: return@launch
             when {
-                bytes == null -> snackbarHostState.showSnackbar("File not found")
                 ExportEncryption.looksLikeJson(bytes) -> importPlaintext(bytes.decodeToString())
                 else -> _pendingEncryptedImport.value = uri
             }
@@ -142,11 +141,7 @@ class ExportBackupViewModel @Inject constructor(
         viewModelScope.launch {
             val uri = _pendingEncryptedImport.value ?: return@launch
             _pendingEncryptedImport.value = null
-            val bytes = fileSystemConnection.getBytesFromUri(uri)
-            if (bytes == null) {
-                snackbarHostState.showSnackbar("File not found")
-                return@launch
-            }
+            val bytes = readImportBytes(uri) ?: return@launch
             val text = try {
                 withContext(Dispatchers.Default) { exportEncryption.decrypt(bytes, passphrase).decodeToString() }
             } catch (e: CancellationException) {
@@ -165,19 +160,34 @@ class ExportBackupViewModel @Inject constructor(
         }
     }
 
+    private suspend fun readImportBytes(uri: Uri): ByteArray? = try {
+        withContext(Dispatchers.IO) { fileSystemConnection.getBytesFromUri(uri) }.also {
+            if (it == null) snackbarHostState.showSnackbar("File not found")
+        }
+    } catch (e: IllegalArgumentException) {
+        snackbarHostState.showSnackbar(e.message ?: "Could not read file")
+        null
+    }
+
     @Suppress("TooGenericExceptionCaught")
     private suspend fun importPlaintext(text: String) {
-        val message = try {
-            val journalExport = withContext(Dispatchers.Default) {
+        val journalExport = try {
+            withContext(Dispatchers.Default) {
                 lenientJson.decodeFromString<JournalExport>(text)
             }
-            experienceRepository.deleteEverything()
-            experienceRepository.insertEverything(journalExport)
-            "Import successful"
         } catch (e: CancellationException) {
             throw e
         } catch (_: Exception) {
-            "Decoding file failed"
+            snackbarHostState.showSnackbar("Decoding file failed")
+            return
+        }
+        val message = try {
+            experienceRepository.replaceEverything(journalExport)
+            "Import successful"
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            "Restore failed: ${e.message}"
         }
         snackbarHostState.showSnackbar(message)
     }
@@ -210,7 +220,7 @@ class ExportBackupViewModel @Inject constructor(
                 foo.pilz.freaklog.data.substanceshare.resolveCollisionReplace(payload, customSubstanceRepository)
                 payload.name
             } else {
-                val existingNames = experienceRepository.getAllCustomSubstances().map { it.name }.toSet()
+                val existingNames = experienceRepository.getAllCustomSubstanceNames().toSet()
                 foo.pilz.freaklog.data.substanceshare.resolveCollisionKeepBoth(
                     payload,
                     existingNames,

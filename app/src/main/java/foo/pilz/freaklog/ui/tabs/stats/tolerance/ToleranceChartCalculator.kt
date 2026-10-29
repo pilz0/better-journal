@@ -20,6 +20,9 @@ package foo.pilz.freaklog.ui.tabs.stats.tolerance
 
 import androidx.compose.ui.graphics.Color
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
+import foo.pilz.freaklog.data.room.experiences.findProfile
+import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithEverything
+import foo.pilz.freaklog.data.room.experiences.toTolerance
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import java.time.Duration
 import java.time.Instant
@@ -29,27 +32,30 @@ object ToleranceChartCalculator {
 
     private val weeksPattern = Regex("""(\d+)(?:-(\d+))?\s*weeks?""", RegexOption.IGNORE_CASE)
     private val daysPattern = Regex("""(\d+)(?:-(\d+))?\s*days?""", RegexOption.IGNORE_CASE)
+    private const val MAX_TOLERANCE_HOURS = 876000.0
 
     fun getToleranceWindows(
         substanceAndDays: List<SubstanceAndDay>,
         substanceCompanions: List<SubstanceCompanion>,
-        substanceRepository: SubstanceRepository
+        substanceRepository: SubstanceRepository,
+        customProfiles: Map<String, CustomSubstanceWithEverything> = emptyMap()
     ): List<ToleranceWindow> {
         val cleanedSubstanceAndDays = removeMultipleSubstancesInADay(substanceAndDays)
-        val substanceIntervals = getSubstanceIntervals(cleanedSubstanceAndDays, substanceRepository)
+        val substanceIntervals = getSubstanceIntervals(cleanedSubstanceAndDays, substanceRepository, customProfiles)
         val substanceIntervalsGroupedBySubstance = getSubstanceIntervalsGroupedBySubstance(substanceIntervals)
         val mergedSubstanceIntervals = getMergedSubstanceIntervals(substanceIntervalsGroupedBySubstance)
         return getToleranceWindows(mergedSubstanceIntervals, substanceCompanions)
     }
 
     private fun removeMultipleSubstancesInADay(substanceAndDays: List<SubstanceAndDay>): List<SubstanceAndDay> {
+        val zoneId = ZoneId.systemDefault()
         return substanceAndDays
-            .groupBy { it.day.atZone(ZoneId.systemDefault()).toLocalDate() }
+            .groupBy { it.day.atZone(zoneId).toLocalDate() }
             .flatMap { (_, daySubstances) ->
                 daySubstances
                     .groupBy { it.substanceName }
                     .map { (_, sameSubstanceList) ->
-                        sameSubstanceList.minByOrNull { it.day }!!
+                        sameSubstanceList.minBy { it.day }
                     }
             }
     }
@@ -63,18 +69,28 @@ object ToleranceChartCalculator {
 
     private fun getSubstanceIntervals(
         substanceAndDayPairs: List<SubstanceAndDay>,
-        substanceRepository: SubstanceRepository
+        substanceRepository: SubstanceRepository,
+        customProfiles: Map<String, CustomSubstanceWithEverything>
     ): List<SubstanceInterval> {
+        val toleranceHoursBySubstance = mutableMapOf<String, Pair<Double?, Double?>>()
         return substanceAndDayPairs.flatMap { pair ->
-            val tolerance = substanceRepository.getSubstance(pair.substanceName)?.tolerance
+            val (halfToleranceHours, zeroToleranceHours) = toleranceHoursBySubstance.getOrPut(pair.substanceName) {
+                val substance = substanceRepository.getSubstance(pair.substanceName)
+                val tolerance = if (substance != null) {
+                    substance.tolerance
+                } else {
+                    findProfile(customProfiles, pair.substanceName)?.substance?.toTolerance()
+                }
+                parseToleranceToHours(tolerance?.half) to parseToleranceToHours(tolerance?.zero)
+            }
             val result = mutableListOf<SubstanceInterval>()
             var startOfHalfTolerance = pair.day
 
-            // Parse tolerance strings to get hours
-            val halfToleranceHours = parseToleranceToHours(tolerance?.half)
-            val zeroToleranceHours = parseToleranceToHours(tolerance?.zero)
-
-            if (halfToleranceHours != null && halfToleranceHours > 24) {
+            val isHalfValid = halfToleranceHours != null &&
+                halfToleranceHours.isFinite() &&
+                halfToleranceHours > 24 &&
+                halfToleranceHours <= MAX_TOLERANCE_HOURS
+            if (isHalfValid) {
                 startOfHalfTolerance = pair.day.plus(Duration.ofHours(halfToleranceHours.toLong()))
                 result.add(
                     SubstanceInterval(
@@ -86,7 +102,11 @@ object ToleranceChartCalculator {
                 )
             }
 
-            if (zeroToleranceHours != null && zeroToleranceHours > 24) {
+            val isZeroValid = zeroToleranceHours != null &&
+                zeroToleranceHours.isFinite() &&
+                zeroToleranceHours > 24 &&
+                zeroToleranceHours <= MAX_TOLERANCE_HOURS
+            if (isZeroValid) {
                 val startOfZeroTolerance = pair.day.plus(Duration.ofHours(zeroToleranceHours.toLong()))
                 if (startOfZeroTolerance > startOfHalfTolerance) {
                     result.add(
@@ -110,16 +130,18 @@ object ToleranceChartCalculator {
         // Try to parse patterns like "1-2 weeks", "3-4 days", "2 weeks", etc.
         val weeksMatch = weeksPattern.find(toleranceString)
         if (weeksMatch != null) {
-            val min = weeksMatch.groupValues[1].toDoubleOrNull() ?: return null
-            val max = weeksMatch.groupValues[2].toDoubleOrNull() ?: min
-            return ((min + max) / 2) * 7 * 24
+            val min = weeksMatch.groupValues[1].toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 } ?: return null
+            val max = weeksMatch.groupValues[2].toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 } ?: min
+            val hours = ((min + max) / 2) * 7 * 24
+            return hours.takeIf { it.isFinite() && it >= 0.0 }
         }
 
         val daysMatch = daysPattern.find(toleranceString)
         if (daysMatch != null) {
-            val min = daysMatch.groupValues[1].toDoubleOrNull() ?: return null
-            val max = daysMatch.groupValues[2].toDoubleOrNull() ?: min
-            return ((min + max) / 2) * 24
+            val min = daysMatch.groupValues[1].toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 } ?: return null
+            val max = daysMatch.groupValues[2].toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 } ?: min
+            val hours = ((min + max) / 2) * 24
+            return hours.takeIf { it.isFinite() && it >= 0.0 }
         }
 
         return null
@@ -222,8 +244,9 @@ object ToleranceChartCalculator {
         substanceIntervals: List<SubstanceInterval>,
         substanceCompanions: List<SubstanceCompanion>
     ): List<ToleranceWindow> {
+        val companionsBySubstance = substanceCompanions.associateBy { it.substanceName }
         return substanceIntervals.map { interval ->
-            val companion = substanceCompanions.find { it.substanceName == interval.substanceName }
+            val companion = companionsBySubstance[interval.substanceName]
             val color = companion?.color?.getComposeColor(false) ?: Color.Red
 
             ToleranceWindow(

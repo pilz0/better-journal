@@ -36,6 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
@@ -112,17 +113,19 @@ fun CombinationSettingsScreen(
                         style = MaterialTheme.typography.bodySmall
                     )
                     substanceInteractions.forEach { substanceInteraction ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(text = substanceInteraction.name)
-                            Switch(
-                                checked = substanceInteraction.isOn,
-                                onCheckedChange = { substanceInteraction.toggle() },
-                                modifier = Modifier.semantics { contentDescription = substanceInteraction.name }
-                            )
+                        key(substanceInteraction.name) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(text = substanceInteraction.name)
+                                Switch(
+                                    checked = substanceInteraction.isOn,
+                                    onCheckedChange = { substanceInteraction.toggle() },
+                                    modifier = Modifier.semantics { contentDescription = substanceInteraction.name }
+                                )
+                            }
                         }
                     }
                 }

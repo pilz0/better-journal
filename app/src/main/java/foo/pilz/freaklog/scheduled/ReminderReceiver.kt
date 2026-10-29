@@ -7,6 +7,7 @@ package foo.pilz.freaklog.scheduled
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import dagger.hilt.android.AndroidEntryPoint
 import foo.pilz.freaklog.data.room.reminders.RemindersRepository
 import foo.pilz.freaklog.scheduled.NotificationScheduler.Companion.EXTRA_REMINDER_ID
@@ -36,8 +37,13 @@ class ReminderReceiver : BroadcastReceiver() {
                 val reminder = remindersRepository.getReminderById(reminderId) ?: return@launch
                 notificationScheduler.postReminderNotification(reminder)
                 if (reminder.isEnabled) {
-                    notificationScheduler.scheduleReminder(reminder)
+                    notificationScheduler.scheduleReminder(
+                        reminder = reminder,
+                        fromMillis = System.currentTimeMillis() + 1000L,
+                    )
                 }
+            } catch (t: Throwable) {
+                Log.e("ReminderReceiver", "Error processing reminder alarm for id $reminderId", t)
             } finally {
                 pendingResult.finish()
             }

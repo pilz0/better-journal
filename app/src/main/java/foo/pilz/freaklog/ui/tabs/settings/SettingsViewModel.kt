@@ -226,6 +226,16 @@ class SettingsViewModel @Inject constructor(
         userPreferences.saveAiAssistantEnabled(value)
     }
 
+    val useIntranasalForRectalFlow = userPreferences.useIntranasalForRectalFlow.stateIn(
+        initialValue = false,
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+    )
+
+    fun saveUseIntranasalForRectal(value: Boolean) = viewModelScope.launch {
+        userPreferences.saveUseIntranasalForRectal(value)
+    }
+
     // ---- App lock ----
 
     val isLockEnabledFlow = userPreferences.isLockEnabledFlow.stateIn(

@@ -657,7 +657,7 @@ fun EditIngestionScreen(
                         }
                     )
                 }
-                items(consumerNamesSorted) { consumerName ->
+                items(consumerNamesSorted, key = { it }) { consumerName ->
                     ListItem(
                         headlineContent = { Text(consumerName) },
                         leadingContent = {

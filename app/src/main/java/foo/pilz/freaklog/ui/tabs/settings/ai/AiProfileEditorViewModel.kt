@@ -128,7 +128,6 @@ class AiProfileEditorViewModel @Inject constructor(
                 val models = client().listModels()
                 _state.update {
                     it.copy(
-                        isFetchingModels = false,
                         models = models,
                         modelsError = if (models.isEmpty()) "The server listed no models." else null,
                     )
@@ -136,7 +135,9 @@ class AiProfileEditorViewModel @Inject constructor(
             } catch (ce: CancellationException) {
                 throw ce
             } catch (e: Exception) {
-                _state.update { it.copy(isFetchingModels = false, modelsError = e.message ?: "Couldn't load models.") }
+                _state.update { it.copy(modelsError = e.message ?: "Couldn't load models.") }
+            } finally {
+                _state.update { it.copy(isFetchingModels = false) }
             }
         }
     }
@@ -146,31 +147,35 @@ class AiProfileEditorViewModel @Inject constructor(
         networkJob?.cancel()
         _state.update { it.copy(test = ConnectionTest.Running) }
         networkJob = viewModelScope.launch {
-            val result = try {
-                val draft = _state.value.draft
-                val request = AiChatRequest(
-                    model = draft.model.trim(),
-                    system = "You are a connectivity check. Reply with the single word OK.",
-                    messages = listOf(AiMessage.User("Reply with OK.")),
-                    tools = emptyList(),
-                    maxOutputTokens = TEST_MAX_TOKENS,
-                )
-                val reply = StringBuilder()
-                withTimeout(TEST_TIMEOUT_MS) {
-                    client().stream(request).collect { event ->
-                        if (event is AiStreamEvent.Completed) reply.append(event.message.text)
+            try {
+                val result = try {
+                    val draft = _state.value.draft
+                    val request = AiChatRequest(
+                        model = draft.model.trim(),
+                        system = "You are a connectivity check. Reply with the single word OK.",
+                        messages = listOf(AiMessage.User("Reply with OK.")),
+                        tools = emptyList(),
+                        maxOutputTokens = TEST_MAX_TOKENS,
+                    )
+                    val reply = StringBuilder()
+                    withTimeout(TEST_TIMEOUT_MS) {
+                        client().stream(request).collect { event ->
+                            if (event is AiStreamEvent.Completed) reply.append(event.message.text)
+                        }
                     }
+                    val text = reply.toString().trim().take(80)
+                    ConnectionTest.Passed(if (text.isEmpty()) "Connected." else "Connected. The model replied: $text")
+                } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                    ConnectionTest.Failed("No answer within ${TEST_TIMEOUT_MS / 1000} seconds.")
+                } catch (ce: CancellationException) {
+                    throw ce
+                } catch (e: Exception) {
+                    ConnectionTest.Failed(e.message ?: e::class.java.simpleName)
                 }
-                val text = reply.toString().trim().take(80)
-                ConnectionTest.Passed(if (text.isEmpty()) "Connected." else "Connected. The model replied: $text")
-            } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-                ConnectionTest.Failed("No answer within ${TEST_TIMEOUT_MS / 1000} seconds.")
-            } catch (ce: CancellationException) {
-                throw ce
-            } catch (e: Exception) {
-                ConnectionTest.Failed(e.message ?: e::class.java.simpleName)
+                _state.update { it.copy(test = result) }
+            } finally {
+                _state.update { if (it.test is ConnectionTest.Running) it.copy(test = ConnectionTest.Idle) else it }
             }
-            _state.update { it.copy(test = result) }
         }
     }
 

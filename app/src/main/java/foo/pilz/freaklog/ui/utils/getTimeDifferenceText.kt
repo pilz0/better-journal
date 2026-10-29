@@ -22,7 +22,10 @@ import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
+const val JUST_NOW_TEXT = "just now"
+
 fun getTimeDifferenceText(fromInstant: Instant, toInstant: Instant): String {
+    if (fromInstant >= toInstant) return JUST_NOW_TEXT
     val diff = Duration.between(fromInstant, toInstant)
     val minutes = diff.toMinutes().toFloat()
     val hours = minutes / 60

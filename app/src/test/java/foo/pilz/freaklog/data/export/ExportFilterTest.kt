@@ -221,4 +221,23 @@ class ExportFilterTest {
         assertNull(decoded.experiences.single().ingestions.single().notes)
         assertEquals(1, decoded.intakeLimits.size)
     }
+
+    @Test
+    fun `blood pressure readings are grouped and filtered by experience`() {
+        val bp1 = foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading(
+            experienceId = 1, time = now, systolic = 120, diastolic = 80, pulse = 65
+        )
+        val bp2 = foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading(
+            experienceId = 2, time = now, systolic = 130, diastolic = 85, pulse = 70
+        )
+        val dataWithBp = data.copy(bloodPressureReadings = listOf(bp1, bp2))
+
+        val filtered = dataWithBp.filtered(ExportFilter(substanceNames = setOf("LSD")))
+        assertEquals(listOf(bp1), filtered.bloodPressureReadings)
+
+        val exported = filtered.toJournalExport()
+        assertEquals(1, exported.experiences.size)
+        assertEquals(1, exported.experiences.first().bloodPressure.size)
+        assertEquals(120, exported.experiences.first().bloodPressure.first().systolic)
+    }
 }

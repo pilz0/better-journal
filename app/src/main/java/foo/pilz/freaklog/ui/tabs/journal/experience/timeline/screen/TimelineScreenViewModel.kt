@@ -25,6 +25,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
@@ -67,6 +68,7 @@ class TimelineScreenViewModel @Inject constructor(
     experienceRepo: ExperienceRepository,
     private val substanceRepo: SubstanceRepository,
     private val userPreferences: UserPreferences,
+    private val customProfiles: CustomSubstanceProfiles,
     @ApplicationContext private val context: Context,
     state: SavedStateHandle
 ) : ViewModel() {
@@ -142,11 +144,21 @@ class TimelineScreenViewModel @Inject constructor(
     )
 
     private val ingestionsWithAssociatedDataFlow: Flow<List<IngestionWithAssociatedData>> =
-        sortedIngestionsWithCompanionsFlow.map { ingestionsWithComps ->
+        combine(
+            sortedIngestionsWithCompanionsFlow,
+            customProfiles.byNameFlow,
+            userPreferences.useIntranasalForRectalFlow
+        ) { ingestionsWithComps, profiles, useIntranasalForRectal ->
             ingestionsWithComps.map { oneIngestionWithComp ->
                 val ingestion = oneIngestionWithComp.ingestion
                 val roa = substanceRepo.getSubstance(oneIngestionWithComp.ingestion.substanceName)
-                    ?.getRoa(ingestion.administrationRoute)
+                    ?.getEffectiveRoa(ingestion.administrationRoute, useIntranasalForRectal)
+                    ?: foo.pilz.freaklog.data.room.experiences.findEffectiveRoa(
+                        profiles,
+                        ingestion.substanceName,
+                        ingestion.administrationRoute,
+                        useIntranasalForRectal
+                    )
                 val roaDuration = roa?.roaDuration
                 IngestionWithAssociatedData(
                     ingestionWithCompanionAndCustomUnit = oneIngestionWithComp,
@@ -227,7 +239,8 @@ class TimelineScreenViewModel @Inject constructor(
             IngestionElement(
                 ingestionWithCompanionAndCustomUnit = ingestionWith.ingestionWithCompanionAndCustomUnit,
                 roaDuration = ingestionWith.roaDuration,
-                numDots = numDots
+                numDots = numDots,
+                roaDose = ingestionWith.roaDose
             )
         }
     }

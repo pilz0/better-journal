@@ -114,16 +114,13 @@ class CustomRecipeViewModel @Inject constructor(
         _components.value = _components.value + RecipeComponentState()
     }
 
-    fun updateComponent(index: Int, component: RecipeComponentState) {
-        _components.value = _components.value.toMutableList().apply {
-            set(index, component)
-        }
+    fun updateComponent(id: String, component: RecipeComponentState) {
+        val current = _components.value
+        _components.value = current.map { if (it.id == id) component.copy(id = id) else it }
     }
 
-    fun removeComponent(index: Int) {
-        _components.value = _components.value.toMutableList().apply {
-            removeAt(index)
-        }
+    fun removeComponent(id: String) {
+        _components.value = _components.value.filterNot { it.id == id }
     }
 
     fun saveRecipe() {
@@ -143,9 +140,9 @@ class CustomRecipeViewModel @Inject constructor(
                     CustomRecipeComponent(
                         customRecipeId = existing.recipe.id,
                         substanceName = comp.substanceName,
-                        dose = comp.dose,
+                        dose = comp.dose?.takeIf { it.isFinite() && it >= 0.0 },
                         isDoseAnEstimate = comp.isDoseAnEstimate,
-                        estimatedDoseStandardDeviation = comp.estimatedDoseStandardDeviation,
+                        estimatedDoseStandardDeviation = comp.estimatedDoseStandardDeviation?.takeIf { it.isFinite() && it >= 0.0 },
                         units = comp.units.takeIf { it.isNotBlank() },
                         administrationRoute = comp.administrationRoute,
                         customUnitId = comp.customUnitId,
@@ -164,9 +161,9 @@ class CustomRecipeViewModel @Inject constructor(
                     CustomRecipeComponent(
                         customRecipeId = 0, // Will be set by repository
                         substanceName = comp.substanceName,
-                        dose = comp.dose,
+                        dose = comp.dose?.takeIf { it.isFinite() && it >= 0.0 },
                         isDoseAnEstimate = comp.isDoseAnEstimate,
-                        estimatedDoseStandardDeviation = comp.estimatedDoseStandardDeviation,
+                        estimatedDoseStandardDeviation = comp.estimatedDoseStandardDeviation?.takeIf { it.isFinite() && it >= 0.0 },
                         units = comp.units.takeIf { it.isNotBlank() },
                         administrationRoute = comp.administrationRoute,
                         customUnitId = comp.customUnitId,
@@ -205,5 +202,6 @@ data class RecipeComponentState(
     val estimatedDoseStandardDeviation: Double? = null,
     val units: String = "",
     val administrationRoute: AdministrationRoute = AdministrationRoute.ORAL,
-    val customUnitId: Int? = null
+    val customUnitId: Int? = null,
+    val id: String = java.util.UUID.randomUUID().toString()
 )

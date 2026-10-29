@@ -19,10 +19,11 @@
 package foo.pilz.freaklog.data.room.experiences.entities
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.time.Instant
 
-@Entity
+@Entity(indices = [Index(value = ["creationDate"]), Index(value = ["isPreferred"])])
 data class Spray(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,

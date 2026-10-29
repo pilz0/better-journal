@@ -49,13 +49,14 @@ object ReminderSchedule {
         val mask = effectiveDaysMask(reminder.daysOfWeekMask)
         if (mask == 0) return null
 
-        val from = Instant.ofEpochMilli(fromMillis).atZone(zone)
+        val from = runCatching { Instant.ofEpochMilli(fromMillis).atZone(zone) }.getOrNull() ?: return null
         // Search up to 8 days forward to guarantee we hit at least one allowed day.
         for (offset in 0..7) {
             val date = from.toLocalDate().plusDays(offset.toLong())
             if (!isDayAllowedForFiring(date.dayOfWeek, mask)) continue
             for (time in times) {
-                val instant = date.atTime(time).atZone(zone).toInstant().toEpochMilli()
+                val instant = runCatching { date.atTime(time).atZone(zone).toInstant().toEpochMilli() }
+                    .getOrNull() ?: continue
                 if (instant > fromMillis) return instant
             }
         }
@@ -68,36 +69,50 @@ object ReminderSchedule {
         val mask = effectiveDaysMask(reminder.daysOfWeekMask)
         if (mask == 0) return null
 
-        val anchor = if (reminder.startEpochMillis > 0L) {
-            reminder.startEpochMillis
-        } else {
-            // Legacy reminders: anchor at hour:minute today (in zone).
-            val today = Instant.ofEpochMilli(fromMillis).atZone(zone).toLocalDate()
-            today.atTime(LocalTime.of(reminder.hour.coerceIn(0, 23), reminder.minute.coerceIn(0, 59)))
-                .atZone(zone).toInstant().toEpochMilli()
-        }
+        val anchor = runCatching {
+            if (reminder.startEpochMillis > 0L) {
+                reminder.startEpochMillis
+            } else {
+                // Legacy reminders: anchor at hour:minute today (in zone).
+                val today = Instant.ofEpochMilli(fromMillis).atZone(zone).toLocalDate()
+                today.atTime(LocalTime.of(reminder.hour.coerceIn(0, 23), reminder.minute.coerceIn(0, 59)))
+                    .atZone(zone).toInstant().toEpochMilli()
+            }
+        }.getOrNull() ?: return null
 
-        var next = if (anchor > fromMillis) {
-            anchor
-        } else {
-            val diff = fromMillis - anchor
-            // (diff / intervalMs) + 1 intervals past the anchor.
-            anchor + ((diff / intervalMs) + 1) * intervalMs
-        }
+        val next = nextIntervalAfter(anchor, fromMillis, intervalMs) ?: return null
+        return nextAllowedIntervalFire(next, intervalMs, mask, zone)
+    }
+
+    private fun nextAllowedIntervalFire(startMillis: Long, intervalMs: Long, mask: Int, zone: ZoneId): Long? {
+        var next = startMillis
         // Skip forward until the day is allowed. Use a time-based horizon (8 days) instead
         // of a fixed step count so short intervals across a weekend mask still find the
         // next allowed slot. Hard cap the iteration count (100k steps is plenty for any
         // realistic interval; only a sub-second-interval misconfiguration could exceed it,
         // and we'd rather bail than spin) so a degenerate interval can never loop forever.
-        val horizon = next + 8L * 24L * 60L * 60_000L
-        val maxSteps = (8L * 24L * 60L * 60_000L / intervalMs + 8L).coerceAtMost(100_000L).toInt()
+        val searchWindowMs = 8L * 24L * 60L * 60_000L
+        val horizon = if (next > Long.MAX_VALUE - searchWindowMs) Long.MAX_VALUE else next + searchWindowMs
+        val maxSteps = (searchWindowMs / intervalMs + 8L).coerceAtMost(100_000L).toInt()
         repeat(maxSteps) {
             if (next > horizon) return null
-            val day = Instant.ofEpochMilli(next).atZone(zone).dayOfWeek
+            val day = runCatching { Instant.ofEpochMilli(next).atZone(zone).dayOfWeek }.getOrNull() ?: return null
             if (isDayAllowedForFiring(day, mask)) return next
+            if (next > Long.MAX_VALUE - intervalMs) return null
             next += intervalMs
         }
         return null
+    }
+
+    private fun nextIntervalAfter(anchor: Long, fromMillis: Long, intervalMs: Long): Long? {
+        if (anchor > fromMillis) return anchor
+        val diff = fromMillis - anchor
+        if (diff < 0L) return anchor // Subtraction overflowed.
+        val stepCount = diff / intervalMs + 1L
+        if (stepCount > Long.MAX_VALUE / intervalMs) return null
+        val offset = stepCount * intervalMs
+        if (anchor > Long.MAX_VALUE - offset) return null
+        return anchor + offset
     }
 
     /** Parses `"08:00,20:30"` (whitespace-tolerant) into a sorted list of [LocalTime]. */

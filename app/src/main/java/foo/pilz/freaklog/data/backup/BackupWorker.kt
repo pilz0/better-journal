@@ -116,7 +116,7 @@ class BackupWorker(
             treeUri,
             DocumentsContract.getTreeDocumentId(treeUri)
         )
-        val idsByName = mutableMapOf<String, String>()
+        val docIdsByName = mutableMapOf<String, MutableList<String>>()
         resolver.query(
             childrenUri,
             arrayOf(
@@ -127,23 +127,29 @@ class BackupWorker(
             null,
             null
         )?.use { cursor ->
-            while (cursor.moveToNext()) {
-                val name = cursor.getString(1)
-                val docId = cursor.getString(0)
-                if (name != null && docId != null) {
-                    idsByName[name] = docId
+            val docIdIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
+            val nameIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
+            if (docIdIndex >= 0 && nameIndex >= 0) {
+                while (cursor.moveToNext()) {
+                    val docId = cursor.getString(docIdIndex)
+                    val name = cursor.getString(nameIndex)
+                    if (name != null && docId != null) {
+                        docIdsByName.getOrPut(name) { mutableListOf() }.add(docId)
+                    }
                 }
             }
         }
-        backupsToPrune(idsByName.keys).forEach { name ->
-            val docId = idsByName[name] ?: return@forEach
-            try {
-                DocumentsContract.deleteDocument(
-                    resolver,
-                    DocumentsContract.buildDocumentUriUsingTree(treeUri, docId)
-                )
-            } catch (_: Exception) {
-                // Pruning failure shouldn't fail the whole backup run
+        backupsToPrune(docIdsByName.keys).forEach { name ->
+            val docIds = docIdsByName[name].orEmpty()
+            for (docId in docIds) {
+                try {
+                    DocumentsContract.deleteDocument(
+                        resolver,
+                        DocumentsContract.buildDocumentUriUsingTree(treeUri, docId)
+                    )
+                } catch (_: Exception) {
+                    // Pruning failure shouldn't fail the whole backup run
+                }
             }
         }
     }

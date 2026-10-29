@@ -97,9 +97,13 @@ fun TimelineScreen(
         ) {
             val configuration = LocalConfiguration.current
             val screenWidth = configuration.screenWidthDp.toFloat()
-            var canvasWidth by remember { mutableFloatStateOf(screenWidth) }
+            // screenWidthDp can be 0 (SCREEN_WIDTH_DP_UNDEFINED) during configuration changes,
+            // which would give the Slider an empty value range
+            val safeScreenWidth = screenWidth.takeIf { it.isFinite() && it > 0f } ?: 360f
+            var canvasWidth by remember(safeScreenWidth) { mutableFloatStateOf(safeScreenWidth) }
             val isOrientationPortrait =
-                LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT
+                configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+            val valueRange = remember(safeScreenWidth) { safeScreenWidth..5 * safeScreenWidth }
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -128,11 +132,11 @@ fun TimelineScreen(
                 }
             }
             Slider(
-                value = canvasWidth,
+                value = canvasWidth.coerceIn(valueRange),
                 onValueChange = { value ->
                     canvasWidth = value
                 },
-                valueRange = screenWidth..5 * screenWidth,
+                valueRange = valueRange,
                 modifier = Modifier
                     .padding(horizontal = 30.dp)
                     .padding(bottom = if (isOrientationPortrait) 30.dp else 10.dp)

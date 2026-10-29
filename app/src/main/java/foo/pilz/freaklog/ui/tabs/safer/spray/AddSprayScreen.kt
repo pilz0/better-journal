@@ -72,8 +72,8 @@ fun AddSprayScreenContent(
     var sizeInMl by remember { mutableStateOf("") }
     var numSprays by remember { mutableStateOf("") }
 
-    val sizeInMlValue = sizeInMl.toDoubleOrNull()
-    val numSpraysValue = numSprays.toDoubleOrNull()
+    val sizeInMlValue = sizeInMl.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it.isFinite() }
+    val numSpraysValue = numSprays.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it.isFinite() }
     val canSave = name.isNotBlank() && 
                   sizeInMlValue != null && sizeInMlValue > 0 && 
                   numSpraysValue != null && numSpraysValue > 0
@@ -85,7 +85,7 @@ fun AddSprayScreenContent(
                 actions = {
                     if (canSave) {
                         Button(
-                            onClick = { onSave(name, sizeInMlValue, numSpraysValue) },
+                            onClick = { onSave(name.trim(), sizeInMlValue, numSpraysValue) },
                             modifier = Modifier.padding(end = 8.dp)
                         ) {
                             Text("Save")

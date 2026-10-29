@@ -7,6 +7,7 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.security.GeneralSecurityException
+import kotlin.random.Random
 
 class ExportEncryptionTest {
 
@@ -70,9 +71,35 @@ class ExportEncryptionTest {
     fun `json detection tells plaintext from encrypted files`() {
         assertTrue(ExportEncryption.looksLikeJson(plaintext))
         assertTrue(ExportEncryption.looksLikeJson("  \n[1]".toByteArray()))
+        assertTrue(ExportEncryption.looksLikeJson(" \t{\"experiences\":[]}\r\n ".toByteArray()))
+        assertTrue(ExportEncryption.looksLikeJson(" \n[1]\t\r ".toByteArray()))
         val bomJson = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) + plaintext
         assertTrue(ExportEncryption.looksLikeJson(bomJson))
+        val bomOnly = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) + "   ".toByteArray()
+        assertFalse(ExportEncryption.looksLikeJson(bomOnly))
+        val bomText = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) + "not json".toByteArray()
+        assertFalse(ExportEncryption.looksLikeJson(bomText))
         assertFalse(ExportEncryption.looksLikeJson(byteArrayOf(0x50, 0x4A)))
         assertFalse(ExportEncryption.looksLikeJson(ByteArray(0)))
+    }
+
+    @Test
+    fun `random bytes starting with json delimiters require matching closing delimiters`() {
+        val random = Random(0)
+        for (opening in listOf('{', '[')) {
+            val bytes = random.nextBytes(128).also {
+                it[0] = opening.code.toByte()
+                it[it.lastIndex] = 0
+            }
+            assertFalse(ExportEncryption.looksLikeJson(bytes))
+            assertFalse(ExportEncryption.looksLikeJson(bytes + " \r\n\t".toByteArray()))
+        }
+    }
+
+    @Test
+    fun `mismatched or missing json closing delimiters are rejected`() {
+        for (text in listOf("{]", "[}", "{", "[", "  {] \n", "  [} \n", " \r\n\t")) {
+            assertFalse(text, ExportEncryption.looksLikeJson(text.toByteArray()))
+        }
     }
 }

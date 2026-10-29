@@ -94,6 +94,7 @@ data class ExportData(
         val keptIngestions = filteredExperiences.flatMap { it.ingestions }
         val keptSubstanceNames = keptIngestions.map { it.substanceName }.toSet()
         val keptUnitIds = keptIngestions.mapNotNull { it.customUnitId }.toSet()
+        val keptExperienceIds = filteredExperiences.map { it.experience.id }.toSet()
         val prune = filter.hasIngestionFilters
 
         return ExportData(
@@ -105,9 +106,7 @@ data class ExportData(
             customSubstances = customSubstances.filter { !prune || it.name in keptSubstanceNames },
             intakeLimits = intakeLimits.filter { !prune || it.substanceName in keptSubstanceNames },
             customSubstanceDetails = customSubstanceDetails.filter { !prune || it.name in keptSubstanceNames },
-            bloodPressureReadings = bloodPressureReadings.filter { reading ->
-                filteredExperiences.any { it.experience.id == reading.experienceId }
-            },
+            bloodPressureReadings = bloodPressureReadings.filter { it.experienceId in keptExperienceIds },
         )
     }
 }

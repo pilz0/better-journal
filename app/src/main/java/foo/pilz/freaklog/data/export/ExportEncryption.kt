@@ -118,19 +118,25 @@ class ExportEncryption @Inject constructor() {
         fun isUnsupportedV2Export(data: ByteArray): Boolean =
             data.size >= V2_MAGIC.size && data.copyOfRange(0, V2_MAGIC.size).contentEquals(V2_MAGIC)
 
-        /** Plaintext exports are JSON objects; anything else is treated as encrypted. */
+        /** Plaintext exports have matching JSON object or array delimiters. */
         fun looksLikeJson(bytes: ByteArray): Boolean {
-            val content = if (bytes.size >= 3 &&
+            val start = if (bytes.size >= 3 &&
                 bytes[0] == 0xEF.toByte() &&
                 bytes[1] == 0xBB.toByte() &&
                 bytes[2] == 0xBF.toByte()
             ) {
-                bytes.copyOfRange(3, bytes.size)
+                3
             } else {
-                bytes
+                0
             }
-            val first = content.firstOrNull { !it.toInt().toChar().isWhitespace() } ?: return false
-            return first == '{'.code.toByte() || first == '['.code.toByte()
+            val first = (start until bytes.size).firstOrNull { !bytes[it].toInt().toChar().isWhitespace() }
+                ?: return false
+            val last = (bytes.lastIndex downTo first).first { !bytes[it].toInt().toChar().isWhitespace() }
+            return when (bytes[first]) {
+                '{'.code.toByte() -> bytes[last] == '}'.code.toByte()
+                '['.code.toByte() -> bytes[last] == ']'.code.toByte()
+                else -> false
+            }
         }
     }
 }

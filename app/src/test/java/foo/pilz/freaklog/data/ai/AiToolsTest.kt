@@ -145,4 +145,53 @@ class AiToolsTest {
         assertThat(result.getString("status")).isEqualTo("error")
         assertThat(result.getString("message").contains("Database error")).isTrue()
     }
+
+    @Test
+    fun executeGetRecentIngestionsHandlesStringArgumentsAndNonFiniteDoses() = runTest {
+        val now = Instant.now()
+        val mockIngestions = listOf(
+            EntityBuilders.ingestion(
+                id = 1,
+                experienceId = 1,
+                substanceName = "Ketamine",
+                time = now,
+                dose = Double.NaN,
+            )
+        )
+        coEvery {
+            experienceDao.getIngestionsSince(any<Instant>(), any<Int>())
+        } returns mockIngestions
+
+        val result = aiTools.execute("get_recent_ingestions", mapOf("days_back" to "14"))
+        assertThat(result.getString("status")).isEqualTo("success")
+        assertThat(result.getInt("days_back")).isEqualTo(14)
+        val ingestions = result.getJSONArray("ingestions")
+        assertThat(ingestions.length()).isEqualTo(1)
+        assertThat(ingestions.getJSONObject(0).isNull("dose")).isTrue()
+    }
+
+    @Test
+    fun executeGetExperienceDetailsHandlesStringArgumentsAndNonFiniteDoses() = runTest {
+        val exp = EntityBuilders.experience(id = 42, title = "Trip")
+        val ing = EntityBuilders.ingestion(id = 10, experienceId = 42, substanceName = "LSD", dose = Double.POSITIVE_INFINITY)
+        val ic = foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit(ing, null, null)
+        val details = foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsCompanionsAndRatings(
+            experience = exp,
+            ingestionsWithCompanions = listOf(ic),
+            ratings = emptyList()
+        )
+        coEvery {
+            experienceDao.getExperienceWithIngestionsCompanionsAndRatings(42)
+        } returns details
+
+        val result = aiTools.execute(
+            "get_experience_details",
+            mapOf("experience_id" to "42", "max_notes_chars" to "500")
+        )
+        assertThat(result.getString("status")).isEqualTo("success")
+        assertThat(result.getInt("experience_id")).isEqualTo(42)
+        val ingestions = result.getJSONArray("ingestions")
+        assertThat(ingestions.length()).isEqualTo(1)
+        assertThat(ingestions.getJSONObject(0).isNull("dose")).isTrue()
+    }
 }

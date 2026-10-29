@@ -79,5 +79,37 @@ class VolumetricInputTest {
         assertEquals("1g/ml", formatConcentration(1000.0))
         assertEquals("67µg/l", formatConcentration(0.000067))
         assertEquals("500µg/ml", formatConcentration(0.5))
+        assertEquals("0.5µg/l", formatConcentration(0.0000005))
+        assertEquals("0.1µg/l", formatConcentration(0.0000001))
+        assertConcentration(0.0000005, formatConcentration(0.0000005))
+        assertConcentration(0.0000001, formatConcentration(0.0000001))
+    }
+
+    @Test
+    fun units_acceptGreekMuAsMicro() {
+        // U+03BC (Greek small mu) is what many keyboards produce instead of the micro sign U+00B5.
+        assertVolume(0.1, "100μl")
+        assertVolume(0.1, "100µl")
+        assertConcentration(0.000067, "67μg/l")
+        assertConcentration(10.0, "1mg/100μl")
+        assertEquals(0.5, massInMg("500μg", "mg")!!, 1e-12)
+        assertEquals(0.5, massInMg("500", "μg")!!, 1e-12)
+    }
+
+    @Test
+    fun concentration_rejectsNonPositiveOrOverflowingDivisors() {
+        assertNull(parseConcentrationToMgPerMl("1g/-1l"))
+        assertNull(parseConcentrationToMgPerMl("1g/(1-1)ml"))
+        assertNull(parseConcentrationToMgPerMl("1e300mg/1e-300ml"))
+        assertNull(parseVolumeToMl("1e308l"))
+        assertNull(massInMg("1e308kg", "mg"))
+    }
+
+    @Test
+    fun format_returnsEmptyForNonFiniteOrNegative() {
+        for (value in listOf(Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, -1.0)) {
+            assertEquals("", formatVolume(value))
+            assertEquals("", formatConcentration(value))
+        }
     }
 }

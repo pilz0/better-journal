@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.drawscope.inset
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 
 @Composable
 fun BarChart(buckets: List<List<ColorCount>>, startDateText: String) {
@@ -44,6 +45,7 @@ fun BarChart(buckets: List<List<ColorCount>>, startDateText: String) {
         val isDarkTheme = isSystemInDarkTheme()
         val tickColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)
         val gridLineColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+        val averageLineColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
         val labelStyle = MaterialTheme.typography.labelSmall.fontSize
         val labelHeight = with(LocalDensity.current) { labelStyle.toPx() }
         Canvas(
@@ -52,16 +54,13 @@ fun BarChart(buckets: List<List<ColorCount>>, startDateText: String) {
                 .fillMaxWidth()
                 .height(200.dp)
         ) {
+            if (buckets.isEmpty()) return@Canvas
             val canvasHeightOuter = size.height
             if (canvasHeightOuter > 0) { // for unknown reason canvasHeight can be 0 and then the app crashes
-                val maxCount = buckets.maxOf { bucket ->
-                    bucket.sumOf { it.count }
-                }.coerceAtLeast(1)
+                val maxCount = buckets.maxOfOrNull { it.sumOf { c -> c.count } }?.coerceAtLeast(1) ?: 1
 
-                // Calculate nice grid values
-                val gridSteps = 4
-                val stepValue = maxCount / gridSteps
-                val half = stepValue * (gridSteps / 2)
+                // Middle grid line; rounded so small counts (< 4) don't truncate to 0
+                val half = (maxCount / 2.0).roundToInt().coerceAtLeast(1)
                 val halfLineHeight = half.toFloat() * canvasHeightOuter / maxCount
                 val halfLabelHeight = labelHeight / 2
                 val numLettersInLabel = maxCount.toString().length
@@ -175,7 +174,7 @@ fun BarChart(buckets: List<List<ColorCount>>, startDateText: String) {
                             if (average > 0 && average <= maxCount) {
                                 val avgY = canvasHeightInner - ((average / maxCount) * canvasHeightInner)
                                 drawLine(
-                                    color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.6f),
+                                    color = averageLineColor,
                                     start = Offset(0f, avgY),
                                     end = Offset(canvasWidthWithoutLabel, avgY),
                                     strokeWidth = 2f,

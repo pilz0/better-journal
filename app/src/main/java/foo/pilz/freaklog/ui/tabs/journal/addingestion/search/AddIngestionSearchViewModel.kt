@@ -94,8 +94,9 @@ class AddIngestionSearchViewModel @Inject constructor(
         filteredSubstancesFlow,
         searchTextFlow
     ) { customUnit, filteredSubstances, searchText ->
+        val filteredSubstanceNames = filteredSubstances.map { it.name }.toSet()
         customUnit.filter { custom ->
-            filteredSubstances.any { it.name == custom.substanceName } || custom.name.contains(
+            custom.substanceName in filteredSubstanceNames || custom.name.contains(
                 other = searchText,
                 ignoreCase = true
             ) || custom.substanceName.contains(
@@ -125,17 +126,24 @@ class AddIngestionSearchViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000)
         )
 
-    val filteredSuggestions: StateFlow<List<Suggestion>> = combine(
+    private val allSuggestionsFlow = combine(
         experienceRepo.getSortedIngestionsWithSubstanceCompanionsFlow(limit = 1000),
-        customSubstancesFlow,
+        customSubstancesFlow
+    ) { ingestions, customSubstances ->
+        getSuggestions(ingestions, customSubstances)
+    }
+
+    val filteredSuggestions: StateFlow<List<Suggestion>> = combine(
+        allSuggestionsFlow,
         filteredSubstancesFlow,
         searchTextFlow
-    ) { ingestions, customSubstances, filteredSubstances, searchText ->
-        val suggestions = getSuggestions(ingestions, customSubstances)
-        return@combine suggestions.filter { sug ->
+    ) { suggestions, filteredSubstances, searchText ->
+        val substanceNamesSet = filteredSubstances.map { it.name }.toSet()
+        suggestions.filter { sug ->
             sug.isInSearch(
                 searchText = searchText,
-                substanceNames = filteredSubstances.map { it.name })
+                substanceNames = substanceNamesSet
+            )
         }
     }.stateIn(
         initialValue = emptyList(),

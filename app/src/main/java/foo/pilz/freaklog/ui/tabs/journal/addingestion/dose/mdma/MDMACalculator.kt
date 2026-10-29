@@ -144,6 +144,16 @@ private fun MDMAOptimalDoseSection() {
     val desirableColor = MaterialTheme.colorScheme.primary
     val adverseColor = MaterialTheme.colorScheme.error
     val gridColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+    // The curves don't depend on any state: sample them once instead of on every draw.
+    val curves = remember {
+        val doses = MDMAFormulas.sampleDoses(CHART_SAMPLE_COUNT)
+        ChartCurves(
+            desirable = doses.map { MDMAFormulas.desirableEffectAt(it).toFloat() },
+            adverse = doses.map { MDMAFormulas.adverseEffectAt(it).toFloat() },
+        )
+    }
+    val desirablePath = remember { Path() }
+    val adversePath = remember { Path() }
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
             text = "Optimal dose (Dutch testing data)",
@@ -159,18 +169,14 @@ private fun MDMAOptimalDoseSection() {
             Canvas(modifier = Modifier.fillMaxWidth().height(140.dp)) {
                 val w = size.width
                 val h = size.height
-                val sampleCount = 60
-                val doses = MDMAFormulas.sampleDoses(sampleCount)
-                val xs = doses.indices.map { i -> i / (sampleCount - 1f) * w }
 
-                fun pathFor(values: List<Double>): Path {
-                    val p = Path()
+                fun Path.plot(values: List<Float>) {
+                    reset()
                     values.forEachIndexed { i, v ->
-                        val x = xs[i]
-                        val y = h - (v.toFloat() * h)
-                        if (i == 0) p.moveTo(x, y) else p.lineTo(x, y)
+                        val x = i / (CHART_SAMPLE_COUNT - 1f) * w
+                        val y = h - (v * h)
+                        if (i == 0) moveTo(x, y) else lineTo(x, y)
                     }
-                    return p
                 }
 
                 // Optimal-dose vertical marker
@@ -183,13 +189,15 @@ private fun MDMAOptimalDoseSection() {
                     strokeWidth = 2f,
                 )
 
+                desirablePath.plot(curves.desirable)
+                adversePath.plot(curves.adverse)
                 drawPath(
-                    path = pathFor(doses.map { MDMAFormulas.desirableEffectAt(it) }),
+                    path = desirablePath,
                     color = desirableColor,
                     style = androidx.compose.ui.graphics.drawscope.Stroke(width = 4f),
                 )
                 drawPath(
-                    path = pathFor(doses.map { MDMAFormulas.adverseEffectAt(it) }),
+                    path = adversePath,
                     color = adverseColor,
                     style = androidx.compose.ui.graphics.drawscope.Stroke(width = 4f),
                 )
@@ -221,6 +229,11 @@ private fun MDMAOptimalDoseSection() {
         )
     }
 }
+
+private const val CHART_SAMPLE_COUNT = 60
+
+/** Effect intensities in `[0, 1]`, one per sampled dose. */
+private class ChartCurves(val desirable: List<Float>, val adverse: List<Float>)
 
 @Composable
 private fun Legend(color: Color, label: String) {

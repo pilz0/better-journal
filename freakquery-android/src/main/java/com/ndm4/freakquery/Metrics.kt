@@ -22,7 +22,7 @@ internal object Metrics {
             metric == "dose" -> rows.lastOrNull()?.let { rowDoseText(it, ctx.config) }.orEmpty()
             metric == "substance" -> rows.lastOrNull()?.let { rowSubstance(it, ctx.config) }.orEmpty()
             metric == "sum_dose" -> cleanNumericValue(rows.sumOf {
-                Units.toMg(Aliases.rowGet(ctx.config, it, "dose"), Aliases.rowGet(ctx.config, it, "unit"))
+                Units.toMgOrNull(Aliases.rowGet(ctx.config, it, "dose"), Aliases.rowGet(ctx.config, it, "unit")) ?: 0.0
             })
             metric == "top_substances" -> topN(
                 counter(rows.mapNotNull { rowSubstance(it, ctx.config).takeIf(String::isNotEmpty) })
@@ -93,7 +93,10 @@ internal object Metrics {
         for (row in rows) {
             val sub = rowSubstance(row, config)
             if (sub.isEmpty()) continue
-            totals[sub] = (totals[sub] ?: 0.0) + Units.toMg(Aliases.rowGet(config, row, "dose"), Aliases.rowGet(config, row, "unit"))
+            // Rows without a mass dose (e.g. ml or custom units) can't be totalled in mg.
+            val mg = Units.toMgOrNull(Aliases.rowGet(config, row, "dose"), Aliases.rowGet(config, row, "unit"))
+                ?: continue
+            totals[sub] = (totals[sub] ?: 0.0) + mg
             counts[sub] = (counts[sub] ?: 0) + 1
         }
         return topN(

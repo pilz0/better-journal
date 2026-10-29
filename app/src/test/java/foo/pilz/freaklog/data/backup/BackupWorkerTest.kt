@@ -29,6 +29,36 @@ class BackupWorkerTest {
     }
 
     @Test
+    fun `the newest backups are kept`() {
+        val names = (1..12).map(::name).shuffled()
+        val kept = names - BackupWorker.backupsToPrune(names).toSet()
+        assertEquals((6..12).map(::name).toSet(), kept.toSet())
+        assertEquals(BackupWorker.KEEP_COUNT, kept.size)
+    }
+
+    @Test
+    fun `nothing is pruned from an empty or small folder`() {
+        assertTrue(BackupWorker.backupsToPrune(emptyList()).isEmpty())
+        assertTrue(BackupWorker.backupsToPrune(listOf(name(1), "holiday.jpg")).isEmpty())
+    }
+
+    @Test
+    fun `timestamps order across times of day, months and years`() {
+        val times = listOf(
+            "2025-12-31T23:59:00Z",
+            "2026-01-01T00:00:00Z",
+            "2026-01-01T09:05:00Z",
+            "2026-01-01T10:00:00Z",
+            "2026-02-01T00:00:00Z",
+            "2026-09-30T12:00:00Z",
+            "2026-10-01T12:00:00Z",
+            "2026-11-15T07:45:00Z",
+            "2027-01-01T00:00:00Z",
+        ).map { BackupWorker.backupFileName(Instant.parse(it), ZoneOffset.UTC) }
+        assertEquals(times.take(2).reversed(), BackupWorker.backupsToPrune(times.shuffled()))
+    }
+
+    @Test
     fun `files that are not backups are never pruned`() {
         val names = (1..10).map(::name) + listOf("holiday.jpg", "journal-backup-notes.txt", "Journal 01 Jan 2026.enc")
         val pruned = BackupWorker.backupsToPrune(names)

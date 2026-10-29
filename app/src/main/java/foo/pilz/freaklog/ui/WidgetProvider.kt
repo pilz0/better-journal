@@ -50,7 +50,6 @@ import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import androidx.room.Room
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
@@ -59,20 +58,34 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 import foo.pilz.freaklog.MainActivity
 import foo.pilz.freaklog.data.room.AppDatabase
+import foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
-import foo.pilz.freaklog.data.substances.AdministrationRoute
-import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
-import foo.pilz.freaklog.data.substances.parse.SubstanceParser
+import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.graph.style.DefaultGraphStyle
+import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import foo.pilz.freaklog.ui.theme.md_theme_dark_primary
 import foo.pilz.freaklog.ui.theme.md_theme_light_primary
+import kotlinx.coroutines.flow.first
 import java.io.File
 import java.io.FileOutputStream
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.TimeUnit
+
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface WidgetEntryPoint {
+    fun appDatabase(): AppDatabase
+    fun substanceRepository(): SubstanceRepository
+    fun customSubstanceProfiles(): CustomSubstanceProfiles
+    fun userPreferences(): UserPreferences
+}
 
 object WidgetKeys {
     val INGESTIONS_TEXT = stringPreferencesKey("ingestionsText")
@@ -380,17 +393,24 @@ class TimelineWidgetWorker(
         val appWidgetId = inputData.getInt(WorkerInput.APP_WIDGET_ID, -1)
         if (appWidgetId == -1) return Result.failure()
 
+        val entryPoint = EntryPointAccessors.fromApplication(
+            applicationContext,
+            WidgetEntryPoint::class.java
+        )
+        val database = entryPoint.appDatabase()
         return try {
-            // Get database instance
-            val database = Room.databaseBuilder(
-                applicationContext,
-                AppDatabase::class.java,
-                "experiences_db"
-            ).build()
             val experienceDao = database.experienceDao()
 
-            // Load substance data for accurate timeline durations
-            val substanceDurations = loadSubstanceDurations(applicationContext)
+            val substanceRepo = entryPoint.substanceRepository()
+            val customProfiles = entryPoint.customSubstanceProfiles()
+            val useIntranasalForRectal = entryPoint.userPreferences().useIntranasalForRectalFlow.first()
+
+            // Use the same durations for both graph curves and phase text.
+            val substanceDurations = WidgetTimelineModel.buildSubstanceDurations(
+                substances = substanceRepo.getAllSubstances(),
+                customProfiles = customProfiles.byNameFlow.value,
+                useIntranasalForRectal = useIntranasalForRectal,
+            )
 
             val now = Instant.now()
 
@@ -540,7 +560,6 @@ class TimelineWidgetWorker(
             }
 
             MyAppWidget().update(applicationContext, glanceId)
-            database.close()
             Result.success()
         } catch (t: Throwable) {
             Log.e(TAG, "Error updating widget", t)
@@ -559,8 +578,6 @@ class TimelineWidgetWorker(
         // Render at high resolution; Glance scales the bitmap to the widget size.
         val width = 1200
         val height = 320
-        val bitmap = createBitmap(width, height)
-        val canvas = Canvas(bitmap)
 
         val paddingLeft = 24f
         val paddingRight = 24f
@@ -574,7 +591,12 @@ class TimelineWidgetWorker(
         val graphWidth = graphRight - graphLeft
 
         val widthInSeconds = model.widthInSeconds
-        fun secToPixel(sec: Float): Float = graphLeft + (sec / widthInSeconds) * graphWidth
+        if (!TimelineGraphGeometry.canRender(widthInSeconds, graphWidth, graphHeight)) return null
+        fun secToPixel(sec: Float): Float =
+            TimelineGraphGeometry.secToPixel(sec, widthInSeconds, graphLeft, graphWidth)
+
+        val bitmap = createBitmap(width, height)
+        val canvas = Canvas(bitmap)
 
         // ---- background grid + hour ticks ----
         val gridColor = if (isDarkMode) {
@@ -742,22 +764,6 @@ class TimelineWidgetWorker(
         return file.absolutePath
     }
 
-    private fun loadSubstanceDurations(context: Context): Map<String, Map<AdministrationRoute, RoaDuration?>> {
-        return try {
-            val fileContent = context.assets.open("Substances.json").bufferedReader().use { it.readText() }
-            val parser = SubstanceParser()
-            val substanceFile = parser.parseSubstanceFile(fileContent)
-            substanceFile.substances.associate { substance ->
-                substance.name to substance.roas.associate { roa ->
-                    roa.route to roa.roaDuration
-                }
-            }
-        } catch (e: Exception) {
-            Log.w("WidgetProvider", "Failed to load substance durations", e)
-            emptyMap()
-        }
-    }
-
     private fun getAndroidColor(color: AdaptiveColor, isDarkTheme: Boolean): Int {
         // Delegate to the single source of truth in AdaptiveColor (also handles AdaptiveColor.Custom)
         return color.getComposeColor(isDarkTheme).toArgb()
@@ -798,6 +804,18 @@ class TimelineWidgetWorker(
             else -> "<1m"
         }
     }
+}
+
+/** Pure geometry helpers for the timeline graph, kept free of Android types for unit tests. */
+internal object TimelineGraphGeometry {
+    /** False when the time span or graph area would make the pixel mapping degenerate. */
+    fun canRender(widthInSeconds: Float, graphWidth: Float, graphHeight: Float): Boolean =
+        widthInSeconds.isPositiveFinite() && graphWidth.isPositiveFinite() && graphHeight.isPositiveFinite()
+
+    fun secToPixel(sec: Float, widthInSeconds: Float, graphLeft: Float, graphWidth: Float): Float =
+        if (widthInSeconds.isPositiveFinite()) graphLeft + (sec / widthInSeconds) * graphWidth else graphLeft
+
+    private fun Float.isPositiveFinite(): Boolean = isFinite() && this > 0f
 }
 
 fun enqueueRefresh(context: Context, appWidgetId: Int) {

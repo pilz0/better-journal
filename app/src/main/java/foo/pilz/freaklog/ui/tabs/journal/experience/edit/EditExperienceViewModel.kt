@@ -25,11 +25,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.entities.Experience
 import foo.pilz.freaklog.data.room.experiences.entities.Location
 import foo.pilz.freaklog.ui.main.navigation.graphs.EditExperienceRoute
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -43,7 +43,7 @@ class EditExperienceViewModel @Inject constructor(
 
     var experience: Experience? = null
     var enteredTitle by mutableStateOf("")
-    val isEnteredTitleOk get() = enteredTitle.isNotEmpty()
+    val isEnteredTitleOk get() = enteredTitle.isNotBlank()
     var enteredText by mutableStateOf("")
     var enteredLocation by mutableStateOf("")
     private var oldLongitude: Double? = null
@@ -53,27 +53,40 @@ class EditExperienceViewModel @Inject constructor(
     init {
         val editExperienceRoute = state.toRoute<EditExperienceRoute>()
         viewModelScope.launch {
-            experience = repository.getExperience(id = editExperienceRoute.experienceId)!!
-            enteredTitle = experience!!.title
-            enteredText = experience!!.text
-            enteredLocation = experience!!.location?.name ?: ""
-            oldLongitude = experience!!.location?.longitude
-            oldLatitude = experience!!.location?.latitude
+            val exp = repository.getExperience(id = editExperienceRoute.experienceId)
+            experience = exp
+            if (exp != null) {
+                enteredTitle = exp.title
+                enteredText = exp.text
+                enteredLocation = exp.location?.name ?: ""
+                oldLongitude = exp.location?.longitude
+                oldLatitude = exp.location?.latitude
+            }
         }
     }
 
     fun onDoneTap() {
-        if (enteredTitle.isNotEmpty()) {
+        if (isEnteredTitleOk) {
+            val currentExperience = experience ?: return
             viewModelScope.launch {
-                experience!!.title = enteredTitle
-                experience!!.text = enteredText
-                val location = if (enteredLocation.isNotBlank()) {
-                    Location(name = enteredLocation, longitude = oldLongitude, latitude = oldLatitude)
+                currentExperience.title = enteredTitle.trim()
+                currentExperience.text = enteredText
+                val trimmedLocation = enteredLocation.trim()
+                val location = if (trimmedLocation.isNotBlank()) {
+                    val isLocationSame = trimmedLocation.equals(
+                        currentExperience.location?.name?.trim(),
+                        ignoreCase = true
+                    )
+                    Location(
+                        name = trimmedLocation,
+                        longitude = if (isLocationSame) oldLongitude else null,
+                        latitude = if (isLocationSame) oldLatitude else null
+                    )
                 } else {
                     null
                 }
-                experience!!.location = location
-                repository.update(experience = experience!!)
+                currentExperience.location = location
+                repository.update(experience = currentExperience)
             }
         }
     }

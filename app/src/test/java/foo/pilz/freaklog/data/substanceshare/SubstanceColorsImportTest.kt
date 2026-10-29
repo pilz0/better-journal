@@ -43,4 +43,19 @@ class SubstanceColorsImportTest {
         assertTrue(plan.toApply.isEmpty())
         assertEquals(1, plan.skipped.size)
     }
+
+    @Test
+    fun computeColorImportDeduplicatesDuplicateSubstances() {
+        val colors = listOf(
+            SharedSubstanceColor("MDMA", 1),
+            SharedSubstanceColor("MDMA", 2),
+            SharedSubstanceColor("Unknown", 3),
+            SharedSubstanceColor("Unknown", 4),
+        )
+        val plan = computeColorImport(colors, existingNames = setOf("MDMA"))
+        assertEquals(1, plan.toApply.size)
+        assertEquals(1, plan.toApply.first().colorArgb)
+        assertEquals(1, plan.skipped.size)
+        assertEquals("Unknown", plan.skipped.first().substanceName)
+    }
 }

@@ -28,8 +28,18 @@ data class IntakeLimitStatus(
     val contributions: List<LimitContribution>,
 ) {
     val projectedValue: Double get() = currentValue + pendingValue
-    val currentPercent: Double get() = if (maxValue <= 0.0) 0.0 else currentValue / maxValue * 100.0
-    val projectedPercent: Double get() = if (maxValue <= 0.0) 0.0 else projectedValue / maxValue * 100.0
+    val currentPercent: Double
+        get() = if (maxValue <= 0.0 || !currentValue.isFinite() || !maxValue.isFinite()) {
+            0.0
+        } else {
+            (currentValue / maxValue * 100.0).let { if (it.isFinite()) it else 0.0 }
+        }
+    val projectedPercent: Double
+        get() = if (maxValue <= 0.0 || !projectedValue.isFinite() || !maxValue.isFinite()) {
+            0.0
+        } else {
+            (projectedValue / maxValue * 100.0).let { if (it.isFinite()) it else 0.0 }
+        }
     val exceedsLimit: Boolean get() = projectedValue > maxValue
     val crossesWarning: Boolean get() = projectedPercent >= limit.warningPercent
 }
@@ -44,11 +54,12 @@ private val massUnitToMilligrams: Map<String, Double> = mapOf(
 )
 
 fun convertDose(value: Double, fromUnit: String?, toUnit: String?): Double? {
-    if (fromUnit == null || toUnit == null) return null
+    if (fromUnit == null || toUnit == null || !value.isFinite() || value < 0.0) return null
     if (fromUnit.trim().equals(toUnit.trim(), ignoreCase = true)) return value
     val from = massUnitToMilligrams[fromUnit.trim().lowercase()] ?: return null
     val to = massUnitToMilligrams[toUnit.trim().lowercase()] ?: return null
-    return value * from / to
+    val converted = value * from / to
+    return if (converted.isFinite() && converted >= 0.0) converted else null
 }
 
 fun evaluateIntakeLimit(
@@ -122,8 +133,8 @@ fun evaluateIntakeLimit(
 }
 
 private fun IntakeLimitStatus.instantUnder(target: Double): Instant? {
-    if (projectedValue <= target) return null
-    val sorted = contributions.sortedBy { it.exitTime }
+    if (!projectedValue.isFinite() || projectedValue <= target) return null
+    val sorted = contributions.filter { it.value.isFinite() && it.value > 0.0 }.sortedBy { it.exitTime }
     var remaining = projectedValue
     for (contribution in sorted) {
         remaining -= contribution.value

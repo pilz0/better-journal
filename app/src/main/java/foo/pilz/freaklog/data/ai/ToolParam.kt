@@ -44,3 +44,7 @@ internal fun stringListArg(value: Any?): List<String> = when (value) {
     is List<*> -> value.map { it.toString() }
     else -> emptyList()
 }.map { it.trim() }.filter { it.isNotEmpty() }
+
+/** Reads an integer argument that may arrive as a [Number] or a numeric [String]. */
+internal fun intArg(value: Any?, default: Int): Int =
+    (value as? Number)?.toInt() ?: (value as? String)?.trim()?.toIntOrNull() ?: default

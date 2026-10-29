@@ -10,6 +10,7 @@ import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isGreaterThan
 import foo.pilz.freaklog.data.room.AppDatabase
+import foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.substances.classes.Substance
 import foo.pilz.freaklog.data.substances.classes.Tolerance
@@ -17,6 +18,7 @@ import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.testing.EntityBuilders
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -42,8 +44,10 @@ class ToleranceHistoryTest {
         db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-        val experienceRepo = ExperienceRepository(db.experienceDao(), mockk(), mockk(), mockk(), context)
-        calculator = ToleranceCalculator(substanceRepo, experienceRepo)
+        val experienceRepo = ExperienceRepository(db, db.experienceDao(), mockk(), mockk(), mockk(), context)
+        val customProfiles =
+            mockk<CustomSubstanceProfiles> { every { byNameFlow } returns MutableStateFlow(emptyMap()) }
+        calculator = ToleranceCalculator(substanceRepo, experienceRepo, customProfiles)
         experienceId = db.experienceDao().insert(EntityBuilders.experience()).toInt()
     }
 

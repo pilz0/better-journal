@@ -20,7 +20,7 @@ package foo.pilz.freaklog.ui.tabs.settings.customrecipes
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -104,11 +104,11 @@ fun AddEditCustomRecipeDialog(
                         .fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    itemsIndexed(components) { index, component ->
+                    items(components, key = { it.id }) { component ->
                         RecipeComponentEditor(
                             component = component,
-                            onUpdate = { viewModel.updateComponent(index, it) },
-                            onRemove = { viewModel.removeComponent(index) }
+                            onUpdate = { viewModel.updateComponent(component.id, it) },
+                            onRemove = { viewModel.removeComponent(component.id) }
                         )
                     }
 
@@ -197,8 +197,8 @@ fun RecipeComponentEditor(
             ) {
                 OutlinedTextField(
                     value = component.dose?.toString() ?: "",
-                    onValueChange = { 
-                        onUpdate(component.copy(dose = it.toDoubleOrNull()))
+                    onValueChange = {
+                        onUpdate(component.copy(dose = it.trim().replace(',', '.').toDoubleOrNull()))
                     },
                     label = { Text("Dose") },
                     modifier = Modifier.weight(1f),
@@ -237,14 +237,16 @@ fun RecipeComponentEditor(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
-                    AdministrationRoute.values().forEach { route ->
-                        DropdownMenuItem(
-                            text = { Text(route.displayText) },
-                            onClick = {
-                                onUpdate(component.copy(administrationRoute = route))
-                                expanded = false
-                            }
-                        )
+                    AdministrationRoute.entries.forEach { route ->
+                        androidx.compose.runtime.key(route) {
+                            DropdownMenuItem(
+                                text = { Text(route.displayText) },
+                                onClick = {
+                                    onUpdate(component.copy(administrationRoute = route))
+                                    expanded = false
+                                }
+                            )
+                        }
                     }
                 }
             }

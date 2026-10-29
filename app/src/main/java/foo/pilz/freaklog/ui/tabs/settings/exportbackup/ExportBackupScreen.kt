@@ -330,7 +330,7 @@ private fun SubstanceFilterDialog(
         title = { Text("Substances to export") },
         text = {
             LazyColumn(Modifier.heightIn(max = 360.dp)) {
-                items(allNames) { name ->
+                items(allNames, key = { it }) { name ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()

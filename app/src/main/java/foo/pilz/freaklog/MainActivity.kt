@@ -35,6 +35,7 @@ import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import foo.pilz.freaklog.ui.MyAppWidget
 import foo.pilz.freaklog.ui.main.MainScreen
+import foo.pilz.freaklog.ui.tabs.journal.experience.notification.TimelineNotificationService.Companion.GLOBAL_TIMELINE_ID
 import foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthManager
 import foo.pilz.freaklog.ui.theme.JournalTheme
 import kotlinx.coroutines.launch
@@ -115,18 +116,32 @@ class MainActivity : FragmentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent)
         handleIntent(intent)
     }
 
     private fun handleIntent(intent: Intent?) {
-        if (intent?.action == "${packageName}$ACTION_ADD_INGESTION") {
-            shouldNavigateToAddIngestion = true
-        } else if (intent?.action == "${packageName}$ACTION_JOURNAL_SCREEN") {
-            shouldNavigateToJournalScreen = true
-        } else if (intent?.action == "${packageName}$ACTION_OPEN_EXPERIENCE") {
-            val experienceId = intent.getIntExtra("experienceId", -1)
-            if (experienceId != -1) {
-                shouldNavigateToExperienceId = experienceId
+        when (intent?.action) {
+            "${packageName}$ACTION_ADD_INGESTION" -> {
+                shouldNavigateToJournalScreen = false
+                shouldNavigateToExperienceId = null
+                shouldNavigateToAddIngestion = true
+            }
+            "${packageName}$ACTION_JOURNAL_SCREEN" -> {
+                shouldNavigateToAddIngestion = false
+                shouldNavigateToExperienceId = null
+                shouldNavigateToJournalScreen = true
+            }
+            "${packageName}$ACTION_OPEN_EXPERIENCE" -> {
+                val experienceId = intent.getIntExtra("experienceId", -1)
+                shouldNavigateToAddIngestion = false
+                if (experienceId == GLOBAL_TIMELINE_ID) {
+                    shouldNavigateToExperienceId = null
+                    shouldNavigateToJournalScreen = true
+                } else if (experienceId > 0) {
+                    shouldNavigateToJournalScreen = false
+                    shouldNavigateToExperienceId = experienceId
+                }
             }
         }
     }

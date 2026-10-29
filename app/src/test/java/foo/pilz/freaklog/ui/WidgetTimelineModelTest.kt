@@ -11,10 +11,17 @@
 package foo.pilz.freaklog.ui
 
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
+import foo.pilz.freaklog.data.room.experiences.entities.CustomRoaDuration
+import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
+import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithEverything
 import foo.pilz.freaklog.data.substances.AdministrationRoute
+import foo.pilz.freaklog.data.substances.classes.Substance
 import foo.pilz.freaklog.data.substances.classes.roa.DurationRange
 import foo.pilz.freaklog.data.substances.classes.roa.DurationUnits
+import foo.pilz.freaklog.data.substances.classes.roa.Roa
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -55,6 +62,95 @@ class WidgetTimelineModelTest {
         pairs.associate { (name, roa) ->
             name to mapOf(AdministrationRoute.ORAL to roa)
         }
+
+    @Test
+    fun `custom profile durations provide full curves and phases alongside built-in durations`() {
+        val builtIn = mockk<Substance> {
+            every { name } returns "MDMA"
+            every { roas } returns listOf(Roa(AdministrationRoute.ORAL, null, mdmaOral, null))
+        }
+        val customDuration = CustomRoaDuration(
+            route = AdministrationRoute.INSUFFLATED,
+            onset = mins(5f, 5f),
+            comeup = mins(10f, 10f),
+            peak = hours(1f, 1f),
+            offset = hours(1f, 1f),
+            total = null,
+        )
+        val profile = CustomSubstanceWithEverything(
+            substance = CustomSubstance(name = "Custom", units = "mg", description = ""),
+            durations = listOf(customDuration),
+        )
+        val durations = WidgetTimelineModel.buildSubstanceDurations(
+            substances = listOf(builtIn),
+            customProfiles = mapOf("Custom" to profile),
+        )
+        assertEquals(mdmaOral, durations["MDMA"]?.get(AdministrationRoute.ORAL))
+        val resolved = durations["Custom"]?.get(AdministrationRoute.INSUFFLATED)
+        assertEquals(customDuration.toRoaDuration(), resolved)
+
+        val model = WidgetTimelineModel.build(
+            now = now,
+            ingestions = listOf(
+                WidgetTimelineModel.IngestionInput(
+                    substanceName = "Custom",
+                    route = AdministrationRoute.INSUFFLATED,
+                    time = now.minusSeconds(30 * 60),
+                    color = AdaptiveColor.GREEN,
+                )
+            ),
+            durationsBySubstance = durations,
+        )
+        assertTrue(model.hasContent)
+        assertTrue(model.groups.single().isComplete)
+        assertEquals(1f, model.groups.single().points.maxOf { it.height }, 0.0001f)
+        assertEquals(
+            IngestionPhase.Peak(remainingSeconds = 45 * 60f),
+            WidgetTimelineModel.resolveIngestionPhase(30 * 60f, resolved),
+        )
+        assertEquals(
+            IngestionPhase.Finished,
+            WidgetTimelineModel.resolveIngestionPhase(4 * 3600f, resolved),
+        )
+    }
+
+    @Test
+    fun `buildSubstanceDurations substitutes intranasal for rectal when enabled`() {
+        val sniffDuration = RoaDuration(
+            onset = mins(5f, 10f),
+            comeup = mins(10f, 15f),
+            peak = hours(1f, 1.5f),
+            offset = hours(1f, 1.5f),
+            total = hours(2f, 3f),
+            afterglow = null,
+        )
+        val ketamine = mockk<Substance> {
+            every { name } returns "Ketamine"
+            every { roas } returns listOf(
+                Roa(AdministrationRoute.INSUFFLATED, null, sniffDuration, null)
+            )
+            every { getEffectiveRoa(AdministrationRoute.RECTAL, true) } returns Roa(
+                AdministrationRoute.INSUFFLATED,
+                null,
+                sniffDuration,
+                null
+            )
+        }
+
+        val withoutToggle = WidgetTimelineModel.buildSubstanceDurations(
+            substances = listOf(ketamine),
+            customProfiles = emptyMap(),
+            useIntranasalForRectal = false,
+        )
+        assertEquals(null, withoutToggle["Ketamine"]?.get(AdministrationRoute.RECTAL))
+
+        val withToggle = WidgetTimelineModel.buildSubstanceDurations(
+            substances = listOf(ketamine),
+            customProfiles = emptyMap(),
+            useIntranasalForRectal = true,
+        )
+        assertEquals(sniffDuration, withToggle["Ketamine"]?.get(AdministrationRoute.RECTAL))
+    }
 
     @Test
     fun `empty input returns default window with no groups`() {

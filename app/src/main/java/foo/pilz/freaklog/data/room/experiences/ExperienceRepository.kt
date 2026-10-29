@@ -19,8 +19,10 @@
 package foo.pilz.freaklog.data.room.experiences
 
 import android.content.Context
+import androidx.room.withTransaction
 import dagger.hilt.android.qualifiers.ApplicationContext
 import foo.pilz.freaklog.data.export.JournalExport
+import foo.pilz.freaklog.data.room.AppDatabase
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRoa
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRoaDose
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRoaDuration
@@ -58,6 +60,7 @@ import javax.inject.Singleton
 
 @Singleton
 class ExperienceRepository @Inject constructor(
+    private val db: AppDatabase,
     private val experienceDao: ExperienceDao,
     private val reminderDao: ReminderDao,
     private val webhookDao: foo.pilz.freaklog.data.room.webhooks.WebhookDao,
@@ -108,29 +111,65 @@ class ExperienceRepository @Inject constructor(
     suspend fun insertEverything(
         journalExport: JournalExport
     ) {
-        experienceDao.insertEverything(journalExport)
-        journalExport.reminders.forEach { reminderDao.insert(it) }
-        journalExport.webhooks.forEach { webhookDao.insert(it.toEntity()) }
-        val validCustomUnitIds = journalExport.customUnits.map { it.id }.toSet()
-        journalExport.substanceGroups.forEach { group ->
-            experienceDao.insertSubstanceGroupWithItems(
-                group = SubstanceGroup(name = group.name),
-                items = group.items.map { item ->
-                    item.copy(customUnitId = item.customUnitId?.takeIf { it in validCustomUnitIds })
-                },
-            )
+        db.withTransaction {
+            experienceDao.insertEverything(journalExport)
+            journalExport.reminders.forEach { reminderDao.insert(it) }
+            journalExport.webhooks.forEach { webhookDao.insert(it.toEntity()) }
+            val validCustomUnitIds = journalExport.customUnits.map { it.id }.toSet()
+            journalExport.substanceGroups.forEach { group ->
+                experienceDao.insertSubstanceGroupWithItems(
+                    group = SubstanceGroup(name = group.name),
+                    items = group.items.map { item ->
+                        item.copy(customUnitId = item.customUnitId?.takeIf { it in validCustomUnitIds })
+                    },
+                )
+            }
+            // The substance rows were just inserted with new ids; attach each one's details by name.
+            journalExport.customSubstanceDetails.forEach { shared ->
+                val substanceId = experienceDao.getCustomSubstanceWithEverythingByName(shared.name)?.substance?.id
+                    ?: return@forEach
+                val expansion = shared.expand()
+                expansion.roas.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
+                expansion.doses.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
+                expansion.durations.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
+                expansion.interactions.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
+                expansion.categories.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
+                expansion.crossTolerances.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
+            }
         }
-        // The substance rows were just inserted with new ids; attach each one's details by name.
-        journalExport.customSubstanceDetails.forEach { shared ->
-            val substanceId = experienceDao.getCustomSubstanceWithEverythingByName(shared.name)?.substance?.id
-                ?: return@forEach
-            val expansion = shared.expand()
-            expansion.roas.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
-            expansion.doses.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
-            expansion.durations.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
-            expansion.interactions.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
-            expansion.categories.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
-            expansion.crossTolerances.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
+        notifyJournalChanged()
+    }
+
+    suspend fun replaceEverything(
+        journalExport: JournalExport
+    ) {
+        db.withTransaction {
+            experienceDao.replaceEverything(journalExport)
+            reminderDao.deleteAll()
+            journalExport.reminders.forEach { reminderDao.insert(it) }
+            ingestionWebhookMessageDao.deleteAll()
+            webhookDao.deleteAll()
+            journalExport.webhooks.forEach { webhookDao.insert(it.toEntity()) }
+            val validCustomUnitIds = journalExport.customUnits.map { it.id }.toSet()
+            journalExport.substanceGroups.forEach { group ->
+                experienceDao.insertSubstanceGroupWithItems(
+                    group = SubstanceGroup(name = group.name),
+                    items = group.items.map { item ->
+                        item.copy(customUnitId = item.customUnitId?.takeIf { it in validCustomUnitIds })
+                    },
+                )
+            }
+            journalExport.customSubstanceDetails.forEach { shared ->
+                val substanceId = experienceDao.getCustomSubstanceWithEverythingByName(shared.name)?.substance?.id
+                    ?: return@forEach
+                val expansion = shared.expand()
+                expansion.roas.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
+                expansion.doses.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
+                expansion.durations.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
+                expansion.interactions.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
+                expansion.categories.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
+                expansion.crossTolerances.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
+            }
         }
         notifyJournalChanged()
     }
@@ -145,10 +184,12 @@ class ExperienceRepository @Inject constructor(
     }
 
     suspend fun deleteEverything() {
-        experienceDao.deleteEverything()
-        reminderDao.deleteAll()
-        ingestionWebhookMessageDao.deleteAll()
-        webhookDao.deleteAll()
+        db.withTransaction {
+            experienceDao.deleteEverything()
+            reminderDao.deleteAll()
+            ingestionWebhookMessageDao.deleteAll()
+            webhookDao.deleteAll()
+        }
         notifyJournalChanged()
     }
 
@@ -289,6 +330,9 @@ class ExperienceRepository @Inject constructor(
     suspend fun getAllCustomSubstances(): List<CustomSubstance> =
         experienceDao.getAllCustomSubstances()
 
+    suspend fun getAllCustomSubstanceNames(): List<String> =
+        experienceDao.getAllCustomSubstanceNames()
+
     suspend fun getAllSubstanceCompanions(): List<SubstanceCompanion> =
         experienceDao.getAllSubstanceCompanions()
 
@@ -300,6 +344,9 @@ class ExperienceRepository @Inject constructor(
 
     suspend fun update(substanceCompanion: SubstanceCompanion) =
         experienceDao.update(substanceCompanion)
+
+    suspend fun updateSubstanceCompanions(substanceCompanions: List<SubstanceCompanion>) =
+        experienceDao.updateSubstanceCompanions(substanceCompanions)
 
     suspend fun insert(customSubstance: CustomSubstance): Int =
         experienceDao.insert(customSubstance).toInt()

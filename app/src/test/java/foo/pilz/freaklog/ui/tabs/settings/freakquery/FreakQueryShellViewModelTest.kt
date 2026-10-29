@@ -14,6 +14,8 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -35,6 +37,21 @@ class FreakQueryShellViewModelTest {
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+    }
+
+    @Test
+    fun `repeated queries have distinct keys and preserve existing history entries`() = runTest {
+        val viewModel = FreakQueryShellViewModel(repository)
+        viewModel.runExample("count")
+        advanceUntilIdle()
+        val first = viewModel.state.value.history.single()
+
+        viewModel.runExample("count")
+        advanceUntilIdle()
+        val history = viewModel.state.value.history
+        assertSame(first, history.first())
+        assertNotEquals(first.id, history.last().id)
+        assertEquals(first.id, first.copy(output = "Updated").id)
     }
 
     @Test

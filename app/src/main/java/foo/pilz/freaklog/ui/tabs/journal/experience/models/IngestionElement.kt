@@ -19,10 +19,12 @@
 package foo.pilz.freaklog.ui.tabs.journal.experience.models
 
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit
+import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
 
 data class IngestionElement(
     val ingestionWithCompanionAndCustomUnit: IngestionWithCompanionAndCustomUnit,
     val roaDuration: RoaDuration?,
-    val numDots: Int?
+    val numDots: Int?,
+    val roaDose: RoaDose? = null,
 )

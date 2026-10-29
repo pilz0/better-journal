@@ -89,27 +89,26 @@ class AiTools @Inject constructor(
         return try {
             when (name) {
                 "list_recent_experiences" -> listRecentExperiences(
-                    limit = (args["limit"] as? Number)?.toInt() ?: 10
+                    limit = intArg(args["limit"], 10)
                 )
                 "search_experiences" -> searchExperiences(
                     query = args["query"] as? String ?: "",
-                    limit = (args["limit"] as? Number)?.toInt() ?: 10
+                    limit = intArg(args["limit"], 10)
                 )
                 "search_experiences_by_substance" -> searchExperiencesBySubstance(
                     substance = args["substance"] as? String ?: "",
-                    limit = (args["limit"] as? Number)?.toInt() ?: 10
+                    limit = intArg(args["limit"], 10)
                 )
                 "get_experience_details" -> getExperienceDetails(
-                    experienceId = (args["experience_id"] as? Number)?.toInt() ?: -1,
-                    maxNotesChars = (args["max_notes_chars"] as? Number)?.toInt()
-                        ?: DEFAULT_MAX_NOTES_CHARS
+                    experienceId = intArg(args["experience_id"], -1),
+                    maxNotesChars = intArg(args["max_notes_chars"], DEFAULT_MAX_NOTES_CHARS)
                 )
                 "get_recent_ingestions" -> getRecentIngestions(
-                    daysBack = (args["days_back"] as? Number)?.toInt() ?: 30,
+                    daysBack = intArg(args["days_back"], 30),
                     substanceFilter = args["substance"] as? String
                 )
                 "get_substance_usage_stats" -> getSubstanceUsageStats(
-                    daysBack = (args["days_back"] as? Number)?.toInt() ?: 90
+                    daysBack = intArg(args["days_back"], 90)
                 )
                 else -> substanceTools.execute(name, args)
                     ?: anodyneTools.execute(name, args)
@@ -189,7 +188,7 @@ class AiTools @Inject constructor(
                 JSONObject()
                     .put("time", AI_DATE_FORMATTER.format(ing.time))
                     .put("substance", ing.substanceName)
-                    .put("dose", ing.dose ?: JSONObject.NULL)
+                    .put("dose", ing.dose?.takeIf { it.isFinite() } ?: JSONObject.NULL)
                     .put("units", ing.units ?: JSONObject.NULL)
                     .put("route", ing.administrationRoute.name)
                     .put("is_estimate", ing.isDoseAnEstimate)
@@ -236,7 +235,7 @@ class AiTools @Inject constructor(
                 JSONObject()
                     .put("time", AI_DATE_FORMATTER.format(ing.time))
                     .put("substance", ing.substanceName)
-                    .put("dose", ing.dose ?: JSONObject.NULL)
+                    .put("dose", ing.dose?.takeIf { it.isFinite() } ?: JSONObject.NULL)
                     .put("units", ing.units ?: JSONObject.NULL)
                     .put("route", ing.administrationRoute.name)
                     .put("experience_id", ing.experienceId)

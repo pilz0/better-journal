@@ -53,6 +53,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -184,6 +185,7 @@ private fun SaturationValuePicker(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
             .background(Color.Black)
+            .onSizeChanged { size = Offset(it.width.toFloat(), it.height.toFloat()) }
             .pointerInput(Unit) {
                 detectTapGestures { offset ->
                     val w = size.x.coerceAtLeast(1f)
@@ -205,7 +207,6 @@ private fun SaturationValuePicker(
             }
     ) {
         Canvas(modifier = Modifier.fillMaxWidth().height(180.dp)) {
-            size = Offset(this.size.width, this.size.height)
             // Horizontal: white -> pure hue
             val pureHue = Color.hsv(hue, 1f, 1f)
             drawRect(

@@ -19,12 +19,15 @@ import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isTrue
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
+import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
+import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithEverything
 import foo.pilz.freaklog.data.substances.classes.Substance
 import foo.pilz.freaklog.data.substances.classes.Tolerance
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import org.junit.Test
 import java.time.Duration
 import java.time.Instant
@@ -99,6 +102,65 @@ class ToleranceChartCalculatorTest {
         )
         // parseToleranceToHours("1 day") = 24.0, which is not > 24, so no interval added
         assertThat(result).isEmpty()
+    }
+
+    @Test
+    fun `parses tolerance once per substance across repeated days`() {
+        val tolerance = mockk<Tolerance>()
+        every { tolerance.half } returns "3-4 days"
+        every { tolerance.zero } returns "1-2 weeks"
+        val substance = createSubstance("LSD").copy(tolerance = tolerance)
+        every { substanceRepo.getSubstance("LSD") } returns substance
+        every { substanceRepo.getSubstance("2C-B") } returns createSubstance(
+            "2C-B", halfTolerance = "2 days", zeroTolerance = "4 days"
+        )
+        val start = Instant.parse("2026-06-01T00:00:00Z")
+        val days = listOf(start, start.plus(Duration.ofDays(14)))
+
+        val result = ToleranceChartCalculator.getToleranceWindows(
+            substanceAndDays = days.flatMap { day ->
+                listOf(SubstanceAndDay("LSD", day), SubstanceAndDay("2C-B", day))
+            },
+            substanceCompanions = emptyList(),
+            substanceRepository = substanceRepo
+        )
+
+        assertThat(result).hasSize(8)
+        for ((name, halfHours, zeroHours) in listOf(Triple("LSD", 84L, 252L), Triple("2C-B", 48L, 96L))) {
+            val fullWindows = result.filter { it.substanceName == name && it.toleranceType == ToleranceType.FULL }
+            val halfWindows = result.filter { it.substanceName == name && it.toleranceType == ToleranceType.HALF }
+            val expectedFull = days.map { it to it.plus(Duration.ofHours(halfHours)) }
+            assertThat(fullWindows.map { it.start to it.end }).isEqualTo(expectedFull)
+            val expectedHalf = days.map {
+                it.plus(Duration.ofHours(halfHours)) to it.plus(Duration.ofHours(zeroHours))
+            }
+            assertThat(halfWindows.map { it.start to it.end }).isEqualTo(expectedHalf)
+            verify(exactly = 1) { substanceRepo.getSubstance(name) }
+        }
+        verify(exactly = 1) { tolerance.half }
+        verify(exactly = 1) { tolerance.zero }
+    }
+
+    @Test
+    fun `caches missing and unparseable tolerance for repeated substances`() {
+        every { substanceRepo.getSubstance("Unknown") } returns null
+        every { substanceRepo.getSubstance("NoTolerance") } returns createSubstance("NoTolerance")
+        every { substanceRepo.getSubstance("Unparseable") } returns createSubstance(
+            "Unparseable", halfTolerance = "unknown", zeroTolerance = "unknown"
+        )
+        val start = Instant.parse("2026-06-01T00:00:00Z")
+        val names = listOf("Unknown", "NoTolerance", "Unparseable")
+
+        val result = ToleranceChartCalculator.getToleranceWindows(
+            substanceAndDays = names.flatMap { name ->
+                listOf(SubstanceAndDay(name, start), SubstanceAndDay(name, start.plus(Duration.ofDays(1))))
+            },
+            substanceCompanions = emptyList(),
+            substanceRepository = substanceRepo
+        )
+
+        assertThat(result).isEmpty()
+        names.forEach { name -> verify(exactly = 1) { substanceRepo.getSubstance(name) } }
     }
 
     @Test
@@ -251,6 +313,42 @@ class ToleranceChartCalculatorTest {
     }
 
     @Test
+    fun `matches companions by substance name for every window with fallback for missing companions`() {
+        val start = Instant.parse("2026-06-01T00:00:00Z")
+        val names = listOf("LSD", "2C-B", "MDMA")
+        names.forEach { name ->
+            every { substanceRepo.getSubstance(name) } returns createSubstance(
+                name, halfTolerance = "2 days", zeroTolerance = "4 days"
+            )
+        }
+        val lsdCompanion = SubstanceCompanion(substanceName = "LSD", color = AdaptiveColor.CYAN)
+        val mdmaCompanion = SubstanceCompanion(substanceName = "MDMA", color = AdaptiveColor.PINK)
+        val companions = listOf(
+            mdmaCompanion,
+            SubstanceCompanion(substanceName = "Unrelated", color = AdaptiveColor.CYAN),
+            lsdCompanion
+        )
+
+        val result = ToleranceChartCalculator.getToleranceWindows(
+            substanceAndDays = names.flatMap { name ->
+                listOf(SubstanceAndDay(name, start), SubstanceAndDay(name, start.plus(Duration.ofDays(7))))
+            },
+            substanceCompanions = companions,
+            substanceRepository = substanceRepo
+        )
+
+        assertThat(result).hasSize(12)
+        val expectedColors = mapOf(
+            "LSD" to lsdCompanion.color.getComposeColor(false),
+            "MDMA" to mdmaCompanion.color.getComposeColor(false),
+            "2C-B" to Color.Red
+        )
+        result.forEach { window ->
+            assertThat(window.substanceColor).isEqualTo(expectedColors[window.substanceName])
+        }
+    }
+
+    @Test
     fun `ToleranceWindow barColor adjusts alpha for HALF tolerance`() {
         val windowFull = ToleranceWindow(
             substanceName = "LSD",
@@ -288,5 +386,146 @@ class ToleranceChartCalculatorTest {
         assertThat(window.contains(Instant.parse("2026-06-01T15:00:00Z"))).isTrue()
         assertThat(window.contains(Instant.parse("2026-06-01T09:59:59Z"))).isFalse()
         assertThat(window.contains(Instant.parse("2026-06-01T20:00:01Z"))).isFalse()
+    }
+
+    @Test
+    fun `extreme tolerance duration is ignored and does not throw exception`() {
+        val extreme = createSubstance(
+            name = "Extreme",
+            halfTolerance = "99999999999 weeks",
+            zeroTolerance = "99999999999 weeks"
+        )
+        every { substanceRepo.getSubstance("Extreme") } returns extreme
+
+        val day = Instant.parse("2026-06-01T10:00:00Z")
+        val result = ToleranceChartCalculator.getToleranceWindows(
+            substanceAndDays = listOf(SubstanceAndDay("Extreme", day)),
+            substanceCompanions = emptyList(),
+            substanceRepository = substanceRepo
+        )
+        assertThat(result).isEmpty()
+    }
+
+    private fun customProfile(
+        name: String,
+        halfTolerance: String? = null,
+        zeroTolerance: String? = null
+    ) = name to CustomSubstanceWithEverything(
+        substance = CustomSubstance(
+            name = name,
+            units = "mg",
+            description = "",
+            toleranceHalf = halfTolerance,
+            toleranceZero = zeroTolerance
+        )
+    )
+
+    @Test
+    fun `custom substance tolerance produces full and half windows`() {
+        every { substanceRepo.getSubstance("Mystery") } returns null
+        val day = Instant.parse("2026-06-01T10:00:00Z")
+
+        val result = ToleranceChartCalculator.getToleranceWindows(
+            substanceAndDays = listOf(SubstanceAndDay("Mystery", day)),
+            substanceCompanions = emptyList(),
+            substanceRepository = substanceRepo,
+            customProfiles = mapOf(customProfile("Mystery", halfTolerance = "3 days", zeroTolerance = "1-2 weeks"))
+        )
+
+        assertThat(result.map { Triple(it.toleranceType, it.start, it.end) }).containsExactly(
+            Triple(ToleranceType.FULL, day, day.plus(Duration.ofHours(72))),
+            Triple(ToleranceType.HALF, day.plus(Duration.ofHours(72)), day.plus(Duration.ofHours(252)))
+        )
+        assertThat(result.all { it.substanceName == "Mystery" }).isTrue()
+    }
+
+    @Test
+    fun `custom substance tolerance is found ignoring case`() {
+        every { substanceRepo.getSubstance("mystery") } returns null
+        val day = Instant.parse("2026-06-01T10:00:00Z")
+
+        val result = ToleranceChartCalculator.getToleranceWindows(
+            substanceAndDays = listOf(SubstanceAndDay("mystery", day)),
+            substanceCompanions = emptyList(),
+            substanceRepository = substanceRepo,
+            customProfiles = mapOf(customProfile("Mystery", zeroTolerance = "1 week"))
+        )
+
+        assertThat(result).hasSize(1)
+        assertThat(result.single().toleranceType).isEqualTo(ToleranceType.HALF)
+        assertThat(result.single().substanceName).isEqualTo("mystery")
+        assertThat(result.single().end).isEqualTo(day.plus(Duration.ofDays(7)))
+    }
+
+    @Test
+    fun `custom substance without tolerance has no windows`() {
+        every { substanceRepo.getSubstance(any()) } returns null
+        val day = Instant.parse("2026-06-01T10:00:00Z")
+
+        val result = ToleranceChartCalculator.getToleranceWindows(
+            substanceAndDays = listOf(SubstanceAndDay("Plain", day), SubstanceAndDay("Vague", day)),
+            substanceCompanions = emptyList(),
+            substanceRepository = substanceRepo,
+            customProfiles = mapOf(
+                customProfile("Plain"),
+                customProfile("Vague", halfTolerance = "a while", zeroTolerance = "unknown")
+            )
+        )
+
+        assertThat(result).isEmpty()
+    }
+
+    @Test
+    fun `built-in tolerance takes precedence over a custom substance of the same name`() {
+        every { substanceRepo.getSubstance("LSD") } returns createSubstance(
+            "LSD", halfTolerance = "3 days", zeroTolerance = "1 week"
+        )
+        val day = Instant.parse("2026-06-01T10:00:00Z")
+
+        val result = ToleranceChartCalculator.getToleranceWindows(
+            substanceAndDays = listOf(SubstanceAndDay("LSD", day)),
+            substanceCompanions = emptyList(),
+            substanceRepository = substanceRepo,
+            customProfiles = mapOf(customProfile("LSD", halfTolerance = "2 weeks", zeroTolerance = "4 weeks"))
+        )
+
+        assertThat(result.map { it.end }).containsExactly(
+            day.plus(Duration.ofDays(3)),
+            day.plus(Duration.ofDays(7))
+        )
+    }
+
+    @Test
+    fun `built-in substance without tolerance does not fall back to a custom profile`() {
+        every { substanceRepo.getSubstance("LSD") } returns createSubstance("LSD")
+        val day = Instant.parse("2026-06-01T10:00:00Z")
+
+        val result = ToleranceChartCalculator.getToleranceWindows(
+            substanceAndDays = listOf(SubstanceAndDay("LSD", day)),
+            substanceCompanions = emptyList(),
+            substanceRepository = substanceRepo,
+            customProfiles = mapOf(customProfile("LSD", halfTolerance = "2 weeks", zeroTolerance = "4 weeks"))
+        )
+
+        assertThat(result).isEmpty()
+    }
+
+    @Test
+    fun `custom and built-in substances are charted together`() {
+        every { substanceRepo.getSubstance("LSD") } returns createSubstance(
+            "LSD", halfTolerance = "3 days", zeroTolerance = "1 week"
+        )
+        every { substanceRepo.getSubstance("Mystery") } returns null
+        val day = Instant.parse("2026-06-01T10:00:00Z")
+
+        val result = ToleranceChartCalculator.getToleranceWindows(
+            substanceAndDays = listOf(SubstanceAndDay("LSD", day), SubstanceAndDay("Mystery", day)),
+            substanceCompanions = emptyList(),
+            substanceRepository = substanceRepo,
+            customProfiles = mapOf(customProfile("Mystery", halfTolerance = "2 days", zeroTolerance = "4 days"))
+        )
+
+        assertThat(result.map { it.substanceName }.toSet()).isEqualTo(setOf("LSD", "Mystery"))
+        assertThat(result).hasSize(4)
     }
 }

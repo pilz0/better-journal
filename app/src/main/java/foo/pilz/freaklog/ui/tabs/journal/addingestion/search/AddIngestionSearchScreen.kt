@@ -213,7 +213,19 @@ fun AddIngestionSearchScreen(
                         SectionHeader(title = "Quick logging")
                     }
                 }
-                itemsIndexed(suggestions) { index, suggestion ->
+                itemsIndexed(
+                    suggestions,
+                    key = { _, suggestion ->
+                        when (suggestion) {
+                            is Suggestion.PureSubstanceSuggestion ->
+                                "pure:${suggestion.substanceName}:${suggestion.administrationRoute}"
+                            is Suggestion.CustomUnitSuggestion ->
+                                "unit:${suggestion.customUnit.id}"
+                            is Suggestion.CustomSubstanceSuggestion ->
+                                "custom:${suggestion.customSubstance.id}:${suggestion.administrationRoute}"
+                        }
+                    }
+                ) { index, suggestion ->
                     SuggestionRow(
                         suggestion = suggestion,
                         navigateToDose = navigateToDose,
@@ -230,7 +242,10 @@ fun AddIngestionSearchScreen(
                         SectionHeader(title = "Custom substances")
                     }
                 }
-                itemsIndexed(filteredCustomSubstances) { index, customSubstance ->
+                itemsIndexed(
+                    filteredCustomSubstances,
+                    key = { _, customSubstance -> "customSubstance:${customSubstance.id}" }
+                ) { index, customSubstance ->
                     SubstanceRowAddIngestion(substanceModel = SubstanceModel(
                         name = customSubstance.name,
                         commonNames = emptyList(),
@@ -249,7 +264,10 @@ fun AddIngestionSearchScreen(
                         SectionHeader(title = "Custom units")
                     }
                 }
-                itemsIndexed(filteredCustomUnits) { index, customUnit ->
+                itemsIndexed(
+                    filteredCustomUnits,
+                    key = { _, customUnit -> "customUnit:${customUnit.id}" }
+                ) { index, customUnit ->
                     CustomUnitRowAddIngestion(
                         customUnit = customUnit,
                         navigateToCustomUnitChooseDose = navigateToCustomUnitChooseDose)
