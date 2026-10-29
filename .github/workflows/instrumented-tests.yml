@@ -85,6 +85,8 @@ jobs:
         with:
           # Google publishes API 37 as `android-37.0` (platform and system image).
           api-level: ${{ matrix.api-level == 37 && '37.0' || matrix.api-level }}
+          # API 37 images need at least 4 GB of guest RAM; with less, adbd never comes up.
+          ram-size: ${{ matrix.api-level == 37 && '4096M' || '' }}
           arch: x86_64
           target: google_apis
           force-avd-creation: false
@@ -97,6 +99,8 @@ jobs:
         with:
           # Google publishes API 37 as `android-37.0` (platform and system image).
           api-level: ${{ matrix.api-level == 37 && '37.0' || matrix.api-level }}
+          # API 37 images need at least 4 GB of guest RAM; with less, adbd never comes up.
+          ram-size: ${{ matrix.api-level == 37 && '4096M' || '' }}
           arch: x86_64
           target: google_apis
           force-avd-creation: false
