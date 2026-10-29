@@ -88,7 +88,9 @@ private fun RoaDuration.resolveParameters(weight: Double): BatemanParameters? {
 
     val tmaxFromPhases = when {
         onsetSec != null && comeupSec != null -> onsetSec + comeupSec
+        comeupSec != null -> comeupSec
         onsetSec != null -> onsetSec * 1.5
+        peakSec != null -> peakSec * 0.5
         else -> null
     }
 

@@ -79,23 +79,88 @@ fun selectTimelineShape(roa: RoaDuration?): TimelineShape {
     val offset = roa.offset?.toFullDurationRange()
     val total = roa.total?.toFullDurationRange()
 
-    if (onset != null && comeup != null && peak != null && offset != null) {
-        return TimelineShape.Full(onset, comeup, peak, offset)
+    return selectExactShape(onset, comeup, peak, offset, total)
+        ?: selectOffsetFallback(onset, comeup, peak, offset)
+        ?: selectTotalFallback(onset, comeup, peak, total)
+        ?: selectOpenEndedFallback(onset, comeup, peak)
+        ?: TimelineShape.None
+}
+
+private fun selectExactShape(
+    onset: FullDurationRange?,
+    comeup: FullDurationRange?,
+    peak: FullDurationRange?,
+    offset: FullDurationRange?,
+    total: FullDurationRange?,
+): TimelineShape? = when {
+    onset != null && comeup != null && peak != null && offset != null ->
+        TimelineShape.Full(onset, comeup, peak, offset)
+    onset != null && comeup != null && peak != null && total != null ->
+        TimelineShape.OnsetComeupPeakTotal(onset, comeup, peak, total)
+    onset != null && comeup != null && total != null ->
+        TimelineShape.OnsetComeupTotal(onset, comeup, total)
+    onset != null && total != null ->
+        TimelineShape.OnsetTotal(onset, total)
+    else -> null
+}
+
+private val zeroDurationRange = FullDurationRange(0f, 0f)
+
+private fun selectOffsetFallback(
+    onset: FullDurationRange?,
+    comeup: FullDurationRange?,
+    peak: FullDurationRange?,
+    offset: FullDurationRange?,
+): TimelineShape? {
+    if (offset == null) return null
+    if (onset != null || comeup != null || peak != null) {
+        val effOnset = onset ?: zeroDurationRange
+        val effComeup = comeup ?: zeroDurationRange
+        val effPeak = peak ?: zeroDurationRange
+        return TimelineShape.Full(effOnset, effComeup, effPeak, offset)
     }
-    if (onset != null && comeup != null && peak != null && total != null) {
-        return TimelineShape.OnsetComeupPeakTotal(onset, comeup, peak, total)
+    return TimelineShape.Total(offset)
+}
+
+private fun selectTotalFallback(
+    onset: FullDurationRange?,
+    comeup: FullDurationRange?,
+    peak: FullDurationRange?,
+    total: FullDurationRange?,
+): TimelineShape? {
+    if (total == null) return null
+    val effOnset = onset ?: zeroDurationRange
+    if (peak != null) {
+        val effComeup = comeup ?: zeroDurationRange
+        return TimelineShape.OnsetComeupPeakTotal(effOnset, effComeup, peak, total)
     }
-    if (onset != null && comeup != null && total != null) {
-        return TimelineShape.OnsetComeupTotal(onset, comeup, total)
+    if (comeup != null) {
+        return TimelineShape.OnsetComeupTotal(effOnset, comeup, total)
     }
-    if (onset != null && total != null) return TimelineShape.OnsetTotal(onset, total)
-    if (total != null) return TimelineShape.Total(total)
-    if (onset != null && comeup != null && peak != null) {
-        return TimelineShape.OnsetComeupPeak(onset, comeup, peak)
+    return TimelineShape.Total(total)
+}
+
+private fun selectOpenEndedFallback(
+    onset: FullDurationRange?,
+    comeup: FullDurationRange?,
+    peak: FullDurationRange?,
+): TimelineShape? = when {
+    onset != null && comeup != null && peak != null ->
+        TimelineShape.OnsetComeupPeak(onset, comeup, peak)
+    comeup != null && peak != null ->
+        TimelineShape.OnsetComeupPeak(zeroDurationRange, comeup, peak)
+    onset != null && comeup != null ->
+        TimelineShape.OnsetComeup(onset, comeup)
+    peak != null -> {
+        val effOnset = onset ?: zeroDurationRange
+        val effComeup = comeup ?: zeroDurationRange
+        TimelineShape.OnsetComeupPeak(effOnset, effComeup, peak)
     }
-    if (onset != null && comeup != null) return TimelineShape.OnsetComeup(onset, comeup)
-    if (onset != null) return TimelineShape.Onset(onset)
-    return TimelineShape.None
+    comeup != null ->
+        TimelineShape.OnsetComeup(zeroDurationRange, comeup)
+    onset != null ->
+        TimelineShape.Onset(onset)
+    else -> null
 }
 
 fun sampleRangeCurve(
