@@ -36,6 +36,9 @@ class AiConversation(
 ) {
     companion object {
         const val DEFAULT_MAX_TOOL_ROUNDS = 8
+
+        /** Real turns use a handful of tools; a provider asking for more is refused, not run. */
+        const val MAX_TOOL_CALLS_PER_TURN = 32
     }
 
     private val history = mutableListOf<AiMessage>()
@@ -47,6 +50,7 @@ class AiConversation(
         history += AiMessage.User(text)
         var finished = false
         val partial = StringBuilder()
+        var toolCallsRun = 0
         try {
             for (round in 0..maxToolRounds) {
                 partial.setLength(0)
@@ -71,6 +75,10 @@ class AiConversation(
                     throw AiException(
                         "The assistant kept calling tools without answering. Try a more specific question.",
                     )
+                }
+                toolCallsRun += assistant.toolCalls.size
+                if (toolCallsRun > MAX_TOOL_CALLS_PER_TURN) {
+                    throw AiException("The assistant asked for too many tools at once. Try a more specific question.")
                 }
                 val results = assistant.toolCalls.mapIndexed { index, call ->
                     val key = "$round-$index"

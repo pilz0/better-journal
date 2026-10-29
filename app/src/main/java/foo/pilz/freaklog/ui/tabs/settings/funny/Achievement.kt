@@ -12,6 +12,7 @@ import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.substances.classes.InteractionType
 import foo.pilz.freaklog.data.substances.classes.roa.DoseClass
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepositoryInterface
+import foo.pilz.freaklog.ui.tabs.journal.addingestion.interactions.Interaction
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.interactions.InteractionChecker
 import foo.pilz.freaklog.ui.tabs.settings.funny.condition.AchievementEngine
 import foo.pilz.freaklog.ui.tabs.settings.funny.condition.EvalContext
@@ -382,43 +383,20 @@ private fun hasInteractionInList(
     substances: List<String>,
     type: String,
     checker: InteractionChecker
-): Boolean {
-    for (i in substances.indices) {
-        for (j in (i + 1) until substances.size) {
-            val interaction = checker.getInteractionBetween(substances[i], substances[j])
-            val matches = when (type) {
-                "dangerous" -> interaction?.interactionType == InteractionType.DANGEROUS
-                "unsafe" -> interaction?.interactionType == InteractionType.UNSAFE
-                "uncertain" -> interaction?.interactionType == InteractionType.UNCERTAIN
-                "any" -> interaction != null
-                else -> false
-            }
-            if (matches) return true
-        }
-    }
-    return false
-}
+): Boolean = checker.getInteractionsAmong(substances).any { it.matchesType(type) }
 
 private fun countInteractionsInList(
     substances: List<String>,
     type: String,
     checker: InteractionChecker
-): Int {
-    var count = 0
-    for (i in substances.indices) {
-        for (j in (i + 1) until substances.size) {
-            val interaction = checker.getInteractionBetween(substances[i], substances[j])
-            val matches = when (type) {
-                "dangerous" -> interaction?.interactionType == InteractionType.DANGEROUS
-                "unsafe" -> interaction?.interactionType == InteractionType.UNSAFE
-                "uncertain" -> interaction?.interactionType == InteractionType.UNCERTAIN
-                "any" -> interaction != null
-                else -> false
-            }
-            if (matches) count++
-        }
-    }
-    return count
+): Int = checker.getInteractionsAmong(substances).count { it.matchesType(type) }
+
+private fun Interaction.matchesType(type: String): Boolean = when (type) {
+    "dangerous" -> interactionType == InteractionType.DANGEROUS
+    "unsafe" -> interactionType == InteractionType.UNSAFE
+    "uncertain" -> interactionType == InteractionType.UNCERTAIN
+    "any" -> true
+    else -> false
 }
 
 internal fun longestConsecutiveDayStreak(ingestions: List<Ingestion>): Int {

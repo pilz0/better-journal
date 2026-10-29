@@ -19,7 +19,9 @@
 package foo.pilz.freaklog
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
@@ -73,6 +75,20 @@ class MainActivity : FragmentActivity() {
                     context = this@MainActivity,
                     appWidgetId = manager.getAppWidgetId(glanceId)
                 )
+            }
+        }
+
+        // While app lock is on, keep journal content out of the Overview (recents) snapshot,
+        // which would otherwise outlive the authenticated session.
+        lifecycleScope.launch {
+            biometricAuthManager.isLockEnabledFlow.collect { lockEnabled ->
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    setRecentsScreenshotEnabled(!lockEnabled)
+                } else if (lockEnabled) {
+                    window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                } else {
+                    window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                }
             }
         }
 

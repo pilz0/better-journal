@@ -93,6 +93,20 @@ class AiConversationTest {
     }
 
     @Test
+    fun oversizedToolBatchIsRefusedBeforeAnyToolRuns() = runTest {
+        val calls = (0..AiConversation.MAX_TOOL_CALLS_PER_TURN).map { AiToolCall("c$it", "t", emptyMap()) }
+        val client = ScriptedClient(toolCall(*calls.toTypedArray()))
+        var ran = 0
+        val chat = conversation(client, tool = {
+            ran++
+            JSONObject()
+        })
+        assertFailure { chat.send("many").toList() }.isInstanceOf(AiException::class)
+        assertThat(ran).isEqualTo(0)
+        assertThat(chat.messages.isEmpty()).isTrue()
+    }
+
+    @Test
     fun cancelKeepsPartialTextAsAnswer() = runTest {
         val client = ScriptedClient().apply { hangAfterText = "Partial" }
         val chat = conversation(client)

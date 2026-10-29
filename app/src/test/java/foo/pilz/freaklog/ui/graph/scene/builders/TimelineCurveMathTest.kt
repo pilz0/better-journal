@@ -295,4 +295,28 @@ class TimelineCurveMathTest {
         val dot = curve.ingestionDots.first { it.seconds == 0f }
         assertEquals(0.0, dot.height.toDouble(), 1e-6)
     }
+
+    @Test
+    fun sumLinearPiecesAtMatchesDirectSumWithHalfOpenEnds() {
+        val pieces = listOf(
+            LinearPiece(0f, 10f, 1.0, 0.0),
+            LinearPiece(5f, 15f, 0.0, 2.0),
+            LinearPiece(10f, 20f, -1.0, 20.0),
+        )
+        val sums = sumLinearPiecesAt(pieces, listOf(12f, 0f, 5f, 10f, 20f, -1f))
+        assertEquals(listOf(10.0, 0.0, 7.0, 12.0, 0.0, 0.0), sums.toList())
+    }
+
+    @Test(timeout = 5_000)
+    fun manyOverlappingIngestionsBuildInNearLinearTime() {
+        val shape = selectTimelineShape(
+            RoaDuration(
+                onset = range(60f, 60f), comeup = range(60f, 60f),
+                peak = range(60f, 60f), offset = range(60f, 60f), total = null, afterglow = null,
+            )
+        ) as TimelineShape.Full
+        val lines = (0 until 20_000).map { RawIngestion(it.toFloat(), null, 0.5f, 1f) }
+        val curve = buildFull(shape, lines)
+        assertEquals(20_000, curve.ingestionDots.size)
+    }
 }

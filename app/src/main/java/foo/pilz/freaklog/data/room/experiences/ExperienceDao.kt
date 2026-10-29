@@ -544,7 +544,8 @@ interface ExperienceDao {
                     notes = ingestionSerializable.notes,
                     stomachFullness = ingestionSerializable.stomachFullness,
                     consumerName = ingestionSerializable.consumerName,
-                    customUnitId = ingestionSerializable.customUnitId,
+                    // Room assigns a new id to a unit exported without one (id 0), so nothing can refer to it.
+                    customUnitId = ingestionSerializable.customUnitId?.takeIf { it > 0 },
                     saltForm = ingestionSerializable.saltForm,
                     category = ingestionSerializable.category
                 )

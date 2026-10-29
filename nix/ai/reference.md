@@ -625,7 +625,7 @@ maintainer's server).
 
 ### Journal security boundaries
 
-- Enabling app lock removes protected dialogs and the assistant from composition, cancels and clears active AI sessions, and hides widget/live-notification previews. Preview workers check the setting before reading journal records. Background session age uses monotonic elapsed time.
+- Enabling app lock removes protected dialogs and the assistant from composition, cancels and clears active AI sessions, and hides widget/live-notification previews. While it is on, the Overview snapshot is disabled (`FLAG_SECURE` on API 31–32). Preview workers check the setting before reading journal records. Background session age uses monotonic elapsed time.
 - External journal-provider readers need explicit approval in Settings → Privacy. Grants bind the caller package to its signing certificates and can be revoked. An approved reader can read journal records in the background; approving it is a separate sharing decision from unlocking the app.
 - Automatic Anodyne requests contain recognized public substance identifiers from bundled data/static aliases. Arbitrary model text is rejected. Assistant Markdown and HTML images are disabled before image fetching.
 - Webhook requests require HTTPS outside exact loopback hosts. Changing a destination invalidates its saved message IDs; pending responses cannot reattach IDs from the old destination. FreakQuery runs on the configured template before ingestion fields are inserted as literal data. Templates, output, and decoded responses have size limits.

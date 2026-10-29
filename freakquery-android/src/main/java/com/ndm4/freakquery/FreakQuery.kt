@@ -55,9 +55,22 @@ object FreakQuery {
     @JvmStatic
     fun render(template: String, data: List<Map<String, Any?>>, config: FreakQueryConfig = FreakQueryConfig()): String {
         val ctx = Context(data, config)
-        return Regex("\\{\\{(.*?)\\}\\}", RegexOption.DOT_MATCHES_ALL).replace(template) { match ->
-            val tag = match.groupValues[1].trim()
-            runCatching { executeTag(tag, data, ctx) }.getOrElse { "[error:$tag]" }
+        // Forward-only scan: once a `{{` has no closing `}}`, no later one can either, so stop
+        // there instead of rescanning the rest of the template for every opening.
+        return buildString {
+            var start = 0
+            while (true) {
+                val open = template.indexOf("{{", start)
+                val close = if (open >= 0) template.indexOf("}}", open + 2) else -1
+                if (close < 0) {
+                    append(template, start, template.length)
+                    break
+                }
+                append(template, start, open)
+                val tag = template.substring(open + 2, close).trim()
+                append(runCatching { executeTag(tag, data, ctx) }.getOrElse { "[error:$tag]" })
+                start = close + 2
+            }
         }
     }
 

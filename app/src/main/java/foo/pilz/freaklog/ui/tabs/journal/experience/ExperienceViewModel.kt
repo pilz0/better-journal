@@ -397,14 +397,8 @@ class ExperienceViewModel @Inject constructor(
         sortedIngestionsWithCompanionsFlow.combine(combinationSettingsStorage.enabledInteractionsFlow) { ingestions, enabledInteractions ->
             val interactionsToCheck =
                 ingestions.filter { it.ingestion.consumerName == null }.map { it.ingestion.substanceName }.plus(enabledInteractions).distinct()
-            return@combine interactionsToCheck.flatMapIndexed { index: Int, interaction: String ->
-                return@flatMapIndexed interactionsToCheck.drop(index + 1).mapNotNull { other ->
-                    interactionChecker.getInteractionBetween(
-                        interaction,
-                        other
-                    )
-                }
-            }.sortedByDescending { it.interactionType.dangerCount }
+            return@combine interactionChecker.getInteractionsAmong(interactionsToCheck)
+                .sortedByDescending { it.interactionType.dangerCount }
         }
             .flowOn(Dispatchers.IO) // if this wasn't on the background the navigation from journal screen to this screen would jump
             .stateIn(

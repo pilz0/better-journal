@@ -4,8 +4,15 @@ import foo.pilz.freaklog.data.substances.classes.Tolerance
 
 object ToleranceTextParser {
 
-    private val RANGE_PATTERN = Regex("""(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s*(day|week|hour|month)s?""", RegexOption.IGNORE_CASE)
-    private val SINGLE_PATTERN = Regex("""(\d+(?:\.\d+)?)\s*(day|week|hour|month)s?""", RegexOption.IGNORE_CASE)
+    /** Real tolerance texts are under 60 characters; longer (imported) text is not parsed. */
+    const val MAX_TEXT_LENGTH = 256
+
+    // `(?<!\d)` only lets a number start at the beginning of a digit run, so a long run of
+    // digits without a unit is matched in linear rather than quadratic time.
+    private val RANGE_PATTERN =
+        Regex("""(?<!\d)(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s*(day|week|hour|month)s?""", RegexOption.IGNORE_CASE)
+    private val SINGLE_PATTERN =
+        Regex("""(?<!\d)(\d+(?:\.\d+)?)\s*(day|week|hour|month)s?""", RegexOption.IGNORE_CASE)
 
     private val DESCRIPTIVE_MAP = mapOf(
         "immediately" to 0f,
@@ -19,7 +26,7 @@ object ToleranceTextParser {
     )
 
     fun parseDurationText(text: String?): Float? {
-        if (text == null) return null
+        if (text == null || text.length > MAX_TEXT_LENGTH) return null
         val trimmed = text.trim().lowercase()
 
         return DESCRIPTIVE_MAP[trimmed]

@@ -24,14 +24,15 @@ import foo.pilz.freaklog.data.room.experiences.findProfile
 import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithEverything
 import foo.pilz.freaklog.data.room.experiences.toTolerance
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
+import foo.pilz.freaklog.ui.tabs.safer.tolerance.ToleranceTextParser
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 
 object ToleranceChartCalculator {
 
-    private val weeksPattern = Regex("""(\d+)(?:-(\d+))?\s*weeks?""", RegexOption.IGNORE_CASE)
-    private val daysPattern = Regex("""(\d+)(?:-(\d+))?\s*days?""", RegexOption.IGNORE_CASE)
+    private val weeksPattern = Regex("""(?<!\d)(\d+)(?:-(\d+))?\s*weeks?""", RegexOption.IGNORE_CASE)
+    private val daysPattern = Regex("""(?<!\d)(\d+)(?:-(\d+))?\s*days?""", RegexOption.IGNORE_CASE)
     private const val MAX_TOLERANCE_HOURS = 876000.0
 
     fun getToleranceWindows(
@@ -125,7 +126,7 @@ object ToleranceChartCalculator {
     }
 
     private fun parseToleranceToHours(toleranceString: String?): Double? {
-        if (toleranceString == null) return null
+        if (toleranceString == null || toleranceString.length > ToleranceTextParser.MAX_TEXT_LENGTH) return null
         
         // Try to parse patterns like "1-2 weeks", "3-4 days", "2 weeks", etc.
         val weeksMatch = weeksPattern.find(toleranceString)
