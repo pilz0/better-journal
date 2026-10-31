@@ -32,7 +32,8 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -169,7 +170,7 @@ class ExperienceViewModelTest {
         assertEquals("2C-B-FLY", line.substanceName)
         assertEquals(element.roaDuration, line.roaDuration)
         assertTrue("Height should be positive", line.height > 0f)
-        viewModel.viewModelScope.cancel()
+        viewModel.viewModelScope.coroutineContext[Job]?.cancelAndJoin()
     }
 
     @Test
@@ -250,6 +251,6 @@ class ExperienceViewModelTest {
         val effectLines = viewModel.dataForEffectTimelinesFlow.first { it.isNotEmpty() }
         assertEquals(1, effectLines.size)
         assertEquals(insufflatedDuration.toRoaDuration(), effectLines.first().roaDuration)
-        viewModel.viewModelScope.cancel()
+        viewModel.viewModelScope.coroutineContext[Job]?.cancelAndJoin()
     }
 }

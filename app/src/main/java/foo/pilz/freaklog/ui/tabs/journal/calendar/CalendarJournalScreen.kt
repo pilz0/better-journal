@@ -86,6 +86,7 @@ fun CalendarJournalScreenPreview() {
 @Composable
 fun CalendarJournalScreen(
     navigateToExperiencePopNothing: (experienceId: Int) -> Unit,
+    dayViewModel: DayViewModel = hiltViewModel(),
 ) {
     val today = remember { LocalDate.now() }
     val currentMonth = remember { YearMonth.now() }
@@ -96,7 +97,7 @@ fun CalendarJournalScreen(
     val state = rememberCalendarState(
         startMonth = startMonth,
         endMonth = endMonth,
-        firstVisibleMonth = currentMonth.minusMonths(1),
+        firstVisibleMonth = currentMonth,
         firstDayOfWeek = firstDayOfWeek
     )
     Scaffold(
@@ -146,13 +147,14 @@ fun CalendarJournalScreen(
             state = state,
             dayContent = { calendarDay ->
                 Day(
-                    calendarDay,
-                    today,
-                    navigateToExperiencePopNothing,
+                    day = calendarDay,
+                    today = today,
+                    navigateToExperiencePopNothing = navigateToExperiencePopNothing,
                     chooseBetweenExperiences = { experienceIds ->
                         experienceIdsToShowInSheet = experienceIds
                         showBottomSheet = true
-                    }
+                    },
+                    viewModel = dayViewModel,
                 )
             },
             contentPadding = PaddingValues(horizontalPadding),
@@ -213,10 +215,10 @@ fun Day(
     day: CalendarDay,
     today: LocalDate,
     navigateToExperiencePopNothing: (experienceId: Int) -> Unit,
-    chooseBetweenExperiences: (experienceIds: List<Int>) -> Unit
+    chooseBetweenExperiences: (experienceIds: List<Int>) -> Unit,
+    viewModel: DayViewModel = hiltViewModel(),
 ) {
     if (day.position == DayPosition.MonthDate) {
-        val viewModel: DayViewModel = hiltViewModel()
         val experienceInfoState: MutableState<ExperienceInfo> = remember(day) {
             mutableStateOf(
                 ExperienceInfo(

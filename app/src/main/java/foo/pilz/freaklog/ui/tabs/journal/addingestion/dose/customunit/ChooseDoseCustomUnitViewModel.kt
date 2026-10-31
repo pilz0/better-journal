@@ -25,6 +25,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.substances.classes.roa.DoseClass
@@ -32,7 +33,8 @@ import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.main.navigation.graphs.ChooseDoseCustomUnitRoute
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.search.suggestion.models.CustomUnitDose
-import dagger.hilt.android.lifecycle.HiltViewModel
+import foo.pilz.freaklog.ui.utils.evaluateNumericExpression
+import foo.pilz.freaklog.ui.utils.isValidDoseInput
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -48,14 +50,19 @@ class ChooseDoseCustomUnitViewModel @Inject constructor(
     var roaDose: RoaDose? = null
 
     init {
-        val chooseDoseCustomUnitRoute = state.toRoute<ChooseDoseCustomUnitRoute>()
-        viewModelScope.launch {
-            val customUnit = experienceRepo.getCustomUnit(chooseDoseCustomUnitRoute.customUnitId)
-            this@ChooseDoseCustomUnitViewModel.customUnit = customUnit
-            if (customUnit != null) {
-                val substance = substanceRepo.getSubstance(customUnit.substanceName)
-                doseRemark = substance?.dosageRemark
-                roaDose = substance?.getRoa(customUnit.administrationRoute)?.roaDose
+        val chooseDoseCustomUnitRoute = runCatching { state.toRoute<ChooseDoseCustomUnitRoute>() }.getOrNull()
+        val customUnitId = chooseDoseCustomUnitRoute?.customUnitId?.takeIf { it > 0 }
+            ?: state.get<Int>("customUnitId")
+            ?: -1
+        if (customUnitId != -1) {
+            viewModelScope.launch {
+                val customUnit = experienceRepo.getCustomUnit(customUnitId)
+                this@ChooseDoseCustomUnitViewModel.customUnit = customUnit
+                if (customUnit != null) {
+                    val substance = substanceRepo.getSubstance(customUnit.substanceName)
+                    doseRemark = substance?.dosageRemark
+                    roaDose = substance?.getRoa(customUnit.administrationRoute)?.roaDose
+                }
             }
         }
     }
@@ -73,9 +80,9 @@ class ChooseDoseCustomUnitViewModel @Inject constructor(
         estimatedDoseDeviationText = newEstimatedDeviationText
     }
 
-    val dose: Double? get() = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(doseText)
-    val estimatedDoseDeviation: Double? get() = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(estimatedDoseDeviationText)
-    val isValidDose: Boolean get() = dose != null
+    val dose: Double? get() = evaluateNumericExpression(doseText)
+    val estimatedDoseDeviation: Double? get() = evaluateNumericExpression(estimatedDoseDeviationText)
+    val isValidDose: Boolean get() = isValidDoseInput(dose, estimatedDoseDeviation)
 
     private val customUnitDose: CustomUnitDose?
         get() {

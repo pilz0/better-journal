@@ -34,12 +34,11 @@ import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.main.navigation.graphs.ChooseDoseRoute
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
 import foo.pilz.freaklog.ui.utils.evaluateNumericExpression
+import foo.pilz.freaklog.ui.utils.isValidDoseInput
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
-
-private const val MAX_DOSE = 1_000_000.0
 
 @HiltViewModel
 class ChooseDoseViewModel @Inject constructor(
@@ -94,15 +93,7 @@ class ChooseDoseViewModel @Inject constructor(
         }
     val dose: Double? get() = evaluateNumericExpression(doseText)
     val estimatedDoseStandardDeviation: Double? get() = evaluateNumericExpression(estimatedDoseStandardDeviationText)
-    val isValidDose: Boolean
-        get() {
-            // The expression parser supports unary minus, so "-10" or "0" parse as numbers.
-            val dose = dose
-            val deviation = estimatedDoseStandardDeviation
-            val isDoseOk = dose != null && dose > 0.0 && dose.isFinite() && dose <= MAX_DOSE
-            val isDeviationOk = deviation == null || (deviation >= 0.0 && deviation.isFinite())
-            return isDoseOk && isDeviationOk
-        }
+    val isValidDose: Boolean get() = isValidDoseInput(dose, estimatedDoseStandardDeviation)
     val currentDoseClass: DoseClass? get() = roaDose?.getDoseClass(ingestionDose = dose)
 
     fun onDoseTextChange(newDoseText: String) {

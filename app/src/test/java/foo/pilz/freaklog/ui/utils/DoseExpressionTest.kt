@@ -1,7 +1,9 @@
 package foo.pilz.freaklog.ui.utils
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DoseExpressionTest {
@@ -57,5 +59,28 @@ class DoseExpressionTest {
         assertNull(evaluateNumericExpression("Infinity"))
         assertNull(evaluateNumericExpression("-Infinity"))
         assertNull(evaluateNumericExpression("+Infinity"))
+    }
+
+    @Test
+    fun isValidDoseInput_validatesDoseAndStandardDeviation() {
+        // Valid doses
+        assertTrue(isValidDoseInput(10.0))
+        assertTrue(isValidDoseInput(0.001))
+        assertTrue(isValidDoseInput(100.0, 5.0))
+        assertTrue(isValidDoseInput(100.0, 0.0))
+        assertTrue(isValidDoseInput(MAX_VALID_DOSE))
+
+        // Invalid doses
+        assertFalse(isValidDoseInput(null))
+        assertFalse(isValidDoseInput(0.0))
+        assertFalse(isValidDoseInput(-5.0))
+        assertFalse(isValidDoseInput(Double.NaN))
+        assertFalse(isValidDoseInput(Double.POSITIVE_INFINITY))
+        assertFalse(isValidDoseInput(MAX_VALID_DOSE + 1.0))
+
+        // Invalid standard deviation
+        assertFalse(isValidDoseInput(10.0, -1.0))
+        assertFalse(isValidDoseInput(10.0, Double.NaN))
+        assertFalse(isValidDoseInput(10.0, Double.POSITIVE_INFINITY))
     }
 }

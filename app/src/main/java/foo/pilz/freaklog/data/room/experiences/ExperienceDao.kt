@@ -262,7 +262,7 @@ interface ExperienceDao {
     fun getIngestionWithExperienceFlow(id: Int): Flow<IngestionWithExperienceAndCustomUnit?>
 
     @Transaction
-    @Query("SELECT * FROM ingestion WHERE time > :fromInstant AND time < :toInstant")
+    @Query("SELECT * FROM ingestion WHERE time >= :fromInstant AND time < :toInstant")
     fun getIngestionWithExperiencesFlow(
         fromInstant: Instant,
         toInstant: Instant
