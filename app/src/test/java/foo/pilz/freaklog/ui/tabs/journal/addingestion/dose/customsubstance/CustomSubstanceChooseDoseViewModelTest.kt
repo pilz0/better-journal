@@ -91,8 +91,13 @@ class CustomSubstanceChooseDoseViewModelTest {
         assertTrue(viewModel.isValidDose)
         assertEquals(10.0, viewModel.dose ?: 0.0, 0.001)
 
-        // Negative standard deviation is rejected
+        // When estimate is off, invalid deviation does not invalidate the dose
+        viewModel.isEstimate = false
         viewModel.onEstimatedDoseStandardDeviationTextChange("-1")
+        assertTrue(viewModel.isValidDose)
+
+        // When estimate is on, negative standard deviation is rejected
+        viewModel.isEstimate = true
         assertFalse(viewModel.isValidDose)
 
         // Valid deviation is accepted

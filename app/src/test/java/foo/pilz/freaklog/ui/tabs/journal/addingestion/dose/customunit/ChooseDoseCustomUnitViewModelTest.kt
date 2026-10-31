@@ -88,15 +88,21 @@ class ChooseDoseCustomUnitViewModelTest {
         assertTrue(viewModel.isValidDose)
         assertEquals(2.0, viewModel.dose ?: 0.0, 0.001)
 
-        // Negative deviation is rejected
+        // When estimate is off, invalid deviation does not invalidate the dose
+        viewModel.isEstimate = false
         viewModel.onEstimatedDoseDeviationChange("-0.5")
+        assertTrue(viewModel.isValidDose)
+
+        // When estimate is on, negative deviation is rejected
+        viewModel.isEstimate = true
         assertFalse(viewModel.isValidDose)
 
         // Valid deviation is accepted
         viewModel.onEstimatedDoseDeviationChange("0.5")
         assertTrue(viewModel.isValidDose)
 
-        // Custom unit calculation text
+        // Reset estimate to false for standard calculation text
+        viewModel.isEstimate = false
         assertEquals("2 drops x 100 ug = 200 ug", viewModel.customUnitCalculationText)
 
         viewModel.viewModelScope.cancel()

@@ -82,7 +82,7 @@ class ChooseDoseCustomUnitViewModel @Inject constructor(
 
     val dose: Double? get() = evaluateNumericExpression(doseText)
     val estimatedDoseDeviation: Double? get() = evaluateNumericExpression(estimatedDoseDeviationText)
-    val isValidDose: Boolean get() = isValidDoseInput(dose, estimatedDoseDeviation)
+    val isValidDose: Boolean get() = isValidDoseInput(dose, if (isEstimate) estimatedDoseDeviation else null)
 
     private val customUnitDose: CustomUnitDose?
         get() {

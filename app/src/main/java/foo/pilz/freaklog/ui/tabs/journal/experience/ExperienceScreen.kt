@@ -722,7 +722,7 @@ private fun ShulginRatingsSection(
     ElevatedCard(modifier = Modifier.padding(vertical = verticalCardPadding)) {
         CardTitle(title = "Shulgin ratings")
         HorizontalDivider()
-        val ratingsWithTime =
+        val ratingsWithTime = remember(oneExperienceScreenModel.ratings) {
             oneExperienceScreenModel.ratings.mapNotNull { rating ->
                 val time = rating.time
                 if (time != null) {
@@ -731,6 +731,7 @@ private fun ShulginRatingsSection(
                     null
                 }
             }.sortedBy { it.first }
+        }
         ratingsWithTime.forEachIndexed { index, pair ->
             TimedRatingRow(
                 modifier = Modifier

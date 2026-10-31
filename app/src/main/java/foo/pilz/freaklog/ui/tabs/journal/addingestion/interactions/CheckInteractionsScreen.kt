@@ -45,6 +45,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -162,9 +163,12 @@ fun CheckInteractionsScreen(
                 }
             } else {
                 val verticalPaddingInside = 4.dp
+                val distinctDangerous = remember(dangerousInteractions) { dangerousInteractions.distinct() }
+                val distinctUnsafe = remember(unsafeInteractions) { unsafeInteractions.distinct() }
+                val distinctUncertain = remember(uncertainInteractions) { uncertainInteractions.distinct() }
                 LazyColumn {
-                    if (dangerousInteractions.isNotEmpty()) {
-                        items(dangerousInteractions, key = { "dangerous_$it" }) {
+                    if (distinctDangerous.isNotEmpty()) {
+                        items(distinctDangerous, key = { "dangerous_$it" }) {
                             InteractionRow(
                                 text = it,
                                 interactionType = InteractionType.DANGEROUS,
@@ -172,16 +176,16 @@ fun CheckInteractionsScreen(
                             )
                         }
                     }
-                    if (unsafeInteractions.isNotEmpty()) {
-                        items(unsafeInteractions, key = { "unsafe_$it" }) {
+                    if (distinctUnsafe.isNotEmpty()) {
+                        items(distinctUnsafe, key = { "unsafe_$it" }) {
                             InteractionRow(
                                 text = it, interactionType = InteractionType.UNSAFE,
                                 verticalPaddingInside = verticalPaddingInside,
                             )
                         }
                     }
-                    if (uncertainInteractions.isNotEmpty()) {
-                        items(uncertainInteractions, key = { "uncertain_$it" }) {
+                    if (distinctUncertain.isNotEmpty()) {
+                        items(distinctUncertain, key = { "uncertain_$it" }) {
                             InteractionRow(
                                 text = it, interactionType = InteractionType.UNCERTAIN,
                                 verticalPaddingInside = verticalPaddingInside,

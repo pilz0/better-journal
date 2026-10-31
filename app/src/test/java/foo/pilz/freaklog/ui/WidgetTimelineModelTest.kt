@@ -516,5 +516,6 @@ class WidgetTimelineModelTest {
         )
         assertTrue(model.hasContent)
         assertEquals(1, model.groups.size)
+        assertTrue(model.groups.single().isComplete)
     }
 }

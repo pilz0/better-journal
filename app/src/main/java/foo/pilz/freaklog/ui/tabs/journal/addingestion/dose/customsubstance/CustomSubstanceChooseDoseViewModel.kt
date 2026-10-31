@@ -79,7 +79,7 @@ class CustomSubstanceChooseDoseViewModel @Inject constructor(
         }
     val dose: Double? get() = evaluateNumericExpression(doseText)
     val estimatedDoseStandardDeviation: Double? get() = evaluateNumericExpression(estimatedDoseDeviationText)
-    val isValidDose: Boolean get() = isValidDoseInput(dose, estimatedDoseStandardDeviation)
+    val isValidDose: Boolean get() = isValidDoseInput(dose, if (isEstimate) estimatedDoseStandardDeviation else null)
 
     /** Dose thresholds the user stored for this substance and route, if any. */
     val roaDose: foo.pilz.freaklog.data.substances.classes.roa.RoaDose?

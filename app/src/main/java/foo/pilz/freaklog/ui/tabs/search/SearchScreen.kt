@@ -116,7 +116,7 @@ fun SearchScreen(
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
                     modifier = Modifier.padding(vertical = 6.dp)
                 ) {
-                    item {
+                    item(key = "start_spacer") {
                         Spacer(modifier = Modifier.width(4.dp))
                     }
                     items(activeFilters, key = { it.chipName }) { categoryChipModel ->
@@ -124,15 +124,14 @@ fun SearchScreen(
                             onFilterTapped(categoryChipModel.chipName)
                         }
                     }
-                    item {
+                    item(key = "end_spacer") {
                         Spacer(modifier = Modifier.width(4.dp))
                     }
                 }
             }
             if (filteredSubstances.isEmpty() && filteredCustomSubstances.isEmpty()) {
                 Column {
-                    val activeCategoryNames =
-                        activeFilters.filter { it.isActive }.map { it.chipName }
+                    val activeCategoryNames = remember(activeFilters) { activeFilters.map { it.chipName } }
                     if (activeCategoryNames.isEmpty()) {
                         Text("No matching substance found", modifier = Modifier.padding(10.dp))
                     } else if (activeCategoryNames.size == 1) {
@@ -188,7 +187,7 @@ fun SearchScreen(
                         HorizontalDivider()
                     }
 
-                    item {
+                    item(key = "add_custom_substance") {
                         val addCustomSubstanceText = "Add custom substance"
                         TextButton(
                             onClick = { 

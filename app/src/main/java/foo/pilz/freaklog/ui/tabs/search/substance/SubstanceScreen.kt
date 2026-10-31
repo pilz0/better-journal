@@ -57,6 +57,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -228,11 +229,16 @@ fun SubstanceScreen(
                     }
                 }
             }
-            val roasWithDosesDefined = substance.roas.filter { roa ->
-                val roaDose = roa.roaDose
-                val isEveryDoseNull =
-                    roaDose?.lightMin == null && roaDose?.commonMin == null && roaDose?.strongMin == null && roaDose?.heavyMin == null
-                return@filter !isEveryDoseNull
+            val roasWithDosesDefined = remember(substance.roas) {
+                substance.roas.filter { roa ->
+                    val roaDose = roa.roaDose
+                    val isEveryDoseNull =
+                        roaDose?.lightMin == null && roaDose?.commonMin == null && roaDose?.strongMin == null && roaDose?.heavyMin == null
+                    !isEveryDoseNull
+                }
+            }
+            val customUnitsByRoute = remember(customUnits) {
+                customUnits.filter { it.dose != null }.groupBy { it.administrationRoute }
             }
             if (substance.dosageRemark != null || roasWithDosesDefined.isNotEmpty()) {
                 SectionWithTitle(title = "Dosage") {
@@ -256,8 +262,7 @@ fun SubstanceScreen(
                                     RoaDoseView(roaDose = roa.roaDose)
                                 }
                                 roa.roaDose?.let { roaDose ->
-                                    val customUnitsForRoute =
-                                        customUnits.filter { it.administrationRoute == roa.route && it.dose != null }
+                                    val customUnitsForRoute = customUnitsByRoute[roa.route].orEmpty()
                                     customUnitsForRoute.forEach { customUnit ->
                                         Text(
                                             text = customUnit.name,
@@ -344,11 +349,13 @@ fun SubstanceScreen(
                     }
                 }
             }
-            val roasWithDurationsDefined = substance.roas.filter { roa ->
-                val roaDuration = roa.roaDuration
-                val isEveryDurationNull =
-                    roaDuration?.onset == null && roaDuration?.comeup == null && roaDuration?.peak == null && roaDuration?.offset == null && roaDuration?.total == null
-                return@filter !isEveryDurationNull
+            val roasWithDurationsDefined = remember(substance.roas) {
+                substance.roas.filter { roa ->
+                    val roaDuration = roa.roaDuration
+                    val isEveryDurationNull =
+                        roaDuration?.onset == null && roaDuration?.comeup == null && roaDuration?.peak == null && roaDuration?.offset == null && roaDuration?.total == null
+                    !isEveryDurationNull
+                }
             }
             if (roasWithDurationsDefined.isNotEmpty()) {
                 SectionWithTitle(title = "Duration") {
@@ -358,10 +365,11 @@ fun SubstanceScreen(
                         ) {
                             Text("Start:")
                             Spacer(modifier = Modifier.width(5.dp))
+                            val shortTimeText = remember(ingestionTime) { ingestionTime.getShortTimeText() }
                             TimePickerButton(
                                 localDateTime = ingestionTime,
                                 onChange = onChangeIngestionTime,
-                                timeString = ingestionTime.getShortTimeText(),
+                                timeString = shortTimeText,
                                 hasOutline = false,
                             )
                             val isTimeALotDifferentToNow = ChronoUnit.MINUTES.between(
