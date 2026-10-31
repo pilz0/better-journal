@@ -7,6 +7,7 @@ package foo.pilz.freaklog.ui.tabs.journal.experience
 
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRoaDuration
@@ -31,6 +32,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -167,6 +169,7 @@ class ExperienceViewModelTest {
         assertEquals("2C-B-FLY", line.substanceName)
         assertEquals(element.roaDuration, line.roaDuration)
         assertTrue("Height should be positive", line.height > 0f)
+        viewModel.viewModelScope.cancel()
     }
 
     @Test
@@ -247,5 +250,6 @@ class ExperienceViewModelTest {
         val effectLines = viewModel.dataForEffectTimelinesFlow.first { it.isNotEmpty() }
         assertEquals(1, effectLines.size)
         assertEquals(insufflatedDuration.toRoaDuration(), effectLines.first().roaDuration)
+        viewModel.viewModelScope.cancel()
     }
 }

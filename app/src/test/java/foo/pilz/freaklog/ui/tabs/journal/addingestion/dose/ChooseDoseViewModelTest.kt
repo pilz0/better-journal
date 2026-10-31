@@ -6,6 +6,7 @@
 package foo.pilz.freaklog.ui.tabs.journal.addingestion.dose
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.substances.classes.Substance
@@ -18,6 +19,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -101,6 +103,7 @@ class ChooseDoseViewModelTest {
         // Impure dose calculation
         viewModel.purityText = "75"
         assertEquals("20 impure mg", viewModel.impureDoseWithUnit)
+        viewModel.viewModelScope.cancel()
     }
 
     @Test
@@ -129,6 +132,13 @@ class ChooseDoseViewModelTest {
         viewModel.onDoseTextChange("10")
         assertTrue(viewModel.isValidDose)
         assertEquals(10.0, viewModel.dose ?: 0.0, 0.001)
+
+        // Impure dose without unit or with fallback unit
+        viewModel.purityText = "50"
+        assertEquals("20 impure", viewModel.impureDoseWithUnit)
+        viewModel.units = "mg"
+        assertEquals("20 impure mg", viewModel.impureDoseWithUnit)
+        viewModel.viewModelScope.cancel()
     }
 
     @Test
@@ -169,5 +179,6 @@ class ChooseDoseViewModelTest {
 
         assertEquals(AdministrationRoute.RECTAL, viewModel.administrationRoute)
         assertEquals(sniffDose, viewModel.roaDose)
+        viewModel.viewModelScope.cancel()
     }
 }

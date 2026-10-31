@@ -86,7 +86,9 @@ class ChooseDoseViewModel @Inject constructor(
                 purity.let { safePurity ->
                     if (safePurity == null) return null
                     val result = it.div(safePurity).times(100)
-                    return result.toReadableString() + " impure ${roaDose?.units ?: ""}"
+                    val unitStr = roaDose?.units?.ifBlank { null } ?: units.ifBlank { null }
+                    val suffix = if (!unitStr.isNullOrBlank()) " $unitStr" else ""
+                    return result.toReadableString() + " impure$suffix"
                 }
             }
         }
