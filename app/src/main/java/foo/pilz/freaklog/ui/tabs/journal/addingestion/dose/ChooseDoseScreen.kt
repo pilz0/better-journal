@@ -98,11 +98,11 @@ fun ChooseDoseScreen(
     ChooseDoseScreen(
         navigateToVolumetricDosingScreen = navigateToVolumetricDosingScreenOnJournalTab,
         navigateToSaferSniffingScreen = navigateToSaferSniffingScreen,
-        substanceName = viewModel.substance.name,
+        substanceName = viewModel.substanceName,
         roaDose = viewModel.roaDose,
         administrationRoute = viewModel.administrationRoute,
         doseText = viewModel.doseText,
-        doseRemark = viewModel.substance.dosageRemark,
+        doseRemark = viewModel.doseRemark,
         onChangeDoseText = viewModel::onDoseTextChange,
         estimatedDoseStandardDeviationText = viewModel.estimatedDoseStandardDeviationText,
         onChangeEstimatedDoseStandardDeviationText = viewModel::onEstimatedDoseStandardDeviationChange,

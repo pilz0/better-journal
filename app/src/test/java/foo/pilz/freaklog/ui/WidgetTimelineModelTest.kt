@@ -497,4 +497,24 @@ class WidgetTimelineModelTest {
             }
         }
     }
+
+    @Test
+    fun `findRoaDuration and build handle case and whitespace variations gracefully`() {
+        val durations = durationsOf("MDMA" to mdmaOral)
+        val direct = WidgetTimelineModel.findRoaDuration(durations, "mdma", AdministrationRoute.ORAL)
+        assertEquals(mdmaOral, direct)
+
+        val padded = WidgetTimelineModel.findRoaDuration(durations, "  MDMA  ", AdministrationRoute.ORAL)
+        assertEquals(mdmaOral, padded)
+
+        val model = WidgetTimelineModel.build(
+            now = now,
+            ingestions = listOf(
+                WidgetTimelineModel.IngestionInput(" mdma ", AdministrationRoute.ORAL, now, AdaptiveColor.RED)
+            ),
+            durationsBySubstance = durations,
+        )
+        assertTrue(model.hasContent)
+        assertEquals(1, model.groups.size)
+    }
 }

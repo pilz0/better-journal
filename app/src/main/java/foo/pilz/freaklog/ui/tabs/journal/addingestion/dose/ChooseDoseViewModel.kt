@@ -48,13 +48,19 @@ class ChooseDoseViewModel @Inject constructor(
     private val userPreferences: foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences,
     state: SavedStateHandle,
 ) : ViewModel() {
-    private val chooseDoseRoute = state.toRoute<ChooseDoseRoute>()
-    val substance: Substance = repository.getSubstance(chooseDoseRoute.substanceName)!!
-    val administrationRoute: AdministrationRoute = chooseDoseRoute.administrationRoute
+    private val chooseDoseRoute: ChooseDoseRoute? = runCatching { state.toRoute<ChooseDoseRoute>() }.getOrNull()
+    val administrationRoute: AdministrationRoute = chooseDoseRoute?.administrationRoute
+        ?: state.get<AdministrationRoute>("administrationRoute")
+        ?: AdministrationRoute.ORAL
+    val substanceName: String = chooseDoseRoute?.substanceName
+        ?: state.get<String>("substanceName")
+        ?: ""
+    val substance: Substance? = repository.getSubstance(substanceName)
+    val doseRemark: String? = substance?.dosageRemark
     private val useIntranasalForRectal: Boolean = runBlocking {
         userPreferences.useIntranasalForRectalFlow.first()
     }
-    private val effectiveRoa = substance.getEffectiveRoa(administrationRoute, useIntranasalForRectal)
+    private val effectiveRoa = substance?.getEffectiveRoa(administrationRoute, useIntranasalForRectal)
     val roaDose: RoaDose? = effectiveRoa?.roaDose
     val roaDuration: foo.pilz.freaklog.data.substances.classes.roa.RoaDuration? =
         effectiveRoa?.roaDuration
@@ -125,11 +131,11 @@ class ChooseDoseViewModel @Inject constructor(
     }
 
     private suspend fun loadIntakeLimits() {
-        val limits = experienceRepo.getIntakeLimitsForSubstance(substance.name).filter { it.isEnabled }
+        val limits = experienceRepo.getIntakeLimitsForSubstance(substanceName).filter { it.isEnabled }
         if (limits.isEmpty()) return
         val since = java.time.Instant.now().minusSeconds(limits.maxOf { it.windowSeconds })
         pastLimitIngestions = experienceRepo
-            .getIngestionsWithCustomUnitsForSubstanceSince(substance.name, since)
+            .getIngestionsWithCustomUnitsForSubstanceSince(substanceName, since)
             .map { foo.pilz.freaklog.ui.tabs.settings.intakelimits.LimitIngestion(it.pureDose, it.originalUnit, it.ingestion.time) }
         loadedIntakeLimits = limits
     }

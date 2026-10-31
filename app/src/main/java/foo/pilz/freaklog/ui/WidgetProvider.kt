@@ -480,7 +480,11 @@ class TimelineWidgetWorker(
 
                 val ingestion = iwc.ingestion
                 val elapsedSeconds = Duration.between(ingestion.time, now).seconds.toFloat()
-                val roa = substanceDurations[ingestion.substanceName]?.get(ingestion.administrationRoute)
+                val roa = WidgetTimelineModel.findRoaDuration(
+                    substanceDurations,
+                    ingestion.substanceName,
+                    ingestion.administrationRoute
+                )
                 val phase = WidgetTimelineModel.resolveIngestionPhase(elapsedSeconds, roa)
                 if (phase is IngestionPhase.Finished) continue   // skip inactive entries
 
@@ -528,7 +532,11 @@ class TimelineWidgetWorker(
                 sortedRecent.firstOrNull { iwc ->
                     val ingestion = iwc.ingestion
                     val elapsedSeconds = Duration.between(ingestion.time, now).seconds.toFloat()
-                    val roa = substanceDurations[ingestion.substanceName]?.get(ingestion.administrationRoute)
+                    val roa = WidgetTimelineModel.findRoaDuration(
+                        substanceDurations,
+                        ingestion.substanceName,
+                        ingestion.administrationRoute
+                    )
                     WidgetTimelineModel.resolveIngestionPhase(elapsedSeconds, roa) !is IngestionPhase.Finished
                 }?.ingestion?.experienceId
             } else {

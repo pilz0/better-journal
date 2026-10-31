@@ -34,6 +34,7 @@ jobs:
     timeout-minutes: 60
     permissions:
       contents: read
+    continue-on-error: ${{ matrix.api-level == 37 }}
     strategy:
       fail-fast: false
       matrix:

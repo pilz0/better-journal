@@ -116,6 +116,20 @@ data class WidgetTimelineModel(
                 }
             }
 
+        internal fun findRoaDuration(
+            durationsBySubstance: Map<String, Map<AdministrationRoute, RoaDuration?>>,
+            substanceName: String,
+            route: AdministrationRoute,
+        ): RoaDuration? {
+            val direct = durationsBySubstance[substanceName]?.get(route)
+            if (direct != null) return direct
+            val cleaned = substanceName.trim()
+            val matchedEntry = durationsBySubstance.entries.firstOrNull {
+                it.key.trim().equals(cleaned, ignoreCase = true)
+            }
+            return matchedEntry?.value?.get(route)
+        }
+
         /** Default lookback when there is no early active ingestion. */
         internal const val DEFAULT_LOOKBACK_SECONDS = 60L * 60L          // 1 hour
         /** Default lookahead when there is no late effect ending. */
@@ -148,7 +162,7 @@ data class WidgetTimelineModel(
         ): WidgetTimelineModel {
             // Resolve the duration shape for each ingestion up front.
             val resolved = ingestions.map { ing ->
-                val roa = durationsBySubstance[ing.substanceName]?.get(ing.route)
+                val roa = findRoaDuration(durationsBySubstance, ing.substanceName, ing.route)
                 ResolvedIngestion(
                     input = ing,
                     shape = resolveShape(roa),
