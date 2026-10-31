@@ -199,14 +199,20 @@ class DurationRangeTest {
     }
 
     @Test
-    fun testInterpolate_nullMin() {
+    fun testInterpolate_nullMinFallsBackToMax() {
         val range = DurationRange(null, 3.0f, DurationUnits.HOURS)
-        assertNull(range.interpolateAtValueInSeconds(0.5f))
+        assertEquals(10800.0f, range.interpolateAtValueInSeconds(0.5f)!!, 0.01f) // 3 hours in seconds
     }
 
     @Test
-    fun testInterpolate_nullMax() {
+    fun testInterpolate_nullMaxFallsBackToMin() {
         val range = DurationRange(1.0f, null, DurationUnits.HOURS)
+        assertEquals(3600.0f, range.interpolateAtValueInSeconds(0.5f)!!, 0.01f) // 1 hour in seconds
+    }
+
+    @Test
+    fun testInterpolate_bothMinAndMaxNull() {
+        val range = DurationRange(null, null, DurationUnits.HOURS)
         assertNull(range.interpolateAtValueInSeconds(0.5f))
     }
 

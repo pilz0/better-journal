@@ -48,9 +48,11 @@ data class DurationRange(
     val maxInSec: Float? = if (units != null) max?.times(units.inSecondsMultiplier) else null
 
     fun interpolateAtValueInSeconds(value: Float): Float? {
-        if (min == null || max == null || units == null) return null
-        val diff = max - min
-        val withUnit = min + diff.times(value)
+        if (units == null) return null
+        val effMin = min ?: max ?: return null
+        val effMax = max ?: min ?: return null
+        val diff = effMax - effMin
+        val withUnit = effMin + diff.times(value)
         return withUnit.times(units.inSecondsMultiplier)
     }
 }

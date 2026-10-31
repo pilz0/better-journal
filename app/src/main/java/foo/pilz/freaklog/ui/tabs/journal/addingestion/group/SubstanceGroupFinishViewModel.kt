@@ -54,8 +54,9 @@ class SubstanceGroupFinishViewModel @Inject constructor(
     state: SavedStateHandle,
 ) : ViewModel() {
 
-    private val route = state.toRoute<SubstanceGroupFinishRoute>()
-    private val groupId: Int = route.groupId
+    private val route: SubstanceGroupFinishRoute? =
+        runCatching { state.toRoute<SubstanceGroupFinishRoute>() }.getOrNull()
+    private val groupId: Int = route?.groupId ?: state.get<Int>("groupId") ?: 0
 
     private val _group = MutableStateFlow<SubstanceGroupWithItems?>(null)
     val group = _group.asStateFlow()
@@ -117,7 +118,7 @@ class SubstanceGroupFinishViewModel @Inject constructor(
         val clonedTime = userPreferences.clonedIngestionTimeFlow.first()
         val seed = clonedTime
             ?: lastIngestionTime?.takeIf {
-                it < Instant.now().minus(20, ChronoUnit.HOURS)
+                it > Instant.now().minus(20, ChronoUnit.HOURS)
             }
         if (seed != null) {
             localDateTimeStartFlow.emit(seed.getLocalDateTime())
@@ -232,7 +233,7 @@ class SubstanceGroupFinishViewModel @Inject constructor(
             val startTime = localDateTimeStartFlow.value.atZone(ZoneId.systemDefault()).toInstant()
             val endTime =
                 if (ingestionTimePickerOptionFlow.value == IngestionTimePickerOption.TIME_RANGE) {
-                    localDateTimeEndFlow.value.atZone(ZoneId.systemDefault()).toInstant()
+                    maxOf(localDateTimeEndFlow.value.atZone(ZoneId.systemDefault()).toInstant(), startTime)
                 } else null
             val savedExperienceId = insertGroupIngestions(checkedItems, startTime, endTime)
             TimelineNotificationService.refreshOrAutoStart(appContext, userPreferences, savedExperienceId)

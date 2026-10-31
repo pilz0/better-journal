@@ -23,6 +23,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -100,11 +101,25 @@ class ChooseDoseCustomUnitViewModelTest {
         // Valid deviation is accepted
         viewModel.onEstimatedDoseDeviationChange("0.5")
         assertTrue(viewModel.isValidDose)
+        assertEquals("2±0.5 drops x 100 ug = 200±50 ug", viewModel.customUnitCalculationText)
 
         // Reset estimate to false for standard calculation text
         viewModel.isEstimate = false
         assertEquals("2 drops x 100 ug = 200 ug", viewModel.customUnitCalculationText)
 
+        // Unknown dose custom unit produces null calculation text instead of concatenating "= null"
+        val unknownDoseUnit = customUnit.copy(dose = null)
+        coEvery { experienceRepository.getCustomUnit(6) } returns unknownDoseUnit
+        val unknownDoseViewModel = ChooseDoseCustomUnitViewModel(
+            experienceRepo = experienceRepository,
+            substanceRepo = substanceRepository,
+            state = SavedStateHandle(mapOf("customUnitId" to 6)),
+        )
+        testDispatcher.scheduler.advanceUntilIdle()
+        unknownDoseViewModel.onDoseTextChange("2")
+        assertNull(unknownDoseViewModel.customUnitCalculationText)
+
+        unknownDoseViewModel.viewModelScope.cancel()
         viewModel.viewModelScope.cancel()
     }
 }

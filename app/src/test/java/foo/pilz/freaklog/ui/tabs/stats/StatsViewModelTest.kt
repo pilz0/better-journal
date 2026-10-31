@@ -12,6 +12,7 @@ package foo.pilz.freaklog.ui.tabs.stats
 
 import androidx.lifecycle.viewModelScope
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
+import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit
 import foo.pilz.freaklog.data.substances.AdministrationRoute
@@ -156,6 +157,78 @@ class StatsViewModelTest {
         assertEquals(30.0, totalDose!!.dose, 0.001)
         assertFalse(totalDose.isEstimate)
         assertNull(totalDose.estimatedDoseStandardDeviation)
+
+        viewModel.viewModelScope.cancel()
+    }
+
+    @Test
+    fun `getTotalDose accounts for correlated conversion errors when ingestions share a custom unit estimate`() {
+        val viewModel = StatsViewModel(experienceRepo, skinEligibility, excelSkinController)
+
+        val customUnit = CustomUnit(
+            id = 42,
+            substanceName = "Substance A",
+            name = "Drop",
+            administrationRoute = AdministrationRoute.ORAL,
+            dose = 10.0,
+            estimatedDoseStandardDeviation = 1.0,
+            isEstimate = true,
+            isArchived = false,
+            unit = "drop",
+            unitPlural = "drops",
+            originalUnit = "mg",
+            note = "",
+        )
+
+        // Two ingestions each taking 1 drop of a 10 +- 1 mg custom unit.
+        // Sum of custom units = 2 drops.
+        // Linear conversion gives 20 mg total with (1+1) * 1.0 = 2.0 mg uncertainty (correlated),
+        // whereas independent quadrature would have yielded sqrt(1^2 + 1^2) = 1.414 mg.
+        val ingestionA = IngestionWithCompanionAndCustomUnit(
+            ingestion = Ingestion(
+                id = 1,
+                experienceId = 1,
+                substanceName = "Substance A",
+                administrationRoute = AdministrationRoute.ORAL,
+                dose = 1.0,
+                units = "drops",
+                isDoseAnEstimate = false,
+                estimatedDoseStandardDeviation = null,
+                time = Instant.parse("2026-05-01T12:00:00Z"),
+                notes = null,
+                stomachFullness = null,
+                consumerName = null,
+                customUnitId = 42,
+            ),
+            substanceCompanion = null,
+            customUnit = customUnit,
+        )
+        val ingestionB = IngestionWithCompanionAndCustomUnit(
+            ingestion = Ingestion(
+                id = 2,
+                experienceId = 1,
+                substanceName = "Substance A",
+                administrationRoute = AdministrationRoute.ORAL,
+                dose = 1.0,
+                units = "drops",
+                isDoseAnEstimate = false,
+                estimatedDoseStandardDeviation = null,
+                time = Instant.parse("2026-05-01T13:00:00Z"),
+                notes = null,
+                stomachFullness = null,
+                consumerName = null,
+                customUnitId = 42,
+            ),
+            substanceCompanion = null,
+            customUnit = customUnit,
+        )
+
+        val totalDose = viewModel.getTotalDose(listOf(ingestionA, ingestionB))
+        assertNotNull(totalDose)
+        assertEquals(20.0, totalDose!!.dose, 0.001)
+        assertEquals("mg", totalDose.units)
+        assertTrue(totalDose.isEstimate)
+        assertEquals(2.0, totalDose.estimatedDoseStandardDeviation ?: 0.0, 0.001)
 
         viewModel.viewModelScope.cancel()
     }

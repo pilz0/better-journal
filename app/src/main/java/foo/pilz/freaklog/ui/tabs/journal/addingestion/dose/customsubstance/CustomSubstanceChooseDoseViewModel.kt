@@ -99,7 +99,8 @@ class CustomSubstanceChooseDoseViewModel @Inject constructor(
         val chooseCustomSubstanceDoseRoute: ChooseCustomSubstanceDoseRoute? =
             runCatching { state.toRoute<ChooseCustomSubstanceDoseRoute>() }.getOrNull()
         administrationRoute = chooseCustomSubstanceDoseRoute?.administrationRoute
-            ?: state.get<AdministrationRoute>("administrationRoute")
+            ?: runCatching { state.get<AdministrationRoute>("administrationRoute") }.getOrNull()
+            ?: state.get<String>("administrationRoute")?.let { runCatching { AdministrationRoute.valueOf(it) }.getOrNull() }
             ?: AdministrationRoute.ORAL
         val customSubstanceName = chooseCustomSubstanceDoseRoute?.customSubstanceName?.ifBlank { null }
             ?: state.get<String>("customSubstanceName")

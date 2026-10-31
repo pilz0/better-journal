@@ -58,6 +58,8 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
+import kotlin.math.pow
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 @HiltViewModel
@@ -222,17 +224,45 @@ class StatsViewModel @Inject constructor(
         val units = groupedIngestions.firstOrNull()?.originalUnit ?: return null
         if (groupedIngestions.any { it.originalUnit != units || it.pureDose == null }) return null
         val sumDose = groupedIngestions.sumOf { it.pureDose ?: 0.0 }
-        val sumVariance = groupedIngestions.sumOf {
+
+        val (customUnitEstimates, independentIngestions) = groupedIngestions.partition {
+            it.customUnit != null && it.customUnit?.isEstimate == true && (it.customUnit?.dose ?: 0.0) > 0.0
+        }
+
+        var totalVariance = independentIngestions.sumOf {
             val sd = it.pureDoseStandardDeviation ?: 0.0
             sd * sd
         }
-        val combinedStandardDeviation = kotlin.math.sqrt(sumVariance)
+
+        val byCustomUnit = customUnitEstimates.groupBy { it.customUnit!!.id }
+        for ((_, items) in byCustomUnit) {
+            val customUnit = items.first().customUnit!!
+            val expectationY = customUnit.dose ?: 0.0
+            val standardDeviationY = customUnit.estimatedDoseStandardDeviation ?: 0.0
+            val sumX = items.sumOf { it.ingestion.dose ?: 0.0 }
+            val varianceX = items.sumOf {
+                if (it.ingestion.isDoseAnEstimate) {
+                    val sd = it.ingestion.estimatedDoseStandardDeviation ?: 0.0
+                    sd * sd
+                } else {
+                    0.0
+                }
+            }
+            val sum1 = varianceX + sumX.pow(2)
+            val sum2 = standardDeviationY.pow(2) + expectationY.pow(2)
+            val expectations = sumX.pow(2) * expectationY.pow(2)
+            val groupVariance = (sum1 * sum2 - expectations).coerceAtLeast(0.0)
+            totalVariance += groupVariance
+        }
+
+        val combinedStandardDeviation = sqrt(totalVariance)
         val isEstimate = groupedIngestions.any { it.isEstimate }
         return TotalDose(
             dose = sumDose,
             units = units,
             isEstimate = isEstimate,
-            estimatedDoseStandardDeviation = combinedStandardDeviation.takeIf { it > 0.0 })
+            estimatedDoseStandardDeviation = combinedStandardDeviation.takeIf { it > 0.0 }
+        )
     }
 
     val statsModelFlow: StateFlow<StatsModel> = combine(

@@ -94,10 +94,44 @@ class FinishIngestionScreenViewModel @Inject constructor(
         val customFormulationId: Int? = null
     )
 
+    private val finishIngestionRoute: FinishIngestionRoute? =
+        runCatching { state.toRoute<FinishIngestionRoute>() }.getOrNull()
+
+    private val _administrationRoute: AdministrationRoute =
+        finishIngestionRoute?.administrationRoute
+            ?: runCatching { state.get<AdministrationRoute>("administrationRoute") }.getOrNull()
+            ?: state.get<String>("administrationRoute")?.let { runCatching { AdministrationRoute.valueOf(it) }.getOrNull() }
+            ?: AdministrationRoute.ORAL
+    val administrationRoute: AdministrationRoute
+        get() = _administrationRoute
+
+    var substanceName by mutableStateOf(
+        finishIngestionRoute?.substanceName ?: state.get<String>("substanceName").orEmpty()
+    )
+
+    private val dose: Double? =
+        finishIngestionRoute?.dose ?: state.get<Double>("dose")
+    private val units: String? =
+        (finishIngestionRoute?.units ?: state.get<String>("units"))?.takeIf { it != "null" }
+    private val isEstimate: Boolean =
+        finishIngestionRoute?.isEstimate ?: state.get<Boolean>("isEstimate") ?: false
+    private val estimatedDoseStandardDeviation: Double? =
+        finishIngestionRoute?.estimatedDoseStandardDeviation ?: state.get<Double>("estimatedDoseStandardDeviation")
+    private val customUnitId: Int? =
+        finishIngestionRoute?.customUnitId ?: state.get<Int>("customUnitId")
+    private var substanceCompanion: SubstanceCompanion? = null
+
+    // Check if site selection is relevant for the current administration route
+    val showSiteSelection: Boolean
+        get() = _administrationRoute.showSiteSelection
+
+    // Get the appropriate site options for the current administration route
+    val siteOptions: List<String>
+        get() = _administrationRoute.siteOptions
+
     var selectedFormulationName by mutableStateOf<String?>(null)
     var selectedCustomFormulationId by mutableStateOf<Int?>(null)
 
-    var substanceName by mutableStateOf("")
     val localDateTimeStartFlow = MutableStateFlow(LocalDateTime.now())
     val localDateTimeEndFlow = MutableStateFlow(LocalDateTime.now().plusMinutes(30))
     val ingestionTimePickerOptionFlow = MutableStateFlow(IngestionTimePickerOption.POINT_IN_TIME)
@@ -141,6 +175,38 @@ class FinishIngestionScreenViewModel @Inject constructor(
                     }
                 }
             }
+        }
+        viewModelScope.launch {
+            val lastIngestionTimeOfExperience =
+                userPreferences.lastIngestionTimeOfExperienceFlow.first()
+            val clonedIngestionTime = userPreferences.clonedIngestionTimeFlow.first()
+            if (clonedIngestionTime != null) {
+                localDateTimeStartFlow.emit(clonedIngestionTime.getLocalDateTime())
+                localDateTimeEndFlow.emit(clonedIngestionTime.plus(30, ChronoUnit.MINUTES).getLocalDateTime())
+                updateTitleBasedOnTime(clonedIngestionTime)
+            } else if (lastIngestionTimeOfExperience != null) {
+                val wasLastIngestionOfExperienceLessThan20HoursAgo =
+                    lastIngestionTimeOfExperience > Instant.now().minus(20, ChronoUnit.HOURS)
+                if (wasLastIngestionOfExperienceLessThan20HoursAgo) {
+                    localDateTimeStartFlow.emit(lastIngestionTimeOfExperience.getLocalDateTime())
+                    localDateTimeEndFlow.emit(lastIngestionTimeOfExperience.plus(30, ChronoUnit.MINUTES).getLocalDateTime())
+                    updateTitleBasedOnTime(lastIngestionTimeOfExperience)
+                }
+            }
+            updateExperiencesBasedOnSelectedTime()
+            val allCompanions = experienceRepo.getAllSubstanceCompanionsFlow().first()
+            val thisCompanion = allCompanions.firstOrNull { it.substanceName == substanceName }
+            substanceCompanion = thisCompanion
+            if (thisCompanion == null) {
+                isShowingColorPicker = true
+                val alreadyUsedColors = allCompanions.map { it.color }
+                val otherColors = AdaptiveColor.entries.filter { !alreadyUsedColors.contains(it) }
+                selectedColor = otherColors.filter { it.isPreferred }.randomOrNull()
+                    ?: otherColors.randomOrNull() ?: AdaptiveColor.entries.random()
+            } else {
+                selectedColor = thisCompanion.color
+            }
+            isLoadingColor = false
         }
     }
 
@@ -223,24 +289,6 @@ class FinishIngestionScreenViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000)
         )
 
-    private val _administrationRoute: AdministrationRoute
-    val administrationRoute: AdministrationRoute
-        get() = _administrationRoute
-    private val dose: Double?
-    private val units: String?
-    private val isEstimate: Boolean
-    private val estimatedDoseStandardDeviation: Double?
-    private val customUnitId: Int?
-    private var substanceCompanion: SubstanceCompanion? = null
-
-    // Check if site selection is relevant for the current administration route
-    val showSiteSelection: Boolean
-        get() = _administrationRoute.showSiteSelection
-
-    // Get the appropriate site options for the current administration route
-    val siteOptions: List<String>
-        get() = _administrationRoute.siteOptions
-
     private val companionFlow = experienceRepo.getAllSubstanceCompanionsFlow()
 
     val alreadyUsedColorsFlow: StateFlow<List<AdaptiveColor>> =
@@ -266,55 +314,6 @@ class FinishIngestionScreenViewModel @Inject constructor(
     private val newExperienceIdToUseFlow: Flow<Int> = sortedExperiencesFlow.map { experiences ->
         val previousMax = experiences.maxOfOrNull { it.experience.id } ?: 1
         return@map previousMax + 1
-    }
-
-    init {
-        val finishIngestionRoute = state.toRoute<FinishIngestionRoute>()
-        substanceName = finishIngestionRoute.substanceName
-        _administrationRoute = finishIngestionRoute.administrationRoute
-        dose = finishIngestionRoute.dose
-        estimatedDoseStandardDeviation = finishIngestionRoute.estimatedDoseStandardDeviation
-        customUnitId = finishIngestionRoute.customUnitId
-        units = finishIngestionRoute.units?.let {
-            if (it == "null") {
-                null
-            } else {
-                it
-            }
-        }
-        isEstimate = finishIngestionRoute.isEstimate
-        viewModelScope.launch {
-            val lastIngestionTimeOfExperience =
-                userPreferences.lastIngestionTimeOfExperienceFlow.first()
-            val clonedIngestionTime = userPreferences.clonedIngestionTimeFlow.first()
-            if (clonedIngestionTime != null) {
-                localDateTimeStartFlow.emit(clonedIngestionTime.getLocalDateTime())
-                localDateTimeEndFlow.emit(clonedIngestionTime.plus(30, ChronoUnit.MINUTES).getLocalDateTime())
-                updateTitleBasedOnTime(clonedIngestionTime)
-            } else if (lastIngestionTimeOfExperience != null) {
-                val wasLastIngestionOfExperienceLessThan20HoursAgo =
-                    lastIngestionTimeOfExperience > Instant.now().minus(20, ChronoUnit.HOURS)
-                if (wasLastIngestionOfExperienceLessThan20HoursAgo) {
-                    localDateTimeStartFlow.emit(lastIngestionTimeOfExperience.getLocalDateTime())
-                    localDateTimeEndFlow.emit(lastIngestionTimeOfExperience.plus(30, ChronoUnit.MINUTES).getLocalDateTime())
-                    updateTitleBasedOnTime(lastIngestionTimeOfExperience)
-                }
-            }
-            updateExperiencesBasedOnSelectedTime()
-            val allCompanions = experienceRepo.getAllSubstanceCompanionsFlow().first()
-            val thisCompanion = allCompanions.firstOrNull { it.substanceName == substanceName }
-            substanceCompanion = thisCompanion
-            if (thisCompanion == null) {
-                isShowingColorPicker = true
-                val alreadyUsedColors = allCompanions.map { it.color }
-                val otherColors = AdaptiveColor.entries.filter { !alreadyUsedColors.contains(it) }
-                selectedColor = otherColors.filter { it.isPreferred }.randomOrNull()
-                    ?: otherColors.randomOrNull() ?: AdaptiveColor.entries.random()
-            } else {
-                selectedColor = thisCompanion.color
-            }
-            isLoadingColor = false
-        }
     }
 
     fun onChangeOfSelectedExperience(experienceWithIngestions: ExperienceWithIngestions?) =
@@ -358,8 +357,9 @@ class FinishIngestionScreenViewModel @Inject constructor(
 
     private suspend fun updateExperiencesBasedOnSelectedTime() {
         val selectedInstant = localDateTimeStartFlow.value.getInstant()
-        val fromInstant = selectedInstant.minus(3, ChronoUnit.DAYS)
-        val toInstant = selectedInstant.plus(1, ChronoUnit.DAYS)
+        val zone = ZoneId.systemDefault()
+        val fromInstant = selectedInstant.atZone(zone).minusDays(3).toInstant()
+        val toInstant = selectedInstant.atZone(zone).plusDays(1).toInstant()
         val experiencesInRange =
             experienceRepo.getSortedExperiencesWithIngestionsWithSortDateBetween(
                 fromInstant = fromInstant,

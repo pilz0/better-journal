@@ -82,5 +82,7 @@ class DoseExpressionTest {
         assertFalse(isValidDoseInput(10.0, -1.0))
         assertFalse(isValidDoseInput(10.0, Double.NaN))
         assertFalse(isValidDoseInput(10.0, Double.POSITIVE_INFINITY))
+        assertFalse(isValidDoseInput(10.0, MAX_VALID_DOSE + 1.0))
+        assertFalse(isValidDoseInput(10.0, 1e308))
     }
 }

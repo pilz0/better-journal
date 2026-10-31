@@ -106,7 +106,7 @@ fun ChooseDoseCustomUnitScreen(
                     customUnitUnwrapped.unit,
                     viewModel.isEstimate,
                     viewModel.dose,
-                    viewModel.estimatedDoseDeviation,
+                    if (viewModel.isEstimate) viewModel.estimatedDoseDeviation else null,
                     customUnitUnwrapped.substanceName,
                     customUnitUnwrapped.id
                 )

@@ -96,7 +96,7 @@ class ChooseDoseViewModel @Inject constructor(
         }
     val dose: Double? get() = evaluateNumericExpression(doseText)
     val estimatedDoseStandardDeviation: Double? get() = evaluateNumericExpression(estimatedDoseStandardDeviationText)
-    val isValidDose: Boolean get() = isValidDoseInput(dose, estimatedDoseStandardDeviation)
+    val isValidDose: Boolean get() = isValidDoseInput(dose, if (isEstimate) estimatedDoseStandardDeviation else null)
     val currentDoseClass: DoseClass? get() = roaDose?.getDoseClass(ingestionDose = dose)
 
     fun onDoseTextChange(newDoseText: String) {

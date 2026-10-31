@@ -423,10 +423,16 @@ class TimelineWidgetWorker(
             val customProfiles = entryPoint.customSubstanceProfiles()
             val useIntranasalForRectal = entryPoint.userPreferences().useIntranasalForRectalFlow.first()
 
+            val customProfilesMap = if (customProfiles.byNameFlow.value.isNotEmpty()) {
+                customProfiles.byNameFlow.value
+            } else {
+                experienceDao.getAllCustomSubstancesWithEverything().associateBy { it.substance.name }
+            }
+
             // Use the same durations for both graph curves and phase text.
             val substanceDurations = WidgetTimelineModel.buildSubstanceDurations(
                 substances = substanceRepo.getAllSubstances(),
-                customProfiles = customProfiles.byNameFlow.value,
+                customProfiles = customProfilesMap,
                 useIntranasalForRectal = useIntranasalForRectal,
             )
 
@@ -782,9 +788,14 @@ class TimelineWidgetWorker(
 
         // ---- save ----
         val file = File(context.cacheDir, "widget_timeline_$appWidgetId.png")
+        val tmpFile = File(context.cacheDir, "widget_timeline_${appWidgetId}_tmp.png")
         try {
-            FileOutputStream(file).use { out ->
+            FileOutputStream(tmpFile).use { out ->
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            }
+            if (!tmpFile.renameTo(file)) {
+                tmpFile.copyTo(file, overwrite = true)
+                tmpFile.delete()
             }
         } finally {
             bitmap.recycle()

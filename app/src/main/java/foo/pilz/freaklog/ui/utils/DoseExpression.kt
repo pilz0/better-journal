@@ -8,7 +8,8 @@ fun isValidDoseInput(
     maxDose: Double = MAX_VALID_DOSE,
 ): Boolean {
     val isDoseOk = dose != null && dose > 0.0 && dose.isFinite() && dose <= maxDose
-    val isDeviationOk = standardDeviation == null || (standardDeviation >= 0.0 && standardDeviation.isFinite())
+    val isDeviationOk = standardDeviation == null ||
+        (standardDeviation >= 0.0 && standardDeviation.isFinite() && standardDeviation <= maxDose)
     return isDoseOk && isDeviationOk
 }
 

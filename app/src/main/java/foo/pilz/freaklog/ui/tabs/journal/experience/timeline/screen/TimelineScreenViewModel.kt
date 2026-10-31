@@ -231,11 +231,18 @@ class TimelineScreenViewModel @Inject constructor(
 
     private fun getIngestionElements(sortedIngestionsWith: List<IngestionWithAssociatedData>): List<IngestionElement> {
         return sortedIngestionsWith.map { ingestionWith ->
-            val numDots =
+            val customUnit = ingestionWith.ingestionWithCompanionAndCustomUnit.customUnit
+            val numDots = if (customUnit != null) {
                 ingestionWith.roaDose?.getNumDots(
-                    ingestionWith.ingestionWithCompanionAndCustomUnit.ingestion.dose,
+                    ingestionDose = ingestionWith.ingestionWithCompanionAndCustomUnit.customUnitDose?.calculatedDose,
+                    ingestionUnits = customUnit.originalUnit
+                )
+            } else {
+                ingestionWith.roaDose?.getNumDots(
+                    ingestionDose = ingestionWith.ingestionWithCompanionAndCustomUnit.ingestion.dose,
                     ingestionUnits = ingestionWith.ingestionWithCompanionAndCustomUnit.ingestion.units
                 )
+            }
             IngestionElement(
                 ingestionWithCompanionAndCustomUnit = ingestionWith.ingestionWithCompanionAndCustomUnit,
                 roaDuration = ingestionWith.roaDuration,

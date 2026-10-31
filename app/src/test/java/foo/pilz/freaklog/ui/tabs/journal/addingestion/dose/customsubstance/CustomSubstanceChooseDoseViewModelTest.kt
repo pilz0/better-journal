@@ -110,4 +110,24 @@ class CustomSubstanceChooseDoseViewModelTest {
 
         viewModel.viewModelScope.cancel()
     }
+
+    @Test
+    fun `init decodes serialized route from SavedStateHandle without ClassCastException`() {
+        val state = SavedStateHandle(
+            mapOf(
+                "customSubstanceName" to "2C-B-FLY",
+                "administrationRoute" to "INSUFFLATED"
+            )
+        )
+        val viewModel = CustomSubstanceChooseDoseViewModel(
+            experienceRepository = experienceRepository,
+            customProfiles = customProfiles,
+            userPreferences = userPreferences,
+            state = state,
+        )
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(AdministrationRoute.INSUFFLATED, viewModel.administrationRoute)
+        viewModel.viewModelScope.cancel()
+    }
 }

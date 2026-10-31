@@ -24,6 +24,7 @@ import io.mockk.every
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Duration
@@ -521,5 +522,18 @@ class WidgetTimelineModelTest {
         assertTrue(model.hasContent)
         assertEquals(1, model.groups.size)
         assertTrue(model.groups.single().isComplete)
+
+        // Multiple keys normalizing to the same value are indexed without crashing and match direct lookup
+        val collidingDurations = mapOf(
+            "MDMA" to mapOf(AdministrationRoute.ORAL to mdmaOral),
+            " mdma " to mapOf(AdministrationRoute.ORAL to totalOnly),
+        )
+        val collidingIndex = WidgetTimelineModel.buildNormalizedDurationIndex(collidingDurations)
+        val resolved = WidgetTimelineModel.findRoaDuration(collidingDurations, "MDMA", AdministrationRoute.ORAL, collidingIndex)
+        assertNotNull(resolved)
+        assertEquals(
+            WidgetTimelineModel.findRoaDuration(collidingDurations, "MDMA", AdministrationRoute.ORAL),
+            resolved
+        )
     }
 }
