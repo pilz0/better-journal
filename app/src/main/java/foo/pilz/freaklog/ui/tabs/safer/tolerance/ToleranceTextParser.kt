@@ -36,17 +36,19 @@ object ToleranceTextParser {
 
     private fun parseRangeDuration(trimmed: String): Float? {
         val match = RANGE_PATTERN.find(trimmed) ?: return null
-        val low = match.groupValues[1].toFloatOrNull() ?: return null
-        val high = match.groupValues[2].toFloatOrNull() ?: return null
+        val low = match.groupValues[1].toFloatOrNull()?.takeIf { it.isFinite() && it > 0f } ?: return null
+        val high = match.groupValues[2].toFloatOrNull()?.takeIf { it.isFinite() && it > 0f } ?: return null
         val unit = match.groupValues[3].lowercase()
-        return (low + high) / 2f * unitMultiplier(unit)
+        val result = (low + high) / 2f * unitMultiplier(unit)
+        return result.takeIf { it.isFinite() && it > 0f }
     }
 
     private fun parseSingleDuration(trimmed: String): Float? {
         val match = SINGLE_PATTERN.find(trimmed) ?: return null
-        val value = match.groupValues[1].toFloatOrNull() ?: return null
+        val value = match.groupValues[1].toFloatOrNull()?.takeIf { it.isFinite() && it > 0f } ?: return null
         val unit = match.groupValues[2].lowercase()
-        return value * unitMultiplier(unit)
+        val result = value * unitMultiplier(unit)
+        return result.takeIf { it.isFinite() && it > 0f }
     }
 
     fun parse(tolerance: Tolerance): ParsedTolerance? {

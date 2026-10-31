@@ -63,4 +63,16 @@ class ToleranceTextParserTest {
     fun numberAfterDecimalPointStillParses() {
         assertEquals(2.3f, ToleranceTextParser.parseDurationText("1.2.3 days")!!, 1e-4f)
     }
+
+    @Test
+    fun zeroDurationReturnsNull() {
+        assertNull(ToleranceTextParser.parseDurationText("0 days"))
+        assertNull(ToleranceTextParser.parseDurationText("0-0 days"))
+    }
+
+    @Test
+    fun hoursConvertedToDays() {
+        assertEquals(0.5f, ToleranceTextParser.parseDurationText("12 hours")!!, 1e-4f)
+        assertEquals(1.5f, ToleranceTextParser.parseDurationText("24 - 48 hours")!!, 1e-4f)
+    }
 }

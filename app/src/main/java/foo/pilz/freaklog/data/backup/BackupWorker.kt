@@ -20,6 +20,7 @@ package foo.pilz.freaklog.data.backup
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
@@ -108,8 +109,17 @@ class BackupWorker(
             resolver, parent, "application/octet-stream", backupFileName(Instant.now(), ZoneId.systemDefault())
         ) ?: throw IOException("Could not create backup file")
         requireBackupDocumentUri(treeUri, fileUri)
-        resolver.openOutputStream(fileUri)?.use { it.write(encrypted) }
-            ?: throw IOException("Could not write backup file")
+        writeToDocument(resolver, fileUri, encrypted)
+    }
+
+    private fun writeToDocument(resolver: ContentResolver, fileUri: Uri, encrypted: ByteArray) {
+        try {
+            resolver.openOutputStream(fileUri)?.use { it.write(encrypted) }
+                ?: throw IOException("Could not write backup file")
+        } catch (e: Throwable) {
+            runCatching { DocumentsContract.deleteDocument(resolver, fileUri) }
+            throw e
+        }
     }
 
     private fun pruneOldBackups(treeUri: Uri) {

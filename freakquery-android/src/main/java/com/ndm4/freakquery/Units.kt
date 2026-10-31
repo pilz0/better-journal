@@ -9,8 +9,16 @@ internal object Units {
     private val massUnits = setOf("ug", "mcg", "${MICRO_SIGN}g", "mg", "g", "kg")
 
     // Both the micro sign (U+00B5) and Greek small mu (U+03BC) are typed as "µ"; normalize to the former.
-    fun cleanUnit(unit: Any?): String =
-        unit?.toString()?.trim()?.lowercase(Locale.ROOT)?.replace(GREEK_MU, MICRO_SIGN).orEmpty()
+    fun cleanUnit(unit: Any?): String {
+        val raw = unit?.toString()?.trim()?.lowercase(Locale.ROOT)?.replace(GREEK_MU, MICRO_SIGN).orEmpty()
+        return when (raw) {
+            "microgram", "micrograms", "micro gram", "micro grams" -> "${MICRO_SIGN}g"
+            "milligram", "milligrams", "miligram", "miligrams" -> "mg"
+            "gram", "grams" -> "g"
+            "kilogram", "kilograms" -> "kg"
+            else -> raw
+        }
+    }
 
     fun isMassUnit(unit: Any?): Boolean = cleanUnit(unit) in massUnits
 

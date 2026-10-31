@@ -235,4 +235,30 @@ class DurationRangeTest {
         val result = range.interpolateAtValueInSeconds(-0.5f)
         assertEquals(0.0f, result!!, 0.01f) // 0 hours in seconds
     }
+
+    @Test
+    fun testInterpolate_negativeFactorCoercesToZero() {
+        val range = DurationRange(1.0f, 3.0f, DurationUnits.HOURS)
+        val result = range.interpolateAtValueInSeconds(-2.0f)
+        assertEquals(0.0f, result!!, 0.01f)
+    }
+
+    @Test
+    fun testInterpolate_nonFiniteValueReturnsNull() {
+        val range = DurationRange(1.0f, 3.0f, DurationUnits.HOURS)
+        assertNull(range.interpolateAtValueInSeconds(Float.NaN))
+        assertNull(range.interpolateAtValueInSeconds(Float.POSITIVE_INFINITY))
+        assertNull(range.interpolateAtValueInSeconds(Float.NEGATIVE_INFINITY))
+    }
+
+    @Test
+    fun testMinMaxInSec_negativeOrNonFiniteReturnsNull() {
+        val rangeNegative = DurationRange(-1.0f, -5.0f, DurationUnits.MINUTES)
+        assertNull(rangeNegative.minInSec)
+        assertNull(rangeNegative.maxInSec)
+
+        val rangeNan = DurationRange(Float.NaN, Float.POSITIVE_INFINITY, DurationUnits.MINUTES)
+        assertNull(rangeNan.minInSec)
+        assertNull(rangeNan.maxInSec)
+    }
 }

@@ -28,6 +28,7 @@ import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsAndCompanions
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit
 import foo.pilz.freaklog.data.substances.AdministrationRoute
+import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
 import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinEligibility
 import foo.pilz.freaklog.ui.tabs.stats.excelskin.EXCEL_SKIN_MAX_DELAY_MS
 import foo.pilz.freaklog.ui.tabs.stats.excelskin.EXCEL_SKIN_MIN_DELAY_MS
@@ -222,7 +223,10 @@ class StatsViewModel @Inject constructor(
 
     internal fun getTotalDose(groupedIngestions: List<IngestionWithCompanionAndCustomUnit>): TotalDose? {
         val units = groupedIngestions.firstOrNull()?.originalUnit ?: return null
-        if (groupedIngestions.any { it.originalUnit != units || it.pureDose == null }) return null
+        val hasIncompatibleDose = groupedIngestions.any {
+            !RoaDose.isMatchingUnit(it.originalUnit, units) || it.pureDose?.isFinite() != true
+        }
+        if (hasIncompatibleDose) return null
         val sumDose = groupedIngestions.sumOf { it.pureDose ?: 0.0 }
 
         val (customUnitEstimates, independentIngestions) = groupedIngestions.partition {

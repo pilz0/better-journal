@@ -144,7 +144,7 @@ fun CustomSubstanceScreen(
             verticalArrangement = Arrangement.spacedBy(spacing.sm),
         ) {
             if (custom.summary != null || customCategories.isNotEmpty()) {
-                item {
+                item(key = "summary_card") {
                     ElevatedCard(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -183,8 +183,8 @@ fun CustomSubstanceScreen(
             }
 
             if (roasWithDoses.isNotEmpty()) {
-                item { SectionHeader("Dosage") }
-                item {
+                item(key = "dosage_header") { SectionHeader("Dosage") }
+                item(key = "dosage_card") {
                     ElevatedCard(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -213,8 +213,8 @@ fun CustomSubstanceScreen(
             val crossToleranceNames = substance.crossTolerances.map { it.categoryName }
 
             if (tolerance != null || crossToleranceNames.isNotEmpty()) {
-                item { SectionHeader("Tolerance") }
-                item {
+                item(key = "tolerance_header") { SectionHeader("Tolerance") }
+                item(key = "tolerance_card") {
                     ElevatedCard(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -235,8 +235,8 @@ fun CustomSubstanceScreen(
             }
 
             if (roasWithDurations.isNotEmpty()) {
-                item { SectionHeader("Duration") }
-                item {
+                item(key = "duration_header") { SectionHeader("Duration") }
+                item(key = "duration_card") {
                     ElevatedCard(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -312,23 +312,23 @@ fun CustomSubstanceScreen(
 
             val interactionRows = buildInteractionRows(substance.interactions)
             if (interactionRows.isNotEmpty()) {
-                item { SectionHeader("Interactions") }
-                item { InteractionsContent(rows = interactionRows) }
+                item(key = "interactions_header") { SectionHeader("Interactions") }
+                item(key = "interactions_card") { InteractionsContent(rows = interactionRows) }
             }
 
             if (custom.effectsText != null) {
-                item { SectionHeader("Effects") }
-                item { TextCard(custom.effectsText!!) }
+                item(key = "effects_header") { SectionHeader("Effects") }
+                item(key = "effects_card") { TextCard(custom.effectsText!!) }
             }
 
             if (custom.generalRisks != null) {
-                item { SectionHeader("Risks") }
-                item { TextCard(custom.generalRisks!!) }
+                item(key = "risks_header") { SectionHeader("Risks") }
+                item(key = "risks_card") { TextCard(custom.generalRisks!!) }
             }
 
             if (custom.longTermRisks != null) {
-                item { SectionHeader("Long-term risks") }
-                item { TextCard(custom.longTermRisks!!) }
+                item(key = "long_term_risks_header") { SectionHeader("Long-term risks") }
+                item(key = "long_term_risks_card") { TextCard(custom.longTermRisks!!) }
             }
         }
     }

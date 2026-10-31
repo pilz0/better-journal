@@ -36,7 +36,9 @@ internal object Filters {
 internal object Grouping {
     fun groupDuration(group: Rows, config: FreakQueryConfig): Long {
         if (group.isEmpty()) return 0L
-        return rowTime(group.last(), config) - rowTime(group.first(), config)
+        val times = group.mapNotNull { rowTime(it, config).takeIf { t -> t > 0L } }
+        if (times.isEmpty()) return 0L
+        return (times.maxOrNull()!! - times.minOrNull()!!).coerceAtLeast(0L)
     }
 
     fun groupSum(group: Rows, config: FreakQueryConfig): Double =

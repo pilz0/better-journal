@@ -390,15 +390,17 @@ class WebhookService internal constructor(
 
     private fun readBoundedResponse(stream: java.io.InputStream, encoding: String?): String {
         val decoded = if (encoding.equals("gzip", ignoreCase = true)) java.util.zip.GZIPInputStream(stream) else stream
-        val out = java.io.ByteArrayOutputStream()
-        val buffer = ByteArray(4096)
-        while (true) {
-            val read = decoded.read(buffer)
-            if (read < 0) break
-            if (out.size() + read > 65_536) throw IOException("Webhook response is too large")
-            out.write(buffer, 0, read)
+        return decoded.use { input ->
+            val out = java.io.ByteArrayOutputStream()
+            val buffer = ByteArray(4096)
+            while (true) {
+                val read = input.read(buffer)
+                if (read < 0) break
+                if (out.size() + read > 65_536) throw IOException("Webhook response is too large")
+                out.write(buffer, 0, read)
+            }
+            out.toString("UTF-8")
         }
-        return out.toString("UTF-8")
     }
 
     private val cachedAnodyneAliasMap: Map<String, String> by lazy {

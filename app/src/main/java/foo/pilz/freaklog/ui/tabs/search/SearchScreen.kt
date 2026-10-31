@@ -102,8 +102,8 @@ fun SearchScreen(
                 },
                 isShowingFilter = true
             )
-            val activeFilters =
-                searchViewModel.chipCategoriesFlow.collectAsState().value.filter { it.isActive }
+            val chipCategories = searchViewModel.chipCategoriesFlow.collectAsState().value
+            val activeFilters = remember(chipCategories) { chipCategories.filter { it.isActive } }
             val onFilterTapped = { chipName: String ->
                 performHaptic(HapticType.SELECTION)
                 searchViewModel.onFilterTapped(chipName)

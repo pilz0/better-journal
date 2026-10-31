@@ -88,7 +88,7 @@ fun ToleranceScreen(
             contentPadding = PaddingValues(vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            item {
+            item(key = "search_section") {
                 SearchSection(
                     searchText = viewModel.searchText,
                     onSearchTextChange = viewModel::onSearchTextChange,
@@ -98,7 +98,7 @@ fun ToleranceScreen(
             }
 
             if (searchedTolerance != null) {
-                item {
+                item(key = "searched_detail") {
                     ToleranceDetailCard(
                         estimate = searchedTolerance,
                         modifier = Modifier.padding(horizontal = horizontalPadding)
@@ -107,7 +107,7 @@ fun ToleranceScreen(
             }
 
             if (isLoading) {
-                item {
+                item(key = "loading_indicator") {
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
@@ -118,7 +118,7 @@ fun ToleranceScreen(
                     }
                 }
             } else if (recentTolerances.isNotEmpty() && searchedTolerance == null) {
-                item {
+                item(key = "recent_header") {
                     Text(
                         text = "Recent substances",
                         style = MaterialTheme.typography.labelLarge,
@@ -137,7 +137,7 @@ fun ToleranceScreen(
                     )
                 }
             } else if (searchedTolerance == null) {
-                item {
+                item(key = "empty_recent") {
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
@@ -186,7 +186,7 @@ fun ToleranceScreen(
                 }
             }
 
-            item {
+            item(key = "disclaimer") {
                 Text(
                     text = "Estimates based on PsychonautWiki data and an exponential decay model. Individual tolerance varies significantly.",
                     style = MaterialTheme.typography.bodySmall,

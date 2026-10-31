@@ -21,4 +21,30 @@ class RenderTest {
         val template = "{{".repeat(200_000)
         assertEquals(template, FreakQuery.render(template, emptyList()))
     }
+
+    @Test
+    fun render_groupedRowsMetricsDoNotThrowClassCastException() {
+        val rows = listOf(
+            mapOf("substance" to "MDMA", "dose" to 100, "unit" to "mg", "time" to 1700000000000L),
+            mapOf("substance" to "MDMA", "dose" to 50, "unit" to "mg", "time" to 1700003600000L)
+        )
+        val sumResult = FreakQuery.query("binges | group_sum", rows)
+        assertEquals("150", sumResult)
+
+        val durationResult = FreakQuery.query("binges | group_duration", rows)
+        assertEquals("1h 0m", durationResult)
+
+        val fieldResult = FreakQuery.query("binges | field=dose", rows)
+        assertEquals("100", fieldResult)
+
+        val mainSubstanceResult = FreakQuery.query("binges | main_substance", rows)
+        assertEquals("MDMA", mainSubstanceResult)
+    }
+
+    @Test
+    fun render_emptyGroupedRows_handlesMetricsGracefully() {
+        assertEquals("0", FreakQuery.query("binges | group_sum", emptyList()))
+        assertEquals("0s", FreakQuery.query("binges | group_duration", emptyList()))
+        assertEquals("", FreakQuery.query("binges | main_substance", emptyList()))
+    }
 }

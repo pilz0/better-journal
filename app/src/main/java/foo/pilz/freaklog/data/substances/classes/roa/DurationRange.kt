@@ -41,18 +41,27 @@ data class DurationRange(
     // Derived values: kept out of Room columns and out of serialized output.
     @androidx.room.Ignore
     @kotlinx.serialization.Transient
-    val minInSec: Float? = if (units != null) min?.times(units.inSecondsMultiplier) else null
+    val minInSec: Float? = if (units != null) {
+        min?.times(units.inSecondsMultiplier)?.takeIf { it.isFinite() && it >= 0f }
+    } else {
+        null
+    }
 
     @androidx.room.Ignore
     @kotlinx.serialization.Transient
-    val maxInSec: Float? = if (units != null) max?.times(units.inSecondsMultiplier) else null
+    val maxInSec: Float? = if (units != null) {
+        max?.times(units.inSecondsMultiplier)?.takeIf { it.isFinite() && it >= 0f }
+    } else {
+        null
+    }
 
     fun interpolateAtValueInSeconds(value: Float): Float? {
-        if (units == null) return null
-        val effMin = min ?: max ?: return null
-        val effMax = max ?: min ?: return null
+        if (units == null || !value.isFinite()) return null
+        val effMin = (min ?: max)?.takeIf { it.isFinite() && it >= 0f } ?: return null
+        val effMax = (max ?: min)?.takeIf { it.isFinite() && it >= 0f } ?: return null
         val diff = effMax - effMin
         val withUnit = effMin + diff.times(value)
-        return withUnit.times(units.inSecondsMultiplier)
+        val sec = withUnit.times(units.inSecondsMultiplier)
+        return sec.takeIf { it.isFinite() }?.coerceAtLeast(0f)
     }
 }
