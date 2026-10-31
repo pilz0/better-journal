@@ -3,6 +3,7 @@ package foo.pilz.freaklog.provider
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Binder
+import android.os.Build
 import androidx.core.content.edit
 import java.security.MessageDigest
 
@@ -14,9 +15,16 @@ class JournalClientAccess(private val context: Context) {
         val key: String get() = "$packageName|$certificate"
     }
 
-    @Suppress("DEPRECATION")
     private fun certificate(packageName: String): String? = runCatching {
-        val info = context.packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES)
+        val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.packageManager.getPackageInfo(
+                packageName,
+                PackageManager.PackageInfoFlags.of(PackageManager.GET_SIGNING_CERTIFICATES.toLong())
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            context.packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES)
+        }
         info.signingInfo?.apkContentsSigners?.map { signature ->
             MessageDigest.getInstance("SHA-256").digest(signature.toByteArray())
                 .joinToString("") { "%02x".format(it) }

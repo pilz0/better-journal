@@ -1,5 +1,6 @@
 package foo.pilz.freaklog.ui.tabs.journal.experience.recommendations
 
+import android.content.ClipData
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -61,16 +62,17 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -83,6 +85,7 @@ import foo.pilz.freaklog.data.ai.AiChatUiState
 import foo.pilz.freaklog.data.ai.AiChatViewModel
 import foo.pilz.freaklog.data.ai.ChatItem
 import foo.pilz.freaklog.data.ai.profiles.AiProfile
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -441,7 +444,8 @@ private fun MessageBubble(message: ChatItem.Message, showActions: Boolean, onRet
 
 @Composable
 private fun MessageActions(text: String?, isStopped: Boolean, onRetry: (() -> Unit)?) {
-    val clipboardManager = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
+    val coroutineScope = rememberCoroutineScope()
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (isStopped) {
             Text(
@@ -453,7 +457,11 @@ private fun MessageActions(text: String?, isStopped: Boolean, onRetry: (() -> Un
         }
         if (text != null) {
             IconButton(
-                onClick = { clipboardManager.setText(AnnotatedString(text)) },
+                onClick = {
+                    coroutineScope.launch {
+                        clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("plain text", text)))
+                    }
+                },
                 modifier = Modifier.size(32.dp)
             ) {
                 Icon(
