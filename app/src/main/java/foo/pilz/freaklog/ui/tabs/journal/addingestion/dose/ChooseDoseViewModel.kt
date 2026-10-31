@@ -49,7 +49,10 @@ class ChooseDoseViewModel @Inject constructor(
 ) : ViewModel() {
     private val chooseDoseRoute: ChooseDoseRoute? = runCatching { state.toRoute<ChooseDoseRoute>() }.getOrNull()
     val administrationRoute: AdministrationRoute = chooseDoseRoute?.administrationRoute
-        ?: state.get<AdministrationRoute>("administrationRoute")
+        ?: runCatching { state.get<AdministrationRoute>("administrationRoute") }.getOrNull()
+        ?: state.get<String>("administrationRoute")?.let { name ->
+            runCatching { AdministrationRoute.valueOf(name) }.getOrNull()
+        }
         ?: AdministrationRoute.ORAL
     val substanceName: String = chooseDoseRoute?.substanceName
         ?: state.get<String>("substanceName")

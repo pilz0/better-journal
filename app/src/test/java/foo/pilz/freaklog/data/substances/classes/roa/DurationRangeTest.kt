@@ -68,6 +68,30 @@ class DurationRangeTest {
         assertEquals("2-4h", range.text)
     }
 
+    @Test
+    fun testText_nullBounds() {
+        val range = DurationRange(null, null, DurationUnits.HOURS)
+        assertEquals("", range.text)
+    }
+
+    @Test
+    fun testText_singleBoundMin() {
+        val range = DurationRange(2.0f, null, DurationUnits.HOURS)
+        assertEquals("2h", range.text)
+    }
+
+    @Test
+    fun testText_singleBoundMax() {
+        val range = DurationRange(null, 4.0f, DurationUnits.HOURS)
+        assertEquals("4h", range.text)
+    }
+
+    @Test
+    fun testText_equalMinMax() {
+        val range = DurationRange(2.0f, 2.0f, DurationUnits.HOURS)
+        assertEquals("2h", range.text)
+    }
+
     // ===== minInSec Tests =====
 
     @Test

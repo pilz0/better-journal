@@ -24,10 +24,19 @@ data class DurationRange(
     val max: Float?,
     val units: DurationUnits?
 ) {
-    val text
-        get() = "${min.toString().removeSuffix(".0")}-${
-            max.toString().removeSuffix(".0")
-        }${units?.shortText ?: ""}"
+    val text: String
+        get() {
+            val suffix = units?.shortText.orEmpty()
+            val minClean = min?.toString()?.removeSuffix(".0")
+            val maxClean = max?.toString()?.removeSuffix(".0")
+            return when {
+                minClean == null && maxClean == null -> ""
+                minClean != null && maxClean == null -> "$minClean$suffix"
+                minClean == null && maxClean != null -> "$maxClean$suffix"
+                minClean == maxClean -> "$minClean$suffix"
+                else -> "$minClean-$maxClean$suffix"
+            }
+        }
 
     // Derived values: kept out of Room columns and out of serialized output.
     @androidx.room.Ignore

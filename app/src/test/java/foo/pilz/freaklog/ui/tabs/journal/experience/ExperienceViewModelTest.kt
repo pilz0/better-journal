@@ -44,6 +44,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -256,6 +257,82 @@ class ExperienceViewModelTest {
         val effectLines = viewModel.dataForEffectTimelinesFlow.first { it.isNotEmpty() }
         assertEquals(1, effectLines.size)
         assertEquals(insufflatedDuration.toRoaDuration(), effectLines.first().roaDuration)
+        viewModel.viewModelScope.coroutineContext[Job]?.cancelAndJoin()
+    }
+
+    @Test
+    fun `custom substance with rectal route leaves duration null when substitution disabled`() = runTest {
+        val experience = Experience(
+            id = 42,
+            title = "Test Trip",
+            sortDate = Instant.now(),
+            text = "Notes",
+            location = null,
+        )
+        val ingestion = Ingestion(
+            id = 1,
+            experienceId = 42,
+            substanceName = "MysteryPowder",
+            administrationRoute = AdministrationRoute.RECTAL,
+            dose = 50.0,
+            units = "mg",
+            time = Instant.now(),
+            isDoseAnEstimate = false,
+            estimatedDoseStandardDeviation = null,
+            notes = null,
+            stomachFullness = null,
+            consumerName = null,
+            customUnitId = null,
+        )
+        val ingestionWithData = IngestionWithCompanionAndCustomUnit(
+            ingestion = ingestion,
+            substanceCompanion = null,
+            customUnit = null,
+        )
+
+        coEvery { experienceRepo.getExperience(any()) } returns experience
+        every { experienceRepo.getExperienceFlow(any()) } returns flowOf(experience)
+        every { experienceRepo.getIngestionsWithCompanionsFlow(any()) } returns flowOf(listOf(ingestionWithData))
+        every { experienceRepo.getRatingsFlow(any()) } returns flowOf(emptyList())
+        every { experienceRepo.getTimedNotesFlowSorted(any()) } returns flowOf(emptyList())
+
+        val insufflatedDuration = CustomRoaDuration(
+            route = AdministrationRoute.INSUFFLATED,
+            onset = DurationRange(5f, 10f, DurationUnits.MINUTES),
+            comeup = DurationRange(10f, 15f, DurationUnits.MINUTES),
+            peak = DurationRange(1f, 1.5f, DurationUnits.HOURS),
+            offset = DurationRange(1f, 2f, DurationUnits.HOURS),
+            total = null,
+        )
+        val customProfile = CustomSubstanceWithEverything(
+            substance = CustomSubstance(name = "MysteryPowder", units = "mg", description = ""),
+            durations = listOf(insufflatedDuration),
+        )
+        customProfilesFlow.value = mapOf("mysterypowder" to customProfile)
+        useIntranasalForRectalFlow.value = false
+
+        val viewModel = ExperienceViewModel(
+            experienceRepo = experienceRepo,
+            substanceRepo = substanceRepo,
+            interactionChecker = interactionChecker,
+            userPreferences = userPreferences,
+            customProfiles = customProfiles,
+            teamsSkinController = teamsSkinController,
+            combinationSettingsStorage = combinationSettingsStorage,
+            state = SavedStateHandle(mapOf("experienceId" to 42)),
+            context = context,
+        )
+
+        val elements = viewModel.ingestionElementsFlow.first { it.isNotEmpty() }
+        assertEquals(1, elements.size)
+        val element = elements.first()
+        assertEquals(
+            AdministrationRoute.RECTAL,
+            element.ingestionWithCompanionAndCustomUnit.ingestion.administrationRoute,
+        )
+        val effectLines = viewModel.dataForEffectTimelinesFlow.first { it.isNotEmpty() }
+        assertEquals(1, effectLines.size)
+        assertNull("effect line roaDuration should remain null when substitution is disabled", effectLines.first().roaDuration)
         viewModel.viewModelScope.coroutineContext[Job]?.cancelAndJoin()
     }
 }

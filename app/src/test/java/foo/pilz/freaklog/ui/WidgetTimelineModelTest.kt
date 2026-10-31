@@ -507,6 +507,10 @@ class WidgetTimelineModelTest {
         val padded = WidgetTimelineModel.findRoaDuration(durations, "  MDMA  ", AdministrationRoute.ORAL)
         assertEquals(mdmaOral, padded)
 
+        val normalized = WidgetTimelineModel.buildNormalizedDurationIndex(durations)
+        val fromIndex = WidgetTimelineModel.findRoaDuration(durations, "mdma", AdministrationRoute.ORAL, normalized)
+        assertEquals(mdmaOral, fromIndex)
+
         val model = WidgetTimelineModel.build(
             now = now,
             ingestions = listOf(

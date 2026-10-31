@@ -181,4 +181,49 @@ class ChooseDoseViewModelTest {
         assertEquals(sniffDose, viewModel.roaDose)
         viewModel.viewModelScope.cancel()
     }
+
+    @Test
+    fun `init decodes serialized ChooseDoseRoute from SavedStateHandle`() {
+        val insufflatedDose = RoaDose(
+            units = "mg",
+            lightMin = 10.0,
+            commonMin = 30.0,
+            strongMin = 60.0,
+            heavyMin = 100.0,
+        )
+        val insufflatedRoa = Roa(
+            route = AdministrationRoute.INSUFFLATED,
+            roaDose = insufflatedDose,
+            roaDuration = null,
+            bioavailability = null,
+        )
+        val substance = mockk<Substance> {
+            every { name } returns "Ketamine"
+            every { dosageRemark } returns null
+            every { getEffectiveRoa(AdministrationRoute.INSUFFLATED, any()) } returns insufflatedRoa
+            every { getRoa(AdministrationRoute.INSUFFLATED) } returns insufflatedRoa
+        }
+        every { substanceRepository.getSubstance("Ketamine") } returns substance
+
+        // Navigation encodes enum arguments as String in the SavedStateHandle bundle.
+        // This ensures the type-safe toRoute<ChooseDoseRoute>() decoding path is verified,
+        // rather than the flat get<AdministrationRoute> fallback.
+        val state = SavedStateHandle(
+            mapOf(
+                "substanceName" to "Ketamine",
+                "administrationRoute" to AdministrationRoute.INSUFFLATED.name,
+            )
+        )
+        val viewModel = ChooseDoseViewModel(
+            repository = substanceRepository,
+            experienceRepo = experienceRepository,
+            userPreferences = userPreferences,
+            state = state,
+        )
+
+        assertEquals("Ketamine", viewModel.substanceName)
+        assertEquals(AdministrationRoute.INSUFFLATED, viewModel.administrationRoute)
+        assertEquals(insufflatedDose, viewModel.roaDose)
+        viewModel.viewModelScope.cancel()
+    }
 }

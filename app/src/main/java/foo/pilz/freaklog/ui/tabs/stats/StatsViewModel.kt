@@ -218,17 +218,21 @@ class StatsViewModel @Inject constructor(
         }
     }
 
-    private fun getTotalDose(groupedIngestions: List<IngestionWithCompanionAndCustomUnit>): TotalDose? {
+    internal fun getTotalDose(groupedIngestions: List<IngestionWithCompanionAndCustomUnit>): TotalDose? {
         val units = groupedIngestions.firstOrNull()?.originalUnit ?: return null
         if (groupedIngestions.any { it.originalUnit != units || it.pureDose == null }) return null
         val sumDose = groupedIngestions.sumOf { it.pureDose ?: 0.0 }
-        val sumStandardDeviations = groupedIngestions.sumOf { it.pureDoseStandardDeviation ?: 0.0 }
+        val sumVariance = groupedIngestions.sumOf {
+            val sd = it.pureDoseStandardDeviation ?: 0.0
+            sd * sd
+        }
+        val combinedStandardDeviation = kotlin.math.sqrt(sumVariance)
         val isEstimate = groupedIngestions.any { it.isEstimate }
         return TotalDose(
             dose = sumDose,
             units = units,
             isEstimate = isEstimate,
-            estimatedDoseStandardDeviation = sumStandardDeviations.takeIf { it > 0 })
+            estimatedDoseStandardDeviation = combinedStandardDeviation.takeIf { it > 0.0 })
     }
 
     val statsModelFlow: StateFlow<StatsModel> = combine(
