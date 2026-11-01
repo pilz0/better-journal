@@ -39,6 +39,8 @@ import foo.pilz.freaklog.data.room.experiences.relations.CustomRecipeWithCompone
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+private val RECIPE_LAST_USED_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM d, yyyy")
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomRecipesScreen(
@@ -193,9 +195,8 @@ fun CustomRecipeCard(
             )
 
             recipe.recipe.lastUsedDate?.let { lastUsed ->
-                val formatter = DateTimeFormatter.ofPattern("MMM d, yyyy")
                 Text(
-                    text = "Last used: ${lastUsed.atZone(ZoneId.systemDefault()).format(formatter)}",
+                    text = "Last used: ${lastUsed.atZone(ZoneId.systemDefault()).format(RECIPE_LAST_USED_FORMATTER)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

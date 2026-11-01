@@ -135,18 +135,20 @@ object SleepHealthConnect {
         at: Instant,
         withSleepStages: Boolean = false
     ): SleepStageSample? = samples
-        .filter { it.stage.displayInTimeline }
-        .firstOrNull { it.start <= at && it.end >= at }
-        .let {
-            if (withSleepStages) it
-            else it?.copy(
-                stage = when (it.stage) {
-                    SleepStageType.SleepingLight -> SleepStageType.Sleeping
-                    SleepStageType.SleepingDeep -> SleepStageType.Sleeping
-                    SleepStageType.SleepingREM -> SleepStageType.Sleeping
-                    else -> it.stage
-                }
-            )
+        .firstOrNull { it.stage.displayInTimeline && it.start <= at && it.end >= at }
+        ?.let {
+            if (withSleepStages) {
+                it
+            } else {
+                it.copy(
+                    stage = when (it.stage) {
+                        SleepStageType.SleepingLight -> SleepStageType.Sleeping
+                        SleepStageType.SleepingDeep -> SleepStageType.Sleeping
+                        SleepStageType.SleepingREM -> SleepStageType.Sleeping
+                        else -> it.stage
+                    }
+                )
+            }
         }
 
     data class GraphSleepLineShape(
