@@ -18,6 +18,9 @@
 
 package foo.pilz.freaklog.ui.tabs.search
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class SubstanceModel(
     val name: String,
     val commonNames: List<String>,

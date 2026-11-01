@@ -18,14 +18,21 @@
 
 package foo.pilz.freaklog.ui.tabs.search
 
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.substances.repositories.SearchRepository
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -113,10 +120,12 @@ class SearchViewModel @Inject constructor(
 
 val customColor = Color.Cyan
 
+@Immutable
 data class CategoryChipModel(
     val chipName: String, val color: Color, val isActive: Boolean
 )
 
+@Immutable
 data class CategoryModel(
     val name: String, val color: Color
 )

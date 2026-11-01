@@ -74,6 +74,14 @@ enum class IngestionTimePickerOption {
     POINT_IN_TIME, TIME_RANGE
 }
 
+enum class IngestionTimePreset(val label: String, val minutesAgo: Long) {
+    NOW("Now", 0),
+    FIFTEEN_MINUTES_AGO("15m ago", 15),
+    THIRTY_MINUTES_AGO("30m ago", 30),
+    ONE_HOUR_AGO("1h ago", 60),
+    TWO_HOURS_AGO("2h ago", 120)
+}
+
 @HiltViewModel
 class FinishIngestionScreenViewModel @Inject constructor(
     private val experienceRepo: ExperienceRepository,
@@ -320,6 +328,9 @@ class FinishIngestionScreenViewModel @Inject constructor(
         viewModelScope.launch {
             selectedExperienceFlow.emit(experienceWithIngestions)
         }
+
+    fun applyTimePreset(preset: IngestionTimePreset, now: Instant = Instant.now()) =
+        onChangeStartDateOrTime(now.minus(preset.minutesAgo, ChronoUnit.MINUTES).getLocalDateTime())
 
     fun onChangeStartDateOrTime(newLocalDateTime: LocalDateTime) = viewModelScope.launch {
         localDateTimeStartFlow.emit(newLocalDateTime)
