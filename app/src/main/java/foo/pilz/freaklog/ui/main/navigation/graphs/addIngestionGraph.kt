@@ -312,12 +312,12 @@ data class ChooseDoseRoute(
 @Serializable
 data class FinishIngestionRoute(
     val administrationRoute: AdministrationRoute,
-    val isEstimate: Boolean,
-    val units: String?,
-    val dose: Double?,
-    val estimatedDoseStandardDeviation: Double?,
     val substanceName: String, // can be name of pw substance or custom substance
-    val customUnitId: Int?,
+    val isEstimate: Boolean = false,
+    val units: String? = null,
+    val dose: Double? = null,
+    val estimatedDoseStandardDeviation: Double? = null,
+    val customUnitId: Int? = null,
 )
 
 @Serializable

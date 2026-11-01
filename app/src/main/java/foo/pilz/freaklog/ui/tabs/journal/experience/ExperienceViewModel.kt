@@ -166,13 +166,16 @@ class ExperienceViewModel @Inject constructor(
     )
 
     init {
-        val experienceRoute = state.toRoute<ExperienceRoute>()
-        val expId = experienceRoute.experienceId
+        val expId: Int = state.get<Int>("experienceId")
+            ?: runCatching { state.toRoute<ExperienceRoute>().experienceId }.getOrNull()
+            ?: -1
         experienceId = expId
-        viewModelScope.launch {
-            val experience = experienceRepo.getExperience(expId)
-            val isFavorite = experience?.isFavorite ?: false
-            localIsFavoriteFlow.emit(isFavorite)
+        if (expId > 0) {
+            viewModelScope.launch {
+                val experience = experienceRepo.getExperience(expId)
+                val isFavorite = experience?.isFavorite ?: false
+                localIsFavoriteFlow.emit(isFavorite)
+            }
         }
         viewModelScope.launch(Dispatchers.IO) {
             achievementDefsFlow.value = runCatching { loadAchievements(context) }.getOrElse { emptyList() }

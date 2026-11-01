@@ -51,9 +51,11 @@ class EditExperienceViewModel @Inject constructor(
 
 
     init {
-        val editExperienceRoute = state.toRoute<EditExperienceRoute>()
+        val experienceId: Int = state.get<Int>("experienceId")
+            ?: runCatching { state.toRoute<EditExperienceRoute>().experienceId }.getOrNull()
+            ?: -1
         viewModelScope.launch {
-            val exp = repository.getExperience(id = editExperienceRoute.experienceId)
+            val exp = if (experienceId > 0) repository.getExperience(id = experienceId) else null
             experience = exp
             if (exp != null) {
                 enteredTitle = exp.title

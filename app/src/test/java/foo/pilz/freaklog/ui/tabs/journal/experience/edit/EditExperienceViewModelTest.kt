@@ -25,11 +25,12 @@ import java.time.Instant
 @OptIn(ExperimentalCoroutinesApi::class)
 class EditExperienceViewModelTest {
 
-    private val testDispatcher = StandardTestDispatcher()
+    private lateinit var testDispatcher: kotlinx.coroutines.test.TestDispatcher
     private val repository = mockk<ExperienceRepository>()
 
     @Before
     fun setUp() {
+        testDispatcher = StandardTestDispatcher()
         Dispatchers.setMain(testDispatcher)
     }
 
