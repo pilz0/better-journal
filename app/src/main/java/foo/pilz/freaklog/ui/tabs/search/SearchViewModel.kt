@@ -26,6 +26,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.substances.repositories.SearchRepository
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -39,11 +40,24 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SearchViewModel @Inject constructor(
+class SearchViewModel(
     experienceRepo: ExperienceRepository,
     substanceRepo: SubstanceRepository,
-    searchRepository: SearchRepository
+    searchRepository: SearchRepository,
+    defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : ViewModel() {
+
+    @Inject
+    constructor(
+        experienceRepo: ExperienceRepository,
+        substanceRepo: SubstanceRepository,
+        searchRepository: SearchRepository
+    ) : this(
+        experienceRepo = experienceRepo,
+        substanceRepo = substanceRepo,
+        searchRepository = searchRepository,
+        defaultDispatcher = Dispatchers.Default
+    )
 
     private val _searchTextFlow = MutableStateFlow("")
     val searchTextFlow = _searchTextFlow.asStateFlow()
@@ -101,7 +115,7 @@ class SearchViewModel @Inject constructor(
             recentlyUsedSubstanceNamesSorted = recents
         ).map { it.toSubstanceModel() }
     }
-        .flowOn(Dispatchers.Default)
+        .flowOn(defaultDispatcher)
         .stateIn(
             initialValue = emptyList(),
             scope = viewModelScope,
@@ -124,7 +138,7 @@ class SearchViewModel @Inject constructor(
                 )
             }
         }
-            .flowOn(Dispatchers.Default)
+            .flowOn(defaultDispatcher)
             .stateIn(
                 initialValue = emptyList(),
                 scope = viewModelScope,
