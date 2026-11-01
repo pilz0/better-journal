@@ -26,11 +26,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.substances.repositories.SearchRepository
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -88,13 +90,23 @@ class SearchViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000)
     )
 
-    val filteredSubstancesFlow = combine(searchTextFlow, filtersFlow, experienceRepo.getSortedLastUsedSubstanceNamesFlow(limit = 200)) { searchText, filters, recents ->
-        return@combine searchRepository.getMatchingSubstances(searchText = searchText, filterCategories = filters, recentlyUsedSubstanceNamesSorted = recents).map { it.toSubstanceModel() }
-    }.stateIn(
-        initialValue = emptyList(),
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+    val filteredSubstancesFlow = combine(
+        searchTextFlow,
+        filtersFlow,
+        experienceRepo.getSortedLastUsedSubstanceNamesFlow(limit = 200)
+    ) { searchText, filters, recents ->
+        searchRepository.getMatchingSubstances(
+            searchText = searchText,
+            filterCategories = filters,
+            recentlyUsedSubstanceNamesSorted = recents
+        ).map { it.toSubstanceModel() }
+    }
+        .flowOn(Dispatchers.Default)
+        .stateIn(
+            initialValue = emptyList(),
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000)
+        )
 
     fun filterSubstances(searchText: String) {
         viewModelScope.launch {
@@ -111,11 +123,13 @@ class SearchViewModel @Inject constructor(
                     other = searchText, ignoreCase = true
                 )
             }
-        }.stateIn(
-            initialValue = emptyList(),
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000)
-        )
+        }
+            .flowOn(Dispatchers.Default)
+            .stateIn(
+                initialValue = emptyList(),
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000)
+            )
 }
 
 val customColor = Color.Cyan

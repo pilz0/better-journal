@@ -163,17 +163,20 @@ fun SearchScreen(
             } else {
                 LazyColumn {
                     items(filteredCustomSubstances, key = { "custom_${it.id}" }) { customSubstance ->
-                        SubstanceRow(substanceModel = SubstanceModel(
-                            name = customSubstance.name,
-                            commonNames = emptyList(),
-                            categories = listOf(
-                                CategoryModel(
-                                    name = "custom", color = customColor
-                                )
-                            ),
-                            hasSaferUse = false,
-                            hasInteractions = false
-                        ), onTap = {
+                        val substanceModel = remember(customSubstance.id, customSubstance.name) {
+                            SubstanceModel(
+                                name = customSubstance.name,
+                                commonNames = emptyList(),
+                                categories = listOf(
+                                    CategoryModel(
+                                        name = "custom", color = customColor
+                                    )
+                                ),
+                                hasSaferUse = false,
+                                hasInteractions = false
+                            )
+                        }
+                        SubstanceRow(substanceModel = substanceModel, onTap = {
                             performHaptic(HapticType.SELECTION)
                             onCustomSubstanceTap(customSubstance.id)
                         })
