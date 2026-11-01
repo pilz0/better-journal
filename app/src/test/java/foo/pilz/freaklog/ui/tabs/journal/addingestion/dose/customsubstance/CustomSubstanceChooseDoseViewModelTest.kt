@@ -20,7 +20,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -42,6 +44,11 @@ class CustomSubstanceChooseDoseViewModelTest {
         Dispatchers.setMain(testDispatcher)
         every { userPreferences.useIntranasalForRectalFlow } returns flowOf(false)
         every { customProfiles.getEffectiveRoa(any(), any(), any()) } returns null
+        coEvery { experienceRepository.getCustomSubstance(any()) } returns CustomSubstance(
+            name = "2C-B-FLY",
+            units = "mg",
+            description = "Custom test substance"
+        )
     }
 
     @After
@@ -50,7 +57,7 @@ class CustomSubstanceChooseDoseViewModelTest {
     }
 
     @Test
-    fun `init loads custom substance and validates positive dose`() {
+    fun `init loads custom substance and validates positive dose`() = runTest(testDispatcher) {
         val customSubstance = CustomSubstance(
             name = "2C-B-FLY",
             units = "mg",
@@ -69,7 +76,7 @@ class CustomSubstanceChooseDoseViewModelTest {
                 )
             ),
         )
-        testDispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         assertEquals("2C-B-FLY", viewModel.substanceName)
         assertEquals("mg", viewModel.units)
@@ -112,7 +119,7 @@ class CustomSubstanceChooseDoseViewModelTest {
     }
 
     @Test
-    fun `init decodes serialized route from SavedStateHandle without ClassCastException`() {
+    fun `init decodes serialized route from SavedStateHandle without ClassCastException`() = runTest(testDispatcher) {
         val state = SavedStateHandle(
             mapOf(
                 "customSubstanceName" to "2C-B-FLY",
@@ -125,7 +132,7 @@ class CustomSubstanceChooseDoseViewModelTest {
             userPreferences = userPreferences,
             state = state,
         )
-        testDispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         assertEquals(AdministrationRoute.INSUFFLATED, viewModel.administrationRoute)
         viewModel.viewModelScope.cancel()
