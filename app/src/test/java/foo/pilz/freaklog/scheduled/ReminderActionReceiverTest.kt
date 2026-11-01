@@ -16,6 +16,7 @@ import androidx.test.core.app.ApplicationProvider
 import assertk.assertThat
 import assertk.assertions.containsExactlyInAnyOrder
 import assertk.assertions.hasSize
+import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
 import foo.pilz.freaklog.data.room.AppDatabase
@@ -70,6 +71,9 @@ class ReminderActionReceiverTest {
                 ingestionWebhookMessageDao = db.ingestionWebhookMessageDao(),
                 context = context,
             )
+            userPreferences = io.mockk.mockk {
+                io.mockk.every { isLockEnabledFlow } returns kotlinx.coroutines.flow.flowOf(false)
+            }
         }
     }
 
@@ -124,5 +128,14 @@ class ReminderActionReceiverTest {
         assertThat(ingestions.map { it.ingestion.notes })
             .containsExactlyInAnyOrder(null, "Logged from reminder")
         assertThat(dao.getExperience(8)).isEqualTo(null)
+    }
+
+    @Test
+    fun `take when locked does not insert ingestion`() = runTest {
+        receiver.userPreferences = io.mockk.mockk {
+            io.mockk.every { isLockEnabledFlow } returns kotlinx.coroutines.flow.flowOf(true)
+        }
+        receiver.handleTake(reminder)
+        assertThat(dao.getSortedIngestionsFlow().first()).isEmpty()
     }
 }

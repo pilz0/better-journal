@@ -18,6 +18,7 @@
 
 package foo.pilz.freaklog.ui.tabs.settings
 
+import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -62,8 +63,15 @@ class FileSystemConnection @Inject constructor(
             null
         }
 
+    private fun validateExportDestination(uri: Uri) {
+        require(uri.scheme == ContentResolver.SCHEME_CONTENT) {
+            "Unsupported URI scheme: ${uri.scheme}. Only content:// URIs are permitted for export."
+        }
+    }
+
     /** @throws java.io.IOException when the destination cannot be written. */
     fun saveBytesInUri(uri: Uri, bytes: ByteArray) {
+        validateExportDestination(uri)
         val output = context.contentResolver.openOutputStream(uri)
             ?: throw java.io.IOException("Failed To Save")
         output.use { it.write(bytes) }
@@ -71,6 +79,7 @@ class FileSystemConnection @Inject constructor(
 
     /** @throws java.io.IOException when the destination cannot be opened or written. */
     fun saveTextInUri(uri: Uri, text: String) {
+        validateExportDestination(uri)
         val output = context.contentResolver.openOutputStream(uri)
             ?: throw java.io.IOException("Could not open output stream for URI: $uri")
         output.use { stream ->

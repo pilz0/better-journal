@@ -47,4 +47,19 @@ class RenderTest {
         assertEquals("0s", FreakQuery.query("binges | group_duration", emptyList()))
         assertEquals("", FreakQuery.query("binges | main_substance", emptyList()))
     }
+
+    @Test
+    fun render_boundedOutputStopsWhenBudgetExceeded() {
+        val config = FreakQueryConfig(maxOutputLength = 20)
+        val result = FreakQuery.render("abcdefghijklmnopqrstuvwxyz1234567890", emptyList(), config)
+        assertEquals(20, result.length)
+        assertEquals("abcdefghijklmnopqrst", result)
+    }
+
+    @Test
+    fun jsonRender_compactWithoutIndentation() {
+        val rows = listOf(mapOf("substance" to "LSD", "dose" to 100))
+        val result = FreakQuery.query("all | json", rows)
+        org.junit.Assert.assertFalse(result.contains("\n"))
+    }
 }

@@ -29,6 +29,7 @@ class AnthropicMessagesClient(private val endpoint: AiEndpoint) : AiChatClient {
 
         /** Block types we know how to send back. Anything else is dropped from the history. */
         private val ECHO_TYPES = setOf("text", "thinking", "redacted_thinking", "tool_use")
+        private const val MAX_TOTAL_TEXT_CHARS = 500_000
     }
 
     override fun stream(request: AiChatRequest): Flow<AiStreamEvent> = flow {
@@ -54,6 +55,8 @@ class AnthropicMessagesClient(private val endpoint: AiEndpoint) : AiChatClient {
         private val thinking = mutableMapOf<Int, StringBuilder>()
         var stopReason: String? = null
         var stopDetails: JSONObject? = null
+        private var wholeMessageEmitted = false
+        private var totalTextEmitted = 0
 
         /** Applies one event and returns the text it adds to the visible answer. */
         fun handle(data: JSONObject, eventName: String?): List<String> {
@@ -62,10 +65,24 @@ class AnthropicMessagesClient(private val endpoint: AiEndpoint) : AiChatClient {
                 "error" -> throw errorFrom(data.optJSONObject("error"))
                 // A server that ignored `stream: true` returns the whole message at once.
                 "message" -> {
+                    if (wholeMessageEmitted) return emptyList()
+                    wholeMessageEmitted = true
                     AiJson.objects(data.optJSONArray("content")).forEachIndexed { i, block -> blocks[i] = block }
                     stopReason = data.optString("stop_reason").ifBlank { null }
                     stopDetails = data.optJSONObject("stop_details")
-                    blocks.values.filter { it.optString("type") == "text" }.map { it.optString("text") }
+                    val textList = blocks.values.filter { it.optString("type") == "text" }.map { it.optString("text") }
+                    val allowed = mutableListOf<String>()
+                    for (t in textList) {
+                        if (totalTextEmitted + t.length > MAX_TOTAL_TEXT_CHARS) {
+                            val remaining = (MAX_TOTAL_TEXT_CHARS - totalTextEmitted).coerceAtLeast(0)
+                            if (remaining > 0) allowed.add(t.take(remaining))
+                            totalTextEmitted = MAX_TOTAL_TEXT_CHARS
+                            break
+                        }
+                        totalTextEmitted += t.length
+                        allowed.add(t)
+                    }
+                    allowed
                 }
                 "content_block_start" -> {
                     val block = JSONObject(data.getJSONObject("content_block").toString())
@@ -105,7 +122,14 @@ class AnthropicMessagesClient(private val endpoint: AiEndpoint) : AiChatClient {
                 "text_delta" -> {
                     val text = delta.optString("text")
                     this.text.getOrPut(index) { StringBuilder(block.optString("text")) }.append(text)
-                    return listOfNotNull(text.takeIf { it.isNotEmpty() })
+                    if (totalTextEmitted >= MAX_TOTAL_TEXT_CHARS) return emptyList()
+                    val toEmit = if (totalTextEmitted + text.length > MAX_TOTAL_TEXT_CHARS) {
+                        text.take(MAX_TOTAL_TEXT_CHARS - totalTextEmitted)
+                    } else {
+                        text
+                    }
+                    totalTextEmitted += toEmit.length
+                    return listOfNotNull(toEmit.takeIf { it.isNotEmpty() })
                 }
                 "input_json_delta" -> toolInput[index]?.append(delta.optString("partial_json"))
                 "thinking_delta" -> thinking.getOrPut(index) {

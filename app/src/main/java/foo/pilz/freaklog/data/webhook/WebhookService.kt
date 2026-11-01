@@ -230,27 +230,7 @@ class WebhookService internal constructor(
             "formulation" to displayFormulation
         )
 
-        require(template.length <= 16_384) { "Webhook template is too large" }
-        val content = template
-        val freakQueryContent = if (userPreferences?.webhookUseFreakQueryFlow?.first() != false) {
-            val separator = userPreferences?.webhookFreakQuerySeparatorFlow?.first() ?: ", "
-            val config = FreakQueryConfig(
-                renderSeparator = separator,
-                aliases = DefaultAliases.all + ("substance" to anodyneAliasMap())
-            )
-            freakQueryRepository?.render(content, config) ?: content
-        } else {
-            content
-        }
-
-        val literalContent = processTemplate(freakQueryContent, values)
-        val finalContent = if (isHyperlinked) {
-            hyperlinkSubstancesInText(literalContent, substanceInfoUrl, substance)
-        } else {
-            literalContent
-        }
-        require(finalContent.length <= 32_768) { "Webhook message is too large" }
-
+        val finalContent = renderWebhookTemplate(template, values, isHyperlinked, substanceInfoUrl, substance)
         val payload = buildJsonObject {
             put("content", finalContent)
         }
@@ -383,6 +363,73 @@ class WebhookService internal constructor(
             require(length + blocks.length - start <= 32_768) { "Webhook message is too large" }
             append(blocks, start, blocks.length)
         }
+    }
+
+    private suspend fun renderWebhookTemplate(
+        template: String,
+        values: Map<String, String>,
+        isHyperlinked: Boolean,
+        substanceInfoUrl: String,
+        substance: String
+    ): String {
+        require(template.length <= 16_384) { "Webhook template is too large" }
+        val (templateWithTokens, fqTokens) = extractFreakQueryTokens(template)
+
+        val freakQueryContent = if (userPreferences?.webhookUseFreakQueryFlow?.first() != false) {
+            val separator = userPreferences?.webhookFreakQuerySeparatorFlow?.first() ?: ", "
+            val config = FreakQueryConfig(
+                renderSeparator = separator,
+                aliases = DefaultAliases.all + ("substance" to anodyneAliasMap()),
+                maxOutputLength = 32_768
+            )
+            if (fqTokens.isNotEmpty()) {
+                val templateProcessed = processTemplate(templateWithTokens, values)
+                var current = templateProcessed
+                for ((token, rawTag) in fqTokens) {
+                    val evaluated = freakQueryRepository?.render(rawTag, config) ?: rawTag
+                    require(current.length.toLong() + evaluated.length <= 32_768) { "Webhook message is too large" }
+                    current = current.replace(token, evaluated)
+                }
+                current
+            } else {
+                val evaluated = freakQueryRepository?.render(template, config) ?: template
+                processTemplate(evaluated, values)
+            }
+        } else {
+            processTemplate(template, values)
+        }
+
+        val finalContent = if (isHyperlinked) {
+            hyperlinkSubstancesInText(freakQueryContent, substanceInfoUrl, substance)
+        } else {
+            freakQueryContent
+        }
+        require(finalContent.length <= 32_768) { "Webhook message is too large" }
+        return finalContent
+    }
+
+    internal data class FreakQueryTagToken(val token: String, val rawTag: String)
+
+    internal fun extractFreakQueryTokens(template: String): Pair<String, List<FreakQueryTagToken>> {
+        val tokens = mutableListOf<FreakQueryTagToken>()
+        val sb = StringBuilder()
+        var start = 0
+        var counter = 0
+        while (start < template.length) {
+            val open = template.indexOf("{{", start)
+            val close = if (open >= 0) template.indexOf("}}", open + 2) else -1
+            if (open < 0 || close < 0) {
+                sb.append(template.substring(start))
+                break
+            }
+            sb.append(template, start, open)
+            val token = "\u0000FQ_TOKEN_${counter++}\u0000"
+            val rawTag = template.substring(open, close + 2)
+            tokens.add(FreakQueryTagToken(token, rawTag))
+            sb.append(token)
+            start = close + 2
+        }
+        return sb.toString() to tokens
     }
 
     /**

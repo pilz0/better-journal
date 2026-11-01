@@ -159,9 +159,9 @@ class ExperienceRepository @Inject constructor(
                     },
                 )
             }
+            val customSubstanceIdByName = experienceDao.getAllCustomSubstances().associate { it.name to it.id }
             journalExport.customSubstanceDetails.forEach { shared ->
-                val substanceId = experienceDao.getCustomSubstanceWithEverythingByName(shared.name)?.substance?.id
-                    ?: return@forEach
+                val substanceId = customSubstanceIdByName[shared.name] ?: return@forEach
                 val expansion = shared.expand()
                 expansion.roas.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }
                 expansion.doses.forEach { experienceDao.insert(it.copy(customSubstanceId = substanceId)) }

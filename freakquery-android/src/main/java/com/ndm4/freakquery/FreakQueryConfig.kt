@@ -11,6 +11,7 @@ data class FreakQueryConfig(
     val renderCount: Boolean = false,
     val renderPercent: Boolean = true,
     val renderCompact: Boolean = false,
+    val maxOutputLength: Int? = null,
     val renderTimeEnabled: Boolean = false,
     val renderTimeFormat: String? = null,
     val ratioUnderOne: String = "<1%",

@@ -78,21 +78,23 @@ class InteractionChecker @Inject constructor(
      * grows with known × all names instead of all × all.
      */
     fun getInteractionsAmong(names: List<String>): List<Interaction> {
-        val distinct = names.distinct()
+        val distinct = names.distinct().take(MAX_SUBSTANCE_NAMES)
         val profiles = customProfiles.byNameFlow.value
         val hasData = distinct.map { substanceRepo.getSubstance(it) != null || profiles.containsKey(it) }
-        val pairs = mutableListOf<Pair<Int, Int>>()
-        for (i in distinct.indices) {
-            if (!hasData[i]) continue
-            for (j in distinct.indices) {
-                // A pair of two known names is visited from both sides; keep it once.
-                if (j == i || (hasData[j] && j < i)) continue
-                pairs += if (i < j) i to j else j to i
+        val results = mutableListOf<Interaction>()
+        var pairsEvaluated = 0
+        for (i in 0 until distinct.size) {
+            for (j in (i + 1) until distinct.size) {
+                // If neither substance has data, skip
+                if (!hasData[i] && !hasData[j]) continue
+                if (++pairsEvaluated > MAX_INTERACTION_PAIRS) return results
+                val interaction = getInteractionBetween(distinct[i], distinct[j])
+                if (interaction != null) {
+                    results.add(interaction)
+                }
             }
         }
-        return pairs.sortedWith(compareBy({ it.first }, { it.second })).mapNotNull { (a, b) ->
-            getInteractionBetween(distinct[a], distinct[b])
-        }
+        return results
     }
 
     private val cleanedCache = ConcurrentHashMap<Interactions, CleanedInteractions>()
@@ -291,6 +293,10 @@ class InteractionChecker @Inject constructor(
         "Prolintane"
     )
 
+    companion object {
+        private const val MAX_SUBSTANCE_NAMES = 64
+        private const val MAX_INTERACTION_PAIRS = 500
+    }
 }
 
 data class Interaction(

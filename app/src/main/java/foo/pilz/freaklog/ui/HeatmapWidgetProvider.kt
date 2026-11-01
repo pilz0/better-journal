@@ -44,6 +44,7 @@ import dagger.hilt.android.EntryPointAccessors
 import foo.pilz.freaklog.MainActivity
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.withLock
 import java.io.File
 import java.io.FileOutputStream
 import java.time.Instant
@@ -195,27 +196,34 @@ class HeatmapWidgetWorker(
                 Triple(false, null, "0")
             }
 
-            val manager = GlanceAppWidgetManager(applicationContext)
-            val glanceId = manager.getGlanceIdBy(appWidgetId)
+            WidgetPrivacy.mutex.withLock {
+                if (entryPoint.userPreferences().isLockEnabledFlow.first()) {
+                    HeatmapAppWidget().updateAllPrivate(applicationContext)
+                    return Result.success()
+                }
 
-            updateAppWidgetState(
-                context = applicationContext,
-                definition = PreferencesGlanceStateDefinition,
-                glanceId = glanceId
-            ) { prefs ->
-                prefs.toMutablePreferences().apply {
-                    this[HeatmapWidgetKeys.HAS_DATA] = hasData
-                    this[HeatmapWidgetKeys.IS_LOADING] = false
-                    this[HeatmapWidgetKeys.INGESTION_COUNT] = ingestionCount
-                    if (imagePath != null) {
-                        this[HeatmapWidgetKeys.HEATMAP_IMAGE_PATH] = imagePath
-                    } else {
-                        remove(HeatmapWidgetKeys.HEATMAP_IMAGE_PATH)
+                val manager = GlanceAppWidgetManager(applicationContext)
+                val glanceId = manager.getGlanceIdBy(appWidgetId)
+
+                updateAppWidgetState(
+                    context = applicationContext,
+                    definition = PreferencesGlanceStateDefinition,
+                    glanceId = glanceId
+                ) { prefs ->
+                    prefs.toMutablePreferences().apply {
+                        this[HeatmapWidgetKeys.HAS_DATA] = hasData
+                        this[HeatmapWidgetKeys.IS_LOADING] = false
+                        this[HeatmapWidgetKeys.INGESTION_COUNT] = ingestionCount
+                        if (imagePath != null) {
+                            this[HeatmapWidgetKeys.HEATMAP_IMAGE_PATH] = imagePath
+                        } else {
+                            remove(HeatmapWidgetKeys.HEATMAP_IMAGE_PATH)
+                        }
                     }
                 }
-            }
 
-            HeatmapAppWidget().update(applicationContext, glanceId)
+                HeatmapAppWidget().update(applicationContext, glanceId)
+            }
             Result.success()
         } catch (e: CancellationException) {
             throw e

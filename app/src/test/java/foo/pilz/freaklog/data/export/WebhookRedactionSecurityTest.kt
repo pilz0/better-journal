@@ -23,4 +23,14 @@ class WebhookRedactionSecurityTest {
             assertFalse(WebhookSerializable(name = "test", url = redacted, isEnabled = true).toEntity().isEnabled)
         }
     }
+
+    @Test
+    fun importedWebhooksAreAlwaysRestoredAsDisabled() {
+        val imported = WebhookSerializable(
+            name = "discord",
+            url = "https://discord.com/api/webhooks/123/token",
+            isEnabled = true
+        )
+        assertFalse(imported.toEntity().isEnabled)
+    }
 }

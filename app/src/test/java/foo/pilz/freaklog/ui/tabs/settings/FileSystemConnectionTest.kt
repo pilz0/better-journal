@@ -22,6 +22,7 @@ class FileSystemConnectionTest {
 
     init {
         every { context.contentResolver } returns resolver
+        every { uri.scheme } returns ContentResolver.SCHEME_CONTENT
     }
 
     @Test
@@ -75,6 +76,19 @@ class FileSystemConnectionTest {
 
         assertThrows(IOException::class.java) { connection.saveTextInUri(uri, "backup") }
         assertTrue(closed)
+    }
+
+    @Test
+    fun `non-content scheme URIs are rejected on export`() {
+        val fileUri = mockk<Uri>()
+        every { fileUri.scheme } returns "file"
+
+        assertThrows(IllegalArgumentException::class.java) {
+            connection.saveTextInUri(fileUri, "backup")
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            connection.saveBytesInUri(fileUri, byteArrayOf(1, 2, 3))
+        }
     }
 
     private class SizedInputStream(private var remaining: Int) : InputStream() {

@@ -55,20 +55,36 @@ object FreakQuery {
     @JvmStatic
     fun render(template: String, data: List<Map<String, Any?>>, config: FreakQueryConfig = FreakQueryConfig()): String {
         val ctx = Context(data, config)
+        val maxLen = config.maxOutputLength
         // Forward-only scan: once a `{{` has no closing `}}`, no later one can either, so stop
         // there instead of rescanning the rest of the template for every opening.
         return buildString {
             var start = 0
             while (true) {
+                if (maxLen != null && length >= maxLen) break
                 val open = template.indexOf("{{", start)
                 val close = if (open >= 0) template.indexOf("}}", open + 2) else -1
                 if (close < 0) {
-                    append(template, start, template.length)
+                    val remaining = template.substring(start)
+                    val toAppend = if (maxLen != null && length + remaining.length > maxLen) {
+                        remaining.take(maxLen - length)
+                    } else remaining
+                    append(toAppend)
                     break
                 }
-                append(template, start, open)
+                val prefix = template.substring(start, open)
+                if (maxLen != null && length + prefix.length > maxLen) {
+                    append(prefix.take(maxLen - length))
+                    break
+                }
+                append(prefix)
                 val tag = template.substring(open + 2, close).trim()
-                append(runCatching { executeTag(tag, data, ctx) }.getOrElse { "[error:$tag]" })
+                val evaluated = runCatching { executeTag(tag, data, ctx) }.getOrElse { "[error:$tag]" }
+                if (maxLen != null && length + evaluated.length > maxLen) {
+                    append(evaluated.take(maxLen - length))
+                    break
+                }
+                append(evaluated)
                 start = close + 2
             }
         }

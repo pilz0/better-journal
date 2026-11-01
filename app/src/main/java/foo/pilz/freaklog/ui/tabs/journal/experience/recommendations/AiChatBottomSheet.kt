@@ -424,7 +424,7 @@ private fun MessageBubble(message: ChatItem.Message, showActions: Boolean, onRet
                 )
             } else {
                 MarkdownText(
-                    markdown = message.text,
+                    markdown = sanitizeMarkdownTables(message.text),
                     imageLoader = images,
                     style = MaterialTheme.typography.bodyMedium.copy(color = contentColor)
                 )
@@ -621,6 +621,50 @@ private fun InputBar(
             }
         }
     }
+}
+
+internal fun sanitizeMarkdownTables(markdown: String): String {
+    if (!markdown.contains('|')) return markdown
+    val lines = markdown.lines()
+    val result = StringBuilder(markdown.length)
+    var inTable = false
+    val tableLines = mutableListOf<String>()
+
+    fun flushTable() {
+        if (tableLines.isEmpty()) return
+        val maxCols = tableLines.maxOf { line -> line.count { it == '|' } }
+        val cellCount = tableLines.size * maxCols
+        if (maxCols > 25 || cellCount > 400) {
+            result.append("```\n")
+            for (tl in tableLines) {
+                result.append(tl).append('\n')
+            }
+            result.append("```\n")
+        } else {
+            for (tl in tableLines) {
+                result.append(tl).append('\n')
+            }
+        }
+        tableLines.clear()
+    }
+
+    for (line in lines) {
+        val trimmed = line.trim()
+        if (trimmed.startsWith('|') || (trimmed.contains('|') && trimmed.endsWith('|'))) {
+            inTable = true
+            tableLines.add(line)
+        } else {
+            if (inTable) {
+                flushTable()
+                inTable = false
+            }
+            result.append(line).append('\n')
+        }
+    }
+    if (inTable) {
+        flushTable()
+    }
+    return result.toString().trimEnd()
 }
 
 
