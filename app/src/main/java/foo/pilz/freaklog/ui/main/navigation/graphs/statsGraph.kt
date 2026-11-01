@@ -42,7 +42,7 @@ fun NavGraphBuilder.statsGraph(navController: NavHostController) {
 object StatsScreenRoute
 
 @Serializable
-data class SubstanceCompanionRoute(val substanceName: String, val consumerName: String?)
+data class SubstanceCompanionRoute(val substanceName: String, val consumerName: String? = null)
 
 @Serializable
 object ToleranceChartRoute

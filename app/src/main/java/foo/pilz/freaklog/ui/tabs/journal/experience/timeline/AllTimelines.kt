@@ -141,6 +141,10 @@ fun AllTimelines(
     }
 
 
+    val flattenedSleepStages = remember(sleepSamples) {
+        SleepHealthConnect.flattenSleepSessions(sleepSamples)
+    }
+
     // Haptic feedback for satisfying timeline scrubbing
     val performHaptic = rememberHaptic()
     var lastHapticX by remember { mutableFloatStateOf(0f) }
@@ -310,7 +314,7 @@ fun AllTimelines(
                     backgroundColor = onSurfaceColor,
                     textColor = surfaceColor,
                     heartRateSamples = heartRateSamples,
-                    sleepSamples = sleepSamples,
+                    flattenedSleepStages = flattenedSleepStages,
                     showSleepStages = showSleepStages,
                 )
             }
@@ -423,6 +427,7 @@ private fun currentTimeMarker(
     )
 }
 
+@Suppress("LongParameterList")
 private fun DrawScope.drawDragPointLineAndTimeLabel(
     dragPoint: Offset,
     canvasWidth: Float,
@@ -437,7 +442,7 @@ private fun DrawScope.drawDragPointLineAndTimeLabel(
     backgroundColor: Color,
     textColor: Color,
     heartRateSamples: List<HeartRateSample>,
-    sleepSamples: List<SleepSessionSample>,
+    flattenedSleepStages: List<SleepStageSample>,
     showSleepStages: Boolean,
 ) {
     val horizontallyLimitedDragPoint = Offset(
@@ -464,11 +469,12 @@ private fun DrawScope.drawDragPointLineAndTimeLabel(
         textColor,
         timeDisplayOption,
         heartRateSamples,
-        sleepSamples,
+        flattenedSleepStages,
         showSleepStages
     )
 }
 
+@Suppress("LongParameterList")
 private fun DrawScope.drawDragTimeLabelWithBackground(
     horizontallyLimitedDragPoint: Offset,
     pixelsPerSec: Float,
@@ -482,7 +488,7 @@ private fun DrawScope.drawDragTimeLabelWithBackground(
     textColor: Color,
     timeDisplayOption: TimeDisplayOption,
     heartRateSamples: List<HeartRateSample>,
-    sleepSamples: List<SleepSessionSample>,
+    flattenedSleepStages: List<SleepStageSample>,
     showSleepStages: Boolean,
 ) {
     val secondsAtDragPoint = horizontallyLimitedDragPoint.x / pixelsPerSec
@@ -519,10 +525,9 @@ private fun DrawScope.drawDragTimeLabelWithBackground(
     }
 
     val sleepStageAtDraPoint = SleepHealthConnect.sleepStateAt(
-        SleepHealthConnect.flattenSleepSessions(sleepSamples),
+        flattenedSleepStages,
         timeAtDragPoint,
         withSleepStages = showSleepStages,
-
     )
 
     val fullLabel = listOfNotNull(timeLabel, sleepStageAtDraPoint?.stage?.displayText)

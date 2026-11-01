@@ -1,5 +1,6 @@
 package foo.pilz.freaklog.ui.tabs.settings.freakquery
 
+import android.content.ClipData
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -43,12 +44,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -57,6 +59,7 @@ import foo.pilz.freaklog.ui.FREAKQUERY_GUIDE_URL
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import foo.pilz.freaklog.ui.utils.HapticType
 import foo.pilz.freaklog.ui.utils.rememberHaptic
+import kotlinx.coroutines.launch
 
 @Composable
 fun FreakQueryShellScreen(
@@ -220,13 +223,13 @@ fun FreakQueryShellScreenContent(
     }
 }
 
-@Suppress("DEPRECATION")
 @Composable
 private fun ShellEntry(
     entry: FreakQueryShellEntry,
     onReuse: () -> Unit,
 ) {
-    val clipboardManager = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
+    val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     val performHaptic = rememberHaptic()
 
@@ -254,9 +257,11 @@ private fun ShellEntry(
             )
             IconButton(
                 onClick = {
-                    clipboardManager.setText(AnnotatedString(entry.query))
-                    performHaptic(HapticType.CLICK)
-                    Toast.makeText(context, "Query copied", Toast.LENGTH_SHORT).show()
+                    coroutineScope.launch {
+                        clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("plain text", entry.query)))
+                        performHaptic(HapticType.CLICK)
+                        Toast.makeText(context, "Query copied", Toast.LENGTH_SHORT).show()
+                    }
                 },
                 modifier = Modifier.size(32.dp)
             ) {
@@ -282,9 +287,11 @@ private fun ShellEntry(
             )
             IconButton(
                 onClick = {
-                    clipboardManager.setText(AnnotatedString(entry.output))
-                    performHaptic(HapticType.CLICK)
-                    Toast.makeText(context, "Output copied", Toast.LENGTH_SHORT).show()
+                    coroutineScope.launch {
+                        clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("plain text", entry.output)))
+                        performHaptic(HapticType.CLICK)
+                        Toast.makeText(context, "Output copied", Toast.LENGTH_SHORT).show()
+                    }
                 },
                 modifier = Modifier.size(32.dp)
             ) {

@@ -8,8 +8,27 @@ internal object Metrics {
         if (plan.metrics.isEmpty()) return data
         val metric = resolveMetric(plan) ?: return data
 
+        val isGrouped = data is List<*> && data.firstOrNull() is List<*>
+        if (isGrouped) {
+            @Suppress("UNCHECKED_CAST")
+            val groups = data as List<Rows>
+            return when (metric) {
+                "count", "group_count" -> groups.size
+                "group_sum" -> cleanNumericValue(groups.sumOf { Grouping.groupSum(it, ctx.config) })
+                "group_duration" -> humanSince(groups.maxOfOrNull { Grouping.groupDuration(it, ctx.config) } ?: 0L)
+                "main_substance" -> Grouping.mainSubstance(groups.flatten(), ctx.config)
+                "sum_dose" -> cleanNumericValue(groups.flatten().sumOf {
+                    Units.toMgOrNull(
+                        Aliases.rowGet(ctx.config, it, "dose"),
+                        Aliases.canonicalValue(ctx.config, "unit", Aliases.rowGet(ctx.config, it, "unit"))
+                    ) ?: 0.0
+                })
+                else -> data
+            }
+        }
+
         @Suppress("UNCHECKED_CAST")
-        val rows = data as? Rows ?: return data
+        val rows = (data as? List<*>)?.filterIsInstance<Row>() ?: return data
         val total = rows.size
 
         return when {
@@ -22,7 +41,10 @@ internal object Metrics {
             metric == "dose" -> rows.lastOrNull()?.let { rowDoseText(it, ctx.config) }.orEmpty()
             metric == "substance" -> rows.lastOrNull()?.let { rowSubstance(it, ctx.config) }.orEmpty()
             metric == "sum_dose" -> cleanNumericValue(rows.sumOf {
-                Units.toMgOrNull(Aliases.rowGet(ctx.config, it, "dose"), Aliases.rowGet(ctx.config, it, "unit")) ?: 0.0
+                Units.toMgOrNull(
+                    Aliases.rowGet(ctx.config, it, "dose"),
+                    Aliases.canonicalValue(ctx.config, "unit", Aliases.rowGet(ctx.config, it, "unit"))
+                ) ?: 0.0
             })
             metric == "top_substances" -> topN(
                 counter(rows.mapNotNull { rowSubstance(it, ctx.config).takeIf(String::isNotEmpty) })
@@ -213,7 +235,10 @@ internal fun compressSequence(items: List<String>): List<String> {
     return out
 }
 
+private const val MAX_EXACT_LONG_DOUBLE = 9.223372036854775e18
+
 internal fun humanSince(ms: Long): String {
+    if (ms <= 0L) return "0s"
     var seconds = ms / 1000L
     val sec = seconds % 60L
     seconds /= 60L
@@ -237,9 +262,14 @@ internal fun humanSince(ms: Long): String {
 
 internal fun cleanNumber(value: Any?): String {
     val n = value?.toString()?.toDoubleOrNull() ?: return value.toString()
-    if (n % 1.0 == 0.0) return n.toLong().toString()
+    if (!n.isFinite()) return n.toString()
+    if (n % 1.0 == 0.0 && kotlin.math.abs(n) < MAX_EXACT_LONG_DOUBLE) return n.toLong().toString()
     return n.toString().trimEnd('0').trimEnd('.')
 }
 
-internal fun cleanNumericValue(value: Double): Any =
-    if (value % 1.0 == 0.0) value.toLong() else "%.2f".format(Locale.US, value).trimEnd('0').trimEnd('.').toDouble()
+internal fun cleanNumericValue(value: Double): Any {
+    if (!value.isFinite() || value < 0.0) return 0L
+    if (value % 1.0 == 0.0 && value < MAX_EXACT_LONG_DOUBLE) return value.toLong()
+    val formatted = "%.2f".format(Locale.US, value).trimEnd('0').trimEnd('.')
+    return formatted.toDoubleOrNull() ?: value
+}

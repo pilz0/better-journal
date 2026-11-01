@@ -29,7 +29,7 @@ data class RoaDose(
     val heavyMin: Double?,
 ) {
     fun getDoseClass(ingestionDose: Double?, ingestionUnits: String? = units): DoseClass? {
-        if (ingestionUnits != units || ingestionDose == null || !ingestionDose.isFinite() || ingestionDose < 0.0) return null
+        if (!isMatchingUnit(ingestionUnits, units) || ingestionDose == null || !ingestionDose.isFinite() || ingestionDose < 0.0) return null
         return if (lightMin != null && ingestionDose < lightMin) {
             DoseClass.THRESHOLD
         } else if (lightMin != null && commonMin != null && lightMin <= ingestionDose && ingestionDose < commonMin) {
@@ -46,7 +46,7 @@ data class RoaDose(
     }
 
     fun getNumDots(ingestionDose: Double?, ingestionUnits: String? = units): Int? {
-        if (ingestionUnits != units || ingestionDose == null || !ingestionDose.isFinite() || ingestionDose < 0.0) return null
+        if (!isMatchingUnit(ingestionUnits, units) || ingestionDose == null || !ingestionDose.isFinite() || ingestionDose < 0.0) return null
         if (heavyMin != null && (heavyMin <= 0.0 || !heavyMin.isFinite())) return null
         if (lightMin != null && ingestionDose < lightMin) {
             return 0
@@ -85,8 +85,9 @@ data class RoaDose(
 
     val shouldUseVolumetricDosing: Boolean
         get() {
-            if (units == "µg") return true
-            return if (units == "mg") {
+            val normUnits = normalizeUnitString(units)
+            if (normUnits == "µg") return true
+            return if (normUnits == "mg") {
                 val sample = commonMin ?: strongMin
                 sample != null && sample < 15
             } else {
@@ -95,20 +96,43 @@ data class RoaDose(
         }
 
     val averageCommonDose: Double? get() {
-        return if (commonMin != null && strongMin != null) {
-            (commonMin + strongMin) / 2
-        } else {
-            null
-        }
+        val c = commonMin?.takeIf { it.isFinite() && it > 0.0 } ?: return null
+        val s = strongMin?.takeIf { it.isFinite() && it > 0.0 } ?: return null
+        val avg = c / 2.0 + s / 2.0
+        return avg.takeIf { it.isFinite() && it > 0.0 }
     }
 
     fun getStrengthRelativeToCommonDose(dose: Double): Double? {
         if (!dose.isFinite() || dose < 0.0) return null
         return averageCommonDose?.let {
-            if (it > 0) {
-                dose/it
+            if (it > 0.0) {
+                (dose / it).takeIf { ratio -> ratio.isFinite() && ratio >= 0.0 }
             } else {
                 null
+            }
+        }
+    }
+
+    companion object {
+        fun isMatchingUnit(ingestionUnits: String?, referenceUnits: String?): Boolean {
+            if (ingestionUnits == referenceUnits) return true
+            if (ingestionUnits == null || referenceUnits == null) return false
+            val a = normalizeUnitString(ingestionUnits)
+            val b = normalizeUnitString(referenceUnits)
+            return a == b
+        }
+
+        fun normalizeUnitString(unit: String?): String {
+            if (unit == null) return ""
+            val trimmed = unit.trim().lowercase().replace('μ', 'µ')
+            return when (trimmed) {
+                "ug", "mcg", "µg", "microgram", "micrograms", "micro gram", "micro grams" -> "µg"
+                "mg", "milligram", "milligrams", "miligram", "miligrams" -> "mg"
+                "g", "gram", "grams" -> "g"
+                "kg", "kilogram", "kilograms" -> "kg"
+                "ml", "milliliter", "milliliters", "millilitre", "millilitres" -> "ml"
+                "l", "liter", "liters", "litre", "litres" -> "l"
+                else -> trimmed
             }
         }
     }

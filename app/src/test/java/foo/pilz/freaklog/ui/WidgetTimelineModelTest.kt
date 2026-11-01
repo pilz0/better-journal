@@ -24,6 +24,7 @@ import io.mockk.every
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Duration
@@ -496,5 +497,43 @@ class WidgetTimelineModelTest {
                 assertTrue("height ${p.height} out of range", p.height in 0f..1f)
             }
         }
+    }
+
+    @Test
+    fun `findRoaDuration and build handle case and whitespace variations gracefully`() {
+        val durations = durationsOf("MDMA" to mdmaOral)
+        val direct = WidgetTimelineModel.findRoaDuration(durations, "mdma", AdministrationRoute.ORAL)
+        assertEquals(mdmaOral, direct)
+
+        val padded = WidgetTimelineModel.findRoaDuration(durations, "  MDMA  ", AdministrationRoute.ORAL)
+        assertEquals(mdmaOral, padded)
+
+        val normalized = WidgetTimelineModel.buildNormalizedDurationIndex(durations)
+        val fromIndex = WidgetTimelineModel.findRoaDuration(durations, "mdma", AdministrationRoute.ORAL, normalized)
+        assertEquals(mdmaOral, fromIndex)
+
+        val model = WidgetTimelineModel.build(
+            now = now,
+            ingestions = listOf(
+                WidgetTimelineModel.IngestionInput(" mdma ", AdministrationRoute.ORAL, now, AdaptiveColor.RED)
+            ),
+            durationsBySubstance = durations,
+        )
+        assertTrue(model.hasContent)
+        assertEquals(1, model.groups.size)
+        assertTrue(model.groups.single().isComplete)
+
+        // Multiple keys normalizing to the same value are indexed without crashing and match direct lookup
+        val collidingDurations = mapOf(
+            "MDMA" to mapOf(AdministrationRoute.ORAL to mdmaOral),
+            " mdma " to mapOf(AdministrationRoute.ORAL to totalOnly),
+        )
+        val collidingIndex = WidgetTimelineModel.buildNormalizedDurationIndex(collidingDurations)
+        val resolved = WidgetTimelineModel.findRoaDuration(collidingDurations, "MDMA", AdministrationRoute.ORAL, collidingIndex)
+        assertNotNull(resolved)
+        assertEquals(
+            WidgetTimelineModel.findRoaDuration(collidingDurations, "MDMA", AdministrationRoute.ORAL),
+            resolved
+        )
     }
 }

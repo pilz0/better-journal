@@ -74,6 +74,8 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
+private val TOLERANCE_DATE_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("dd. MM. yyyy")
+
 @Composable
 fun ToleranceChartScreen(
     viewModel: ToleranceChartViewModel = hiltViewModel(),
@@ -137,10 +139,9 @@ fun ToleranceChartScreenContent(
                     text = "Start Date",
                     style = MaterialTheme.typography.bodyLarge
                 )
-                val dateFormatter = DateTimeFormatter.ofPattern("dd. MM. yyyy")
                 val localDate = sinceDate.atZone(ZoneId.systemDefault()).toLocalDate()
                 Text(
-                    text = localDate.format(dateFormatter),
+                    text = localDate.format(TOLERANCE_DATE_FORMATTER),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

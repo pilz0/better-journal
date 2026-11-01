@@ -34,12 +34,11 @@ import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.main.navigation.graphs.ChooseDoseRoute
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
 import foo.pilz.freaklog.ui.utils.evaluateNumericExpression
+import foo.pilz.freaklog.ui.utils.isValidDoseInput
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
-
-private const val MAX_DOSE = 1_000_000.0
 
 @HiltViewModel
 class ChooseDoseViewModel @Inject constructor(
@@ -48,13 +47,22 @@ class ChooseDoseViewModel @Inject constructor(
     private val userPreferences: foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences,
     state: SavedStateHandle,
 ) : ViewModel() {
-    private val chooseDoseRoute = state.toRoute<ChooseDoseRoute>()
-    val substance: Substance = repository.getSubstance(chooseDoseRoute.substanceName)!!
-    val administrationRoute: AdministrationRoute = chooseDoseRoute.administrationRoute
+    private val chooseDoseRoute: ChooseDoseRoute? = runCatching { state.toRoute<ChooseDoseRoute>() }.getOrNull()
+    val administrationRoute: AdministrationRoute = chooseDoseRoute?.administrationRoute
+        ?: runCatching { state.get<AdministrationRoute>("administrationRoute") }.getOrNull()
+        ?: state.get<String>("administrationRoute")?.let { name ->
+            runCatching { AdministrationRoute.valueOf(name) }.getOrNull()
+        }
+        ?: AdministrationRoute.ORAL
+    val substanceName: String = chooseDoseRoute?.substanceName
+        ?: state.get<String>("substanceName")
+        ?: ""
+    val substance: Substance? = repository.getSubstance(substanceName)
+    val doseRemark: String? = substance?.dosageRemark
     private val useIntranasalForRectal: Boolean = runBlocking {
         userPreferences.useIntranasalForRectalFlow.first()
     }
-    private val effectiveRoa = substance.getEffectiveRoa(administrationRoute, useIntranasalForRectal)
+    private val effectiveRoa = substance?.getEffectiveRoa(administrationRoute, useIntranasalForRectal)
     val roaDose: RoaDose? = effectiveRoa?.roaDose
     val roaDuration: foo.pilz.freaklog.data.substances.classes.roa.RoaDuration? =
         effectiveRoa?.roaDuration
@@ -80,21 +88,15 @@ class ChooseDoseViewModel @Inject constructor(
                 purity.let { safePurity ->
                     if (safePurity == null) return null
                     val result = it.div(safePurity).times(100)
-                    return result.toReadableString() + " impure ${roaDose?.units ?: ""}"
+                    val unitStr = roaDose?.units?.ifBlank { null } ?: units.ifBlank { null }
+                    val suffix = if (!unitStr.isNullOrBlank()) " $unitStr" else ""
+                    return result.toReadableString() + " impure$suffix"
                 }
             }
         }
     val dose: Double? get() = evaluateNumericExpression(doseText)
     val estimatedDoseStandardDeviation: Double? get() = evaluateNumericExpression(estimatedDoseStandardDeviationText)
-    val isValidDose: Boolean
-        get() {
-            // The expression parser supports unary minus, so "-10" or "0" parse as numbers.
-            val dose = dose
-            val deviation = estimatedDoseStandardDeviation
-            val isDoseOk = dose != null && dose > 0.0 && dose.isFinite() && dose <= MAX_DOSE
-            val isDeviationOk = deviation == null || (deviation >= 0.0 && deviation.isFinite())
-            return isDoseOk && isDeviationOk
-        }
+    val isValidDose: Boolean get() = isValidDoseInput(dose, if (isEstimate) estimatedDoseStandardDeviation else null)
     val currentDoseClass: DoseClass? get() = roaDose?.getDoseClass(ingestionDose = dose)
 
     fun onDoseTextChange(newDoseText: String) {
@@ -125,11 +127,11 @@ class ChooseDoseViewModel @Inject constructor(
     }
 
     private suspend fun loadIntakeLimits() {
-        val limits = experienceRepo.getIntakeLimitsForSubstance(substance.name).filter { it.isEnabled }
+        val limits = experienceRepo.getIntakeLimitsForSubstance(substanceName).filter { it.isEnabled }
         if (limits.isEmpty()) return
         val since = java.time.Instant.now().minusSeconds(limits.maxOf { it.windowSeconds })
         pastLimitIngestions = experienceRepo
-            .getIngestionsWithCustomUnitsForSubstanceSince(substance.name, since)
+            .getIngestionsWithCustomUnitsForSubstanceSince(substanceName, since)
             .map { foo.pilz.freaklog.ui.tabs.settings.intakelimits.LimitIngestion(it.pureDose, it.originalUnit, it.ingestion.time) }
         loadedIntakeLimits = limits
     }

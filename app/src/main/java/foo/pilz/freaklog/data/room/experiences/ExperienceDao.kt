@@ -112,7 +112,7 @@ interface ExperienceDao {
     suspend fun getAllSubstanceCompanions(): List<SubstanceCompanion>
 
     @Transaction
-    @Query("SELECT * FROM experience WHERE sortDate > :fromInstant AND sortDate < :toInstant ORDER BY sortDate DESC")
+    @Query("SELECT * FROM experience WHERE sortDate >= :fromInstant AND sortDate <= :toInstant ORDER BY sortDate DESC")
     suspend fun getSortedExperiencesWithIngestionsWithSortDateBetween(fromInstant: Instant, toInstant: Instant): List<ExperienceWithIngestions>
 
     @Query("SELECT substanceName FROM ingestion ORDER BY time DESC LIMIT :limit")
@@ -262,7 +262,7 @@ interface ExperienceDao {
     fun getIngestionWithExperienceFlow(id: Int): Flow<IngestionWithExperienceAndCustomUnit?>
 
     @Transaction
-    @Query("SELECT * FROM ingestion WHERE time > :fromInstant AND time < :toInstant")
+    @Query("SELECT * FROM ingestion WHERE time >= :fromInstant AND time < :toInstant")
     fun getIngestionWithExperiencesFlow(
         fromInstant: Instant,
         toInstant: Instant

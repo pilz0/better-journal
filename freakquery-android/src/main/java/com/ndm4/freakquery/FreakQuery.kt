@@ -96,9 +96,17 @@ object FreakQuery {
         var rows: Any = Selectors.apply(grouped, plan, ctx)
 
         if (wantedField != null) {
-            @Suppress("UNCHECKED_CAST")
-            val selectedRows = rows as? Rows ?: return ""
-            val row = selectedRows.firstOrNull() ?: return ""
+            val flatRows: Rows = when {
+                rows is List<*> && rows.firstOrNull() is List<*> -> {
+                    @Suppress("UNCHECKED_CAST")
+                    (rows as List<Rows>).firstOrNull().orEmpty()
+                }
+                rows is List<*> -> {
+                    rows.filterIsInstance<Row>()
+                }
+                else -> emptyList()
+            }
+            val row = flatRows.firstOrNull() ?: return ""
             return Aliases.rowGet(ctx.config, row, wantedField)?.let { cleanNumber(it) }.orEmpty()
         }
 

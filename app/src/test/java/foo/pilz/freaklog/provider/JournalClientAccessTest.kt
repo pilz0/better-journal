@@ -19,7 +19,7 @@ import org.robolectric.shadows.ShadowBinder
 import org.robolectric.util.ReflectionHelpers
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [33])
+@Config(sdk = [31, 33])
 class JournalClientAccessTest {
     private val context = ApplicationProvider.getApplicationContext<Context>()
     private val access = JournalClientAccess(context)

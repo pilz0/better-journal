@@ -68,6 +68,30 @@ class DurationRangeTest {
         assertEquals("2-4h", range.text)
     }
 
+    @Test
+    fun testText_nullBounds() {
+        val range = DurationRange(null, null, DurationUnits.HOURS)
+        assertEquals("", range.text)
+    }
+
+    @Test
+    fun testText_singleBoundMin() {
+        val range = DurationRange(2.0f, null, DurationUnits.HOURS)
+        assertEquals("2h", range.text)
+    }
+
+    @Test
+    fun testText_singleBoundMax() {
+        val range = DurationRange(null, 4.0f, DurationUnits.HOURS)
+        assertEquals("4h", range.text)
+    }
+
+    @Test
+    fun testText_equalMinMax() {
+        val range = DurationRange(2.0f, 2.0f, DurationUnits.HOURS)
+        assertEquals("2h", range.text)
+    }
+
     // ===== minInSec Tests =====
 
     @Test
@@ -175,14 +199,20 @@ class DurationRangeTest {
     }
 
     @Test
-    fun testInterpolate_nullMin() {
+    fun testInterpolate_nullMinFallsBackToMax() {
         val range = DurationRange(null, 3.0f, DurationUnits.HOURS)
-        assertNull(range.interpolateAtValueInSeconds(0.5f))
+        assertEquals(10800.0f, range.interpolateAtValueInSeconds(0.5f)!!, 0.01f) // 3 hours in seconds
     }
 
     @Test
-    fun testInterpolate_nullMax() {
+    fun testInterpolate_nullMaxFallsBackToMin() {
         val range = DurationRange(1.0f, null, DurationUnits.HOURS)
+        assertEquals(3600.0f, range.interpolateAtValueInSeconds(0.5f)!!, 0.01f) // 1 hour in seconds
+    }
+
+    @Test
+    fun testInterpolate_bothMinAndMaxNull() {
+        val range = DurationRange(null, null, DurationUnits.HOURS)
         assertNull(range.interpolateAtValueInSeconds(0.5f))
     }
 
@@ -204,5 +234,31 @@ class DurationRangeTest {
         val range = DurationRange(1.0f, 3.0f, DurationUnits.HOURS)
         val result = range.interpolateAtValueInSeconds(-0.5f)
         assertEquals(0.0f, result!!, 0.01f) // 0 hours in seconds
+    }
+
+    @Test
+    fun testInterpolate_negativeFactorCoercesToZero() {
+        val range = DurationRange(1.0f, 3.0f, DurationUnits.HOURS)
+        val result = range.interpolateAtValueInSeconds(-2.0f)
+        assertEquals(0.0f, result!!, 0.01f)
+    }
+
+    @Test
+    fun testInterpolate_nonFiniteValueReturnsNull() {
+        val range = DurationRange(1.0f, 3.0f, DurationUnits.HOURS)
+        assertNull(range.interpolateAtValueInSeconds(Float.NaN))
+        assertNull(range.interpolateAtValueInSeconds(Float.POSITIVE_INFINITY))
+        assertNull(range.interpolateAtValueInSeconds(Float.NEGATIVE_INFINITY))
+    }
+
+    @Test
+    fun testMinMaxInSec_negativeOrNonFiniteReturnsNull() {
+        val rangeNegative = DurationRange(-1.0f, -5.0f, DurationUnits.MINUTES)
+        assertNull(rangeNegative.minInSec)
+        assertNull(rangeNegative.maxInSec)
+
+        val rangeNan = DurationRange(Float.NaN, Float.POSITIVE_INFINITY, DurationUnits.MINUTES)
+        assertNull(rangeNan.minInSec)
+        assertNull(rangeNan.maxInSec)
     }
 }

@@ -89,15 +89,17 @@ fun SearchField(
                 // show filters button
                 if (isShowingFilter) {
                     var isExpanded by remember { mutableStateOf(false) }
-                    val activeFilters = categories.filter { it.isActive }
+                    val activeFilterCount = remember(categories) { categories.count { it.isActive } }
                     BadgedBox(
                         modifier = Modifier
                             .clickable(onClick = { isExpanded = true })
-                            .padding(horizontal = 16.dp), badge = {
-                            if (activeFilters.isNotEmpty()) {
-                                Badge { Text(activeFilters.size.toString()) }
+                            .padding(horizontal = 16.dp),
+                        badge = {
+                            if (activeFilterCount > 0) {
+                                Badge { Text(activeFilterCount.toString()) }
                             }
-                        }) {
+                        }
+                    ) {
                         Icon(
                             Icons.Default.FilterList, contentDescription = "Filter"
                         )

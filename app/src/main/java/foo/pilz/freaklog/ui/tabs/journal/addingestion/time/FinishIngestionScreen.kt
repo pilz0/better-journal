@@ -23,6 +23,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,9 +46,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -56,6 +57,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -83,8 +85,8 @@ import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
 import foo.pilz.freaklog.data.substances.classes.IngestionCategory
 import foo.pilz.freaklog.ui.YOU
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.AdministrationSitePicker
-import foo.pilz.freaklog.ui.tabs.journal.experience.components.SaltFormPicker
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
+import foo.pilz.freaklog.ui.tabs.journal.experience.components.SaltFormPicker
 import foo.pilz.freaklog.ui.tabs.journal.experience.rating.FloatingDoneButton
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import kotlinx.coroutines.launch
@@ -104,6 +106,7 @@ fun FinishIngestionScreen(
         ingestionTimePickerOption = viewModel.ingestionTimePickerOptionFlow.collectAsState().value,
         onChangeTimePickerOption = viewModel::onChangeTimePickerOption,
         onChangeStartDateOrTime = viewModel::onChangeStartDateOrTime,
+        onTimePresetSelected = { viewModel.applyTimePreset(it) },
         localDateTimeStart = localDateTime,
         localDateTimeEnd = viewModel.localDateTimeEndFlow.collectAsState().value,
         onChangeEndDateOrTime = viewModel::onChangeEndDateOrTime,
@@ -170,6 +173,7 @@ fun FinishIngestionScreenPreview() {
         ingestionTimePickerOption = IngestionTimePickerOption.POINT_IN_TIME,
         onChangeTimePickerOption = {},
         onChangeStartDateOrTime = {},
+        onTimePresetSelected = {},
         localDateTimeStart = LocalDateTime.now(),
         localDateTimeEnd = LocalDateTime.now(),
         onChangeEndDateOrTime = {},
@@ -221,12 +225,14 @@ fun FinishIngestionScreenPreview() {
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
+@Suppress("LongParameterList", "LongMethod")
 @Composable
 fun FinishIngestionScreen(
     createSaveAndDismissAfter: () -> Unit,
     ingestionTimePickerOption: IngestionTimePickerOption,
     onChangeTimePickerOption: (option: IngestionTimePickerOption) -> Unit,
     onChangeStartDateOrTime: (LocalDateTime) -> Unit,
+    onTimePresetSelected: (IngestionTimePreset) -> Unit,
     localDateTimeStart: LocalDateTime,
     onChangeEndDateOrTime: (LocalDateTime) -> Unit,
     localDateTimeEnd: LocalDateTime,
@@ -305,6 +311,19 @@ fun FinishIngestionScreen(
             ) {
                 Spacer(modifier = Modifier.height(3.dp))
                 CardWithTitle(title = "Time") {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        IngestionTimePreset.entries.forEach { preset ->
+                            SuggestionChip(
+                                onClick = { onTimePresetSelected(preset) },
+                                label = { Text(preset.label) }
+                            )
+                        }
+                    }
                     TimePointOrRangePicker(
                         onChangeTimePickerOption = onChangeTimePickerOption,
                         ingestionTimePickerOption = ingestionTimePickerOption,

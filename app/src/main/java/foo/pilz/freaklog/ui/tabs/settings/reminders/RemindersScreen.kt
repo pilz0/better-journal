@@ -214,17 +214,17 @@ private fun ReminderList(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         if (active.isNotEmpty()) {
-            item {
+            item(key = "header_active") {
                 SectionHeader("Active")
             }
-            items(active, key = { "active-${it.id}" }) {
+            items(active, key = { it.id }) {
                 ReminderRow(it, onEdit, onToggle, onDelete, onDuplicate)
             }
         }
         if (inactive.isNotEmpty()) {
-            item { Spacer(Modifier.height(8.dp)) }
-            item { SectionHeader("Disabled") }
-            items(inactive, key = { "inactive-${it.id}" }) {
+            item(key = "spacer_inactive") { Spacer(Modifier.height(8.dp)) }
+            item(key = "header_inactive") { SectionHeader("Disabled") }
+            items(inactive, key = { it.id }) {
                 ReminderRow(it, onEdit, onToggle, onDelete, onDuplicate)
             }
         }

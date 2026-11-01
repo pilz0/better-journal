@@ -93,6 +93,7 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 @Suppress("LargeClass")
@@ -165,13 +166,16 @@ class ExperienceViewModel @Inject constructor(
     )
 
     init {
-        val experienceRoute = state.toRoute<ExperienceRoute>()
-        val expId = experienceRoute.experienceId
+        val expId: Int = state.get<Int>("experienceId")
+            ?: runCatching { state.toRoute<ExperienceRoute>().experienceId }.getOrNull()
+            ?: -1
         experienceId = expId
-        viewModelScope.launch {
-            val experience = experienceRepo.getExperience(expId)
-            val isFavorite = experience?.isFavorite ?: false
-            localIsFavoriteFlow.emit(isFavorite)
+        if (expId > 0) {
+            viewModelScope.launch {
+                val experience = experienceRepo.getExperience(expId)
+                val isFavorite = experience?.isFavorite ?: false
+                localIsFavoriteFlow.emit(isFavorite)
+            }
         }
         viewModelScope.launch(Dispatchers.IO) {
             achievementDefsFlow.value = runCatching { loadAchievements(context) }.getOrElse { emptyList() }
@@ -737,15 +741,25 @@ class ExperienceViewModel @Inject constructor(
                                 val firstIngestion =
                                     groupedIngestions.first().ingestionWithCompanionAndCustomUnit
                                 val units = firstIngestion.originalUnit ?: return@mapNotNull null
-                                if (groupedIngestions.any { it.ingestionWithCompanionAndCustomUnit.originalUnit != units }) return@mapNotNull null
-                                val isEstimate =
-                                    groupedIngestions.any { it.ingestionWithCompanionAndCustomUnit.ingestion.isDoseAnEstimate || it.ingestionWithCompanionAndCustomUnit.customUnit?.isEstimate ?: false }
+                                if (groupedIngestions.any {
+                                        !RoaDose.isMatchingUnit(it.ingestionWithCompanionAndCustomUnit.originalUnit, units)
+                                    }
+                                ) {
+                                    return@mapNotNull null
+                                }
+                                val isEstimate = groupedIngestions.any {
+                                    it.ingestionWithCompanionAndCustomUnit.ingestion.isDoseAnEstimate ||
+                                        (it.ingestionWithCompanionAndCustomUnit.customUnit?.isEstimate ?: false)
+                                }
                                 val cumulativeDose =
                                     groupedIngestions.mapNotNull { it.ingestionWithCompanionAndCustomUnit.pureDose }
+                                        .filter { it.isFinite() && it >= 0.0 }
                                         .sum()
-                                val cumulativeDoseStandardDeviation =
+                                val varianceSum =
                                     groupedIngestions.mapNotNull { it.ingestionWithCompanionAndCustomUnit.pureDoseStandardDeviation }
-                                        .sum()
+                                        .filter { it.isFinite() && it > 0.0 }
+                                        .sumOf { it * it }
+                                val cumulativeDoseStandardDeviation = sqrt(varianceSum)
                                 val numDots = groupedIngestions.first().roaDose?.getNumDots(
                                     ingestionDose = cumulativeDose,
                                     ingestionUnits = units
@@ -754,7 +768,11 @@ class ExperienceViewModel @Inject constructor(
                                     cumulativeDose = cumulativeDose,
                                     units = units,
                                     isEstimate = isEstimate,
-                                    cumulativeDoseStandardDeviation = if (cumulativeDoseStandardDeviation > 0) cumulativeDoseStandardDeviation else null,
+                                    cumulativeDoseStandardDeviation = if (cumulativeDoseStandardDeviation > 0.0) {
+                                        cumulativeDoseStandardDeviation
+                                    } else {
+                                        null
+                                    },
                                     numDots = numDots,
                                     route = firstIngestion.ingestion.administrationRoute,
                                     hasMoreThanOneIngestion = groupedIngestions.size > 1

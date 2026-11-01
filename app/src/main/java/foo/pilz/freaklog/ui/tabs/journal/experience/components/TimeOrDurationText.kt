@@ -67,7 +67,7 @@ fun IngestionTimeOrDurationText(
                 RegularTimeOrRangeText(time, endTime, textStyle)
             } else {
                 val previousTime =
-                    allTimesSortedMap[index - 1]
+                    allTimesSortedMap.getOrNull(index - 1) ?: time
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (endTime != null) {
                         Text(
@@ -189,7 +189,7 @@ fun NoteOrRatingTimeOrDurationText(
             val durationText = getDurationText(
                 fromInstant = firstIngestionTime,
                 toInstant = time
-            ) + if (firstIngestionTime < time) " after start" else "before start"
+            ) + if (time >= firstIngestionTime) " after start" else " before start"
             Text(
                 text = durationText,
                 style = textStyle

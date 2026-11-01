@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -48,6 +49,16 @@ fun BarChart(buckets: List<List<ColorCount>>, startDateText: String) {
         val averageLineColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
         val labelStyle = MaterialTheme.typography.labelSmall.fontSize
         val labelHeight = with(LocalDensity.current) { labelStyle.toPx() }
+        val yAxisLabelPaint = remember(labelHeight) {
+            Paint().apply {
+                textSize = labelHeight
+                color = Color.GRAY
+                textAlign = Paint.Align.RIGHT
+            }
+        }
+        val dashPathEffect = remember {
+            PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
+        }
         Canvas(
             modifier = Modifier
                 .padding(horizontal = 10.dp)
@@ -73,21 +84,13 @@ fun BarChart(buckets: List<List<ColorCount>>, startDateText: String) {
                         half.toString(),
                         labelWidth - spaceBetweenLabelAndChart,
                         canvasHeightOuter - halfLineHeight + halfLabelHeight,
-                        Paint().apply {
-                            textSize = labelHeight
-                            color = Color.GRAY
-                            textAlign = Paint.Align.RIGHT
-                        }
+                        yAxisLabelPaint
                     )
                     drawText(
                         maxCount.toString(),
                         labelWidth - spaceBetweenLabelAndChart,
                         halfLabelHeight,
-                        Paint().apply {
-                            textSize = labelHeight
-                            color = Color.GRAY
-                            textAlign = Paint.Align.RIGHT
-                        }
+                        yAxisLabelPaint
                     )
                 }
 
@@ -178,7 +181,7 @@ fun BarChart(buckets: List<List<ColorCount>>, startDateText: String) {
                                     start = Offset(0f, avgY),
                                     end = Offset(canvasWidthWithoutLabel, avgY),
                                     strokeWidth = 2f,
-                                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
+                                    pathEffect = dashPathEffect
                                 )
                             }
                         }

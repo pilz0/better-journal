@@ -30,11 +30,12 @@ import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.ui.main.navigation.graphs.ChooseCustomSubstanceDoseRoute
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
+import foo.pilz.freaklog.ui.utils.evaluateNumericExpression
+import foo.pilz.freaklog.ui.utils.isValidDoseInput
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
-
 
 @HiltViewModel
 class CustomSubstanceChooseDoseViewModel @Inject constructor(
@@ -55,7 +56,7 @@ class CustomSubstanceChooseDoseViewModel @Inject constructor(
     var purityText by mutableStateOf("100")
     private val purity: Double?
         get() {
-            val p = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(purityText)
+            val p = evaluateNumericExpression(purityText)
             return if (p != null && p > 0 && p <= 100) {
                 p
             } else {
@@ -70,13 +71,15 @@ class CustomSubstanceChooseDoseViewModel @Inject constructor(
                 purity.let { safePurity ->
                     if (safePurity == null) return null
                     val value = it.div(safePurity).times(100)
-                    return value.toReadableString() + " impure $units"
+                    val unitStr = units.ifBlank { null }
+                    val suffix = if (!unitStr.isNullOrBlank()) " $unitStr" else ""
+                    return value.toReadableString() + " impure$suffix"
                 }
             }
         }
-    val dose: Double? get() = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(doseText)
-    val estimatedDoseStandardDeviation: Double? get() = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(estimatedDoseDeviationText)
-    val isValidDose: Boolean get() = dose != null
+    val dose: Double? get() = evaluateNumericExpression(doseText)
+    val estimatedDoseStandardDeviation: Double? get() = evaluateNumericExpression(estimatedDoseDeviationText)
+    val isValidDose: Boolean get() = isValidDoseInput(dose, if (isEstimate) estimatedDoseStandardDeviation else null)
 
     /** Dose thresholds the user stored for this substance and route, if any. */
     val roaDose: foo.pilz.freaklog.data.substances.classes.roa.RoaDose?
@@ -93,14 +96,22 @@ class CustomSubstanceChooseDoseViewModel @Inject constructor(
     }
 
     init {
-        val chooseCustomSubstanceDoseRoute = state.toRoute<ChooseCustomSubstanceDoseRoute>()
-        administrationRoute = chooseCustomSubstanceDoseRoute.administrationRoute
-        viewModelScope.launch {
-            val customSubstance =
-                experienceRepository.getCustomSubstance(chooseCustomSubstanceDoseRoute.customSubstanceName)
-                    ?: return@launch
-            substanceName = customSubstance.name
-            units = customSubstance.units
+        val chooseCustomSubstanceDoseRoute: ChooseCustomSubstanceDoseRoute? =
+            runCatching { state.toRoute<ChooseCustomSubstanceDoseRoute>() }.getOrNull()
+        administrationRoute = chooseCustomSubstanceDoseRoute?.administrationRoute
+            ?: runCatching { state.get<AdministrationRoute>("administrationRoute") }.getOrNull()
+            ?: state.get<String>("administrationRoute")?.let { runCatching { AdministrationRoute.valueOf(it) }.getOrNull() }
+            ?: AdministrationRoute.ORAL
+        val customSubstanceName = chooseCustomSubstanceDoseRoute?.customSubstanceName?.ifBlank { null }
+            ?: state.get<String>("customSubstanceName")
+        if (customSubstanceName != null) {
+            viewModelScope.launch {
+                val customSubstance =
+                    experienceRepository.getCustomSubstance(customSubstanceName)
+                        ?: return@launch
+                substanceName = customSubstance.name
+                units = customSubstance.units
+            }
         }
     }
 

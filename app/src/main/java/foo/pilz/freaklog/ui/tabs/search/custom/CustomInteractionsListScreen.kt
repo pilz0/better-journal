@@ -67,8 +67,8 @@ fun CustomInteractionsListScreen(
             verticalArrangement = Arrangement.spacedBy(spacing.sm),
         ) {
             CustomInteractionSeverity.entries.forEach { severity ->
-                item { SectionHeader(severity.displayLabel()) }
-                item {
+                item(key = "header_${severity.name}") { SectionHeader(severity.displayLabel()) }
+                item(key = "card_${severity.name}") {
                     SeverityCard(
                         severity = severity,
                         entries = grouped[severity].orEmpty(),

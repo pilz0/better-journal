@@ -28,16 +28,21 @@ fun getStrengthRelativeToCommonDose(
     roaDose: RoaDose?,
 ): Double {
     val cleanSubstance = ingestion.ingestion.substanceName.trim()
+    val targetUnit = ingestion.originalUnit
     val allKnownDoses = allIngestions
         .filter {
             it.ingestion.substanceName.trim().equals(cleanSubstance, ignoreCase = true) &&
-                it.ingestion.administrationRoute == ingestion.ingestion.administrationRoute
+                it.ingestion.administrationRoute == ingestion.ingestion.administrationRoute &&
+                RoaDose.isMatchingUnit(it.originalUnit, targetUnit)
         }
         .mapNotNull { it.pureDose?.takeIf { dose -> dose.isFinite() && dose > 0.0 } }
     val sumDose = allKnownDoses.reduceOrNull { acc, d -> acc + d } ?: 0.0
     val averageDose = sumDose / max(1.0, allKnownDoses.size.toDouble())
-    val commonDose = roaDose?.averageCommonDose?.takeIf { it.isFinite() && it > 0.0 }
-        ?: averageDose.takeIf { it.isFinite() && it > 0.0 }
+    val commonDose = if (roaDose != null && RoaDose.isMatchingUnit(targetUnit, roaDose.units)) {
+        roaDose.averageCommonDose?.takeIf { it.isFinite() && it > 0.0 }
+    } else {
+        null
+    } ?: averageDose.takeIf { it.isFinite() && it > 0.0 }
         ?: 1.0
 
     val relativeDose = ingestion.pureDose?.let { doseSnap ->

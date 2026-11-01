@@ -116,6 +116,35 @@ data class WidgetTimelineModel(
                 }
             }
 
+        internal fun buildNormalizedDurationIndex(
+            durationsBySubstance: Map<String, Map<AdministrationRoute, RoaDuration?>>,
+        ): Map<String, Map<AdministrationRoute, RoaDuration?>> {
+            val normalized = LinkedHashMap<String, Map<AdministrationRoute, RoaDuration?>>(durationsBySubstance.size)
+            for ((key, value) in durationsBySubstance) {
+                val cleanedKey = key.trim().lowercase()
+                if (!normalized.containsKey(cleanedKey)) {
+                    normalized[cleanedKey] = value
+                }
+            }
+            return normalized
+        }
+
+        internal fun findRoaDuration(
+            durationsBySubstance: Map<String, Map<AdministrationRoute, RoaDuration?>>,
+            substanceName: String,
+            route: AdministrationRoute,
+            normalizedIndex: Map<String, Map<AdministrationRoute, RoaDuration?>>? = null,
+        ): RoaDuration? {
+            val direct = durationsBySubstance[substanceName]?.get(route)
+            if (direct != null) return direct
+            val cleaned = substanceName.trim().lowercase()
+            val matchedDurations = normalizedIndex?.get(cleaned)
+                ?: durationsBySubstance.entries.firstOrNull {
+                    it.key.trim().equals(cleaned, ignoreCase = true)
+                }?.value
+            return matchedDurations?.get(route)
+        }
+
         /** Default lookback when there is no early active ingestion. */
         internal const val DEFAULT_LOOKBACK_SECONDS = 60L * 60L          // 1 hour
         /** Default lookahead when there is no late effect ending. */
@@ -146,9 +175,10 @@ data class WidgetTimelineModel(
             ingestions: List<IngestionInput>,
             durationsBySubstance: Map<String, Map<AdministrationRoute, RoaDuration?>>,
         ): WidgetTimelineModel {
+            val normalizedIndex = buildNormalizedDurationIndex(durationsBySubstance)
             // Resolve the duration shape for each ingestion up front.
             val resolved = ingestions.map { ing ->
-                val roa = durationsBySubstance[ing.substanceName]?.get(ing.route)
+                val roa = findRoaDuration(durationsBySubstance, ing.substanceName, ing.route, normalizedIndex)
                 ResolvedIngestion(
                     input = ing,
                     shape = resolveShape(roa),

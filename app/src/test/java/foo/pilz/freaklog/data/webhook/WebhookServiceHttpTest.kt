@@ -14,6 +14,7 @@ import com.ndm4.freakquery.FreakQueryConfig
 import foo.pilz.freaklog.data.freakquery.FreakQueryRepository
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
@@ -614,5 +615,143 @@ class WebhookServiceHttpTest {
         )
         assertFalse(result.success)
         assertTrue(result.error.toString().contains("too large"))
+    }
+
+    // ---------------------------------------------------------------------
+    // destinations, retries and payload rendering
+    // ---------------------------------------------------------------------
+
+    @Test
+    fun insecureRemoteDestinationFailsWithoutRequestsOrBackoff() = runBlocking {
+        val delays = mutableListOf<Long>()
+        val svc = WebhookService(logger = WebhookLogger { _, _ -> }, delayMillis = { delays += it })
+        val insecure = "http://discord.example/api/webhooks/1/token"
+
+        val sent = svc.sendWebhook(
+            url = insecure, user = "u", substance = "s", dose = null, units = null,
+            isEstimate = false, route = "r", site = null, note = null,
+            template = "{user}", isHyperlinked = false,
+        )
+        val edited = svc.editWebhook(
+            url = insecure, messageId = "1", user = "u", substance = "s", dose = null, units = null,
+            isEstimate = false, route = "r", site = null, note = null,
+            template = "{user}", isHyperlinked = false,
+        )
+
+        for (result in listOf(sent, edited)) {
+            assertFalse(result.success)
+            assertTrue(result.error is IllegalArgumentException)
+        }
+        assertFalse(svc.deleteWebhookMessage(insecure, "1"))
+        assertTrue("a rejected destination must not be retried, got $delays", delays.isEmpty())
+        assertEquals(0, server.requestCount)
+    }
+
+    @Test
+    fun malformedDestinationFailsWithoutRequests() = runBlocking {
+        val result = service.sendWebhook(
+            url = "https://discord.com/api/webhooks/1/to ken", user = "u", substance = "s", dose = null,
+            units = null, isEstimate = false, route = "r", site = null, note = null,
+            template = "{user}", isHyperlinked = false,
+        )
+
+        assertFalse(result.success)
+        assertTrue(result.error is IllegalArgumentException)
+        assertEquals(0, server.requestCount)
+    }
+
+    @Test
+    fun retriesBackOffExponentially() = runBlocking {
+        val delays = mutableListOf<Long>()
+        val svc = WebhookService(logger = WebhookLogger { _, _ -> }, delayMillis = { delays += it })
+        repeat(3) { enqueue(503) }
+
+        val result = svc.sendWebhook(
+            url = baseUrl, user = "u", substance = "s", dose = null, units = null,
+            isEstimate = false, route = "r", site = null, note = null,
+            template = "{user}", isHyperlinked = false,
+        )
+
+        assertFalse(result.success)
+        // No delay after the final attempt.
+        assertEquals(listOf(1_000L, 2_000L), delays)
+    }
+
+    @Test
+    fun surroundingWhitespaceInTheUrlIsIgnored() = runBlocking {
+        enqueue(200, """{"id":"1"}""")
+        enqueue(200)
+
+        val sent = service.sendWebhook(
+            url = "  $baseUrl/\n", user = "u", substance = "s", dose = null, units = null,
+            isEstimate = false, route = "r", site = null, note = null,
+            template = "{user}", isHyperlinked = false,
+        )
+        val deleted = service.deleteWebhookMessage(" $baseUrl ", "1")
+
+        assertTrue(sent.success)
+        assertTrue(deleted)
+        assertEquals("/webhooks/abc/token?wait=true", takeRequest().path)
+        assertEquals("/webhooks/abc/token/messages/1", takeRequest().path)
+    }
+
+    @Test
+    fun freakQueryIsSkippedWhenDisabled() = runBlocking {
+        enqueue(200, """{"id":"1"}""")
+        val repo = mockk<FreakQueryRepository>()
+        val prefs = mockk<UserPreferences> {
+            every { webhookUseFreakQueryFlow } returns flowOf(false)
+        }
+        val svc = WebhookService(
+            freakQueryRepository = repo,
+            userPreferences = prefs,
+            logger = WebhookLogger { _, _ -> },
+            delayMillis = { },
+        )
+
+        val result = svc.sendWebhook(
+            url = baseUrl, user = "Alice", substance = "Caffeine", dose = null, units = null,
+            isEstimate = false, route = "oral", site = null, note = null,
+            template = "{user} {{ count }}", isHyperlinked = false,
+        )
+
+        assertTrue(result.success)
+        assertEquals("Alice {{ count }}", JSONObject(takeRequest().body.readUtf8()).getString("content"))
+        coVerify(exactly = 0) { repo.render(any(), any()) }
+    }
+
+    @Test
+    fun saltFormAndFormulationAreShownWithTheSubstance() = runBlocking {
+        enqueue(200, """{"id":"1"}""")
+
+        val result = service.sendWebhook(
+            url = baseUrl, user = "Alice", substance = "Amphetamine", dose = 10.0, units = "mg",
+            isEstimate = false, route = "oral", site = null, note = null,
+            template = WebhookService.DEFAULT_TEMPLATE, isHyperlinked = false,
+            formulation = "IR", saltForm = "sulfate",
+        )
+
+        assertTrue(result.success)
+        assertEquals(
+            "Alice: 10 mg Amphetamine[sulfate][IR] via oral",
+            JSONObject(takeRequest().body.readUtf8()).getString("content"),
+        )
+    }
+
+    @Test
+    fun journalTextIsJsonEscapedInThePayload() = runBlocking {
+        enqueue(200, """{"id":"1"}""")
+        val note = "felt \"fine\"\\ok\nline two\t\u2603"
+
+        val result = service.sendWebhook(
+            url = baseUrl, user = "Alice", substance = "Caffeine", dose = null, units = null,
+            isEstimate = false, route = "oral", site = null, note = note,
+            template = "{note}", isHyperlinked = false,
+        )
+
+        assertTrue(result.success)
+        val request = takeRequest()
+        assertEquals("application/json", request.getHeader("Content-Type"))
+        assertEquals(note, JSONObject(request.body.readUtf8()).getString("content"))
     }
 }

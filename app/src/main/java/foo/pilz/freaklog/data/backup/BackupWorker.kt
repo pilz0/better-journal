@@ -20,6 +20,7 @@ package foo.pilz.freaklog.data.backup
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
@@ -43,6 +44,7 @@ import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.firstOrNull
 import java.io.IOException
+import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -51,12 +53,22 @@ import java.util.concurrent.TimeUnit
 /**
  * Writes an encrypted full export into the user-chosen folder once a day and
  * keeps the newest [KEEP_COUNT] files. Dependencies come from a Hilt entry
- * point so the default WorkManager factory can construct it.
+ * point so the default WorkManager factory can construct it; tests pass
+ * their own [Dependencies] and [Clock] to the internal constructor.
  */
-class BackupWorker(
+class BackupWorker internal constructor(
     appContext: Context,
     workerParams: WorkerParameters,
+    private val dependencies: () -> Dependencies,
+    private val clock: Clock,
 ) : CoroutineWorker(appContext, workerParams) {
+
+    constructor(appContext: Context, workerParams: WorkerParameters) : this(
+        appContext,
+        workerParams,
+        { EntryPointAccessors.fromApplication(appContext, Dependencies::class.java) },
+        Clock.systemDefaultZone(),
+    )
 
     @EntryPoint
     @InstallIn(SingletonComponent::class)
@@ -70,7 +82,7 @@ class BackupWorker(
 
     @Suppress("TooGenericExceptionCaught")
     override suspend fun doWork(): Result {
-        val deps = EntryPointAccessors.fromApplication(applicationContext, Dependencies::class.java)
+        val deps = dependencies()
         val userPreferences = deps.userPreferences()
         val treeUri = userPreferences.backupDirUriFlow.firstOrNull()?.let(Uri::parse)
             ?: return Result.failure()
@@ -84,7 +96,7 @@ class BackupWorker(
             val encrypted = deps.exportEncryption().encrypt(plaintext, password)
             writeBackup(treeUri, encrypted)
             pruneOldBackups(treeUri)
-            userPreferences.saveLastBackupTime(Instant.now())
+            userPreferences.saveLastBackupTime(clock.instant())
             Result.success()
         } catch (e: CancellationException) {
             throw e
@@ -105,11 +117,20 @@ class BackupWorker(
             DocumentsContract.getTreeDocumentId(treeUri)
         )
         val fileUri = DocumentsContract.createDocument(
-            resolver, parent, "application/octet-stream", backupFileName(Instant.now(), ZoneId.systemDefault())
+            resolver, parent, "application/octet-stream", backupFileName(clock.instant(), clock.zone)
         ) ?: throw IOException("Could not create backup file")
         requireBackupDocumentUri(treeUri, fileUri)
-        resolver.openOutputStream(fileUri)?.use { it.write(encrypted) }
-            ?: throw IOException("Could not write backup file")
+        writeToDocument(resolver, fileUri, encrypted)
+    }
+
+    private fun writeToDocument(resolver: ContentResolver, fileUri: Uri, encrypted: ByteArray) {
+        try {
+            resolver.openOutputStream(fileUri)?.use { it.write(encrypted) }
+                ?: throw IOException("Could not write backup file")
+        } catch (e: Throwable) {
+            runCatching { DocumentsContract.deleteDocument(resolver, fileUri) }
+            throw e
+        }
     }
 
     private fun pruneOldBackups(treeUri: Uri) {

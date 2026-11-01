@@ -144,7 +144,7 @@ data class CustomUnitDose(
 
     // https://www.mathsisfun.com/data/standard-deviation.html
     // https://en.m.wikipedia.org/wiki/Distribution_of_the_product_of_two_random_variables
-    // Var(X*Y) = (Var(X) + E(X)^2)*(Var(Y) + E(Y)^2) - E(X)^2 * E(Y)^2
+    // Var(X*Y) = Var(X)*Var(Y) + Var(X)*E(Y)^2 + Var(Y)*E(X)^2
     val calculatedDoseStandardDeviation: Double?
         get() {
             return customUnit.dose?.let { expectationY ->
@@ -154,11 +154,12 @@ data class CustomUnitDose(
                 val expectationX = dose
                 val standardDeviationX =
                     if (isEstimate) (estimatedDoseStandardDeviation ?: 0.0) else 0.0
-                val sum1 = standardDeviationX.pow(2) + expectationX.pow(2)
-                val sum2 = standardDeviationY.pow(2) + expectationY.pow(2)
-                val expectations = expectationX.pow(2) * expectationY.pow(2)
-                val productVariance = sum1 * sum2 - expectations
-                if (productVariance > 0.0000001) {
+                val varX = standardDeviationX.pow(2)
+                val varY = standardDeviationY.pow(2)
+                val expX2 = expectationX.pow(2)
+                val expY2 = expectationY.pow(2)
+                val productVariance = (varX * varY) + (varX * expY2) + (varY * expX2)
+                if (productVariance > 0.0000001 && productVariance.isFinite()) {
                     return sqrt(productVariance)
                 } else {
                     return null

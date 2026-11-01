@@ -161,6 +161,24 @@ class RoaDoseTest {
     }
 
     @Test
+    fun testGetDoseClass_asciiMicrogramUnits() {
+        val result = standardRoaDose.getDoseClass(100.0, "ug")
+        assertEquals(DoseClass.COMMON, result)
+    }
+
+    @Test
+    fun testGetDoseClass_mcgUnits() {
+        val result = standardRoaDose.getDoseClass(100.0, "mcg")
+        assertEquals(DoseClass.COMMON, result)
+    }
+
+    @Test
+    fun testGetDoseClass_greekMuUnits() {
+        val result = standardRoaDose.getDoseClass(100.0, "μg")
+        assertEquals(DoseClass.COMMON, result)
+    }
+
+    @Test
     fun testGetDoseClass_partialData_belowLight() {
         val result = partialRoaDose.getDoseClass(30.0)
         assertEquals(DoseClass.THRESHOLD, result)
@@ -375,5 +393,69 @@ class RoaDoseTest {
     fun testStrengthRelativeToCommon_nullAverage() {
         val result = partialRoaDose.getStrengthRelativeToCommonDose(100.0)
         assertNull(result)
+    }
+
+    // ===== isMatchingUnit and normalizeUnitString Tests =====
+
+    @Test
+    fun testIsMatchingUnit_caseInsensitiveAndWhitespace() {
+        assertTrue(RoaDose.isMatchingUnit("mg", "MG"))
+        assertTrue(RoaDose.isMatchingUnit(" mg ", "mg"))
+        assertTrue(RoaDose.isMatchingUnit("µg", "ug"))
+        assertTrue(RoaDose.isMatchingUnit("mcg", "µg"))
+        assertTrue(RoaDose.isMatchingUnit("μg", "ug")) // Greek mu
+        assertTrue(RoaDose.isMatchingUnit(null, null))
+        assertFalse(RoaDose.isMatchingUnit("mg", "µg"))
+        assertFalse(RoaDose.isMatchingUnit("mg", null))
+        assertFalse(RoaDose.isMatchingUnit(null, "mg"))
+    }
+
+    @Test
+    fun testNormalizeUnitString_allAliases() {
+        assertEquals("µg", RoaDose.normalizeUnitString("ug"))
+        assertEquals("µg", RoaDose.normalizeUnitString("mcg"))
+        assertEquals("µg", RoaDose.normalizeUnitString("μg"))
+        assertEquals("µg", RoaDose.normalizeUnitString("µg"))
+        assertEquals("µg", RoaDose.normalizeUnitString(" UG "))
+        assertEquals("mg", RoaDose.normalizeUnitString(" MG "))
+        assertEquals("g", RoaDose.normalizeUnitString("G"))
+        assertEquals("", RoaDose.normalizeUnitString(null))
+    }
+
+    @Test
+    fun testShouldUseVolumetricDosing_allMicrogramAliases() {
+        assertTrue(standardRoaDose.copy(units = "ug").shouldUseVolumetricDosing)
+        assertTrue(standardRoaDose.copy(units = "mcg").shouldUseVolumetricDosing)
+        assertTrue(standardRoaDose.copy(units = "μg").shouldUseVolumetricDosing)
+    }
+
+    @Test
+    fun testAverageCommonDose_nonFiniteAndNegativeGuards() {
+        val doseNegative = RoaDose(
+            units = "mg",
+            lightMin = null,
+            commonMin = -10.0,
+            strongMin = 20.0,
+            heavyMin = null
+        )
+        assertNull(doseNegative.averageCommonDose)
+
+        val doseNaN = RoaDose(
+            units = "mg",
+            lightMin = null,
+            commonMin = Double.NaN,
+            strongMin = 20.0,
+            heavyMin = null
+        )
+        assertNull(doseNaN.averageCommonDose)
+
+        val doseInfinity = RoaDose(
+            units = "mg",
+            lightMin = null,
+            commonMin = 10.0,
+            strongMin = Double.POSITIVE_INFINITY,
+            heavyMin = null
+        )
+        assertNull(doseInfinity.averageCommonDose)
     }
 }

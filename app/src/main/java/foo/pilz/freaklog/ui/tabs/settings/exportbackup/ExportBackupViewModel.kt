@@ -132,7 +132,9 @@ class ExportBackupViewModel @Inject constructor(
 
     /** Imports a plaintext export right away; an encrypted one waits for [importWithPassphrase]. */
     fun handleImportFile(uri: Uri) {
+        if (auth.shouldLock.value) return
         viewModelScope.launch {
+            if (auth.shouldLock.value) return@launch
             val bytes = readImportBytes(uri) ?: return@launch
             when {
                 ExportEncryption.looksLikeJson(bytes) -> importPlaintext(bytes.decodeToString())
@@ -143,7 +145,9 @@ class ExportBackupViewModel @Inject constructor(
 
     @Suppress("TooGenericExceptionCaught")
     fun importWithPassphrase(passphrase: String) {
+        if (auth.shouldLock.value) return
         viewModelScope.launch {
+            if (auth.shouldLock.value) return@launch
             val uri = _pendingEncryptedImport.value ?: return@launch
             _pendingEncryptedImport.value = null
             val bytes = readImportBytes(uri) ?: return@launch
@@ -202,7 +206,9 @@ class ExportBackupViewModel @Inject constructor(
     val substanceCollision: StateFlow<foo.pilz.freaklog.data.substanceshare.SharedSubstance?> = _substanceCollision.asStateFlow()
 
     fun importSubstanceFile(uri: Uri) {
+        if (auth.shouldLock.value) return
         viewModelScope.launch {
+            if (auth.shouldLock.value) return@launch
             when (val result = foo.pilz.freaklog.data.substanceshare.parseAndImport(appContext, uri, customSubstanceRepository)) {
                 is foo.pilz.freaklog.data.substanceshare.ImportResult.Imported -> snackbarHostState.showSnackbar("Imported ${result.name}")
                 is foo.pilz.freaklog.data.substanceshare.ImportResult.CollisionPending -> _substanceCollision.value = result.payload

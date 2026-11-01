@@ -1,5 +1,18 @@
 package foo.pilz.freaklog.ui.utils
 
+const val MAX_VALID_DOSE = 1_000_000.0
+
+fun isValidDoseInput(
+    dose: Double?,
+    standardDeviation: Double? = null,
+    maxDose: Double = MAX_VALID_DOSE,
+): Boolean {
+    val isDoseOk = dose != null && dose > 0.0 && dose.isFinite() && dose <= maxDose
+    val isDeviationOk = standardDeviation == null ||
+        (standardDeviation >= 0.0 && standardDeviation.isFinite() && standardDeviation <= maxDose)
+    return isDoseOk && isDeviationOk
+}
+
 fun evaluateNumericExpression(input: String): Double? {
     val text = input.trim().replace(',', '.')
     if (text.isEmpty()) return null

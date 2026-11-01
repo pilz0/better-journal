@@ -41,13 +41,14 @@ class BackupPasswordStore @Inject constructor() {
     fun unseal(sealed: String): String? {
         return try {
             val bytes = Base64.decode(sealed, Base64.NO_WRAP)
+            if (bytes.size <= IV_LENGTH) return null
             val cipher = Cipher.getInstance(TRANSFORMATION)
             cipher.init(
                 Cipher.DECRYPT_MODE,
                 getOrCreateKey(),
                 GCMParameterSpec(128, bytes, 0, IV_LENGTH)
             )
-            String(cipher.doFinal(bytes, IV_LENGTH, bytes.size - IV_LENGTH))
+            cipher.doFinal(bytes, IV_LENGTH, bytes.size - IV_LENGTH).decodeToString()
         } catch (_: GeneralSecurityException) {
             null
         } catch (_: IllegalArgumentException) {

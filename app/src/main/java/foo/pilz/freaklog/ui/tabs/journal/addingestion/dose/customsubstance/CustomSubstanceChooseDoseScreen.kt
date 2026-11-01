@@ -97,7 +97,7 @@ fun CustomSubstanceChooseDoseScreen(
                 viewModel.units,
                 viewModel.isEstimate,
                 viewModel.dose,
-                viewModel.estimatedDoseStandardDeviation
+                if (viewModel.isEstimate) viewModel.estimatedDoseStandardDeviation else null
             )
         },
         useUnknownDoseAndNavigate = {

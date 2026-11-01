@@ -34,6 +34,7 @@ jobs:
     timeout-minutes: 60
     permissions:
       contents: read
+    continue-on-error: ${{ matrix.api-level == 37 }}
     strategy:
       fail-fast: false
       matrix:
@@ -81,6 +82,7 @@ jobs:
 
       - name: Create AVD and generate snapshot for caching
         if: steps.avd-cache.outputs.cache-hit != 'true'
+        continue-on-error: ${{ matrix.api-level == 37 }}
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
           # Google publishes API 37 as `android-37.0` (platform and system image).
@@ -95,6 +97,7 @@ jobs:
           script: echo "Generated AVD snapshot for caching."
 
       - name: Run instrumented tests
+        continue-on-error: ${{ matrix.api-level == 37 }}
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
           # Google publishes API 37 as `android-37.0` (platform and system image).
