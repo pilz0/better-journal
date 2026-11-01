@@ -37,7 +37,7 @@ import kotlinx.serialization.json.put
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.ProtocolException
-import java.net.URL
+import java.net.URI
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -158,9 +158,7 @@ class WebhookService internal constructor(
     suspend fun deleteWebhookMessage(url: String, messageId: String): Boolean =
         withContext(Dispatchers.IO) {
             try {
-                val cleanUrl = if (url.endsWith("/")) url.dropLast(1) else url
-                val webhookUrl = checkedWebhookUrl(cleanUrl)
-                val requestUrl = URL("${webhookUrl}/messages/$messageId")
+                val requestUrl = URI("${checkedWebhookUrl(url)}/messages/$messageId").toURL()
 
                 val connection = requestUrl.openConnection() as HttpURLConnection
                 try {
@@ -257,13 +255,20 @@ class WebhookService internal constructor(
             put("content", finalContent)
         }
 
+        // An insecure or malformed destination won't get better by retrying.
+        val webhookUrl = try {
+            checkedWebhookUrl(url)
+        } catch (e: IllegalArgumentException) {
+            return WebhookResult(success = false, messageId = null, error = e)
+        }
+
         var lastError: Exception? = null
 
         for (attempt in 0 until MAX_RETRIES) {
             try {
                 logger.warn("WebhookService", "Attempting to send webhook")
                 val result = performWebhookRequest(
-                    url = url,
+                    webhookUrl = webhookUrl,
                     payload = payload,
                     isEdit = isEdit,
                     messageId = messageId
@@ -283,19 +288,16 @@ class WebhookService internal constructor(
     }
 
     private suspend fun performWebhookRequest(
-        url: String,
+        webhookUrl: String,
         payload: JsonObject,
         isEdit: Boolean,
         messageId: String?
     ): String? = withContext(Dispatchers.IO) {
-        val cleanUrl = if (url.endsWith("/")) url.dropLast(1) else url
-        val webhookUrl = checkedWebhookUrl(cleanUrl)
-
         val requestUrl = if (isEdit && messageId != null) {
-            URL("${webhookUrl}/messages/$messageId")
+            URI("$webhookUrl/messages/$messageId").toURL()
         } else {
-            val separator = if (cleanUrl.contains("?")) "&" else "?"
-            URL("$cleanUrl${separator}wait=true")
+            val separator = if (webhookUrl.contains("?")) "&" else "?"
+            URI("$webhookUrl${separator}wait=true").toURL()
         }
 
         val connection = requestUrl.openConnection() as HttpURLConnection
@@ -383,9 +385,14 @@ class WebhookService internal constructor(
         }
     }
 
-    private fun checkedWebhookUrl(url: String): URL {
-        require(isSecureWebhookUrl(url)) { "HTTPS is required for remote webhook destinations" }
-        return URL(url)
+    /**
+     * Returns [url] without surrounding whitespace and a single trailing slash.
+     * @throws IllegalArgumentException for destinations [isSecureWebhookUrl] rejects
+     */
+    private fun checkedWebhookUrl(url: String): String {
+        val cleanUrl = url.trim().removeSuffix("/")
+        require(isSecureWebhookUrl(cleanUrl)) { "HTTPS is required for remote webhook destinations" }
+        return cleanUrl
     }
 
     private fun readBoundedResponse(stream: java.io.InputStream, encoding: String?): String {

@@ -36,6 +36,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.time.Instant
+import kotlin.math.sqrt
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class StatsViewModelTest {
@@ -44,6 +45,10 @@ class StatsViewModelTest {
     private val experienceRepo = mockk<ExperienceRepository>()
     private val skinEligibility = mockk<UltraFunSkinEligibility>(relaxed = true)
     private val excelSkinController = mockk<ExcelSkinController>(relaxed = true)
+    private val viewModels = mutableListOf<StatsViewModel>()
+
+    private fun createViewModel() =
+        StatsViewModel(experienceRepo, skinEligibility, excelSkinController).also { viewModels.add(it) }
 
     @Before
     fun setUp() {
@@ -61,6 +66,7 @@ class StatsViewModelTest {
 
     @After
     fun tearDown() {
+        viewModels.forEach { it.viewModelScope.cancel() }
         Dispatchers.resetMain()
     }
 
@@ -69,6 +75,8 @@ class StatsViewModelTest {
         units: String?,
         isEstimate: Boolean = false,
         estimatedDoseStandardDeviation: Double? = null,
+        customUnit: CustomUnit? = null,
+        time: Instant = Instant.parse("2026-05-01T12:00:00Z"),
     ): IngestionWithCompanionAndCustomUnit {
         val ingestion = Ingestion(
             id = 1,
@@ -79,22 +87,22 @@ class StatsViewModelTest {
             units = units,
             isDoseAnEstimate = isEstimate,
             estimatedDoseStandardDeviation = estimatedDoseStandardDeviation,
-            time = Instant.parse("2026-05-01T12:00:00Z"),
+            time = time,
             notes = null,
             stomachFullness = null,
             consumerName = null,
-            customUnitId = null,
+            customUnitId = customUnit?.id,
         )
         return IngestionWithCompanionAndCustomUnit(
             ingestion = ingestion,
             substanceCompanion = null,
-            customUnit = null,
+            customUnit = customUnit,
         )
     }
 
     @Test
     fun `getTotalDose returns null for empty list or conflicting units`() {
-        val viewModel = StatsViewModel(experienceRepo, skinEligibility, excelSkinController)
+        val viewModel = createViewModel()
 
         assertNull(viewModel.getTotalDose(emptyList()))
 
@@ -109,13 +117,198 @@ class StatsViewModelTest {
             createIngestionWithData(dose = null, units = "mg"),
         )
         assertNull(viewModel.getTotalDose(nullDose))
+    }
 
-        viewModel.viewModelScope.cancel()
+    private fun customUnit(
+        id: Int = 42,
+        dose: Double = 10.0,
+        deviation: Double? = null,
+        isEstimate: Boolean = false,
+        originalUnit: String = "mg",
+    ) = CustomUnit(
+        id = id,
+        substanceName = "Substance A",
+        name = "Drop",
+        creationDate = Instant.EPOCH,
+        administrationRoute = AdministrationRoute.ORAL,
+        dose = dose,
+        estimatedDoseStandardDeviation = deviation,
+        isEstimate = isEstimate,
+        isArchived = false,
+        unit = "drop",
+        originalUnit = originalUnit,
+        note = "",
+    )
+
+    @Test
+    fun `getTotalDose rejects missing units regardless of ingestion order`() {
+        val viewModel = createViewModel()
+        val known = createIngestionWithData(10.0, "mg")
+        val unknown = createIngestionWithData(20.0, null)
+
+        assertNull(viewModel.getTotalDose(listOf(unknown)))
+        assertNull(viewModel.getTotalDose(listOf(known, unknown)))
+        assertNull(viewModel.getTotalDose(listOf(unknown, known)))
+    }
+
+    @Test
+    fun `getTotalDose rejects nonfinite raw and converted doses`() {
+        val viewModel = createViewModel()
+        for (invalid in listOf(Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY)) {
+            assertNull(viewModel.getTotalDose(listOf(createIngestionWithData(invalid, "mg"))))
+            val invalidCustomUnit = listOf(
+                createIngestionWithData(1.0, "drop", customUnit = customUnit(dose = invalid)),
+            )
+            assertNull(viewModel.getTotalDose(invalidCustomUnit))
+        }
+    }
+
+    @Test
+    fun `getTotalDose matches microgram aliases without converting different scales`() {
+        val viewModel = createViewModel()
+        val ingestions = listOf(
+            createIngestionWithData(10.0, "ug"),
+            createIngestionWithData(20.0, " μg "),
+            createIngestionWithData(30.0, "MCG"),
+        )
+        val total = requireNotNull(viewModel.getTotalDose(ingestions))
+
+        assertEquals(60.0, total.dose, 1e-9)
+        assertEquals("ug", total.units)
+        val mixedScales = listOf(
+            createIngestionWithData(1.0, "g"),
+            createIngestionWithData(1000.0, "mg"),
+        )
+        assertNull(viewModel.getTotalDose(mixedScales))
+    }
+
+    @Test
+    fun `getTotalDose accepts zero and estimates without a known deviation`() {
+        val ingestions = listOf(
+            createIngestionWithData(0.0, "mg", isEstimate = true),
+            createIngestionWithData(0.0, "mg", estimatedDoseStandardDeviation = 0.0),
+        )
+        val total = requireNotNull(createViewModel().getTotalDose(ingestions))
+
+        assertEquals(0.0, total.dose, 0.0)
+        assertTrue(total.isEstimate)
+        assertNull(total.estimatedDoseStandardDeviation)
+    }
+
+    @Test
+    fun `getTotalDose combines three independent variances and ignores absent deviations`() {
+        val ingestions = listOf(
+            createIngestionWithData(10.0, "mg", true, 2.0),
+            createIngestionWithData(20.0, "mg", true, 3.0),
+            createIngestionWithData(30.0, "mg", true, 6.0),
+            createIngestionWithData(40.0, "mg"),
+            createIngestionWithData(50.0, "mg", true),
+        )
+        val total = requireNotNull(createViewModel().getTotalDose(ingestions))
+
+        assertEquals(150.0, total.dose, 1e-9)
+        assertTrue(total.isEstimate)
+        assertEquals(7.0, requireNotNull(total.estimatedDoseStandardDeviation), 1e-9)
+    }
+
+    @Test
+    fun `getTotalDose converts fractional custom units and sums with base units`() {
+        val ingestions = listOf(
+            createIngestionWithData(0.5, "drop", customUnit = customUnit(dose = 20.0)),
+            createIngestionWithData(1.5, "drops", customUnit = customUnit(id = 43, dose = 4.0)),
+            createIngestionWithData(4.0, "mg"),
+        )
+        val total = requireNotNull(createViewModel().getTotalDose(ingestions))
+
+        assertEquals(20.0, total.dose, 1e-9)
+        assertEquals("mg", total.units)
+        assertFalse(total.isEstimate)
+        assertNull(total.estimatedDoseStandardDeviation)
+    }
+
+    @Test
+    fun `getTotalDose rejects custom units with incompatible base units`() {
+        val incompatible = listOf(
+            createIngestionWithData(1.0, "drop", customUnit = customUnit()),
+            createIngestionWithData(1.0, "drop", customUnit = customUnit(id = 43, originalUnit = "ml")),
+        )
+        assertNull(createViewModel().getTotalDose(incompatible))
+    }
+
+    @Test
+    fun `getTotalDose scales quantity uncertainty by an exact conversion factor`() {
+        val unit = customUnit(dose = 10.0)
+        val ingestions = listOf(
+            createIngestionWithData(2.0, "drops", true, 0.3, unit),
+            createIngestionWithData(3.0, "drops", true, 0.4, unit),
+        )
+        val total = requireNotNull(createViewModel().getTotalDose(ingestions))
+
+        assertEquals(50.0, total.dose, 1e-9)
+        assertEquals(5.0, requireNotNull(total.estimatedDoseStandardDeviation), 1e-9)
+    }
+
+    @Test
+    fun `getTotalDose includes quantity conversion and product variances for a shared estimate`() {
+        val unit = customUnit(dose = 10.0, deviation = 2.0, isEstimate = true)
+        val ingestions = listOf(
+            createIngestionWithData(2.0, "drops", true, 0.3, unit),
+            createIngestionWithData(3.0, "drops", true, 0.4, unit),
+            createIngestionWithData(5.0, "mg", true, 4.0),
+        )
+        val total = requireNotNull(createViewModel().getTotalDose(ingestions))
+
+        // Var(X)=0.25, E(X)=5, E(Y)=10, Var(Y)=4:
+        // Var(XY)=0.25*100 + 25*4 + 0.25*4 = 126; raw dose adds 16.
+        assertEquals(55.0, total.dose, 1e-9)
+        assertEquals(sqrt(142.0), requireNotNull(total.estimatedDoseStandardDeviation), 1e-9)
+        assertTrue(total.isEstimate)
+    }
+
+    @Test
+    fun `getTotalDose keeps estimates from distinct custom unit ids independent`() {
+        val first = customUnit(id = 42, deviation = 1.0, isEstimate = true)
+        val second = first.copy(id = 43)
+        val ingestions = listOf(
+            createIngestionWithData(3.0, "drops", customUnit = first),
+            createIngestionWithData(4.0, "drops", customUnit = second),
+        )
+        val total = requireNotNull(createViewModel().getTotalDose(ingestions))
+
+        assertEquals(70.0, total.dose, 1e-9)
+        assertEquals(5.0, requireNotNull(total.estimatedDoseStandardDeviation), 1e-9)
+    }
+
+    @Test
+    fun `getTotalDose groups copies by custom unit id rather than object identity`() {
+        val unit = customUnit(deviation = 1.0, isEstimate = true)
+        val ingestions = listOf(
+            createIngestionWithData(3.0, "drops", customUnit = unit),
+            createIngestionWithData(4.0, "drops", customUnit = unit.copy()),
+        )
+        val total = requireNotNull(createViewModel().getTotalDose(ingestions))
+
+        assertEquals(70.0, total.dose, 1e-9)
+        assertEquals(7.0, requireNotNull(total.estimatedDoseStandardDeviation), 1e-9)
+    }
+
+    @Test
+    fun `getTotalDose is independent of negative epoch times and ingestion order`() {
+        val viewModel = createViewModel()
+        val ingestions = listOf(
+            createIngestionWithData(10.0, "mg", true, 3.0, time = Instant.ofEpochSecond(-3600)),
+            createIngestionWithData(20.0, "mg", true, 4.0, time = Instant.ofEpochSecond(-1)),
+        )
+        val total = requireNotNull(viewModel.getTotalDose(ingestions))
+
+        assertEquals(30.0, total.dose, 1e-9)
+        assertEquals(5.0, requireNotNull(total.estimatedDoseStandardDeviation), 1e-9)
+        assertEquals(total, viewModel.getTotalDose(ingestions.reversed()))
     }
 
     @Test
     fun `getTotalDose calculates dose sum and standard deviation in quadrature`() {
-        val viewModel = StatsViewModel(experienceRepo, skinEligibility, excelSkinController)
+        val viewModel = createViewModel()
 
         // 30 +- 3 mg and 40 +- 4 mg -> total dose 70 mg, combined uncertainty sqrt(3^2 + 4^2) = 5.0 mg
         val ingestions = listOf(
@@ -138,14 +331,12 @@ class StatsViewModelTest {
         assertEquals(70.0, totalDose!!.dose, 0.001)
         assertEquals("mg", totalDose.units)
         assertTrue(totalDose.isEstimate)
-        assertEquals(5.0, totalDose.estimatedDoseStandardDeviation ?: 0.0, 0.001)
-
-        viewModel.viewModelScope.cancel()
+        assertEquals(5.0, requireNotNull(totalDose.estimatedDoseStandardDeviation), 0.001)
     }
 
     @Test
     fun `getTotalDose preserves exact dose without estimate flags when exact`() {
-        val viewModel = StatsViewModel(experienceRepo, skinEligibility, excelSkinController)
+        val viewModel = createViewModel()
 
         val ingestions = listOf(
             createIngestionWithData(dose = 10.0, units = "mg"),
@@ -157,13 +348,11 @@ class StatsViewModelTest {
         assertEquals(30.0, totalDose!!.dose, 0.001)
         assertFalse(totalDose.isEstimate)
         assertNull(totalDose.estimatedDoseStandardDeviation)
-
-        viewModel.viewModelScope.cancel()
     }
 
     @Test
     fun `getTotalDose accounts for correlated conversion errors when ingestions share a custom unit estimate`() {
-        val viewModel = StatsViewModel(experienceRepo, skinEligibility, excelSkinController)
+        val viewModel = createViewModel()
 
         val customUnit = CustomUnit(
             id = 42,
@@ -228,8 +417,6 @@ class StatsViewModelTest {
         assertEquals(20.0, totalDose!!.dose, 0.001)
         assertEquals("mg", totalDose.units)
         assertTrue(totalDose.isEstimate)
-        assertEquals(2.0, totalDose.estimatedDoseStandardDeviation ?: 0.0, 0.001)
-
-        viewModel.viewModelScope.cancel()
+        assertEquals(2.0, requireNotNull(totalDose.estimatedDoseStandardDeviation), 0.001)
     }
 }
