@@ -27,6 +27,7 @@ import java.time.Instant
 @Entity(
     indices = [
         Index(value = ["sortDate"]),
+        Index(value = ["creationDate"]),
     ],
 )
 data class Experience(
