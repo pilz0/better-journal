@@ -1,7 +1,5 @@
 package com.ndm4.freakquery
 
-import org.json.JSONArray
-import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -146,19 +144,75 @@ internal object TextRenderer {
 }
 
 internal object JsonRenderer {
-    fun render(data: Any?, plan: QueryPlan, ctx: Context): String =
-        when (val normalized = normalizeData(data, ctx.config)) {
-            is List<*> -> JSONArray(normalized).toString(2)
-            is Map<*, *> -> JSONObject(normalized).toString(2)
-            is String -> JSONObject.quote(normalized)
-            null -> "null"
-            else -> normalized.toString()
-        }
+    private const val MAX_DEPTH = 32
 
-    private fun normalizeData(data: Any?, config: FreakQueryConfig): Any? = when (data) {
-        is List<*> -> data.map { normalizeData(it, config) }
-        is Map<*, *> -> normalizeObj(data, config)
-        else -> data
+    fun render(data: Any?, plan: QueryPlan, ctx: Context): String {
+        val maxLen = ctx.config.maxOutputLength ?: Int.MAX_VALUE
+        val sb = StringBuilder()
+        serialize(data, ctx.config, sb, 0, maxLen)
+        return sb.toString()
+    }
+
+    private fun serialize(data: Any?, config: FreakQueryConfig, sb: StringBuilder, depth: Int, maxLen: Int) {
+        if (sb.length >= maxLen) return
+        if (depth > MAX_DEPTH) {
+            sb.append("\"[depth-limit-exceeded]\"")
+            return
+        }
+        when (data) {
+            null -> sb.append("null")
+            is Boolean -> sb.append(data)
+            is Number -> sb.append(data)
+            is String -> quoteString(data, sb, maxLen)
+            is List<*> -> {
+                sb.append('[')
+                data.forEachIndexed { index, item ->
+                    if (index > 0) sb.append(',')
+                    if (sb.length >= maxLen) return
+                    serialize(item, config, sb, depth + 1, maxLen)
+                }
+                sb.append(']')
+            }
+            is Map<*, *> -> {
+                val normalized = normalizeObj(data, config)
+                sb.append('{')
+                var first = true
+                for ((key, value) in normalized) {
+                    if (!first) sb.append(',')
+                    first = false
+                    if (sb.length >= maxLen) return
+                    quoteString(key, sb, maxLen)
+                    sb.append(':')
+                    serialize(value, config, sb, depth + 1, maxLen)
+                }
+                sb.append('}')
+            }
+            else -> quoteString(data.toString(), sb, maxLen)
+        }
+    }
+
+    private fun quoteString(s: String, sb: StringBuilder, maxLen: Int) {
+        sb.append('"')
+        for (i in 0 until s.length) {
+            if (sb.length >= maxLen - 1) break
+            when (val c = s[i]) {
+                '\\' -> sb.append("\\\\")
+                '"' -> sb.append("\\\"")
+                '\b' -> sb.append("\\b")
+                '\u000C' -> sb.append("\\f")
+                '\n' -> sb.append("\\n")
+                '\r' -> sb.append("\\r")
+                '\t' -> sb.append("\\t")
+                else -> {
+                    if (c < ' ') {
+                        sb.append(String.format(Locale.ROOT, "\\u%04x", c.code))
+                    } else {
+                        sb.append(c)
+                    }
+                }
+            }
+        }
+        sb.append('"')
     }
 
     private fun normalizeObj(obj: Map<*, *>, config: FreakQueryConfig): Map<String, Any?> {

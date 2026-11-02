@@ -65,13 +65,43 @@ object AiHttp {
         }
     }.flowOn(Dispatchers.IO)
 
+    const val MAX_JSON_NESTING_DEPTH = 64
+
+    fun validateJsonNesting(text: String, maxDepth: Int = MAX_JSON_NESTING_DEPTH) {
+        var depth = 0
+        var inString = false
+        var escaped = false
+        for (i in 0 until text.length) {
+            val c = text[i]
+            if (escaped) {
+                escaped = false
+            } else if (c == '\\' && inString) {
+                escaped = true
+            } else if (c == '"') {
+                inString = !inString
+            } else if (!inString) {
+                if (c == '{' || c == '[') {
+                    depth++
+                    if (depth > maxDepth) {
+                        throw AiException("Response exceeded maximum nesting depth of $maxDepth")
+                    }
+                } else if (c == '}' || c == ']') {
+                    if (depth > 0) depth--
+                }
+            }
+        }
+    }
+
     suspend fun getJson(url: String, headers: Map<String, String>): JSONObject =
         get(url, headers) { stream, host ->
             val text = readCapped(stream, host)
+            validateJsonNesting(text)
             try {
                 JSONObject(text)
             } catch (e: JSONException) {
                 throw AiException("$host returned something that isn't JSON.", cause = e)
+            } catch (e: StackOverflowError) {
+                throw AiException("$host returned a response that is too deeply nested.", cause = e)
             }
         }
 

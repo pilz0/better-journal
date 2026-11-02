@@ -26,7 +26,10 @@ import java.time.Instant
 
 /** One manual blood pressure measurement (mmHg), optionally with a pulse (bpm), taken during an experience. */
 @Entity(
-    indices = [Index(value = ["experienceId"])],
+    indices = [
+        Index(value = ["experienceId"]),
+        Index(value = ["time"]),
+    ],
     foreignKeys = [
         ForeignKey(
             entity = Experience::class,

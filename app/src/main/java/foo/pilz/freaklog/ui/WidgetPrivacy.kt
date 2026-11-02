@@ -7,7 +7,13 @@ import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.state.PreferencesGlanceStateDefinition
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.File
+
+object WidgetPrivacy {
+    val mutex = Mutex()
+}
 
 internal fun isRegisteredWidget(context: Context, provider: Class<*>, id: Int): Boolean =
     id > 0 && id in AppWidgetManager.getInstance(context).getAppWidgetIds(ComponentName(context, provider))
@@ -26,6 +32,8 @@ internal suspend fun GlanceAppWidget.updateAllPrivate(context: Context) {
 }
 
 suspend fun refreshPrivateJournalPreviews(context: Context) {
-    MyAppWidget().updateAllPrivate(context)
-    HeatmapAppWidget().updateAllPrivate(context)
+    WidgetPrivacy.mutex.withLock {
+        MyAppWidget().updateAllPrivate(context)
+        HeatmapAppWidget().updateAllPrivate(context)
+    }
 }

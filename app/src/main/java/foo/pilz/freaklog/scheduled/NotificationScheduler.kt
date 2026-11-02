@@ -22,6 +22,9 @@ import foo.pilz.freaklog.MainActivity
 import foo.pilz.freaklog.R
 import foo.pilz.freaklog.data.room.reminders.RemindersRepository
 import foo.pilz.freaklog.data.room.reminders.entities.Reminder
+import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,6 +38,7 @@ import javax.inject.Singleton
 class NotificationScheduler @Inject constructor(
     @ApplicationContext private val context: Context,
     private val remindersRepository: RemindersRepository,
+    private val userPreferences: UserPreferences,
 ) {
 
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -155,8 +159,12 @@ class NotificationScheduler @Inject constructor(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val title = reminder.title.ifBlank { "Reminder" }
-        val body = buildBody(reminder)
+        val isLocked = runBlocking {
+            runCatching { userPreferences.isLockEnabledFlow.first() }.getOrDefault(false)
+        }
+
+        val title = if (isLocked) "Reminder" else reminder.title.ifBlank { "Reminder" }
+        val body = if (isLocked) "Time for your scheduled reminder." else buildBody(reminder)
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
@@ -168,7 +176,7 @@ class NotificationScheduler @Inject constructor(
             .setContentIntent(openPending)
             .setAutoCancel(true)
 
-        if (includeActions) {
+        if (includeActions && !isLocked) {
             // "Take" only makes sense if a substance + route are configured.
             if (!reminder.substanceName.isNullOrBlank() && !reminder.administrationRoute.isNullOrBlank()) {
                 builder.addAction(

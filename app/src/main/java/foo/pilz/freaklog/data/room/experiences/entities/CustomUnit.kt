@@ -19,12 +19,18 @@
 package foo.pilz.freaklog.data.room.experiences.entities
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
 import java.time.Instant
 
-@Entity
+@Entity(
+    indices = [
+        Index(value = ["creationDate"]),
+        Index(value = ["substanceName"]),
+    ]
+)
 data class CustomUnit(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,

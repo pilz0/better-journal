@@ -39,9 +39,11 @@ import foo.pilz.freaklog.ui.main.navigation.graphs.ExperienceRoute
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.interactions.InteractionChecker
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.hourLimitToSeparateIngestions
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.DataForOneEffectLine
+import foo.pilz.freaklog.ui.tabs.journal.experience.components.IngestionDoseKey
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.SavedTimeDisplayOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.TimeDisplayOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.getStrengthRelativeToCommonDose
+import foo.pilz.freaklog.ui.tabs.journal.experience.components.precomputeAverageDoses
 import foo.pilz.freaklog.ui.tabs.journal.experience.models.ConsumerWithIngestions
 import foo.pilz.freaklog.ui.tabs.journal.experience.models.CumulativeDose
 import foo.pilz.freaklog.ui.tabs.journal.experience.models.CumulativeRouteAndDose
@@ -700,8 +702,11 @@ class ExperienceViewModel @Inject constructor(
         fun getDataForEffectTimelines(
             ingestionElements: List<IngestionElement>,
             substances: List<Substance>
-        ) =
-            ingestionElements.map { oneElement ->
+        ): List<DataForOneEffectLine> {
+            val allIngestions = ingestionElements.map { it.ingestionWithCompanionAndCustomUnit }
+            val averageDoses = precomputeAverageDoses(allIngestions)
+            val substanceByName = substances.associateBy { it.name.trim().lowercase() }
+            return ingestionElements.map { oneElement ->
                 val horizontalWeight = if (oneElement.numDots == null) {
                     0.5f
                 } else if (oneElement.numDots > 4) {
@@ -710,16 +715,22 @@ class ExperienceViewModel @Inject constructor(
                     oneElement.numDots.toFloat() / 4f
                 }
                 val ingestion = oneElement.ingestionWithCompanionAndCustomUnit.ingestion
+                val key = IngestionDoseKey(
+                    ingestion.substanceName.trim().lowercase(),
+                    ingestion.administrationRoute,
+                    RoaDose.normalizeUnitString(oneElement.ingestionWithCompanionAndCustomUnit.originalUnit)
+                )
+                val avgDose = averageDoses[key] ?: 0.0
+                val roaDose = oneElement.roaDose ?: substanceByName[ingestion.substanceName.trim().lowercase()]
+                    ?.getRoa(ingestion.administrationRoute)?.roaDose
                 DataForOneEffectLine(
                     substanceName = ingestion.substanceName,
                     route = ingestion.administrationRoute,
                     roaDuration = oneElement.roaDuration,
                     height = getStrengthRelativeToCommonDose(
                         ingestion = oneElement.ingestionWithCompanionAndCustomUnit,
-                        allIngestions = ingestionElements.map { it.ingestionWithCompanionAndCustomUnit },
-                        roaDose = oneElement.roaDose ?: substances.firstOrNull {
-                            it.name.trim().equals(ingestion.substanceName.trim(), ignoreCase = true)
-                        }?.getRoa(ingestion.administrationRoute)?.roaDose
+                        averageDose = avgDose,
+                        roaDose = roaDose
                     ).toFloat(),
                     horizontalWeight = horizontalWeight,
                     color = oneElement.ingestionWithCompanionAndCustomUnit.substanceCompanion?.color
@@ -728,6 +739,7 @@ class ExperienceViewModel @Inject constructor(
                     endTime = ingestion.endTime
                 )
             }
+        }
 
         fun getCumulativeDoses(ingestions: List<IngestionWithAssociatedData>): List<CumulativeDose> {
             return ingestions.groupBy { it.ingestionWithCompanionAndCustomUnit.ingestion.substanceName }

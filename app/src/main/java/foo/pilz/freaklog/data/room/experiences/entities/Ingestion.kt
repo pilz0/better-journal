@@ -19,11 +19,19 @@
 package foo.pilz.freaklog.data.room.experiences.entities
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import java.time.Instant
 
-@Entity
+@Entity(
+    indices = [
+        Index(value = ["experienceId"]),
+        Index(value = ["time"]),
+        Index(value = ["substanceName"]),
+        Index(value = ["customUnitId"]),
+    ]
+)
 data class Ingestion(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,

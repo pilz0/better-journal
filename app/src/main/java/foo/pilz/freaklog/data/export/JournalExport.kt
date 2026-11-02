@@ -138,9 +138,9 @@ data class WebhookSerializable(
         displayName = displayName,
         template = template,
         isHyperlinked = isHyperlinked,
-        // Imported webhooks whose URL was redacted on export must be
-        // re-enabled by the user after they restore the secret token.
-        isEnabled = isEnabled && !isRedacted(url) && foo.pilz.freaklog.data.webhook.isSecureWebhookUrl(url),
+        // Imported webhooks must always be restored as disabled so the user
+        // reviews the destination endpoint and template before activating sends.
+        isEnabled = false,
         sortOrder = sortOrder
     )
 }

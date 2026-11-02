@@ -12,6 +12,7 @@ import android.util.Log
 import androidx.annotation.VisibleForTesting
 import androidx.core.app.NotificationManagerCompat
 import dagger.hilt.android.AndroidEntryPoint
+import foo.pilz.freaklog.MainActivity
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.room.experiences.entities.Experience
@@ -20,9 +21,11 @@ import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
 import foo.pilz.freaklog.data.room.reminders.RemindersRepository
 import foo.pilz.freaklog.data.room.reminders.entities.Reminder
 import foo.pilz.freaklog.data.substances.AdministrationRoute
+import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -39,8 +42,12 @@ import javax.inject.Inject
 class ReminderActionReceiver : BroadcastReceiver() {
 
     @Inject lateinit var remindersRepository: RemindersRepository
+
     @Inject lateinit var experienceRepository: ExperienceRepository
+
     @Inject lateinit var notificationScheduler: NotificationScheduler
+
+    @Inject lateinit var userPreferences: UserPreferences
 
     override fun onReceive(context: Context, intent: Intent) {
         val reminderId = intent.getIntExtra(EXTRA_REMINDER_ID, -1)
@@ -56,7 +63,18 @@ class ReminderActionReceiver : BroadcastReceiver() {
                     return@launch
                 }
                 when (action) {
-                    ACTION_TAKE -> handleTake(reminder)
+                    ACTION_TAKE -> {
+                        if (userPreferences.isLockEnabledFlow.first()) {
+                            val openIntent = Intent(context, MainActivity::class.java).apply {
+                                setPackage(context.packageName)
+                                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                putExtra(NotificationScheduler.EXTRA_REMINDER_ID, reminderId)
+                            }
+                            context.startActivity(openIntent)
+                        } else {
+                            handleTake(reminder)
+                        }
+                    }
                     ACTION_SNOOZE -> {
                         val minutes = intent.getIntExtra(EXTRA_SNOOZE_MINUTES, 15)
                         val triggerAt = System.currentTimeMillis() + minutes * 60_000L
@@ -75,6 +93,7 @@ class ReminderActionReceiver : BroadcastReceiver() {
 
     @VisibleForTesting
     internal suspend fun handleTake(reminder: Reminder) {
+        if (userPreferences.isLockEnabledFlow.first()) return
         val substanceName = reminder.substanceName?.takeIf { it.isNotBlank() } ?: return
         val routeName = reminder.administrationRoute?.takeIf { it.isNotBlank() } ?: return
         val route = runCatching { AdministrationRoute.valueOf(routeName) }.getOrNull() ?: return

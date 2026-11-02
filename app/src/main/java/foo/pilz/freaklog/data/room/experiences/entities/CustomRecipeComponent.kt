@@ -33,7 +33,10 @@ import foo.pilz.freaklog.data.substances.AdministrationRoute
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index("customRecipeId")]
+    indices = [
+        Index("customRecipeId"),
+        Index("customUnitId"),
+    ]
 )
 data class CustomRecipeComponent(
     @PrimaryKey(autoGenerate = true)

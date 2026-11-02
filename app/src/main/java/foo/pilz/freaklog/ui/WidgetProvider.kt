@@ -73,6 +73,7 @@ import foo.pilz.freaklog.ui.theme.md_theme_dark_primary
 import foo.pilz.freaklog.ui.theme.md_theme_light_primary
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.withLock
 import java.io.File
 import java.io.FileOutputStream
 import java.time.Duration
@@ -562,36 +563,43 @@ class TimelineWidgetWorker(
                 "\"$escapedName\":$color"
             }
 
-            val manager = GlanceAppWidgetManager(applicationContext)
-            val glanceId = manager.getGlanceIdBy(appWidgetId)
+            WidgetPrivacy.mutex.withLock {
+                if (entryPoint.userPreferences().isLockEnabledFlow.first()) {
+                    MyAppWidget().updateAllPrivate(applicationContext)
+                    return Result.success()
+                }
 
-            updateAppWidgetState(
-                context = applicationContext,
-                definition = PreferencesGlanceStateDefinition,
-                glanceId = glanceId
-            ) { prefs: Preferences ->
-                prefs.toMutablePreferences().apply {
-                    this[WidgetKeys.INGESTIONS_TEXT] = ingestionsText
-                    this[WidgetKeys.HAS_DATA] = hasData
-                    this[WidgetKeys.IS_LOADING] = false
-                    this[WidgetKeys.SUBSTANCE_COLORS] = substanceColorsJson
-                    // Always update the image path: set it to the new value or remove it
-                    // entirely so a stale graph from a previous session is never shown.
-                    if (imagePath != null) {
-                        this[WidgetKeys.TIMELINE_IMAGE_PATH] = imagePath
-                    } else {
-                        this.remove(WidgetKeys.TIMELINE_IMAGE_PATH)
-                    }
-                    if (mostRecentExperienceId != null) {
-                        this[WidgetKeys.MOST_RECENT_EXPERIENCE_ID] = mostRecentExperienceId
-                    } else {
-                        // Clear it if no experience is available or relevant
-                        this.remove(WidgetKeys.MOST_RECENT_EXPERIENCE_ID)
+                val manager = GlanceAppWidgetManager(applicationContext)
+                val glanceId = manager.getGlanceIdBy(appWidgetId)
+
+                updateAppWidgetState(
+                    context = applicationContext,
+                    definition = PreferencesGlanceStateDefinition,
+                    glanceId = glanceId
+                ) { prefs: Preferences ->
+                    prefs.toMutablePreferences().apply {
+                        this[WidgetKeys.INGESTIONS_TEXT] = ingestionsText
+                        this[WidgetKeys.HAS_DATA] = hasData
+                        this[WidgetKeys.IS_LOADING] = false
+                        this[WidgetKeys.SUBSTANCE_COLORS] = substanceColorsJson
+                        // Always update the image path: set it to the new value or remove it
+                        // entirely so a stale graph from a previous session is never shown.
+                        if (imagePath != null) {
+                            this[WidgetKeys.TIMELINE_IMAGE_PATH] = imagePath
+                        } else {
+                            this.remove(WidgetKeys.TIMELINE_IMAGE_PATH)
+                        }
+                        if (mostRecentExperienceId != null) {
+                            this[WidgetKeys.MOST_RECENT_EXPERIENCE_ID] = mostRecentExperienceId
+                        } else {
+                            // Clear it if no experience is available or relevant
+                            this.remove(WidgetKeys.MOST_RECENT_EXPERIENCE_ID)
+                        }
                     }
                 }
-            }
 
-            MyAppWidget().update(applicationContext, glanceId)
+                MyAppWidget().update(applicationContext, glanceId)
+            }
             Result.success()
         } catch (e: CancellationException) {
             throw e

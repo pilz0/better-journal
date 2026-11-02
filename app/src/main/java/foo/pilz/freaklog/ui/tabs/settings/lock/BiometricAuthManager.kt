@@ -129,9 +129,7 @@ class BiometricAuthManager @Inject constructor(
                         foo.pilz.freaklog.ui.tabs.journal.experience.notification.TimelineNotificationService::class.java
                     )
                 )
-                appContext.getSystemService(android.app.NotificationManager::class.java).cancel(
-                    foo.pilz.freaklog.ui.tabs.journal.experience.notification.TimelineNotificationChannel.NOTIFICATION_ID
-                )
+                appContext.getSystemService(android.app.NotificationManager::class.java).cancelAll()
                 foo.pilz.freaklog.ui.refreshPrivateJournalPreviews(appContext)
             } else {
                 _isUnlocked.value = true

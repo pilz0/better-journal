@@ -19,4 +19,15 @@ class AiHttpSecurityTest {
             }.messageContains("HTTPS is required")
         }
     }
+
+    @Test
+    fun rejectsDeeplyNestedJson() {
+        val validNested = "{\"a\":".repeat(64) + "1" + "}".repeat(64)
+        AiHttp.validateJsonNesting(validNested, maxDepth = 64)
+
+        val excessivelyNested = "{\"a\":".repeat(65) + "1" + "}".repeat(65)
+        org.junit.Assert.assertThrows(AiException::class.java) {
+            AiHttp.validateJsonNesting(excessivelyNested, maxDepth = 64)
+        }
+    }
 }

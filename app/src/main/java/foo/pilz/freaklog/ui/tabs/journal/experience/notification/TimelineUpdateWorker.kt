@@ -14,7 +14,10 @@ import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
+import foo.pilz.freaklog.ui.WidgetPrivacy
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.TimeUnit
 
 class TimelineUpdateWorker(
@@ -79,7 +82,14 @@ class TimelineUpdateWorker(
         }
 
         val manager = applicationContext.getSystemService(NotificationManager::class.java)
-        manager.notify(TimelineNotificationChannel.NOTIFICATION_ID, result.notification)
+        WidgetPrivacy.mutex.withLock {
+            if (userPreferences.isLockEnabledFlow.first()) {
+                manager.cancel(TimelineNotificationChannel.NOTIFICATION_ID)
+                cancel(applicationContext)
+                return Result.success()
+            }
+            manager.notify(TimelineNotificationChannel.NOTIFICATION_ID, result.notification)
+        }
 
         return Result.success()
     }

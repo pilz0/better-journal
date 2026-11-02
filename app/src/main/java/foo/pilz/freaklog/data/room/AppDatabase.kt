@@ -52,7 +52,7 @@ import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
 
 @TypeConverters(InstantConverter::class, AdaptiveColorConverter::class, AdministrationRouteConverter::class)
 @Database(
-    version = 29,
+    version = 30,
     entities = [
         Experience::class,
         Ingestion::class,
@@ -108,6 +108,7 @@ import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
         AutoMigration (from = 26, to = 27),
         AutoMigration (from = 27, to = 28),
         AutoMigration (from = 28, to = 29),
+        AutoMigration (from = 29, to = 30),
     ]
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -166,7 +167,7 @@ abstract class AppDatabase : RoomDatabase() {
          * on the `@Database` annotation above. Exposed for migration tests so
          * they don't have to hard-code the value.
          */
-        const val LATEST_SCHEMA_VERSION: Int = 29
+        const val LATEST_SCHEMA_VERSION: Int = 30
 
         /**
          * Installs change-log triggers on the Ingestion table. Called from both

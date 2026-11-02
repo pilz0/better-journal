@@ -275,4 +275,27 @@ class WebhookServiceTest {
             org.junit.Assert.assertFalse(isSecureWebhookUrl(it))
         }
     }
+
+    @Test
+    fun extractFreakQueryTokens_tokenizesDoubleBracesAndLeavesOtherTextUntouched() {
+        val (tokenized, tokens) = webhookService.extractFreakQueryTokens("Hello {{ count }} world {{ last | field=substance }}")
+        assertEquals(2, tokens.size)
+        assertEquals("{{ count }}", tokens[0].rawTag)
+        assertEquals("{{ last | field=substance }}", tokens[1].rawTag)
+        assertEquals("Hello \u0000FQ_TOKEN_0\u0000 world \u0000FQ_TOKEN_1\u0000", tokenized)
+    }
+
+    @Test
+    fun freakQueryResultsContainingNotePlaceholderAreNotExpanded() {
+        val template = "Took: {{ last | field=substance }}"
+        val values = mapOf("note" to "TOP_SECRET_MEDICAL_INFO")
+        val (tokenized, tokens) = webhookService.extractFreakQueryTokens(template)
+        val processed = webhookService.processTemplate(tokenized, values)
+        var result = processed
+        for ((token, _) in tokens) {
+            result = result.replace(token, "{note}")
+        }
+        assertEquals("Took: {note}", result)
+        org.junit.Assert.assertFalse(result.contains("TOP_SECRET_MEDICAL_INFO"))
+    }
 }
