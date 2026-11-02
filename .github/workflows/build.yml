@@ -177,17 +177,82 @@ jobs:
 
       - name: Verify workflow security invariants
         run: |
-          for wf in .github/workflows/*.yml; do
-            grep -q 'permissions: {}' "$wf" || {
-              echo "Error: $wf missing deny-all permissions: {}"
-              exit 1
-            }
-            grep -q 'step-security/harden-runner' "$wf" || {
-              echo "Error: $wf missing step-security/harden-runner"
-              exit 1
-            }
-          done
-          echo "All workflows passed security invariants."
+          python3 -c "
+          import glob, sys
+          try:
+              import yaml
+              has_yaml = True
+          except ImportError:
+              has_yaml = False
+
+          for wf in sorted(glob.glob('.github/workflows/*.yml')):
+              with open(wf) as f:
+                  content = f.read()
+
+              if 'permissions: {}' not in content:
+                  print(f'Error: {wf} missing deny-all permissions: {{}}')
+                  sys.exit(1)
+
+              if has_yaml:
+                  doc = yaml.safe_load(content)
+                  if isinstance(doc, dict):
+                      for job_id, job in doc.get('jobs', {}).items():
+                          if not isinstance(job, dict):
+                              continue
+                          if 'uses' in job and 'steps' not in job:
+                              continue
+                          steps = job.get('steps', [])
+                          if not steps:
+                              print(f'Error: {wf} job {job_id} has no steps')
+                              sys.exit(1)
+                          first_step = steps[0]
+                          uses = first_step.get('uses', '')
+                          if 'step-security/harden-runner' not in uses:
+                              print(f'Error: {wf} job {job_id} first step must use harden-runner, found: {uses}')
+                              sys.exit(1)
+              else:
+                  lines = content.splitlines()
+                  in_jobs = False
+                  job_indent = 0
+                  current_job = None
+                  in_steps = False
+                  steps_indent = 0
+                  first_step_found = False
+
+                  for i, line in enumerate(lines):
+                      stripped = line.strip()
+                      indent = len(line) - len(line.lstrip())
+                      if not stripped or stripped.startswith('#'):
+                          continue
+                      if stripped == 'jobs:':
+                          in_jobs = True
+                          job_indent = indent
+                          continue
+                      if in_jobs:
+                          if indent <= job_indent and stripped != 'jobs:':
+                              in_jobs = False
+                              continue
+                          if indent == job_indent + 2 and stripped.endswith(':'):
+                              current_job = stripped[:-1]
+                              in_steps = False
+                              first_step_found = False
+                              continue
+                          if current_job and stripped.startswith('uses:') and not in_steps:
+                              continue
+                          if stripped == 'steps:':
+                              in_steps = True
+                              steps_indent = indent
+                              continue
+                          if in_steps and not first_step_found:
+                              if indent > steps_indent and stripped.startswith('- '):
+                                  first_step_found = True
+                                  step_block = ' '.join(l.strip() for l in lines[i:i+10])
+                                  if 'step-security/harden-runner' not in step_block:
+                                      print(f'Error: {wf} job {current_job} first step must use harden-runner')
+                                      sys.exit(1)
+
+          print('All workflows passed security invariants across all jobs.')
+          "
 
   detekt:
     name: Detekt
@@ -290,7 +355,6 @@ jobs:
     needs: [ detekt ]
     permissions:
       contents: read
-      checks: write
     steps:
       - name: Harden the runner
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
@@ -698,7 +762,7 @@ jobs:
           if-no-files-found: error
 
   verify-nix-build:
-    name: Verify Nix Reproducibility
+    name: Verify Nix APK presence
     runs-on: ubuntu-latest
     needs: [ nix-build ]
     permissions:
@@ -901,7 +965,7 @@ jobs:
           echo " ✓ Unit Test Matrix (Data, UI, Misc, FreakQuery Engine)  "
           echo " ✓ JVM & Regional Environment Compatibility (JDK 17, 21) "
           echo " ✓ Build Artifact Verification (APK Debug, Release, AAB) "
-          echo " ✓ Hermetic Nix Sandboxed Builds & Reproducibility       "
+          echo " ✓ Hermetic Nix Sandboxed Builds                         "
           echo " ✓ Android Test Fixtures Assembly & Smoke Verification   "
           echo " ✓ Code Coverage & Release Lint Invariants               "
           echo "========================================================="
