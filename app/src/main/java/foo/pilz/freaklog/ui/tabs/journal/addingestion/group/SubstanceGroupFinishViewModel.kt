@@ -20,8 +20,12 @@ import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceGroupItem
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestions
 import foo.pilz.freaklog.data.room.experiences.relations.SubstanceGroupWithItems
+import foo.pilz.freaklog.data.room.webhooks.WebhookRepository
+import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
 import foo.pilz.freaklog.data.substances.classes.IngestionCategory
 import foo.pilz.freaklog.data.substances.repositories.DefaultSubstanceColors
+import foo.pilz.freaklog.data.webhook.IngestionWebhookSender
+import foo.pilz.freaklog.di.ApplicationScope
 import foo.pilz.freaklog.ui.main.navigation.graphs.SubstanceGroupFinishRoute
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.IngestionTimePickerOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.notification.TimelineNotificationService
@@ -29,8 +33,10 @@ import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import foo.pilz.freaklog.ui.utils.getLocalDateTime
 import foo.pilz.freaklog.ui.utils.getStringOfPattern
 import foo.pilz.freaklog.ui.utils.stateInVm
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
@@ -51,6 +57,9 @@ class SubstanceGroupFinishViewModel @Inject constructor(
     private val experienceRepo: ExperienceRepository,
     private val userPreferences: UserPreferences,
     private val defaultSubstanceColors: DefaultSubstanceColors,
+    webhookRepository: WebhookRepository,
+    private val ingestionWebhookSender: IngestionWebhookSender,
+    @param:ApplicationScope private val externalScope: CoroutineScope,
     state: SavedStateHandle,
 ) : ViewModel() {
 
@@ -68,6 +77,12 @@ class SubstanceGroupFinishViewModel @Inject constructor(
     val selectedExperienceFlow = MutableStateFlow<ExperienceWithIngestions?>(null)
 
     val selectedItemIds = mutableStateMapOf<Int, Boolean>()
+
+    /** Webhook id -> "send this group to it"; enabled webhooks are selected unless unticked. */
+    val selectedWebhookIds = mutableStateMapOf<Int, Boolean>()
+
+    val enabledWebhooksFlow: StateFlow<List<Webhook>> =
+        webhookRepository.getEnabledFlow().stateInVm(viewModelScope, emptyList())
 
     var enteredTitle by mutableStateOf(LocalDateTime.now().getStringOfPattern("dd MMMM yyyy"))
         private set
@@ -221,6 +236,10 @@ class SubstanceGroupFinishViewModel @Inject constructor(
         selectedItemIds[item.id] = !(selectedItemIds[item.id] ?: true)
     }
 
+    fun setWebhookSelected(webhookId: Int, selected: Boolean) {
+        selectedWebhookIds[webhookId] = selected
+    }
+
     private fun updateTitleBasedOnTime(time: Instant) {
         enteredTitle = time.getStringOfPattern("dd MMMM yyyy")
     }
@@ -235,31 +254,43 @@ class SubstanceGroupFinishViewModel @Inject constructor(
                 if (ingestionTimePickerOptionFlow.value == IngestionTimePickerOption.TIME_RANGE) {
                     maxOf(localDateTimeEndFlow.value.atZone(ZoneId.systemDefault()).toInstant(), startTime)
                 } else null
-            val savedExperienceId = insertGroupIngestions(checkedItems, startTime, endTime)
+            val (savedExperienceId, savedIngestions) =
+                insertGroupIngestions(checkedItems, startTime, endTime)
+            // SnapshotStateMap must be read here, not from the background send.
+            val webhookSelection = selectedWebhookIds.toMap()
             TimelineNotificationService.refreshOrAutoStart(appContext, userPreferences, savedExperienceId)
+            externalScope.launch {
+                ingestionWebhookSender.send(savedIngestions, webhookSelection)
+            }
             withContext(Dispatchers.Main) { dismiss() }
         }
     }
 
+    /** Inserts the items and returns the target experience id plus the saved ingestions. */
     private suspend fun insertGroupIngestions(
         items: List<SubstanceGroupItem>,
         startTime: Instant,
         endTime: Instant?,
-    ): Int {
+    ): Pair<Int, List<Ingestion>> {
         val existingId = selectedExperienceFlow.value?.experience?.id
-        val targetId = existingId ?: createNewExperience(startTime, items.first(), endTime)
+        val savedIngestions = mutableListOf<Ingestion>()
+        val targetId = existingId
+            ?: createNewExperience(startTime, items.first(), endTime).let { (newId, firstIngestion) ->
+                savedIngestions.add(firstIngestion)
+                newId
+            }
         val itemsToInsert = if (existingId == null) items.drop(1) else items
         for (item in itemsToInsert) {
-            insertIngestion(item, targetId, startTime, endTime)
+            savedIngestions.add(insertIngestion(item, targetId, startTime, endTime))
         }
-        return targetId
+        return targetId to savedIngestions
     }
 
     private suspend fun createNewExperience(
         startTime: Instant,
         firstItem: SubstanceGroupItem,
         endTime: Instant?,
-    ): Int {
+    ): Pair<Int, Ingestion> {
         val newId = (experienceRepo.getMaxExperienceIdFlow().firstOrNull() ?: 0) + 1
         val newExperience = Experience(
             id = newId,
@@ -271,8 +302,9 @@ class SubstanceGroupFinishViewModel @Inject constructor(
         )
         val ingestion = buildIngestion(firstItem, newId, startTime, endTime)
         val companion = companionFor(firstItem.substanceName)
-        experienceRepo.insertIngestionExperienceAndCompanion(ingestion, newExperience, companion)
-        return newId
+        val insertedId =
+            experienceRepo.insertIngestionExperienceAndCompanion(ingestion, newExperience, companion)
+        return newId to ingestion.copy(id = insertedId.toInt())
     }
 
     private suspend fun insertIngestion(
@@ -280,10 +312,11 @@ class SubstanceGroupFinishViewModel @Inject constructor(
         experienceId: Int,
         startTime: Instant,
         endTime: Instant?,
-    ) {
+    ): Ingestion {
         val ingestion = buildIngestion(item, experienceId, startTime, endTime)
         val companion = companionFor(item.substanceName)
-        experienceRepo.insertIngestionAndCompanion(ingestion, companion)
+        val insertedId = experienceRepo.insertIngestionAndCompanion(ingestion, companion)
+        return ingestion.copy(id = insertedId.toInt())
     }
 
     private suspend fun companionFor(substanceName: String): SubstanceCompanion =

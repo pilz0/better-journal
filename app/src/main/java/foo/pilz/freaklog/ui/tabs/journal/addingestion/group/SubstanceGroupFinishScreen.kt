@@ -47,6 +47,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -79,6 +80,7 @@ fun SubstanceGroupFinishScreen(
     val consumerNamesSorted by viewModel.sortedConsumerNamesFlow.collectAsStateWithLifecycle()
     val previousNotes by viewModel.previousNotesFlow.collectAsStateWithLifecycle()
     val standaloneIngestionsEnabled by viewModel.areStandaloneIngestionsEnabledFlow.collectAsStateWithLifecycle()
+    val enabledWebhooks by viewModel.enabledWebhooksFlow.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -353,6 +355,39 @@ fun SubstanceGroupFinishScreen(
                                 checked = viewModel.selectedItemIds[item.id] ?: true,
                                 onToggle = { viewModel.toggleItem(item) },
                             )
+                        }
+                    }
+                }
+
+                if (enabledWebhooks.isNotEmpty()) {
+                    SectionHeader(text = "Send to")
+                    ElevatedCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = spacing.screenHorizontal),
+                    ) {
+                        Column(modifier = Modifier.padding(vertical = spacing.sm)) {
+                            for (webhook in enabledWebhooks) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = spacing.md),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Checkbox(
+                                        checked = viewModel.selectedWebhookIds[webhook.id] ?: true,
+                                        onCheckedChange = { checked ->
+                                            viewModel.setWebhookSelected(webhook.id, checked)
+                                        },
+                                    )
+                                    Text(
+                                        text = webhook.name.ifBlank { "Webhook" },
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
+                            }
                         }
                     }
                 }

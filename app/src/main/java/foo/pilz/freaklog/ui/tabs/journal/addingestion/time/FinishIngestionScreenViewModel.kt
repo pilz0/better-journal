@@ -35,12 +35,11 @@ import foo.pilz.freaklog.data.room.experiences.entities.Experience
 import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestions
-import foo.pilz.freaklog.data.room.webhooks.IngestionWebhookMessageRepository
 import foo.pilz.freaklog.data.room.webhooks.WebhookRepository
-import foo.pilz.freaklog.data.room.webhooks.entities.IngestionWebhookMessage
 import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepositoryInterface
+import foo.pilz.freaklog.data.webhook.IngestionWebhookSender
 import foo.pilz.freaklog.di.ApplicationScope
 import foo.pilz.freaklog.ui.main.navigation.graphs.FinishIngestionRoute
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
@@ -68,8 +67,6 @@ import javax.inject.Inject
 
 const val hourLimitToSeparateIngestions: Long = 12
 
-private const val TAG = "FinishIngestionScreenViewModel"
-
 enum class IngestionTimePickerOption {
     POINT_IN_TIME, TIME_RANGE
 }
@@ -86,9 +83,8 @@ enum class IngestionTimePreset(val label: String, val minutesAgo: Long) {
 class FinishIngestionScreenViewModel @Inject constructor(
     private val experienceRepo: ExperienceRepository,
     private val userPreferences: UserPreferences,
-    private val webhookService: foo.pilz.freaklog.data.webhook.WebhookService,
     private val webhookRepository: WebhookRepository,
-    private val ingestionWebhookMessageRepository: IngestionWebhookMessageRepository,
+    private val ingestionWebhookSender: IngestionWebhookSender,
     private val customFormulationRepository: CustomFormulationRepository,
     private val substanceRepository: SubstanceRepositoryInterface,
     @ApplicationScope private val externalScope: CoroutineScope,
@@ -489,7 +485,7 @@ class FinishIngestionScreenViewModel @Inject constructor(
         )
         // Send webhook notification in background
         externalScope.launch {
-            sendWebhookForIngestion(newIngestion, selectionSnapshot)
+            ingestionWebhookSender.send(listOf(newIngestion), selectionSnapshot)
         }
     }
 
@@ -525,76 +521,5 @@ class FinishIngestionScreenViewModel @Inject constructor(
             saltForm = saltForm.ifBlank { null },
             category = ingestionCategory
         )
-    }
-
-    private suspend fun sendWebhookForIngestion(
-        ingestion: Ingestion,
-        selection: Map<Int, Boolean>
-    ) {
-        val enabledHooks = enabledWebhooksFlow.value.ifEmpty {
-            // We may be in the very-first-render race; fall back to a one-shot read.
-            webhookRepository.getEnabled()
-        }
-        if (enabledHooks.isEmpty()) {
-            android.util.Log.d(TAG, "No enabled webhooks configured, skipping")
-            return
-        }
-
-        val (displayDose, displayUnits) = try {
-            experienceRepo.getWebhookDisplayValues(ingestion)
-        } catch (e: Exception) {
-            android.util.Log.w(TAG, "Failed to compute webhook display values: ${e.message}", e)
-            Pair(ingestion.dose, ingestion.units)
-        }
-        val route = ingestion.administrationRoute.displayText
-
-        for (webhook in enabledHooks) {
-            val isSelected = selection[webhook.id] ?: true
-            if (!isSelected) {
-                android.util.Log.d(TAG, "Webhook \"${webhook.name}\" deselected for this ingestion")
-                continue
-            }
-            val template = webhook.template.ifBlank {
-                foo.pilz.freaklog.data.webhook.WebhookService.DEFAULT_TEMPLATE
-            }
-            val user = webhook.displayName.ifBlank { "User" }
-            try {
-                android.util.Log.d(TAG, "Sending webhook \"${webhook.name}\"")
-                val result = webhookService.sendWebhook(
-                    url = webhook.url,
-                    user = user,
-                    substance = ingestion.substanceName,
-                    dose = displayDose,
-                    units = displayUnits,
-                    isEstimate = ingestion.isDoseAnEstimate,
-                    route = route,
-                    site = ingestion.administrationSite,
-                    note = ingestion.notes,
-                    template = template,
-                    isHyperlinked = webhook.isHyperlinked,
-                    formulation = ingestion.formulationName,
-                    saltForm = ingestion.saltForm
-                )
-                if (result.success && result.messageId != null) {
-                    ingestionWebhookMessageRepository.insertForDestination(
-                        IngestionWebhookMessage(
-                            ingestionId = ingestion.id,
-                            webhookId = webhook.id,
-                            messageId = result.messageId
-                        ),
-                        webhook.url
-                    )
-                } else {
-                    android.util.Log.w(
-                        TAG,
-                        "Webhook \"${webhook.name}\" send failed: " +
-                            (result.error?.message ?: "Unknown error")
-                    )
-                }
-            } catch (e: Exception) {
-                // Silently fail - don't block ingestion creation if webhook fails
-                android.util.Log.w(TAG, "Webhook \"${webhook.name}\" exception: ${e.message}", e)
-            }
-        }
     }
 }

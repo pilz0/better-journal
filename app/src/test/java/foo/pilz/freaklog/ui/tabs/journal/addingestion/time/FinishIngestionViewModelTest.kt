@@ -64,9 +64,8 @@ class FinishIngestionViewModelTest {
         viewModel = FinishIngestionScreenViewModel(
             experienceRepo = experienceRepo,
             userPreferences = userPreferences,
-            webhookService = mockk(),
             webhookRepository = webhookRepository,
-            ingestionWebhookMessageRepository = mockk(),
+            ingestionWebhookSender = mockk(),
             customFormulationRepository = customFormulationRepository,
             substanceRepository = mockk(),
             externalScope = externalScope,
