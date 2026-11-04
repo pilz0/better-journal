@@ -60,7 +60,8 @@ app/src/main/java/foo/pilz/freaklog/
 │   │   ├── parse/              # SubstanceParser (JSON → Kotlin models)
 │   │   └── repositories/       # SubstanceRepository, SearchRepository
 │   └── webhook/
-│       └── WebhookService.kt   # Discord webhook integration
+│       ├── WebhookService.kt   # Discord webhook integration
+│       └── IngestionWebhookSender.kt # Posts new ingestions to the enabled webhooks
 ├── di/
 │   ├── AppModule.kt            # Provides DB, DAOs, DataStore, @ApplicationScope CoroutineScope
 │   ├── JournalApplication.kt   # @HiltAndroidApp Application class
@@ -310,6 +311,11 @@ Sends Discord webhook messages on ingestion log. Supports:
 - `sendWebhook` / `editWebhook` / `deleteWebhookMessage`
 - `sendWebhook` and `editWebhook` return `WebhookResult(success, messageId, error)`; `deleteWebhookMessage` returns `Boolean` and handles failures internally
 
+Every screen that logs new ingestions (single substance and substance group)
+sends them through `IngestionWebhookSender.send(ingestions, selection)` on the
+`@ApplicationScope` scope: one message per ingestion and selected webhook, with
+the returned message ids stored so edits and deletes reach the messages.
+
 **Multi-webhook model (schema v18):** Users can configure any number of
 `Webhook` rows from Settings → Webhooks. Each row has a name, URL, display
 name (`{user}`), per-webhook template (falls back to
@@ -541,6 +547,7 @@ All ViewModels use `@HiltViewModel` + `@Inject constructor`. Repositories and DA
 | `data/substances/classes/roa/DurationRange.kt` | `data/substances/classes/roa/DurationRangeTest.kt` |
 | `data/substances/classes/Substance.kt` | `data/substances/classes/SubstanceClassTest.kt` |
 | `data/webhook/WebhookService.kt` | `data/webhook/WebhookServiceTest.kt` |
+| `data/webhook/IngestionWebhookSender.kt` | `data/webhook/IngestionWebhookSenderTest.kt` |
 | `data/export/InstantSerializer.kt` | `data/export/InstantSerializerTest.kt` |
 | `ui/utils/getTimeDifferenceText.kt` | `ui/utils/GetTimeDifferenceTextTest.kt` |
 | `ui/utils/getInteractionExplanationURLForSubstance.kt` | `ui/utils/InteractionUrlTest.kt` |
