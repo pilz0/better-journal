@@ -136,4 +136,27 @@ class SubstanceGroupFinishViewModelTest {
         assertThat(ingestions.captured.map { it.substanceName }).containsExactly("Caffeine")
         coVerify(exactly = 0) { experienceRepo.insertIngestionAndCompanion(any(), any()) }
     }
+
+    @Test
+    fun `dose multiplier scales every saved ingestion`() {
+        val ingestions = slot<List<Ingestion>>()
+        coEvery { sender.send(capture(ingestions), any()) } returns Unit
+
+        viewModel.onDoseMultiplierChange("0.5")
+        viewModel.confirmAndDismiss {}
+        dispatcher.scheduler.advanceUntilIdle()
+
+        assertThat(ingestions.captured.map { it.dose }).containsExactly(50.0, 40.0)
+    }
+
+    @Test
+    fun `invalid dose multiplier prevents saving`() {
+        viewModel.onDoseMultiplierChange("0")
+        viewModel.confirmAndDismiss {}
+        dispatcher.scheduler.advanceUntilIdle()
+
+        coVerify(exactly = 0) {
+            experienceRepo.insertIngestionExperienceAndCompanion(any(), any(), any())
+        }
+    }
 }

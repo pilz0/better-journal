@@ -47,6 +47,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -344,6 +345,29 @@ fun SubstanceGroupFinishScreen(
                         .padding(horizontal = spacing.screenHorizontal),
                 ) {
                     Column {
+                        OutlinedTextField(
+                            value = viewModel.doseMultiplierText,
+                            onValueChange = viewModel::onDoseMultiplierChange,
+                            label = { Text("Dose multiplier") },
+                            supportingText = {
+                                Text(
+                                    if (viewModel.isDoseMultiplierValid) {
+                                        "For example, 0.5 logs half of every dose"
+                                    } else {
+                                        "Enter a number greater than 0"
+                                    }
+                                )
+                            },
+                            isError = !viewModel.isDoseMultiplierValid,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Decimal,
+                                imeAction = ImeAction.Done,
+                            ),
+                            singleLine = true,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = spacing.md, vertical = spacing.md),
+                        )
                         loadedGroup.sortedItems.forEachIndexed { index, item ->
                             if (index > 0) {
                                 HorizontalDivider(
@@ -352,6 +376,7 @@ fun SubstanceGroupFinishScreen(
                             }
                             GroupFinishItemRow(
                                 item = item,
+                                multiplier = viewModel.doseMultiplierText.toMultiplierOrNull() ?: 1.0,
                                 checked = viewModel.selectedItemIds[item.id] ?: true,
                                 onToggle = { viewModel.toggleItem(item) },
                             )
@@ -421,6 +446,7 @@ fun SubstanceGroupFinishScreen(
 @Composable
 private fun GroupFinishItemRow(
     item: SubstanceGroupItem,
+    multiplier: Double,
     checked: Boolean,
     onToggle: () -> Unit,
 ) {
@@ -440,7 +466,7 @@ private fun GroupFinishItemRow(
                 fontWeight = FontWeight.SemiBold,
             )
             Text(
-                text = formatDoseRecap(item),
+                text = formatDoseRecap(item, multiplier),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -448,13 +474,19 @@ private fun GroupFinishItemRow(
     }
 }
 
-private fun formatDoseRecap(item: SubstanceGroupItem): String {
+private fun formatDoseRecap(item: SubstanceGroupItem, multiplier: Double): String {
     val d = item.dose ?: return "Unknown dose"
     val u = item.units.orEmpty()
     val sd = item.estimatedDoseStandardDeviation
+    val scaledDose = d * multiplier
+    val scaledStdDev = sd?.times(multiplier)
     return when {
-        item.isEstimate && sd != null -> "${d.toReadableString()} ± ${sd.toReadableString()} $u"
-        item.isEstimate -> "~${d.toReadableString()} $u"
-        else -> "${d.toReadableString()} $u"
+        item.isEstimate && scaledStdDev != null ->
+            "${scaledDose.toReadableString()} ± ${scaledStdDev.toReadableString()} $u"
+        item.isEstimate -> "~${scaledDose.toReadableString()} $u"
+        else -> "${scaledDose.toReadableString()} $u"
     }.trim()
 }
+
+private fun String.toMultiplierOrNull(): Double? =
+    replace(',', '.').toDoubleOrNull()?.takeIf { it.isFinite() && it > 0 }
