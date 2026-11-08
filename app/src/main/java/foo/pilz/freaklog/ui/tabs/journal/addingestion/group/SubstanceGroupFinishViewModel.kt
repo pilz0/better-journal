@@ -105,6 +105,10 @@ constructor(
 
   var note by mutableStateOf("")
   var addingWithoutExperience by mutableStateOf(false)
+  var doseMultiplierText by mutableStateOf("1")
+    private set
+  val isDoseMultiplierValid: Boolean
+    get() = doseMultiplier != null
   // This app has no ingestions without an experience, so the upstream toggle stays off.
   val areStandaloneIngestionsEnabledFlow = MutableStateFlow(false).asStateFlow()
 
@@ -241,6 +245,10 @@ constructor(
     ingestionCategory = newCategory
   }
 
+  fun onDoseMultiplierChange(value: String) {
+    doseMultiplierText = value
+  }
+
   fun toggleItem(item: SubstanceGroupItem) {
     selectedItemIds[item.id] = !(selectedItemIds[item.id] ?: true)
   }
@@ -256,15 +264,16 @@ constructor(
   fun confirmAndDismiss(dismiss: () -> Unit) {
     val loadedGroup = _group.value ?: return
     val checkedItems = loadedGroup.sortedItems.filter { selectedItemIds[it.id] ?: true }
-    if (checkedItems.isEmpty()) return
+    if (checkedItems.isEmpty() || doseMultiplier == null) return
     viewModelScope.launch {
+      val multiplier = doseMultiplier ?: return@launch
       val startTime = localDateTimeStartFlow.value.atZone(ZoneId.systemDefault()).toInstant()
       val endTime =
           if (ingestionTimePickerOptionFlow.value == IngestionTimePickerOption.TIME_RANGE) {
             maxOf(localDateTimeEndFlow.value.atZone(ZoneId.systemDefault()).toInstant(), startTime)
           } else null
       val (savedExperienceId, savedIngestions) =
-          insertGroupIngestions(checkedItems, startTime, endTime)
+          insertGroupIngestions(checkedItems, startTime, endTime, multiplier)
       // SnapshotStateMap must be read here, not from the background send.
       val webhookSelection = selectedWebhookIds.toMap()
       TimelineNotificationService.refreshOrAutoStart(appContext, userPreferences, savedExperienceId)
@@ -275,24 +284,37 @@ constructor(
     }
   }
 
+  private val doseMultiplier: Double?
+    get() =
+        doseMultiplierText.replace(',', '.').toDoubleOrNull()?.takeIf { multiplier ->
+          multiplier.isFinite() &&
+              multiplier > 0 &&
+              _group.value?.items.orEmpty()
+                  .filter { selectedItemIds[it.id] ?: true }
+                  .all { item ->
+                    item.dose?.times(multiplier)?.isFinite() != false &&
+                        item.estimatedDoseStandardDeviation?.times(multiplier)?.isFinite() != false
+                  }
+        }
+
   /** Inserts the items and returns the target experience id plus the saved ingestions. */
   private suspend fun insertGroupIngestions(
       items: List<SubstanceGroupItem>,
       startTime: Instant,
       endTime: Instant?,
+      multiplier: Double,
   ): Pair<Int, List<Ingestion>> {
     val existingId = selectedExperienceFlow.value?.experience?.id
     val savedIngestions = mutableListOf<Ingestion>()
     val targetId =
-        existingId
-            ?: createNewExperience(startTime, items.first(), endTime).let { (newId, firstIngestion)
-              ->
+        existingId ?: createNewExperience(startTime, items.first(), endTime, multiplier).let {
+            (newId, firstIngestion) ->
               savedIngestions.add(firstIngestion)
               newId
             }
     val itemsToInsert = if (existingId == null) items.drop(1) else items
     for (item in itemsToInsert) {
-      savedIngestions.add(insertIngestion(item, targetId, startTime, endTime))
+      savedIngestions.add(insertIngestion(item, targetId, startTime, endTime, multiplier))
     }
     return targetId to savedIngestions
   }
@@ -301,6 +323,7 @@ constructor(
       startTime: Instant,
       firstItem: SubstanceGroupItem,
       endTime: Instant?,
+      multiplier: Double,
   ): Pair<Int, Ingestion> {
     val newId = (experienceRepo.getMaxExperienceIdFlow().firstOrNull() ?: 0) + 1
     val newExperience =
@@ -312,7 +335,7 @@ constructor(
             sortDate = startTime,
             location = null,
         )
-    val ingestion = buildIngestion(firstItem, newId, startTime, endTime)
+    val ingestion = buildIngestion(firstItem, newId, startTime, endTime, multiplier)
     val companion = companionFor(firstItem.substanceName)
     val insertedId =
         experienceRepo.insertIngestionExperienceAndCompanion(ingestion, newExperience, companion)
@@ -324,8 +347,9 @@ constructor(
       experienceId: Int,
       startTime: Instant,
       endTime: Instant?,
+      multiplier: Double,
   ): Ingestion {
-    val ingestion = buildIngestion(item, experienceId, startTime, endTime)
+    val ingestion = buildIngestion(item, experienceId, startTime, endTime, multiplier)
     val companion = companionFor(item.substanceName)
     val insertedId = experienceRepo.insertIngestionAndCompanion(ingestion, companion)
     return ingestion.copy(id = insertedId.toInt())
@@ -343,15 +367,16 @@ constructor(
       experienceId: Int,
       startTime: Instant,
       endTime: Instant?,
+      multiplier: Double,
   ): Ingestion =
       Ingestion(
           substanceName = item.substanceName,
           time = startTime,
           endTime = endTime,
           administrationRoute = item.administrationRoute,
-          dose = item.dose,
+          dose = item.dose?.times(multiplier),
           isDoseAnEstimate = item.isEstimate,
-          estimatedDoseStandardDeviation = item.estimatedDoseStandardDeviation,
+          estimatedDoseStandardDeviation = item.estimatedDoseStandardDeviation?.times(multiplier),
           units = item.units,
           experienceId = experienceId,
           notes = note.ifBlank { null },
