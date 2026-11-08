@@ -302,7 +302,7 @@ The upstream project uses `com.isaakhanimann.journal`. When porting upstream cod
 All library versions live in `gradle/libs.versions.toml` (Gradle Version Catalog).  
 Plugin versions live in the catalog too (`[plugins]`), including Hilt, KSP and the Room Gradle plugin.
 
-Toolchain: Gradle 9.8.2 (the Nix build reads the version and checksum from the wrapper), AGP 9.5.0, Kotlin 2.4.21, KSP 2.3.12, `compileSdk` 37, `targetSdk` 37, `minSdk` 31.
+Toolchain: Gradle 9.9.0 (the Nix build reads the version and checksum from the wrapper), AGP 9.5.1, Kotlin 2.4.21, KSP 2.3.12, `compileSdk` 37, `targetSdk` 37, `minSdk` 31.
 AGP 9 compiles Kotlin itself, so the `org.jetbrains.kotlin.android` plugin is **not** applied; Kotlin options go in the
 top-level `kotlin { compilerOptions { … } }` block, not `android { kotlinOptions { … } }`.
 
