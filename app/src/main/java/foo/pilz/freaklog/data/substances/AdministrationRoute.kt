@@ -23,7 +23,7 @@ import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import kotlinx.serialization.Serializable
 
 @Keep // to fix this issue: https://issuetracker.google.com/issues/358137294. Apparently all enums
-      // used as navigation args are getting their metadata removed in minified builds.
+// used as navigation args are getting their metadata removed in minified builds.
 @Serializable
 enum class AdministrationRoute {
   ORAL {

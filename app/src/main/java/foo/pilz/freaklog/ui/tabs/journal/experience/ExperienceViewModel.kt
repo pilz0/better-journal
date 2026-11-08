@@ -472,7 +472,7 @@ constructor(
           .flowOn(
               Dispatchers.IO
           ) // if this wasn't on the background the navigation from journal screen to this screen
-            // would jump
+          // would jump
           .stateIn(
               initialValue = emptyList(),
               scope = viewModelScope,

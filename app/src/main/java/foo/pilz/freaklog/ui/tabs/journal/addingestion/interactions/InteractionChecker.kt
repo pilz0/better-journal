@@ -243,7 +243,7 @@ constructor(
             }
             "Tricyclic antidepressants" -> {
               return@flatMap emptyList() // remove because we don't want to match "depressant" with
-                                         // it and there is no substance that belongs to that class
+              // it and there is no substance that belongs to that class
             }
             else -> {
               return@flatMap listOf(name)

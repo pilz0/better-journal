@@ -35,7 +35,7 @@ jobs:
 
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
         with:
           egress-policy: audit
 
@@ -48,13 +48,13 @@ jobs:
       # `wrapper-validation` job in build.yml. This mitigates wrapper-tampering
       # risk before any `./gradlew` command runs below.
       - name: Validate Gradle wrapper
-        uses: gradle/actions/wrapper-validation@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        uses: gradle/actions/wrapper-validation@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
 
       # The toolchain comes from the flake's devShell, the same one developers
       # get from `nix develop` / direnv. Its PATH and variables are exported to
       # the remaining steps and to the agent's session.
       - name: Install Nix
-        uses: cachix/install-nix-action@448cde739abec1eaf0646249e3d25bb8d9bc7702 # v31.11.2
+        uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31.11.3
         with:
           extra_nix_config: |
             extra-allowed-uris = http:// https://
@@ -70,7 +70,7 @@ jobs:
             done'
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
         with:
           # Only allow cache writes from the trusted default branch, matching
           # build.yml. Untrusted PR runs use the cache read-only to avoid

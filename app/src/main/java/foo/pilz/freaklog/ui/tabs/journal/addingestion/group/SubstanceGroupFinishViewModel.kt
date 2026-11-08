@@ -107,8 +107,10 @@ constructor(
   var addingWithoutExperience by mutableStateOf(false)
   var doseMultiplierText by mutableStateOf("1")
     private set
+
   val isDoseMultiplierValid: Boolean
     get() = doseMultiplier != null
+
   // This app has no ingestions without an experience, so the upstream toggle stays off.
   val areStandaloneIngestionsEnabledFlow = MutableStateFlow(false).asStateFlow()
 
@@ -289,7 +291,9 @@ constructor(
         doseMultiplierText.replace(',', '.').toDoubleOrNull()?.takeIf { multiplier ->
           multiplier.isFinite() &&
               multiplier > 0 &&
-              _group.value?.items.orEmpty()
+              _group.value
+                  ?.items
+                  .orEmpty()
                   .filter { selectedItemIds[it.id] ?: true }
                   .all { item ->
                     item.dose?.times(multiplier)?.isFinite() != false &&
@@ -307,8 +311,9 @@ constructor(
     val existingId = selectedExperienceFlow.value?.experience?.id
     val savedIngestions = mutableListOf<Ingestion>()
     val targetId =
-        existingId ?: createNewExperience(startTime, items.first(), endTime, multiplier).let {
-            (newId, firstIngestion) ->
+        existingId
+            ?: createNewExperience(startTime, items.first(), endTime, multiplier).let {
+                (newId, firstIngestion) ->
               savedIngestions.add(firstIngestion)
               newId
             }

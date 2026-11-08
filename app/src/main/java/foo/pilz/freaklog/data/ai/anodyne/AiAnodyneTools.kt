@@ -118,7 +118,9 @@ constructor(
         .put("source", "anodyne.wiki")
         .put(
             "url",
-            base.removeSuffix("/").removeSuffix("/api") + "/substance/" + pageName.replace(" ", "_"),
+            base.removeSuffix("/").removeSuffix("/api") +
+                "/substance/" +
+                pageName.replace(" ", "_"),
         )
   }
 }
