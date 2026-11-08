@@ -285,7 +285,17 @@ constructor(
   }
 
   private val doseMultiplier: Double?
-    get() = doseMultiplierText.replace(',', '.').toDoubleOrNull()?.takeIf { it.isFinite() && it > 0 }
+    get() =
+        doseMultiplierText.replace(',', '.').toDoubleOrNull()?.takeIf { multiplier ->
+          multiplier.isFinite() &&
+              multiplier > 0 &&
+              _group.value?.items.orEmpty()
+                  .filter { selectedItemIds[it.id] ?: true }
+                  .all { item ->
+                    item.dose?.times(multiplier)?.isFinite() != false &&
+                        item.estimatedDoseStandardDeviation?.times(multiplier)?.isFinite() != false
+                  }
+        }
 
   /** Inserts the items and returns the target experience id plus the saved ingestions. */
   private suspend fun insertGroupIngestions(
@@ -308,6 +318,7 @@ constructor(
     }
     return targetId to savedIngestions
   }
+
   private suspend fun createNewExperience(
       startTime: Instant,
       firstItem: SubstanceGroupItem,
