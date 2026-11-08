@@ -58,16 +58,17 @@ import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 @Preview
 @Composable
 fun ColorPickerPreview() {
-    val alreadyUsedColors = listOf(AdaptiveColor.BLUE, AdaptiveColor.PINK)
-    val otherColors = AdaptiveColor.entries.filter { color ->
+  val alreadyUsedColors = listOf(AdaptiveColor.BLUE, AdaptiveColor.PINK)
+  val otherColors =
+      AdaptiveColor.entries.filter { color ->
         !alreadyUsedColors.contains(color)
-    }
-    ColorPicker(
-        selectedColor = AdaptiveColor.BLUE,
-        onChangeOfColor = {},
-        alreadyUsedColors,
-        otherColors
-    )
+      }
+  ColorPicker(
+      selectedColor = AdaptiveColor.BLUE,
+      onChangeOfColor = {},
+      alreadyUsedColors,
+      otherColors,
+  )
 }
 
 @Composable
@@ -75,68 +76,67 @@ fun ColorPicker(
     selectedColor: AdaptiveColor,
     onChangeOfColor: (AdaptiveColor) -> Unit,
     alreadyUsedColors: List<AdaptiveColor>,
-    otherColors: List<AdaptiveColor>
+    otherColors: List<AdaptiveColor>,
 ) {
-    val isDarkTheme = isSystemInDarkTheme()
-    var isColorPickerVisible by remember {
-        mutableStateOf(false)
-    }
-    var isCustomColorPickerVisible by remember {
-        mutableStateOf(false)
-    }
-    val shape = RoundedCornerShape(8.dp)
-    Surface(
-        shape = shape,
-        color = selectedColor.getComposeColor(isDarkTheme),
-        modifier = Modifier
-            .size(50.dp)
-            .clip(shape)
-            .clickable(onClick = { isColorPickerVisible = true })
-    ) {
-        Icon(
-            imageVector = Icons.Default.Edit,
-            contentDescription = "Edit color",
-            modifier = Modifier.padding(15.dp),
-        )
-    }
-    if (isColorPickerVisible) {
-        ColorDialog(
-            dismiss = { isColorPickerVisible = false },
-            onChangeOfColor = onChangeOfColor,
-            alreadyUsedColors = alreadyUsedColors,
-            otherColors = otherColors,
-            currentSelectedColor = selectedColor,
-            onPickCustom = {
-                isColorPickerVisible = false
-                isCustomColorPickerVisible = true
-            }
-        )
-    }
-    if (isCustomColorPickerVisible) {
-        CustomColorDialog(
-            initialColor = selectedColor as? AdaptiveColor.Custom,
-            onDismiss = { isCustomColorPickerVisible = false },
-            onPick = { custom ->
-                isCustomColorPickerVisible = false
-                onChangeOfColor(custom)
-            },
-        )
-    }
+  val isDarkTheme = isSystemInDarkTheme()
+  var isColorPickerVisible by remember {
+    mutableStateOf(false)
+  }
+  var isCustomColorPickerVisible by remember {
+    mutableStateOf(false)
+  }
+  val shape = RoundedCornerShape(8.dp)
+  Surface(
+      shape = shape,
+      color = selectedColor.getComposeColor(isDarkTheme),
+      modifier =
+          Modifier.size(50.dp).clip(shape).clickable(onClick = { isColorPickerVisible = true }),
+  ) {
+    Icon(
+        imageVector = Icons.Default.Edit,
+        contentDescription = "Edit color",
+        modifier = Modifier.padding(15.dp),
+    )
+  }
+  if (isColorPickerVisible) {
+    ColorDialog(
+        dismiss = { isColorPickerVisible = false },
+        onChangeOfColor = onChangeOfColor,
+        alreadyUsedColors = alreadyUsedColors,
+        otherColors = otherColors,
+        currentSelectedColor = selectedColor,
+        onPickCustom = {
+          isColorPickerVisible = false
+          isCustomColorPickerVisible = true
+        },
+    )
+  }
+  if (isCustomColorPickerVisible) {
+    CustomColorDialog(
+        initialColor = selectedColor as? AdaptiveColor.Custom,
+        onDismiss = { isCustomColorPickerVisible = false },
+        onPick = { custom ->
+          isCustomColorPickerVisible = false
+          onChangeOfColor(custom)
+        },
+    )
+  }
 }
 
 @Preview
 @Composable
 fun ColorDialogPreview() {
-    val alreadyUsedColors = listOf(AdaptiveColor.BLUE, AdaptiveColor.PINK, AdaptiveColor.AUBURN)
-    val otherColors = AdaptiveColor.entries.filter { color ->
+  val alreadyUsedColors = listOf(AdaptiveColor.BLUE, AdaptiveColor.PINK, AdaptiveColor.AUBURN)
+  val otherColors =
+      AdaptiveColor.entries.filter { color ->
         !alreadyUsedColors.contains(color)
-    }
-    ColorDialog(
-        dismiss = {},
-        onChangeOfColor = {},
-        alreadyUsedColors = alreadyUsedColors,
-        otherColors = otherColors
-    )
+      }
+  ColorDialog(
+      dismiss = {},
+      onChangeOfColor = {},
+      alreadyUsedColors = alreadyUsedColors,
+      otherColors = otherColors,
+  )
 }
 
 @Composable
@@ -148,104 +148,101 @@ fun ColorDialog(
     currentSelectedColor: AdaptiveColor? = null,
     onPickCustom: (() -> Unit)? = null,
 ) {
-    val isDarkTheme = isSystemInDarkTheme()
-    AlertDialog(
-        onDismissRequest = dismiss,
-        title = {
-            Text(text = "Pick a color", style = MaterialTheme.typography.titleLarge)
-        },
-        text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState())
-            ) {
-                if (otherColors.isEmpty()) {
-                    Text(text = "No unused colors")
+  val isDarkTheme = isSystemInDarkTheme()
+  AlertDialog(
+      onDismissRequest = dismiss,
+      title = {
+        Text(text = "Pick a color", style = MaterialTheme.typography.titleLarge)
+      },
+      text = {
+        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+          if (otherColors.isEmpty()) {
+            Text(text = "No unused colors")
+          } else {
+            Text(text = "Not yet used")
+            Spacer(modifier = Modifier.height(2.dp))
+            CircleColorButtons(colors = otherColors) {
+              onChangeOfColor(it)
+              dismiss()
+            }
+          }
+          if (alreadyUsedColors.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(5.dp))
+            Text(text = "Already used")
+            Spacer(modifier = Modifier.height(2.dp))
+            CircleColorButtons(colors = alreadyUsedColors) {
+              onChangeOfColor(it)
+              dismiss()
+            }
+          }
+          if (onPickCustom != null) {
+            Spacer(modifier = Modifier.height(10.dp))
+            val currentCustom = currentSelectedColor as? AdaptiveColor.Custom
+            val customSwatchColor =
+                currentCustom?.getComposeColor(isDarkTheme)
+                    ?: MaterialTheme.colorScheme.surfaceVariant
+            val customLabel =
+                if (currentCustom != null) {
+                  "Edit custom color"
                 } else {
-                    Text(text = "Not yet used")
-                    Spacer(modifier = Modifier.height(2.dp))
-                    CircleColorButtons(colors = otherColors) {
-                        onChangeOfColor(it)
-                        dismiss()
-                    }
+                  "Pick a custom color"
                 }
-                if (alreadyUsedColors.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(5.dp))
-                    Text(text = "Already used")
-                    Spacer(modifier = Modifier.height(2.dp))
-                    CircleColorButtons(colors = alreadyUsedColors) {
-                        onChangeOfColor(it)
-                        dismiss()
-                    }
-                }
-                if (onPickCustom != null) {
-                    Spacer(modifier = Modifier.height(10.dp))
-                    val currentCustom = currentSelectedColor as? AdaptiveColor.Custom
-                    val customSwatchColor = currentCustom?.getComposeColor(isDarkTheme)
-                        ?: MaterialTheme.colorScheme.surfaceVariant
-                    val customLabel = if (currentCustom != null) {
-                        "Edit custom color"
-                    } else {
-                        "Pick a custom color"
-                    }
-                    Row(
-                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable(onClick = onPickCustom)
-                            .padding(vertical = 6.dp),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = customSwatchColor,
-                            modifier = Modifier.size(32.dp),
-                        ) {}
-                        Text(
-                            text = customLabel,
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = dismiss
+            Row(
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                modifier =
+                    Modifier.fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable(onClick = onPickCustom)
+                        .padding(vertical = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Text("Cancel", textAlign = TextAlign.Center)
+              Surface(
+                  shape = RoundedCornerShape(8.dp),
+                  color = customSwatchColor,
+                  modifier = Modifier.size(32.dp),
+              ) {}
+              Text(
+                  text = customLabel,
+                  style = MaterialTheme.typography.bodyLarge,
+              )
             }
-        },
-    )
+          }
+        }
+      },
+      confirmButton = {
+        TextButton(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = dismiss,
+        ) {
+          Text("Cancel", textAlign = TextAlign.Center)
+        }
+      },
+  )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CircleColorButtons(
     colors: List<AdaptiveColor>,
-    onTapOnColor: (AdaptiveColor) -> Unit
+    onTapOnColor: (AdaptiveColor) -> Unit,
 ) {
-    val isDarkTheme = isSystemInDarkTheme()
-    val spacing = 5.dp
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(spacing),
-        verticalArrangement = Arrangement.spacedBy(spacing)
-    ) {
-        val shape = RoundedCornerShape(8.dp)
-        colors.forEach { color ->
-            Surface(
-                shape = shape,
-                color = color.getComposeColor(isDarkTheme),
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(shape)
-                    .clickable(
-                        onClick = { onTapOnColor(color) }
-                    )
-                    .semantics { contentDescription = color.name }
-            ) {}
-        }
+  val isDarkTheme = isSystemInDarkTheme()
+  val spacing = 5.dp
+  FlowRow(
+      horizontalArrangement = Arrangement.spacedBy(spacing),
+      verticalArrangement = Arrangement.spacedBy(spacing),
+  ) {
+    val shape = RoundedCornerShape(8.dp)
+    colors.forEach { color ->
+      Surface(
+          shape = shape,
+          color = color.getComposeColor(isDarkTheme),
+          modifier =
+              Modifier.size(48.dp)
+                  .clip(shape)
+                  .clickable(onClick = { onTapOnColor(color) })
+                  .semantics { contentDescription = color.name },
+      ) {}
     }
-
+  }
 }

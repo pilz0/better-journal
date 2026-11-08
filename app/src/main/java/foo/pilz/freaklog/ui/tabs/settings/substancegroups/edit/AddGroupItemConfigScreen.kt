@@ -50,120 +50,120 @@ fun AddGroupItemConfigScreen(
     onSaved: () -> Unit,
     viewModel: AddGroupItemConfigViewModel = hiltViewModel(),
 ) {
-    val spacing = LocalSpacing.current
-    var routeMenuOpen by remember { mutableStateOf(false) }
+  val spacing = LocalSpacing.current
+  var routeMenuOpen by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(viewModel.substanceName) },
-                navigationIcon = {
-                    IconButton(onClick = navigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-            )
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                text = { Text("Add to group") },
-                icon = { Icon(Icons.Default.ArrowDropDown, contentDescription = null) },
-                onClick = { viewModel.saveAndDismiss(onSaved) },
-                containerColor = if (viewModel.canSave) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-            )
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text(viewModel.substanceName) },
+            navigationIcon = {
+              IconButton(onClick = navigateBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+              }
+            },
+        )
+      },
+      floatingActionButton = {
+        ExtendedFloatingActionButton(
+            text = { Text("Add to group") },
+            icon = { Icon(Icons.Default.ArrowDropDown, contentDescription = null) },
+            onClick = { viewModel.saveAndDismiss(onSaved) },
+            containerColor =
+                if (viewModel.canSave) MaterialTheme.colorScheme.primaryContainer
+                else MaterialTheme.colorScheme.surfaceVariant,
+        )
+      },
+  ) { padding ->
+    Column(
+        modifier =
+            Modifier.padding(padding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = spacing.screenHorizontal, vertical = spacing.md),
-            verticalArrangement = Arrangement.spacedBy(spacing.md),
+        verticalArrangement = Arrangement.spacedBy(spacing.md),
+    ) {
+      Box(
+          modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+      ) {
+        OutlinedTextField(
+            value = viewModel.administrationRoute.displayText,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Route") },
+            trailingIcon = {
+              if (routeMenuOpen) {
+                Icon(Icons.Default.ArrowDropUp, contentDescription = null)
+              } else {
+                Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+              }
+            },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Surface(
+            modifier =
+                Modifier.fillMaxSize()
+                    .padding(top = spacing.sm)
+                    .clip(MaterialTheme.shapes.extraSmall)
+                    .clickable { routeMenuOpen = !routeMenuOpen },
+            color = Color.Transparent,
+        ) {}
+        DropdownMenu(
+            expanded = routeMenuOpen,
+            onDismissRequest = { routeMenuOpen = false },
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(IntrinsicSize.Min),
-            ) {
-                OutlinedTextField(
-                    value = viewModel.administrationRoute.displayText,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Route") },
-                    trailingIcon = {
-                        if (routeMenuOpen) {
-                            Icon(Icons.Default.ArrowDropUp, contentDescription = null)
-                        } else {
-                            Icon(Icons.Default.ArrowDropDown, contentDescription = null)
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Surface(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = spacing.sm)
-                        .clip(MaterialTheme.shapes.extraSmall)
-                        .clickable { routeMenuOpen = !routeMenuOpen },
-                    color = Color.Transparent,
-                ) {}
-                DropdownMenu(
-                    expanded = routeMenuOpen,
-                    onDismissRequest = { routeMenuOpen = false },
-                ) {
-                    viewModel.availableRoutes.forEach { route ->
-                        DropdownMenuItem(
-                            text = { Text(route.displayText) },
-                            onClick = {
-                                viewModel.onRouteChange(route)
-                                routeMenuOpen = false
-                            },
-                        )
-                    }
-                }
-            }
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(spacing.md),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                OutlinedTextField(
-                    value = viewModel.doseText,
-                    onValueChange = viewModel::onDoseChange,
-                    label = { Text("Dose") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true,
-                    modifier = Modifier.weight(1f),
-                )
-                OutlinedTextField(
-                    value = viewModel.unitsText,
-                    onValueChange = viewModel::onUnitsChange,
-                    label = { Text("Units") },
-                    singleLine = true,
-                    modifier = Modifier.weight(1f),
-                )
-            }
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text("Estimated dose", style = MaterialTheme.typography.bodyLarge)
-                Switch(
-                    checked = viewModel.isEstimate,
-                    onCheckedChange = viewModel::onEstimateChange
-                )
-            }
-            if (viewModel.isEstimate) {
-                OutlinedTextField(
-                    value = viewModel.estimatedStdDevText,
-                    onValueChange = viewModel::onEstimatedStdDevChange,
-                    label = { Text("Standard deviation (optional)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
+          viewModel.availableRoutes.forEach { route ->
+            DropdownMenuItem(
+                text = { Text(route.displayText) },
+                onClick = {
+                  viewModel.onRouteChange(route)
+                  routeMenuOpen = false
+                },
+            )
+          }
         }
+      }
+      Row(
+          horizontalArrangement = Arrangement.spacedBy(spacing.md),
+          modifier = Modifier.fillMaxWidth(),
+      ) {
+        OutlinedTextField(
+            value = viewModel.doseText,
+            onValueChange = viewModel::onDoseChange,
+            label = { Text("Dose") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            singleLine = true,
+            modifier = Modifier.weight(1f),
+        )
+        OutlinedTextField(
+            value = viewModel.unitsText,
+            onValueChange = viewModel::onUnitsChange,
+            label = { Text("Units") },
+            singleLine = true,
+            modifier = Modifier.weight(1f),
+        )
+      }
+      Row(
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically,
+          modifier = Modifier.fillMaxWidth(),
+      ) {
+        Text("Estimated dose", style = MaterialTheme.typography.bodyLarge)
+        Switch(
+            checked = viewModel.isEstimate,
+            onCheckedChange = viewModel::onEstimateChange,
+        )
+      }
+      if (viewModel.isEstimate) {
+        OutlinedTextField(
+            value = viewModel.estimatedStdDevText,
+            onValueChange = viewModel::onEstimatedStdDevChange,
+            label = { Text("Standard deviation (optional)") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+        )
+      }
     }
+  }
 }

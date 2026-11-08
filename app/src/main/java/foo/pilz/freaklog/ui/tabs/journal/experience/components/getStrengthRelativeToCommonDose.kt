@@ -25,18 +25,18 @@ import kotlin.math.max
 fun precomputeAverageDoses(
     allIngestions: List<IngestionWithCompanionAndCustomUnit>,
 ): Map<IngestionDoseKey, Double> {
-    val groups = allIngestions.groupBy {
-        IngestionDoseKey(
-            it.ingestion.substanceName.trim().lowercase(),
-            it.ingestion.administrationRoute,
-            RoaDose.normalizeUnitString(it.originalUnit),
-        )
-    }
-    return groups.mapValues { (_, list) ->
-        val valid = list.mapNotNull { it.pureDose?.takeIf { d -> d.isFinite() && d > 0.0 } }
-        val sum = valid.sum()
-        sum / max(1.0, valid.size.toDouble())
-    }
+  val groups = allIngestions.groupBy {
+    IngestionDoseKey(
+        it.ingestion.substanceName.trim().lowercase(),
+        it.ingestion.administrationRoute,
+        RoaDose.normalizeUnitString(it.originalUnit),
+    )
+  }
+  return groups.mapValues { (_, list) ->
+    val valid = list.mapNotNull { it.pureDose?.takeIf { d -> d.isFinite() && d > 0.0 } }
+    val sum = valid.sum()
+    sum / max(1.0, valid.size.toDouble())
+  }
 }
 
 fun getStrengthRelativeToCommonDose(
@@ -44,19 +44,20 @@ fun getStrengthRelativeToCommonDose(
     averageDose: Double,
     roaDose: RoaDose?,
 ): Double {
-    val targetUnit = ingestion.originalUnit
-    val commonDose = if (roaDose != null && RoaDose.isMatchingUnit(targetUnit, roaDose.units)) {
+  val targetUnit = ingestion.originalUnit
+  val commonDose =
+      if (roaDose != null && RoaDose.isMatchingUnit(targetUnit, roaDose.units)) {
         roaDose.averageCommonDose?.takeIf { it.isFinite() && it > 0.0 }
-    } else {
+      } else {
         null
-    } ?: averageDose.takeIf { it.isFinite() && it > 0.0 }
-        ?: 1.0
+      } ?: averageDose.takeIf { it.isFinite() && it > 0.0 } ?: 1.0
 
-    val relativeDose = ingestion.pureDose?.let { doseSnap ->
+  val relativeDose =
+      ingestion.pureDose?.let { doseSnap ->
         if (doseSnap.isFinite() && doseSnap >= 0.0) doseSnap / commonDose else 1.0
-    } ?: 1.0
+      } ?: 1.0
 
-    return if (relativeDose.isFinite() && relativeDose >= 0.0) relativeDose else 1.0
+  return if (relativeDose.isFinite() && relativeDose >= 0.0) relativeDose else 1.0
 }
 
 fun getStrengthRelativeToCommonDose(
@@ -64,11 +65,12 @@ fun getStrengthRelativeToCommonDose(
     allIngestions: List<IngestionWithCompanionAndCustomUnit>,
     roaDose: RoaDose?,
 ): Double {
-    val key = IngestionDoseKey(
-        ingestion.ingestion.substanceName.trim().lowercase(),
-        ingestion.ingestion.administrationRoute,
-        RoaDose.normalizeUnitString(ingestion.originalUnit),
-    )
-    val avg = precomputeAverageDoses(allIngestions)[key] ?: 0.0
-    return getStrengthRelativeToCommonDose(ingestion, avg, roaDose)
+  val key =
+      IngestionDoseKey(
+          ingestion.ingestion.substanceName.trim().lowercase(),
+          ingestion.ingestion.administrationRoute,
+          RoaDose.normalizeUnitString(ingestion.originalUnit),
+      )
+  val avg = precomputeAverageDoses(allIngestions)[key] ?: 0.0
+  return getStrengthRelativeToCommonDose(ingestion, avg, roaDose)
 }

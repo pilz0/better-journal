@@ -23,5 +23,5 @@ import java.time.Instant
 
 data class DataForOneTimedNote(
     val time: Instant,
-    val color: AdaptiveColor
+    val color: AdaptiveColor,
 )

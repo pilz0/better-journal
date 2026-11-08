@@ -14,14 +14,14 @@ import foo.pilz.freaklog.data.room.reminders.entities.Reminder
 import foo.pilz.freaklog.scheduled.NotificationScheduler
 import foo.pilz.freaklog.scheduled.ReminderSchedule
 import foo.pilz.freaklog.ui.main.navigation.graphs.EditReminderRoute
+import java.time.DayOfWeek
+import java.time.LocalTime
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.DayOfWeek
-import java.time.LocalTime
-import javax.inject.Inject
 
 /** Form state for the reminder edit screen. Held as a single immutable value for clarity. */
 data class ReminderFormState(
@@ -43,133 +43,158 @@ data class ReminderFormState(
 )
 
 @HiltViewModel
-class EditReminderViewModel @Inject constructor(
+class EditReminderViewModel
+@Inject
+constructor(
     savedStateHandle: SavedStateHandle,
     private val remindersRepository: RemindersRepository,
     private val notificationScheduler: NotificationScheduler,
 ) : ViewModel() {
 
-    private val reminderId: Int = savedStateHandle.toRoute<EditReminderRoute>().reminderId
+  private val reminderId: Int = savedStateHandle.toRoute<EditReminderRoute>().reminderId
 
-    val isNew: Boolean = reminderId <= 0
+  val isNew: Boolean = reminderId <= 0
 
-    private val _state = MutableStateFlow(ReminderFormState())
-    val state: StateFlow<ReminderFormState> = _state.asStateFlow()
+  private val _state = MutableStateFlow(ReminderFormState())
+  val state: StateFlow<ReminderFormState> = _state.asStateFlow()
 
-    init {
-        if (!isNew) {
-            viewModelScope.launch {
-                val existing = remindersRepository.getReminderById(reminderId) ?: return@launch
-                _state.value = existing.toForm()
-            }
-        }
+  init {
+    if (!isNew) {
+      viewModelScope.launch {
+        val existing = remindersRepository.getReminderById(reminderId) ?: return@launch
+        _state.value = existing.toForm()
+      }
     }
+  }
 
-    fun setTitle(value: String) = _state.update { it.copy(title = value) }
-    fun setEnabled(value: Boolean) = _state.update { it.copy(isEnabled = value) }
-    fun setScheduleType(value: String) = _state.update { it.copy(scheduleType = value) }
-    fun setSubstanceName(value: String) = _state.update { it.copy(substanceName = value) }
-    fun setAdministrationRoute(value: String?) = _state.update { it.copy(administrationRoute = value) }
-    fun setDose(value: String) = _state.update { it.copy(dose = value) }
-    fun setUnits(value: String) = _state.update { it.copy(units = value) }
-    fun setNotes(value: String) = _state.update { it.copy(notes = value) }
-    fun setEndDate(value: Long?) = _state.update { it.copy(endEpochMillis = value) }
-    fun setIntervalValue(value: Int) = _state.update { it.copy(intervalValue = value.coerceAtLeast(1)) }
-    fun setIntervalUnit(value: String) = _state.update { it.copy(intervalUnit = value) }
-    fun setIntervalAnchor(value: Long) = _state.update { it.copy(intervalAnchorMillis = value) }
+  fun setTitle(value: String) = _state.update { it.copy(title = value) }
 
-    fun addTime(time: LocalTime) = _state.update {
-        val updated = (it.timesOfDay + time).distinct().sorted()
-        it.copy(timesOfDay = updated)
+  fun setEnabled(value: Boolean) = _state.update { it.copy(isEnabled = value) }
+
+  fun setScheduleType(value: String) = _state.update { it.copy(scheduleType = value) }
+
+  fun setSubstanceName(value: String) = _state.update { it.copy(substanceName = value) }
+
+  fun setAdministrationRoute(value: String?) = _state.update {
+    it.copy(administrationRoute = value)
+  }
+
+  fun setDose(value: String) = _state.update { it.copy(dose = value) }
+
+  fun setUnits(value: String) = _state.update { it.copy(units = value) }
+
+  fun setNotes(value: String) = _state.update { it.copy(notes = value) }
+
+  fun setEndDate(value: Long?) = _state.update { it.copy(endEpochMillis = value) }
+
+  fun setIntervalValue(value: Int) = _state.update {
+    it.copy(intervalValue = value.coerceAtLeast(1))
+  }
+
+  fun setIntervalUnit(value: String) = _state.update { it.copy(intervalUnit = value) }
+
+  fun setIntervalAnchor(value: Long) = _state.update { it.copy(intervalAnchorMillis = value) }
+
+  fun addTime(time: LocalTime) = _state.update {
+    val updated = (it.timesOfDay + time).distinct().sorted()
+    it.copy(timesOfDay = updated)
+  }
+
+  fun removeTime(time: LocalTime) = _state.update {
+    it.copy(timesOfDay = it.timesOfDay.filter { t -> t != time })
+  }
+
+  fun toggleDay(day: DayOfWeek) = _state.update {
+    val newMask = ReminderSchedule.toggleDay(it.daysOfWeekMask, day)
+    // Refuse to toggle off the last selected day; saving an all-zero mask would silently
+    // be turned into "every day" by the storage layer, which is surprising. The user must
+    // explicitly enable another day before deselecting the current one.
+    if (newMask == 0) it else it.copy(daysOfWeekMask = newMask)
+  }
+
+  fun canScheduleExactAlarms(): Boolean = notificationScheduler.canScheduleExactAlarms()
+
+  /** Saves the form, schedules the reminder, then invokes [onDone]. */
+  fun save(onDone: () -> Unit) {
+    viewModelScope.launch {
+      val reminder = _state.value.toReminder()
+      val savedId =
+          if (isNew) {
+            remindersRepository.insert(reminder).toInt()
+          } else {
+            remindersRepository.update(reminder)
+            reminder.id
+          }
+      val toSchedule = reminder.copy(id = savedId)
+      notificationScheduler.scheduleReminder(toSchedule)
+      onDone()
     }
+  }
 
-    fun removeTime(time: LocalTime) = _state.update {
-        it.copy(timesOfDay = it.timesOfDay.filter { t -> t != time })
-    }
+  fun test() {
+    // Post the notification directly from the form state, without persisting anything.
+    // Earlier versions inserted a draft row so the broadcast receiver could look it up;
+    // that left orphan reminders behind for new (unsaved) reminders.
+    val reminder = _state.value.toReminder()
+    notificationScheduler.testNotification(reminder)
+  }
 
-    fun toggleDay(day: DayOfWeek) = _state.update {
-        val newMask = ReminderSchedule.toggleDay(it.daysOfWeekMask, day)
-        // Refuse to toggle off the last selected day; saving an all-zero mask would silently
-        // be turned into "every day" by the storage layer, which is surprising. The user must
-        // explicitly enable another day before deselecting the current one.
-        if (newMask == 0) it else it.copy(daysOfWeekMask = newMask)
-    }
-
-    fun canScheduleExactAlarms(): Boolean = notificationScheduler.canScheduleExactAlarms()
-
-    /** Saves the form, schedules the reminder, then invokes [onDone]. */
-    fun save(onDone: () -> Unit) {
-        viewModelScope.launch {
-            val reminder = _state.value.toReminder()
-            val savedId = if (isNew) {
-                remindersRepository.insert(reminder).toInt()
-            } else {
-                remindersRepository.update(reminder)
-                reminder.id
-            }
-            val toSchedule = reminder.copy(id = savedId)
-            notificationScheduler.scheduleReminder(toSchedule)
-            onDone()
-        }
-    }
-
-    fun test() {
-        // Post the notification directly from the form state, without persisting anything.
-        // Earlier versions inserted a draft row so the broadcast receiver could look it up;
-        // that left orphan reminders behind for new (unsaved) reminders.
-        val reminder = _state.value.toReminder()
-        notificationScheduler.testNotification(reminder)
-    }
-
-    private fun ReminderFormState.toReminder(): Reminder {
-        val anchorMs = if (scheduleType == ReminderSchedule.SCHEDULE_TYPE_INTERVAL && intervalAnchorMillis == 0L) {
-            System.currentTimeMillis()
+  private fun ReminderFormState.toReminder(): Reminder {
+    val anchorMs =
+        if (scheduleType == ReminderSchedule.SCHEDULE_TYPE_INTERVAL && intervalAnchorMillis == 0L) {
+          System.currentTimeMillis()
         } else {
-            intervalAnchorMillis
+          intervalAnchorMillis
         }
-        val firstTime = timesOfDay.firstOrNull() ?: LocalTime.of(8, 0)
-        return Reminder(
-            id = id,
-            title = title.trim(),
-            hour = firstTime.hour,
-            minute = firstTime.minute,
-            isEnabled = isEnabled,
-            intervalValue = intervalValue.coerceAtLeast(1),
-            intervalUnit = intervalUnit,
-            scheduleType = scheduleType,
-            timesOfDay = ReminderSchedule.formatTimesOfDay(timesOfDay),
-            // Mask is guaranteed non-zero by toggleDay above, but keep a defensive coercion
-            // so legacy callers (e.g. import) can't smuggle in a zero mask.
-            daysOfWeekMask = daysOfWeekMask.takeIf { it != 0 } ?: 127,
-            startEpochMillis = anchorMs,
-            endEpochMillis = endEpochMillis,
-            substanceName = substanceName.trim().takeIf { it.isNotEmpty() },
-            administrationRoute = administrationRoute,
-            dose = dose.toDoubleOrNull(),
-            units = units.trim().takeIf { it.isNotEmpty() },
-            notes = notes.trim(),
-        )
-    }
-
-    private fun Reminder.toForm(): ReminderFormState = ReminderFormState(
+    val firstTime = timesOfDay.firstOrNull() ?: LocalTime.of(8, 0)
+    return Reminder(
         id = id,
-        title = title,
+        title = title.trim(),
+        hour = firstTime.hour,
+        minute = firstTime.minute,
         isEnabled = isEnabled,
-        scheduleType = scheduleType,
-        timesOfDay = ReminderSchedule.parseTimesOfDay(timesOfDay).ifEmpty {
-            // Legacy rows without timesOfDay: seed with the legacy hour:minute.
-            listOf(LocalTime.of(hour.coerceIn(0, 23), minute.coerceIn(0, 59)))
-        },
-        daysOfWeekMask = if (daysOfWeekMask == 0) 127 else daysOfWeekMask,
         intervalValue = intervalValue.coerceAtLeast(1),
         intervalUnit = intervalUnit,
-        intervalAnchorMillis = startEpochMillis,
+        scheduleType = scheduleType,
+        timesOfDay = ReminderSchedule.formatTimesOfDay(timesOfDay),
+        // Mask is guaranteed non-zero by toggleDay above, but keep a defensive coercion
+        // so legacy callers (e.g. import) can't smuggle in a zero mask.
+        daysOfWeekMask = daysOfWeekMask.takeIf { it != 0 } ?: 127,
+        startEpochMillis = anchorMs,
         endEpochMillis = endEpochMillis,
-        substanceName = substanceName.orEmpty(),
+        substanceName = substanceName.trim().takeIf { it.isNotEmpty() },
         administrationRoute = administrationRoute,
-        dose = dose?.let { if (it == it.toLong().toDouble()) it.toLong().toString() else it.toString() }
-            .orEmpty(),
-        units = units.orEmpty(),
-        notes = notes,
+        dose = dose.toDoubleOrNull(),
+        units = units.trim().takeIf { it.isNotEmpty() },
+        notes = notes.trim(),
     )
+  }
+
+  private fun Reminder.toForm(): ReminderFormState =
+      ReminderFormState(
+          id = id,
+          title = title,
+          isEnabled = isEnabled,
+          scheduleType = scheduleType,
+          timesOfDay =
+              ReminderSchedule.parseTimesOfDay(timesOfDay).ifEmpty {
+                // Legacy rows without timesOfDay: seed with the legacy hour:minute.
+                listOf(LocalTime.of(hour.coerceIn(0, 23), minute.coerceIn(0, 59)))
+              },
+          daysOfWeekMask = if (daysOfWeekMask == 0) 127 else daysOfWeekMask,
+          intervalValue = intervalValue.coerceAtLeast(1),
+          intervalUnit = intervalUnit,
+          intervalAnchorMillis = startEpochMillis,
+          endEpochMillis = endEpochMillis,
+          substanceName = substanceName.orEmpty(),
+          administrationRoute = administrationRoute,
+          dose =
+              dose
+                  ?.let {
+                    if (it == it.toLong().toDouble()) it.toLong().toString() else it.toString()
+                  }
+                  .orEmpty(),
+          units = units.orEmpty(),
+          notes = notes,
+      )
 }

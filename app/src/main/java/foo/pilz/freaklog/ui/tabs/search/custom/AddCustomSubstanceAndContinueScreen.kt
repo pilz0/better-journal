@@ -40,51 +40,51 @@ fun AddCustomSubstanceAndContinueScreen(
     navigateToChooseRoa: (customSubstanceName: String) -> Unit,
     navigateBack: () -> Unit,
     initialName: String = "",
-    viewModel: AddCustomSubstanceViewModel = hiltViewModel()
+    viewModel: AddCustomSubstanceViewModel = hiltViewModel(),
 ) {
-    val name = viewModel.nameFlow.collectAsStateWithLifecycle().value
-    val units = viewModel.unitsFlow.collectAsStateWithLifecycle().value
-    // The view model saves edits into a draft row, so the prefill has to wait until that row exists.
-    val isDraftReady = viewModel.substanceFlow.collectAsStateWithLifecycle().value != null
-    LaunchedEffect(isDraftReady) {
-        if (isDraftReady && name.isBlank() && initialName.isNotBlank()) {
-            viewModel.onNameChange(initialName)
-        }
+  val name = viewModel.nameFlow.collectAsStateWithLifecycle().value
+  val units = viewModel.unitsFlow.collectAsStateWithLifecycle().value
+  // The view model saves edits into a draft row, so the prefill has to wait until that row exists.
+  val isDraftReady = viewModel.substanceFlow.collectAsStateWithLifecycle().value != null
+  LaunchedEffect(isDraftReady) {
+    if (isDraftReady && name.isBlank() && initialName.isNotBlank()) {
+      viewModel.onNameChange(initialName)
     }
-    BackHandler {
-        viewModel.deleteDraft()
-        navigateBack()
-    }
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Add custom substance") })
-        },
-        floatingActionButton = {
-            if (isDraftReady && name.isNotBlank() && units.isNotBlank()) {
-                ExtendedFloatingActionButton(
-                    modifier = Modifier.imePadding(),
-                    onClick = {
-                        navigateToChooseRoa(name)
-                    },
-                    icon = {
-                        Icon(
-                            Icons.Filled.Done,
-                            contentDescription = "Done"
-                        )
-                    },
-                    text = { Text("Done") },
+  }
+  BackHandler {
+    viewModel.deleteDraft()
+    navigateBack()
+  }
+  Scaffold(
+      topBar = {
+        TopAppBar(title = { Text("Add custom substance") })
+      },
+      floatingActionButton = {
+        if (isDraftReady && name.isNotBlank() && units.isNotBlank()) {
+          ExtendedFloatingActionButton(
+              modifier = Modifier.imePadding(),
+              onClick = {
+                navigateToChooseRoa(name)
+              },
+              icon = {
+                Icon(
+                    Icons.Filled.Done,
+                    contentDescription = "Done",
                 )
-            }
+              },
+              text = { Text("Done") },
+          )
         }
-    ) { padding ->
-        AddOrEditCustomSubstanceContent(
-            padding = padding,
-            name = name,
-            units = units,
-            onNameChange = viewModel::onNameChange,
-            onUnitsChange = viewModel::onUnitsChange,
-            category = viewModel.categoryFlow.collectAsStateWithLifecycle().value,
-            onCategoryChange = viewModel::onCategoryChange,
-        )
-    }
+      },
+  ) { padding ->
+    AddOrEditCustomSubstanceContent(
+        padding = padding,
+        name = name,
+        units = units,
+        onNameChange = viewModel::onNameChange,
+        onUnitsChange = viewModel::onUnitsChange,
+        category = viewModel.categoryFlow.collectAsStateWithLifecycle().value,
+        onCategoryChange = viewModel::onCategoryChange,
+    )
+  }
 }

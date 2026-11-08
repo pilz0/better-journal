@@ -63,157 +63,162 @@ fun MainScreen(
     shouldNavigateToJournalScreen: Boolean = false,
     onJournalScreenNavigated: () -> Unit = {},
     shouldNavigateToExperienceId: Int? = null,
-    onExperienceNavigated: () -> Unit = {}
+    onExperienceNavigated: () -> Unit = {},
 ) {
-    if (viewModel.isAcceptedFlow.collectAsState().value) {
-        val navController = rememberNavController()
-        val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val isHapticEnabled = viewModel.isHapticFeedbackEnabledFlow.collectAsState().value
+  if (viewModel.isAcceptedFlow.collectAsState().value) {
+    val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val isHapticEnabled = viewModel.isHapticFeedbackEnabledFlow.collectAsState().value
 
-        // Handle navigation to Add Ingestion when triggered from widget
-        // The guard condition prevents re-execution when state is reset to false
-        LaunchedEffect(shouldNavigateToAddIngestion) {
-            if (shouldNavigateToAddIngestion) {
-                navController.navigate(AddIngestionRoute) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
-                    }
-                    launchSingleTop = true
-                }
-                onAddIngestionNavigated()
-            }
+    // Handle navigation to Add Ingestion when triggered from widget
+    // The guard condition prevents re-execution when state is reset to false
+    LaunchedEffect(shouldNavigateToAddIngestion) {
+      if (shouldNavigateToAddIngestion) {
+        navController.navigate(AddIngestionRoute) {
+          popUpTo(navController.graph.findStartDestination().id) {
+            saveState = true
+          }
+          launchSingleTop = true
         }
-
-        LaunchedEffect(shouldNavigateToJournalScreen) {
-            if (shouldNavigateToJournalScreen) {
-                navController.navigate(JournalTopLevelRoute) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
-                    }
-                    launchSingleTop = true
-                }
-                onJournalScreenNavigated()
-            }
-        }
-
-        LaunchedEffect(shouldNavigateToExperienceId) {
-            if (shouldNavigateToExperienceId != null) {
-                navController.navigate(ExperienceRoute(shouldNavigateToExperienceId)) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
-                    }
-                    launchSingleTop = true
-                }
-                onExperienceNavigated()
-            }
-        }
-
-        val hideSafer = viewModel.activateSaferFlow.collectAsState().value
-        val hideStats = viewModel.isStatsHiddenFlow.collectAsState().value
-        val hideDrugs = viewModel.isDrugsHiddenFlow.collectAsState().value
-        val showInventory = viewModel.isInventoryEnabledFlow.collectAsState().value
-
-        HapticFeedbackProvider(isEnabled = isHapticEnabled) {
-            // The disguise skins are drawn over the whole app, so everything shares one Box.
-            Box(modifier = Modifier.fillMaxSize()) {
-                val performHaptic = rememberHaptic()
-
-                NavigationSuiteScaffold(
-                    navigationSuiteItems = {
-                        val currentDestination = navBackStackEntry?.destination
-                        topLevelRoutes(hideSafer, hideStats, hideDrugs, showInventory).forEach { topLevelRoute ->
-                            val selected =
-                                currentDestination?.hierarchy?.any { it.hasRoute(topLevelRoute.route::class) } == true
-                            item(
-                                icon = {
-                                    Icon(
-                                        if (selected) topLevelRoute.filledIcon else topLevelRoute.outlinedIcon,
-                                        contentDescription = topLevelRoute.name
-                                    )
-                                },
-                                label = { Text(topLevelRoute.name) },
-                                selected = selected,
-                                onClick = {
-                                    performHaptic(HapticType.CLICK)
-                                    if (selected) {
-                                        val isAlreadyOnTopOfTab =
-                                            topLevelRoutes(hideSafer, hideStats, hideDrugs, showInventory).any { it.route == currentDestination.route }
-                                        if (!isAlreadyOnTopOfTab) {
-                                            navController.popBackStack()
-                                        }
-                                    } else {
-                                        navController.navigate(topLevelRoute.route) {
-                                            // Pop up to the start destination of the graph to
-                                            // avoid building up a large stack of destinations
-                                            // on the back stack as users select items
-                                            popUpTo(navController.graph.findStartDestination().id) {
-                                                saveState = true
-                                            }
-                                            // Avoid multiple copies of the same destination when
-                                            // reselecting the same item
-                                            launchSingleTop = true
-                                            // Restore state when reselecting a previously selected item
-                                            restoreState = true
-                                        }
-                                    }
-                                }
-                            )
-                        }
-                    }
-                ) {
-                    NavHost(
-                        navController,
-                        startDestination = JournalTopLevelRoute
-                    ) {
-                        journalGraph(navController)
-                        statsGraph(navController)
-                        searchGraph(navController)
-                        saferGraph(navController)
-                        if (showInventory) {
-                            inventoryGraph(navController)
-                        }
-                        settingsGraph(navController)
-                    }
-                }
-                val teamsSkinHostViewModel: TeamsSkinHostViewModel = hiltViewModel()
-                val teamsSkinPayload by teamsSkinHostViewModel.controller.state.collectAsState()
-                val excelSkinHostViewModel: ExcelSkinHostViewModel = hiltViewModel()
-                val excelSkinPayload by excelSkinHostViewModel.controller.state.collectAsState()
-                val outlookSkinHostViewModel: OutlookSkinHostViewModel = hiltViewModel()
-                val outlookSkinPayload by outlookSkinHostViewModel.controller.state.collectAsState()
-                teamsSkinPayload?.let { payload ->
-                    TeamsChatSkin(
-                        ingestions = payload.ingestions,
-                        timelineModel = payload.timelineModel,
-                        timeDisplayOption = payload.timeDisplayOption,
-                        contactName = payload.contactName,
-                        onDismiss = { teamsSkinHostViewModel.controller.dismiss() }
-                    )
-                }
-                if (teamsSkinPayload == null) {
-                    excelSkinPayload?.let { payload ->
-                        ExcelStatsSkin(
-                            statItems = payload.statItems,
-                            fileName = payload.fileName,
-                            onDismiss = { excelSkinHostViewModel.controller.dismiss() }
-                        )
-                    }
-                }
-                if (teamsSkinPayload == null && excelSkinPayload == null) {
-                    outlookSkinPayload?.let { payload ->
-                        OutlookInboxSkin(
-                            rows = payload.rows,
-                            onOpenExperience = { experienceId ->
-                                outlookSkinHostViewModel.controller.dismiss()
-                                navController.navigate(ExperienceRoute(experienceId))
-                            },
-                            onDismiss = { outlookSkinHostViewModel.controller.dismiss() }
-                        )
-                    }
-                }
-            }
-        }
-    } else {
-        AcceptConditionsScreen(onTapAccept = viewModel::accept)
+        onAddIngestionNavigated()
+      }
     }
+
+    LaunchedEffect(shouldNavigateToJournalScreen) {
+      if (shouldNavigateToJournalScreen) {
+        navController.navigate(JournalTopLevelRoute) {
+          popUpTo(navController.graph.findStartDestination().id) {
+            saveState = true
+          }
+          launchSingleTop = true
+        }
+        onJournalScreenNavigated()
+      }
+    }
+
+    LaunchedEffect(shouldNavigateToExperienceId) {
+      if (shouldNavigateToExperienceId != null) {
+        navController.navigate(ExperienceRoute(shouldNavigateToExperienceId)) {
+          popUpTo(navController.graph.findStartDestination().id) {
+            saveState = true
+          }
+          launchSingleTop = true
+        }
+        onExperienceNavigated()
+      }
+    }
+
+    val hideSafer = viewModel.activateSaferFlow.collectAsState().value
+    val hideStats = viewModel.isStatsHiddenFlow.collectAsState().value
+    val hideDrugs = viewModel.isDrugsHiddenFlow.collectAsState().value
+    val showInventory = viewModel.isInventoryEnabledFlow.collectAsState().value
+
+    HapticFeedbackProvider(isEnabled = isHapticEnabled) {
+      // The disguise skins are drawn over the whole app, so everything shares one Box.
+      Box(modifier = Modifier.fillMaxSize()) {
+        val performHaptic = rememberHaptic()
+
+        NavigationSuiteScaffold(
+            navigationSuiteItems = {
+              val currentDestination = navBackStackEntry?.destination
+              topLevelRoutes(hideSafer, hideStats, hideDrugs, showInventory).forEach { topLevelRoute
+                ->
+                val selected =
+                    currentDestination?.hierarchy?.any {
+                      it.hasRoute(topLevelRoute.route::class)
+                    } == true
+                item(
+                    icon = {
+                      Icon(
+                          if (selected) topLevelRoute.filledIcon else topLevelRoute.outlinedIcon,
+                          contentDescription = topLevelRoute.name,
+                      )
+                    },
+                    label = { Text(topLevelRoute.name) },
+                    selected = selected,
+                    onClick = {
+                      performHaptic(HapticType.CLICK)
+                      if (selected) {
+                        val isAlreadyOnTopOfTab =
+                            topLevelRoutes(hideSafer, hideStats, hideDrugs, showInventory).any {
+                              it.route == currentDestination.route
+                            }
+                        if (!isAlreadyOnTopOfTab) {
+                          navController.popBackStack()
+                        }
+                      } else {
+                        navController.navigate(topLevelRoute.route) {
+                          // Pop up to the start destination of the graph to
+                          // avoid building up a large stack of destinations
+                          // on the back stack as users select items
+                          popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                          }
+                          // Avoid multiple copies of the same destination when
+                          // reselecting the same item
+                          launchSingleTop = true
+                          // Restore state when reselecting a previously selected item
+                          restoreState = true
+                        }
+                      }
+                    },
+                )
+              }
+            }
+        ) {
+          NavHost(
+              navController,
+              startDestination = JournalTopLevelRoute,
+          ) {
+            journalGraph(navController)
+            statsGraph(navController)
+            searchGraph(navController)
+            saferGraph(navController)
+            if (showInventory) {
+              inventoryGraph(navController)
+            }
+            settingsGraph(navController)
+          }
+        }
+        val teamsSkinHostViewModel: TeamsSkinHostViewModel = hiltViewModel()
+        val teamsSkinPayload by teamsSkinHostViewModel.controller.state.collectAsState()
+        val excelSkinHostViewModel: ExcelSkinHostViewModel = hiltViewModel()
+        val excelSkinPayload by excelSkinHostViewModel.controller.state.collectAsState()
+        val outlookSkinHostViewModel: OutlookSkinHostViewModel = hiltViewModel()
+        val outlookSkinPayload by outlookSkinHostViewModel.controller.state.collectAsState()
+        teamsSkinPayload?.let { payload ->
+          TeamsChatSkin(
+              ingestions = payload.ingestions,
+              timelineModel = payload.timelineModel,
+              timeDisplayOption = payload.timeDisplayOption,
+              contactName = payload.contactName,
+              onDismiss = { teamsSkinHostViewModel.controller.dismiss() },
+          )
+        }
+        if (teamsSkinPayload == null) {
+          excelSkinPayload?.let { payload ->
+            ExcelStatsSkin(
+                statItems = payload.statItems,
+                fileName = payload.fileName,
+                onDismiss = { excelSkinHostViewModel.controller.dismiss() },
+            )
+          }
+        }
+        if (teamsSkinPayload == null && excelSkinPayload == null) {
+          outlookSkinPayload?.let { payload ->
+            OutlookInboxSkin(
+                rows = payload.rows,
+                onOpenExperience = { experienceId ->
+                  outlookSkinHostViewModel.controller.dismiss()
+                  navController.navigate(ExperienceRoute(experienceId))
+                },
+                onDismiss = { outlookSkinHostViewModel.controller.dismiss() },
+            )
+          }
+        }
+      }
+    }
+  } else {
+    AcceptConditionsScreen(onTapAccept = viewModel::accept)
+  }
 }

@@ -20,25 +20,25 @@ fun CustomSubstanceCard(
     substance: CustomSubstance,
     onClick: () -> Unit,
 ) {
-    val spacing = LocalSpacing.current
-    ElevatedCard(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+  val spacing = LocalSpacing.current
+  ElevatedCard(
+      onClick = onClick,
+      modifier = Modifier.fillMaxWidth(),
+  ) {
+    Column(
+        modifier = Modifier.padding(spacing.lg),
+        verticalArrangement = Arrangement.spacedBy(spacing.xs),
     ) {
-        Column(
-            modifier = Modifier.padding(spacing.lg),
-            verticalArrangement = Arrangement.spacedBy(spacing.xs),
-        ) {
-            Text(
-                text = substance.name,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Text(
-                text = substance.units,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary,
-            )
-        }
+      Text(
+          text = substance.name,
+          style = MaterialTheme.typography.titleMedium,
+          fontWeight = FontWeight.SemiBold,
+      )
+      Text(
+          text = substance.units,
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.primary,
+      )
     }
+  }
 }

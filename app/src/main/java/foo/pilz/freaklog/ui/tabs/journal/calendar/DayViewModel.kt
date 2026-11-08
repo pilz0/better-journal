@@ -26,28 +26,30 @@ import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import java.time.ZoneId
 import javax.inject.Inject
 
-
 @HiltViewModel
-class DayViewModel @Inject constructor(
+class DayViewModel
+@Inject
+constructor(
     val experienceRepo: ExperienceRepository,
 ) : ViewModel() {
 
-    suspend fun getExperienceInfo(day: CalendarDay): ExperienceInfo {
-        val zone = ZoneId.systemDefault()
-        val startOfDay = day.date.atStartOfDay(zone).toInstant()
-        val endOfDay = day.date.plusDays(1).atStartOfDay(zone).toInstant()
-        val ingestions = experienceRepo.getIngestionsWithCompanions(
+  suspend fun getExperienceInfo(day: CalendarDay): ExperienceInfo {
+    val zone = ZoneId.systemDefault()
+    val startOfDay = day.date.atStartOfDay(zone).toInstant()
+    val endOfDay = day.date.plusDays(1).atStartOfDay(zone).toInstant()
+    val ingestions =
+        experienceRepo.getIngestionsWithCompanions(
             fromInstant = startOfDay,
-            toInstant = endOfDay
+            toInstant = endOfDay,
         )
-        return ExperienceInfo(
-            experienceIds = ingestions.map { it.ingestion.experienceId }.toSet().toList(),
-            colors = ingestions.mapNotNull { it.substanceCompanion?.color }
-        )
-    }
+    return ExperienceInfo(
+        experienceIds = ingestions.map { it.ingestion.experienceId }.toSet().toList(),
+        colors = ingestions.mapNotNull { it.substanceCompanion?.color },
+    )
+  }
 }
 
 data class ExperienceInfo(
     val experienceIds: List<Int>,
-    val colors: List<AdaptiveColor>
+    val colors: List<AdaptiveColor>,
 )

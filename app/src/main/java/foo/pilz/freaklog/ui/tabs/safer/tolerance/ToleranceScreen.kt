@@ -63,139 +63,134 @@ import java.time.Instant
 @Composable
 fun ToleranceScreen(
     navigateBack: () -> Unit,
-    viewModel: ToleranceViewModel = hiltViewModel()
+    viewModel: ToleranceViewModel = hiltViewModel(),
 ) {
-    val recentTolerances = viewModel.recentTolerances.collectAsState().value
-    val searchedTolerance = viewModel.searchedTolerance.collectAsState().value
-    val isLoading = viewModel.isLoading.collectAsState().value
+  val recentTolerances = viewModel.recentTolerances.collectAsState().value
+  val searchedTolerance = viewModel.searchedTolerance.collectAsState().value
+  val isLoading = viewModel.isLoading.collectAsState().value
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Tolerance") },
-                navigationIcon = {
-                    IconButton(onClick = navigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                }
-            )
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Tolerance") },
+            navigationIcon = {
+              IconButton(onClick = navigateBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+              }
+            },
+        )
+      }
+  ) { padding ->
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().padding(padding),
+        contentPadding = PaddingValues(vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+      item(key = "search_section") {
+        SearchSection(
+            searchText = viewModel.searchText,
+            onSearchTextChange = viewModel::onSearchTextChange,
+            suggestions = viewModel.searchSuggestions,
+            onSelectSubstance = viewModel::onSelectSubstance,
+        )
+      }
+
+      if (searchedTolerance != null) {
+        item(key = "searched_detail") {
+          ToleranceDetailCard(
+              estimate = searchedTolerance,
+              modifier = Modifier.padding(horizontal = horizontalPadding),
+          )
         }
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            item(key = "search_section") {
-                SearchSection(
-                    searchText = viewModel.searchText,
-                    onSearchTextChange = viewModel::onSearchTextChange,
-                    suggestions = viewModel.searchSuggestions,
-                    onSelectSubstance = viewModel::onSelectSubstance
-                )
-            }
+      }
 
-            if (searchedTolerance != null) {
-                item(key = "searched_detail") {
-                    ToleranceDetailCard(
-                        estimate = searchedTolerance,
-                        modifier = Modifier.padding(horizontal = horizontalPadding)
-                    )
+      if (isLoading) {
+        item(key = "loading_indicator") {
+          Box(
+              contentAlignment = Alignment.Center,
+              modifier = Modifier.fillMaxWidth().padding(32.dp),
+          ) {
+            CircularProgressIndicator()
+          }
+        }
+      } else if (recentTolerances.isNotEmpty() && searchedTolerance == null) {
+        item(key = "recent_header") {
+          Text(
+              text = "Recent substances",
+              style = MaterialTheme.typography.labelLarge,
+              color = MaterialTheme.colorScheme.primary,
+              fontWeight = FontWeight.SemiBold,
+              modifier =
+                  Modifier.fillMaxWidth()
+                      .padding(horizontal = horizontalPadding)
+                      .padding(top = 16.dp, bottom = 4.dp),
+          )
+        }
+        items(recentTolerances, key = { it.substanceName }) { estimate ->
+          ToleranceSummaryCard(
+              estimate = estimate,
+              modifier = Modifier.padding(horizontal = horizontalPadding),
+          )
+        }
+      } else if (searchedTolerance == null) {
+        item(key = "empty_recent") {
+          Box(
+              contentAlignment = Alignment.Center,
+              modifier = Modifier.fillMaxWidth().padding(32.dp),
+          ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+              Surface(
+                  shape = RoundedCornerShape(16.dp),
+                  color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                  modifier = Modifier.size(64.dp),
+              ) {
+                Box(contentAlignment = Alignment.Center) {
+                  Icon(
+                      imageVector = Icons.AutoMirrored.Outlined.TrendingUp,
+                      contentDescription = null,
+                      modifier = Modifier.size(36.dp),
+                      tint = MaterialTheme.colorScheme.primary,
+                  )
                 }
-            }
+              }
 
-            if (isLoading) {
-                item(key = "loading_indicator") {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(32.dp)
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-            } else if (recentTolerances.isNotEmpty() && searchedTolerance == null) {
-                item(key = "recent_header") {
-                    Text(
-                        text = "Recent substances",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = horizontalPadding)
-                            .padding(top = 16.dp, bottom = 4.dp)
-                    )
-                }
-                items(recentTolerances, key = { it.substanceName }) { estimate ->
-                    ToleranceSummaryCard(
-                        estimate = estimate,
-                        modifier = Modifier.padding(horizontal = horizontalPadding)
-                    )
-                }
-            } else if (searchedTolerance == null) {
-                item(key = "empty_recent") {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(32.dp)
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Surface(
-                                shape = RoundedCornerShape(16.dp),
-                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                                modifier = Modifier.size(64.dp)
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Outlined.TrendingUp,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(36.dp),
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            }
-
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Text(
-                                    text = "No recent ingestions",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                    textAlign = TextAlign.Center
-                                )
-
-                                Text(
-                                    text = "Use the search above to check tolerance for any substance.",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    textAlign = TextAlign.Center,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            item(key = "disclaimer") {
+              Column(
+                  horizontalAlignment = Alignment.CenterHorizontally,
+                  verticalArrangement = Arrangement.spacedBy(4.dp),
+              ) {
                 Text(
-                    text = "Estimates based on PsychonautWiki data and an exponential decay model. Individual tolerance varies significantly.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 16.dp)
+                    text = "No recent ingestions",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center,
                 )
+
+                Text(
+                    text = "Use the search above to check tolerance for any substance.",
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+              }
             }
+          }
         }
+      }
+
+      item(key = "disclaimer") {
+        Text(
+            text =
+                "Estimates based on PsychonautWiki data and an exponential decay model. Individual tolerance varies significantly.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 16.dp),
+        )
+      }
     }
+  }
 }
 
 @Composable
@@ -203,306 +198,308 @@ private fun SearchSection(
     searchText: String,
     onSearchTextChange: (String) -> Unit,
     suggestions: List<String>,
-    onSelectSubstance: (String) -> Unit
+    onSelectSubstance: (String) -> Unit,
 ) {
-    val focusManager = LocalFocusManager.current
-    var expanded by remember(suggestions) { mutableStateOf(suggestions.isNotEmpty()) }
+  val focusManager = LocalFocusManager.current
+  var expanded by remember(suggestions) { mutableStateOf(suggestions.isNotEmpty()) }
 
-    Column {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = horizontalPadding, vertical = 8.dp),
-            shape = RoundedCornerShape(16.dp),
-            tonalElevation = 3.dp
-        ) {
-            TextField(
-                value = searchText,
-                onValueChange = {
-                    onSearchTextChange(it)
-                    expanded = true
-                },
-                leadingIcon = {
-                    Icon(Icons.Default.Search, contentDescription = "Search")
-                },
-                trailingIcon = {
-                    if (searchText.isNotEmpty()) {
-                        IconButton(onClick = { onSearchTextChange("") }) {
-                            Icon(Icons.Default.Close, contentDescription = "Clear")
-                        }
-                    }
-                },
-                placeholder = { Text("Search substance") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    autoCorrectEnabled = false,
-                    imeAction = ImeAction.Done,
-                    capitalization = KeyboardCapitalization.Words,
-                ),
-                singleLine = true,
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                )
-            )
-        }
-
-        DropdownMenu(
-            expanded = expanded && suggestions.isNotEmpty(),
-            onDismissRequest = { expanded = false }
-        ) {
-            suggestions.forEach { suggestion ->
-                key(suggestion) {
-                    DropdownMenuItem(
-                        text = { Text(suggestion) },
-                        onClick = {
-                            expanded = false
-                            onSelectSubstance(suggestion)
-                        }
-                    )
-                }
+  Column {
+    Surface(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = horizontalPadding, vertical = 8.dp),
+        shape = RoundedCornerShape(16.dp),
+        tonalElevation = 3.dp,
+    ) {
+      TextField(
+          value = searchText,
+          onValueChange = {
+            onSearchTextChange(it)
+            expanded = true
+          },
+          leadingIcon = {
+            Icon(Icons.Default.Search, contentDescription = "Search")
+          },
+          trailingIcon = {
+            if (searchText.isNotEmpty()) {
+              IconButton(onClick = { onSearchTextChange("") }) {
+                Icon(Icons.Default.Close, contentDescription = "Clear")
+              }
             }
-        }
+          },
+          placeholder = { Text("Search substance") },
+          modifier = Modifier.fillMaxWidth(),
+          keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+          keyboardOptions =
+              KeyboardOptions.Default.copy(
+                  autoCorrectEnabled = false,
+                  imeAction = ImeAction.Done,
+                  capitalization = KeyboardCapitalization.Words,
+              ),
+          singleLine = true,
+          colors =
+              TextFieldDefaults.colors(
+                  focusedIndicatorColor = Color.Transparent,
+                  unfocusedIndicatorColor = Color.Transparent,
+              ),
+      )
     }
+
+    DropdownMenu(
+        expanded = expanded && suggestions.isNotEmpty(),
+        onDismissRequest = { expanded = false },
+    ) {
+      suggestions.forEach { suggestion ->
+        key(suggestion) {
+          DropdownMenuItem(
+              text = { Text(suggestion) },
+              onClick = {
+                expanded = false
+                onSelectSubstance(suggestion)
+              },
+          )
+        }
+      }
+    }
+  }
 }
 
 @Composable
 private fun ToleranceSummaryCard(
     estimate: ToleranceEstimate,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val now = remember { Instant.now() }
-    val daysLeft = estimate.daysUntilClear(now)
-    val isCleared = estimate.toleranceLevel < 0.05f
+  val now = remember { Instant.now() }
+  val daysLeft = estimate.daysUntilClear(now)
+  val isCleared = estimate.toleranceLevel < 0.05f
 
-    ElevatedCard(modifier = modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = estimate.substanceName,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
-                )
-                ToleranceBadge(estimate)
-            }
-            LinearProgressIndicator(
-                progress = { estimate.toleranceLevel },
-                modifier = Modifier.fillMaxWidth(),
-                color = toleranceColor(estimate.toleranceLevel),
-                trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                strokeCap = StrokeCap.Round,
+  ElevatedCard(modifier = modifier.fillMaxWidth()) {
+    Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Text(
+            text = estimate.substanceName,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+        )
+        ToleranceBadge(estimate)
+      }
+      LinearProgressIndicator(
+          progress = { estimate.toleranceLevel },
+          modifier = Modifier.fillMaxWidth(),
+          color = toleranceColor(estimate.toleranceLevel),
+          trackColor = MaterialTheme.colorScheme.surfaceVariant,
+          strokeCap = StrokeCap.Round,
+      )
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically,
+      ) {
+        if (estimate.lastIngestionTime != null) {
+          Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(4.dp),
+          ) {
+            Icon(
+                Icons.Outlined.Schedule,
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (estimate.lastIngestionTime != null) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            Icons.Outlined.Schedule,
-                            contentDescription = null,
-                            modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = "Last use: ${formatTimeSince(estimate.lastIngestionTime)}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-                if (isCleared) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            Icons.Outlined.CheckCircle,
-                            contentDescription = null,
-                            modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.tertiary
-                        )
-                        Text(
-                            text = "Cleared",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.tertiary,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                } else if (daysLeft > 0) {
-                    Text(
-                        text = "Clears in ~$daysLeft day${if (daysLeft != 1) "s" else ""}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
+            Text(
+                text = "Last use: ${formatTimeSince(estimate.lastIngestionTime)}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
         }
+        if (isCleared) {
+          Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(4.dp),
+          ) {
+            Icon(
+                Icons.Outlined.CheckCircle,
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = MaterialTheme.colorScheme.tertiary,
+            )
+            Text(
+                text = "Cleared",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.tertiary,
+                fontWeight = FontWeight.Medium,
+            )
+          }
+        } else if (daysLeft > 0) {
+          Text(
+              text = "Clears in ~$daysLeft day${if (daysLeft != 1) "s" else ""}",
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+        }
+      }
     }
+  }
 }
 
 @Composable
 private fun ToleranceDetailCard(
     estimate: ToleranceEstimate,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val now = remember { Instant.now() }
-    val daysLeft = estimate.daysUntilClear(now)
-    val isCleared = estimate.toleranceLevel < 0.05f
+  val now = remember { Instant.now() }
+  val daysLeft = estimate.daysUntilClear(now)
+  val isCleared = estimate.toleranceLevel < 0.05f
 
-    ElevatedCard(modifier = modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = estimate.substanceName,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                ToleranceBadge(estimate)
-            }
+  ElevatedCard(modifier = modifier.fillMaxWidth()) {
+    Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Text(
+            text = estimate.substanceName,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+        )
+        ToleranceBadge(estimate)
+      }
 
-            LinearProgressIndicator(
-                progress = { estimate.toleranceLevel },
-                modifier = Modifier.fillMaxWidth(),
-                color = toleranceColor(estimate.toleranceLevel),
-                trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                strokeCap = StrokeCap.Round,
-            )
+      LinearProgressIndicator(
+          progress = { estimate.toleranceLevel },
+          modifier = Modifier.fillMaxWidth(),
+          color = toleranceColor(estimate.toleranceLevel),
+          trackColor = MaterialTheme.colorScheme.surfaceVariant,
+          strokeCap = StrokeCap.Round,
+      )
 
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+      HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-            // Recovery info grid
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                RecoveryInfoCell(
-                    label = "Status",
-                    value = if (isCleared) "✓ Cleared" else estimate.label.replaceFirstChar { it.uppercase() },
-                    valueColor = if (isCleared) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f)
-                )
-                if (estimate.halfLifeDays > 0f) {
-                    RecoveryInfoCell(
-                        label = "Half-life",
-                        value = formatDays(estimate.halfLifeDays),
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                if (estimate.zeroDays > 0f) {
-                    RecoveryInfoCell(
-                        label = "Full clearance",
-                        value = formatDays(estimate.zeroDays),
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-
-            if (estimate.lastIngestionTime != null) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Icon(
-                        Icons.Outlined.Schedule,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Column {
-                        Text(
-                            text = "Last use: ${formatTimeSince(estimate.lastIngestionTime)}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        if (!isCleared && daysLeft > 0) {
-                            Text(
-                                text = "Estimated full clearance in ~$daysLeft day${if (daysLeft != 1) "s" else ""}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = FontWeight.Medium
-                            )
-                        } else if (isCleared) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Icon(
-                                    Icons.Outlined.CheckCircle,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(14.dp),
-                                    tint = MaterialTheme.colorScheme.tertiary
-                                )
-                                Text(
-                                    text = "Tolerance has fully cleared",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.tertiary,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (estimate.crossToleranceContributors.isNotEmpty()) {
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(
-                        text = "Cross-tolerance from:",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = estimate.crossToleranceContributors.joinToString(", "),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
+      // Recovery info grid
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(12.dp),
+      ) {
+        RecoveryInfoCell(
+            label = "Status",
+            value =
+                if (isCleared) "✓ Cleared" else estimate.label.replaceFirstChar { it.uppercase() },
+            valueColor =
+                if (isCleared) MaterialTheme.colorScheme.tertiary
+                else MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f),
+        )
+        if (estimate.halfLifeDays > 0f) {
+          RecoveryInfoCell(
+              label = "Half-life",
+              value = formatDays(estimate.halfLifeDays),
+              modifier = Modifier.weight(1f),
+          )
         }
+        if (estimate.zeroDays > 0f) {
+          RecoveryInfoCell(
+              label = "Full clearance",
+              value = formatDays(estimate.zeroDays),
+              modifier = Modifier.weight(1f),
+          )
+        }
+      }
+
+      if (estimate.lastIngestionTime != null) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+          Icon(
+              Icons.Outlined.Schedule,
+              contentDescription = null,
+              modifier = Modifier.size(16.dp),
+              tint = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+          Column {
+            Text(
+                text = "Last use: ${formatTimeSince(estimate.lastIngestionTime)}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (!isCleared && daysLeft > 0) {
+              Text(
+                  text =
+                      "Estimated full clearance in ~$daysLeft day${if (daysLeft != 1) "s" else ""}",
+                  style = MaterialTheme.typography.bodySmall,
+                  color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  fontWeight = FontWeight.Medium,
+              )
+            } else if (isCleared) {
+              Row(
+                  verticalAlignment = Alignment.CenterVertically,
+                  horizontalArrangement = Arrangement.spacedBy(4.dp),
+              ) {
+                Icon(
+                    Icons.Outlined.CheckCircle,
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.tertiary,
+                )
+                Text(
+                    text = "Tolerance has fully cleared",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.tertiary,
+                    fontWeight = FontWeight.Medium,
+                )
+              }
+            }
+          }
+        }
+      }
+
+      if (estimate.crossToleranceContributors.isNotEmpty()) {
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+          Text(
+              text = "Cross-tolerance from:",
+              style = MaterialTheme.typography.labelSmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+          Text(
+              text = estimate.crossToleranceContributors.joinToString(", "),
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurface,
+          )
+        }
+      }
     }
+  }
 }
 
 @Composable
 private fun ToleranceBadge(estimate: ToleranceEstimate) {
-    val isCleared = estimate.toleranceLevel < 0.05f
-    Surface(
-        shape = RoundedCornerShape(8.dp),
-        color = if (isCleared)
-            MaterialTheme.colorScheme.tertiaryContainer
-        else
-            toleranceColor(estimate.toleranceLevel).copy(alpha = 0.15f),
-    ) {
-        Text(
-            text = if (isCleared) "Cleared" else "${estimate.percentage}%",
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = if (isCleared)
-                MaterialTheme.colorScheme.onTertiaryContainer
-            else
-                toleranceColor(estimate.toleranceLevel),
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        )
-    }
+  val isCleared = estimate.toleranceLevel < 0.05f
+  Surface(
+      shape = RoundedCornerShape(8.dp),
+      color =
+          if (isCleared) MaterialTheme.colorScheme.tertiaryContainer
+          else toleranceColor(estimate.toleranceLevel).copy(alpha = 0.15f),
+  ) {
+    Text(
+        text = if (isCleared) "Cleared" else "${estimate.percentage}%",
+        style = MaterialTheme.typography.labelMedium,
+        fontWeight = FontWeight.SemiBold,
+        color =
+            if (isCleared) MaterialTheme.colorScheme.onTertiaryContainer
+            else toleranceColor(estimate.toleranceLevel),
+        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+    )
+  }
 }
 
 @Composable
@@ -510,47 +507,48 @@ private fun RecoveryInfoCell(
     label: String,
     value: String,
     modifier: Modifier = Modifier,
-    valueColor: Color = MaterialTheme.colorScheme.onSurface
+    valueColor: Color = MaterialTheme.colorScheme.onSurface,
 ) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium,
-            color = valueColor
-        )
-    }
+  Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    Text(
+        text = label,
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    Text(
+        text = value,
+        style = MaterialTheme.typography.bodyMedium,
+        fontWeight = FontWeight.Medium,
+        color = valueColor,
+    )
+  }
 }
 
 @Composable
-private fun toleranceColor(level: Float): Color = when {
-    level < 0.1f -> MaterialTheme.colorScheme.tertiary
-    level < 0.3f -> Color(0xFF8BC34A)
-    level < 0.6f -> Color(0xFFFFA726)
-    level < 0.85f -> Color(0xFFEF5350)
-    else -> Color(0xFFB71C1C)
-}
+private fun toleranceColor(level: Float): Color =
+    when {
+      level < 0.1f -> MaterialTheme.colorScheme.tertiary
+      level < 0.3f -> Color(0xFF8BC34A)
+      level < 0.6f -> Color(0xFFFFA726)
+      level < 0.85f -> Color(0xFFEF5350)
+      else -> Color(0xFFB71C1C)
+    }
 
 private fun formatTimeSince(instant: Instant): String {
-    val duration = Duration.between(instant, Instant.now())
-    val days = duration.toDays()
-    val hours = duration.toHours()
-    return when {
-        days > 0 -> "$days day${if (days != 1L) "s" else ""} ago"
-        hours > 0 -> "$hours hour${if (hours != 1L) "s" else ""} ago"
-        else -> "just now"
-    }
+  val duration = Duration.between(instant, Instant.now())
+  val days = duration.toDays()
+  val hours = duration.toHours()
+  return when {
+    days > 0 -> "$days day${if (days != 1L) "s" else ""} ago"
+    hours > 0 -> "$hours hour${if (hours != 1L) "s" else ""} ago"
+    else -> "just now"
+  }
 }
 
 private fun formatDays(days: Float): String {
-    return when {
-        days < 1f -> "${(days * 24).toInt()}h"
-        days < 2f -> "1 day"
-        else -> "${days.toInt()} days"
-    }
+  return when {
+    days < 1f -> "${(days * 24).toInt()}h"
+    days < 2f -> "1 day"
+    else -> "${days.toInt()} days"
+  }
 }

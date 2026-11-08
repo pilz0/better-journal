@@ -77,25 +77,24 @@ import foo.pilz.freaklog.ui.utils.rememberHaptic
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-
 @Composable
 fun StatsScreen(
     viewModel: StatsViewModel = hiltViewModel(),
     navigateToSubstanceCompanion: (substanceName: String, consumerName: String?) -> Unit,
     navigateToToleranceChart: () -> Unit = {},
 ) {
-    val statsModel by viewModel.statsModelFlow.collectAsStateWithLifecycle()
-    val consumerNamesSorted by viewModel.sortedConsumerNamesFlow.collectAsStateWithLifecycle()
-    androidx.compose.runtime.LaunchedEffect(Unit) { viewModel.onStatsOpened() }
-    StatsScreen(
-        navigateToSubstanceCompanion = navigateToSubstanceCompanion,
-        navigateToToleranceChart = navigateToToleranceChart,
-        onTapOption = viewModel::onTapOption,
-        statsModel = statsModel,
-        onChangeConsumerName = viewModel::onChangeConsumer,
-        consumerNamesSorted = consumerNamesSorted,
-        onOpenSpreadsheet = viewModel::showExcelSkin,
-    )
+  val statsModel by viewModel.statsModelFlow.collectAsStateWithLifecycle()
+  val consumerNamesSorted by viewModel.sortedConsumerNamesFlow.collectAsStateWithLifecycle()
+  androidx.compose.runtime.LaunchedEffect(Unit) { viewModel.onStatsOpened() }
+  StatsScreen(
+      navigateToSubstanceCompanion = navigateToSubstanceCompanion,
+      navigateToToleranceChart = navigateToToleranceChart,
+      onTapOption = viewModel::onTapOption,
+      statsModel = statsModel,
+      onChangeConsumerName = viewModel::onChangeConsumer,
+      consumerNamesSorted = consumerNamesSorted,
+      onOpenSpreadsheet = viewModel::showExcelSkin,
+  )
 }
 
 @Preview
@@ -103,18 +102,19 @@ fun StatsScreen(
 fun StatsPreview(
     @PreviewParameter(
         StatsPreviewProvider::class,
-    ) statsModel: StatsModel
+    )
+    statsModel: StatsModel
 ) {
-    JournalTheme {
-        StatsScreen(
-            navigateToSubstanceCompanion = { _, _ -> },
-            navigateToToleranceChart = {},
-            onTapOption = {},
-            statsModel = statsModel,
-            onChangeConsumerName = {},
-            consumerNamesSorted = listOf("You", "Someone else"),
-        )
-    }
+  JournalTheme {
+    StatsScreen(
+        navigateToSubstanceCompanion = { _, _ -> },
+        navigateToToleranceChart = {},
+        onTapOption = {},
+        statsModel = statsModel,
+        onChangeConsumerName = {},
+        consumerNamesSorted = listOf("You", "Someone else"),
+    )
+  }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -128,142 +128,153 @@ fun StatsScreen(
     consumerNamesSorted: List<String>,
     onOpenSpreadsheet: () -> Unit = {},
 ) {
-    val performHaptic = rememberHaptic()
-    
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(if (statsModel.consumerName == null) "Statistics" else "Statistics for ${statsModel.consumerName}") },
-                actions = {
-                    IconButton(onClick = onOpenSpreadsheet) {
-                        Icon(Icons.Outlined.GridOn, contentDescription = "Show as spreadsheet")
+  val performHaptic = rememberHaptic()
+
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = {
+              Text(
+                  if (statsModel.consumerName == null) "Statistics"
+                  else "Statistics for ${statsModel.consumerName}"
+              )
+            },
+            actions = {
+              IconButton(onClick = onOpenSpreadsheet) {
+                Icon(Icons.Outlined.GridOn, contentDescription = "Show as spreadsheet")
+              }
+              if (consumerNamesSorted.isNotEmpty()) {
+                var isConsumerSelectionExpanded by remember { mutableStateOf(false) }
+                IconButton(
+                    onClick = {
+                      performHaptic(HapticType.CLICK)
+                      isConsumerSelectionExpanded = true
                     }
-                    if (consumerNamesSorted.isNotEmpty()) {
-                        var isConsumerSelectionExpanded by remember { mutableStateOf(false) }
-                        IconButton(onClick = { 
-                            performHaptic(HapticType.CLICK)
-                            isConsumerSelectionExpanded = true 
-                        }) {
-                            Icon(Icons.Outlined.Person, contentDescription = "Consumer")
-                        }
-                        DropdownMenu(
-                            expanded = isConsumerSelectionExpanded,
-                            onDismissRequest = { isConsumerSelectionExpanded = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(YOU) },
-                                onClick = {
-                                    performHaptic(HapticType.SELECTION)
-                                    onChangeConsumerName(null)
-                                    isConsumerSelectionExpanded = false
-                                },
-                                leadingIcon = {
-                                    if (statsModel.consumerName == null) {
-                                        Icon(
-                                            Icons.Filled.Check,
-                                            contentDescription = "Check",
-                                            modifier = Modifier.size(ButtonDefaults.IconSize)
-                                        )
-                                    }
-                                }
-                            )
-                            consumerNamesSorted.forEach { consumerName ->
-                                DropdownMenuItem(
-                                    text = { Text(consumerName) },
-                                    onClick = {
-                                        performHaptic(HapticType.SELECTION)
-                                        onChangeConsumerName(consumerName)
-                                        isConsumerSelectionExpanded = false
-                                    },
-                                    leadingIcon = {
-                                        if (statsModel.consumerName == consumerName) {
-                                            Icon(
-                                                Icons.Filled.Check,
-                                                contentDescription = "Check",
-                                                modifier = Modifier.size(ButtonDefaults.IconSize)
-                                            )
-                                        }
-                                    }
-                                )
-                            }
-                        }
-                    }
-                    IconButton(onClick = { 
-                        performHaptic(HapticType.CLICK)
-                        navigateToToleranceChart()
-                    }) {
-                        Icon(Icons.Outlined.Schedule, contentDescription = "Tolerance")
-                    }
-                }
-            )
-        },
-    ) { padding ->
-        if (!statsModel.areThereAnyIngestions) {
-            EmptyScreenDisclaimer(
-                title = "Nothing to show yet",
-                description = "Start logging your ingestions to see an overview of your consumption pattern."
-            )
-        } else {
-            Column(modifier = Modifier.padding(padding)) {
-                PrimaryTabRow(
-                    selectedTabIndex = statsModel.selectedOption.tabIndex,
-                    contentColor = MaterialTheme.colorScheme.onSurface,
                 ) {
-                    TimePickerOption.entries.forEachIndexed { index, option ->
-                        Tab(
-                            text = { Text(option.displayText) },
-                            selected = statsModel.selectedOption.tabIndex == index,
-                            onClick = {
-                                performHaptic(HapticType.SELECTION)
-                                onTapOption(option)
-                            }
-                        )
-                    }
+                  Icon(Icons.Outlined.Person, contentDescription = "Consumer")
                 }
-                if (statsModel.statItems.isNotEmpty()) {
-                    val isDarkTheme = isSystemInDarkTheme()
-                    Column {
-                        Spacer(modifier = Modifier.height(5.dp))
-                        Text(
-                            text = "Ingestions since ${statsModel.startDateText}",
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(start = 10.dp, top = 5.dp)
-                        )
-                        Text(
-                            text = "Showing all substance ingestions",
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(
-                                start = 10.dp,
-                                bottom = 10.dp
-                            )
-                        )
-                        BarChart(
-                            buckets = statsModel.chartBuckets,
-                            startDateText = statsModel.startDateText
-                        )
-                        HorizontalDivider()
-                        LazyColumn {
-                            items(statsModel.statItems, key = { it.substanceName }) { subStat ->
-                                SubstanceStatCard(
-                                    stat = subStat,
-                                    isDarkTheme = isDarkTheme,
-                                    onClick = {
-                                        performHaptic(HapticType.SELECTION)
-                                        navigateToSubstanceCompanion(subStat.substanceName, statsModel.consumerName)
-                                    }
-                                )
-                            }
+                DropdownMenu(
+                    expanded = isConsumerSelectionExpanded,
+                    onDismissRequest = { isConsumerSelectionExpanded = false },
+                ) {
+                  DropdownMenuItem(
+                      text = { Text(YOU) },
+                      onClick = {
+                        performHaptic(HapticType.SELECTION)
+                        onChangeConsumerName(null)
+                        isConsumerSelectionExpanded = false
+                      },
+                      leadingIcon = {
+                        if (statsModel.consumerName == null) {
+                          Icon(
+                              Icons.Filled.Check,
+                              contentDescription = "Check",
+                              modifier = Modifier.size(ButtonDefaults.IconSize),
+                          )
                         }
-                    }
-                } else {
-                    EmptyScreenDisclaimer(
-                        title = "No ingestions since ${statsModel.selectedOption.longDisplayText}",
-                        description = "Choose a longer duration range to see statistics."
+                      },
+                  )
+                  consumerNamesSorted.forEach { consumerName ->
+                    DropdownMenuItem(
+                        text = { Text(consumerName) },
+                        onClick = {
+                          performHaptic(HapticType.SELECTION)
+                          onChangeConsumerName(consumerName)
+                          isConsumerSelectionExpanded = false
+                        },
+                        leadingIcon = {
+                          if (statsModel.consumerName == consumerName) {
+                            Icon(
+                                Icons.Filled.Check,
+                                contentDescription = "Check",
+                                modifier = Modifier.size(ButtonDefaults.IconSize),
+                            )
+                          }
+                        },
                     )
+                  }
                 }
-            }
+              }
+              IconButton(
+                  onClick = {
+                    performHaptic(HapticType.CLICK)
+                    navigateToToleranceChart()
+                  }
+              ) {
+                Icon(Icons.Outlined.Schedule, contentDescription = "Tolerance")
+              }
+            },
+        )
+      },
+  ) { padding ->
+    if (!statsModel.areThereAnyIngestions) {
+      EmptyScreenDisclaimer(
+          title = "Nothing to show yet",
+          description =
+              "Start logging your ingestions to see an overview of your consumption pattern.",
+      )
+    } else {
+      Column(modifier = Modifier.padding(padding)) {
+        PrimaryTabRow(
+            selectedTabIndex = statsModel.selectedOption.tabIndex,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+        ) {
+          TimePickerOption.entries.forEachIndexed { index, option ->
+            Tab(
+                text = { Text(option.displayText) },
+                selected = statsModel.selectedOption.tabIndex == index,
+                onClick = {
+                  performHaptic(HapticType.SELECTION)
+                  onTapOption(option)
+                },
+            )
+          }
         }
+        if (statsModel.statItems.isNotEmpty()) {
+          val isDarkTheme = isSystemInDarkTheme()
+          Column {
+            Spacer(modifier = Modifier.height(5.dp))
+            Text(
+                text = "Ingestions since ${statsModel.startDateText}",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(start = 10.dp, top = 5.dp),
+            )
+            Text(
+                text = "Showing all substance ingestions",
+                style = MaterialTheme.typography.bodySmall,
+                modifier =
+                    Modifier.padding(
+                        start = 10.dp,
+                        bottom = 10.dp,
+                    ),
+            )
+            BarChart(
+                buckets = statsModel.chartBuckets,
+                startDateText = statsModel.startDateText,
+            )
+            HorizontalDivider()
+            LazyColumn {
+              items(statsModel.statItems, key = { it.substanceName }) { subStat ->
+                SubstanceStatCard(
+                    stat = subStat,
+                    isDarkTheme = isDarkTheme,
+                    onClick = {
+                      performHaptic(HapticType.SELECTION)
+                      navigateToSubstanceCompanion(subStat.substanceName, statsModel.consumerName)
+                    },
+                )
+              }
+            }
+          }
+        } else {
+          EmptyScreenDisclaimer(
+              title = "No ingestions since ${statsModel.selectedOption.longDisplayText}",
+              description = "Choose a longer duration range to see statistics.",
+          )
+        }
+      }
     }
+  }
 }
 
 private val LAST_USED_DATE_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy")
@@ -274,108 +285,112 @@ private fun SubstanceStatCard(
     isDarkTheme: Boolean,
     onClick: () -> Unit,
 ) {
-    ElevatedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = horizontalPadding, vertical = 6.dp)
-            .clickable(onClick = onClick)
+  ElevatedCard(
+      modifier =
+          Modifier.fillMaxWidth()
+              .padding(horizontal = horizontalPadding, vertical = 6.dp)
+              .clickable(onClick = onClick)
+  ) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Surface(
-                shape = RoundedCornerShape(4.dp),
-                color = stat.color.getComposeColor(isDarkTheme),
-                modifier = Modifier.size(width = 12.dp, height = 56.dp),
-            ) {}
-            Column(modifier = Modifier.weight(1f)) {
-                Text(stat.substanceName, style = MaterialTheme.typography.titleMedium)
-                Text(
-                    text = "${stat.ingestionCount} ingestion${if (stat.ingestionCount == 1) "" else "s"} · " +
-                        "${stat.experienceCount} experience${if (stat.experienceCount == 1) "" else "s"}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                val routes = remember(stat.routeCounts) {
-                    stat.routeCounts.joinToString(" · ") {
-                        "${it.administrationRoute.displayText.lowercase()} ${it.count}x"
-                    }
-                }
-                if (routes.isNotBlank()) {
-                    Text(
-                        text = routes,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                stat.lastUsed?.let { lastUsed ->
-                    // Corrupt timestamps can fall outside the supported date range and throw
-                    val formatted = remember(lastUsed) {
-                        runCatching {
-                            LAST_USED_DATE_FORMATTER.format(lastUsed.atZone(ZoneId.systemDefault()))
-                        }.getOrNull()
-                    }
-                    if (formatted != null) {
-                        Text(
-                            text = "Last used $formatted",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
+      Surface(
+          shape = RoundedCornerShape(4.dp),
+          color = stat.color.getComposeColor(isDarkTheme),
+          modifier = Modifier.size(width = 12.dp, height = 56.dp),
+      ) {}
+      Column(modifier = Modifier.weight(1f)) {
+        Text(stat.substanceName, style = MaterialTheme.typography.titleMedium)
+        Text(
+            text =
+                "${stat.ingestionCount} ingestion${if (stat.ingestionCount == 1) "" else "s"} · " +
+                    "${stat.experienceCount} experience${if (stat.experienceCount == 1) "" else "s"}",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        val routes =
+            remember(stat.routeCounts) {
+              stat.routeCounts.joinToString(" · ") {
+                "${it.administrationRoute.displayText.lowercase()} ${it.count}x"
+              }
             }
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = stat.totalDose?.let(::formatTotalDose) ?: "Dose varies",
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                if (stat.unknownDoseCount > 0) {
-                    Text(
-                        text = "${stat.unknownDoseCount} unknown",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
+        if (routes.isNotBlank()) {
+          Text(
+              text = routes,
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+              maxLines = 1,
+              overflow = TextOverflow.Ellipsis,
+          )
         }
+        stat.lastUsed?.let { lastUsed ->
+          // Corrupt timestamps can fall outside the supported date range and throw
+          val formatted =
+              remember(lastUsed) {
+                runCatching {
+                      LAST_USED_DATE_FORMATTER.format(lastUsed.atZone(ZoneId.systemDefault()))
+                    }
+                    .getOrNull()
+              }
+          if (formatted != null) {
+            Text(
+                text = "Last used $formatted",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
+        }
+      }
+      Column(horizontalAlignment = Alignment.End) {
+        Text(
+            text = stat.totalDose?.let(::formatTotalDose) ?: "Dose varies",
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        if (stat.unknownDoseCount > 0) {
+          Text(
+              text = "${stat.unknownDoseCount} unknown",
+              style = MaterialTheme.typography.labelSmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+        }
+      }
     }
+  }
 }
 
 private fun formatTotalDose(totalDose: TotalDose): String {
-    val value = totalDose.dose.toReadableString()
-    val uncertainty = totalDose.estimatedDoseStandardDeviation?.let { "±${it.toReadableString()}" }.orEmpty()
-    val estimatePrefix = if (totalDose.isEstimate && totalDose.estimatedDoseStandardDeviation == null) "~" else ""
-    return "$estimatePrefix$value$uncertainty ${totalDose.units}"
+  val value = totalDose.dose.toReadableString()
+  val uncertainty =
+      totalDose.estimatedDoseStandardDeviation?.let { "±${it.toReadableString()}" }.orEmpty()
+  val estimatePrefix =
+      if (totalDose.isEstimate && totalDose.estimatedDoseStandardDeviation == null) "~" else ""
+  return "$estimatePrefix$value$uncertainty ${totalDose.units}"
 }
 
 @Composable
 fun EmptyScreenDisclaimer(title: String, description: String) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxSize()
+  Box(
+      contentAlignment = Alignment.Center,
+      modifier = Modifier.fillMaxSize(),
+  ) {
+    Column(
+        modifier = Modifier.padding(horizontal = 20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineSmall,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            Text(
-                text = description,
-                textAlign = TextAlign.Center
-            )
-        }
+      Text(
+          text = title,
+          style = MaterialTheme.typography.headlineSmall,
+          textAlign = TextAlign.Center,
+      )
+      Spacer(modifier = Modifier.height(10.dp))
+      Text(
+          text = description,
+          textAlign = TextAlign.Center,
+      )
     }
+  }
 }

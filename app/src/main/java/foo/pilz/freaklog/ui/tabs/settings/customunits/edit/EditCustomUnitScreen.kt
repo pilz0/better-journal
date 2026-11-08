@@ -49,42 +49,42 @@ import foo.pilz.freaklog.ui.tabs.settings.customunits.add.EditCustomUnitSections
 @Composable
 fun EditCustomUnitScreen(
     navigateBack: () -> Unit,
-    viewModel: EditCustomUnitViewModel = hiltViewModel()
+    viewModel: EditCustomUnitViewModel = hiltViewModel(),
 ) {
-    EditCustomUnitScreenContent(
-        substanceName = viewModel.substanceName,
-        administrationRoute = viewModel.administrationRoute,
-        numberOfIngestionsWithThisCustomUnit = viewModel.numberOfIngestionsWithThisCustomUnit,
-        roaDose = viewModel.roaDose,
-        dismiss = {
-            viewModel.updateAndDismissAfter(dismiss = navigateBack)
-        },
-        name = viewModel.name,
-        onChangeOfName = viewModel::onChangeOfName,
-        doseText = viewModel.doseText,
-        onChangeDoseText = viewModel::onChangeOfDose,
-        estimatedDoseStandardDeviationText = viewModel.estimatedDoseDeviationText,
-        onChangeEstimatedDoseStandardDeviationText = viewModel::onChangeOfEstimatedDoseDeviation,
-        isEstimate = viewModel.isEstimate,
-        onChangeIsEstimate = viewModel::onChangeOfIsEstimate,
-        currentDoseClass = viewModel.currentDoseClass,
-        isShowingUnitsField = viewModel.roaDose?.units?.isBlank() ?: true,
-        unit = viewModel.unit,
-        onChangeOfUnits = viewModel::onChangeOfUnit,
-        unitPlural = viewModel.unitPlural,
-        onChangeOfUnitPlural = viewModel::onChangeOfUnitPlural,
-        originalUnit = viewModel.originalUnit,
-        onChangeOfOriginalUnit = viewModel::onChangeOfOriginalUnit,
-        note = viewModel.note,
-        onChangeOfNote = viewModel::onChangeOfNote,
-        isArchived = viewModel.isArchived,
-        onChangeOfIsArchived = viewModel::onChangeOfIsArchived,
-        onDelete = {
-            viewModel.deleteCustomUnit {
-                navigateBack()
-            }
+  EditCustomUnitScreenContent(
+      substanceName = viewModel.substanceName,
+      administrationRoute = viewModel.administrationRoute,
+      numberOfIngestionsWithThisCustomUnit = viewModel.numberOfIngestionsWithThisCustomUnit,
+      roaDose = viewModel.roaDose,
+      dismiss = {
+        viewModel.updateAndDismissAfter(dismiss = navigateBack)
+      },
+      name = viewModel.name,
+      onChangeOfName = viewModel::onChangeOfName,
+      doseText = viewModel.doseText,
+      onChangeDoseText = viewModel::onChangeOfDose,
+      estimatedDoseStandardDeviationText = viewModel.estimatedDoseDeviationText,
+      onChangeEstimatedDoseStandardDeviationText = viewModel::onChangeOfEstimatedDoseDeviation,
+      isEstimate = viewModel.isEstimate,
+      onChangeIsEstimate = viewModel::onChangeOfIsEstimate,
+      currentDoseClass = viewModel.currentDoseClass,
+      isShowingUnitsField = viewModel.roaDose?.units?.isBlank() ?: true,
+      unit = viewModel.unit,
+      onChangeOfUnits = viewModel::onChangeOfUnit,
+      unitPlural = viewModel.unitPlural,
+      onChangeOfUnitPlural = viewModel::onChangeOfUnitPlural,
+      originalUnit = viewModel.originalUnit,
+      onChangeOfOriginalUnit = viewModel::onChangeOfOriginalUnit,
+      note = viewModel.note,
+      onChangeOfNote = viewModel::onChangeOfNote,
+      isArchived = viewModel.isArchived,
+      onChangeOfIsArchived = viewModel::onChangeOfIsArchived,
+      onDelete = {
+        viewModel.deleteCustomUnit {
+          navigateBack()
         }
-    )
+      },
+  )
 }
 
 @Preview
@@ -92,34 +92,34 @@ fun EditCustomUnitScreen(
 private fun EditCustomUnitScreenPreview(
     @PreviewParameter(RoaDosePreviewProvider::class) roaDose: RoaDose,
 ) {
-    EditCustomUnitScreenContent(
-        substanceName = "Example",
-        administrationRoute = AdministrationRoute.ORAL,
-        numberOfIngestionsWithThisCustomUnit = 3,
-        roaDose = roaDose,
-        dismiss = {},
-        name = "Pink rocket",
-        onChangeOfName = {},
-        doseText = "10",
-        onChangeDoseText = {},
-        estimatedDoseStandardDeviationText = "",
-        onChangeEstimatedDoseStandardDeviationText = {},
-        isEstimate = true,
-        onChangeIsEstimate = {},
-        currentDoseClass = DoseClass.LIGHT,
-        isShowingUnitsField = false,
-        unit = "pill",
-        onChangeOfUnits = {},
-        unitPlural = "pills",
-        onChangeOfUnitPlural = {},
-        originalUnit = "mg",
-        onChangeOfOriginalUnit = {},
-        note = "",
-        onChangeOfNote = {},
-        isArchived = false,
-        onChangeOfIsArchived = {},
-        onDelete = {}
-    )
+  EditCustomUnitScreenContent(
+      substanceName = "Example",
+      administrationRoute = AdministrationRoute.ORAL,
+      numberOfIngestionsWithThisCustomUnit = 3,
+      roaDose = roaDose,
+      dismiss = {},
+      name = "Pink rocket",
+      onChangeOfName = {},
+      doseText = "10",
+      onChangeDoseText = {},
+      estimatedDoseStandardDeviationText = "",
+      onChangeEstimatedDoseStandardDeviationText = {},
+      isEstimate = true,
+      onChangeIsEstimate = {},
+      currentDoseClass = DoseClass.LIGHT,
+      isShowingUnitsField = false,
+      unit = "pill",
+      onChangeOfUnits = {},
+      unitPlural = "pills",
+      onChangeOfUnitPlural = {},
+      originalUnit = "mg",
+      onChangeOfOriginalUnit = {},
+      note = "",
+      onChangeOfNote = {},
+      isArchived = false,
+      onChangeOfIsArchived = {},
+      onDelete = {},
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -150,84 +150,84 @@ private fun EditCustomUnitScreenContent(
     onChangeOfNote: (String) -> Unit,
     isArchived: Boolean,
     onChangeOfIsArchived: (Boolean) -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("$substanceName unit") },
-                actions = {
-                    var isShowingDeleteDialog by remember { mutableStateOf(false) }
-                    IconButton(onClick = { isShowingDeleteDialog = true }) {
-                        Icon(
-                            Icons.Default.Delete,
-                            contentDescription = "Delete custom unit"
-                        )
-                    }
-                    AnimatedVisibility(visible = isShowingDeleteDialog) {
-                        AlertDialog(
-                            onDismissRequest = { isShowingDeleteDialog = false },
-                            title = {
-                                Text(text = "Delete custom unit?")
-                            },
-                            text = {
-                                Text("This will affect all ingestions that are using it. Consider archiving it instead.")
-                            },
-                            confirmButton = {
-                                TextButton(
-                                    onClick = {
-                                        isShowingDeleteDialog = false
-                                        onDelete()
-                                    }
-                                ) {
-                                    Text("Delete")
-                                }
-                            },
-                            dismissButton = {
-                                TextButton(
-                                    onClick = { isShowingDeleteDialog = false }
-                                ) {
-                                    Text("Cancel")
-                                }
-                            }
-                        )
-                    }
-                }
-            )
-        },
-        floatingActionButton = {
-            FloatingDoneButton(
-                onDone = dismiss,
-                modifier = Modifier.imePadding(),
-            )
-        }
-    ) { padding ->
-        EditCustomUnitSections(
-            substanceName = substanceName,
-            administrationRoute = administrationRoute,
-            numberOfIngestionsWithThisCustomUnit = numberOfIngestionsWithThisCustomUnit,
-            padding = padding,
-            roaDose = roaDose,
-            name = name,
-            onChangeOfName = onChangeOfName,
-            doseText = doseText,
-            onChangeDoseText = onChangeDoseText,
-            estimatedDoseStandardDeviationText = estimatedDoseStandardDeviationText,
-            onChangeEstimatedDoseStandardDeviationText = onChangeEstimatedDoseStandardDeviationText,
-            isEstimate = isEstimate,
-            onChangeIsEstimate = onChangeIsEstimate,
-            currentDoseClass = currentDoseClass,
-            isShowingUnitsField = isShowingUnitsField,
-            unit = unit,
-            onChangeOfUnits = onChangeOfUnits,
-            unitPlural = unitPlural,
-            onChangeOfUnitPlural = onChangeOfUnitPlural,
-            originalUnit = originalUnit,
-            onChangeOfOriginalUnit = onChangeOfOriginalUnit,
-            note = note,
-            onChangeOfNote = onChangeOfNote,
-            isArchived = isArchived,
-            onChangeOfIsArchived = onChangeOfIsArchived
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("$substanceName unit") },
+            actions = {
+              var isShowingDeleteDialog by remember { mutableStateOf(false) }
+              IconButton(onClick = { isShowingDeleteDialog = true }) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Delete custom unit",
+                )
+              }
+              AnimatedVisibility(visible = isShowingDeleteDialog) {
+                AlertDialog(
+                    onDismissRequest = { isShowingDeleteDialog = false },
+                    title = {
+                      Text(text = "Delete custom unit?")
+                    },
+                    text = {
+                      Text(
+                          "This will affect all ingestions that are using it. Consider archiving it instead."
+                      )
+                    },
+                    confirmButton = {
+                      TextButton(
+                          onClick = {
+                            isShowingDeleteDialog = false
+                            onDelete()
+                          }
+                      ) {
+                        Text("Delete")
+                      }
+                    },
+                    dismissButton = {
+                      TextButton(onClick = { isShowingDeleteDialog = false }) {
+                        Text("Cancel")
+                      }
+                    },
+                )
+              }
+            },
         )
-    }
+      },
+      floatingActionButton = {
+        FloatingDoneButton(
+            onDone = dismiss,
+            modifier = Modifier.imePadding(),
+        )
+      },
+  ) { padding ->
+    EditCustomUnitSections(
+        substanceName = substanceName,
+        administrationRoute = administrationRoute,
+        numberOfIngestionsWithThisCustomUnit = numberOfIngestionsWithThisCustomUnit,
+        padding = padding,
+        roaDose = roaDose,
+        name = name,
+        onChangeOfName = onChangeOfName,
+        doseText = doseText,
+        onChangeDoseText = onChangeDoseText,
+        estimatedDoseStandardDeviationText = estimatedDoseStandardDeviationText,
+        onChangeEstimatedDoseStandardDeviationText = onChangeEstimatedDoseStandardDeviationText,
+        isEstimate = isEstimate,
+        onChangeIsEstimate = onChangeIsEstimate,
+        currentDoseClass = currentDoseClass,
+        isShowingUnitsField = isShowingUnitsField,
+        unit = unit,
+        onChangeOfUnits = onChangeOfUnits,
+        unitPlural = unitPlural,
+        onChangeOfUnitPlural = onChangeOfUnitPlural,
+        originalUnit = originalUnit,
+        onChangeOfOriginalUnit = onChangeOfOriginalUnit,
+        note = note,
+        onChangeOfNote = onChangeOfNote,
+        isArchived = isArchived,
+        onChangeOfIsArchived = onChangeOfIsArchived,
+    )
+  }
 }

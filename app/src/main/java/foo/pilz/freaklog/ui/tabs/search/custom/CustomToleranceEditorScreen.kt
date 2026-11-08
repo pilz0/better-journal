@@ -40,94 +40,88 @@ fun CustomToleranceEditorScreen(
     navigateToCrossTolerancePicker: (customSubstanceId: Int) -> Unit,
     viewModel: CustomToleranceEditorViewModel = hiltViewModel(),
 ) {
-    val spacing = LocalSpacing.current
-    val full = viewModel.fullFlow.collectAsStateWithLifecycle().value
-    val half = viewModel.halfFlow.collectAsStateWithLifecycle().value
-    val zero = viewModel.zeroFlow.collectAsStateWithLifecycle().value
-    val cross = viewModel.crossToleranceFlow.collectAsStateWithLifecycle().value
+  val spacing = LocalSpacing.current
+  val full = viewModel.fullFlow.collectAsStateWithLifecycle().value
+  val half = viewModel.halfFlow.collectAsStateWithLifecycle().value
+  val zero = viewModel.zeroFlow.collectAsStateWithLifecycle().value
+  val cross = viewModel.crossToleranceFlow.collectAsStateWithLifecycle().value
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Tolerance") },
-                navigationIcon = {
-                    IconButton(onClick = navigateBack) {
-                        Icon(Icons.Default.ChevronLeft, contentDescription = "Back")
-                    }
-                },
-            )
-        },
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(vertical = spacing.sm),
-            verticalArrangement = Arrangement.spacedBy(spacing.sm),
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Tolerance") },
+            navigationIcon = {
+              IconButton(onClick = navigateBack) {
+                Icon(Icons.Default.ChevronLeft, contentDescription = "Back")
+              }
+            },
+        )
+      },
+  ) { padding ->
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().padding(padding),
+        contentPadding = PaddingValues(vertical = spacing.sm),
+        verticalArrangement = Arrangement.spacedBy(spacing.sm),
+    ) {
+      item { SectionHeader("Tolerance build-up") }
+      item {
+        ElevatedCard(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = spacing.screenHorizontal),
         ) {
-            item { SectionHeader("Tolerance build-up") }
-            item {
-                ElevatedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = spacing.screenHorizontal),
-                ) {
-                    Column(
-                        modifier = Modifier.padding(spacing.lg),
-                        verticalArrangement = Arrangement.spacedBy(spacing.sm),
-                    ) {
-                        ToleranceField(
-                            label = "Full",
-                            value = full,
-                            onChange = viewModel::onFullChange,
-                        )
-                        ToleranceField(
-                            label = "Half",
-                            value = half,
-                            onChange = viewModel::onHalfChange,
-                        )
-                        ToleranceField(
-                            label = "Zero",
-                            value = zero,
-                            onChange = viewModel::onZeroChange,
-                        )
-                        Text(
-                            text = "Zero is the time until tolerance is back to baseline.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-            }
-
-            item { SectionHeader("Cross-tolerance") }
-            item {
-                ElevatedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = spacing.screenHorizontal),
-                ) {
-                    ListItem(
-                        headlineContent = { Text("Categories") },
-                        supportingContent = {
-                            Text(
-                                text = if (cross.isEmpty()) "None"
-                                else cross.joinToString(", "),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        },
-                        trailingContent = {
-                            Icon(Icons.Default.ChevronRight, contentDescription = null)
-                        },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                        modifier = Modifier.clickable {
-                            navigateToCrossTolerancePicker(viewModel.customSubstanceId)
-                        },
-                    )
-                }
-            }
+          Column(
+              modifier = Modifier.padding(spacing.lg),
+              verticalArrangement = Arrangement.spacedBy(spacing.sm),
+          ) {
+            ToleranceField(
+                label = "Full",
+                value = full,
+                onChange = viewModel::onFullChange,
+            )
+            ToleranceField(
+                label = "Half",
+                value = half,
+                onChange = viewModel::onHalfChange,
+            )
+            ToleranceField(
+                label = "Zero",
+                value = zero,
+                onChange = viewModel::onZeroChange,
+            )
+            Text(
+                text = "Zero is the time until tolerance is back to baseline.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
         }
+      }
+
+      item { SectionHeader("Cross-tolerance") }
+      item {
+        ElevatedCard(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = spacing.screenHorizontal),
+        ) {
+          ListItem(
+              headlineContent = { Text("Categories") },
+              supportingContent = {
+                Text(
+                    text = if (cross.isEmpty()) "None" else cross.joinToString(", "),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+              },
+              trailingContent = {
+                Icon(Icons.Default.ChevronRight, contentDescription = null)
+              },
+              colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+              modifier =
+                  Modifier.clickable {
+                    navigateToCrossTolerancePicker(viewModel.customSubstanceId)
+                  },
+          )
+        }
+      }
     }
+  }
 }
 
 @Composable
@@ -136,14 +130,15 @@ private fun ToleranceField(
     value: String,
     onChange: (String) -> Unit,
 ) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onChange,
-        label = { Text(label) },
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Text,
-            capitalization = KeyboardCapitalization.Sentences,
-        ),
-        modifier = Modifier.fillMaxWidth(),
-    )
+  OutlinedTextField(
+      value = value,
+      onValueChange = onChange,
+      label = { Text(label) },
+      keyboardOptions =
+          KeyboardOptions(
+              keyboardType = KeyboardType.Text,
+              capitalization = KeyboardCapitalization.Sentences,
+          ),
+      modifier = Modifier.fillMaxWidth(),
+  )
 }

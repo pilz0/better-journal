@@ -37,59 +37,57 @@ import foo.pilz.freaklog.ui.tabs.stats.EmptyScreenDisclaimer
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 
 @Composable
-fun CategoryScreen(
-    viewModel: CategoryViewModel = hiltViewModel()
-) {
-    CategoryScreen(category = viewModel.category)
+fun CategoryScreen(viewModel: CategoryViewModel = hiltViewModel()) {
+  CategoryScreen(category = viewModel.category)
 }
 
 @Preview
 @Composable
 fun CategoryPreview() {
-    CategoryScreen(
-        category = Category(
-            name = "psychedelic",
-            description = "Psychedelics are drugs which alter the perception, causing a number of mental effects which manifest in many forms including altered states of consciousness, visual or tactile effects.",
-            url = "https://anodyne.wiki/class/psychedelic",
-            color = Color.Red
-        ),
-    )
+  CategoryScreen(
+      category =
+          Category(
+              name = "psychedelic",
+              description =
+                  "Psychedelics are drugs which alter the perception, causing a number of mental effects which manifest in many forms including altered states of consciousness, visual or tactile effects.",
+              url = "https://anodyne.wiki/class/psychedelic",
+              color = Color.Red,
+          ),
+  )
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryScreen(category: Category?) {
-    if (category == null) {
-        EmptyScreenDisclaimer(
-            title = "Category not found",
-            description = "An error happened, please navigate back."
-        )
-    } else {
-        val uriHandler = LocalUriHandler.current
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text(category.name.replaceFirstChar { it.uppercase() }) },
-                    actions = {
-                        if (category.url != null) {
-                            TextButton(
-                                onClick = { uriHandler.openUri(category.url) },
-                            ) {
-                                Text("Article")
-                            }
-                        }
-                    }
-                )
-            },
-        ) { padding ->
-            Text(
-                text = category.description,
-                textAlign = TextAlign.Left,
-                modifier = Modifier
-                    .padding(padding)
-                    .padding(horizontal = horizontalPadding, vertical = 10.dp)
-            )
-        }
+  if (category == null) {
+    EmptyScreenDisclaimer(
+        title = "Category not found",
+        description = "An error happened, please navigate back.",
+    )
+  } else {
+    val uriHandler = LocalUriHandler.current
+    Scaffold(
+        topBar = {
+          TopAppBar(
+              title = { Text(category.name.replaceFirstChar { it.uppercase() }) },
+              actions = {
+                if (category.url != null) {
+                  TextButton(
+                      onClick = { uriHandler.openUri(category.url) },
+                  ) {
+                    Text("Article")
+                  }
+                }
+              },
+          )
+        },
+    ) { padding ->
+      Text(
+          text = category.description,
+          textAlign = TextAlign.Left,
+          modifier =
+              Modifier.padding(padding).padding(horizontal = horizontalPadding, vertical = 10.dp),
+      )
     }
+  }
 }

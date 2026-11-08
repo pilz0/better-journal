@@ -21,9 +21,9 @@ package foo.pilz.freaklog.data.substances.repositories
 import foo.pilz.freaklog.data.substances.classes.SubstanceWithCategories
 
 interface SearchRepositoryInterface {
-    fun getMatchingSubstances(
-    searchText: String,
-    filterCategories: List<String>,
-    recentlyUsedSubstanceNamesSorted: List<String>,
-    ): List<SubstanceWithCategories>
+  fun getMatchingSubstances(
+      searchText: String,
+      filterCategories: List<String>,
+      recentlyUsedSubstanceNamesSorted: List<String>,
+  ): List<SubstanceWithCategories>
 }

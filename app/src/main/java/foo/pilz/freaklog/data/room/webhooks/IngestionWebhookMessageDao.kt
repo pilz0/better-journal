@@ -21,40 +21,38 @@ import foo.pilz.freaklog.data.room.webhooks.entities.IngestionWebhookMessage
 @Dao
 interface IngestionWebhookMessageDao {
 
-    @Query("SELECT * FROM ingestion_webhook_message WHERE ingestionId = :ingestionId")
-    suspend fun getByIngestion(ingestionId: Int): List<IngestionWebhookMessage>
+  @Query("SELECT * FROM ingestion_webhook_message WHERE ingestionId = :ingestionId")
+  suspend fun getByIngestion(ingestionId: Int): List<IngestionWebhookMessage>
 
-    @Query(
-        "SELECT * FROM ingestion_webhook_message " +
-            "WHERE ingestionId = :ingestionId AND webhookId = :webhookId LIMIT 1"
-    )
-    suspend fun getByIngestionAndWebhook(
-        ingestionId: Int,
-        webhookId: Int
-    ): IngestionWebhookMessage?
+  @Query(
+      "SELECT * FROM ingestion_webhook_message " +
+          "WHERE ingestionId = :ingestionId AND webhookId = :webhookId LIMIT 1"
+  )
+  suspend fun getByIngestionAndWebhook(
+      ingestionId: Int,
+      webhookId: Int,
+  ): IngestionWebhookMessage?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(message: IngestionWebhookMessage): Long
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  suspend fun insert(message: IngestionWebhookMessage): Long
 
-    @Query("SELECT url FROM webhook WHERE id = :webhookId")
-    suspend fun destination(webhookId: Int): String?
+  @Query("SELECT url FROM webhook WHERE id = :webhookId")
+  suspend fun destination(webhookId: Int): String?
 
-    @Transaction
-    suspend fun insertForDestination(message: IngestionWebhookMessage, url: String): Long? =
-        if (destination(message.webhookId) == url) insert(message) else null
+  @Transaction
+  suspend fun insertForDestination(message: IngestionWebhookMessage, url: String): Long? =
+      if (destination(message.webhookId) == url) insert(message) else null
 
-    @Query(
-        "SELECT COUNT(*) FROM ingestion_webhook_message m JOIN webhook w ON w.id = m.webhookId " +
-            "WHERE m.id = :id AND m.messageId = :messageId AND w.url = :url"
-    )
-    suspend fun isCurrentDestination(id: Int, messageId: String, url: String): Boolean
+  @Query(
+      "SELECT COUNT(*) FROM ingestion_webhook_message m JOIN webhook w ON w.id = m.webhookId " +
+          "WHERE m.id = :id AND m.messageId = :messageId AND w.url = :url"
+  )
+  suspend fun isCurrentDestination(id: Int, messageId: String, url: String): Boolean
 
-    @Delete
-    suspend fun delete(message: IngestionWebhookMessage)
+  @Delete suspend fun delete(message: IngestionWebhookMessage)
 
-    @Query("DELETE FROM ingestion_webhook_message WHERE ingestionId = :ingestionId")
-    suspend fun deleteByIngestion(ingestionId: Int)
+  @Query("DELETE FROM ingestion_webhook_message WHERE ingestionId = :ingestionId")
+  suspend fun deleteByIngestion(ingestionId: Int)
 
-    @Query("DELETE FROM ingestion_webhook_message")
-    suspend fun deleteAll()
+  @Query("DELETE FROM ingestion_webhook_message") suspend fun deleteAll()
 }

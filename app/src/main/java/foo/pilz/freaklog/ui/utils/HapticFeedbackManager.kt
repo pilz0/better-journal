@@ -24,74 +24,80 @@ import android.os.Vibrator
 import android.os.VibratorManager
 
 /**
- * Enum representing different types of haptic feedback effects.
- * These are designed to provide satisfying tactile feedback throughout the app.
+ * Enum representing different types of haptic feedback effects. These are designed to provide
+ * satisfying tactile feedback throughout the app.
  */
 enum class HapticType {
-    /** Light tick for subtle interactions like scrolling */
-    TICK,
-    /** Standard click for button presses */
-    CLICK,
-    /** Double click for confirmations */
-    DOUBLE_CLICK,
-    /** Heavy click for important actions */
-    HEAVY_CLICK,
-    /** Smooth texture effect for graph/timeline dragging */
-    TEXTURE_TICK,
-    /** Success feedback for completed actions */
-    SUCCESS,
-    /** Error feedback for failed actions */
-    ERROR,
-    /** Selection change feedback */
-    SELECTION,
-    /** Toggle switch feedback */
-    TOGGLE,
-    /** Long press feedback */
-    LONG_PRESS,
-    /** Timeline scrubbing - especially satisfying for graph interaction */
-    TIMELINE_SCRUB
+  /** Light tick for subtle interactions like scrolling */
+  TICK,
+  /** Standard click for button presses */
+  CLICK,
+  /** Double click for confirmations */
+  DOUBLE_CLICK,
+  /** Heavy click for important actions */
+  HEAVY_CLICK,
+  /** Smooth texture effect for graph/timeline dragging */
+  TEXTURE_TICK,
+  /** Success feedback for completed actions */
+  SUCCESS,
+  /** Error feedback for failed actions */
+  ERROR,
+  /** Selection change feedback */
+  SELECTION,
+  /** Toggle switch feedback */
+  TOGGLE,
+  /** Long press feedback */
+  LONG_PRESS,
+  /** Timeline scrubbing - especially satisfying for graph interaction */
+  TIMELINE_SCRUB,
 }
 
 /**
- * Manager class for handling haptic feedback using Android's Vibrator APIs.
- * Targets Android 12+ (API 31+, the app's minSdk) and uses predefined VibrationEffects.
- * No-ops on devices without a vibrator.
+ * Manager class for handling haptic feedback using Android's Vibrator APIs. Targets Android 12+
+ * (API 31+, the app's minSdk) and uses predefined VibrationEffects. No-ops on devices without a
+ * vibrator.
  */
 class HapticFeedbackManager(
     private val context: Context,
 ) {
-    private val vibrator: Vibrator? by lazy {
-        val vibratorManager =
-            context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
-        val vibrator = vibratorManager?.defaultVibrator
-        vibrator?.takeIf { it.hasVibrator() }
-    }
+  private val vibrator: Vibrator? by lazy {
+    val vibratorManager =
+        context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
+    val vibrator = vibratorManager?.defaultVibrator
+    vibrator?.takeIf { it.hasVibrator() }
+  }
 
-    fun performHaptic(type: HapticType) {
-        vibrator?.let {
-            val effect = when (type) {
-                HapticType.TICK, HapticType.SELECTION -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
-                HapticType.CLICK, HapticType.TOGGLE -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
-                HapticType.DOUBLE_CLICK -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_DOUBLE_CLICK)
-                HapticType.HEAVY_CLICK, HapticType.LONG_PRESS -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK)
-                HapticType.TEXTURE_TICK -> VibrationEffect.createOneShot(5, 50)
-                HapticType.SUCCESS -> {
-                    val timings = longArrayOf(0, 30, 50, 30)
-                    val amplitudes = intArrayOf(0, 100, 0, 200)
-                    VibrationEffect.createWaveform(timings, amplitudes, -1)
-                }
-                HapticType.ERROR -> {
-                    val timings = longArrayOf(0, 50, 30, 50, 30, 50)
-                    val amplitudes = intArrayOf(0, 150, 0, 150, 0, 150)
-                    VibrationEffect.createWaveform(timings, amplitudes, -1)
-                }
-                HapticType.TIMELINE_SCRUB -> {
-                    VibrationEffect.startComposition()
-                        .addPrimitive(VibrationEffect.Composition.PRIMITIVE_TICK)
-                        .compose()
-                }
+  fun performHaptic(type: HapticType) {
+    vibrator?.let {
+      val effect =
+          when (type) {
+            HapticType.TICK,
+            HapticType.SELECTION -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
+            HapticType.CLICK,
+            HapticType.TOGGLE -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
+            HapticType.DOUBLE_CLICK ->
+                VibrationEffect.createPredefined(VibrationEffect.EFFECT_DOUBLE_CLICK)
+            HapticType.HEAVY_CLICK,
+            HapticType.LONG_PRESS ->
+                VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK)
+            HapticType.TEXTURE_TICK -> VibrationEffect.createOneShot(5, 50)
+            HapticType.SUCCESS -> {
+              val timings = longArrayOf(0, 30, 50, 30)
+              val amplitudes = intArrayOf(0, 100, 0, 200)
+              VibrationEffect.createWaveform(timings, amplitudes, -1)
             }
-            it.vibrate(effect)
-        }
+            HapticType.ERROR -> {
+              val timings = longArrayOf(0, 50, 30, 50, 30, 50)
+              val amplitudes = intArrayOf(0, 150, 0, 150, 0, 150)
+              VibrationEffect.createWaveform(timings, amplitudes, -1)
+            }
+            HapticType.TIMELINE_SCRUB -> {
+              VibrationEffect.startComposition()
+                  .addPrimitive(VibrationEffect.Composition.PRIMITIVE_TICK)
+                  .compose()
+            }
+          }
+      it.vibrate(effect)
     }
+  }
 }

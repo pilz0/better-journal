@@ -11,24 +11,17 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ReminderDao {
-    @Query("SELECT * FROM reminder")
-    fun getAllRemindersFlow(): Flow<List<Reminder>>
+  @Query("SELECT * FROM reminder") fun getAllRemindersFlow(): Flow<List<Reminder>>
 
-    @Query("SELECT * FROM reminder")
-    suspend fun getAllReminders(): List<Reminder>
+  @Query("SELECT * FROM reminder") suspend fun getAllReminders(): List<Reminder>
 
-    @Query("SELECT * FROM reminder WHERE id = :id")
-    suspend fun getReminderById(id: Int): Reminder?
+  @Query("SELECT * FROM reminder WHERE id = :id") suspend fun getReminderById(id: Int): Reminder?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(reminder: Reminder): Long
+  @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(reminder: Reminder): Long
 
-    @Update
-    suspend fun update(reminder: Reminder)
+  @Update suspend fun update(reminder: Reminder)
 
-    @Delete
-    suspend fun delete(reminder: Reminder)
+  @Delete suspend fun delete(reminder: Reminder)
 
-    @Query("DELETE FROM reminder")
-    suspend fun deleteAll()
+  @Query("DELETE FROM reminder") suspend fun deleteAll()
 }

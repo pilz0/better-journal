@@ -17,22 +17,23 @@ fun ReadOnlyOutlinedField(
     placeholder: String? = null,
     trailingIcon: (@Composable () -> Unit)? = null,
 ) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = {},
-        label = { Text(label) },
-        placeholder = placeholder?.let { { Text(it) } },
-        readOnly = true,
-        enabled = false,
-        singleLine = true,
-        trailingIcon = trailingIcon,
-        modifier = modifier.clickable(onClick = onClick),
-        colors = OutlinedTextFieldDefaults.colors(
-            disabledTextColor = MaterialTheme.colorScheme.onSurface,
-            disabledBorderColor = MaterialTheme.colorScheme.outline,
-            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    )
+  OutlinedTextField(
+      value = value,
+      onValueChange = {},
+      label = { Text(label) },
+      placeholder = placeholder?.let { { Text(it) } },
+      readOnly = true,
+      enabled = false,
+      singleLine = true,
+      trailingIcon = trailingIcon,
+      modifier = modifier.clickable(onClick = onClick),
+      colors =
+          OutlinedTextFieldDefaults.colors(
+              disabledTextColor = MaterialTheme.colorScheme.onSurface,
+              disabledBorderColor = MaterialTheme.colorScheme.outline,
+              disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+              disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+              disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+          ),
+  )
 }

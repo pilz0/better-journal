@@ -28,43 +28,41 @@ import androidx.compose.ui.tooling.preview.Preview
 @Preview
 @Composable
 fun UnknownDoseDialogPreview() {
-    UnknownDoseDialog(
-        useUnknownDoseAndNavigate = {},
-        dismiss = {}
-    )
+  UnknownDoseDialog(
+      useUnknownDoseAndNavigate = {},
+      dismiss = {},
+  )
 }
 
 @Composable
 fun UnknownDoseDialog(
     useUnknownDoseAndNavigate: () -> Unit,
-    dismiss: () -> Unit
+    dismiss: () -> Unit,
 ) {
-    AlertDialog(
-        onDismissRequest = dismiss,
-        title = {
-            Text(text = "Don't know the dose?", style = MaterialTheme.typography.headlineSmall)
-        },
-        text = {
-            Text(
-                "You can log an unknown dose. But note that administering the wrong dosage of a substance can lead to negative experiences such as extreme anxiety, uncomfortable physical side effects, hospitalization, or (in extreme cases) death."
-            )
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    dismiss()
-                    useUnknownDoseAndNavigate()
-                }
-            ) {
-                Text("Log unknown dose")
+  AlertDialog(
+      onDismissRequest = dismiss,
+      title = {
+        Text(text = "Don't know the dose?", style = MaterialTheme.typography.headlineSmall)
+      },
+      text = {
+        Text(
+            "You can log an unknown dose. But note that administering the wrong dosage of a substance can lead to negative experiences such as extreme anxiety, uncomfortable physical side effects, hospitalization, or (in extreme cases) death."
+        )
+      },
+      confirmButton = {
+        TextButton(
+            onClick = {
+              dismiss()
+              useUnknownDoseAndNavigate()
             }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = dismiss
-            ) {
-                Text("Cancel")
-            }
+        ) {
+          Text("Log unknown dose")
         }
-    )
+      },
+      dismissButton = {
+        TextButton(onClick = dismiss) {
+          Text("Cancel")
+        }
+      },
+  )
 }

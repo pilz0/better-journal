@@ -21,6 +21,7 @@ package foo.pilz.freaklog.data.substances.parse
 import foo.pilz.freaklog.data.substances.classes.SubstanceFile
 
 interface SubstanceParserInterface {
-    fun parseSubstanceFile(string: String): SubstanceFile
-    fun extractSubstanceString(string: String): String?
+  fun parseSubstanceFile(string: String): SubstanceFile
+
+  fun extractSubstanceString(string: String): String?
 }

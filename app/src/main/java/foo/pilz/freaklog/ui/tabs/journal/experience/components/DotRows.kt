@@ -31,64 +31,67 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun DotRows(numDots: Int) {
-    val verticalPadding = 2.dp
-    Column {
-        if (numDots==0) {
-            Row(modifier = Modifier.padding(vertical = verticalPadding)) {
-                repeat(4) {
-                    Dot(isFull = false)
-                }
-            }
-        } else {
-            val numFullRows = numDots/4
-            val dotsInLastRow = numDots.rem(4)
-            if (numFullRows > 20) {
-                Text(text = "more than $numFullRows heavy doses", style = MaterialTheme.typography.titleSmall)
-            } else {
-                if (numFullRows > 0) {
-                    repeat(numFullRows) {
-                        Row(modifier = Modifier.padding(vertical = verticalPadding)) {
-                            repeat(4) {
-                                Dot(isFull = true)
-                            }
-                        }
-                    }
-                }
-                if (dotsInLastRow > 0) {
-                    Row(modifier = Modifier.padding(vertical = verticalPadding)) {
-                        repeat(dotsInLastRow) {
-                            Dot(isFull = true)
-                        }
-                        val numEmpty = 4 - dotsInLastRow
-                        repeat(numEmpty) {
-                            Dot(isFull = false)
-                        }
-                    }
-                }
-            }
+  val verticalPadding = 2.dp
+  Column {
+    if (numDots == 0) {
+      Row(modifier = Modifier.padding(vertical = verticalPadding)) {
+        repeat(4) {
+          Dot(isFull = false)
         }
+      }
+    } else {
+      val numFullRows = numDots / 4
+      val dotsInLastRow = numDots.rem(4)
+      if (numFullRows > 20) {
+        Text(
+            text = "more than $numFullRows heavy doses",
+            style = MaterialTheme.typography.titleSmall,
+        )
+      } else {
+        if (numFullRows > 0) {
+          repeat(numFullRows) {
+            Row(modifier = Modifier.padding(vertical = verticalPadding)) {
+              repeat(4) {
+                Dot(isFull = true)
+              }
+            }
+          }
+        }
+        if (dotsInLastRow > 0) {
+          Row(modifier = Modifier.padding(vertical = verticalPadding)) {
+            repeat(dotsInLastRow) {
+              Dot(isFull = true)
+            }
+            val numEmpty = 4 - dotsInLastRow
+            repeat(numEmpty) {
+              Dot(isFull = false)
+            }
+          }
+        }
+      }
     }
+  }
 }
 
 @Composable
 fun Dot(isFull: Boolean) {
-    val dotSize = 10.dp
-    val horizontalPadding = 1.dp
-    if (isFull) {
-        Box(
-            modifier = Modifier
-                .padding(horizontal = horizontalPadding)
+  val dotSize = 10.dp
+  val horizontalPadding = 1.dp
+  if (isFull) {
+    Box(
+        modifier =
+            Modifier.padding(horizontal = horizontalPadding)
                 .size(dotSize)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.onBackground)
-        )
-    } else {
-        Box(
-            modifier = Modifier
-                .padding(horizontal = horizontalPadding)
+    )
+  } else {
+    Box(
+        modifier =
+            Modifier.padding(horizontal = horizontalPadding)
                 .size(dotSize)
                 .clip(CircleShape)
                 .border(1.dp, MaterialTheme.colorScheme.onBackground, CircleShape)
-        )
-    }
+    )
+  }
 }

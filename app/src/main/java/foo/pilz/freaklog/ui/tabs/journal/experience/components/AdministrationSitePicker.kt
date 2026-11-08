@@ -34,46 +34,47 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 /**
- * A reusable composable for selecting administration site (nostril or injection location).
- * Shows a dropdown with site options and a "None" option to clear the selection.
+ * A reusable composable for selecting administration site (nostril or injection location). Shows a
+ * dropdown with site options and a "None" option to clear the selection.
  */
 @Composable
 fun AdministrationSitePicker(
     administrationSite: String,
     siteOptions: List<String>,
     onSiteChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    var isShowingDropDownMenu by remember { mutableStateOf(false) }
-    Box(
-        modifier = modifier.wrapContentSize(Alignment.TopEnd)
+  var isShowingDropDownMenu by remember { mutableStateOf(false) }
+  Box(modifier = modifier.wrapContentSize(Alignment.TopEnd)) {
+    OutlinedButton(
+        onClick = { isShowingDropDownMenu = true },
+        modifier = Modifier.fillMaxWidth(),
     ) {
-        OutlinedButton(
-            onClick = { isShowingDropDownMenu = true },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = if (administrationSite.isNotBlank()) administrationSite else "Select site (optional)")
-        }
-        DropdownMenu(
-            expanded = isShowingDropDownMenu,
-            onDismissRequest = { isShowingDropDownMenu = false }
-        ) {
-            DropdownMenuItem(
-                text = { Text("None") },
-                onClick = {
-                    onSiteChange("")
-                    isShowingDropDownMenu = false
-                }
-            )
-            siteOptions.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(option) },
-                    onClick = {
-                        onSiteChange(option)
-                        isShowingDropDownMenu = false
-                    }
-                )
-            }
-        }
+      Text(
+          text =
+              if (administrationSite.isNotBlank()) administrationSite else "Select site (optional)"
+      )
     }
+    DropdownMenu(
+        expanded = isShowingDropDownMenu,
+        onDismissRequest = { isShowingDropDownMenu = false },
+    ) {
+      DropdownMenuItem(
+          text = { Text("None") },
+          onClick = {
+            onSiteChange("")
+            isShowingDropDownMenu = false
+          },
+      )
+      siteOptions.forEach { option ->
+        DropdownMenuItem(
+            text = { Text(option) },
+            onClick = {
+              onSiteChange(option)
+              isShowingDropDownMenu = false
+            },
+        )
+      }
+    }
+  }
 }

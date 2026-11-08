@@ -33,45 +33,44 @@ import androidx.compose.ui.tooling.preview.Preview
 @Preview(showBackground = true)
 @Composable
 fun ClassSectionPreview() {
-    ClassSection(
-        psychoactiveClasses = listOf("Stimulants", "Psychedelics"),
-        chemicalClasses = listOf("Substituted phenethylamines"),
-        titleStyle = MaterialTheme.typography.titleLarge
-    )
+  ClassSection(
+      psychoactiveClasses = listOf("Stimulants", "Psychedelics"),
+      chemicalClasses = listOf("Substituted phenethylamines"),
+      titleStyle = MaterialTheme.typography.titleLarge,
+  )
 }
 
 @Composable
 fun ClassSection(
     psychoactiveClasses: List<String>,
     chemicalClasses: List<String>,
-    titleStyle: TextStyle
+    titleStyle: TextStyle,
 ) {
-    if (psychoactiveClasses.isNotEmpty() || chemicalClasses.isNotEmpty()) {
-        Column {
-            Text(text = "Class membership", style = titleStyle)
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                if (psychoactiveClasses.isNotEmpty()) {
-                    Column {
-                        Text(text = "Psychoactive")
-                        psychoactiveClasses.forEach {
-                            Text(text = it)
-                        }
-                    }
-                }
-                if (chemicalClasses.isNotEmpty()) {
-                    Column {
-                        Text(text = "Chemical")
-                        chemicalClasses.forEach {
-                            Text(text = it)
-                        }
-                    }
-                }
+  if (psychoactiveClasses.isNotEmpty() || chemicalClasses.isNotEmpty()) {
+    Column {
+      Text(text = "Class membership", style = titleStyle)
+      Row(
+          horizontalArrangement = Arrangement.SpaceBetween,
+          modifier = Modifier.fillMaxWidth(),
+      ) {
+        if (psychoactiveClasses.isNotEmpty()) {
+          Column {
+            Text(text = "Psychoactive")
+            psychoactiveClasses.forEach {
+              Text(text = it)
             }
-
+          }
         }
-        HorizontalDivider()
+        if (chemicalClasses.isNotEmpty()) {
+          Column {
+            Text(text = "Chemical")
+            chemicalClasses.forEach {
+              Text(text = it)
+            }
+          }
+        }
+      }
     }
+    HorizontalDivider()
+  }
 }

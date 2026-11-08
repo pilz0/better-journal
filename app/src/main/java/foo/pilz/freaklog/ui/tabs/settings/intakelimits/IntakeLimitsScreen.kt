@@ -38,37 +38,45 @@ fun IntakeLimitsScreen(
     navigateToAddIntakeLimit: () -> Unit,
     navigateToEditIntakeLimit: (limitId: Int) -> Unit,
 ) {
-    IntakeLimitsScreenContent(
-        items = viewModel.itemsFlow.collectAsStateWithLifecycle().value,
-        navigateToAddIntakeLimit = navigateToAddIntakeLimit,
-        navigateToEditIntakeLimit = navigateToEditIntakeLimit,
-    )
+  IntakeLimitsScreenContent(
+      items = viewModel.itemsFlow.collectAsStateWithLifecycle().value,
+      navigateToAddIntakeLimit = navigateToAddIntakeLimit,
+      navigateToEditIntakeLimit = navigateToEditIntakeLimit,
+  )
 }
 
 @Preview
 @Composable
 fun IntakeLimitsScreenPreview() {
-    val now = Instant.now()
-    IntakeLimitsScreenContent(
-        items = listOf(
-            IntakeLimit.caffeineSample.copy(id = 1),
-            IntakeLimit.nicotineSample.copy(id = 2),
-        ).map { limit ->
-            val pastIngestions = when (limit.limitType) {
-                IntakeLimitType.DOSE -> listOf(
-                    LimitIngestion(250.0, "mg", now.minusSeconds(3_600)),
-                    LimitIngestion(250.0, "mg", now.minusSeconds(7_200)),
+  val now = Instant.now()
+  IntakeLimitsScreenContent(
+      items =
+          listOf(
+                  IntakeLimit.caffeineSample.copy(id = 1),
+                  IntakeLimit.nicotineSample.copy(id = 2),
+              )
+              .map { limit ->
+                val pastIngestions =
+                    when (limit.limitType) {
+                      IntakeLimitType.DOSE ->
+                          listOf(
+                              LimitIngestion(250.0, "mg", now.minusSeconds(3_600)),
+                              LimitIngestion(250.0, "mg", now.minusSeconds(7_200)),
+                          )
+                      IntakeLimitType.COUNT ->
+                          listOf(
+                              LimitIngestion(1.0, null, now.minusSeconds(86_400)),
+                              LimitIngestion(1.0, null, now.minusSeconds(2 * 86_400)),
+                          )
+                    }
+                IntakeLimitListItem(
+                    limit,
+                    evaluateIntakeLimit(limit, now, pastIngestions, pending = null),
                 )
-                IntakeLimitType.COUNT -> listOf(
-                    LimitIngestion(1.0, null, now.minusSeconds(86_400)),
-                    LimitIngestion(1.0, null, now.minusSeconds(2 * 86_400)),
-                )
-            }
-            IntakeLimitListItem(limit, evaluateIntakeLimit(limit, now, pastIngestions, pending = null))
-        },
-        navigateToAddIntakeLimit = {},
-        navigateToEditIntakeLimit = {},
-    )
+              },
+      navigateToAddIntakeLimit = {},
+      navigateToEditIntakeLimit = {},
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,92 +86,86 @@ fun IntakeLimitsScreenContent(
     navigateToAddIntakeLimit: () -> Unit,
     navigateToEditIntakeLimit: (limitId: Int) -> Unit,
 ) {
-    val spacing = LocalSpacing.current
-    Scaffold(
-        topBar = { TopAppBar(title = { Text("Intake limits") }) },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                modifier = Modifier.imePadding(),
-                onClick = navigateToAddIntakeLimit,
-                icon = { Icon(Icons.Default.Add, contentDescription = "Add intake limit") },
-                text = { Text(text = "Limit") }
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
+  val spacing = LocalSpacing.current
+  Scaffold(
+      topBar = { TopAppBar(title = { Text("Intake limits") }) },
+      floatingActionButton = {
+        ExtendedFloatingActionButton(
+            modifier = Modifier.imePadding(),
+            onClick = navigateToAddIntakeLimit,
+            icon = { Icon(Icons.Default.Add, contentDescription = "Add intake limit") },
+            text = { Text(text = "Limit") },
+        )
+      },
+  ) { padding ->
+    Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+      if (items.isEmpty()) {
+        EmptyScreenDisclaimer(
+            title = "No intake limits yet",
+            description = "Add a limit to get warned when you approach it",
+            icon = Icons.Outlined.Speed,
+        )
+      } else {
+        LazyColumn(
+            contentPadding = PaddingValues(vertical = spacing.sm),
+            verticalArrangement = Arrangement.spacedBy(spacing.sm),
         ) {
-            if (items.isEmpty()) {
-                EmptyScreenDisclaimer(
-                    title = "No intake limits yet",
-                    description = "Add a limit to get warned when you approach it",
-                    icon = Icons.Outlined.Speed
-                )
-            } else {
-                LazyColumn(
-                    contentPadding = PaddingValues(vertical = spacing.sm),
-                    verticalArrangement = Arrangement.spacedBy(spacing.sm)
-                ) {
-                    items(items, key = { it.limit.id }) { item ->
-                        IntakeLimitCard(
-                            item = item,
-                            onClick = { navigateToEditIntakeLimit(item.limit.id) }
-                        )
-                    }
-                }
-            }
+          items(items, key = { it.limit.id }) { item ->
+            IntakeLimitCard(
+                item = item,
+                onClick = { navigateToEditIntakeLimit(item.limit.id) },
+            )
+          }
         }
+      }
     }
+  }
 }
 
 @Composable
 private fun IntakeLimitCard(
     item: IntakeLimitListItem,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
-    val spacing = LocalSpacing.current
-    ElevatedCard(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = spacing.screenHorizontal)
+  val spacing = LocalSpacing.current
+  ElevatedCard(
+      onClick = onClick,
+      modifier = Modifier.fillMaxWidth().padding(horizontal = spacing.screenHorizontal),
+  ) {
+    Column(
+        modifier = Modifier.padding(spacing.lg),
+        verticalArrangement = Arrangement.spacedBy(spacing.xs),
     ) {
-        Column(
-            modifier = Modifier.padding(spacing.lg),
-            verticalArrangement = Arrangement.spacedBy(spacing.xs)
-        ) {
-            Text(
-                text = item.limit.substanceName,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-            Text(
-                text = item.limit.summaryDescription(),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            if (item.limit.isEnabled) {
-                Text(
-                    text = item.status.listUsageLine(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = item.status.severityColor()
-                )
-                item.status.resetInfo()?.let { reset ->
-                    Text(
-                        text = reset,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            } else {
-                Text(
-                    text = "Disabled",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+      Text(
+          text = item.limit.substanceName,
+          style = MaterialTheme.typography.titleMedium,
+          fontWeight = FontWeight.SemiBold,
+      )
+      Text(
+          text = item.limit.summaryDescription(),
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+      if (item.limit.isEnabled) {
+        Text(
+            text = item.status.listUsageLine(),
+            style = MaterialTheme.typography.bodyMedium,
+            color = item.status.severityColor(),
+        )
+        item.status.resetInfo()?.let { reset ->
+          Text(
+              text = reset,
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
         }
+      } else {
+        Text(
+            text = "Disabled",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
     }
+  }
 }

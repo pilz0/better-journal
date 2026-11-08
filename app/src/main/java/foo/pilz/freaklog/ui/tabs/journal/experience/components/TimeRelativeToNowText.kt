@@ -28,41 +28,42 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
-import kotlinx.coroutines.delay
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import kotlinx.coroutines.delay
 
 @Composable
 fun TimeRelativeToNowText(
     time: Instant,
-    style: TextStyle = MaterialTheme.typography.bodyMedium
+    style: TextStyle = MaterialTheme.typography.bodyMedium,
 ) {
-    val now: MutableState<Instant> = remember { mutableStateOf(Instant.now()) }
-    LaunchedEffect(key1 = "updateTime") {
-        while (true) {
-            delay(10000L) // update every 10 seconds
-            now.value = Instant.now()
-        }
+  val now: MutableState<Instant> = remember { mutableStateOf(Instant.now()) }
+  LaunchedEffect(key1 = "updateTime") {
+    while (true) {
+      delay(10000L) // update every 10 seconds
+      now.value = Instant.now()
     }
-    val isInPast = time < now.value
-    val relativeTime = if (isInPast) {
+  }
+  val isInPast = time < now.value
+  val relativeTime =
+      if (isInPast) {
         getDurationText(fromInstant = time, toInstant = now.value) + " ago"
-    } else {
+      } else {
         "in " + getDurationText(fromInstant = time, toInstant = now.value)
-    }
-    Text(
-        text = relativeTime,
-        style = style
-    )
+      }
+  Text(
+      text = relativeTime,
+      style = style,
+  )
 }
 
 @Preview(showBackground = true)
 @Composable
 fun TimeRelativeToNowTextPreview() {
-    Column {
-        val dateTime1 = remember { Instant.now().minus(5, ChronoUnit.HOURS) }
-        val dateTime2 = remember { Instant.now().minus(30, ChronoUnit.MINUTES) }
-        TimeRelativeToNowText(time = dateTime1)
-        TimeRelativeToNowText(time = dateTime2)
-    }
+  Column {
+    val dateTime1 = remember { Instant.now().minus(5, ChronoUnit.HOURS) }
+    val dateTime2 = remember { Instant.now().minus(30, ChronoUnit.MINUTES) }
+    TimeRelativeToNowText(time = dateTime1)
+    TimeRelativeToNowText(time = dateTime2)
+  }
 }

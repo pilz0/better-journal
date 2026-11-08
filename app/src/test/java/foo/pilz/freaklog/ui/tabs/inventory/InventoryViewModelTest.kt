@@ -19,75 +19,75 @@ import org.junit.Before
 import org.junit.Test
 
 class InventoryViewModelTest {
-    private val inventoryRepo = mockk<InventoryRepository>()
-    private val experienceRepo = mockk<ExperienceRepository>()
-    private val substanceRepo = mockk<SubstanceRepository>()
-    private lateinit var viewModel: InventoryViewModel
+  private val inventoryRepo = mockk<InventoryRepository>()
+  private val experienceRepo = mockk<ExperienceRepository>()
+  private val substanceRepo = mockk<SubstanceRepository>()
+  private lateinit var viewModel: InventoryViewModel
 
-    @Before
-    fun setUp() {
-        every { inventoryRepo.getAllFlow() } returns flowOf(emptyList())
-        val builtin = listOf("Caffeine", "Cannabis", "MDMA", "Ketamine", "LSD")
-        every { substanceRepo.getAllSubstances() } returns builtin.map { name ->
-            mockk<Substance> { every { this@mockk.name } returns name }
+  @Before
+  fun setUp() {
+    every { inventoryRepo.getAllFlow() } returns flowOf(emptyList())
+    val builtin = listOf("Caffeine", "Cannabis", "MDMA", "Ketamine", "LSD")
+    every { substanceRepo.getAllSubstances() } returns
+        builtin.map { name ->
+          mockk<Substance> { every { this@mockk.name } returns name }
         }
-        val custom = listOf("Custom Herbal Mix", "Cannabis Extract")
-        coEvery { experienceRepo.getAllCustomSubstances() } returns custom.map { name ->
-            mockk<CustomSubstance> { every { this@mockk.name } returns name }
+    val custom = listOf("Custom Herbal Mix", "Cannabis Extract")
+    coEvery { experienceRepo.getAllCustomSubstances() } returns
+        custom.map { name ->
+          mockk<CustomSubstance> { every { this@mockk.name } returns name }
         }
-        viewModel = InventoryViewModel(inventoryRepo, experienceRepo, substanceRepo)
-    }
+    viewModel = InventoryViewModel(inventoryRepo, experienceRepo, substanceRepo)
+  }
 
-    @Test
-    fun `suggestions are empty for blank search text`() = runTest {
-        assertThat(viewModel.suggestions("")).isEmpty()
-        assertThat(viewModel.suggestions("   ")).isEmpty()
-    }
+  @Test
+  fun `suggestions are empty for blank search text`() = runTest {
+    assertThat(viewModel.suggestions("")).isEmpty()
+    assertThat(viewModel.suggestions("   ")).isEmpty()
+  }
 
-    @Test
-    fun `suggestions return matching custom and builtin substances`() = runTest {
-        val results = viewModel.suggestions("canna")
-        assertThat(results).containsExactly(
+  @Test
+  fun `suggestions return matching custom and builtin substances`() = runTest {
+    val results = viewModel.suggestions("canna")
+    assertThat(results)
+        .containsExactly(
             InventoryViewModel.Suggestion(name = "Cannabis Extract", isCustom = true),
-            InventoryViewModel.Suggestion(name = "Cannabis", isCustom = false)
+            InventoryViewModel.Suggestion(name = "Cannabis", isCustom = false),
         )
-    }
+  }
 
-    @Test
-    fun `suggestions deduplicate substances with same name prioritizing custom`() = runTest {
-        coEvery { experienceRepo.getAllCustomSubstances() } returns listOf(
-            mockk { every { name } returns "MDMA" }
-        )
-        val results = viewModel.suggestions("mdma")
-        assertThat(results).containsExactly(
-            InventoryViewModel.Suggestion(name = "MDMA", isCustom = true)
-        )
-    }
+  @Test
+  fun `suggestions deduplicate substances with same name prioritizing custom`() = runTest {
+    coEvery { experienceRepo.getAllCustomSubstances() } returns
+        listOf(mockk { every { name } returns "MDMA" })
+    val results = viewModel.suggestions("mdma")
+    assertThat(results)
+        .containsExactly(InventoryViewModel.Suggestion(name = "MDMA", isCustom = true))
+  }
 
-    @Test
-    fun `suggestions deduplicate case-insensitively prioritizing custom`() = runTest {
-        coEvery { experienceRepo.getAllCustomSubstances() } returns listOf(
-            mockk { every { name } returns "mdma" }
-        )
-        val results = viewModel.suggestions("mdma")
-        assertThat(results).containsExactly(
-            InventoryViewModel.Suggestion(name = "mdma", isCustom = true)
-        )
-    }
+  @Test
+  fun `suggestions deduplicate case-insensitively prioritizing custom`() = runTest {
+    coEvery { experienceRepo.getAllCustomSubstances() } returns
+        listOf(mockk { every { name } returns "mdma" })
+    val results = viewModel.suggestions("mdma")
+    assertThat(results)
+        .containsExactly(InventoryViewModel.Suggestion(name = "mdma", isCustom = true))
+  }
 
-    @Test
-    fun `suggestions cache builtin substances and do not query substance repository on every call`() = runTest {
+  @Test
+  fun `suggestions cache builtin substances and do not query substance repository on every call`() =
+      runTest {
         viewModel.suggestions("caff")
         viewModel.suggestions("ket")
         viewModel.suggestions("lsd")
 
         // SubstanceRepository.getAllSubstances() should only be called once when initialized lazily
         verify(exactly = 1) { substanceRepo.getAllSubstances() }
-    }
+      }
 
-    @Test
-    fun `suggestions respect limit parameter`() = runTest {
-        val results = viewModel.suggestions("a", limit = 2)
-        assertThat(results.size).isEqualTo(2)
-    }
+  @Test
+  fun `suggestions respect limit parameter`() = runTest {
+    val results = viewModel.suggestions("a", limit = 2)
+    assertThat(results.size).isEqualTo(2)
+  }
 }

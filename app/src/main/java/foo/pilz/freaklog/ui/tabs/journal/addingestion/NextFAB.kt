@@ -25,17 +25,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 
-
 @Composable
 fun NextFAB(navigateToNext: () -> Unit) {
-    ExtendedFloatingActionButton(
-        onClick = navigateToNext,
-        icon = {
-            Icon(
-                Icons.AutoMirrored.Filled.NavigateNext,
-                contentDescription = "Next"
-            )
-        },
-        text = { Text("Next") },
-    )
+  ExtendedFloatingActionButton(
+      onClick = navigateToNext,
+      icon = {
+        Icon(
+            Icons.AutoMirrored.Filled.NavigateNext,
+            contentDescription = "Next",
+        )
+      },
+      text = { Text("Next") },
+  )
 }

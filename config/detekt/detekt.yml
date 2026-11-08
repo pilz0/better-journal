@@ -55,9 +55,9 @@ naming:
   FunctionNaming:
     # @Composable functions are PascalCase by convention.
     ignoreAnnotated:
-      - 'Composable'
+      - "Composable"
   TopLevelPropertyNaming:
-    constantPattern: '[A-Z][_A-Z0-9]*'
+    constantPattern: "[A-Z][_A-Z0-9]*"
 
 empty-blocks:
   active: true

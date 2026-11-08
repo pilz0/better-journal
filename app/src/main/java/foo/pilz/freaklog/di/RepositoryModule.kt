@@ -18,37 +18,35 @@
 
 package foo.pilz.freaklog.di
 
+import dagger.Binds
+import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import foo.pilz.freaklog.data.substances.parse.SubstanceParser
 import foo.pilz.freaklog.data.substances.parse.SubstanceParserInterface
 import foo.pilz.freaklog.data.substances.repositories.SearchRepository
 import foo.pilz.freaklog.data.substances.repositories.SearchRepositoryInterface
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepositoryInterface
-import dagger.Binds
-import dagger.Module
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
 
-    @Binds
-    @Singleton
-    abstract fun bindSubstanceParser(
-        substanceParser: SubstanceParser
-    ): SubstanceParserInterface
+  @Binds
+  @Singleton
+  abstract fun bindSubstanceParser(substanceParser: SubstanceParser): SubstanceParserInterface
 
-    @Binds
-    @Singleton
-    abstract fun bindSubstanceRepository(
-        substanceRepository: SubstanceRepository
-    ): SubstanceRepositoryInterface
+  @Binds
+  @Singleton
+  abstract fun bindSubstanceRepository(
+      substanceRepository: SubstanceRepository
+  ): SubstanceRepositoryInterface
 
-    @Binds
-    @Singleton
-    abstract fun bindSearchRepository(
-        substanceRepository: SearchRepository
-    ): SearchRepositoryInterface
+  @Binds
+  @Singleton
+  abstract fun bindSearchRepository(
+      substanceRepository: SearchRepository
+  ): SearchRepositoryInterface
 }

@@ -21,15 +21,13 @@ package foo.pilz.freaklog.data.room.experiences.entities
 import androidx.room.TypeConverter
 
 /**
- * Persists [AdaptiveColor] as a TEXT column. Preset colors round-trip through their
- * stable [AdaptiveColor.name] (e.g. "RED"); user-picked colors round-trip through the
- * `CUSTOM_AARRGGBB` encoding produced by [AdaptiveColor.Custom.name]. This preserves
- * backwards compatibility with existing rows written when [AdaptiveColor] was an enum.
+ * Persists [AdaptiveColor] as a TEXT column. Preset colors round-trip through their stable
+ * [AdaptiveColor.name] (e.g. "RED"); user-picked colors round-trip through the `CUSTOM_AARRGGBB`
+ * encoding produced by [AdaptiveColor.Custom.name]. This preserves backwards compatibility with
+ * existing rows written when [AdaptiveColor] was an enum.
  */
 class AdaptiveColorConverter {
-    @TypeConverter
-    fun fromAdaptiveColor(color: AdaptiveColor): String = color.name
+  @TypeConverter fun fromAdaptiveColor(color: AdaptiveColor): String = color.name
 
-    @TypeConverter
-    fun toAdaptiveColor(value: String): AdaptiveColor = AdaptiveColor.valueOf(value)
+  @TypeConverter fun toAdaptiveColor(value: String): AdaptiveColor = AdaptiveColor.valueOf(value)
 }

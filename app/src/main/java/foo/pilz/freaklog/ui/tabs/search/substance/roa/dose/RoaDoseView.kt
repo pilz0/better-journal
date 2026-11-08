@@ -29,22 +29,22 @@ import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
 fun RoaDoseViewPreview(
     @PreviewParameter(RoaDosePreviewProvider::class) roaDose: RoaDose,
 ) {
-    RoaDoseView(
-        roaDose = roaDose,
-    )
+  RoaDoseView(
+      roaDose = roaDose,
+  )
 }
 
 @Composable
 fun RoaDoseView(
     roaDose: RoaDose,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    DoseClassificationRow(
-        modifier = modifier,
-        lightMin = roaDose.lightMin,
-        commonMin = roaDose.commonMin,
-        strongMin = roaDose.strongMin,
-        heavyMin = roaDose.heavyMin,
-        unit = roaDose.units
-    )
+  DoseClassificationRow(
+      modifier = modifier,
+      lightMin = roaDose.lightMin,
+      commonMin = roaDose.commonMin,
+      strongMin = roaDose.strongMin,
+      heavyMin = roaDose.heavyMin,
+      unit = roaDose.units,
+  )
 }

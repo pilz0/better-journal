@@ -18,7 +18,6 @@
 
 package foo.pilz.freaklog.ui.tabs.settings.customunits.add
 
-
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -67,18 +66,18 @@ import foo.pilz.freaklog.ui.tabs.search.substancerow.SubstanceRow
 fun AddIngestionSearchScreen(
     navigateToChooseRoute: (substanceName: String) -> Unit,
     navigateToCustomSubstanceChooseRoute: (customSubstanceName: String) -> Unit,
-    viewModel: AddIngestionSearchViewModel = hiltViewModel()
+    viewModel: AddIngestionSearchViewModel = hiltViewModel(),
 ) {
-    AddIngestionSearchScreen(
-        navigateToChooseRoute = navigateToChooseRoute,
-        navigateToCustomSubstanceChooseRoute = navigateToCustomSubstanceChooseRoute,
-        searchText = viewModel.searchTextFlow.collectAsState().value,
-        onChangeSearchText = {
-            viewModel.updateSearchText(it)
-        },
-        filteredSubstances = viewModel.filteredSubstancesFlow.collectAsState().value,
-        filteredCustomSubstances = viewModel.filteredCustomSubstancesFlow.collectAsState().value
-    )
+  AddIngestionSearchScreen(
+      navigateToChooseRoute = navigateToChooseRoute,
+      navigateToCustomSubstanceChooseRoute = navigateToCustomSubstanceChooseRoute,
+      searchText = viewModel.searchTextFlow.collectAsState().value,
+      onChangeSearchText = {
+        viewModel.updateSearchText(it)
+      },
+      filteredSubstances = viewModel.filteredSubstancesFlow.collectAsState().value,
+      filteredCustomSubstances = viewModel.filteredCustomSubstancesFlow.collectAsState().value,
+  )
 }
 
 @Composable
@@ -90,95 +89,105 @@ private fun AddIngestionSearchScreen(
     filteredSubstances: List<SubstanceModel>,
     filteredCustomSubstances: List<CustomSubstance>,
 ) {
-    val focusRequester = remember { FocusRequester() }
-    var isFocused by remember { mutableStateOf(false) }
-    val focusManager = LocalFocusManager.current
-    Scaffold(
-        floatingActionButton = {
-            if (!isFocused) {
-                FloatingActionButton(onClick = { focusRequester.requestFocus() }) {
-                    Icon(Icons.Default.Keyboard, contentDescription = "Keyboard")
-                }
-            }
+  val focusRequester = remember { FocusRequester() }
+  var isFocused by remember { mutableStateOf(false) }
+  val focusManager = LocalFocusManager.current
+  Scaffold(
+      floatingActionButton = {
+        if (!isFocused) {
+          FloatingActionButton(onClick = { focusRequester.requestFocus() }) {
+            Icon(Icons.Default.Keyboard, contentDescription = "Keyboard")
+          }
         }
-    ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
-            LinearProgressIndicator(
-                progress = { 0.17f },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clearAndSetSemantics { },
+      }
+  ) { padding ->
+    Column(modifier = Modifier.padding(padding)) {
+      LinearProgressIndicator(
+          progress = { 0.17f },
+          modifier = Modifier.fillMaxWidth().clearAndSetSemantics {},
+      )
+      TextField(
+          value = searchText,
+          onValueChange = { value ->
+            onChangeSearchText(value)
+          },
+          modifier =
+              Modifier.fillMaxWidth()
+                  .focusRequester(focusRequester)
+                  .onFocusChanged { focusState ->
+                    isFocused = focusState.isFocused
+                  }
+                  .clearAndSetSemantics {},
+          placeholder = { Text(text = "Search substances") },
+          leadingIcon = {
+            Icon(
+                Icons.Default.Search,
+                contentDescription = "Search",
             )
-            TextField(
-                value = searchText,
-                onValueChange = { value ->
-                    onChangeSearchText(value)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester)
-                    .onFocusChanged { focusState ->
-                        isFocused = focusState.isFocused
+          },
+          trailingIcon = {
+            Row {
+              if (searchText.isNotEmpty()) {
+                IconButton(
+                    onClick = {
+                      onChangeSearchText("")
                     }
-                    .clearAndSetSemantics { },
-                placeholder = { Text(text = "Search substances") },
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.Search,
-                        contentDescription = "Search",
-                    )
-                },
-                trailingIcon = {
-                    Row {
-                        if (searchText.isNotEmpty()) {
-                            IconButton(onClick = {
-                                onChangeSearchText("")
-                            }) {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = "Close",
-                                )
-                            }
-                        }
-                    }
-                },
-                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    autoCorrectEnabled = false,
-                    imeAction = ImeAction.Done,
-                    capitalization = KeyboardCapitalization.Words,
-                ),
-                singleLine = true
-            )
-            LazyColumn {
-                items(filteredSubstances, key = { "substance_${it.name}" }) { substance ->
-                    SubstanceRowAddIngestion(substanceModel = substance, onTap = {
-                        navigateToChooseRoute(substance.name)
-                    })
-                    HorizontalDivider()
+                ) {
+                  Icon(
+                      Icons.Default.Close,
+                      contentDescription = "Close",
+                  )
                 }
-                items(filteredCustomSubstances, key = { "custom_${it.id}" }) { customSubstance ->
-                    SubstanceRow(substanceModel = SubstanceModel(
-                        name = customSubstance.name,
-                        commonNames = emptyList(),
-                        categories = listOf(
-                            CategoryModel(
-                                name = "custom", color = customColor
-                            )
-                        ),
-                        hasSaferUse = false,
-                        hasInteractions = false
-                    ), onTap = {
-                        navigateToCustomSubstanceChooseRoute(customSubstance.name)
-                    })
-                    HorizontalDivider()
-                }
-                item {
-                    if (filteredSubstances.isEmpty() && filteredCustomSubstances.isEmpty()) {
-                        Text("No matching substance found", modifier = Modifier.padding(10.dp))
-                    }
-                }
+              }
             }
+          },
+          keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+          keyboardOptions =
+              KeyboardOptions.Default.copy(
+                  autoCorrectEnabled = false,
+                  imeAction = ImeAction.Done,
+                  capitalization = KeyboardCapitalization.Words,
+              ),
+          singleLine = true,
+      )
+      LazyColumn {
+        items(filteredSubstances, key = { "substance_${it.name}" }) { substance ->
+          SubstanceRowAddIngestion(
+              substanceModel = substance,
+              onTap = {
+                navigateToChooseRoute(substance.name)
+              },
+          )
+          HorizontalDivider()
         }
+        items(filteredCustomSubstances, key = { "custom_${it.id}" }) { customSubstance ->
+          SubstanceRow(
+              substanceModel =
+                  SubstanceModel(
+                      name = customSubstance.name,
+                      commonNames = emptyList(),
+                      categories =
+                          listOf(
+                              CategoryModel(
+                                  name = "custom",
+                                  color = customColor,
+                              )
+                          ),
+                      hasSaferUse = false,
+                      hasInteractions = false,
+                  ),
+              onTap = {
+                navigateToCustomSubstanceChooseRoute(customSubstance.name)
+              },
+          )
+          HorizontalDivider()
+        }
+        item {
+          if (filteredSubstances.isEmpty() && filteredCustomSubstances.isEmpty()) {
+            Text("No matching substance found", modifier = Modifier.padding(10.dp))
+          }
+        }
+      }
     }
+  }
 }

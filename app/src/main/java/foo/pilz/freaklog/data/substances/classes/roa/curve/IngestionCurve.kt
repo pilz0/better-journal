@@ -21,24 +21,24 @@ package foo.pilz.freaklog.data.substances.classes.roa.curve
  * the peak). The maximum value of [valueAt] is approximately [peakHeight].
  */
 interface IngestionCurve {
-    /** Time at which the dose is administered (point ingestion) or the infusion begins. */
-    val ingestionStartSec: Float
+  /** Time at which the dose is administered (point ingestion) or the infusion begins. */
+  val ingestionStartSec: Float
 
-    /** End of the infusion window. Equal to [ingestionStartSec] for point ingestions. */
-    val ingestionEndSec: Float
+  /** End of the infusion window. Equal to [ingestionStartSec] for point ingestions. */
+  val ingestionEndSec: Float
 
-    /** Time at which the curve falls (and stays) below the visual threshold of the peak. */
-    val curveEndSec: Float
+  /** Time at which the curve falls (and stays) below the visual threshold of the peak. */
+  val curveEndSec: Float
 
-    /** Peak (maximum) value of the curve. */
-    val peakHeight: Float
+  /** Peak (maximum) value of the curve. */
+  val peakHeight: Float
 
-    /**
-     * Whether the underlying PsychonautWiki data was complete enough to plot a confident curve.
-     * When false, callers should render the curve with a dotted style to signal uncertainty.
-     */
-    val isCertain: Boolean
+  /**
+   * Whether the underlying PsychonautWiki data was complete enough to plot a confident curve. When
+   * false, callers should render the curve with a dotted style to signal uncertainty.
+   */
+  val isCertain: Boolean
 
-    /** Curve value at the given absolute (graph-relative) time in seconds. Always >= 0. */
-    fun valueAt(tSec: Float): Float
+  /** Curve value at the given absolute (graph-relative) time in seconds. Always >= 0. */
+  fun valueAt(tSec: Float): Float
 }

@@ -34,82 +34,81 @@ import foo.pilz.freaklog.ui.theme.horizontalPadding
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AchievementsScreen(
-    viewModel: AchievementViewModel = hiltViewModel()
-) {
-    val achievements by viewModel.achievementsFlow.collectAsState()
-    val (unlocked, locked) = remember(achievements) {
+fun AchievementsScreen(viewModel: AchievementViewModel = hiltViewModel()) {
+  val achievements by viewModel.achievementsFlow.collectAsState()
+  val (unlocked, locked) =
+      remember(achievements) {
         achievements.partition { it.unlocked }
-    }
+      }
 
-    val unlockedIds = remember(unlocked) {
+  val unlockedIds =
+      remember(unlocked) {
         unlocked.map { it.def.id }.toSet()
-    }
+      }
 
-    // Mark all currently-unlocked achievements as "seen" once the user opens
-    // the list — this clears the unseen badge elsewhere. Keyed on the full
-    // ID set so edits that swap one unlock for another still trigger the
-    // mark-as-seen pass.
-    LaunchedEffect(unlockedIds) {
-        if (unlockedIds.isNotEmpty()) viewModel.markAllUnlockedAsSeen()
-    }
+  // Mark all currently-unlocked achievements as "seen" once the user opens
+  // the list — this clears the unseen badge elsewhere. Keyed on the full
+  // ID set so edits that swap one unlock for another still trigger the
+  // mark-as-seen pass.
+  LaunchedEffect(unlockedIds) {
+    if (unlockedIds.isNotEmpty()) viewModel.markAllUnlockedAsSeen()
+  }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Achievements") },
-                actions = {
-                    Text(
-                        text = "${unlocked.size}/${achievements.size}",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(end = 16.dp)
-                    )
-                }
-            )
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Achievements") },
+            actions = {
+              Text(
+                  text = "${unlocked.size}/${achievements.size}",
+                  style = MaterialTheme.typography.titleSmall,
+                  color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  modifier = Modifier.padding(end = 16.dp),
+              )
+            },
+        )
+      }
+  ) { padding ->
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().padding(padding),
+        contentPadding = PaddingValues(vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+      items(unlocked, key = { it.def.id }) { achievement ->
+        AchievementCard(
+            title = achievement.def.title,
+            description = achievement.def.description,
+            tier = achievement.def.tier,
+            isLocked = false,
+        )
+      }
+
+      if (locked.isNotEmpty()) {
+        item(key = "locked_header") {
+          Text(
+              text = "Locked",
+              style = MaterialTheme.typography.titleSmall,
+              fontWeight = FontWeight.SemiBold,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+              modifier =
+                  Modifier.padding(
+                      horizontal = horizontalPadding,
+                      vertical = 4.dp,
+                  ),
+          )
         }
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(unlocked, key = { it.def.id }) { achievement ->
-                AchievementCard(
-                    title = achievement.def.title,
-                    description = achievement.def.description,
-                    tier = achievement.def.tier,
-                    isLocked = false
-                )
-            }
 
-            if (locked.isNotEmpty()) {
-                item(key = "locked_header") {
-                    Text(
-                        text = "Locked",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(
-                            horizontal = horizontalPadding,
-                            vertical = 4.dp
-                        )
-                    )
-                }
-
-                items(locked, key = { it.def.id }) { achievement ->
-                    AchievementCard(
-                        title = achievement.def.title,
-                        description = achievement.def.description,
-                        tier = achievement.def.tier,
-                        isLocked = true
-                    )
-                }
-            }
+        items(locked, key = { it.def.id }) { achievement ->
+          AchievementCard(
+              title = achievement.def.title,
+              description = achievement.def.description,
+              tier = achievement.def.tier,
+              isLocked = true,
+          )
         }
+      }
     }
+  }
 }
 
 @Composable
@@ -117,71 +116,65 @@ private fun AchievementCard(
     title: String,
     description: String,
     tier: AchievementTier?,
-    isLocked: Boolean
+    isLocked: Boolean,
 ) {
-    ElevatedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = horizontalPadding)
+  ElevatedCard(modifier = Modifier.fillMaxWidth().padding(horizontal = horizontalPadding)) {
+    Row(
+        modifier = Modifier.padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
+      Column(
+          modifier = Modifier.weight(1f),
+          verticalArrangement = Arrangement.spacedBy(4.dp),
+      ) {
         Row(
-            modifier = Modifier.padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = if (isLocked)
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                        else
-                            MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.weight(1f, fill = false)
-                    )
-                    if (tier != null) TierBadge(tier, isLocked)
-                }
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (isLocked)
-                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-                    else
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+          Text(
+              text = title,
+              style = MaterialTheme.typography.titleMedium,
+              fontWeight = FontWeight.SemiBold,
+              color =
+                  if (isLocked) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                  else MaterialTheme.colorScheme.primary,
+              modifier = Modifier.weight(1f, fill = false),
+          )
+          if (tier != null) TierBadge(tier, isLocked)
         }
+        Text(
+            text = description,
+            style = MaterialTheme.typography.bodyMedium,
+            color =
+                if (isLocked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                else MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
     }
+  }
 }
 
 @Composable
 internal fun TierBadge(tier: AchievementTier, isLocked: Boolean = false) {
-    val (bg, label) = when (tier) {
+  val (bg, label) =
+      when (tier) {
         AchievementTier.BRONZE -> Color(0xFFCD7F32) to "Bronze"
         AchievementTier.SILVER -> Color(0xFFB0B0B0) to "Silver"
         AchievementTier.GOLD -> Color(0xFFD4AF37) to "Gold"
-    }
-    val alpha = if (isLocked) 0.35f else 1f
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(bg.copy(alpha = alpha))
-            .padding(horizontal = 8.dp, vertical = 2.dp)
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = Color.Black.copy(alpha = alpha),
-            fontWeight = FontWeight.Bold
-        )
-    }
+      }
+  val alpha = if (isLocked) 0.35f else 1f
+  Box(
+      modifier =
+          Modifier.clip(RoundedCornerShape(8.dp))
+              .background(bg.copy(alpha = alpha))
+              .padding(horizontal = 8.dp, vertical = 2.dp)
+  ) {
+    Text(
+        text = label,
+        style = MaterialTheme.typography.labelSmall,
+        color = Color.Black.copy(alpha = alpha),
+        fontWeight = FontWeight.Bold,
+    )
+  }
 }
-

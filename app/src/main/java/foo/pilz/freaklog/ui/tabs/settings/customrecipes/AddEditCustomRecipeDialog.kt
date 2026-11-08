@@ -39,111 +39,101 @@ import foo.pilz.freaklog.data.substances.AdministrationRoute
 fun AddEditCustomRecipeDialog(
     viewModel: CustomRecipeViewModel,
     onDismiss: () -> Unit,
-    onSave: () -> Unit
+    onSave: () -> Unit,
 ) {
-    val recipeName by viewModel.recipeName.collectAsState()
-    val recipeNote by viewModel.recipeNote.collectAsState()
-    val components by viewModel.components.collectAsState()
-    val isEditing = viewModel.selectedRecipe.collectAsState().value != null
+  val recipeName by viewModel.recipeName.collectAsState()
+  val recipeNote by viewModel.recipeNote.collectAsState()
+  val components by viewModel.components.collectAsState()
+  val isEditing = viewModel.selectedRecipe.collectAsState().value != null
 
-    Dialog(onDismissRequest = onDismiss) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.9f)
+  Dialog(onDismissRequest = onDismiss) {
+    Card(modifier = Modifier.fillMaxWidth().fillMaxHeight(0.9f)) {
+      Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        Text(
+            text = if (isEditing) "Edit Recipe" else "Create Recipe",
+            style = MaterialTheme.typography.headlineSmall,
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = recipeName,
+            onValueChange = { viewModel.updateRecipeName(it) },
+            label = { Text("Recipe Name") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = recipeNote,
+            onValueChange = { viewModel.updateRecipeNote(it) },
+            label = { Text("Note (optional)") },
+            modifier = Modifier.fillMaxWidth(),
+            maxLines = 3,
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = if (isEditing) "Edit Recipe" else "Create Recipe",
-                    style = MaterialTheme.typography.headlineSmall
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedTextField(
-                    value = recipeName,
-                    onValueChange = { viewModel.updateRecipeName(it) },
-                    label = { Text("Recipe Name") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = recipeNote,
-                    onValueChange = { viewModel.updateRecipeNote(it) },
-                    label = { Text("Note (optional)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    maxLines = 3
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Components",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    IconButton(onClick = { viewModel.addComponent() }) {
-                        Icon(Icons.Default.Add, "Add Component")
-                    }
-                }
-
-                LazyColumn(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(components, key = { it.id }) { component ->
-                        RecipeComponentEditor(
-                            component = component,
-                            onUpdate = { viewModel.updateComponent(component.id, it) },
-                            onRemove = { viewModel.removeComponent(component.id) }
-                        )
-                    }
-
-                    if (components.isEmpty()) {
-                        item {
-                            Text(
-                                text = "No components yet. Tap + to add one.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(vertical = 16.dp)
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(onClick = onDismiss) {
-                        Text("Cancel")
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(
-                        onClick = onSave,
-                        enabled = recipeName.isNotBlank() && components.isNotEmpty()
-                    ) {
-                        Text("Save")
-                    }
-                }
-            }
+          Text(
+              text = "Components",
+              style = MaterialTheme.typography.titleMedium,
+          )
+          IconButton(onClick = { viewModel.addComponent() }) {
+            Icon(Icons.Default.Add, "Add Component")
+          }
         }
+
+        LazyColumn(
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+          items(components, key = { it.id }) { component ->
+            RecipeComponentEditor(
+                component = component,
+                onUpdate = { viewModel.updateComponent(component.id, it) },
+                onRemove = { viewModel.removeComponent(component.id) },
+            )
+          }
+
+          if (components.isEmpty()) {
+            item {
+              Text(
+                  text = "No components yet. Tap + to add one.",
+                  style = MaterialTheme.typography.bodyMedium,
+                  color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  modifier = Modifier.padding(vertical = 16.dp),
+              )
+            }
+          }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+        ) {
+          TextButton(onClick = onDismiss) {
+            Text("Cancel")
+          }
+          Spacer(modifier = Modifier.width(8.dp))
+          Button(
+              onClick = onSave,
+              enabled = recipeName.isNotBlank() && components.isNotEmpty(),
+          ) {
+            Text("Save")
+          }
+        }
+      }
     }
+  }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -151,105 +141,101 @@ fun AddEditCustomRecipeDialog(
 fun RecipeComponentEditor(
     component: RecipeComponentState,
     onUpdate: (RecipeComponentState) -> Unit,
-    onRemove: () -> Unit
+    onRemove: () -> Unit,
 ) {
-    var expanded by remember { mutableStateOf(false) }
+  var expanded by remember { mutableStateOf(false) }
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+  Card(
+      modifier = Modifier.fillMaxWidth(),
+      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+  ) {
+    Column(modifier = Modifier.padding(12.dp)) {
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Text(
+            text = "Component",
+            style = MaterialTheme.typography.titleSmall,
+            modifier = Modifier.weight(1f),
         )
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Component",
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.weight(1f)
-                )
-                IconButton(onClick = onRemove) {
-                    Icon(Icons.Default.Delete, "Remove")
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = component.substanceName,
-                onValueChange = { onUpdate(component.copy(substanceName = it)) },
-                label = { Text("Substance Name") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                OutlinedTextField(
-                    value = component.dose?.toString() ?: "",
-                    onValueChange = {
-                        onUpdate(component.copy(dose = it.trim().replace(',', '.').toDoubleOrNull()))
-                    },
-                    label = { Text("Dose") },
-                    modifier = Modifier.weight(1f),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true
-                )
-
-                OutlinedTextField(
-                    value = component.units,
-                    onValueChange = { onUpdate(component.copy(units = it)) },
-                    label = { Text("Units") },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded }
-            ) {
-                OutlinedTextField(
-                    value = component.administrationRoute.displayText,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Route") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable, true),
-                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
-                )
-
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    AdministrationRoute.entries.forEach { route ->
-                        androidx.compose.runtime.key(route) {
-                            DropdownMenuItem(
-                                text = { Text(route.displayText) },
-                                onClick = {
-                                    onUpdate(component.copy(administrationRoute = route))
-                                    expanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-            }
+        IconButton(onClick = onRemove) {
+          Icon(Icons.Default.Delete, "Remove")
         }
+      }
+
+      Spacer(modifier = Modifier.height(8.dp))
+
+      OutlinedTextField(
+          value = component.substanceName,
+          onValueChange = { onUpdate(component.copy(substanceName = it)) },
+          label = { Text("Substance Name") },
+          modifier = Modifier.fillMaxWidth(),
+          singleLine = true,
+      )
+
+      Spacer(modifier = Modifier.height(8.dp))
+
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+        OutlinedTextField(
+            value = component.dose?.toString() ?: "",
+            onValueChange = {
+              onUpdate(component.copy(dose = it.trim().replace(',', '.').toDoubleOrNull()))
+            },
+            label = { Text("Dose") },
+            modifier = Modifier.weight(1f),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            singleLine = true,
+        )
+
+        OutlinedTextField(
+            value = component.units,
+            onValueChange = { onUpdate(component.copy(units = it)) },
+            label = { Text("Units") },
+            modifier = Modifier.weight(1f),
+            singleLine = true,
+        )
+      }
+
+      Spacer(modifier = Modifier.height(8.dp))
+
+      ExposedDropdownMenuBox(
+          expanded = expanded,
+          onExpandedChange = { expanded = !expanded },
+      ) {
+        OutlinedTextField(
+            value = component.administrationRoute.displayText,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Route") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+            modifier =
+                Modifier.fillMaxWidth()
+                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable, true),
+            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+          AdministrationRoute.entries.forEach { route ->
+            androidx.compose.runtime.key(route) {
+              DropdownMenuItem(
+                  text = { Text(route.displayText) },
+                  onClick = {
+                    onUpdate(component.copy(administrationRoute = route))
+                    expanded = false
+                  },
+              )
+            }
+          }
+        }
+      }
     }
+  }
 }

@@ -21,32 +21,33 @@ fun SubstanceGroupCard(
     group: SubstanceGroupWithItems,
     onClick: () -> Unit,
 ) {
-    val spacing = LocalSpacing.current
-    ElevatedCard(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+  val spacing = LocalSpacing.current
+  ElevatedCard(
+      onClick = onClick,
+      modifier = Modifier.fillMaxWidth(),
+  ) {
+    Column(
+        modifier = Modifier.padding(spacing.lg),
+        verticalArrangement = Arrangement.spacedBy(spacing.xs),
     ) {
-        Column(
-            modifier = Modifier.padding(spacing.lg),
-            verticalArrangement = Arrangement.spacedBy(spacing.xs),
-        ) {
-            Text(
-                text = group.group.name,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-            val subtitle = if (group.items.isEmpty()) {
-                "No substances"
-            } else {
-                group.sortedItems.joinToString(", ") { it.substanceName }
-            }
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+      Text(
+          text = group.group.name,
+          style = MaterialTheme.typography.titleMedium,
+          fontWeight = FontWeight.SemiBold,
+      )
+      val subtitle =
+          if (group.items.isEmpty()) {
+            "No substances"
+          } else {
+            group.sortedItems.joinToString(", ") { it.substanceName }
+          }
+      Text(
+          text = subtitle,
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.primary,
+          maxLines = 2,
+          overflow = TextOverflow.Ellipsis,
+      )
     }
+  }
 }

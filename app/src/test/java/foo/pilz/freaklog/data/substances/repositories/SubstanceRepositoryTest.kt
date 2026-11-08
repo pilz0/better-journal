@@ -32,54 +32,58 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
 class SubstanceRepositoryTest {
-    private lateinit var repository: SubstanceRepository
+  private lateinit var repository: SubstanceRepository
 
-    @Before
-    fun setUp() {
-        repository = SubstanceRepository(ApplicationProvider.getApplicationContext<Context>(), SubstanceParser())
+  @Before
+  fun setUp() {
+    repository =
+        SubstanceRepository(ApplicationProvider.getApplicationContext<Context>(), SubstanceParser())
+  }
+
+  @Test
+  fun `cached list preserves substances and each substance's category order from the asset`() {
+    val results = repository.getAllSubstancesWithCategories()
+
+    assertThat(results).isNotEmpty()
+    assertThat(results.map { it.substance }).isEqualTo(repository.getAllSubstances())
+    results.forEach { result ->
+      val expectedCategories =
+          result.substance.categories.mapNotNull { name ->
+            repository.getAllCategories().find { it.name == name }
+          }
+      assertThat(result.categories).isEqualTo(expectedCategories)
     }
+    assertThat(repository.getAllSubstancesWithCategories()).isSameInstanceAs(results)
+  }
 
-    @Test
-    fun `cached list preserves substances and each substance's category order from the asset`() {
-        val results = repository.getAllSubstancesWithCategories()
-
-        assertThat(results).isNotEmpty()
-        assertThat(results.map { it.substance }).isEqualTo(repository.getAllSubstances())
-        results.forEach { result ->
-            val expectedCategories = result.substance.categories.mapNotNull { name ->
-                repository.getAllCategories().find { it.name == name }
-            }
-            assertThat(result.categories).isEqualTo(expectedCategories)
-        }
-        assertThat(repository.getAllSubstancesWithCategories()).isSameInstanceAs(results)
+  @Test
+  fun `substance lookup returns the same cached entry as the list`() {
+    repository.getAllSubstancesWithCategories().forEach { result ->
+      assertThat(repository.getSubstanceWithCategories(result.substance.name))
+          .isSameInstanceAs(result)
+      assertThat(repository.getSubstance(result.substance.name)).isSameInstanceAs(result.substance)
     }
+    assertThat(repository.getSubstanceWithCategories("unknown substance")).isNull()
+  }
 
-    @Test
-    fun `substance lookup returns the same cached entry as the list`() {
-        repository.getAllSubstancesWithCategories().forEach { result ->
-            assertThat(repository.getSubstanceWithCategories(result.substance.name)).isSameInstanceAs(result)
-            assertThat(repository.getSubstance(result.substance.name)).isSameInstanceAs(result.substance)
-        }
-        assertThat(repository.getSubstanceWithCategories("unknown substance")).isNull()
+  @Test
+  fun `category lookup returns known categories and null for unknown names`() {
+    assertThat(repository.getAllCategories()).isNotEmpty()
+    repository.getAllCategories().forEach { category ->
+      assertThat(repository.getCategory(category.name)).isSameInstanceAs(category)
     }
+    assertThat(repository.getCategory("unknown category")).isNull()
+  }
 
-    @Test
-    fun `category lookup returns known categories and null for unknown names`() {
-        assertThat(repository.getAllCategories()).isNotEmpty()
-        repository.getAllCategories().forEach { category ->
-            assertThat(repository.getCategory(category.name)).isSameInstanceAs(category)
-        }
-        assertThat(repository.getCategory("unknown category")).isNull()
-    }
+  @Test
+  fun `empty substance file has empty caches and no matching lookups`() {
+    val parser = mockk<SubstanceParserInterface>()
+    every { parser.parseSubstanceFile(any()) } returns SubstanceFile(emptyList(), emptyList())
+    val emptyRepository =
+        SubstanceRepository(ApplicationProvider.getApplicationContext<Context>(), parser)
 
-    @Test
-    fun `empty substance file has empty caches and no matching lookups`() {
-        val parser = mockk<SubstanceParserInterface>()
-        every { parser.parseSubstanceFile(any()) } returns SubstanceFile(emptyList(), emptyList())
-        val emptyRepository = SubstanceRepository(ApplicationProvider.getApplicationContext<Context>(), parser)
-
-        assertThat(emptyRepository.getAllSubstancesWithCategories()).isEmpty()
-        assertThat(emptyRepository.getSubstanceWithCategories("2C-B")).isNull()
-        assertThat(emptyRepository.getCategory("common")).isNull()
-    }
+    assertThat(emptyRepository.getAllSubstancesWithCategories()).isEmpty()
+    assertThat(emptyRepository.getSubstanceWithCategories("2C-B")).isNull()
+    assertThat(emptyRepository.getCategory("common")).isNull()
+  }
 }

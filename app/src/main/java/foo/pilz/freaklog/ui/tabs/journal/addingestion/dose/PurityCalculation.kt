@@ -40,46 +40,49 @@ fun PurityCalculation(
     purityText: String,
     onPurityChange: (purity: String) -> Unit,
     isValidPurity: Boolean,
-    convertedDoseAndUnitText: String?
+    convertedDoseAndUnitText: String?,
 ) {
-    Column(horizontalAlignment = Alignment.Start) {
-        val focusManager = LocalFocusManager.current
-        OutlinedTextField(
-            value = purityText,
-            onValueChange = {
-                onPurityChange(it.replace(oldChar = ',', newChar = '.'))
-            },
-            label = { Text("Purity") },
-            isError = !isValidPurity,
-            trailingIcon = {
-                Text(
-                    text = "%",
-                    modifier = Modifier.padding(horizontal = horizontalPadding)
-                )
-            },
-            keyboardActions = KeyboardActions(onDone = {
-                focusManager.clearFocus()
-            }),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-        if (!isValidPurity) {
-            Text(
-                text = "Purity must be between 1 and 100%",
-                color = MaterialTheme.colorScheme.error,
-            )
-        }
-        if (convertedDoseAndUnitText != null) {
-            val textStyle = MaterialTheme.typography.titleMedium
-            Row(
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(text = "Impure dose", style = textStyle)
-                Text(text = convertedDoseAndUnitText, style = textStyle)
-            }
-        }
+  Column(horizontalAlignment = Alignment.Start) {
+    val focusManager = LocalFocusManager.current
+    OutlinedTextField(
+        value = purityText,
+        onValueChange = {
+          onPurityChange(it.replace(oldChar = ',', newChar = '.'))
+        },
+        label = { Text("Purity") },
+        isError = !isValidPurity,
+        trailingIcon = {
+          Text(
+              text = "%",
+              modifier = Modifier.padding(horizontal = horizontalPadding),
+          )
+        },
+        keyboardActions =
+            KeyboardActions(
+                onDone = {
+                  focusManager.clearFocus()
+                }
+            ),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    if (!isValidPurity) {
+      Text(
+          text = "Purity must be between 1 and 100%",
+          color = MaterialTheme.colorScheme.error,
+      )
     }
+    if (convertedDoseAndUnitText != null) {
+      val textStyle = MaterialTheme.typography.titleMedium
+      Row(
+          verticalAlignment = Alignment.Bottom,
+          horizontalArrangement = Arrangement.SpaceBetween,
+          modifier = Modifier.fillMaxWidth(),
+      ) {
+        Text(text = "Impure dose", style = textStyle)
+        Text(text = convertedDoseAndUnitText, style = textStyle)
+      }
+    }
+  }
 }

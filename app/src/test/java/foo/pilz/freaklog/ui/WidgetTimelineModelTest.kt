@@ -22,55 +22,59 @@ import foo.pilz.freaklog.data.substances.classes.roa.Roa
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
 import io.mockk.every
 import io.mockk.mockk
+import java.time.Duration
+import java.time.Instant
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.time.Duration
-import java.time.Instant
 
 class WidgetTimelineModelTest {
 
-    private val now: Instant = Instant.parse("2024-06-15T12:00:00Z")
+  private val now: Instant = Instant.parse("2024-06-15T12:00:00Z")
 
-    private fun mins(min: Float, max: Float) =
-        DurationRange(min = min, max = max, units = DurationUnits.MINUTES)
+  private fun mins(min: Float, max: Float) =
+      DurationRange(min = min, max = max, units = DurationUnits.MINUTES)
 
-    private fun hours(min: Float, max: Float) =
-        DurationRange(min = min, max = max, units = DurationUnits.HOURS)
+  private fun hours(min: Float, max: Float) =
+      DurationRange(min = min, max = max, units = DurationUnits.HOURS)
 
-    private val mdmaOral = RoaDuration(
-        onset = mins(20f, 40f),
-        comeup = mins(15f, 30f),
-        peak = hours(2f, 3f),
-        offset = hours(1f, 2f),
-        total = hours(4f, 6f),
-        afterglow = null,
-    )
+  private val mdmaOral =
+      RoaDuration(
+          onset = mins(20f, 40f),
+          comeup = mins(15f, 30f),
+          peak = hours(2f, 3f),
+          offset = hours(1f, 2f),
+          total = hours(4f, 6f),
+          afterglow = null,
+      )
 
-    private val totalOnly = RoaDuration(
-        onset = null,
-        comeup = null,
-        peak = null,
-        offset = null,
-        total = hours(4f, 6f),
-        afterglow = null,
-    )
+  private val totalOnly =
+      RoaDuration(
+          onset = null,
+          comeup = null,
+          peak = null,
+          offset = null,
+          total = hours(4f, 6f),
+          afterglow = null,
+      )
 
-    private fun durationsOf(vararg pairs: Pair<String, RoaDuration>):
-            Map<String, Map<AdministrationRoute, RoaDuration?>> =
-        pairs.associate { (name, roa) ->
-            name to mapOf(AdministrationRoute.ORAL to roa)
+  private fun durationsOf(
+      vararg pairs: Pair<String, RoaDuration>
+  ): Map<String, Map<AdministrationRoute, RoaDuration?>> = pairs.associate { (name, roa) ->
+    name to mapOf(AdministrationRoute.ORAL to roa)
+  }
+
+  @Test
+  fun `custom profile durations provide full curves and phases alongside built-in durations`() {
+    val builtIn =
+        mockk<Substance> {
+          every { name } returns "MDMA"
+          every { roas } returns listOf(Roa(AdministrationRoute.ORAL, null, mdmaOral, null))
         }
-
-    @Test
-    fun `custom profile durations provide full curves and phases alongside built-in durations`() {
-        val builtIn = mockk<Substance> {
-            every { name } returns "MDMA"
-            every { roas } returns listOf(Roa(AdministrationRoute.ORAL, null, mdmaOral, null))
-        }
-        val customDuration = CustomRoaDuration(
+    val customDuration =
+        CustomRoaDuration(
             route = AdministrationRoute.INSUFFLATED,
             onset = mins(5f, 5f),
             comeup = mins(10f, 10f),
@@ -78,46 +82,51 @@ class WidgetTimelineModelTest {
             offset = hours(1f, 1f),
             total = null,
         )
-        val profile = CustomSubstanceWithEverything(
+    val profile =
+        CustomSubstanceWithEverything(
             substance = CustomSubstance(name = "Custom", units = "mg", description = ""),
             durations = listOf(customDuration),
         )
-        val durations = WidgetTimelineModel.buildSubstanceDurations(
+    val durations =
+        WidgetTimelineModel.buildSubstanceDurations(
             substances = listOf(builtIn),
             customProfiles = mapOf("Custom" to profile),
         )
-        assertEquals(mdmaOral, durations["MDMA"]?.get(AdministrationRoute.ORAL))
-        val resolved = durations["Custom"]?.get(AdministrationRoute.INSUFFLATED)
-        assertEquals(customDuration.toRoaDuration(), resolved)
+    assertEquals(mdmaOral, durations["MDMA"]?.get(AdministrationRoute.ORAL))
+    val resolved = durations["Custom"]?.get(AdministrationRoute.INSUFFLATED)
+    assertEquals(customDuration.toRoaDuration(), resolved)
 
-        val model = WidgetTimelineModel.build(
+    val model =
+        WidgetTimelineModel.build(
             now = now,
-            ingestions = listOf(
-                WidgetTimelineModel.IngestionInput(
-                    substanceName = "Custom",
-                    route = AdministrationRoute.INSUFFLATED,
-                    time = now.minusSeconds(30 * 60),
-                    color = AdaptiveColor.GREEN,
-                )
-            ),
+            ingestions =
+                listOf(
+                    WidgetTimelineModel.IngestionInput(
+                        substanceName = "Custom",
+                        route = AdministrationRoute.INSUFFLATED,
+                        time = now.minusSeconds(30 * 60),
+                        color = AdaptiveColor.GREEN,
+                    )
+                ),
             durationsBySubstance = durations,
         )
-        assertTrue(model.hasContent)
-        assertTrue(model.groups.single().isComplete)
-        assertEquals(1f, model.groups.single().points.maxOf { it.height }, 0.0001f)
-        assertEquals(
-            IngestionPhase.Peak(remainingSeconds = 45 * 60f),
-            WidgetTimelineModel.resolveIngestionPhase(30 * 60f, resolved),
-        )
-        assertEquals(
-            IngestionPhase.Finished,
-            WidgetTimelineModel.resolveIngestionPhase(4 * 3600f, resolved),
-        )
-    }
+    assertTrue(model.hasContent)
+    assertTrue(model.groups.single().isComplete)
+    assertEquals(1f, model.groups.single().points.maxOf { it.height }, 0.0001f)
+    assertEquals(
+        IngestionPhase.Peak(remainingSeconds = 45 * 60f),
+        WidgetTimelineModel.resolveIngestionPhase(30 * 60f, resolved),
+    )
+    assertEquals(
+        IngestionPhase.Finished,
+        WidgetTimelineModel.resolveIngestionPhase(4 * 3600f, resolved),
+    )
+  }
 
-    @Test
-    fun `buildSubstanceDurations substitutes intranasal for rectal when enabled`() {
-        val sniffDuration = RoaDuration(
+  @Test
+  fun `buildSubstanceDurations substitutes intranasal for rectal when enabled`() {
+    val sniffDuration =
+        RoaDuration(
             onset = mins(5f, 10f),
             comeup = mins(10f, 15f),
             peak = hours(1f, 1.5f),
@@ -125,210 +134,231 @@ class WidgetTimelineModelTest {
             total = hours(2f, 3f),
             afterglow = null,
         )
-        val ketamine = mockk<Substance> {
-            every { name } returns "Ketamine"
-            every { roas } returns listOf(
-                Roa(AdministrationRoute.INSUFFLATED, null, sniffDuration, null)
-            )
-            every { getEffectiveRoa(AdministrationRoute.RECTAL, true) } returns Roa(
-                AdministrationRoute.INSUFFLATED,
-                null,
-                sniffDuration,
-                null
-            )
+    val ketamine =
+        mockk<Substance> {
+          every { name } returns "Ketamine"
+          every { roas } returns
+              listOf(Roa(AdministrationRoute.INSUFFLATED, null, sniffDuration, null))
+          every { getEffectiveRoa(AdministrationRoute.RECTAL, true) } returns
+              Roa(
+                  AdministrationRoute.INSUFFLATED,
+                  null,
+                  sniffDuration,
+                  null,
+              )
         }
 
-        val withoutToggle = WidgetTimelineModel.buildSubstanceDurations(
+    val withoutToggle =
+        WidgetTimelineModel.buildSubstanceDurations(
             substances = listOf(ketamine),
             customProfiles = emptyMap(),
             useIntranasalForRectal = false,
         )
-        assertEquals(null, withoutToggle["Ketamine"]?.get(AdministrationRoute.RECTAL))
+    assertEquals(null, withoutToggle["Ketamine"]?.get(AdministrationRoute.RECTAL))
 
-        val withToggle = WidgetTimelineModel.buildSubstanceDurations(
+    val withToggle =
+        WidgetTimelineModel.buildSubstanceDurations(
             substances = listOf(ketamine),
             customProfiles = emptyMap(),
             useIntranasalForRectal = true,
         )
-        assertEquals(sniffDuration, withToggle["Ketamine"]?.get(AdministrationRoute.RECTAL))
-    }
+    assertEquals(sniffDuration, withToggle["Ketamine"]?.get(AdministrationRoute.RECTAL))
+  }
 
-    @Test
-    fun `empty input returns default window with no groups`() {
-        val model = WidgetTimelineModel.build(
+  @Test
+  fun `empty input returns default window with no groups`() {
+    val model =
+        WidgetTimelineModel.build(
             now = now,
             ingestions = emptyList(),
             durationsBySubstance = emptyMap(),
         )
-        assertTrue(model.groups.isEmpty())
-        assertFalse(model.hasContent)
-        // Default window: 1h before to 3h after now.
-        assertEquals(now.minusSeconds(3600), model.windowStart)
-        assertEquals(now.plusSeconds(3 * 3600), model.windowEnd)
-    }
+    assertTrue(model.groups.isEmpty())
+    assertFalse(model.hasContent)
+    // Default window: 1h before to 3h after now.
+    assertEquals(now.minusSeconds(3600), model.windowStart)
+    assertEquals(now.plusSeconds(3 * 3600), model.windowEnd)
+  }
 
-    @Test
-    fun `expired ingestion is filtered out`() {
-        // MDMA taken 12 hours ago — well past its predicted offset (~6h median).
-        val expired = WidgetTimelineModel.IngestionInput(
+  @Test
+  fun `expired ingestion is filtered out`() {
+    // MDMA taken 12 hours ago — well past its predicted offset (~6h median).
+    val expired =
+        WidgetTimelineModel.IngestionInput(
             substanceName = "MDMA",
             route = AdministrationRoute.ORAL,
             time = now.minus(Duration.ofHours(12)),
             color = AdaptiveColor.PINK,
         )
-        val model = WidgetTimelineModel.build(
+    val model =
+        WidgetTimelineModel.build(
             now = now,
             ingestions = listOf(expired),
             durationsBySubstance = durationsOf("MDMA" to mdmaOral),
         )
-        assertTrue("expired ingestion should be filtered", model.groups.isEmpty())
-    }
+    assertTrue("expired ingestion should be filtered", model.groups.isEmpty())
+  }
 
-    @Test
-    fun `recent ingestion produces a curve with a peak`() {
-        val ingestion = WidgetTimelineModel.IngestionInput(
+  @Test
+  fun `recent ingestion produces a curve with a peak`() {
+    val ingestion =
+        WidgetTimelineModel.IngestionInput(
             substanceName = "MDMA",
             route = AdministrationRoute.ORAL,
             time = now.minus(Duration.ofMinutes(30)),
             color = AdaptiveColor.PINK,
         )
-        val model = WidgetTimelineModel.build(
+    val model =
+        WidgetTimelineModel.build(
             now = now,
             ingestions = listOf(ingestion),
             durationsBySubstance = durationsOf("MDMA" to mdmaOral),
         )
-        assertEquals(1, model.groups.size)
-        val group = model.groups.first()
-        assertTrue("should be drawn solid (full RoA)", group.isComplete)
-        assertTrue("must contain at least 2 sample points", group.points.size >= 2)
-        // Heights must be normalised to [0..1] with at least one point at 1.
-        val maxH = group.points.maxOf { it.height }
-        assertEquals(1f, maxH, 0.0001f)
-        // Single ingestion dot.
-        assertEquals(1, group.ingestionDotsSecondsFromStart.size)
-    }
+    assertEquals(1, model.groups.size)
+    val group = model.groups.first()
+    assertTrue("should be drawn solid (full RoA)", group.isComplete)
+    assertTrue("must contain at least 2 sample points", group.points.size >= 2)
+    // Heights must be normalised to [0..1] with at least one point at 1.
+    val maxH = group.points.maxOf { it.height }
+    assertEquals(1f, maxH, 0.0001f)
+    // Single ingestion dot.
+    assertEquals(1, group.ingestionDotsSecondsFromStart.size)
+  }
 
-    @Test
-    fun `total-only RoA produces a dotted curve`() {
-        val ingestion = WidgetTimelineModel.IngestionInput(
+  @Test
+  fun `total-only RoA produces a dotted curve`() {
+    val ingestion =
+        WidgetTimelineModel.IngestionInput(
             substanceName = "MysterySubstance",
             route = AdministrationRoute.ORAL,
             time = now,
             color = AdaptiveColor.GREEN,
         )
-        val model = WidgetTimelineModel.build(
+    val model =
+        WidgetTimelineModel.build(
             now = now,
             ingestions = listOf(ingestion),
             durationsBySubstance = durationsOf("MysterySubstance" to totalOnly),
         )
-        assertEquals(1, model.groups.size)
-        assertFalse(
-            "total-only data should render dotted (isComplete=false)",
-            model.groups.first().isComplete,
-        )
-    }
+    assertEquals(1, model.groups.size)
+    assertFalse(
+        "total-only data should render dotted (isComplete=false)",
+        model.groups.first().isComplete,
+    )
+  }
 
-    @Test
-    fun `unknown substance falls back to default duration`() {
-        val ingestion = WidgetTimelineModel.IngestionInput(
+  @Test
+  fun `unknown substance falls back to default duration`() {
+    val ingestion =
+        WidgetTimelineModel.IngestionInput(
             substanceName = "UnknownStuff",
             route = AdministrationRoute.ORAL,
             time = now,
             color = AdaptiveColor.GREEN,
         )
-        val model = WidgetTimelineModel.build(
+    val model =
+        WidgetTimelineModel.build(
             now = now,
             ingestions = listOf(ingestion),
             durationsBySubstance = emptyMap(),
         )
-        assertEquals(1, model.groups.size)
-        assertFalse("unknown substances render as dotted/uncertain", model.groups.first().isComplete)
-        assertTrue(model.hasContent)
-    }
+    assertEquals(1, model.groups.size)
+    assertFalse("unknown substances render as dotted/uncertain", model.groups.first().isComplete)
+    assertTrue(model.hasContent)
+  }
 
-    @Test
-    fun `two doses of the same substance stack heights`() {
-        val a = WidgetTimelineModel.IngestionInput(
+  @Test
+  fun `two doses of the same substance stack heights`() {
+    val a =
+        WidgetTimelineModel.IngestionInput(
             substanceName = "MDMA",
             route = AdministrationRoute.ORAL,
             time = now,
             color = AdaptiveColor.PINK,
         )
-        val b = WidgetTimelineModel.IngestionInput(
+    val b =
+        WidgetTimelineModel.IngestionInput(
             substanceName = "MDMA",
             route = AdministrationRoute.ORAL,
             time = now.plus(Duration.ofMinutes(45)),
             color = AdaptiveColor.PINK,
         )
-        val singleModel = WidgetTimelineModel.build(
+    val singleModel =
+        WidgetTimelineModel.build(
             now = now,
             ingestions = listOf(a),
             durationsBySubstance = durationsOf("MDMA" to mdmaOral),
         )
-        val doubleModel = WidgetTimelineModel.build(
+    val doubleModel =
+        WidgetTimelineModel.build(
             now = now,
             ingestions = listOf(a, b),
             durationsBySubstance = durationsOf("MDMA" to mdmaOral),
         )
-        // Both groups normalise to a max of 1, so we compare RAW (un-normalised)
-        // by looking at the underlying line segments via re-construction:
-        val doubleGroup = doubleModel.groups.single()
-        // There must be 2 ingestion dots.
-        assertEquals(2, doubleGroup.ingestionDotsSecondsFromStart.size)
-        // Both models normalise their max height to 1.0. With a single dose the
-        // entire peak phase is at the normalised max. With two overlapping doses
-        // the un-overlapped portions only reach height 0.5 after normalising
-        // against the summed max — so the count of plateau samples (~1.0)
-        // *shrinks* with stacking, while the curve gains samples near 0.5.
-        // This is what genuinely proves the stacking math worked.
-        val singlePeakCount = singleModel.groups.single().points.count { it.height >= 0.99f }
-        val doublePeakCount = doubleGroup.points.count { it.height >= 0.99f }
-        assertTrue(
-            "two-dose plateau should be narrower than single-dose plateau " +
-                    "after normalising against the stacked maximum, " +
-                    "single=$singlePeakCount, double=$doublePeakCount",
-            doublePeakCount < singlePeakCount,
-        )
-        // Two-dose curve must contain a "single-dose shoulder" at ~0.5 height
-        // that the single-dose curve never has on its plateau.
-        val doubleHasShoulder = doubleGroup.points.any { it.height in 0.45f..0.55f }
-        assertTrue("two-dose curve should expose a half-height shoulder", doubleHasShoulder)
-        assertTrue(singlePeakCount >= 1)
-    }
+    // Both groups normalise to a max of 1, so we compare RAW (un-normalised)
+    // by looking at the underlying line segments via re-construction:
+    val doubleGroup = doubleModel.groups.single()
+    // There must be 2 ingestion dots.
+    assertEquals(2, doubleGroup.ingestionDotsSecondsFromStart.size)
+    // Both models normalise their max height to 1.0. With a single dose the
+    // entire peak phase is at the normalised max. With two overlapping doses
+    // the un-overlapped portions only reach height 0.5 after normalising
+    // against the summed max — so the count of plateau samples (~1.0)
+    // *shrinks* with stacking, while the curve gains samples near 0.5.
+    // This is what genuinely proves the stacking math worked.
+    val singlePeakCount = singleModel.groups.single().points.count { it.height >= 0.99f }
+    val doublePeakCount = doubleGroup.points.count { it.height >= 0.99f }
+    assertTrue(
+        "two-dose plateau should be narrower than single-dose plateau " +
+            "after normalising against the stacked maximum, " +
+            "single=$singlePeakCount, double=$doublePeakCount",
+        doublePeakCount < singlePeakCount,
+    )
+    // Two-dose curve must contain a "single-dose shoulder" at ~0.5 height
+    // that the single-dose curve never has on its plateau.
+    val doubleHasShoulder = doubleGroup.points.any { it.height in 0.45f..0.55f }
+    assertTrue("two-dose curve should expose a half-height shoulder", doubleHasShoulder)
+    assertTrue(singlePeakCount >= 1)
+  }
 
-    @Test
-    fun `two different substances produce two separate groups`() {
-        val mdma = WidgetTimelineModel.IngestionInput(
+  @Test
+  fun `two different substances produce two separate groups`() {
+    val mdma =
+        WidgetTimelineModel.IngestionInput(
             substanceName = "MDMA",
             route = AdministrationRoute.ORAL,
             time = now,
             color = AdaptiveColor.PINK,
         )
-        val caffeine = WidgetTimelineModel.IngestionInput(
+    val caffeine =
+        WidgetTimelineModel.IngestionInput(
             substanceName = "Caffeine",
             route = AdministrationRoute.ORAL,
             time = now,
             color = AdaptiveColor.BROWN,
         )
-        val model = WidgetTimelineModel.build(
+    val model =
+        WidgetTimelineModel.build(
             now = now,
             ingestions = listOf(mdma, caffeine),
-            durationsBySubstance = durationsOf(
-                "MDMA" to mdmaOral,
-                "Caffeine" to mdmaOral,
-            ),
+            durationsBySubstance =
+                durationsOf(
+                    "MDMA" to mdmaOral,
+                    "Caffeine" to mdmaOral,
+                ),
         )
-        assertEquals(2, model.groups.size)
-        // Distinct colors should be preserved.
-        val colors = model.groups.map { it.color }.toSet()
-        assertTrue(colors.contains(AdaptiveColor.PINK))
-        assertTrue(colors.contains(AdaptiveColor.BROWN))
-    }
+    assertEquals(2, model.groups.size)
+    // Distinct colors should be preserved.
+    val colors = model.groups.map { it.color }.toSet()
+    assertTrue(colors.contains(AdaptiveColor.PINK))
+    assertTrue(colors.contains(AdaptiveColor.BROWN))
+  }
 
-    @Test
-    fun `window expands forward to include long-acting ingestions`() {
-        // Synthesise a substance with a 10h offset (very long).
-        val longRoa = RoaDuration(
+  @Test
+  fun `window expands forward to include long-acting ingestions`() {
+    // Synthesise a substance with a 10h offset (very long).
+    val longRoa =
+        RoaDuration(
             onset = mins(15f, 30f),
             comeup = mins(15f, 30f),
             peak = hours(4f, 6f),
@@ -336,204 +366,250 @@ class WidgetTimelineModelTest {
             total = hours(13f, 17f),
             afterglow = null,
         )
-        val ingestion = WidgetTimelineModel.IngestionInput(
+    val ingestion =
+        WidgetTimelineModel.IngestionInput(
             substanceName = "LSD",
             route = AdministrationRoute.ORAL,
             time = now.minus(Duration.ofMinutes(30)),
             color = AdaptiveColor.PURPLE,
         )
-        val model = WidgetTimelineModel.build(
+    val model =
+        WidgetTimelineModel.build(
             now = now,
             ingestions = listOf(ingestion),
             durationsBySubstance = durationsOf("LSD" to longRoa),
         )
-        // Window must extend well past the default +3h to fit the offset.
-        val windowDurationHours = Duration.between(model.windowStart, model.windowEnd).toHours()
-        assertTrue(
-            "window should span well past 3h to fit a long substance, was ${windowDurationHours}h",
-            windowDurationHours >= 5,
-        )
-    }
+    // Window must extend well past the default +3h to fit the offset.
+    val windowDurationHours = Duration.between(model.windowStart, model.windowEnd).toHours()
+    assertTrue(
+        "window should span well past 3h to fit a long substance, was ${windowDurationHours}h",
+        windowDurationHours >= 5,
+    )
+  }
 
-    @Test
-    fun `window does not exceed maximum width`() {
-        // Build many old ingestions that would otherwise stretch the window.
-        val ingestions = (1..5).map { i ->
-            WidgetTimelineModel.IngestionInput(
-                substanceName = "MDMA",
-                route = AdministrationRoute.ORAL,
-                time = now.minus(Duration.ofHours(i.toLong())),
-                color = AdaptiveColor.PINK,
-            )
+  @Test
+  fun `window does not exceed maximum width`() {
+    // Build many old ingestions that would otherwise stretch the window.
+    val ingestions =
+        (1..5).map { i ->
+          WidgetTimelineModel.IngestionInput(
+              substanceName = "MDMA",
+              route = AdministrationRoute.ORAL,
+              time = now.minus(Duration.ofHours(i.toLong())),
+              color = AdaptiveColor.PINK,
+          )
         }
-        val model = WidgetTimelineModel.build(
+    val model =
+        WidgetTimelineModel.build(
             now = now,
             ingestions = ingestions,
             durationsBySubstance = durationsOf("MDMA" to mdmaOral),
         )
-        val span = Duration.between(model.windowStart, model.windowEnd).toHours()
-        assertTrue("window must never exceed 24h, was ${span}h", span <= 24)
-    }
+    val span = Duration.between(model.windowStart, model.windowEnd).toHours()
+    assertTrue("window must never exceed 24h, was ${span}h", span <= 24)
+  }
 
-    @Test
-    fun `nowSecondsFromStart is within window for live data`() {
-        val ingestion = WidgetTimelineModel.IngestionInput(
+  @Test
+  fun `nowSecondsFromStart is within window for live data`() {
+    val ingestion =
+        WidgetTimelineModel.IngestionInput(
             substanceName = "MDMA",
             route = AdministrationRoute.ORAL,
             time = now.minus(Duration.ofMinutes(15)),
             color = AdaptiveColor.PINK,
         )
-        val model = WidgetTimelineModel.build(
+    val model =
+        WidgetTimelineModel.build(
             now = now,
             ingestions = listOf(ingestion),
             durationsBySubstance = durationsOf("MDMA" to mdmaOral),
         )
-        assertTrue(model.nowSecondsFromStart > 0f)
-        assertTrue(model.nowSecondsFromStart < model.widthInSeconds)
-    }
+    assertTrue(model.nowSecondsFromStart > 0f)
+    assertTrue(model.nowSecondsFromStart < model.widthInSeconds)
+  }
 
-    @Test
-    fun `sample points are sorted by secondsFromStart`() {
-        val ingestion = WidgetTimelineModel.IngestionInput(
+  @Test
+  fun `sample points are sorted by secondsFromStart`() {
+    val ingestion =
+        WidgetTimelineModel.IngestionInput(
             substanceName = "MDMA",
             route = AdministrationRoute.ORAL,
             time = now,
             color = AdaptiveColor.PINK,
         )
-        val model = WidgetTimelineModel.build(
+    val model =
+        WidgetTimelineModel.build(
             now = now,
             ingestions = listOf(ingestion),
             durationsBySubstance = durationsOf("MDMA" to mdmaOral),
         )
-        val xs = model.groups.single().points.map { it.secondsFromStart }
-        assertEquals(xs.sorted(), xs)
-    }
+    val xs = model.groups.single().points.map { it.secondsFromStart }
+    assertEquals(xs.sorted(), xs)
+  }
 
-    @Test
-    fun `ingestion expired beyond total duration plus grace is filtered out`() {
-        // Pregabalin-like scenario: taken 10 days ago with ~6h default total duration.
-        // Total + grace = 6h + 30min = 6.5h — far shorter than 10 days.
-        val expired = WidgetTimelineModel.IngestionInput(
+  @Test
+  fun `ingestion expired beyond total duration plus grace is filtered out`() {
+    // Pregabalin-like scenario: taken 10 days ago with ~6h default total duration.
+    // Total + grace = 6h + 30min = 6.5h — far shorter than 10 days.
+    val expired =
+        WidgetTimelineModel.IngestionInput(
             substanceName = "Pregabalin",
             route = AdministrationRoute.ORAL,
             time = now.minus(Duration.ofDays(10)),
             color = AdaptiveColor.BLUE,
         )
-        val model = WidgetTimelineModel.build(
+    val model =
+        WidgetTimelineModel.build(
             now = now,
             ingestions = listOf(expired),
             // No RoA data → falls back to DEFAULT_TOTAL_DURATION_SECONDS (6h)
             durationsBySubstance = emptyMap(),
         )
-        assertTrue("10-day-old ingestion must be filtered out", model.groups.isEmpty())
-        assertFalse("hasContent must be false when no active ingestion exists", model.hasContent)
-    }
+    assertTrue("10-day-old ingestion must be filtered out", model.groups.isEmpty())
+    assertFalse("hasContent must be false when no active ingestion exists", model.hasContent)
+  }
 
-    @Test
-    fun `resolveIngestionPhase returns Finished for 10-day-old ingestion with no roa`() {
-        val elapsedSeconds = Duration.ofDays(10).seconds.toFloat()
-        val phase = WidgetTimelineModel.resolveIngestionPhase(elapsedSeconds, roa = null)
-        assertTrue("10-day-old ingestion must report Finished", phase is IngestionPhase.Finished)
-    }
+  @Test
+  fun `resolveIngestionPhase returns Finished for 10-day-old ingestion with no roa`() {
+    val elapsedSeconds = Duration.ofDays(10).seconds.toFloat()
+    val phase = WidgetTimelineModel.resolveIngestionPhase(elapsedSeconds, roa = null)
+    assertTrue("10-day-old ingestion must report Finished", phase is IngestionPhase.Finished)
+  }
 
-    @Test
-    fun `resolveIngestionPhase returns correct phase for MDMA ingested 30 minutes ago`() {
-        // MDMA onset median = 30 min → at exactly 30 min elapsed we should still
-        // be in onset or just entering comeup.
-        val elapsedSeconds = Duration.ofMinutes(30).seconds.toFloat()
-        val phase = WidgetTimelineModel.resolveIngestionPhase(elapsedSeconds, mdmaOral)
-        assertTrue(
-            "30 min in should be onset or comeup, got $phase",
-            phase is IngestionPhase.Onset || phase is IngestionPhase.Comeup,
-        )
-    }
+  @Test
+  fun `resolveIngestionPhase returns correct phase for MDMA ingested 30 minutes ago`() {
+    // MDMA onset median = 30 min → at exactly 30 min elapsed we should still
+    // be in onset or just entering comeup.
+    val elapsedSeconds = Duration.ofMinutes(30).seconds.toFloat()
+    val phase = WidgetTimelineModel.resolveIngestionPhase(elapsedSeconds, mdmaOral)
+    assertTrue(
+        "30 min in should be onset or comeup, got $phase",
+        phase is IngestionPhase.Onset || phase is IngestionPhase.Comeup,
+    )
+  }
 
-    @Test
-    fun `resolveIngestionPhase returns Peak during MDMA peak window`() {
-        // MDMA median onset=30m, comeup=22.5m → peak starts ~52.5m after ingestion.
-        val elapsedSeconds = Duration.ofMinutes(90).seconds.toFloat() // well into peak
-        val phase = WidgetTimelineModel.resolveIngestionPhase(elapsedSeconds, mdmaOral)
-        assertTrue("90 min in should be peak, got $phase", phase is IngestionPhase.Peak)
-    }
+  @Test
+  fun `resolveIngestionPhase returns Peak during MDMA peak window`() {
+    // MDMA median onset=30m, comeup=22.5m → peak starts ~52.5m after ingestion.
+    val elapsedSeconds = Duration.ofMinutes(90).seconds.toFloat() // well into peak
+    val phase = WidgetTimelineModel.resolveIngestionPhase(elapsedSeconds, mdmaOral)
+    assertTrue("90 min in should be peak, got $phase", phase is IngestionPhase.Peak)
+  }
 
-    @Test
-    fun `resolveIngestionPhase returns NotStarted for future ingestion`() {
-        val phase = WidgetTimelineModel.resolveIngestionPhase(elapsedSeconds = -60f, roa = null)
-        assertEquals(IngestionPhase.NotStarted, phase)
-    }
+  @Test
+  fun `resolveIngestionPhase returns NotStarted for future ingestion`() {
+    val phase = WidgetTimelineModel.resolveIngestionPhase(elapsedSeconds = -60f, roa = null)
+    assertEquals(IngestionPhase.NotStarted, phase)
+  }
 
-    @Test
-    fun `resolveIngestionPhase with total-only roa returns Active while within window`() {
-        // totalOnly has 4-6h total → median 5h. At 3h elapsed it should still be Active.
-        val phase = WidgetTimelineModel.resolveIngestionPhase(
+  @Test
+  fun `resolveIngestionPhase with total-only roa returns Active while within window`() {
+    // totalOnly has 4-6h total → median 5h. At 3h elapsed it should still be Active.
+    val phase =
+        WidgetTimelineModel.resolveIngestionPhase(
             elapsedSeconds = Duration.ofHours(3).seconds.toFloat(),
             roa = totalOnly,
         )
-        assertTrue("Should be Active for total-only within window, got $phase", phase is IngestionPhase.Active)
-    }
+    assertTrue(
+        "Should be Active for total-only within window, got $phase",
+        phase is IngestionPhase.Active,
+    )
+  }
 
-    @Test
-    fun `resolveIngestionPhase with total-only roa returns Finished well past window`() {
-        // totalOnly median = 5h. At 8h elapsed (> 5h + 30min grace) → Finished.
-        val phase = WidgetTimelineModel.resolveIngestionPhase(
+  @Test
+  fun `resolveIngestionPhase with total-only roa returns Finished well past window`() {
+    // totalOnly median = 5h. At 8h elapsed (> 5h + 30min grace) → Finished.
+    val phase =
+        WidgetTimelineModel.resolveIngestionPhase(
             elapsedSeconds = Duration.ofHours(8).seconds.toFloat(),
             roa = totalOnly,
         )
-        assertEquals(IngestionPhase.Finished, phase)
-    }
+    assertEquals(IngestionPhase.Finished, phase)
+  }
 
-    @Test
-    fun `all heights are in 0 to 1 range`() {
-        val a = WidgetTimelineModel.IngestionInput("A", AdministrationRoute.ORAL, now, AdaptiveColor.RED)
-        val b = WidgetTimelineModel.IngestionInput("A", AdministrationRoute.ORAL, now.plusSeconds(1800), AdaptiveColor.RED)
-        val c = WidgetTimelineModel.IngestionInput("B", AdministrationRoute.ORAL, now.plusSeconds(900), AdaptiveColor.BLUE)
-        val model = WidgetTimelineModel.build(
+  @Test
+  fun `all heights are in 0 to 1 range`() {
+    val a =
+        WidgetTimelineModel.IngestionInput("A", AdministrationRoute.ORAL, now, AdaptiveColor.RED)
+    val b =
+        WidgetTimelineModel.IngestionInput(
+            "A",
+            AdministrationRoute.ORAL,
+            now.plusSeconds(1800),
+            AdaptiveColor.RED,
+        )
+    val c =
+        WidgetTimelineModel.IngestionInput(
+            "B",
+            AdministrationRoute.ORAL,
+            now.plusSeconds(900),
+            AdaptiveColor.BLUE,
+        )
+    val model =
+        WidgetTimelineModel.build(
             now = now,
             ingestions = listOf(a, b, c),
             durationsBySubstance = durationsOf("A" to mdmaOral, "B" to mdmaOral),
         )
-        model.groups.forEach { group ->
-            group.points.forEach { p ->
-                assertTrue("height ${p.height} out of range", p.height in 0f..1f)
-            }
-        }
+    model.groups.forEach { group ->
+      group.points.forEach { p ->
+        assertTrue("height ${p.height} out of range", p.height in 0f..1f)
+      }
     }
+  }
 
-    @Test
-    fun `findRoaDuration and build handle case and whitespace variations gracefully`() {
-        val durations = durationsOf("MDMA" to mdmaOral)
-        val direct = WidgetTimelineModel.findRoaDuration(durations, "mdma", AdministrationRoute.ORAL)
-        assertEquals(mdmaOral, direct)
+  @Test
+  fun `findRoaDuration and build handle case and whitespace variations gracefully`() {
+    val durations = durationsOf("MDMA" to mdmaOral)
+    val direct = WidgetTimelineModel.findRoaDuration(durations, "mdma", AdministrationRoute.ORAL)
+    assertEquals(mdmaOral, direct)
 
-        val padded = WidgetTimelineModel.findRoaDuration(durations, "  MDMA  ", AdministrationRoute.ORAL)
-        assertEquals(mdmaOral, padded)
+    val padded =
+        WidgetTimelineModel.findRoaDuration(durations, "  MDMA  ", AdministrationRoute.ORAL)
+    assertEquals(mdmaOral, padded)
 
-        val normalized = WidgetTimelineModel.buildNormalizedDurationIndex(durations)
-        val fromIndex = WidgetTimelineModel.findRoaDuration(durations, "mdma", AdministrationRoute.ORAL, normalized)
-        assertEquals(mdmaOral, fromIndex)
+    val normalized = WidgetTimelineModel.buildNormalizedDurationIndex(durations)
+    val fromIndex =
+        WidgetTimelineModel.findRoaDuration(durations, "mdma", AdministrationRoute.ORAL, normalized)
+    assertEquals(mdmaOral, fromIndex)
 
-        val model = WidgetTimelineModel.build(
+    val model =
+        WidgetTimelineModel.build(
             now = now,
-            ingestions = listOf(
-                WidgetTimelineModel.IngestionInput(" mdma ", AdministrationRoute.ORAL, now, AdaptiveColor.RED)
-            ),
+            ingestions =
+                listOf(
+                    WidgetTimelineModel.IngestionInput(
+                        " mdma ",
+                        AdministrationRoute.ORAL,
+                        now,
+                        AdaptiveColor.RED,
+                    )
+                ),
             durationsBySubstance = durations,
         )
-        assertTrue(model.hasContent)
-        assertEquals(1, model.groups.size)
-        assertTrue(model.groups.single().isComplete)
+    assertTrue(model.hasContent)
+    assertEquals(1, model.groups.size)
+    assertTrue(model.groups.single().isComplete)
 
-        // Multiple keys normalizing to the same value are indexed without crashing and match direct lookup
-        val collidingDurations = mapOf(
+    // Multiple keys normalizing to the same value are indexed without crashing and match direct
+    // lookup
+    val collidingDurations =
+        mapOf(
             "MDMA" to mapOf(AdministrationRoute.ORAL to mdmaOral),
             " mdma " to mapOf(AdministrationRoute.ORAL to totalOnly),
         )
-        val collidingIndex = WidgetTimelineModel.buildNormalizedDurationIndex(collidingDurations)
-        val resolved = WidgetTimelineModel.findRoaDuration(collidingDurations, "MDMA", AdministrationRoute.ORAL, collidingIndex)
-        assertNotNull(resolved)
-        assertEquals(
-            WidgetTimelineModel.findRoaDuration(collidingDurations, "MDMA", AdministrationRoute.ORAL),
-            resolved
+    val collidingIndex = WidgetTimelineModel.buildNormalizedDurationIndex(collidingDurations)
+    val resolved =
+        WidgetTimelineModel.findRoaDuration(
+            collidingDurations,
+            "MDMA",
+            AdministrationRoute.ORAL,
+            collidingIndex,
         )
-    }
+    assertNotNull(resolved)
+    assertEquals(
+        WidgetTimelineModel.findRoaDuration(collidingDurations, "MDMA", AdministrationRoute.ORAL),
+        resolved,
+    )
+  }
 }

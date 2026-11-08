@@ -56,151 +56,145 @@ import kotlinx.coroutines.launch
 @Composable
 fun InventoryScreen(
     navigateToAddIngestionForSubstance: (name: String, isCustom: Boolean) -> Unit,
-    viewModel: InventoryViewModel = hiltViewModel()
+    viewModel: InventoryViewModel = hiltViewModel(),
 ) {
-    val items by viewModel.itemsFlow.collectAsStateWithLifecycle()
-    var showAdd by remember { mutableStateOf(false) }
-    var itemToDelete by remember { mutableStateOf<InventoryItem?>(null) }
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
+  val items by viewModel.itemsFlow.collectAsStateWithLifecycle()
+  var showAdd by remember { mutableStateOf(false) }
+  var itemToDelete by remember { mutableStateOf<InventoryItem?>(null) }
+  val snackbarHostState = remember { SnackbarHostState() }
+  val scope = rememberCoroutineScope()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Inventory") })
+  Scaffold(
+      topBar = {
+        TopAppBar(title = { Text("Inventory") })
+      },
+      snackbarHost = { SnackbarHost(snackbarHostState) },
+      floatingActionButton = {
+        Column(
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+          if (items.isNotEmpty()) {
+            ExtendedFloatingActionButton(
+                onClick = {
+                  val picked = viewModel.lucky()
+                  if (picked == null) {
+                    scope.launch {
+                      snackbarHostState.showSnackbar("Inventory is empty")
+                    }
+                  } else {
+                    navigateToAddIngestionForSubstance(picked.substanceName, picked.isCustom)
+                  }
+                },
+                icon = {
+                  Icon(Icons.Filled.Casino, contentDescription = "Feeling Lucky")
+                },
+                text = { Text("I'm feeling lucky") },
+            )
+          }
+          FloatingActionButton(onClick = { showAdd = true }) {
+            Icon(Icons.Filled.Add, contentDescription = "Add item")
+          }
+        }
+      },
+  ) { padding ->
+    if (items.isEmpty()) {
+      Column(
+          modifier = Modifier.fillMaxSize().padding(padding).padding(32.dp),
+          horizontalAlignment = Alignment.CenterHorizontally,
+          verticalArrangement = Arrangement.Center,
+      ) {
+        Text(
+            text = "Your inventory is empty",
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Text(
+            text = "Tap + to add a substance you have on hand.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+    } else {
+      LazyColumn(
+          modifier = Modifier.fillMaxSize().padding(padding),
+          contentPadding = PaddingValues(vertical = 8.dp),
+          verticalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+        items(items, key = { it.id }) { item ->
+          ElevatedCard(
+              modifier =
+                  Modifier.fillMaxWidth().padding(horizontal = horizontalPadding).clickable {
+                    navigateToAddIngestionForSubstance(item.substanceName, item.isCustom)
+                  }
+          ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+              Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = item.substanceName,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                if (item.isCustom) {
+                  Text(
+                      text = "Custom substance",
+                      style = MaterialTheme.typography.labelSmall,
+                      color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  )
+                }
+                if (item.notes.isNotBlank()) {
+                  Text(
+                      text = item.notes,
+                      style = MaterialTheme.typography.bodySmall,
+                      color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  )
+                }
+              }
+              IconButton(onClick = { itemToDelete = item }) {
+                Icon(Icons.Outlined.Delete, contentDescription = "Delete")
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  itemToDelete?.let { item ->
+    AlertDialog(
+        onDismissRequest = { itemToDelete = null },
+        title = { Text("Delete inventory item?") },
+        text = { Text("Remove \"${item.substanceName}\" from your inventory?") },
+        confirmButton = {
+          TextButton(
+              onClick = {
+                viewModel.delete(item)
+                itemToDelete = null
+              }
+          ) {
+            Text("Delete", color = MaterialTheme.colorScheme.error)
+          }
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        floatingActionButton = {
-            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                if (items.isNotEmpty()) {
-                    ExtendedFloatingActionButton(
-                        onClick = {
-                            val picked = viewModel.lucky()
-                            if (picked == null) {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar("Inventory is empty")
-                                }
-                            } else {
-                                navigateToAddIngestionForSubstance(picked.substanceName, picked.isCustom)
-                            }
-                        },
-                        icon = {
-                            Icon(Icons.Filled.Casino, contentDescription = "Feeling Lucky")
-                        },
-                        text = { Text("I'm feeling lucky") }
-                    )
-                }
-                FloatingActionButton(onClick = { showAdd = true }) {
-                    Icon(Icons.Filled.Add, contentDescription = "Add item")
-                }
-            }
-        }
-    ) { padding ->
-        if (items.isEmpty()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "Your inventory is empty",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = "Tap + to add a substance you have on hand.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentPadding = PaddingValues(vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(items, key = { it.id }) { item ->
-                    ElevatedCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = horizontalPadding)
-                            .clickable {
-                                navigateToAddIngestionForSubstance(item.substanceName, item.isCustom)
-                            }
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = item.substanceName,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                if (item.isCustom) {
-                                    Text(
-                                        text = "Custom substance",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                                if (item.notes.isNotBlank()) {
-                                    Text(
-                                        text = item.notes,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                            IconButton(onClick = { itemToDelete = item }) {
-                                Icon(Icons.Outlined.Delete, contentDescription = "Delete")
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+        dismissButton = {
+          TextButton(onClick = { itemToDelete = null }) {
+            Text("Cancel")
+          }
+        },
+    )
+  }
 
-    itemToDelete?.let { item ->
-        AlertDialog(
-            onDismissRequest = { itemToDelete = null },
-            title = { Text("Delete inventory item?") },
-            text = { Text("Remove \"${item.substanceName}\" from your inventory?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.delete(item)
-                        itemToDelete = null
-                    }
-                ) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { itemToDelete = null }) {
-                    Text("Cancel")
-                }
-            }
-        )
-    }
-
-    if (showAdd) {
-        AddInventoryDialog(
-            onDismiss = { showAdd = false },
-            onAdd = { name, isCustom, notes ->
-                viewModel.add(name, isCustom, notes)
-                showAdd = false
-            },
-            viewModel = viewModel
-        )
-    }
+  if (showAdd) {
+    AddInventoryDialog(
+        onDismiss = { showAdd = false },
+        onAdd = { name, isCustom, notes ->
+          viewModel.add(name, isCustom, notes)
+          showAdd = false
+        },
+        viewModel = viewModel,
+    )
+  }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -208,74 +202,73 @@ fun InventoryScreen(
 private fun AddInventoryDialog(
     onDismiss: () -> Unit,
     onAdd: (String, Boolean, String) -> Unit,
-    viewModel: InventoryViewModel
+    viewModel: InventoryViewModel,
 ) {
-    var name by remember { mutableStateOf("") }
-    var notes by remember { mutableStateOf("") }
-    var isCustom by remember { mutableStateOf(false) }
-    var suggestions by remember { mutableStateOf(listOf<InventoryViewModel.Suggestion>()) }
+  var name by remember { mutableStateOf("") }
+  var notes by remember { mutableStateOf("") }
+  var isCustom by remember { mutableStateOf(false) }
+  var suggestions by remember { mutableStateOf(listOf<InventoryViewModel.Suggestion>()) }
 
-    LaunchedEffect(name) {
-        suggestions = viewModel.suggestions(name)
-    }
+  LaunchedEffect(name) {
+    suggestions = viewModel.suggestions(name)
+  }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Add to inventory") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = {
-                        name = it
-                        isCustom = false
-                    },
-                    label = { Text("Substance name") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+  AlertDialog(
+      onDismissRequest = onDismiss,
+      title = { Text("Add to inventory") },
+      text = {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+          OutlinedTextField(
+              value = name,
+              onValueChange = {
+                name = it
+                isCustom = false
+              },
+              label = { Text("Substance name") },
+              singleLine = true,
+              modifier = Modifier.fillMaxWidth(),
+          )
+          suggestions.take(5).forEach { s ->
+            key(s.name) {
+              Card(
+                  modifier =
+                      Modifier.fillMaxWidth().clickable {
+                        name = s.name
+                        isCustom = s.isCustom
+                      }
+              ) {
+                Text(
+                    text = s.name + if (s.isCustom) "  (custom)" else "",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.fillMaxWidth().padding(12.dp),
                 )
-                suggestions.take(5).forEach { s ->
-                    key(s.name) {
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    name = s.name
-                                    isCustom = s.isCustom
-                                }
-                        ) {
-                            Text(
-                                text = s.name + if (s.isCustom) "  (custom)" else "",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(12.dp)
-                            )
-                        }
-                    }
-                }
-                OutlinedTextField(
-                    value = notes,
-                    onValueChange = { notes = it },
-                    label = { Text("Notes (optional)") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+              }
             }
-        },
-        confirmButton = {
-            TextButton(
-                enabled = name.isNotBlank(),
-                onClick = {
-                    val match = suggestions.firstOrNull { it.name.equals(name.trim(), ignoreCase = true) }
-                    // If the user typed a name that matches no known PW or custom substance,
-                    // treat it as a brand-new custom entry rather than silently mis-categorising it.
-                    val resolvedIsCustom = match?.isCustom ?: true
-                    onAdd(name.trim(), resolvedIsCustom, notes.trim())
-                }
-            ) { Text("Add") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+          }
+          OutlinedTextField(
+              value = notes,
+              onValueChange = { notes = it },
+              label = { Text("Notes (optional)") },
+              modifier = Modifier.fillMaxWidth(),
+          )
         }
-    )
+      },
+      confirmButton = {
+        TextButton(
+            enabled = name.isNotBlank(),
+            onClick = {
+              val match = suggestions.firstOrNull { it.name.equals(name.trim(), ignoreCase = true) }
+              // If the user typed a name that matches no known PW or custom substance,
+              // treat it as a brand-new custom entry rather than silently mis-categorising it.
+              val resolvedIsCustom = match?.isCustom ?: true
+              onAdd(name.trim(), resolvedIsCustom, notes.trim())
+            },
+        ) {
+          Text("Add")
+        }
+      },
+      dismissButton = {
+        TextButton(onClick = onDismiss) { Text("Cancel") }
+      },
+  )
 }

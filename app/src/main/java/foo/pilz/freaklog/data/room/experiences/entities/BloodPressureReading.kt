@@ -24,24 +24,28 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.time.Instant
 
-/** One manual blood pressure measurement (mmHg), optionally with a pulse (bpm), taken during an experience. */
+/**
+ * One manual blood pressure measurement (mmHg), optionally with a pulse (bpm), taken during an
+ * experience.
+ */
 @Entity(
-    indices = [
-        Index(value = ["experienceId"]),
-        Index(value = ["time"]),
-    ],
-    foreignKeys = [
-        ForeignKey(
-            entity = Experience::class,
-            parentColumns = ["id"],
-            childColumns = ["experienceId"],
-            onDelete = ForeignKey.CASCADE,
-        )
-    ]
+    indices =
+        [
+            Index(value = ["experienceId"]),
+            Index(value = ["time"]),
+        ],
+    foreignKeys =
+        [
+            ForeignKey(
+                entity = Experience::class,
+                parentColumns = ["id"],
+                childColumns = ["experienceId"],
+                onDelete = ForeignKey.CASCADE,
+            )
+        ],
 )
 data class BloodPressureReading(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val experienceId: Int,
     val time: Instant,
     val systolic: Int,

@@ -46,40 +46,40 @@ import java.time.LocalDateTime
 @Preview
 @Composable
 fun TimedNoteScreenContentPreview() {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Add timed note") },
-                actions = {
-                    IconButton(onClick = { }) {
-                        Icon(
-                            Icons.Filled.Done,
-                            contentDescription = "Done Icon"
-                        )
-                    }
-                }
-            )
-        },
-    ) { padding ->
-        val alreadyUsedColors = listOf(AdaptiveColor.BLUE, AdaptiveColor.PINK)
-        val otherColors = AdaptiveColor.entries.filter { color ->
-            !alreadyUsedColors.contains(color)
-        }
-        TimedNoteScreenContent(
-            selectedTime = LocalDateTime.now(),
-            onTimeChange = {},
-            note = "Hello this is",
-            onNoteChange = {},
-            color = AdaptiveColor.PURPLE,
-            onColorChange = {},
-            modifier = Modifier
-                .padding(padding),
-            alreadyUsedColors = alreadyUsedColors,
-            otherColors = otherColors,
-            isPartOfTimeline = true,
-            onChangeOfIsPartOfTimeline = {}
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Add timed note") },
+            actions = {
+              IconButton(onClick = {}) {
+                Icon(
+                    Icons.Filled.Done,
+                    contentDescription = "Done Icon",
+                )
+              }
+            },
         )
-    }
+      },
+  ) { padding ->
+    val alreadyUsedColors = listOf(AdaptiveColor.BLUE, AdaptiveColor.PINK)
+    val otherColors =
+        AdaptiveColor.entries.filter { color ->
+          !alreadyUsedColors.contains(color)
+        }
+    TimedNoteScreenContent(
+        selectedTime = LocalDateTime.now(),
+        onTimeChange = {},
+        note = "Hello this is",
+        onNoteChange = {},
+        color = AdaptiveColor.PURPLE,
+        onColorChange = {},
+        modifier = Modifier.padding(padding),
+        alreadyUsedColors = alreadyUsedColors,
+        otherColors = otherColors,
+        isPartOfTimeline = true,
+        onChangeOfIsPartOfTimeline = {},
+    )
+  }
 }
 
 @Composable
@@ -95,60 +95,57 @@ fun TimedNoteScreenContent(
     isPartOfTimeline: Boolean,
     onChangeOfIsPartOfTimeline: (Boolean) -> Unit,
     shouldFocusTextFieldOnAppear: Boolean = false,
-    modifier: Modifier
+    modifier: Modifier,
 ) {
-    val focusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
-    LaunchedEffect(Unit) {
-        if (shouldFocusTextFieldOnAppear) {
-            focusRequester.requestFocus()
-        }
+  val focusRequester = remember { FocusRequester() }
+  val focusManager = LocalFocusManager.current
+  LaunchedEffect(Unit) {
+    if (shouldFocusTextFieldOnAppear) {
+      focusRequester.requestFocus()
     }
-    Column(
-        modifier = modifier
-            .padding(10.dp)
-            .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        OutlinedTextField(
-            value = note,
-            onValueChange = onNoteChange,
-            label = { Text(text = "Note") },
-            keyboardOptions = KeyboardOptions.Default.copy(
+  }
+  Column(
+      modifier = modifier.padding(10.dp).fillMaxSize(),
+      horizontalAlignment = Alignment.CenterHorizontally,
+  ) {
+    OutlinedTextField(
+        value = note,
+        onValueChange = onNoteChange,
+        label = { Text(text = "Note") },
+        keyboardOptions =
+            KeyboardOptions.Default.copy(
                 imeAction = ImeAction.Done,
-                capitalization = KeyboardCapitalization.Sentences
+                capitalization = KeyboardCapitalization.Sentences,
             ),
-            keyboardActions = KeyboardActions(onDone = {
-                focusManager.clearFocus()
-            }),
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .focusRequester(focusRequester)
-        )
-        Spacer(modifier = Modifier.height(5.dp))
-        CardWithTitle(title = "Show on timeline") {
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Switch(checked = isPartOfTimeline, onCheckedChange = onChangeOfIsPartOfTimeline)
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    ColorPicker(
-                        selectedColor = color,
-                        onChangeOfColor = onColorChange,
-                        alreadyUsedColors = alreadyUsedColors,
-                        otherColors = otherColors
-                    )
+        keyboardActions =
+            KeyboardActions(
+                onDone = {
+                  focusManager.clearFocus()
                 }
-            }
+            ),
+        modifier = Modifier.weight(1f).fillMaxWidth().focusRequester(focusRequester),
+    )
+    Spacer(modifier = Modifier.height(5.dp))
+    CardWithTitle(title = "Show on timeline") {
+      Row(
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically,
+          modifier = Modifier.fillMaxWidth(),
+      ) {
+        Switch(checked = isPartOfTimeline, onCheckedChange = onChangeOfIsPartOfTimeline)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+            horizontalArrangement = Arrangement.Center,
+        ) {
+          ColorPicker(
+              selectedColor = color,
+              onChangeOfColor = onColorChange,
+              alreadyUsedColors = alreadyUsedColors,
+              otherColors = otherColors,
+          )
         }
-        TimePickerSection(selectedTime = selectedTime, onTimeChange = onTimeChange)
+      }
     }
+    TimePickerSection(selectedTime = selectedTime, onTimeChange = onTimeChange)
+  }
 }

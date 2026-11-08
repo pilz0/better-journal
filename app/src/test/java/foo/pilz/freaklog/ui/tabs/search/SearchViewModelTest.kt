@@ -42,158 +42,171 @@ import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SearchViewModelTest {
-    private val experienceRepo = mockk<ExperienceRepository>()
-    private val substanceRepo = mockk<SubstanceRepository>()
-    private val searchRepo = mockk<SearchRepository>()
+  private val experienceRepo = mockk<ExperienceRepository>()
+  private val substanceRepo = mockk<SubstanceRepository>()
+  private val searchRepo = mockk<SearchRepository>()
 
-    private val recentsFlow = MutableStateFlow<List<String>>(emptyList())
-    private val customSubstancesFlow = MutableStateFlow<List<CustomSubstance>>(emptyList())
+  private val recentsFlow = MutableStateFlow<List<String>>(emptyList())
+  private val customSubstancesFlow = MutableStateFlow<List<CustomSubstance>>(emptyList())
 
-    private val testDispatcher = UnconfinedTestDispatcher()
+  private val testDispatcher = UnconfinedTestDispatcher()
 
-    private val categories = listOf(
-        Category(name = "psychedelic", description = "Psychedelic", url = null, color = Color.Magenta),
-        Category(name = "stimulant", description = "Stimulant", url = null, color = Color.Red)
-    )
+  private val categories =
+      listOf(
+          Category(
+              name = "psychedelic",
+              description = "Psychedelic",
+              url = null,
+              color = Color.Magenta,
+          ),
+          Category(name = "stimulant", description = "Stimulant", url = null, color = Color.Red),
+      )
 
-    private val mockSubstances = listOf(
-        SubstanceWithCategories(
-            substance = mockk<Substance> {
-                every { name } returns "LSD"
-                every { commonNames } returns listOf("Acid")
-                every { saferUse } returns listOf("Test set & setting")
-                every { hasInteractions } returns true
-            },
-            categories = listOf(categories[0])
-        ),
-        SubstanceWithCategories(
-            substance = mockk<Substance> {
-                every { name } returns "Caffeine"
-                every { commonNames } returns emptyList()
-                every { saferUse } returns emptyList()
-                every { hasInteractions } returns false
-            },
-            categories = listOf(categories[1])
-        )
-    )
+  private val mockSubstances =
+      listOf(
+          SubstanceWithCategories(
+              substance =
+                  mockk<Substance> {
+                    every { name } returns "LSD"
+                    every { commonNames } returns listOf("Acid")
+                    every { saferUse } returns listOf("Test set & setting")
+                    every { hasInteractions } returns true
+                  },
+              categories = listOf(categories[0]),
+          ),
+          SubstanceWithCategories(
+              substance =
+                  mockk<Substance> {
+                    every { name } returns "Caffeine"
+                    every { commonNames } returns emptyList()
+                    every { saferUse } returns emptyList()
+                    every { hasInteractions } returns false
+                  },
+              categories = listOf(categories[1]),
+          ),
+      )
 
-    private lateinit var viewModel: SearchViewModel
+  private lateinit var viewModel: SearchViewModel
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(testDispatcher)
-        every { experienceRepo.getSortedLastUsedSubstanceNamesFlow(limit = 200) } returns recentsFlow
-        every { experienceRepo.getCustomSubstancesFlow() } returns customSubstancesFlow
-        every { substanceRepo.getAllCategories() } returns categories
-        every {
-            searchRepo.getMatchingSubstances(
-                searchText = any(),
-                filterCategories = any(),
-                recentlyUsedSubstanceNamesSorted = any()
-            )
-        } answers {
-            val query = firstArg<String>()
-            val filters = secondArg<List<String>>()
-            mockSubstances.filter { item ->
-                (query.isEmpty() || item.substance.name.contains(query, ignoreCase = true)) &&
-                    (filters.isEmpty() || filters.all { f -> item.categories.any { it.name == f } })
-            }
+  @Before
+  fun setUp() {
+    Dispatchers.setMain(testDispatcher)
+    every { experienceRepo.getSortedLastUsedSubstanceNamesFlow(limit = 200) } returns recentsFlow
+    every { experienceRepo.getCustomSubstancesFlow() } returns customSubstancesFlow
+    every { substanceRepo.getAllCategories() } returns categories
+    every {
+      searchRepo.getMatchingSubstances(
+          searchText = any(),
+          filterCategories = any(),
+          recentlyUsedSubstanceNamesSorted = any(),
+      )
+    } answers
+        {
+          val query = firstArg<String>()
+          val filters = secondArg<List<String>>()
+          mockSubstances.filter { item ->
+            (query.isEmpty() || item.substance.name.contains(query, ignoreCase = true)) &&
+                (filters.isEmpty() || filters.all { f -> item.categories.any { it.name == f } })
+          }
         }
 
-        viewModel = SearchViewModel(
+    viewModel =
+        SearchViewModel(
             experienceRepo = experienceRepo,
             substanceRepo = substanceRepo,
             searchRepository = searchRepo,
-            defaultDispatcher = testDispatcher
+            defaultDispatcher = testDispatcher,
         )
+  }
+
+  @After
+  fun tearDown() {
+    Dispatchers.resetMain()
+  }
+
+  @Test
+  fun `initial searchText is empty and filterSubstances updates it`() = runTest {
+    assertThat(viewModel.searchTextFlow.value).isEqualTo("")
+
+    viewModel.filterSubstances("MDMA")
+    advanceUntilIdle()
+
+    assertThat(viewModel.searchTextFlow.value).isEqualTo("MDMA")
+  }
+
+  @Test
+  fun `chipCategoriesFlow prepends custom chip and lists all categories`() = runTest {
+    backgroundScope.launch(testDispatcher) {
+      viewModel.chipCategoriesFlow.collect()
     }
+    advanceUntilIdle()
 
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
+    val chips = viewModel.chipCategoriesFlow.value
+    assertThat(chips.size).isEqualTo(3)
+    assertThat(chips[0].chipName).isEqualTo("custom")
+    assertThat(chips[0].color).isEqualTo(customColor)
+    assertThat(chips[0].isActive).isFalse()
+
+    assertThat(chips[1].chipName).isEqualTo("psychedelic")
+    assertThat(chips[1].color).isEqualTo(Color.Magenta)
+    assertThat(chips[1].isActive).isFalse()
+
+    assertThat(chips[2].chipName).isEqualTo("stimulant")
+    assertThat(chips[2].color).isEqualTo(Color.Red)
+    assertThat(chips[2].isActive).isFalse()
+  }
+
+  @Test
+  fun `onFilterTapped toggles custom chip state`() = runTest {
+    backgroundScope.launch(testDispatcher) {
+      viewModel.chipCategoriesFlow.collect()
     }
+    advanceUntilIdle()
 
-    @Test
-    fun `initial searchText is empty and filterSubstances updates it`() = runTest {
-        assertThat(viewModel.searchTextFlow.value).isEqualTo("")
+    viewModel.onFilterTapped("custom")
+    advanceUntilIdle()
 
-        viewModel.filterSubstances("MDMA")
-        advanceUntilIdle()
+    var customChip = viewModel.chipCategoriesFlow.value.first { it.chipName == "custom" }
+    assertThat(customChip.isActive).isTrue()
 
-        assertThat(viewModel.searchTextFlow.value).isEqualTo("MDMA")
+    viewModel.onFilterTapped("custom")
+    advanceUntilIdle()
+
+    customChip = viewModel.chipCategoriesFlow.value.first { it.chipName == "custom" }
+    assertThat(customChip.isActive).isFalse()
+  }
+
+  @Test
+  fun `onFilterTapped toggles standard category filter`() = runTest {
+    backgroundScope.launch(testDispatcher) {
+      viewModel.chipCategoriesFlow.collect()
     }
+    advanceUntilIdle()
 
-    @Test
-    fun `chipCategoriesFlow prepends custom chip and lists all categories`() = runTest {
+    viewModel.onFilterTapped("psychedelic")
+    advanceUntilIdle()
+
+    var psychChip = viewModel.chipCategoriesFlow.value.first { it.chipName == "psychedelic" }
+    assertThat(psychChip.isActive).isTrue()
+
+    viewModel.onFilterTapped("psychedelic")
+    advanceUntilIdle()
+
+    psychChip = viewModel.chipCategoriesFlow.value.first { it.chipName == "psychedelic" }
+    assertThat(psychChip.isActive).isFalse()
+  }
+
+  @Test
+  fun `filteredCustomSubstancesFlow filters custom substances by search text case insensitively`() =
+      runTest {
+        customSubstancesFlow.value =
+            listOf(
+                CustomSubstance(id = 1, name = "Custom Kava", units = "mg", description = "Herbal"),
+                CustomSubstance(id = 2, name = "2C-D-Fly", units = "mg", description = "Research"),
+            )
+
         backgroundScope.launch(testDispatcher) {
-            viewModel.chipCategoriesFlow.collect()
-        }
-        advanceUntilIdle()
-
-        val chips = viewModel.chipCategoriesFlow.value
-        assertThat(chips.size).isEqualTo(3)
-        assertThat(chips[0].chipName).isEqualTo("custom")
-        assertThat(chips[0].color).isEqualTo(customColor)
-        assertThat(chips[0].isActive).isFalse()
-
-        assertThat(chips[1].chipName).isEqualTo("psychedelic")
-        assertThat(chips[1].color).isEqualTo(Color.Magenta)
-        assertThat(chips[1].isActive).isFalse()
-
-        assertThat(chips[2].chipName).isEqualTo("stimulant")
-        assertThat(chips[2].color).isEqualTo(Color.Red)
-        assertThat(chips[2].isActive).isFalse()
-    }
-
-    @Test
-    fun `onFilterTapped toggles custom chip state`() = runTest {
-        backgroundScope.launch(testDispatcher) {
-            viewModel.chipCategoriesFlow.collect()
-        }
-        advanceUntilIdle()
-
-        viewModel.onFilterTapped("custom")
-        advanceUntilIdle()
-
-        var customChip = viewModel.chipCategoriesFlow.value.first { it.chipName == "custom" }
-        assertThat(customChip.isActive).isTrue()
-
-        viewModel.onFilterTapped("custom")
-        advanceUntilIdle()
-
-        customChip = viewModel.chipCategoriesFlow.value.first { it.chipName == "custom" }
-        assertThat(customChip.isActive).isFalse()
-    }
-
-    @Test
-    fun `onFilterTapped toggles standard category filter`() = runTest {
-        backgroundScope.launch(testDispatcher) {
-            viewModel.chipCategoriesFlow.collect()
-        }
-        advanceUntilIdle()
-
-        viewModel.onFilterTapped("psychedelic")
-        advanceUntilIdle()
-
-        var psychChip = viewModel.chipCategoriesFlow.value.first { it.chipName == "psychedelic" }
-        assertThat(psychChip.isActive).isTrue()
-
-        viewModel.onFilterTapped("psychedelic")
-        advanceUntilIdle()
-
-        psychChip = viewModel.chipCategoriesFlow.value.first { it.chipName == "psychedelic" }
-        assertThat(psychChip.isActive).isFalse()
-    }
-
-    @Test
-    fun `filteredCustomSubstancesFlow filters custom substances by search text case insensitively`() = runTest {
-        customSubstancesFlow.value = listOf(
-            CustomSubstance(id = 1, name = "Custom Kava", units = "mg", description = "Herbal"),
-            CustomSubstance(id = 2, name = "2C-D-Fly", units = "mg", description = "Research")
-        )
-
-        backgroundScope.launch(testDispatcher) {
-            viewModel.filteredCustomSubstancesFlow.collect()
+          viewModel.filteredCustomSubstancesFlow.collect()
         }
         advanceUntilIdle()
 
@@ -216,40 +229,40 @@ class SearchViewModelTest {
         advanceUntilIdle()
 
         assertThat(viewModel.filteredCustomSubstancesFlow.value).isEmpty()
+      }
+
+  @Test
+  fun `filteredSubstancesFlow queries search repository and maps to substance model`() = runTest {
+    backgroundScope.launch(testDispatcher) {
+      viewModel.filteredSubstancesFlow.collect()
     }
+    advanceUntilIdle()
 
-    @Test
-    fun `filteredSubstancesFlow queries search repository and maps to substance model`() = runTest {
-        backgroundScope.launch(testDispatcher) {
-            viewModel.filteredSubstancesFlow.collect()
-        }
-        advanceUntilIdle()
+    val results = viewModel.filteredSubstancesFlow.value
+    assertThat(results.map { it.name }).containsExactly("LSD", "Caffeine")
 
-        val results = viewModel.filteredSubstancesFlow.value
-        assertThat(results.map { it.name }).containsExactly("LSD", "Caffeine")
+    val lsd = results.first { it.name == "LSD" }
+    assertThat(lsd.commonNames).containsExactly("Acid")
+    assertThat(lsd.hasSaferUse).isTrue()
+    assertThat(lsd.hasInteractions).isTrue()
+    assertThat(lsd.categories.map { it.name }).containsExactly("psychedelic")
 
-        val lsd = results.first { it.name == "LSD" }
-        assertThat(lsd.commonNames).containsExactly("Acid")
-        assertThat(lsd.hasSaferUse).isTrue()
-        assertThat(lsd.hasInteractions).isTrue()
-        assertThat(lsd.categories.map { it.name }).containsExactly("psychedelic")
+    viewModel.filterSubstances("lsd")
+    advanceUntilIdle()
 
-        viewModel.filterSubstances("lsd")
-        advanceUntilIdle()
+    assertThat(viewModel.filteredSubstancesFlow.value.map { it.name }).containsExactly("LSD")
+  }
 
-        assertThat(viewModel.filteredSubstancesFlow.value.map { it.name }).containsExactly("LSD")
+  @Test
+  fun `filteredSubstancesFlow reacts to category filters`() = runTest {
+    backgroundScope.launch(testDispatcher) {
+      viewModel.filteredSubstancesFlow.collect()
     }
+    advanceUntilIdle()
 
-    @Test
-    fun `filteredSubstancesFlow reacts to category filters`() = runTest {
-        backgroundScope.launch(testDispatcher) {
-            viewModel.filteredSubstancesFlow.collect()
-        }
-        advanceUntilIdle()
+    viewModel.onFilterTapped("stimulant")
+    advanceUntilIdle()
 
-        viewModel.onFilterTapped("stimulant")
-        advanceUntilIdle()
-
-        assertThat(viewModel.filteredSubstancesFlow.value.map { it.name }).containsExactly("Caffeine")
-    }
+    assertThat(viewModel.filteredSubstancesFlow.value.map { it.name }).containsExactly("Caffeine")
+  }
 }

@@ -42,43 +42,50 @@ data class Substance(
     val roas: List<Roa>,
     val formulations: List<Formulation> = emptyList(),
 ) {
-    fun getRoa(route: AdministrationRoute): Roa? {
-        return roas.firstOrNull { it.route == route }
+  fun getRoa(route: AdministrationRoute): Roa? {
+    return roas.firstOrNull { it.route == route }
+  }
+
+  fun getEffectiveRoa(route: AdministrationRoute, useIntranasalForRectal: Boolean = false): Roa? {
+    return if (useIntranasalForRectal && route == AdministrationRoute.RECTAL) {
+      getRoa(AdministrationRoute.INSUFFLATED) ?: getRoa(route)
+    } else {
+      getRoa(route)
+    }
+  }
+
+  val hasInteractions: Boolean
+    get() {
+      return if (interactions == null) {
+        false
+      } else {
+        interactions.uncertain.isNotEmpty() ||
+            interactions.unsafe.isNotEmpty() ||
+            interactions.dangerous.isNotEmpty()
+      }
     }
 
-    fun getEffectiveRoa(route: AdministrationRoute, useIntranasalForRectal: Boolean = false): Roa? {
-        return if (useIntranasalForRectal && route == AdministrationRoute.RECTAL) {
-            getRoa(AdministrationRoute.INSUFFLATED) ?: getRoa(route)
-        } else {
-            getRoa(route)
-        }
+  val isHallucinogen
+    get() = categories.any {
+      val hallucinogens =
+          setOf(
+              "hallucinogen",
+              "psychedelic",
+              "dissociative",
+              "deliriant",
+          )
+      hallucinogens.contains(it.lowercase())
     }
 
-    val hasInteractions: Boolean get() {
-        return if (interactions == null) {
-            false
-        } else {
-            interactions.uncertain.isNotEmpty() || interactions.unsafe.isNotEmpty() || interactions.dangerous.isNotEmpty()
-        }
+  val isStimulant
+    get() = categories.any {
+      val stimulants =
+          setOf(
+              "stimulant",
+          )
+      stimulants.contains(it.lowercase())
     }
 
-    val isHallucinogen
-        get() = categories.any {
-            val hallucinogens = setOf(
-                "hallucinogen",
-                "psychedelic",
-                "dissociative",
-                "deliriant",
-            )
-            hallucinogens.contains(it.lowercase())
-        }
-    val isStimulant
-        get() = categories.any {
-            val stimulants = setOf(
-                "stimulant",
-            )
-            stimulants.contains(it.lowercase())
-        }
-
-    val interactionExplanationURL get() = getInteractionExplanationURLForSubstance(url)
+  val interactionExplanationURL
+    get() = getInteractionExplanationURLForSubstance(url)
 }

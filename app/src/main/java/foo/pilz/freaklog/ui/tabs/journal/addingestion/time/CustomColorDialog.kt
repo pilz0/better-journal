@@ -64,10 +64,10 @@ import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
  * Modal dialog for picking an arbitrary RGB color.
  *
  * Includes:
- *  - A square SV (saturation × value) area that picks a point at a given hue.
- *  - A horizontal hue slider.
- *  - A live hex (RRGGBB) text field for typing or pasting an exact value.
- *  - A preview swatch.
+ * - A square SV (saturation × value) area that picks a point at a given hue.
+ * - A horizontal hue slider.
+ * - A live hex (RRGGBB) text field for typing or pasting an exact value.
+ * - A preview swatch.
  *
  * Returns an [AdaptiveColor.Custom] (always opaque, alpha = 0xFF) on OK.
  */
@@ -77,100 +77,103 @@ fun CustomColorDialog(
     onDismiss: () -> Unit,
     onPick: (AdaptiveColor.Custom) -> Unit,
 ) {
-    val initialHsv = remember(initialColor) {
+  val initialHsv =
+      remember(initialColor) {
         val argb = initialColor?.argb ?: Color.Red.toArgb()
         val r = ((argb shr 16) and 0xFF) / 255f
         val g = ((argb shr 8) and 0xFF) / 255f
         val b = (argb and 0xFF) / 255f
         rgbToHsv(r, g, b)
-    }
-    var hue by remember { mutableFloatStateOf(initialHsv[0]) }
-    var saturation by remember { mutableFloatStateOf(initialHsv[1]) }
-    var value by remember { mutableFloatStateOf(initialHsv[2]) }
+      }
+  var hue by remember { mutableFloatStateOf(initialHsv[0]) }
+  var saturation by remember { mutableFloatStateOf(initialHsv[1]) }
+  var value by remember { mutableFloatStateOf(initialHsv[2]) }
 
-    val previewColor = Color.hsv(hue, saturation, value)
-    val previewArgb = previewColor.toArgb() or 0xFF000000.toInt()
-    val hexText = "%06X".format(previewArgb and 0xFFFFFF)
-    var hexFieldText by remember { mutableStateOf(hexText) }
-    // Re-sync the hex field only when HSV changes (e.g., user dragged the SV/hue picker),
-    // not on every recomposition. This lets the user type partial input like "1" without
-    // it being immediately overwritten by the current 6-digit value.
-    LaunchedEffect(hue, saturation, value) {
-        if (hexFieldText.uppercase() != hexText) {
-            hexFieldText = hexText
+  val previewColor = Color.hsv(hue, saturation, value)
+  val previewArgb = previewColor.toArgb() or 0xFF000000.toInt()
+  val hexText = "%06X".format(previewArgb and 0xFFFFFF)
+  var hexFieldText by remember { mutableStateOf(hexText) }
+  // Re-sync the hex field only when HSV changes (e.g., user dragged the SV/hue picker),
+  // not on every recomposition. This lets the user type partial input like "1" without
+  // it being immediately overwritten by the current 6-digit value.
+  LaunchedEffect(hue, saturation, value) {
+    if (hexFieldText.uppercase() != hexText) {
+      hexFieldText = hexText
+    }
+  }
+
+  AlertDialog(
+      onDismissRequest = onDismiss,
+      title = { Text(text = "Pick a custom color", style = MaterialTheme.typography.titleLarge) },
+      text = {
+        Column(modifier = Modifier.fillMaxWidth()) {
+          // Saturation × Value picker
+          SaturationValuePicker(
+              hue = hue,
+              saturation = saturation,
+              value = value,
+              onChanged = { s, v ->
+                saturation = s
+                value = v
+              },
+              modifier = Modifier.fillMaxWidth().height(180.dp),
+          )
+          Spacer(modifier = Modifier.height(12.dp))
+          // Hue slider
+          HueSlider(
+              hue = hue,
+              onHueChange = { hue = it },
+          )
+          Spacer(modifier = Modifier.height(12.dp))
+          Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(12.dp),
+          ) {
+            Surface(
+                color = previewColor,
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.size(48.dp),
+            ) {}
+            TextField(
+                value = hexFieldText,
+                onValueChange = { input ->
+                  val cleaned =
+                      input
+                          .uppercase()
+                          .filter {
+                            it in '0'..'9' || it in 'A'..'F'
+                          }
+                          .take(6)
+                  hexFieldText = cleaned
+                  if (cleaned.length == 6) {
+                    val parsed = cleaned.toInt(16)
+                    val r = ((parsed shr 16) and 0xFF) / 255f
+                    val g = ((parsed shr 8) and 0xFF) / 255f
+                    val b = (parsed and 0xFF) / 255f
+                    val hsv = rgbToHsv(r, g, b)
+                    hue = hsv[0]
+                    saturation = hsv[1]
+                    value = hsv[2]
+                  }
+                },
+                label = { Text("Hex (RRGGBB)") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+          }
         }
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(text = "Pick a custom color", style = MaterialTheme.typography.titleLarge) },
-        text = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                // Saturation × Value picker
-                SaturationValuePicker(
-                    hue = hue,
-                    saturation = saturation,
-                    value = value,
-                    onChanged = { s, v ->
-                        saturation = s
-                        value = v
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                // Hue slider
-                HueSlider(
-                    hue = hue,
-                    onHueChange = { hue = it },
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Surface(
-                        color = previewColor,
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.size(48.dp),
-                    ) {}
-                    TextField(
-                        value = hexFieldText,
-                        onValueChange = { input ->
-                            val cleaned = input.uppercase().filter {
-                                it in '0'..'9' || it in 'A'..'F'
-                            }.take(6)
-                            hexFieldText = cleaned
-                            if (cleaned.length == 6) {
-                                val parsed = cleaned.toInt(16)
-                                val r = ((parsed shr 16) and 0xFF) / 255f
-                                val g = ((parsed shr 8) and 0xFF) / 255f
-                                val b = (parsed and 0xFF) / 255f
-                                val hsv = rgbToHsv(r, g, b)
-                                hue = hsv[0]
-                                saturation = hsv[1]
-                                value = hsv[2]
-                            }
-                        },
-                        label = { Text("Hex (RRGGBB)") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onPick(AdaptiveColor.Custom(previewArgb)) }) {
-                Text("OK")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        },
-    )
+      },
+      confirmButton = {
+        TextButton(onClick = { onPick(AdaptiveColor.Custom(previewArgb)) }) {
+          Text("OK")
+        }
+      },
+      dismissButton = {
+        TextButton(onClick = onDismiss) {
+          Text("Cancel")
+        }
+      },
+  )
 }
 
 @Composable
@@ -181,59 +184,60 @@ private fun SaturationValuePicker(
     onChanged: (saturation: Float, value: Float) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var size by remember { mutableStateOf(Offset.Zero) }
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(Color.Black)
-            .onSizeChanged { size = Offset(it.width.toFloat(), it.height.toFloat()) }
-            .pointerInput(Unit) {
+  var size by remember { mutableStateOf(Offset.Zero) }
+  Box(
+      modifier =
+          modifier
+              .clip(RoundedCornerShape(8.dp))
+              .background(Color.Black)
+              .onSizeChanged { size = Offset(it.width.toFloat(), it.height.toFloat()) }
+              .pointerInput(Unit) {
                 detectTapGestures { offset ->
-                    val w = size.x.coerceAtLeast(1f)
-                    val h = size.y.coerceAtLeast(1f)
-                    val s = (offset.x / w).coerceIn(0f, 1f)
-                    val v = (1f - offset.y / h).coerceIn(0f, 1f)
-                    onChanged(s, v)
+                  val w = size.x.coerceAtLeast(1f)
+                  val h = size.y.coerceAtLeast(1f)
+                  val s = (offset.x / w).coerceIn(0f, 1f)
+                  val v = (1f - offset.y / h).coerceIn(0f, 1f)
+                  onChanged(s, v)
                 }
-            }
-            .pointerInput(Unit) {
+              }
+              .pointerInput(Unit) {
                 detectDragGestures { change, _ ->
-                    change.consume()
-                    val w = size.x.coerceAtLeast(1f)
-                    val h = size.y.coerceAtLeast(1f)
-                    val s = (change.position.x / w).coerceIn(0f, 1f)
-                    val v = (1f - change.position.y / h).coerceIn(0f, 1f)
-                    onChanged(s, v)
+                  change.consume()
+                  val w = size.x.coerceAtLeast(1f)
+                  val h = size.y.coerceAtLeast(1f)
+                  val s = (change.position.x / w).coerceIn(0f, 1f)
+                  val v = (1f - change.position.y / h).coerceIn(0f, 1f)
+                  onChanged(s, v)
                 }
-            }
-    ) {
-        Canvas(modifier = Modifier.fillMaxWidth().height(180.dp)) {
-            // Horizontal: white -> pure hue
-            val pureHue = Color.hsv(hue, 1f, 1f)
-            drawRect(
-                brush = Brush.horizontalGradient(listOf(Color.White, pureHue)),
-            )
-            // Vertical: transparent on top -> black on bottom (multiplies value)
-            drawRect(
-                brush = Brush.verticalGradient(listOf(Color.Transparent, Color.Black)),
-            )
-            // Selection indicator
-            val cx = saturation * this.size.width
-            val cy = (1f - value) * this.size.height
-            drawCircle(
-                color = Color.White,
-                radius = 8f,
-                center = Offset(cx, cy),
-                style = Stroke(width = 3f),
-            )
-            drawCircle(
-                color = Color.Black,
-                radius = 8f,
-                center = Offset(cx, cy),
-                style = Stroke(width = 1f),
-            )
-        }
+              }
+  ) {
+    Canvas(modifier = Modifier.fillMaxWidth().height(180.dp)) {
+      // Horizontal: white -> pure hue
+      val pureHue = Color.hsv(hue, 1f, 1f)
+      drawRect(
+          brush = Brush.horizontalGradient(listOf(Color.White, pureHue)),
+      )
+      // Vertical: transparent on top -> black on bottom (multiplies value)
+      drawRect(
+          brush = Brush.verticalGradient(listOf(Color.Transparent, Color.Black)),
+      )
+      // Selection indicator
+      val cx = saturation * this.size.width
+      val cy = (1f - value) * this.size.height
+      drawCircle(
+          color = Color.White,
+          radius = 8f,
+          center = Offset(cx, cy),
+          style = Stroke(width = 3f),
+      )
+      drawCircle(
+          color = Color.Black,
+          radius = 8f,
+          center = Offset(cx, cy),
+          style = Stroke(width = 1f),
+      )
     }
+  }
 }
 
 @Composable
@@ -241,37 +245,38 @@ private fun HueSlider(
     hue: Float,
     onHueChange: (Float) -> Unit,
 ) {
-    Column {
-        Text(text = "Hue: ${hue.toInt()}°", fontSize = 12.sp)
-        Slider(
-            value = hue,
-            onValueChange = onHueChange,
-            valueRange = 0f..360f,
-        )
-    }
+  Column {
+    Text(text = "Hue: ${hue.toInt()}°", fontSize = 12.sp)
+    Slider(
+        value = hue,
+        onValueChange = onHueChange,
+        valueRange = 0f..360f,
+    )
+  }
 }
 
 private fun rgbToHsv(r: Float, g: Float, b: Float): FloatArray {
-    val max = maxOf(r, g, b)
-    val min = minOf(r, g, b)
-    val delta = max - min
-    val h = when {
+  val max = maxOf(r, g, b)
+  val min = minOf(r, g, b)
+  val delta = max - min
+  val h =
+      when {
         delta == 0f -> 0f
         max == r -> 60f * (((g - b) / delta) % 6f)
         max == g -> 60f * (((b - r) / delta) + 2f)
         else -> 60f * (((r - g) / delta) + 4f)
-    }.let { if (it < 0f) it + 360f else it }
-    val s = if (max == 0f) 0f else delta / max
-    val v = max
-    return floatArrayOf(h, s, v)
+      }.let { if (it < 0f) it + 360f else it }
+  val s = if (max == 0f) 0f else delta / max
+  val v = max
+  return floatArrayOf(h, s, v)
 }
 
 @Preview
 @Composable
 private fun CustomColorDialogPreview() {
-    CustomColorDialog(
-        initialColor = AdaptiveColor.Custom(0xFF22AAFF.toInt()),
-        onDismiss = {},
-        onPick = {},
-    )
+  CustomColorDialog(
+      initialColor = AdaptiveColor.Custom(0xFF22AAFF.toInt()),
+      onDismiss = {},
+      onPick = {},
+  )
 }

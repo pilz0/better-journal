@@ -49,26 +49,26 @@ import foo.pilz.freaklog.ui.FREAKQUERY_GUIDE_URL
 @Composable
 fun WebhookEditorScreen(
     navigateBack: () -> Unit,
-    viewModel: WebhookEditorViewModel = hiltViewModel()
+    viewModel: WebhookEditorViewModel = hiltViewModel(),
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(if (viewModel.isExisting) "Edit webhook" else "New webhook") },
-                navigationIcon = {
-                    IconButton(onClick = navigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                }
-            )
-        }
-    ) { padding ->
-        WebhookEditorBody(
-            padding = padding,
-            viewModel = viewModel,
-            navigateBack = navigateBack
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text(if (viewModel.isExisting) "Edit webhook" else "New webhook") },
+            navigationIcon = {
+              IconButton(onClick = navigateBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+              }
+            },
         )
-    }
+      }
+  ) { padding ->
+    WebhookEditorBody(
+        padding = padding,
+        viewModel = viewModel,
+        navigateBack = navigateBack,
+    )
+  }
 }
 
 @Suppress("LongMethod")
@@ -76,106 +76,112 @@ fun WebhookEditorScreen(
 private fun WebhookEditorBody(
     padding: PaddingValues,
     viewModel: WebhookEditorViewModel,
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
 ) {
-    val uriHandler = LocalUriHandler.current
+  val uriHandler = LocalUriHandler.current
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(padding)
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        OutlinedTextField(
-            value = viewModel.name,
-            onValueChange = { viewModel.name = it },
-            label = { Text("Name") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-        OutlinedTextField(
-            value = viewModel.url,
-            isError = viewModel.url.isNotBlank() && !foo.pilz.freaklog.data.webhook.isSecureWebhookUrl(viewModel.url),
-            supportingText = { Text("HTTPS is required for remote destinations. HTTP is allowed only on this device.") },
-            onValueChange = { viewModel.url = it },
-            label = { Text("Discord webhook URL") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-        OutlinedTextField(
-            value = viewModel.displayName,
-            onValueChange = { viewModel.displayName = it },
-            label = { Text("Display name (used as {user})") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-        OutlinedTextField(
-            value = viewModel.template,
-            onValueChange = { viewModel.template = it },
-            label = { Text("Template (leave blank for default)") },
-            placeholder = { Text(WebhookService.DEFAULT_TEMPLATE) },
-            modifier = Modifier.fillMaxWidth(),
-            minLines = 2
-        )
-        Text(
-            "Placeholders: {user}, {dose}, {units}, {substance}, {route}, {site}, {note}. " +
-                "Square-bracketed blocks are removed when their placeholder is empty. " +
-                "FreakQuery tags like {{today|substance=A-PVP|sum_dose}} are supported.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        SwitchRow("Enabled", viewModel.isEnabled) { viewModel.isEnabled = it }
-        SwitchRow("Link substances to Anodyne wiki", viewModel.isHyperlinked) { viewModel.isHyperlinked = it }
-        SwitchRow("Enable FreakQuery tags", viewModel.useFreakQuery) {
-            viewModel.useFreakQuery = it
-        }
-        TextButton(
-            onClick = { uriHandler.openUri(FREAKQUERY_GUIDE_URL) },
-            modifier = Modifier.align(Alignment.Start)
-        ) {
-            Icon(
-                Icons.AutoMirrored.Outlined.HelpOutline,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("FreakQuery syntax guide")
-        }
-
-        if (viewModel.useFreakQuery) {
-            OutlinedTextField(
-                value = viewModel.freakQuerySeparator,
-                onValueChange = { viewModel.freakQuerySeparator = it },
-                label = { Text("FreakQuery compact separator") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Text(
-                "Used by compact FreakQuery output and row parts. Tags can still override it with sep=...",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        Button(
-            onClick = { viewModel.save(navigateBack) },
-            enabled = viewModel.canSave,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Save")
-        }
+  Column(
+      modifier =
+          Modifier.fillMaxSize()
+              .padding(padding)
+              .padding(horizontal = 16.dp, vertical = 8.dp)
+              .verticalScroll(rememberScrollState()),
+      verticalArrangement = Arrangement.spacedBy(12.dp),
+  ) {
+    OutlinedTextField(
+        value = viewModel.name,
+        onValueChange = { viewModel.name = it },
+        label = { Text("Name") },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    OutlinedTextField(
+        value = viewModel.url,
+        isError =
+            viewModel.url.isNotBlank() &&
+                !foo.pilz.freaklog.data.webhook.isSecureWebhookUrl(viewModel.url),
+        supportingText = {
+          Text("HTTPS is required for remote destinations. HTTP is allowed only on this device.")
+        },
+        onValueChange = { viewModel.url = it },
+        label = { Text("Discord webhook URL") },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    OutlinedTextField(
+        value = viewModel.displayName,
+        onValueChange = { viewModel.displayName = it },
+        label = { Text("Display name (used as {user})") },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    OutlinedTextField(
+        value = viewModel.template,
+        onValueChange = { viewModel.template = it },
+        label = { Text("Template (leave blank for default)") },
+        placeholder = { Text(WebhookService.DEFAULT_TEMPLATE) },
+        modifier = Modifier.fillMaxWidth(),
+        minLines = 2,
+    )
+    Text(
+        "Placeholders: {user}, {dose}, {units}, {substance}, {route}, {site}, {note}. " +
+            "Square-bracketed blocks are removed when their placeholder is empty. " +
+            "FreakQuery tags like {{today|substance=A-PVP|sum_dose}} are supported.",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    SwitchRow("Enabled", viewModel.isEnabled) { viewModel.isEnabled = it }
+    SwitchRow("Link substances to Anodyne wiki", viewModel.isHyperlinked) {
+      viewModel.isHyperlinked = it
     }
+    SwitchRow("Enable FreakQuery tags", viewModel.useFreakQuery) {
+      viewModel.useFreakQuery = it
+    }
+    TextButton(
+        onClick = { uriHandler.openUri(FREAKQUERY_GUIDE_URL) },
+        modifier = Modifier.align(Alignment.Start),
+    ) {
+      Icon(
+          Icons.AutoMirrored.Outlined.HelpOutline,
+          contentDescription = null,
+          modifier = Modifier.size(18.dp),
+      )
+      Spacer(modifier = Modifier.width(8.dp))
+      Text("FreakQuery syntax guide")
+    }
+
+    if (viewModel.useFreakQuery) {
+      OutlinedTextField(
+          value = viewModel.freakQuerySeparator,
+          onValueChange = { viewModel.freakQuerySeparator = it },
+          label = { Text("FreakQuery compact separator") },
+          singleLine = true,
+          modifier = Modifier.fillMaxWidth(),
+      )
+      Text(
+          "Used by compact FreakQuery output and row parts. Tags can still override it with sep=...",
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+    }
+    Button(
+        onClick = { viewModel.save(navigateBack) },
+        enabled = viewModel.canSave,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+      Text("Save")
+    }
+  }
 }
 
 @Composable
 private fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Switch(checked = checked, onCheckedChange = onChange)
-        Text(label)
-    }
+  Row(
+      modifier = Modifier.fillMaxWidth(),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+  ) {
+    Switch(checked = checked, onCheckedChange = onChange)
+    Text(label)
+  }
 }

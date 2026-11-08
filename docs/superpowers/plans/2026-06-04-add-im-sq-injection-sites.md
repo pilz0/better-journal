@@ -13,6 +13,7 @@
 ### Task 1: Add IM and SQ site option constants and update siteOptions dispatch
 
 **Files:**
+
 - Modify: `app/src/main/java/foo/pilz/freaklog/data/substances/AdministrationRoute.kt:168-203`
 
 - [ ] **Step 1: Add IM and SQ site option constants and update siteOptions dispatch**
@@ -93,6 +94,7 @@ Expected: Tests `testIntramuscular_hasInjectionSiteOptions`, `testSubcutaneous_h
 ### Task 2: Update AdministrationRouteTest for new site counts
 
 **Files:**
+
 - Modify: `app/src/test/java/foo/pilz/freaklog/data/substances/AdministrationRouteTest.kt:190-232`
 
 - [ ] **Step 1: Update test assertions for renamed constant and new counts**
@@ -100,6 +102,7 @@ Expected: Tests `testIntramuscular_hasInjectionSiteOptions`, `testSubcutaneous_h
 In `AdministrationRouteTest.kt`, update the following tests:
 
 **Line 191-196** — Rename test and update to check IV-specific options:
+
 ```kotlin
     @Test
     fun testIntravenous_hasIntravenousSiteOptions() {
@@ -111,6 +114,7 @@ In `AdministrationRouteTest.kt`, update the following tests:
 ```
 
 **Lines 198-201** — Update expected count for IM:
+
 ```kotlin
     @Test
     fun testIntramuscular_hasIntramuscularSiteOptions() {
@@ -122,6 +126,7 @@ In `AdministrationRouteTest.kt`, update the following tests:
 ```
 
 **Lines 204-207** — Update expected count for SQ:
+
 ```kotlin
     @Test
     fun testSubcutaneous_hasSubcutaneousSiteOptions() {
@@ -133,6 +138,7 @@ In `AdministrationRouteTest.kt`, update the following tests:
 ```
 
 **Lines 229-231** — Update constant name and count:
+
 ```kotlin
     @Test
     fun testIntravenousSiteOptionsCount() {
@@ -190,6 +196,7 @@ git commit -m "feat: add IM and SQ injection site options with route-specific li
 ### Task 3: Add site aliases for new IM and SQ sites in DefaultAliases
 
 **Files:**
+
 - Modify: `freakquery-android/src/main/java/com/ndm4/freakquery/DefaultAliases.kt:34-45`
 
 - [ ] **Step 1: Add alias mappings for IM and SQ sites**

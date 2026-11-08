@@ -11,11 +11,11 @@ import android.util.Log
 import dagger.hilt.android.AndroidEntryPoint
 import foo.pilz.freaklog.data.room.reminders.RemindersRepository
 import foo.pilz.freaklog.scheduled.NotificationScheduler.Companion.EXTRA_REMINDER_ID
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 /**
  * Receives the alarm broadcast for a reminder, posts the user-visible notification via
@@ -24,29 +24,29 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class ReminderReceiver : BroadcastReceiver() {
 
-    @Inject lateinit var notificationScheduler: NotificationScheduler
-    @Inject lateinit var remindersRepository: RemindersRepository
+  @Inject lateinit var notificationScheduler: NotificationScheduler
+  @Inject lateinit var remindersRepository: RemindersRepository
 
-    override fun onReceive(context: Context, intent: Intent) {
-        val reminderId = intent.getIntExtra(EXTRA_REMINDER_ID, -1)
-        if (reminderId == -1) return
+  override fun onReceive(context: Context, intent: Intent) {
+    val reminderId = intent.getIntExtra(EXTRA_REMINDER_ID, -1)
+    if (reminderId == -1) return
 
-        val pendingResult = goAsync()
-        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            try {
-                val reminder = remindersRepository.getReminderById(reminderId) ?: return@launch
-                notificationScheduler.postReminderNotification(reminder)
-                if (reminder.isEnabled) {
-                    notificationScheduler.scheduleReminder(
-                        reminder = reminder,
-                        fromMillis = System.currentTimeMillis() + 1000L,
-                    )
-                }
-            } catch (t: Throwable) {
-                Log.e("ReminderReceiver", "Error processing reminder alarm for id $reminderId", t)
-            } finally {
-                pendingResult.finish()
-            }
+    val pendingResult = goAsync()
+    CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+      try {
+        val reminder = remindersRepository.getReminderById(reminderId) ?: return@launch
+        notificationScheduler.postReminderNotification(reminder)
+        if (reminder.isEnabled) {
+          notificationScheduler.scheduleReminder(
+              reminder = reminder,
+              fromMillis = System.currentTimeMillis() + 1000L,
+          )
         }
+      } catch (t: Throwable) {
+        Log.e("ReminderReceiver", "Error processing reminder alarm for id $reminderId", t)
+      } finally {
+        pendingResult.finish()
+      }
     }
+  }
 }

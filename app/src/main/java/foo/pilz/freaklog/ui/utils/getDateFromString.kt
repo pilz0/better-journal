@@ -30,59 +30,59 @@ import java.util.concurrent.ConcurrentHashMap
 private val dateTimeFormatters = ConcurrentHashMap<Pair<String, Locale>, DateTimeFormatter>()
 
 private fun getDateTimeFormatter(pattern: String): DateTimeFormatter {
-    val locale = Locale.getDefault(Locale.Category.FORMAT)
-    return dateTimeFormatters.getOrPut(pattern to locale) {
-        DateTimeFormatter.ofPattern(pattern, locale)
-    }
+  val locale = Locale.getDefault(Locale.Category.FORMAT)
+  return dateTimeFormatters.getOrPut(pattern to locale) {
+    DateTimeFormatter.ofPattern(pattern, locale)
+  }
 }
 
 fun getInstant(year: Int, month: Int, day: Int, hourOfDay: Int, minute: Int): Instant? {
-    val dateTime = LocalDateTime.of(year, month, day, hourOfDay, minute)
-    return dateTime.atZone(ZoneId.systemDefault()).toInstant()
+  val dateTime = LocalDateTime.of(year, month, day, hourOfDay, minute)
+  return dateTime.atZone(ZoneId.systemDefault()).toInstant()
 }
 
 fun Instant.getStringOfPattern(pattern: String): String {
-    val dateTime = LocalDateTime.ofInstant(this, ZoneId.systemDefault())
-    val formatter = getDateTimeFormatter(pattern)
-    return dateTime.format(formatter)
+  val dateTime = LocalDateTime.ofInstant(this, ZoneId.systemDefault())
+  val formatter = getDateTimeFormatter(pattern)
+  return dateTime.format(formatter)
 }
 
 fun Instant.getDateWithWeekdayText(): String {
-    return getStringOfPattern("EEE dd MMM yyyy")
+  return getStringOfPattern("EEE dd MMM yyyy")
 }
 
 fun Instant.getShortWeekdayText(): String {
-    return getStringOfPattern("EEE")
+  return getStringOfPattern("EEE")
 }
 
 fun Instant.getShortTimeWithWeekdayText(): String {
-    return getShortWeekdayText() + " " + getShortTimeText()
+  return getShortWeekdayText() + " " + getShortTimeText()
 }
 
 fun Instant.getShortTimeText(): String {
-    val timeFormat: DateFormat = DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault())
-    val date = Date.from(this)
-    return timeFormat.format(date)
+  val timeFormat: DateFormat = DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault())
+  val date = Date.from(this)
+  return timeFormat.format(date)
 }
 
 fun LocalDateTime.getStringOfPattern(pattern: String): String {
-    val formatter = getDateTimeFormatter(pattern)
-    return format(formatter)
+  val formatter = getDateTimeFormatter(pattern)
+  return format(formatter)
 }
 
 fun LocalDateTime.getDateWithWeekdayText(): String {
-    return getStringOfPattern("EEE dd MMM yyyy")
+  return getStringOfPattern("EEE dd MMM yyyy")
 }
 
 fun LocalDateTime.getShortTimeText(): String {
-    val instant = getInstant()
-    return instant.getShortTimeText()
+  val instant = getInstant()
+  return instant.getShortTimeText()
 }
 
 fun Instant.getLocalDateTime(): LocalDateTime {
-    return LocalDateTime.ofInstant(this, ZoneId.systemDefault())
+  return LocalDateTime.ofInstant(this, ZoneId.systemDefault())
 }
 
 fun LocalDateTime.getInstant(): Instant {
-    return atZone(ZoneId.systemDefault()).toInstant()
+  return atZone(ZoneId.systemDefault()).toInstant()
 }

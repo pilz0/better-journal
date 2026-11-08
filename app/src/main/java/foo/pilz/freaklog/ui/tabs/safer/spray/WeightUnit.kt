@@ -19,6 +19,6 @@
 package foo.pilz.freaklog.ui.tabs.safer.spray
 
 enum class WeightUnit(val displayName: String) {
-    MG("mg"),
-    UG("µg")
+  MG("mg"),
+  UG("µg"),
 }

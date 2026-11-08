@@ -37,39 +37,41 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.timednote.TimedNoteScreenCon
 @Composable
 fun AddTimedNoteScreen(
     viewModel: AddTimedNoteViewModel = hiltViewModel(),
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Add timed note") },
-                actions = {
-                    IconButton(onClick = {
-                        viewModel.onDoneTap()
-                        navigateBack()
-                    }) {
-                        Icon(
-                            Icons.Filled.Done,
-                            contentDescription = "Done icon"
-                        )
-                    }
-                }
-            )
-        }
-    ) { padding ->
-        TimedNoteScreenContent(
-            selectedTime = viewModel.localDateTimeFlow.collectAsState().value,
-            onTimeChange = viewModel::onChangeTime,
-            note = viewModel.note,
-            onNoteChange = viewModel::onChangeNote,
-            color = viewModel.color,
-            onColorChange = viewModel::onChangeColor,
-            modifier = Modifier.padding(padding),
-            alreadyUsedColors = viewModel.alreadyUsedColors,
-            otherColors = viewModel.otherColors,
-            isPartOfTimeline = viewModel.isPartOfTimeline,
-            onChangeOfIsPartOfTimeline = viewModel::onChangeIsPartOfTimeline,
-            shouldFocusTextFieldOnAppear = true
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Add timed note") },
+            actions = {
+              IconButton(
+                  onClick = {
+                    viewModel.onDoneTap()
+                    navigateBack()
+                  }
+              ) {
+                Icon(
+                    Icons.Filled.Done,
+                    contentDescription = "Done icon",
+                )
+              }
+            },
         )
-    }
+      }
+  ) { padding ->
+    TimedNoteScreenContent(
+        selectedTime = viewModel.localDateTimeFlow.collectAsState().value,
+        onTimeChange = viewModel::onChangeTime,
+        note = viewModel.note,
+        onNoteChange = viewModel::onChangeNote,
+        color = viewModel.color,
+        onColorChange = viewModel::onChangeColor,
+        modifier = Modifier.padding(padding),
+        alreadyUsedColors = viewModel.alreadyUsedColors,
+        otherColors = viewModel.otherColors,
+        isPartOfTimeline = viewModel.isPartOfTimeline,
+        onChangeOfIsPartOfTimeline = viewModel::onChangeIsPartOfTimeline,
+        shouldFocusTextFieldOnAppear = true,
+    )
+  }
 }

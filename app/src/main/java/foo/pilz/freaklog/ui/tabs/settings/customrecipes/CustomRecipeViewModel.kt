@@ -26,173 +26,184 @@ import foo.pilz.freaklog.data.room.experiences.entities.CustomRecipe
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRecipeComponent
 import foo.pilz.freaklog.data.room.experiences.relations.CustomRecipeWithComponents
 import foo.pilz.freaklog.data.substances.AdministrationRoute
+import java.time.Instant
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.time.Instant
-import javax.inject.Inject
 
 @HiltViewModel
-class CustomRecipeViewModel @Inject constructor(
-    private val customRecipeRepository: CustomRecipeRepository
-) : ViewModel() {
+class CustomRecipeViewModel
+@Inject
+constructor(private val customRecipeRepository: CustomRecipeRepository) : ViewModel() {
 
-    val activeRecipesFlow: StateFlow<List<CustomRecipeWithComponents>> =
-        customRecipeRepository.getActiveRecipesWithComponentsFlow()
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = emptyList()
-            )
+  val activeRecipesFlow: StateFlow<List<CustomRecipeWithComponents>> =
+      customRecipeRepository
+          .getActiveRecipesWithComponentsFlow()
+          .stateIn(
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+              initialValue = emptyList(),
+          )
 
-    val archivedRecipesFlow: StateFlow<List<CustomRecipeWithComponents>> =
-        customRecipeRepository.getArchivedRecipesWithComponentsFlow()
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = emptyList()
-            )
+  val archivedRecipesFlow: StateFlow<List<CustomRecipeWithComponents>> =
+      customRecipeRepository
+          .getArchivedRecipesWithComponentsFlow()
+          .stateIn(
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+              initialValue = emptyList(),
+          )
 
-    private val _selectedRecipe = MutableStateFlow<CustomRecipeWithComponents?>(null)
-    val selectedRecipe = _selectedRecipe.asStateFlow()
+  private val _selectedRecipe = MutableStateFlow<CustomRecipeWithComponents?>(null)
+  val selectedRecipe = _selectedRecipe.asStateFlow()
 
-    private val _isEditDialogOpen = MutableStateFlow(false)
-    val isEditDialogOpen = _isEditDialogOpen.asStateFlow()
+  private val _isEditDialogOpen = MutableStateFlow(false)
+  val isEditDialogOpen = _isEditDialogOpen.asStateFlow()
 
-    private val _recipeName = MutableStateFlow("")
-    val recipeName = _recipeName.asStateFlow()
+  private val _recipeName = MutableStateFlow("")
+  val recipeName = _recipeName.asStateFlow()
 
-    private val _recipeNote = MutableStateFlow("")
-    val recipeNote = _recipeNote.asStateFlow()
+  private val _recipeNote = MutableStateFlow("")
+  val recipeNote = _recipeNote.asStateFlow()
 
-    private val _components = MutableStateFlow<List<RecipeComponentState>>(emptyList())
-    val components = _components.asStateFlow()
+  private val _components = MutableStateFlow<List<RecipeComponentState>>(emptyList())
+  val components = _components.asStateFlow()
 
-    fun openCreateDialog() {
-        _selectedRecipe.value = null
-        _recipeName.value = ""
-        _recipeNote.value = ""
-        _components.value = emptyList()
-        _isEditDialogOpen.value = true
-    }
+  fun openCreateDialog() {
+    _selectedRecipe.value = null
+    _recipeName.value = ""
+    _recipeNote.value = ""
+    _components.value = emptyList()
+    _isEditDialogOpen.value = true
+  }
 
-    fun openEditDialog(recipe: CustomRecipeWithComponents) {
-        _selectedRecipe.value = recipe
-        _recipeName.value = recipe.recipe.name
-        _recipeNote.value = recipe.recipe.note
-        _components.value = recipe.components.sortedBy { it.componentOrder }.map {
-            RecipeComponentState(
-                substanceName = it.substanceName,
-                dose = it.dose,
-                isDoseAnEstimate = it.isDoseAnEstimate,
-                estimatedDoseStandardDeviation = it.estimatedDoseStandardDeviation,
-                units = it.units ?: "",
-                administrationRoute = it.administrationRoute,
-                customUnitId = it.customUnitId
-            )
-        }
-        _isEditDialogOpen.value = true
-    }
-
-    fun closeDialog() {
-        _isEditDialogOpen.value = false
-        _selectedRecipe.value = null
-    }
-
-    fun updateRecipeName(name: String) {
-        _recipeName.value = name
-    }
-
-    fun updateRecipeNote(note: String) {
-        _recipeNote.value = note
-    }
-
-    fun addComponent() {
-        _components.value = _components.value + RecipeComponentState()
-    }
-
-    fun updateComponent(id: String, component: RecipeComponentState) {
-        val current = _components.value
-        _components.value = current.map { if (it.id == id) component.copy(id = id) else it }
-    }
-
-    fun removeComponent(id: String) {
-        _components.value = _components.value.filterNot { it.id == id }
-    }
-
-    fun saveRecipe() {
-        viewModelScope.launch {
-            val name = _recipeName.value.trim()
-            if (name.isEmpty() || _components.value.isEmpty()) return@launch
-
-            val existing = _selectedRecipe.value
-            
-            if (existing != null) {
-                // Update existing recipe
-                val updatedRecipe = existing.recipe.copy(
-                    name = name,
-                    note = _recipeNote.value.trim()
-                )
-                val updatedComponents = _components.value.mapIndexed { index, comp ->
-                    CustomRecipeComponent(
-                        customRecipeId = existing.recipe.id,
-                        substanceName = comp.substanceName,
-                        dose = comp.dose?.takeIf { it.isFinite() && it >= 0.0 },
-                        isDoseAnEstimate = comp.isDoseAnEstimate,
-                        estimatedDoseStandardDeviation = comp.estimatedDoseStandardDeviation?.takeIf { it.isFinite() && it >= 0.0 },
-                        units = comp.units.takeIf { it.isNotBlank() },
-                        administrationRoute = comp.administrationRoute,
-                        customUnitId = comp.customUnitId,
-                        componentOrder = index
-                    )
-                }
-                customRecipeRepository.updateRecipeWithComponents(updatedRecipe, updatedComponents)
-            } else {
-                // Create new recipe
-                val newRecipe = CustomRecipe(
-                    name = name,
-                    note = _recipeNote.value.trim(),
-                    creationDate = Instant.now()
-                )
-                val newComponents = _components.value.mapIndexed { index, comp ->
-                    CustomRecipeComponent(
-                        customRecipeId = 0, // Will be set by repository
-                        substanceName = comp.substanceName,
-                        dose = comp.dose?.takeIf { it.isFinite() && it >= 0.0 },
-                        isDoseAnEstimate = comp.isDoseAnEstimate,
-                        estimatedDoseStandardDeviation = comp.estimatedDoseStandardDeviation?.takeIf { it.isFinite() && it >= 0.0 },
-                        units = comp.units.takeIf { it.isNotBlank() },
-                        administrationRoute = comp.administrationRoute,
-                        customUnitId = comp.customUnitId,
-                        componentOrder = index
-                    )
-                }
-                customRecipeRepository.insertRecipeWithComponents(newRecipe, newComponents)
+  fun openEditDialog(recipe: CustomRecipeWithComponents) {
+    _selectedRecipe.value = recipe
+    _recipeName.value = recipe.recipe.name
+    _recipeNote.value = recipe.recipe.note
+    _components.value =
+        recipe.components
+            .sortedBy { it.componentOrder }
+            .map {
+              RecipeComponentState(
+                  substanceName = it.substanceName,
+                  dose = it.dose,
+                  isDoseAnEstimate = it.isDoseAnEstimate,
+                  estimatedDoseStandardDeviation = it.estimatedDoseStandardDeviation,
+                  units = it.units ?: "",
+                  administrationRoute = it.administrationRoute,
+                  customUnitId = it.customUnitId,
+              )
             }
-            closeDialog()
-        }
-    }
+    _isEditDialogOpen.value = true
+  }
 
-    fun deleteRecipe(recipeId: Int) {
-        viewModelScope.launch {
-            customRecipeRepository.deleteRecipeWithComponents(recipeId)
-        }
-    }
+  fun closeDialog() {
+    _isEditDialogOpen.value = false
+    _selectedRecipe.value = null
+  }
 
-    fun toggleArchived(recipeId: Int, isArchived: Boolean) {
-        viewModelScope.launch {
-            customRecipeRepository.setArchived(recipeId, !isArchived)
-        }
-    }
+  fun updateRecipeName(name: String) {
+    _recipeName.value = name
+  }
 
-    fun useRecipe(recipeId: Int) {
-        viewModelScope.launch {
-            customRecipeRepository.updateLastUsedDate(recipeId, Instant.now())
-        }
+  fun updateRecipeNote(note: String) {
+    _recipeNote.value = note
+  }
+
+  fun addComponent() {
+    _components.value = _components.value + RecipeComponentState()
+  }
+
+  fun updateComponent(id: String, component: RecipeComponentState) {
+    val current = _components.value
+    _components.value = current.map { if (it.id == id) component.copy(id = id) else it }
+  }
+
+  fun removeComponent(id: String) {
+    _components.value = _components.value.filterNot { it.id == id }
+  }
+
+  fun saveRecipe() {
+    viewModelScope.launch {
+      val name = _recipeName.value.trim()
+      if (name.isEmpty() || _components.value.isEmpty()) return@launch
+
+      val existing = _selectedRecipe.value
+
+      if (existing != null) {
+        // Update existing recipe
+        val updatedRecipe =
+            existing.recipe.copy(
+                name = name,
+                note = _recipeNote.value.trim(),
+            )
+        val updatedComponents =
+            _components.value.mapIndexed { index, comp ->
+              CustomRecipeComponent(
+                  customRecipeId = existing.recipe.id,
+                  substanceName = comp.substanceName,
+                  dose = comp.dose?.takeIf { it.isFinite() && it >= 0.0 },
+                  isDoseAnEstimate = comp.isDoseAnEstimate,
+                  estimatedDoseStandardDeviation =
+                      comp.estimatedDoseStandardDeviation?.takeIf { it.isFinite() && it >= 0.0 },
+                  units = comp.units.takeIf { it.isNotBlank() },
+                  administrationRoute = comp.administrationRoute,
+                  customUnitId = comp.customUnitId,
+                  componentOrder = index,
+              )
+            }
+        customRecipeRepository.updateRecipeWithComponents(updatedRecipe, updatedComponents)
+      } else {
+        // Create new recipe
+        val newRecipe =
+            CustomRecipe(
+                name = name,
+                note = _recipeNote.value.trim(),
+                creationDate = Instant.now(),
+            )
+        val newComponents =
+            _components.value.mapIndexed { index, comp ->
+              CustomRecipeComponent(
+                  customRecipeId = 0, // Will be set by repository
+                  substanceName = comp.substanceName,
+                  dose = comp.dose?.takeIf { it.isFinite() && it >= 0.0 },
+                  isDoseAnEstimate = comp.isDoseAnEstimate,
+                  estimatedDoseStandardDeviation =
+                      comp.estimatedDoseStandardDeviation?.takeIf { it.isFinite() && it >= 0.0 },
+                  units = comp.units.takeIf { it.isNotBlank() },
+                  administrationRoute = comp.administrationRoute,
+                  customUnitId = comp.customUnitId,
+                  componentOrder = index,
+              )
+            }
+        customRecipeRepository.insertRecipeWithComponents(newRecipe, newComponents)
+      }
+      closeDialog()
     }
+  }
+
+  fun deleteRecipe(recipeId: Int) {
+    viewModelScope.launch {
+      customRecipeRepository.deleteRecipeWithComponents(recipeId)
+    }
+  }
+
+  fun toggleArchived(recipeId: Int, isArchived: Boolean) {
+    viewModelScope.launch {
+      customRecipeRepository.setArchived(recipeId, !isArchived)
+    }
+  }
+
+  fun useRecipe(recipeId: Int) {
+    viewModelScope.launch {
+      customRecipeRepository.updateLastUsedDate(recipeId, Instant.now())
+    }
+  }
 }
 
 data class RecipeComponentState(
@@ -203,5 +214,5 @@ data class RecipeComponentState(
     val units: String = "",
     val administrationRoute: AdministrationRoute = AdministrationRoute.ORAL,
     val customUnitId: Int? = null,
-    val id: String = java.util.UUID.randomUUID().toString()
+    val id: String = java.util.UUID.randomUUID().toString(),
 )

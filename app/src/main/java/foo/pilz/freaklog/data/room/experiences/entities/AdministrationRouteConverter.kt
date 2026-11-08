@@ -25,26 +25,25 @@ import foo.pilz.freaklog.data.substances.AdministrationRoute
 /**
  * Persists [AdministrationRoute] as a TEXT column using [AdministrationRoute.name].
  *
- * Unlike Room's built-in enum converter, this converter is defensive on read:
- * unknown values (such as removed enum constants like KINECTEEN and MEDIKINET)
- * fall back to [AdministrationRoute.ORAL] instead of throwing an exception.
+ * Unlike Room's built-in enum converter, this converter is defensive on read: unknown values (such
+ * as removed enum constants like KINECTEEN and MEDIKINET) fall back to [AdministrationRoute.ORAL]
+ * instead of throwing an exception.
  */
 class AdministrationRouteConverter {
-    @TypeConverter
-    fun fromAdministrationRoute(route: AdministrationRoute?): String? = route?.name
+  @TypeConverter fun fromAdministrationRoute(route: AdministrationRoute?): String? = route?.name
 
-    @TypeConverter
-    fun toAdministrationRoute(value: String?): AdministrationRoute? {
-        if (value == null) return null
-        return try {
-            AdministrationRoute.valueOf(value)
-        } catch (e: IllegalArgumentException) {
-            Log.w(TAG, "Unknown AdministrationRoute value: $value, falling back to ORAL")
-            AdministrationRoute.ORAL
-        }
+  @TypeConverter
+  fun toAdministrationRoute(value: String?): AdministrationRoute? {
+    if (value == null) return null
+    return try {
+      AdministrationRoute.valueOf(value)
+    } catch (e: IllegalArgumentException) {
+      Log.w(TAG, "Unknown AdministrationRoute value: $value, falling back to ORAL")
+      AdministrationRoute.ORAL
     }
+  }
 
-    companion object {
-        private const val TAG = "AdministrationRouteConverter"
-    }
+  companion object {
+    private const val TAG = "AdministrationRouteConverter"
+  }
 }

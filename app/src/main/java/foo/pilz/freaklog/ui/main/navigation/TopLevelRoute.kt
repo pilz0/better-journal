@@ -22,40 +22,62 @@ data class TopLevelRoute<T : Any>(
     val filledIcon: ImageVector,
     val outlinedIcon: ImageVector,
 )
+
 fun topLevelRoutes(
     hideSafer: Boolean = false,
     hideStats: Boolean = false,
     hideDrugs: Boolean = false,
     showInventory: Boolean = false,
-) = listOfNotNull(
-    TopLevelRoute("Stats", StatsTopLevelRoute, Icons.Filled.BarChart, Icons.Outlined.BarChart),
-    TopLevelRoute("Journal", JournalTopLevelRoute, Icons.Filled.Book, Icons.Outlined.Book),
-    TopLevelRoute("Drugs", DrugsTopLevelRoute, Icons.Filled.Medication, Icons.Outlined.Medication),
-    TopLevelRoute("Safer", SaferUseTopLevelRoute, Icons.Filled.HealthAndSafety, Icons.Outlined.HealthAndSafety),
-    if (showInventory) {
-        TopLevelRoute("Inventory", InventoryTopLevelRoute, Icons.Filled.Inventory2, Icons.Outlined.Inventory2)
-    } else null,
-    TopLevelRoute("Settings", SettingsTopLevelRoute, Icons.Filled.Settings, Icons.Outlined.Settings)
-).filter {
-    (!hideSafer || it.route != SaferUseTopLevelRoute) &&
-            (!hideStats || it.route != StatsTopLevelRoute) &&
-            (!hideDrugs || it.route != DrugsTopLevelRoute)
-}
+) =
+    listOfNotNull(
+            TopLevelRoute(
+                "Stats",
+                StatsTopLevelRoute,
+                Icons.Filled.BarChart,
+                Icons.Outlined.BarChart,
+            ),
+            TopLevelRoute("Journal", JournalTopLevelRoute, Icons.Filled.Book, Icons.Outlined.Book),
+            TopLevelRoute(
+                "Drugs",
+                DrugsTopLevelRoute,
+                Icons.Filled.Medication,
+                Icons.Outlined.Medication,
+            ),
+            TopLevelRoute(
+                "Safer",
+                SaferUseTopLevelRoute,
+                Icons.Filled.HealthAndSafety,
+                Icons.Outlined.HealthAndSafety,
+            ),
+            if (showInventory) {
+              TopLevelRoute(
+                  "Inventory",
+                  InventoryTopLevelRoute,
+                  Icons.Filled.Inventory2,
+                  Icons.Outlined.Inventory2,
+              )
+            } else null,
+            TopLevelRoute(
+                "Settings",
+                SettingsTopLevelRoute,
+                Icons.Filled.Settings,
+                Icons.Outlined.Settings,
+            ),
+        )
+        .filter {
+          (!hideSafer || it.route != SaferUseTopLevelRoute) &&
+              (!hideStats || it.route != StatsTopLevelRoute) &&
+              (!hideDrugs || it.route != DrugsTopLevelRoute)
+        }
 
-@Serializable
-object StatsTopLevelRoute
+@Serializable object StatsTopLevelRoute
 
-@Serializable
-object JournalTopLevelRoute
+@Serializable object JournalTopLevelRoute
 
-@Serializable
-object DrugsTopLevelRoute
+@Serializable object DrugsTopLevelRoute
 
-@Serializable
-object SaferUseTopLevelRoute
+@Serializable object SaferUseTopLevelRoute
 
-@Serializable
-object InventoryTopLevelRoute
+@Serializable object InventoryTopLevelRoute
 
-@Serializable
-object SettingsTopLevelRoute
+@Serializable object SettingsTopLevelRoute

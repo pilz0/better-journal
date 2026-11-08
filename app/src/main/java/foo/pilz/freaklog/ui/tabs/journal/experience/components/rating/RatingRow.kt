@@ -34,58 +34,59 @@ import foo.pilz.freaklog.data.room.experiences.entities.ShulginRating
 fun TimedRatingRow(
     modifier: Modifier = Modifier,
     ratingSign: String,
-    timeText: @Composable () -> Unit
+    timeText: @Composable () -> Unit,
 ) {
-    RatingRow(
-        modifier = modifier,
-        ratingSign = ratingSign,
-        content = timeText
-    )
+  RatingRow(
+      modifier = modifier,
+      ratingSign = ratingSign,
+      content = timeText,
+  )
 }
 
 @Composable
 fun OverallRatingRow(
     modifier: Modifier = Modifier,
-    ratingSign: String
+    ratingSign: String,
 ) {
-    RatingRow(
-        modifier = modifier,
-        ratingSign = ratingSign
-    ) {
-        Text(
-            text = "Overall rating",
-            style = MaterialTheme.typography.bodyLarge
-        )
-    }
+  RatingRow(
+      modifier = modifier,
+      ratingSign = ratingSign,
+  ) {
+    Text(
+        text = "Overall rating",
+        style = MaterialTheme.typography.bodyLarge,
+    )
+  }
 }
-
 
 @Composable
 private fun RatingRow(
     modifier: Modifier = Modifier,
     ratingSign: String,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-        modifier = modifier
-    ) {
-        content()
-        Text(
-            text = ratingSign,
-            style = MaterialTheme.typography.titleMedium
-        )
-    }
+  Row(
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.SpaceBetween,
+      modifier = modifier,
+  ) {
+    content()
+    Text(
+        text = ratingSign,
+        style = MaterialTheme.typography.titleMedium,
+    )
+  }
 }
 
 @Preview
 @Composable
-private fun RatingRowPreview(@PreviewParameter(RatingPreviewProvider::class) rating: ShulginRating) {
-    RatingRow(
-        ratingSign = rating.option.sign,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(text = "Sat 7:34")
-    }
+private fun RatingRowPreview(
+    @PreviewParameter(RatingPreviewProvider::class) rating: ShulginRating
+) {
+  RatingRow(
+      ratingSign = rating.option.sign,
+      modifier = Modifier.fillMaxWidth(),
+  ) {
+    Text(text = "Sat 7:34")
+  }
 }

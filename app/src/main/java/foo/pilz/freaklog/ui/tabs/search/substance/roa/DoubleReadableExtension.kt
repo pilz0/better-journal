@@ -28,21 +28,22 @@ private val usSymbols = DecimalFormatSymbols(Locale.US)
 // DecimalFormat is not thread-safe, so each thread gets its own set, indexed by precision:
 // "#", "#.#", "#.##", "#.###"
 private val readableFormats = ThreadLocal.withInitial {
-    arrayOf("#", "#.#", "#.##", "#.###").map { DecimalFormat(it, usSymbols) }
+  arrayOf("#", "#.#", "#.##", "#.###").map { DecimalFormat(it, usSymbols) }
 }
 
 fun Double.toReadableString(): String {
-    if (!this.isFinite()) return ""
-    val absValue = kotlin.math.abs(this)
-    val fractionDigits = when {
+  if (!this.isFinite()) return ""
+  val absValue = kotlin.math.abs(this)
+  val fractionDigits =
+      when {
         absValue >= 100 -> 0
         absValue >= 10 -> 1
         absValue >= 1 -> 2
         else -> 3
-    }
-    return readableFormats.get()!![fractionDigits].format(this)
+      }
+  return readableFormats.get()!![fractionDigits].format(this)
 }
 
 fun Double.toPreservedString(): String {
-    return this.toString()
+  return this.toString()
 }

@@ -32,76 +32,74 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.delay
 
 @Composable
-fun AchievementPopup(
-    viewModel: AchievementViewModel = hiltViewModel()
-) {
-    val achievements by viewModel.achievementsFlow.collectAsState()
-    var popupDef by remember { mutableStateOf<AchievementDef?>(null) }
-    var visible by remember { mutableStateOf(false) }
+fun AchievementPopup(viewModel: AchievementViewModel = hiltViewModel()) {
+  val achievements by viewModel.achievementsFlow.collectAsState()
+  var popupDef by remember { mutableStateOf<AchievementDef?>(null) }
+  var visible by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        viewModel.newlyUnlocked.collect { def ->
-            popupDef = def
-            visible = true
-            delay(4000)
-            visible = false
-        }
+  LaunchedEffect(Unit) {
+    viewModel.newlyUnlocked.collect { def ->
+      popupDef = def
+      visible = true
+      delay(4000)
+      visible = false
     }
+  }
 
-    if (achievements.isEmpty()) return
+  if (achievements.isEmpty()) return
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        AnimatedVisibility(
-            visible = visible,
-            enter = slideInVertically(
+  Box(modifier = Modifier.fillMaxSize()) {
+    AnimatedVisibility(
+        visible = visible,
+        enter =
+            slideInVertically(
                 initialOffsetY = { it },
-                animationSpec = tween(400)
+                animationSpec = tween(400),
             ) + fadeIn(animationSpec = tween(300)),
-            exit = slideOutVertically(
+        exit =
+            slideOutVertically(
                 targetOffsetY = { it },
-                animationSpec = tween(300)
+                animationSpec = tween(300),
             ) + fadeOut(animationSpec = tween(200)),
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(horizontal = 16.dp, vertical = 24.dp)
+        modifier =
+            Modifier.align(Alignment.BottomCenter).padding(horizontal = 16.dp, vertical = 24.dp),
+    ) {
+      popupDef?.let { def ->
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors =
+                CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                ),
+            shape = MaterialTheme.shapes.large,
         ) {
-            popupDef?.let { def ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    ),
-                    shape = MaterialTheme.shapes.large
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text(
-                            text = "Achievement Unlocked",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
-                        )
-                        Text(
-                            text = def.title,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                        Text(
-                            text = def.description,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                        )
-                    }
-                }
-            }
+          Column(
+              modifier = Modifier.fillMaxWidth().padding(16.dp),
+              verticalArrangement = Arrangement.spacedBy(4.dp),
+          ) {
+            Text(
+                text = "Achievement Unlocked",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
+            )
+            Text(
+                text = def.title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+            Text(
+                text = def.description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+            )
+          }
         }
+      }
     }
+  }
 }

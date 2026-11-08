@@ -58,60 +58,55 @@ import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
 fun WebhooksListScreen(
     navigateBack: () -> Unit,
     navigateToEditor: (Int?) -> Unit,
-    viewModel: WebhooksListViewModel = hiltViewModel()
+    viewModel: WebhooksListViewModel = hiltViewModel(),
 ) {
-    val webhooks by viewModel.webhooks.collectAsState()
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Webhooks") },
-                navigationIcon = {
-                    IconButton(onClick = navigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                }
-            )
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                text = { Text("Add webhook") },
-                icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                onClick = { navigateToEditor(null) }
-            )
+  val webhooks by viewModel.webhooks.collectAsState()
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Webhooks") },
+            navigationIcon = {
+              IconButton(onClick = navigateBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+              }
+            },
+        )
+      },
+      floatingActionButton = {
+        ExtendedFloatingActionButton(
+            text = { Text("Add webhook") },
+            icon = { Icon(Icons.Default.Add, contentDescription = null) },
+            onClick = { navigateToEditor(null) },
+        )
+      },
+  ) { padding ->
+    if (webhooks.isEmpty()) {
+      Box(
+          modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
+          contentAlignment = Alignment.Center,
+      ) {
+        Text(
+            "No webhooks configured. Tap \"Add webhook\" to create one.",
+            style = MaterialTheme.typography.bodyMedium,
+        )
+      }
+    } else {
+      LazyColumn(
+          modifier = Modifier.fillMaxSize().padding(padding),
+          contentPadding = PaddingValues(8.dp),
+          verticalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+        items(webhooks, key = { it.id }) { webhook ->
+          WebhookRow(
+              webhook = webhook,
+              onToggle = { viewModel.toggleEnabled(webhook) },
+              onEdit = { navigateToEditor(webhook.id) },
+              onDelete = { viewModel.delete(webhook) },
+          )
         }
-    ) { padding ->
-        if (webhooks.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(24.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "No webhooks configured. Tap \"Add webhook\" to create one.",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentPadding = PaddingValues(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(webhooks, key = { it.id }) { webhook ->
-                    WebhookRow(
-                        webhook = webhook,
-                        onToggle = { viewModel.toggleEnabled(webhook) },
-                        onEdit = { navigateToEditor(webhook.id) },
-                        onDelete = { viewModel.delete(webhook) }
-                    )
-                }
-            }
-        }
+      }
     }
+  }
 }
 
 @Composable
@@ -119,75 +114,80 @@ private fun WebhookRow(
     webhook: Webhook,
     onToggle: () -> Unit,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
 ) {
-    var showMenu by remember { mutableStateOf(false) }
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = webhook.name.ifBlank { "Webhook" },
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                val host = remember(webhook.url) {
-                    runCatching { java.net.URI(webhook.url).host }.getOrNull().orEmpty()
-                }
-                Text(
-                    text = host.ifBlank { "(no URL)" },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-            Switch(checked = webhook.isEnabled, onCheckedChange = { onToggle() })
-            Box {
-                IconButton(onClick = { showMenu = true }) {
-                    Icon(Icons.Default.MoreVert, contentDescription = "Actions")
-                }
-                DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
-                    DropdownMenuItem(
-                        text = { Text("Edit") },
-                        leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
-                        onClick = {
-                            showMenu = false
-                            onEdit()
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Delete") },
-                        leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) },
-                        onClick = {
-                            showMenu = false
-                            showDeleteDialog = true
-                        }
-                    )
-                }
-            }
-        }
-    }
-    if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete webhook?") },
-            text = { Text("This removes the webhook configuration. Past Discord messages won't be deleted.") },
-            confirmButton = {
-                TextButton(onClick = {
-                    showDeleteDialog = false
-                    onDelete()
-                }) { Text("Delete") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Cancel") }
-            }
+  var showMenu by remember { mutableStateOf(false) }
+  var showDeleteDialog by remember { mutableStateOf(false) }
+  Card(modifier = Modifier.fillMaxWidth()) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Column(modifier = Modifier.weight(1f)) {
+        Text(
+            text = webhook.name.ifBlank { "Webhook" },
+            style = MaterialTheme.typography.titleMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
+        val host =
+            remember(webhook.url) {
+              runCatching { java.net.URI(webhook.url).host }.getOrNull().orEmpty()
+            }
+        Text(
+            text = host.ifBlank { "(no URL)" },
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+      }
+      Switch(checked = webhook.isEnabled, onCheckedChange = { onToggle() })
+      Box {
+        IconButton(onClick = { showMenu = true }) {
+          Icon(Icons.Default.MoreVert, contentDescription = "Actions")
+        }
+        DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+          DropdownMenuItem(
+              text = { Text("Edit") },
+              leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
+              onClick = {
+                showMenu = false
+                onEdit()
+              },
+          )
+          DropdownMenuItem(
+              text = { Text("Delete") },
+              leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) },
+              onClick = {
+                showMenu = false
+                showDeleteDialog = true
+              },
+          )
+        }
+      }
     }
+  }
+  if (showDeleteDialog) {
+    AlertDialog(
+        onDismissRequest = { showDeleteDialog = false },
+        title = { Text("Delete webhook?") },
+        text = {
+          Text("This removes the webhook configuration. Past Discord messages won't be deleted.")
+        },
+        confirmButton = {
+          TextButton(
+              onClick = {
+                showDeleteDialog = false
+                onDelete()
+              }
+          ) {
+            Text("Delete")
+          }
+        },
+        dismissButton = {
+          TextButton(onClick = { showDeleteDialog = false }) { Text("Cancel") }
+        },
+    )
+  }
 }

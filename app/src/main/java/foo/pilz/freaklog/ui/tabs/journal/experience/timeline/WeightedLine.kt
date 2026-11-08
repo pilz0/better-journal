@@ -24,5 +24,5 @@ data class WeightedLine(
     val startTime: Instant,
     val endTime: Instant?,
     val horizontalWeight: Float,
-    val height: Float
+    val height: Float,
 )

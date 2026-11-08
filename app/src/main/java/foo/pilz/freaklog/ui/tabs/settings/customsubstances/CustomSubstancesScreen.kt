@@ -44,104 +44,109 @@ fun CustomSubstancesScreen(
     navigateToEditCustomSubstance: (customSubstanceId: Int) -> Unit,
     viewModel: CustomSubstancesViewModel = hiltViewModel(),
 ) {
-    val context = LocalContext.current
-    val substances by viewModel.filteredCustomSubstancesFlow.collectAsStateWithLifecycle()
-    val searchText by viewModel.searchTextFlow.collectAsStateWithLifecycle()
-    val collision by viewModel.pendingCollision.collectAsStateWithLifecycle()
-    val snackbarText by viewModel.snackbar.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
+  val context = LocalContext.current
+  val substances by viewModel.filteredCustomSubstancesFlow.collectAsStateWithLifecycle()
+  val searchText by viewModel.searchTextFlow.collectAsStateWithLifecycle()
+  val collision by viewModel.pendingCollision.collectAsStateWithLifecycle()
+  val snackbarText by viewModel.snackbar.collectAsStateWithLifecycle()
+  val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(snackbarText) {
-        snackbarText?.let {
-            snackbarHostState.showSnackbar(it)
-            viewModel.consumeSnackbar()
-        }
+  LaunchedEffect(snackbarText) {
+    snackbarText?.let {
+      snackbarHostState.showSnackbar(it)
+      viewModel.consumeSnackbar()
     }
+  }
 
-    val importLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
-    ) { uri: Uri? ->
+  val importLauncher =
+      rememberLauncherForActivityResult(contract = ActivityResultContracts.OpenDocument()) {
+          uri: Uri? ->
         uri?.let { viewModel.importFromUri(context, it) }
-    }
+      }
 
-    val spacing = LocalSpacing.current
+  val spacing = LocalSpacing.current
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Custom substances") },
-                actions = {
-                    IconButton(onClick = {
-                        importLauncher.launch(arrayOf("application/json", "*/*"))
-                    }) {
-                        Icon(Icons.Outlined.FileDownload, contentDescription = "Import substance")
-                    }
-                },
-            )
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                text = { Text("Custom substance") },
-                icon = { Icon(Icons.Default.Add, contentDescription = "Add custom substance") },
-                onClick = navigateToAddCustomSubstance,
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize(),
-        ) {
-            SearchBar(
-                searchText = searchText,
-                onChangeSearchText = viewModel::onSearch,
-                placeholder = "Search custom substances",
-            )
-            if (substances.isEmpty()) {
-                if (searchText.isEmpty()) {
-                    EmptyScreenDisclaimer(
-                        title = "No custom substances yet",
-                        description = "Add your first substance",
-                        icon = Icons.Outlined.Science,
-                    )
-                } else {
-                    EmptyScreenDisclaimer(
-                        title = "No custom substances found",
-                        description = "No custom substance matches your search",
-                        icon = Icons.Outlined.Science,
-                    )
-                }
-            } else {
-                LazyColumn(
-                    contentPadding = PaddingValues(
-                        vertical = spacing.sm,
-                        horizontal = spacing.screenHorizontal
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(spacing.sm),
-                ) {
-                    items(substances, key = { it.id }) { substance ->
-                        CustomSubstanceCard(
-                            substance = substance,
-                            onClick = { navigateToEditCustomSubstance(substance.id) },
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    collision?.let { payload ->
-        AlertDialog(
-            onDismissRequest = viewModel::resolveCancel,
-            title = { Text("Substance already exists") },
-            text = { Text("A custom substance named \"${payload.name}\" is already saved. What do you want to do?") },
-            confirmButton = {
-                TextButton(onClick = viewModel::resolveReplace) { Text("Replace") }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::resolveKeepBoth) { Text("Keep both") }
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Custom substances") },
+            actions = {
+              IconButton(
+                  onClick = {
+                    importLauncher.launch(arrayOf("application/json", "*/*"))
+                  }
+              ) {
+                Icon(Icons.Outlined.FileDownload, contentDescription = "Import substance")
+              }
             },
         )
+      },
+      floatingActionButton = {
+        ExtendedFloatingActionButton(
+            text = { Text("Custom substance") },
+            icon = { Icon(Icons.Default.Add, contentDescription = "Add custom substance") },
+            onClick = navigateToAddCustomSubstance,
+        )
+      },
+      snackbarHost = { SnackbarHost(snackbarHostState) },
+  ) { padding ->
+    Column(
+        modifier = Modifier.padding(padding).fillMaxSize(),
+    ) {
+      SearchBar(
+          searchText = searchText,
+          onChangeSearchText = viewModel::onSearch,
+          placeholder = "Search custom substances",
+      )
+      if (substances.isEmpty()) {
+        if (searchText.isEmpty()) {
+          EmptyScreenDisclaimer(
+              title = "No custom substances yet",
+              description = "Add your first substance",
+              icon = Icons.Outlined.Science,
+          )
+        } else {
+          EmptyScreenDisclaimer(
+              title = "No custom substances found",
+              description = "No custom substance matches your search",
+              icon = Icons.Outlined.Science,
+          )
+        }
+      } else {
+        LazyColumn(
+            contentPadding =
+                PaddingValues(
+                    vertical = spacing.sm,
+                    horizontal = spacing.screenHorizontal,
+                ),
+            verticalArrangement = Arrangement.spacedBy(spacing.sm),
+        ) {
+          items(substances, key = { it.id }) { substance ->
+            CustomSubstanceCard(
+                substance = substance,
+                onClick = { navigateToEditCustomSubstance(substance.id) },
+            )
+          }
+        }
+      }
     }
+  }
+
+  collision?.let { payload ->
+    AlertDialog(
+        onDismissRequest = viewModel::resolveCancel,
+        title = { Text("Substance already exists") },
+        text = {
+          Text(
+              "A custom substance named \"${payload.name}\" is already saved. What do you want to do?"
+          )
+        },
+        confirmButton = {
+          TextButton(onClick = viewModel::resolveReplace) { Text("Replace") }
+        },
+        dismissButton = {
+          TextButton(onClick = viewModel::resolveKeepBoth) { Text("Keep both") }
+        },
+    )
+  }
 }

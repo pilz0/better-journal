@@ -18,19 +18,20 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
 class AiAnodyneSecurityTest {
-    @Test
-    fun freeformPrivateTextCannotBecomeAWikiRequest() = runTest {
-        val client = mockk<AnodyneWikiClient>()
-        val prefs = mockk<UserPreferences> { every { aiAnodyneEnabledFlow } returns flowOf(true) }
-        val substances = mockk<SubstanceRepository> { every { getAllSubstances() } returns emptyList() }
-        val tools = AiAnodyneTools(client, prefs, substances)
-        listOf("search_anodyne_wiki" to "query", "lookup_anodyne_wiki" to "substance").forEach { (tool, param) ->
-            val result = tools.execute(tool, mapOf(param to "My private journal at home"))!!
-            assertEquals("error", result.getString("status"))
-        }
-        coVerify(exactly = 0) { client.search(any(), any(), any()) }
-        coVerify(exactly = 0) { client.substance(any(), any()) }
-        assertNotNull(tools.approvedPublicName("MDMA"))
-        assertNull(tools.approvedPublicName("MDMA/private-secret"))
+  @Test
+  fun freeformPrivateTextCannotBecomeAWikiRequest() = runTest {
+    val client = mockk<AnodyneWikiClient>()
+    val prefs = mockk<UserPreferences> { every { aiAnodyneEnabledFlow } returns flowOf(true) }
+    val substances = mockk<SubstanceRepository> { every { getAllSubstances() } returns emptyList() }
+    val tools = AiAnodyneTools(client, prefs, substances)
+    listOf("search_anodyne_wiki" to "query", "lookup_anodyne_wiki" to "substance").forEach {
+        (tool, param) ->
+      val result = tools.execute(tool, mapOf(param to "My private journal at home"))!!
+      assertEquals("error", result.getString("status"))
     }
+    coVerify(exactly = 0) { client.search(any(), any(), any()) }
+    coVerify(exactly = 0) { client.substance(any(), any()) }
+    assertNotNull(tools.approvedPublicName("MDMA"))
+    assertNull(tools.approvedPublicName("MDMA/private-secret"))
+  }
 }

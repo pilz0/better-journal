@@ -25,5 +25,5 @@ data class ConsumerWithIngestions(
     val consumerName: String,
     val ingestionElements: List<IngestionElement>,
     val dataForEffectLines: List<DataForOneEffectLine>,
-    val timelineDisplayOption: TimelineDisplayOption
+    val timelineDisplayOption: TimelineDisplayOption,
 )

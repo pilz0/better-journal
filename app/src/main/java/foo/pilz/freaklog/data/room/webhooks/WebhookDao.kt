@@ -24,51 +24,43 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface WebhookDao {
 
-    @Query("SELECT * FROM webhook ORDER BY sortOrder ASC, id ASC")
-    fun getAllFlow(): Flow<List<Webhook>>
+  @Query("SELECT * FROM webhook ORDER BY sortOrder ASC, id ASC")
+  fun getAllFlow(): Flow<List<Webhook>>
 
-    @Query("SELECT * FROM webhook ORDER BY sortOrder ASC, id ASC")
-    suspend fun getAll(): List<Webhook>
+  @Query("SELECT * FROM webhook ORDER BY sortOrder ASC, id ASC") suspend fun getAll(): List<Webhook>
 
-    @Query("SELECT * FROM webhook WHERE isEnabled = 1 ORDER BY sortOrder ASC, id ASC")
-    fun getEnabledFlow(): Flow<List<Webhook>>
+  @Query("SELECT * FROM webhook WHERE isEnabled = 1 ORDER BY sortOrder ASC, id ASC")
+  fun getEnabledFlow(): Flow<List<Webhook>>
 
-    @Query("SELECT * FROM webhook WHERE isEnabled = 1 ORDER BY sortOrder ASC, id ASC")
-    suspend fun getEnabled(): List<Webhook>
+  @Query("SELECT * FROM webhook WHERE isEnabled = 1 ORDER BY sortOrder ASC, id ASC")
+  suspend fun getEnabled(): List<Webhook>
 
-    @Query("SELECT * FROM webhook WHERE id = :id")
-    suspend fun getById(id: Int): Webhook?
+  @Query("SELECT * FROM webhook WHERE id = :id") suspend fun getById(id: Int): Webhook?
 
-    @Query("SELECT COUNT(*) FROM webhook")
-    suspend fun count(): Int
+  @Query("SELECT COUNT(*) FROM webhook") suspend fun count(): Int
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
-    suspend fun insert(webhook: Webhook): Long
+  @Insert(onConflict = OnConflictStrategy.ABORT) suspend fun insert(webhook: Webhook): Long
 
-    @Update
-    suspend fun updateRow(webhook: Webhook)
+  @Update suspend fun updateRow(webhook: Webhook)
 
-    @Upsert
-    suspend fun upsertRow(webhook: Webhook): Long
+  @Upsert suspend fun upsertRow(webhook: Webhook): Long
 
-    @Query("DELETE FROM ingestion_webhook_message WHERE webhookId = :webhookId")
-    suspend fun invalidateMessages(webhookId: Int)
+  @Query("DELETE FROM ingestion_webhook_message WHERE webhookId = :webhookId")
+  suspend fun invalidateMessages(webhookId: Int)
 
-    @Transaction
-    suspend fun update(webhook: Webhook) {
-        if (getById(webhook.id)?.url != webhook.url) invalidateMessages(webhook.id)
-        updateRow(webhook)
-    }
+  @Transaction
+  suspend fun update(webhook: Webhook) {
+    if (getById(webhook.id)?.url != webhook.url) invalidateMessages(webhook.id)
+    updateRow(webhook)
+  }
 
-    @Transaction
-    suspend fun upsert(webhook: Webhook): Long {
-        if (getById(webhook.id)?.url != webhook.url) invalidateMessages(webhook.id)
-        return upsertRow(webhook)
-    }
+  @Transaction
+  suspend fun upsert(webhook: Webhook): Long {
+    if (getById(webhook.id)?.url != webhook.url) invalidateMessages(webhook.id)
+    return upsertRow(webhook)
+  }
 
-    @Delete
-    suspend fun delete(webhook: Webhook)
+  @Delete suspend fun delete(webhook: Webhook)
 
-    @Query("DELETE FROM webhook")
-    suspend fun deleteAll()
+  @Query("DELETE FROM webhook") suspend fun deleteAll()
 }

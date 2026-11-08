@@ -19,6 +19,7 @@ import assertk.assertions.hasSize
 import assertk.assertions.isEqualTo
 import foo.pilz.freaklog.data.room.AppDatabase
 import foo.pilz.freaklog.testing.EntityBuilders
+import java.time.Instant
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -27,99 +28,105 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import java.time.Instant
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
 class ExperienceDaoTest {
 
-    private lateinit var db: AppDatabase
-    private lateinit var dao: ExperienceDao
+  private lateinit var db: AppDatabase
+  private lateinit var dao: ExperienceDao
 
-    @Before
-    fun setUp() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        db = Room
-            .inMemoryDatabaseBuilder(context, AppDatabase::class.java)
+  @Before
+  fun setUp() {
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    db =
+        Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-        dao = db.experienceDao()
-    }
+    dao = db.experienceDao()
+  }
 
-    @After
-    fun tearDown() {
-        db.close()
-    }
+  @After
+  fun tearDown() {
+    db.close()
+  }
 
-    @Test
-    fun `getIngestionWithExperiencesFlow includes ingestion when time is exactly equal to fromInstant`() = runTest {
+  @Test
+  fun `getIngestionWithExperiencesFlow includes ingestion when time is exactly equal to fromInstant`() =
+      runTest {
         val fromInstant = Instant.parse("2026-05-01T12:00:00Z")
         val toInstant = Instant.parse("2026-05-02T12:00:00Z")
 
         val expId = dao.insert(EntityBuilders.experience(title = "Boundary Trip")).toInt()
-        val exactIngestionId = dao.insert(
-            EntityBuilders.ingestion(
-                experienceId = expId,
-                substanceName = "MDMA",
-                time = fromInstant,
-            )
-        ).toInt()
+        val exactIngestionId =
+            dao.insert(
+                    EntityBuilders.ingestion(
+                        experienceId = expId,
+                        substanceName = "MDMA",
+                        time = fromInstant,
+                    )
+                )
+                .toInt()
 
         val results = dao.getIngestionWithExperiencesFlow(fromInstant, toInstant).first()
         assertThat(results).hasSize(1)
         assertThat(results.first().ingestion.id).isEqualTo(exactIngestionId)
-    }
+      }
 
-    @Test
-    fun `getIngestionWithExperiencesFlow correctly filters boundary conditions`() = runTest {
-        val fromInstant = Instant.parse("2026-05-01T12:00:00Z")
-        val toInstant = Instant.parse("2026-05-02T12:00:00Z")
+  @Test
+  fun `getIngestionWithExperiencesFlow correctly filters boundary conditions`() = runTest {
+    val fromInstant = Instant.parse("2026-05-01T12:00:00Z")
+    val toInstant = Instant.parse("2026-05-02T12:00:00Z")
 
-        val expId = dao.insert(EntityBuilders.experience(title = "Multi-Ingestion Trip")).toInt()
+    val expId = dao.insert(EntityBuilders.experience(title = "Multi-Ingestion Trip")).toInt()
 
-        // 1 second before window (should be excluded)
-        dao.insert(
-            EntityBuilders.ingestion(
-                experienceId = expId,
-                substanceName = "Before",
-                time = fromInstant.minusSeconds(1),
-            )
+    // 1 second before window (should be excluded)
+    dao.insert(
+        EntityBuilders.ingestion(
+            experienceId = expId,
+            substanceName = "Before",
+            time = fromInstant.minusSeconds(1),
         )
-        // Exactly at fromInstant (should be included)
-        val atFromId = dao.insert(
-            EntityBuilders.ingestion(
-                experienceId = expId,
-                substanceName = "AtFrom",
-                time = fromInstant,
-            )
-        ).toInt()
-        // Mid-window (should be included)
-        val midId = dao.insert(
-            EntityBuilders.ingestion(
-                experienceId = expId,
-                substanceName = "Mid",
-                time = fromInstant.plusSeconds(3600),
-            )
-        ).toInt()
-        // Exactly at toInstant (should be excluded by time < toInstant)
+    )
+    // Exactly at fromInstant (should be included)
+    val atFromId =
         dao.insert(
-            EntityBuilders.ingestion(
-                experienceId = expId,
-                substanceName = "AtTo",
-                time = toInstant,
+                EntityBuilders.ingestion(
+                    experienceId = expId,
+                    substanceName = "AtFrom",
+                    time = fromInstant,
+                )
             )
-        )
-        // After toInstant (should be excluded)
+            .toInt()
+    // Mid-window (should be included)
+    val midId =
         dao.insert(
-            EntityBuilders.ingestion(
-                experienceId = expId,
-                substanceName = "AfterTo",
-                time = toInstant.plusSeconds(60),
+                EntityBuilders.ingestion(
+                    experienceId = expId,
+                    substanceName = "Mid",
+                    time = fromInstant.plusSeconds(3600),
+                )
             )
+            .toInt()
+    // Exactly at toInstant (should be excluded by time < toInstant)
+    dao.insert(
+        EntityBuilders.ingestion(
+            experienceId = expId,
+            substanceName = "AtTo",
+            time = toInstant,
         )
+    )
+    // After toInstant (should be excluded)
+    dao.insert(
+        EntityBuilders.ingestion(
+            experienceId = expId,
+            substanceName = "AfterTo",
+            time = toInstant.plusSeconds(60),
+        )
+    )
 
-        val results = dao.getIngestionWithExperiencesFlow(fromInstant, toInstant).first()
-        val resultIds = results.map { it.ingestion.id }
-        assertThat(resultIds).containsExactly(atFromId, midId)
-    }
+    val results = dao.getIngestionWithExperiencesFlow(fromInstant, toInstant).first()
+    val resultIds = results.map { it.ingestion.id }
+    assertThat(resultIds).containsExactly(atFromId, midId)
+  }
 }

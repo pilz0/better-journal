@@ -40,33 +40,34 @@ import foo.pilz.freaklog.ui.theme.horizontalPadding
 
 @Composable
 fun InteractionRow(interaction: Interaction) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RectangleShape,
-        color = interaction.interactionType.color
-    ) {
-        Row(
-            modifier = Modifier.padding(
+  Surface(
+      modifier = Modifier.fillMaxWidth(),
+      shape = RectangleShape,
+      color = interaction.interactionType.color,
+  ) {
+    Row(
+        modifier =
+            Modifier.padding(
                 horizontal = horizontalPadding,
-                vertical = 4.dp
+                vertical = 4.dp,
             ),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "${interaction.aName} and ${interaction.bName}",
-                textAlign = TextAlign.Center,
-                color = Color.Black,
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                repeat(interaction.interactionType.dangerCount) {
-                    Icon(
-                        imageVector = Icons.Outlined.WarningAmber,
-                        contentDescription = "Warning",
-                        tint = Color.Black,
-                    )
-                }
-            }
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Text(
+          text = "${interaction.aName} and ${interaction.bName}",
+          textAlign = TextAlign.Center,
+          color = Color.Black,
+      )
+      Spacer(modifier = Modifier.weight(1f))
+      Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+        repeat(interaction.interactionType.dangerCount) {
+          Icon(
+              imageVector = Icons.Outlined.WarningAmber,
+              contentDescription = "Warning",
+              tint = Color.Black,
+          )
         }
+      }
     }
+  }
 }

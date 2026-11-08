@@ -24,11 +24,10 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 
-fun Modifier.textBrush(brush: Brush) = this
-    .graphicsLayer(alpha = 0.99f)
-    .drawWithCache {
-        onDrawWithContent {
-            drawContent()
-            drawRect(brush, blendMode = BlendMode.SrcAtop)
-        }
+fun Modifier.textBrush(brush: Brush) =
+    this.graphicsLayer(alpha = 0.99f).drawWithCache {
+      onDrawWithContent {
+        drawContent()
+        drawRect(brush, blendMode = BlendMode.SrcAtop)
+      }
     }

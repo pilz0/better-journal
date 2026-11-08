@@ -11,15 +11,12 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CustomFormulationDao {
-    @Query("SELECT * FROM custom_formulation")
-    fun getAll(): Flow<List<CustomFormulation>>
+  @Query("SELECT * FROM custom_formulation") fun getAll(): Flow<List<CustomFormulation>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(customFormulation: CustomFormulation): Long
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  suspend fun insert(customFormulation: CustomFormulation): Long
 
-    @Update
-    suspend fun update(customFormulation: CustomFormulation)
+  @Update suspend fun update(customFormulation: CustomFormulation)
 
-    @Delete
-    suspend fun delete(customFormulation: CustomFormulation)
+  @Delete suspend fun delete(customFormulation: CustomFormulation)
 }

@@ -8,8 +8,8 @@ import foo.pilz.freaklog.data.substances.classes.roa.DurationRange
 import kotlinx.serialization.Serializable
 
 /**
- * Format id written into shared files. It is the Codeberg fork's id, so files
- * can be exchanged with that app; [SHARED_SUBSTANCE_FORMATS] lists what is accepted.
+ * Format id written into shared files. It is the Codeberg fork's id, so files can be exchanged with
+ * that app; [SHARED_SUBSTANCE_FORMATS] lists what is accepted.
  */
 const val SHARED_SUBSTANCE_FORMAT = "gay.cybercrime.journal.substance"
 val SHARED_SUBSTANCE_FORMATS = setOf(SHARED_SUBSTANCE_FORMAT, "foo.pilz.freaklog.substance")

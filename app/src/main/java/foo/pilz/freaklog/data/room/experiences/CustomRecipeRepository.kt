@@ -23,66 +23,72 @@ import foo.pilz.freaklog.data.room.AppDatabase
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRecipe
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRecipeComponent
 import foo.pilz.freaklog.data.room.experiences.relations.CustomRecipeWithComponents
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.withContext
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
 
 @Singleton
-class CustomRecipeRepository @Inject constructor(
+class CustomRecipeRepository
+@Inject
+constructor(
     private val db: AppDatabase,
-    private val customRecipeDao: CustomRecipeDao
+    private val customRecipeDao: CustomRecipeDao,
 ) {
-    
-    fun getActiveRecipesFlow(): Flow<List<CustomRecipe>> = 
-        customRecipeDao.getActiveRecipesFlow()
-    
-    fun getArchivedRecipesFlow(): Flow<List<CustomRecipe>> = 
-        customRecipeDao.getArchivedRecipesFlow()
-    
-    fun getActiveRecipesWithComponentsFlow(): Flow<List<CustomRecipeWithComponents>> =
-        customRecipeDao.getActiveRecipesWithComponentsFlow()
-    
-    fun getArchivedRecipesWithComponentsFlow(): Flow<List<CustomRecipeWithComponents>> =
-        customRecipeDao.getArchivedRecipesWithComponentsFlow()
-    
-    suspend fun getRecipeWithComponents(recipeId: Int): CustomRecipeWithComponents? =
-        withContext(Dispatchers.IO) {
-            customRecipeDao.getRecipeWithComponents(recipeId)
+
+  fun getActiveRecipesFlow(): Flow<List<CustomRecipe>> = customRecipeDao.getActiveRecipesFlow()
+
+  fun getArchivedRecipesFlow(): Flow<List<CustomRecipe>> = customRecipeDao.getArchivedRecipesFlow()
+
+  fun getActiveRecipesWithComponentsFlow(): Flow<List<CustomRecipeWithComponents>> =
+      customRecipeDao.getActiveRecipesWithComponentsFlow()
+
+  fun getArchivedRecipesWithComponentsFlow(): Flow<List<CustomRecipeWithComponents>> =
+      customRecipeDao.getArchivedRecipesWithComponentsFlow()
+
+  suspend fun getRecipeWithComponents(recipeId: Int): CustomRecipeWithComponents? =
+      withContext(Dispatchers.IO) {
+        customRecipeDao.getRecipeWithComponents(recipeId)
+      }
+
+  suspend fun insertRecipeWithComponents(
+      recipe: CustomRecipe,
+      components: List<CustomRecipeComponent>,
+  ): Long =
+      withContext(Dispatchers.IO) {
+        customRecipeDao.insertRecipeWithComponents(recipe, components)
+      }
+
+  suspend fun updateRecipeWithComponents(
+      recipe: CustomRecipe,
+      components: List<CustomRecipeComponent>,
+  ) =
+      withContext(Dispatchers.IO) {
+        customRecipeDao.updateRecipeWithComponents(recipe, components)
+      }
+
+  suspend fun deleteRecipeWithComponents(recipeId: Int) =
+      withContext(Dispatchers.IO) {
+        customRecipeDao.deleteRecipeWithComponents(recipeId)
+      }
+
+  suspend fun updateLastUsedDate(recipeId: Int, timestamp: Instant = Instant.now()) =
+      withContext(Dispatchers.IO) {
+        customRecipeDao.updateLastUsedDate(recipeId, timestamp)
+      }
+
+  suspend fun setArchived(recipeId: Int, isArchived: Boolean) =
+      withContext(Dispatchers.IO) {
+        customRecipeDao.setArchived(recipeId, isArchived)
+      }
+
+  suspend fun deleteAllRecipes() =
+      withContext(Dispatchers.IO) {
+        db.withTransaction {
+          customRecipeDao.deleteAllRecipes()
+          customRecipeDao.deleteAllComponents()
         }
-    
-    suspend fun insertRecipeWithComponents(recipe: CustomRecipe, components: List<CustomRecipeComponent>): Long =
-        withContext(Dispatchers.IO) {
-            customRecipeDao.insertRecipeWithComponents(recipe, components)
-        }
-    
-    suspend fun updateRecipeWithComponents(recipe: CustomRecipe, components: List<CustomRecipeComponent>) =
-        withContext(Dispatchers.IO) {
-            customRecipeDao.updateRecipeWithComponents(recipe, components)
-        }
-    
-    suspend fun deleteRecipeWithComponents(recipeId: Int) =
-        withContext(Dispatchers.IO) {
-            customRecipeDao.deleteRecipeWithComponents(recipeId)
-        }
-    
-    suspend fun updateLastUsedDate(recipeId: Int, timestamp: Instant = Instant.now()) =
-        withContext(Dispatchers.IO) {
-            customRecipeDao.updateLastUsedDate(recipeId, timestamp)
-        }
-    
-    suspend fun setArchived(recipeId: Int, isArchived: Boolean) =
-        withContext(Dispatchers.IO) {
-            customRecipeDao.setArchived(recipeId, isArchived)
-        }
-    
-    suspend fun deleteAllRecipes() =
-        withContext(Dispatchers.IO) {
-            db.withTransaction {
-                customRecipeDao.deleteAllRecipes()
-                customRecipeDao.deleteAllComponents()
-            }
-        }
+      }
 }

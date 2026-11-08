@@ -16,8 +16,8 @@ name: Sign and publish
 
 on:
   workflow_run:
-    workflows: [ "Build and test" ]
-    types: [ completed ]
+    workflows: ["Build and test"]
+    types: [completed]
     # Note: do NOT use `branches:` here. The `branches` filter only matches
     # the upstream run's `head_branch` against branch names — for tag pushes,
     # `head_branch` is the tag short name (e.g. `v1.2.3`), not a branch, so a
@@ -142,7 +142,7 @@ jobs:
   # =========================================================================
   sign-apk:
     name: Sign Release APK
-    needs: [ preconditions ]
+    needs: [preconditions]
     if: needs.preconditions.outputs.should-release == 'true'
     runs-on: ubuntu-latest
     environment: signing
@@ -196,7 +196,7 @@ jobs:
 
   verify-signed-apk:
     name: Verify Signed APK
-    needs: [ sign-apk ]
+    needs: [sign-apk]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -219,7 +219,7 @@ jobs:
 
   sign-aab:
     name: Sign Release AAB
-    needs: [ preconditions ]
+    needs: [preconditions]
     if: needs.preconditions.outputs.should-release == 'true'
     runs-on: ubuntu-latest
     environment: signing
@@ -273,7 +273,7 @@ jobs:
 
   verify-signed-aab:
     name: Verify Signed AAB
-    needs: [ sign-aab ]
+    needs: [sign-aab]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -299,7 +299,7 @@ jobs:
   # =========================================================================
   attest:
     name: Attest build provenance
-    needs: [ preconditions, verify-signed-apk, verify-signed-aab ]
+    needs: [preconditions, verify-signed-apk, verify-signed-aab]
     if: needs.preconditions.outputs.should-release == 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -331,7 +331,7 @@ jobs:
   # =========================================================================
   upload-r2-apk:
     name: Upload APK to Cloudflare R2
-    needs: [ preconditions, attest ]
+    needs: [preconditions, attest]
     if: needs.preconditions.outputs.should-release == 'true'
     runs-on: ubuntu-latest
     environment: production
@@ -363,7 +363,7 @@ jobs:
 
   upload-r2-aab:
     name: Upload AAB to Cloudflare R2
-    needs: [ preconditions, attest ]
+    needs: [preconditions, attest]
     if: needs.preconditions.outputs.should-release == 'true'
     runs-on: ubuntu-latest
     environment: production
@@ -395,7 +395,7 @@ jobs:
 
   upload-google-play:
     name: Upload to Google Play (Internal track)
-    needs: [ preconditions, attest ]
+    needs: [preconditions, attest]
     if: needs.preconditions.outputs.should-release == 'true'
     runs-on: ubuntu-latest
     environment: internal-track
@@ -427,7 +427,8 @@ jobs:
   # =========================================================================
   create-release:
     name: Publish GitHub Release
-    needs: [ preconditions, attest, upload-r2-apk, upload-r2-aab, upload-google-play ]
+    needs:
+      [preconditions, attest, upload-r2-apk, upload-r2-aab, upload-google-play]
     if: needs.preconditions.outputs.is-tag == 'true'
     runs-on: ubuntu-latest
     environment: production
@@ -462,7 +463,7 @@ jobs:
   # =========================================================================
   finalize-release:
     name: Finalize release
-    needs: [ create-release ]
+    needs: [create-release]
     runs-on: ubuntu-latest
     permissions:
       contents: read

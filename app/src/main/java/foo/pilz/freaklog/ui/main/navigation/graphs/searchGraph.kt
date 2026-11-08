@@ -46,170 +46,162 @@ import foo.pilz.freaklog.ui.theme.LocalSharedTransitionScope
 import kotlinx.serialization.Serializable
 
 fun NavGraphBuilder.searchGraph(navController: NavHostController) {
-    navigation<DrugsTopLevelRoute>(
-        startDestination = DrugsScreenRoute,
-    ) {
-        composableWithTransitions<DrugsScreenRoute>{
-            SearchScreen(
-                onSubstanceTap = { substanceModel ->
-                    navController.navigate(SubstanceRoute(substanceName = substanceModel.name))
-                },
-                onCustomSubstanceTap = { customSubstanceId ->
-                    navController.navigate(CustomSubstanceRoute(customSubstanceId))
-                },
-                navigateToAddCustomSubstanceScreen = {
-                    navController.navigate(AddCustomSubstanceRouteOnSearchGraph)
-                }
-            )
-        }
-        composableWithTransitions<SubstanceRoute> {
-            SubstanceScreen(
-                navigateToDosageExplanationScreen = {
-                    navController.navigate(DosageExplanationRouteOnSearchTab)
-                },
-                navigateToSaferHallucinogensScreen = {
-                    navController.navigate(SaferHallucinogensRoute)
-                },
-                navigateToSaferStimulantsScreen = {
-                    navController.navigate(SaferStimulantsRoute)
-                },
-                navigateToExplainTimeline = {
-                    navController.navigate(ExplainTimelineOnSearchTabRoute)
-                },
-                navigateToCategoryScreen = { categoryName ->
-                    navController.navigate(CategoryRoute(categoryName))
-                },
-                navigateToVolumetricDosingScreen = {
-                    navController.navigate(VolumetricDosingOnSearchTabRoute)
-                },
-            )
-        }
-        composableWithTransitions<CategoryRoute> {
-            CategoryScreen()
-        }
-        composableWithTransitions<CustomSubstanceRoute> {
-            CustomSubstanceScreen(
-                navigateBack = navController::popBackStack,
-                navigateToEdit = { id ->
-                    navController.navigate(EditCustomSubstanceRoute(id))
-                },
-            )
-        }
-        composableWithTransitions<EditCustomSubstanceRoute> {
-            EditCustomSubstanceScreen(
-                navigateBack = navController::popBackStack,
-                navigateToCustomDurationScreen = { substanceId, substanceName ->
-                    navController.navigate(CustomDurationRoute(substanceId, substanceName))
-                },
-                navigateToCategoriesPicker = { customSubstanceId ->
-                    navController.navigate(CustomCategoriesPickerRoute(customSubstanceId))
-                },
-                navigateToInteractionsList = { customSubstanceId ->
-                    navController.navigate(CustomInteractionsListRoute(customSubstanceId))
-                },
-                navigateToToleranceEditor = { customSubstanceId ->
-                    navController.navigate(CustomToleranceEditorRoute(customSubstanceId))
-                },
-                navigateToRisksEditor = { customSubstanceId ->
-                    navController.navigate(CustomRisksEditorRoute(customSubstanceId))
-                },
-            )
-        }
-        composableWithTransitions<CustomRisksEditorRoute> {
-            CustomRisksEditorScreen(navigateBack = navController::popBackStack)
-        }
-        composableWithTransitions<CustomToleranceEditorRoute> {
-            CustomToleranceEditorScreen(
-                navigateBack = navController::popBackStack,
-                navigateToCrossTolerancePicker = { customSubstanceId ->
-                    navController.navigate(CustomCrossTolerancePickerRoute(customSubstanceId))
-                },
-            )
-        }
-        composableWithTransitions<CustomCrossTolerancePickerRoute> {
-            CustomCrossTolerancePickerScreen(navigateBack = navController::popBackStack)
-        }
-        composableWithTransitions<CustomCategoriesPickerRoute> {
-            CustomCategoriesPickerScreen(navigateBack = navController::popBackStack)
-        }
-        composableWithTransitions<CustomInteractionsListRoute> {
-            CustomInteractionsListScreen(
-                navigateBack = navController::popBackStack,
-                navigateToPicker = { customSubstanceId, severity ->
-                    navController.navigate(CustomInteractionsPickerRoute(customSubstanceId, severity))
-                },
-            )
-        }
-        composableWithTransitions<CustomInteractionsPickerRoute> {
-            CustomInteractionsPickerScreen(navigateBack = navController::popBackStack)
-        }
-        composableWithTransitions<CustomDurationRoute> {
-            CustomDurationScreen(
-                navigateBack = navController::popBackStack,
-                navigateToEditor = { substanceId, substanceName, route ->
-                    navController.navigate(CustomDurationEditorRoute(substanceId, substanceName, route))
-                },
-                animatedVisibilityScope = this@composableWithTransitions,
-                sharedTransitionScope = LocalSharedTransitionScope.current,
-            )
-        }
-        composableWithTransitions<CustomDurationEditorRoute> {
-            CustomDurationEditorScreen(
-                navigateBack = navController::popBackStack,
-                animatedVisibilityScope = this@composableWithTransitions,
-                sharedTransitionScope = LocalSharedTransitionScope.current,
-            )
-        }
-        composableWithTransitions<AddCustomSubstanceRouteOnSearchGraph> {
-            AddCustomSubstanceScreen(
-                navigateBack = navController::popBackStack,
-                navigateToCustomDurationScreen = { substanceId, substanceName ->
-                    navController.navigate(CustomDurationRoute(substanceId, substanceName))
-                },
-                navigateToCategoriesPicker = { id ->
-                    navController.navigate(CustomCategoriesPickerRoute(id))
-                },
-                navigateToInteractionsList = { id ->
-                    navController.navigate(CustomInteractionsListRoute(id))
-                },
-                navigateToToleranceEditor = { id ->
-                    navController.navigate(CustomToleranceEditorRoute(id))
-                },
-                navigateToRisksEditor = { id ->
-                    navController.navigate(CustomRisksEditorRoute(id))
-                },
-            )
-        }
-        composableWithTransitions<VolumetricDosingOnSearchTabRoute> {
-            VolumetricDosingScreen()
-        }
-        composableWithTransitions<ExplainTimelineOnSearchTabRoute> { ExplainTimelineScreen() }
-
-        composableWithTransitions<DosageExplanationRouteOnSearchTab> { DoseExplanationScreen() }
-
+  navigation<DrugsTopLevelRoute>(
+      startDestination = DrugsScreenRoute,
+  ) {
+    composableWithTransitions<DrugsScreenRoute> {
+      SearchScreen(
+          onSubstanceTap = { substanceModel ->
+            navController.navigate(SubstanceRoute(substanceName = substanceModel.name))
+          },
+          onCustomSubstanceTap = { customSubstanceId ->
+            navController.navigate(CustomSubstanceRoute(customSubstanceId))
+          },
+          navigateToAddCustomSubstanceScreen = {
+            navController.navigate(AddCustomSubstanceRouteOnSearchGraph)
+          },
+      )
     }
+    composableWithTransitions<SubstanceRoute> {
+      SubstanceScreen(
+          navigateToDosageExplanationScreen = {
+            navController.navigate(DosageExplanationRouteOnSearchTab)
+          },
+          navigateToSaferHallucinogensScreen = {
+            navController.navigate(SaferHallucinogensRoute)
+          },
+          navigateToSaferStimulantsScreen = {
+            navController.navigate(SaferStimulantsRoute)
+          },
+          navigateToExplainTimeline = {
+            navController.navigate(ExplainTimelineOnSearchTabRoute)
+          },
+          navigateToCategoryScreen = { categoryName ->
+            navController.navigate(CategoryRoute(categoryName))
+          },
+          navigateToVolumetricDosingScreen = {
+            navController.navigate(VolumetricDosingOnSearchTabRoute)
+          },
+      )
+    }
+    composableWithTransitions<CategoryRoute> {
+      CategoryScreen()
+    }
+    composableWithTransitions<CustomSubstanceRoute> {
+      CustomSubstanceScreen(
+          navigateBack = navController::popBackStack,
+          navigateToEdit = { id ->
+            navController.navigate(EditCustomSubstanceRoute(id))
+          },
+      )
+    }
+    composableWithTransitions<EditCustomSubstanceRoute> {
+      EditCustomSubstanceScreen(
+          navigateBack = navController::popBackStack,
+          navigateToCustomDurationScreen = { substanceId, substanceName ->
+            navController.navigate(CustomDurationRoute(substanceId, substanceName))
+          },
+          navigateToCategoriesPicker = { customSubstanceId ->
+            navController.navigate(CustomCategoriesPickerRoute(customSubstanceId))
+          },
+          navigateToInteractionsList = { customSubstanceId ->
+            navController.navigate(CustomInteractionsListRoute(customSubstanceId))
+          },
+          navigateToToleranceEditor = { customSubstanceId ->
+            navController.navigate(CustomToleranceEditorRoute(customSubstanceId))
+          },
+          navigateToRisksEditor = { customSubstanceId ->
+            navController.navigate(CustomRisksEditorRoute(customSubstanceId))
+          },
+      )
+    }
+    composableWithTransitions<CustomRisksEditorRoute> {
+      CustomRisksEditorScreen(navigateBack = navController::popBackStack)
+    }
+    composableWithTransitions<CustomToleranceEditorRoute> {
+      CustomToleranceEditorScreen(
+          navigateBack = navController::popBackStack,
+          navigateToCrossTolerancePicker = { customSubstanceId ->
+            navController.navigate(CustomCrossTolerancePickerRoute(customSubstanceId))
+          },
+      )
+    }
+    composableWithTransitions<CustomCrossTolerancePickerRoute> {
+      CustomCrossTolerancePickerScreen(navigateBack = navController::popBackStack)
+    }
+    composableWithTransitions<CustomCategoriesPickerRoute> {
+      CustomCategoriesPickerScreen(navigateBack = navController::popBackStack)
+    }
+    composableWithTransitions<CustomInteractionsListRoute> {
+      CustomInteractionsListScreen(
+          navigateBack = navController::popBackStack,
+          navigateToPicker = { customSubstanceId, severity ->
+            navController.navigate(CustomInteractionsPickerRoute(customSubstanceId, severity))
+          },
+      )
+    }
+    composableWithTransitions<CustomInteractionsPickerRoute> {
+      CustomInteractionsPickerScreen(navigateBack = navController::popBackStack)
+    }
+    composableWithTransitions<CustomDurationRoute> {
+      CustomDurationScreen(
+          navigateBack = navController::popBackStack,
+          navigateToEditor = { substanceId, substanceName, route ->
+            navController.navigate(CustomDurationEditorRoute(substanceId, substanceName, route))
+          },
+          animatedVisibilityScope = this@composableWithTransitions,
+          sharedTransitionScope = LocalSharedTransitionScope.current,
+      )
+    }
+    composableWithTransitions<CustomDurationEditorRoute> {
+      CustomDurationEditorScreen(
+          navigateBack = navController::popBackStack,
+          animatedVisibilityScope = this@composableWithTransitions,
+          sharedTransitionScope = LocalSharedTransitionScope.current,
+      )
+    }
+    composableWithTransitions<AddCustomSubstanceRouteOnSearchGraph> {
+      AddCustomSubstanceScreen(
+          navigateBack = navController::popBackStack,
+          navigateToCustomDurationScreen = { substanceId, substanceName ->
+            navController.navigate(CustomDurationRoute(substanceId, substanceName))
+          },
+          navigateToCategoriesPicker = { id ->
+            navController.navigate(CustomCategoriesPickerRoute(id))
+          },
+          navigateToInteractionsList = { id ->
+            navController.navigate(CustomInteractionsListRoute(id))
+          },
+          navigateToToleranceEditor = { id ->
+            navController.navigate(CustomToleranceEditorRoute(id))
+          },
+          navigateToRisksEditor = { id ->
+            navController.navigate(CustomRisksEditorRoute(id))
+          },
+      )
+    }
+    composableWithTransitions<VolumetricDosingOnSearchTabRoute> {
+      VolumetricDosingScreen()
+    }
+    composableWithTransitions<ExplainTimelineOnSearchTabRoute> { ExplainTimelineScreen() }
+
+    composableWithTransitions<DosageExplanationRouteOnSearchTab> { DoseExplanationScreen() }
+  }
 }
 
-@Serializable
-object DrugsScreenRoute
+@Serializable object DrugsScreenRoute
 
-@Serializable
-data class SubstanceRoute(val substanceName: String)
+@Serializable data class SubstanceRoute(val substanceName: String)
 
-@Serializable
-data class CategoryRoute(val categoryName: String)
+@Serializable data class CategoryRoute(val categoryName: String)
 
-@Serializable
-data class EditCustomSubstanceRoute(val customSubstanceId: Int)
+@Serializable data class EditCustomSubstanceRoute(val customSubstanceId: Int)
 
-@Serializable
-data class CustomSubstanceRoute(val customSubstanceId: Int)
+@Serializable data class CustomSubstanceRoute(val customSubstanceId: Int)
 
-@Serializable
-data class CustomCategoriesPickerRoute(val customSubstanceId: Int)
+@Serializable data class CustomCategoriesPickerRoute(val customSubstanceId: Int)
 
-@Serializable
-data class CustomInteractionsListRoute(val customSubstanceId: Int)
+@Serializable data class CustomInteractionsListRoute(val customSubstanceId: Int)
 
 @Serializable
 data class CustomInteractionsPickerRoute(
@@ -217,17 +209,13 @@ data class CustomInteractionsPickerRoute(
     val severity: CustomInteractionSeverity,
 )
 
-@Serializable
-data class CustomToleranceEditorRoute(val customSubstanceId: Int)
+@Serializable data class CustomToleranceEditorRoute(val customSubstanceId: Int)
 
-@Serializable
-data class CustomCrossTolerancePickerRoute(val customSubstanceId: Int)
+@Serializable data class CustomCrossTolerancePickerRoute(val customSubstanceId: Int)
 
-@Serializable
-data class CustomRisksEditorRoute(val customSubstanceId: Int)
+@Serializable data class CustomRisksEditorRoute(val customSubstanceId: Int)
 
-@Serializable
-data class CustomDurationRoute(val substanceId: Int, val substanceName: String)
+@Serializable data class CustomDurationRoute(val substanceId: Int, val substanceName: String)
 
 @Serializable
 data class CustomDurationEditorRoute(
@@ -236,14 +224,10 @@ data class CustomDurationEditorRoute(
     val route: AdministrationRoute,
 )
 
-@Serializable
-object AddCustomSubstanceRouteOnSearchGraph
+@Serializable object AddCustomSubstanceRouteOnSearchGraph
 
-@Serializable
-object VolumetricDosingOnSearchTabRoute
+@Serializable object VolumetricDosingOnSearchTabRoute
 
-@Serializable
-object ExplainTimelineOnSearchTabRoute
+@Serializable object ExplainTimelineOnSearchTabRoute
 
-@Serializable
-object DosageExplanationRouteOnSearchTab
+@Serializable object DosageExplanationRouteOnSearchTab

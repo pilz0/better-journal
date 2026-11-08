@@ -24,17 +24,17 @@ import androidx.room.PrimaryKey
 import java.time.Instant
 
 @Entity(
-    indices = [
-        Index(value = ["experienceId", "time"]),
-    ]
+    indices =
+        [
+            Index(value = ["experienceId", "time"]),
+        ]
 )
 data class TimedNote(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
     var creationDate: Instant = Instant.now(),
     var time: Instant,
     var note: String,
     var color: AdaptiveColor,
     var experienceId: Int,
-    var isPartOfTimeline: Boolean
+    var isPartOfTimeline: Boolean,
 )

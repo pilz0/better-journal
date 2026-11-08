@@ -58,92 +58,83 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.SleepSessionSample
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 
 @Composable
-fun TimelineScreen(
-    viewModel: TimelineScreenViewModel = hiltViewModel()
-) {
-    TimelineScreen(
-        title = viewModel.consumerName,
-        timelineDisplayOption = viewModel.timelineDisplayOptionFlow.collectAsState().value,
-        timeDisplayOption = viewModel.timeDisplayOptionFlow.collectAsState().value,
-        heartRateSamples = viewModel.heartRateSamplesFlow.collectAsState().value,
-        sleepSamples = viewModel.sleepSamplesFlow.collectAsState().value,
-        showSleepStages = viewModel.showSleepStagesFlow.collectAsState().value,
-        bloodPressureReadings = viewModel.bloodPressureReadingsFlow.collectAsState().value,
-    )
+fun TimelineScreen(viewModel: TimelineScreenViewModel = hiltViewModel()) {
+  TimelineScreen(
+      title = viewModel.consumerName,
+      timelineDisplayOption = viewModel.timelineDisplayOptionFlow.collectAsState().value,
+      timeDisplayOption = viewModel.timeDisplayOptionFlow.collectAsState().value,
+      heartRateSamples = viewModel.heartRateSamplesFlow.collectAsState().value,
+      sleepSamples = viewModel.sleepSamplesFlow.collectAsState().value,
+      showSleepStages = viewModel.showSleepStagesFlow.collectAsState().value,
+      bloodPressureReadings = viewModel.bloodPressureReadingsFlow.collectAsState().value,
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimelineScreen(
-     title: String,
-     timelineDisplayOption: TimelineDisplayOption,
-     timeDisplayOption: TimeDisplayOption,
-     heartRateSamples: List<HeartRateSample> = emptyList(),
-     sleepSamples: List<SleepSessionSample> = emptyList(),
-     showSleepStages: Boolean = false,
-     bloodPressureReadings: List<BloodPressureReading> = emptyList(),
+    title: String,
+    timelineDisplayOption: TimelineDisplayOption,
+    timeDisplayOption: TimeDisplayOption,
+    heartRateSamples: List<HeartRateSample> = emptyList(),
+    sleepSamples: List<SleepSessionSample> = emptyList(),
+    showSleepStages: Boolean = false,
+    bloodPressureReadings: List<BloodPressureReading> = emptyList(),
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(title) }
+  Scaffold(
+      topBar = {
+        TopAppBar(title = { Text(title) })
+      }
+  ) { padding ->
+    Column(
+        modifier = Modifier.fillMaxSize().padding(padding).safeDrawingPadding(),
+        verticalArrangement = Arrangement.SpaceEvenly,
+    ) {
+      val configuration = LocalConfiguration.current
+      val windowWidth = LocalWindowInfo.current.containerSize.width
+      val screenWidth = with(LocalDensity.current) { windowWidth.toDp().value }
+      // The window can be unmeasured during configuration changes; keep the
+      // Slider range valid until a positive width is available.
+      val safeScreenWidth = screenWidth.takeIf { it.isFinite() && it > 0f } ?: 360f
+      var canvasWidth by remember(safeScreenWidth) { mutableFloatStateOf(safeScreenWidth) }
+      val isOrientationPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+      val valueRange = remember(safeScreenWidth) { safeScreenWidth..5 * safeScreenWidth }
+      Box(
+          modifier = Modifier.weight(1f).horizontalScroll(rememberScrollState()),
+          contentAlignment = Alignment.Center,
+      ) {
+        when (timelineDisplayOption) {
+          TimelineDisplayOption.Hidden -> {}
+          TimelineDisplayOption.Loading ->
+              LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+          TimelineDisplayOption.NotWorthDrawing -> {}
+          is TimelineDisplayOption.Shown -> {
+            AllTimelines(
+                model = timelineDisplayOption.allTimelinesModel,
+                timeDisplayOption = timeDisplayOption,
+                isShowingCurrentTime = true,
+                heartRateSamples = heartRateSamples,
+                sleepSamples = sleepSamples,
+                showSleepStages = showSleepStages,
+                bloodPressureReadings = bloodPressureReadings,
+                modifier =
+                    Modifier.fillMaxHeight(if (isOrientationPortrait) 0.5f else 0.8f)
+                        .width(canvasWidth.dp)
+                        .padding(horizontal = horizontalPadding),
             )
+          }
         }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .safeDrawingPadding(),
-            verticalArrangement = Arrangement.SpaceEvenly,
-        ) {
-            val configuration = LocalConfiguration.current
-            val windowWidth = LocalWindowInfo.current.containerSize.width
-            val screenWidth = with(LocalDensity.current) { windowWidth.toDp().value }
-            // The window can be unmeasured during configuration changes; keep the
-            // Slider range valid until a positive width is available.
-            val safeScreenWidth = screenWidth.takeIf { it.isFinite() && it > 0f } ?: 360f
-            var canvasWidth by remember(safeScreenWidth) { mutableFloatStateOf(safeScreenWidth) }
-            val isOrientationPortrait =
-                configuration.orientation == Configuration.ORIENTATION_PORTRAIT
-            val valueRange = remember(safeScreenWidth) { safeScreenWidth..5 * safeScreenWidth }
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .horizontalScroll(rememberScrollState()),
-                contentAlignment = Alignment.Center
-            ) {
-                when (timelineDisplayOption) {
-                    TimelineDisplayOption.Hidden -> {}
-                    TimelineDisplayOption.Loading -> LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                    TimelineDisplayOption.NotWorthDrawing -> {}
-                    is TimelineDisplayOption.Shown -> {
-                        AllTimelines(
-                            model = timelineDisplayOption.allTimelinesModel,
-                            timeDisplayOption = timeDisplayOption,
-                            isShowingCurrentTime = true,
-                            heartRateSamples = heartRateSamples,
-                            sleepSamples = sleepSamples,
-                            showSleepStages = showSleepStages,
-                            bloodPressureReadings = bloodPressureReadings,
-                            modifier = Modifier
-                                .fillMaxHeight(if (isOrientationPortrait) 0.5f else 0.8f)
-                                .width(canvasWidth.dp)
-                                .padding(horizontal = horizontalPadding)
-                        )
-                    }
-                }
-            }
-            Slider(
-                value = canvasWidth.coerceIn(valueRange),
-                onValueChange = { value ->
-                    canvasWidth = value
-                },
-                valueRange = valueRange,
-                modifier = Modifier
-                    .padding(horizontal = 30.dp)
-                    .padding(bottom = if (isOrientationPortrait) 30.dp else 10.dp)
-            )
-        }
+      }
+      Slider(
+          value = canvasWidth.coerceIn(valueRange),
+          onValueChange = { value ->
+            canvasWidth = value
+          },
+          valueRange = valueRange,
+          modifier =
+              Modifier.padding(horizontal = 30.dp)
+                  .padding(bottom = if (isOrientationPortrait) 30.dp else 10.dp),
+      )
     }
+  }
 }

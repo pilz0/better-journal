@@ -2,9 +2,9 @@
 name: CodeQL
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 # Deny all permissions by default; each job grants the minimum required.
 permissions: {}
@@ -44,8 +44,8 @@ jobs:
         if: matrix.build-mode == 'manual'
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Set up Gradle
         if: matrix.build-mode == 'manual'

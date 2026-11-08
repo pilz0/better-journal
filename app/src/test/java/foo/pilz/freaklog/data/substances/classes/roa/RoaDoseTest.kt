@@ -29,433 +29,448 @@ import org.junit.Test
 
 class RoaDoseTest {
 
-    private val invalidDoses = listOf(Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, -10.0)
-    private val numDotsUpTo4 = RoaDose::class.java.getDeclaredMethod("getNumDotsUpTo4", Double::class.javaPrimitiveType).apply {
-        isAccessible = true
+  private val invalidDoses =
+      listOf(Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, -10.0)
+  private val numDotsUpTo4 =
+      RoaDose::class
+          .java
+          .getDeclaredMethod("getNumDotsUpTo4", Double::class.javaPrimitiveType)
+          .apply {
+            isAccessible = true
+          }
+
+  // Standard dose ranges for testing (e.g., LSD-like substance)
+  private val standardRoaDose =
+      RoaDose(
+          units = "µg",
+          lightMin = 25.0,
+          commonMin = 75.0,
+          strongMin = 150.0,
+          heavyMin = 300.0,
+      )
+
+  // Dose with mg units (e.g., MDMA-like)
+  private val mgRoaDose =
+      RoaDose(
+          units = "mg",
+          lightMin = 40.0,
+          commonMin = 75.0,
+          strongMin = 125.0,
+          heavyMin = 175.0,
+      )
+
+  // Dose with small mg values that should use volumetric dosing
+  private val smallMgRoaDose =
+      RoaDose(
+          units = "mg",
+          lightMin = 2.0,
+          commonMin = 5.0,
+          strongMin = 10.0,
+          heavyMin = 15.0,
+      )
+
+  // Dose with partial data (some nulls)
+  private val partialRoaDose =
+      RoaDose(
+          units = "mg",
+          lightMin = 50.0,
+          commonMin = null,
+          strongMin = 100.0,
+          heavyMin = null,
+      )
+
+  // Dose with all nulls
+  private val emptyRoaDose =
+      RoaDose(
+          units = "mg",
+          lightMin = null,
+          commonMin = null,
+          strongMin = null,
+          heavyMin = null,
+      )
+
+  // ===== getDoseClass Tests =====
+
+  @Test
+  fun testGetDoseClass_invalidDose() {
+    invalidDoses.forEach { dose ->
+      assertThat(standardRoaDose.getDoseClass(dose)).isNull()
     }
+  }
 
-    // Standard dose ranges for testing (e.g., LSD-like substance)
-    private val standardRoaDose = RoaDose(
-        units = "µg",
-        lightMin = 25.0,
-        commonMin = 75.0,
-        strongMin = 150.0,
-        heavyMin = 300.0
-    )
+  @Test
+  fun testGetDoseClass_threshold() {
+    val result = standardRoaDose.getDoseClass(20.0)
+    assertEquals(DoseClass.THRESHOLD, result)
+  }
 
-    // Dose with mg units (e.g., MDMA-like)
-    private val mgRoaDose = RoaDose(
-        units = "mg",
-        lightMin = 40.0,
-        commonMin = 75.0,
-        strongMin = 125.0,
-        heavyMin = 175.0
-    )
+  @Test
+  fun testGetDoseClass_light() {
+    val result = standardRoaDose.getDoseClass(50.0)
+    assertEquals(DoseClass.LIGHT, result)
+  }
 
-    // Dose with small mg values that should use volumetric dosing
-    private val smallMgRoaDose = RoaDose(
-        units = "mg",
-        lightMin = 2.0,
-        commonMin = 5.0,
-        strongMin = 10.0,
-        heavyMin = 15.0
-    )
+  @Test
+  fun testGetDoseClass_common() {
+    val result = standardRoaDose.getDoseClass(100.0)
+    assertEquals(DoseClass.COMMON, result)
+  }
 
-    // Dose with partial data (some nulls)
-    private val partialRoaDose = RoaDose(
-        units = "mg",
-        lightMin = 50.0,
-        commonMin = null,
-        strongMin = 100.0,
-        heavyMin = null
-    )
+  @Test
+  fun testGetDoseClass_strong() {
+    val result = standardRoaDose.getDoseClass(200.0)
+    assertEquals(DoseClass.STRONG, result)
+  }
 
-    // Dose with all nulls
-    private val emptyRoaDose = RoaDose(
-        units = "mg",
-        lightMin = null,
-        commonMin = null,
-        strongMin = null,
-        heavyMin = null
-    )
+  @Test
+  fun testGetDoseClass_heavy() {
+    val result = standardRoaDose.getDoseClass(400.0)
+    assertEquals(DoseClass.HEAVY, result)
+  }
 
-    // ===== getDoseClass Tests =====
+  @Test
+  fun testGetDoseClass_exactlyAtLightMin() {
+    val result = standardRoaDose.getDoseClass(25.0)
+    assertEquals(DoseClass.LIGHT, result)
+  }
 
-    @Test
-    fun testGetDoseClass_invalidDose() {
-        invalidDoses.forEach { dose ->
-            assertThat(standardRoaDose.getDoseClass(dose)).isNull()
-        }
+  @Test
+  fun testGetDoseClass_exactlyAtCommonMin() {
+    val result = standardRoaDose.getDoseClass(75.0)
+    assertEquals(DoseClass.COMMON, result)
+  }
+
+  @Test
+  fun testGetDoseClass_exactlyAtStrongMin() {
+    val result = standardRoaDose.getDoseClass(150.0)
+    assertEquals(DoseClass.STRONG, result)
+  }
+
+  @Test
+  fun testGetDoseClass_exactlyAtHeavyMin() {
+    val result = standardRoaDose.getDoseClass(300.0)
+    assertEquals(DoseClass.HEAVY, result)
+  }
+
+  @Test
+  fun testGetDoseClass_nullDose() {
+    val result = standardRoaDose.getDoseClass(null)
+    assertNull(result)
+  }
+
+  @Test
+  fun testGetDoseClass_wrongUnits() {
+    val result = standardRoaDose.getDoseClass(100.0, "mg")
+    assertNull(result)
+  }
+
+  @Test
+  fun testGetDoseClass_correctUnits() {
+    val result = standardRoaDose.getDoseClass(100.0, "µg")
+    assertEquals(DoseClass.COMMON, result)
+  }
+
+  @Test
+  fun testGetDoseClass_asciiMicrogramUnits() {
+    val result = standardRoaDose.getDoseClass(100.0, "ug")
+    assertEquals(DoseClass.COMMON, result)
+  }
+
+  @Test
+  fun testGetDoseClass_mcgUnits() {
+    val result = standardRoaDose.getDoseClass(100.0, "mcg")
+    assertEquals(DoseClass.COMMON, result)
+  }
+
+  @Test
+  fun testGetDoseClass_greekMuUnits() {
+    val result = standardRoaDose.getDoseClass(100.0, "μg")
+    assertEquals(DoseClass.COMMON, result)
+  }
+
+  @Test
+  fun testGetDoseClass_partialData_belowLight() {
+    val result = partialRoaDose.getDoseClass(30.0)
+    assertEquals(DoseClass.THRESHOLD, result)
+  }
+
+  @Test
+  fun testGetDoseClass_allNull() {
+    val result = emptyRoaDose.getDoseClass(100.0)
+    assertNull(result)
+  }
+
+  // ===== getNumDots Tests =====
+
+  @Test
+  fun testGetNumDots_invalidDose() {
+    invalidDoses.forEach { dose ->
+      assertThat(standardRoaDose.getNumDots(dose)).isNull()
     }
+  }
 
-    @Test
-    fun testGetDoseClass_threshold() {
-        val result = standardRoaDose.getDoseClass(20.0)
-        assertEquals(DoseClass.THRESHOLD, result)
+  @Test
+  fun testGetNumDots_invalidHeavyMin() {
+    (invalidDoses + 0.0).forEach { heavyMin ->
+      val roaDose = standardRoaDose.copy(heavyMin = heavyMin)
+      assertThat(roaDose.getNumDots(0.0)).isNull()
+      assertThat(roaDose.getNumDots(400.0)).isNull()
     }
+  }
 
-    @Test
-    fun testGetDoseClass_light() {
-        val result = standardRoaDose.getDoseClass(50.0)
-        assertEquals(DoseClass.LIGHT, result)
+  @Test
+  fun testGetNumDots_overflow() {
+    assertThat(standardRoaDose.getNumDots(Double.MAX_VALUE)).isNull()
+    assertThat(emptyRoaDose.copy(heavyMin = Double.MIN_VALUE).getNumDots(1.0)).isNull()
+    val roaDose = emptyRoaDose.copy(heavyMin = 1.0)
+    assertThat(roaDose.getNumDots(536_870_911.0)).isEqualTo(2_147_483_644)
+    assertThat(roaDose.getNumDots(536_870_912.0)).isNull()
+  }
+
+  @Test
+  fun testGetNumDotsUpTo4_invalidDose() {
+    invalidDoses.forEach { dose ->
+      assertThat(numDotsUpTo4.invoke(standardRoaDose, dose)).isEqualTo(0)
     }
+  }
 
-    @Test
-    fun testGetDoseClass_common() {
-        val result = standardRoaDose.getDoseClass(100.0)
-        assertEquals(DoseClass.COMMON, result)
+  @Test
+  fun testGetNumDotsUpTo4_invalidHeavyMin() {
+    (invalidDoses + 0.0).forEach { heavyMin ->
+      val roaDose = emptyRoaDose.copy(heavyMin = heavyMin)
+      assertThat(numDotsUpTo4.invoke(roaDose, 0.0)).isEqualTo(0)
+      assertThat(numDotsUpTo4.invoke(roaDose, 400.0)).isEqualTo(0)
     }
+  }
 
-    @Test
-    fun testGetDoseClass_strong() {
-        val result = standardRoaDose.getDoseClass(200.0)
-        assertEquals(DoseClass.STRONG, result)
-    }
+  @Test
+  fun testGetNumDots_zeroDose() {
+    assertThat(standardRoaDose.getNumDots(0.0)).isEqualTo(0)
+  }
 
-    @Test
-    fun testGetDoseClass_heavy() {
-        val result = standardRoaDose.getDoseClass(400.0)
-        assertEquals(DoseClass.HEAVY, result)
-    }
+  @Test
+  fun testGetNumDots_onlyHeavyMin() {
+    val roaDose = emptyRoaDose.copy(heavyMin = 300.0)
+    assertThat(roaDose.getNumDots(100.0)).isEqualTo(0)
+    assertThat(roaDose.getNumDots(300.0)).isEqualTo(4)
+    assertThat(roaDose.getNumDots(600.0)).isEqualTo(8)
+  }
 
-    @Test
-    fun testGetDoseClass_exactlyAtLightMin() {
-        val result = standardRoaDose.getDoseClass(25.0)
-        assertEquals(DoseClass.LIGHT, result)
-    }
+  @Test
+  fun testGetNumDots_threshold() {
+    val result = standardRoaDose.getNumDots(20.0)
+    assertEquals(0, result)
+  }
 
-    @Test
-    fun testGetDoseClass_exactlyAtCommonMin() {
-        val result = standardRoaDose.getDoseClass(75.0)
-        assertEquals(DoseClass.COMMON, result)
-    }
+  @Test
+  fun testGetNumDots_light() {
+    val result = standardRoaDose.getNumDots(50.0)
+    assertEquals(1, result)
+  }
 
-    @Test
-    fun testGetDoseClass_exactlyAtStrongMin() {
-        val result = standardRoaDose.getDoseClass(150.0)
-        assertEquals(DoseClass.STRONG, result)
-    }
+  @Test
+  fun testGetNumDots_common() {
+    val result = standardRoaDose.getNumDots(100.0)
+    assertEquals(2, result)
+  }
 
-    @Test
-    fun testGetDoseClass_exactlyAtHeavyMin() {
-        val result = standardRoaDose.getDoseClass(300.0)
-        assertEquals(DoseClass.HEAVY, result)
-    }
+  @Test
+  fun testGetNumDots_strong() {
+    val result = standardRoaDose.getNumDots(200.0)
+    assertEquals(3, result)
+  }
 
-    @Test
-    fun testGetDoseClass_nullDose() {
-        val result = standardRoaDose.getDoseClass(null)
-        assertNull(result)
-    }
+  @Test
+  fun testGetNumDots_heavy_oneX() {
+    val result = standardRoaDose.getNumDots(300.0)
+    assertEquals(4, result)
+  }
 
-    @Test
-    fun testGetDoseClass_wrongUnits() {
-        val result = standardRoaDose.getDoseClass(100.0, "mg")
-        assertNull(result)
-    }
+  @Test
+  fun testGetNumDots_heavy_twoX() {
+    val result = standardRoaDose.getNumDots(600.0)
+    assertEquals(8, result)
+  }
 
-    @Test
-    fun testGetDoseClass_correctUnits() {
-        val result = standardRoaDose.getDoseClass(100.0, "µg")
-        assertEquals(DoseClass.COMMON, result)
-    }
+  @Test
+  fun testGetNumDots_heavy_withRemainder() {
+    // 350 = 1x300 (4 dots) + 50 (light = 1 dot) = 5 dots
+    val result = standardRoaDose.getNumDots(350.0)
+    assertEquals(5, result)
+  }
 
-    @Test
-    fun testGetDoseClass_asciiMicrogramUnits() {
-        val result = standardRoaDose.getDoseClass(100.0, "ug")
-        assertEquals(DoseClass.COMMON, result)
-    }
+  @Test
+  fun testGetNumDots_nullDose() {
+    val result = standardRoaDose.getNumDots(null)
+    assertNull(result)
+  }
 
-    @Test
-    fun testGetDoseClass_mcgUnits() {
-        val result = standardRoaDose.getDoseClass(100.0, "mcg")
-        assertEquals(DoseClass.COMMON, result)
-    }
+  @Test
+  fun testGetNumDots_wrongUnits() {
+    val result = standardRoaDose.getNumDots(100.0, "mg")
+    assertNull(result)
+  }
 
-    @Test
-    fun testGetDoseClass_greekMuUnits() {
-        val result = standardRoaDose.getDoseClass(100.0, "μg")
-        assertEquals(DoseClass.COMMON, result)
-    }
+  @Test
+  fun testGetNumDots_allNull() {
+    val result = emptyRoaDose.getNumDots(100.0)
+    assertNull(result)
+  }
 
-    @Test
-    fun testGetDoseClass_partialData_belowLight() {
-        val result = partialRoaDose.getDoseClass(30.0)
-        assertEquals(DoseClass.THRESHOLD, result)
-    }
+  // ===== shouldUseVolumetricDosing Tests =====
 
-    @Test
-    fun testGetDoseClass_allNull() {
-        val result = emptyRoaDose.getDoseClass(100.0)
-        assertNull(result)
-    }
+  @Test
+  fun testShouldUseVolumetricDosing_micrograms() {
+    assertTrue(standardRoaDose.shouldUseVolumetricDosing)
+  }
 
-    // ===== getNumDots Tests =====
+  @Test
+  fun testShouldUseVolumetricDosing_largeMg() {
+    assertFalse(mgRoaDose.shouldUseVolumetricDosing)
+  }
 
-    @Test
-    fun testGetNumDots_invalidDose() {
-        invalidDoses.forEach { dose ->
-            assertThat(standardRoaDose.getNumDots(dose)).isNull()
-        }
-    }
+  @Test
+  fun testShouldUseVolumetricDosing_smallMg() {
+    assertTrue(smallMgRoaDose.shouldUseVolumetricDosing)
+  }
 
-    @Test
-    fun testGetNumDots_invalidHeavyMin() {
-        (invalidDoses + 0.0).forEach { heavyMin ->
-            val roaDose = standardRoaDose.copy(heavyMin = heavyMin)
-            assertThat(roaDose.getNumDots(0.0)).isNull()
-            assertThat(roaDose.getNumDots(400.0)).isNull()
-        }
-    }
-
-    @Test
-    fun testGetNumDots_overflow() {
-        assertThat(standardRoaDose.getNumDots(Double.MAX_VALUE)).isNull()
-        assertThat(emptyRoaDose.copy(heavyMin = Double.MIN_VALUE).getNumDots(1.0)).isNull()
-        val roaDose = emptyRoaDose.copy(heavyMin = 1.0)
-        assertThat(roaDose.getNumDots(536_870_911.0)).isEqualTo(2_147_483_644)
-        assertThat(roaDose.getNumDots(536_870_912.0)).isNull()
-    }
-
-    @Test
-    fun testGetNumDotsUpTo4_invalidDose() {
-        invalidDoses.forEach { dose ->
-            assertThat(numDotsUpTo4.invoke(standardRoaDose, dose)).isEqualTo(0)
-        }
-    }
-
-    @Test
-    fun testGetNumDotsUpTo4_invalidHeavyMin() {
-        (invalidDoses + 0.0).forEach { heavyMin ->
-            val roaDose = emptyRoaDose.copy(heavyMin = heavyMin)
-            assertThat(numDotsUpTo4.invoke(roaDose, 0.0)).isEqualTo(0)
-            assertThat(numDotsUpTo4.invoke(roaDose, 400.0)).isEqualTo(0)
-        }
-    }
-
-    @Test
-    fun testGetNumDots_zeroDose() {
-        assertThat(standardRoaDose.getNumDots(0.0)).isEqualTo(0)
-    }
-
-    @Test
-    fun testGetNumDots_onlyHeavyMin() {
-        val roaDose = emptyRoaDose.copy(heavyMin = 300.0)
-        assertThat(roaDose.getNumDots(100.0)).isEqualTo(0)
-        assertThat(roaDose.getNumDots(300.0)).isEqualTo(4)
-        assertThat(roaDose.getNumDots(600.0)).isEqualTo(8)
-    }
-
-    @Test
-    fun testGetNumDots_threshold() {
-        val result = standardRoaDose.getNumDots(20.0)
-        assertEquals(0, result)
-    }
-
-    @Test
-    fun testGetNumDots_light() {
-        val result = standardRoaDose.getNumDots(50.0)
-        assertEquals(1, result)
-    }
-
-    @Test
-    fun testGetNumDots_common() {
-        val result = standardRoaDose.getNumDots(100.0)
-        assertEquals(2, result)
-    }
-
-    @Test
-    fun testGetNumDots_strong() {
-        val result = standardRoaDose.getNumDots(200.0)
-        assertEquals(3, result)
-    }
-
-    @Test
-    fun testGetNumDots_heavy_oneX() {
-        val result = standardRoaDose.getNumDots(300.0)
-        assertEquals(4, result)
-    }
-
-    @Test
-    fun testGetNumDots_heavy_twoX() {
-        val result = standardRoaDose.getNumDots(600.0)
-        assertEquals(8, result)
-    }
-
-    @Test
-    fun testGetNumDots_heavy_withRemainder() {
-        // 350 = 1x300 (4 dots) + 50 (light = 1 dot) = 5 dots
-        val result = standardRoaDose.getNumDots(350.0)
-        assertEquals(5, result)
-    }
-
-    @Test
-    fun testGetNumDots_nullDose() {
-        val result = standardRoaDose.getNumDots(null)
-        assertNull(result)
-    }
-
-    @Test
-    fun testGetNumDots_wrongUnits() {
-        val result = standardRoaDose.getNumDots(100.0, "mg")
-        assertNull(result)
-    }
-
-    @Test
-    fun testGetNumDots_allNull() {
-        val result = emptyRoaDose.getNumDots(100.0)
-        assertNull(result)
-    }
-
-    // ===== shouldUseVolumetricDosing Tests =====
-
-    @Test
-    fun testShouldUseVolumetricDosing_micrograms() {
-        assertTrue(standardRoaDose.shouldUseVolumetricDosing)
-    }
-
-    @Test
-    fun testShouldUseVolumetricDosing_largeMg() {
-        assertFalse(mgRoaDose.shouldUseVolumetricDosing)
-    }
-
-    @Test
-    fun testShouldUseVolumetricDosing_smallMg() {
-        assertTrue(smallMgRoaDose.shouldUseVolumetricDosing)
-    }
-
-    @Test
-    fun testShouldUseVolumetricDosing_nullCommonAndStrong() {
-        val dose = RoaDose(
+  @Test
+  fun testShouldUseVolumetricDosing_nullCommonAndStrong() {
+    val dose =
+        RoaDose(
             units = "mg",
             lightMin = 5.0,
             commonMin = null,
             strongMin = null,
-            heavyMin = 20.0
+            heavyMin = 20.0,
         )
-        assertFalse(dose.shouldUseVolumetricDosing)
-    }
+    assertFalse(dose.shouldUseVolumetricDosing)
+  }
 
-    // ===== averageCommonDose Tests =====
+  // ===== averageCommonDose Tests =====
 
-    @Test
-    fun testAverageCommonDose_withBothValues() {
-        val result = standardRoaDose.averageCommonDose
-        assertEquals(112.5, result!!, 0.01) // (75 + 150) / 2
-    }
+  @Test
+  fun testAverageCommonDose_withBothValues() {
+    val result = standardRoaDose.averageCommonDose
+    assertEquals(112.5, result!!, 0.01) // (75 + 150) / 2
+  }
 
-    @Test
-    fun testAverageCommonDose_withNullCommon() {
-        val result = partialRoaDose.averageCommonDose
-        assertNull(result)
-    }
+  @Test
+  fun testAverageCommonDose_withNullCommon() {
+    val result = partialRoaDose.averageCommonDose
+    assertNull(result)
+  }
 
-    @Test
-    fun testAverageCommonDose_withNullStrong() {
-        val dose = RoaDose(
+  @Test
+  fun testAverageCommonDose_withNullStrong() {
+    val dose =
+        RoaDose(
             units = "mg",
             lightMin = 10.0,
             commonMin = 50.0,
             strongMin = null,
-            heavyMin = 100.0
+            heavyMin = 100.0,
         )
-        assertNull(dose.averageCommonDose)
+    assertNull(dose.averageCommonDose)
+  }
+
+  // ===== getStrengthRelativeToCommonDose Tests =====
+
+  @Test
+  fun testStrengthRelativeToCommon_invalidDose() {
+    invalidDoses.forEach { dose ->
+      assertThat(standardRoaDose.getStrengthRelativeToCommonDose(dose)).isNull()
     }
+  }
 
-    // ===== getStrengthRelativeToCommonDose Tests =====
+  @Test
+  fun testStrengthRelativeToCommon_atCommon() {
+    val result = standardRoaDose.getStrengthRelativeToCommonDose(112.5)
+    assertEquals(1.0, result!!, 0.01)
+  }
 
-    @Test
-    fun testStrengthRelativeToCommon_invalidDose() {
-        invalidDoses.forEach { dose ->
-            assertThat(standardRoaDose.getStrengthRelativeToCommonDose(dose)).isNull()
-        }
-    }
+  @Test
+  fun testStrengthRelativeToCommon_double() {
+    val result = standardRoaDose.getStrengthRelativeToCommonDose(225.0)
+    assertEquals(2.0, result!!, 0.01)
+  }
 
-    @Test
-    fun testStrengthRelativeToCommon_atCommon() {
-        val result = standardRoaDose.getStrengthRelativeToCommonDose(112.5)
-        assertEquals(1.0, result!!, 0.01)
-    }
+  @Test
+  fun testStrengthRelativeToCommon_half() {
+    val result = standardRoaDose.getStrengthRelativeToCommonDose(56.25)
+    assertEquals(0.5, result!!, 0.01)
+  }
 
-    @Test
-    fun testStrengthRelativeToCommon_double() {
-        val result = standardRoaDose.getStrengthRelativeToCommonDose(225.0)
-        assertEquals(2.0, result!!, 0.01)
-    }
+  @Test
+  fun testStrengthRelativeToCommon_nullAverage() {
+    val result = partialRoaDose.getStrengthRelativeToCommonDose(100.0)
+    assertNull(result)
+  }
 
-    @Test
-    fun testStrengthRelativeToCommon_half() {
-        val result = standardRoaDose.getStrengthRelativeToCommonDose(56.25)
-        assertEquals(0.5, result!!, 0.01)
-    }
+  // ===== isMatchingUnit and normalizeUnitString Tests =====
 
-    @Test
-    fun testStrengthRelativeToCommon_nullAverage() {
-        val result = partialRoaDose.getStrengthRelativeToCommonDose(100.0)
-        assertNull(result)
-    }
+  @Test
+  fun testIsMatchingUnit_caseInsensitiveAndWhitespace() {
+    assertTrue(RoaDose.isMatchingUnit("mg", "MG"))
+    assertTrue(RoaDose.isMatchingUnit(" mg ", "mg"))
+    assertTrue(RoaDose.isMatchingUnit("µg", "ug"))
+    assertTrue(RoaDose.isMatchingUnit("mcg", "µg"))
+    assertTrue(RoaDose.isMatchingUnit("μg", "ug")) // Greek mu
+    assertTrue(RoaDose.isMatchingUnit(null, null))
+    assertFalse(RoaDose.isMatchingUnit("mg", "µg"))
+    assertFalse(RoaDose.isMatchingUnit("mg", null))
+    assertFalse(RoaDose.isMatchingUnit(null, "mg"))
+  }
 
-    // ===== isMatchingUnit and normalizeUnitString Tests =====
+  @Test
+  fun testNormalizeUnitString_allAliases() {
+    assertEquals("µg", RoaDose.normalizeUnitString("ug"))
+    assertEquals("µg", RoaDose.normalizeUnitString("mcg"))
+    assertEquals("µg", RoaDose.normalizeUnitString("μg"))
+    assertEquals("µg", RoaDose.normalizeUnitString("µg"))
+    assertEquals("µg", RoaDose.normalizeUnitString(" UG "))
+    assertEquals("mg", RoaDose.normalizeUnitString(" MG "))
+    assertEquals("g", RoaDose.normalizeUnitString("G"))
+    assertEquals("", RoaDose.normalizeUnitString(null))
+  }
 
-    @Test
-    fun testIsMatchingUnit_caseInsensitiveAndWhitespace() {
-        assertTrue(RoaDose.isMatchingUnit("mg", "MG"))
-        assertTrue(RoaDose.isMatchingUnit(" mg ", "mg"))
-        assertTrue(RoaDose.isMatchingUnit("µg", "ug"))
-        assertTrue(RoaDose.isMatchingUnit("mcg", "µg"))
-        assertTrue(RoaDose.isMatchingUnit("μg", "ug")) // Greek mu
-        assertTrue(RoaDose.isMatchingUnit(null, null))
-        assertFalse(RoaDose.isMatchingUnit("mg", "µg"))
-        assertFalse(RoaDose.isMatchingUnit("mg", null))
-        assertFalse(RoaDose.isMatchingUnit(null, "mg"))
-    }
+  @Test
+  fun testShouldUseVolumetricDosing_allMicrogramAliases() {
+    assertTrue(standardRoaDose.copy(units = "ug").shouldUseVolumetricDosing)
+    assertTrue(standardRoaDose.copy(units = "mcg").shouldUseVolumetricDosing)
+    assertTrue(standardRoaDose.copy(units = "μg").shouldUseVolumetricDosing)
+  }
 
-    @Test
-    fun testNormalizeUnitString_allAliases() {
-        assertEquals("µg", RoaDose.normalizeUnitString("ug"))
-        assertEquals("µg", RoaDose.normalizeUnitString("mcg"))
-        assertEquals("µg", RoaDose.normalizeUnitString("μg"))
-        assertEquals("µg", RoaDose.normalizeUnitString("µg"))
-        assertEquals("µg", RoaDose.normalizeUnitString(" UG "))
-        assertEquals("mg", RoaDose.normalizeUnitString(" MG "))
-        assertEquals("g", RoaDose.normalizeUnitString("G"))
-        assertEquals("", RoaDose.normalizeUnitString(null))
-    }
-
-    @Test
-    fun testShouldUseVolumetricDosing_allMicrogramAliases() {
-        assertTrue(standardRoaDose.copy(units = "ug").shouldUseVolumetricDosing)
-        assertTrue(standardRoaDose.copy(units = "mcg").shouldUseVolumetricDosing)
-        assertTrue(standardRoaDose.copy(units = "μg").shouldUseVolumetricDosing)
-    }
-
-    @Test
-    fun testAverageCommonDose_nonFiniteAndNegativeGuards() {
-        val doseNegative = RoaDose(
+  @Test
+  fun testAverageCommonDose_nonFiniteAndNegativeGuards() {
+    val doseNegative =
+        RoaDose(
             units = "mg",
             lightMin = null,
             commonMin = -10.0,
             strongMin = 20.0,
-            heavyMin = null
+            heavyMin = null,
         )
-        assertNull(doseNegative.averageCommonDose)
+    assertNull(doseNegative.averageCommonDose)
 
-        val doseNaN = RoaDose(
+    val doseNaN =
+        RoaDose(
             units = "mg",
             lightMin = null,
             commonMin = Double.NaN,
             strongMin = 20.0,
-            heavyMin = null
+            heavyMin = null,
         )
-        assertNull(doseNaN.averageCommonDose)
+    assertNull(doseNaN.averageCommonDose)
 
-        val doseInfinity = RoaDose(
+    val doseInfinity =
+        RoaDose(
             units = "mg",
             lightMin = null,
             commonMin = 10.0,
             strongMin = Double.POSITIVE_INFINITY,
-            heavyMin = null
+            heavyMin = null,
         )
-        assertNull(doseInfinity.averageCommonDose)
-    }
+    assertNull(doseInfinity.averageCommonDose)
+  }
 }

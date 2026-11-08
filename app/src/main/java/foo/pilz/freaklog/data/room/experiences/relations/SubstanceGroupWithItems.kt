@@ -13,6 +13,6 @@ data class SubstanceGroupWithItems(
     )
     val items: List<SubstanceGroupItem>,
 ) {
-    val sortedItems: List<SubstanceGroupItem>
-        get() = items.sortedBy { it.sortOrder }
+  val sortedItems: List<SubstanceGroupItem>
+    get() = items.sortedBy { it.sortOrder }
 }

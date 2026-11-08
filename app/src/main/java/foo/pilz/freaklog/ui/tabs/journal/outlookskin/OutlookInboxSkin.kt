@@ -58,185 +58,183 @@ fun OutlookInboxSkin(
     onOpenExperience: (experienceId: Int) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    BackHandler { onDismiss() }
-    val activity = LocalActivity.current
-    val view = LocalView.current
-    DisposableEffect(Unit) {
-        val controller = activity?.window?.let { WindowCompat.getInsetsController(it, view) }
-        val previousStatus = controller?.isAppearanceLightStatusBars
-        val previousNav = controller?.isAppearanceLightNavigationBars
-        controller?.isAppearanceLightStatusBars = false
-        controller?.isAppearanceLightNavigationBars = true
-        onDispose {
-            if (controller != null) {
-                if (previousStatus != null) controller.isAppearanceLightStatusBars = previousStatus
-                if (previousNav != null) controller.isAppearanceLightNavigationBars = previousNav
-            }
-        }
+  BackHandler { onDismiss() }
+  val activity = LocalActivity.current
+  val view = LocalView.current
+  DisposableEffect(Unit) {
+    val controller = activity?.window?.let { WindowCompat.getInsetsController(it, view) }
+    val previousStatus = controller?.isAppearanceLightStatusBars
+    val previousNav = controller?.isAppearanceLightNavigationBars
+    controller?.isAppearanceLightStatusBars = false
+    controller?.isAppearanceLightNavigationBars = true
+    onDispose {
+      if (controller != null) {
+        if (previousStatus != null) controller.isAppearanceLightStatusBars = previousStatus
+        if (previousNav != null) controller.isAppearanceLightNavigationBars = previousNav
+      }
     }
+  }
 
-    val interactionSource = remember { MutableInteractionSource() }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClickLabel = "Return to journal"
-            ) { onDismiss() }
-    ) {
-        OutlookTopBar()
-        Box(modifier = Modifier.weight(1f)) {
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(rows, key = { it.experienceId }) { row ->
-                    MailRow(row, onClick = { onOpenExperience(row.experienceId) })
-                    HorizontalDivider(
-                        color = DividerColor,
-                        thickness = 0.5.dp,
-                        modifier = Modifier.padding(start = 68.dp)
-                    )
-                }
-            }
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(20.dp)
-                    .size(54.dp)
-                    .clip(CircleShape)
-                    .background(OutlookBlue),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Edit,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+  val interactionSource = remember { MutableInteractionSource() }
+  Column(
+      modifier =
+          Modifier.fillMaxSize().background(Color.White).clickable(
+              interactionSource = interactionSource,
+              indication = null,
+              onClickLabel = "Return to journal",
+          ) {
+            onDismiss()
+          }
+  ) {
+    OutlookTopBar()
+    Box(modifier = Modifier.weight(1f)) {
+      LazyColumn(modifier = Modifier.fillMaxSize()) {
+        items(rows, key = { it.experienceId }) { row ->
+          MailRow(row, onClick = { onOpenExperience(row.experienceId) })
+          HorizontalDivider(
+              color = DividerColor,
+              thickness = 0.5.dp,
+              modifier = Modifier.padding(start = 68.dp),
+          )
         }
-        OutlookBottomBar()
+      }
+      Box(
+          modifier =
+              Modifier.align(Alignment.BottomEnd)
+                  .padding(20.dp)
+                  .size(54.dp)
+                  .clip(CircleShape)
+                  .background(OutlookBlue),
+          contentAlignment = Alignment.Center,
+      ) {
+        Icon(
+            imageVector = Icons.Filled.Edit,
+            contentDescription = null,
+            tint = Color.White,
+            modifier = Modifier.size(24.dp),
+        )
+      }
     }
+    OutlookBottomBar()
+  }
 }
 
 @Composable
 private fun OutlookTopBar() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(OutlookBlue)
-            .windowInsetsPadding(WindowInsets.statusBars.union(WindowInsets.displayCutout))
+  Column(
+      modifier =
+          Modifier.fillMaxWidth()
+              .background(OutlookBlue)
+              .windowInsetsPadding(WindowInsets.statusBars.union(WindowInsets.displayCutout))
+  ) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Menu,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
-            Text(
-                text = "Inbox",
-                color = Color.White,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 18.sp,
-                modifier = Modifier.weight(1f)
-            )
-            Icon(
-                imageVector = Icons.Outlined.FilterList,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(22.dp)
-            )
-        }
-        Row(
-            modifier = Modifier.padding(start = 56.dp, bottom = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(18.dp)
-        ) {
-            Text(
-                text = "Focused",
-                color = Color.White,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 14.sp
-            )
-            Text(
-                text = "Other",
-                color = Color(0xB3FFFFFF),
-                fontSize = 14.sp
-            )
-        }
+      Icon(
+          imageVector = Icons.Filled.Menu,
+          contentDescription = null,
+          tint = Color.White,
+          modifier = Modifier.size(24.dp),
+      )
+      Text(
+          text = "Inbox",
+          color = Color.White,
+          fontWeight = FontWeight.SemiBold,
+          fontSize = 18.sp,
+          modifier = Modifier.weight(1f),
+      )
+      Icon(
+          imageVector = Icons.Outlined.FilterList,
+          contentDescription = null,
+          tint = Color.White,
+          modifier = Modifier.size(22.dp),
+      )
     }
+    Row(
+        modifier = Modifier.padding(start = 56.dp, bottom = 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(18.dp),
+    ) {
+      Text(
+          text = "Focused",
+          color = Color.White,
+          fontWeight = FontWeight.SemiBold,
+          fontSize = 14.sp,
+      )
+      Text(
+          text = "Other",
+          color = Color(0xB3FFFFFF),
+          fontSize = 14.sp,
+      )
+    }
+  }
 }
 
 @Composable
 private fun MailRow(row: OutlookMailRow, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.Top
-    ) {
-        ContactAvatar(row.sender, 40.dp)
-        Column(modifier = Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = row.sender,
-                    fontSize = 15.sp,
-                    color = TextPrimary,
-                    fontWeight = if (row.unread) FontWeight.Bold else FontWeight.Normal,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = row.timeText,
-                    fontSize = 12.sp,
-                    color = if (row.unread) OutlookBlue else TextSecondary,
-                    fontWeight = if (row.unread) FontWeight.SemiBold else FontWeight.Normal
-                )
-            }
-            Text(
-                text = row.subject,
-                fontSize = 14.sp,
-                color = if (row.unread) OutlookBlue else TextPrimary,
-                fontWeight = if (row.unread) FontWeight.SemiBold else FontWeight.Normal,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = row.preview,
-                fontSize = 13.sp,
-                color = TextSecondary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
+  Row(
+      modifier =
+          Modifier.fillMaxWidth()
+              .clickable(onClick = onClick)
+              .padding(horizontal = 16.dp, vertical = 10.dp),
+      horizontalArrangement = Arrangement.spacedBy(12.dp),
+      verticalAlignment = Alignment.Top,
+  ) {
+    ContactAvatar(row.sender, 40.dp)
+    Column(modifier = Modifier.weight(1f)) {
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = row.sender,
+            fontSize = 15.sp,
+            color = TextPrimary,
+            fontWeight = if (row.unread) FontWeight.Bold else FontWeight.Normal,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            text = row.timeText,
+            fontSize = 12.sp,
+            color = if (row.unread) OutlookBlue else TextSecondary,
+            fontWeight = if (row.unread) FontWeight.SemiBold else FontWeight.Normal,
+        )
+      }
+      Text(
+          text = row.subject,
+          fontSize = 14.sp,
+          color = if (row.unread) OutlookBlue else TextPrimary,
+          fontWeight = if (row.unread) FontWeight.SemiBold else FontWeight.Normal,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+      )
+      Text(
+          text = row.preview,
+          fontSize = 13.sp,
+          color = TextSecondary,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+      )
     }
+  }
 }
 
 @Composable
 private fun OutlookBottomBar() {
-    Column(modifier = Modifier.background(Color.White)) {
-        HorizontalDivider(color = DividerColor, thickness = 0.5.dp)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
+  Column(modifier = Modifier.background(Color.White)) {
+    HorizontalDivider(color = DividerColor, thickness = 0.5.dp)
+    Row(
+        modifier =
+            Modifier.fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.navigationBars)
                 .padding(vertical = 6.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            BottomBarItem(Icons.Filled.Email, "Email", selected = true)
-            BottomBarItem(Icons.Outlined.Search, "Search", selected = false)
-            BottomBarItem(Icons.Outlined.CalendarMonth, "Calendar", selected = false)
-        }
+        horizontalArrangement = Arrangement.SpaceEvenly,
+    ) {
+      BottomBarItem(Icons.Filled.Email, "Email", selected = true)
+      BottomBarItem(Icons.Outlined.Search, "Search", selected = false)
+      BottomBarItem(Icons.Outlined.CalendarMonth, "Calendar", selected = false)
     }
+  }
 }
 
 @Composable
@@ -245,14 +243,14 @@ private fun BottomBarItem(
     label: String,
     selected: Boolean,
 ) {
-    val tint = if (selected) OutlookBlue else TextSecondary
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = tint,
-            modifier = Modifier.size(22.dp)
-        )
-        Text(text = label, fontSize = 11.sp, color = tint)
-    }
+  val tint = if (selected) OutlookBlue else TextSecondary
+  Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Icon(
+        imageVector = icon,
+        contentDescription = null,
+        tint = tint,
+        modifier = Modifier.size(22.dp),
+    )
+    Text(text = label, fontSize = 11.sp, color = tint)
+  }
 }

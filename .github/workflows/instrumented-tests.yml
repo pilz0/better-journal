@@ -3,22 +3,22 @@ name: Instrumented Tests
 on:
   workflow_call:
   schedule:
-    - cron: '17 3 * * 1'
+    - cron: "17 3 * * 1"
   workflow_dispatch:
     inputs:
       api-level:
-        description: 'Android API level for the emulator'
+        description: "Android API level for the emulator"
         required: false
-        default: '34'
+        default: "34"
         type: choice
         options:
-          - '31'
-          - '32'
-          - '33'
-          - '34'
-          - '35'
-          - '36'
-          - '37'
+          - "31"
+          - "32"
+          - "33"
+          - "34"
+          - "35"
+          - "36"
+          - "37"
 
 # Deny all permissions by default; each job grants the minimum required.
 permissions: {}
@@ -71,8 +71,8 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0

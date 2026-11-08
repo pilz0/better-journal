@@ -43,57 +43,56 @@ fun WarningBanner(
     initiallyExpanded: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    val spacing = LocalSpacing.current
-    var expanded by remember { mutableStateOf(initiallyExpanded) }
-    ElevatedCard(
-        onClick = { expanded = !expanded },
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = spacing.screenHorizontal, vertical = spacing.xs)
+  val spacing = LocalSpacing.current
+  var expanded by remember { mutableStateOf(initiallyExpanded) }
+  ElevatedCard(
+      onClick = { expanded = !expanded },
+      modifier =
+          modifier
+              .fillMaxWidth()
+              .padding(horizontal = spacing.screenHorizontal, vertical = spacing.xs),
+  ) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = spacing.md, vertical = spacing.md),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(spacing.md),
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = spacing.md, vertical = spacing.md),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(spacing.md)
-        ) {
-            Box(
-                modifier = Modifier
-                    .width(4.dp)
-                    .height(spacing.iconSm)
-                    .clip(RoundedCornerShape(spacing.cornerSm))
-                    .background(accentColor)
-            )
-            Icon(
-                imageVector = leadingIcon,
-                contentDescription = null,
-                tint = accentColor,
-                modifier = Modifier.size(spacing.iconSm)
-            )
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.weight(1f)
-            )
-            if (countLabel != null) {
-                Text(
-                    text = countLabel,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Icon(
-                imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                contentDescription = if (expanded) "Collapse" else "Expand",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        AnimatedVisibility(visible = expanded) {
-            Column(modifier = Modifier.padding(bottom = spacing.sm)) {
-                content()
-            }
-        }
+      Box(
+          modifier =
+              Modifier.width(4.dp)
+                  .height(spacing.iconSm)
+                  .clip(RoundedCornerShape(spacing.cornerSm))
+                  .background(accentColor)
+      )
+      Icon(
+          imageVector = leadingIcon,
+          contentDescription = null,
+          tint = accentColor,
+          modifier = Modifier.size(spacing.iconSm),
+      )
+      Text(
+          text = title,
+          style = MaterialTheme.typography.titleSmall,
+          fontWeight = FontWeight.SemiBold,
+          modifier = Modifier.weight(1f),
+      )
+      if (countLabel != null) {
+        Text(
+            text = countLabel,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+      Icon(
+          imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+          contentDescription = if (expanded) "Collapse" else "Expand",
+          tint = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
     }
+    AnimatedVisibility(visible = expanded) {
+      Column(modifier = Modifier.padding(bottom = spacing.sm)) {
+        content()
+      }
+    }
+  }
 }

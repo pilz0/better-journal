@@ -41,201 +41,232 @@ import foo.pilz.freaklog.data.export.buildJournalExportJson
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.webhooks.WebhookRepository
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.firstOrNull
 import java.io.IOException
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.firstOrNull
 
 /**
- * Writes an encrypted full export into the user-chosen folder once a day and
- * keeps the newest [KEEP_COUNT] files. Dependencies come from a Hilt entry
- * point so the default WorkManager factory can construct it; tests pass
- * their own [Dependencies] and [Clock] to the internal constructor.
+ * Writes an encrypted full export into the user-chosen folder once a day and keeps the newest
+ * [KEEP_COUNT] files. Dependencies come from a Hilt entry point so the default WorkManager factory
+ * can construct it; tests pass their own [Dependencies] and [Clock] to the internal constructor.
  */
-class BackupWorker internal constructor(
+class BackupWorker
+internal constructor(
     appContext: Context,
     workerParams: WorkerParameters,
     private val dependencies: () -> Dependencies,
     private val clock: Clock,
 ) : CoroutineWorker(appContext, workerParams) {
 
-    constructor(appContext: Context, workerParams: WorkerParameters) : this(
-        appContext,
-        workerParams,
-        { EntryPointAccessors.fromApplication(appContext, Dependencies::class.java) },
-        Clock.systemDefaultZone(),
-    )
+  constructor(
+      appContext: Context,
+      workerParams: WorkerParameters,
+  ) : this(
+      appContext,
+      workerParams,
+      { EntryPointAccessors.fromApplication(appContext, Dependencies::class.java) },
+      Clock.systemDefaultZone(),
+  )
 
-    @EntryPoint
-    @InstallIn(SingletonComponent::class)
-    interface Dependencies {
-        fun experienceRepository(): ExperienceRepository
-        fun webhookRepository(): WebhookRepository
-        fun exportEncryption(): ExportEncryption
-        fun userPreferences(): UserPreferences
-        fun backupPasswordStore(): BackupPasswordStore
+  @EntryPoint
+  @InstallIn(SingletonComponent::class)
+  interface Dependencies {
+    fun experienceRepository(): ExperienceRepository
+
+    fun webhookRepository(): WebhookRepository
+
+    fun exportEncryption(): ExportEncryption
+
+    fun userPreferences(): UserPreferences
+
+    fun backupPasswordStore(): BackupPasswordStore
+  }
+
+  @Suppress("TooGenericExceptionCaught")
+  override suspend fun doWork(): Result {
+    val deps = dependencies()
+    val userPreferences = deps.userPreferences()
+    val treeUri =
+        userPreferences.backupDirUriFlow.firstOrNull()?.let(Uri::parse) ?: return Result.failure()
+    val sealed = userPreferences.backupPasswordSealedFlow.firstOrNull() ?: return Result.failure()
+    val password =
+        deps.backupPasswordStore().unseal(sealed)
+            ?: return notifyFailureAndFail(
+                "Couldn't read the backup password. Set up backups again."
+            )
+
+    return try {
+      val plaintext =
+          buildJournalExportJson(deps.experienceRepository(), deps.webhookRepository())
+              .toByteArray()
+      val encrypted = deps.exportEncryption().encrypt(plaintext, password)
+      writeBackup(treeUri, encrypted)
+      pruneOldBackups(treeUri)
+      userPreferences.saveLastBackupTime(clock.instant())
+      Result.success()
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      if (runAttemptCount < MAX_RETRIES) {
+        Result.retry()
+      } else {
+        notifyFailureAndFail("Backup failed: ${e.message}. Does the backup folder still exist?")
+      }
     }
+  }
 
-    @Suppress("TooGenericExceptionCaught")
-    override suspend fun doWork(): Result {
-        val deps = dependencies()
-        val userPreferences = deps.userPreferences()
-        val treeUri = userPreferences.backupDirUriFlow.firstOrNull()?.let(Uri::parse)
-            ?: return Result.failure()
-        val sealed = userPreferences.backupPasswordSealedFlow.firstOrNull()
-            ?: return Result.failure()
-        val password = deps.backupPasswordStore().unseal(sealed)
-            ?: return notifyFailureAndFail("Couldn't read the backup password. Set up backups again.")
-
-        return try {
-            val plaintext = buildJournalExportJson(deps.experienceRepository(), deps.webhookRepository()).toByteArray()
-            val encrypted = deps.exportEncryption().encrypt(plaintext, password)
-            writeBackup(treeUri, encrypted)
-            pruneOldBackups(treeUri)
-            userPreferences.saveLastBackupTime(clock.instant())
-            Result.success()
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            if (runAttemptCount < MAX_RETRIES) {
-                Result.retry()
-            } else {
-                notifyFailureAndFail("Backup failed: ${e.message}. Does the backup folder still exist?")
-            }
-        }
+  private fun writeBackup(treeUri: Uri, encrypted: ByteArray) {
+    require(treeUri.scheme == "content" && DocumentsContract.isTreeUri(treeUri)) {
+      "Invalid backup tree"
     }
-
-    private fun writeBackup(treeUri: Uri, encrypted: ByteArray) {
-        require(treeUri.scheme == "content" && DocumentsContract.isTreeUri(treeUri)) { "Invalid backup tree" }
-        val resolver = applicationContext.contentResolver
-        val parent = DocumentsContract.buildDocumentUriUsingTree(
+    val resolver = applicationContext.contentResolver
+    val parent =
+        DocumentsContract.buildDocumentUriUsingTree(
             treeUri,
-            DocumentsContract.getTreeDocumentId(treeUri)
+            DocumentsContract.getTreeDocumentId(treeUri),
         )
-        val fileUri = DocumentsContract.createDocument(
-            resolver, parent, "application/octet-stream", backupFileName(clock.instant(), clock.zone)
+    val fileUri =
+        DocumentsContract.createDocument(
+            resolver,
+            parent,
+            "application/octet-stream",
+            backupFileName(clock.instant(), clock.zone),
         ) ?: throw IOException("Could not create backup file")
-        requireBackupDocumentUri(treeUri, fileUri)
-        writeToDocument(resolver, fileUri, encrypted)
-    }
+    requireBackupDocumentUri(treeUri, fileUri)
+    writeToDocument(resolver, fileUri, encrypted)
+  }
 
-    private fun writeToDocument(resolver: ContentResolver, fileUri: Uri, encrypted: ByteArray) {
-        try {
-            resolver.openOutputStream(fileUri)?.use { it.write(encrypted) }
-                ?: throw IOException("Could not write backup file")
-        } catch (e: Throwable) {
-            runCatching { DocumentsContract.deleteDocument(resolver, fileUri) }
-            throw e
-        }
+  private fun writeToDocument(resolver: ContentResolver, fileUri: Uri, encrypted: ByteArray) {
+    try {
+      resolver.openOutputStream(fileUri)?.use { it.write(encrypted) }
+          ?: throw IOException("Could not write backup file")
+    } catch (e: Throwable) {
+      runCatching { DocumentsContract.deleteDocument(resolver, fileUri) }
+      throw e
     }
+  }
 
-    private fun pruneOldBackups(treeUri: Uri) {
-        val resolver = applicationContext.contentResolver
-        val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(
+  private fun pruneOldBackups(treeUri: Uri) {
+    val resolver = applicationContext.contentResolver
+    val childrenUri =
+        DocumentsContract.buildChildDocumentsUriUsingTree(
             treeUri,
-            DocumentsContract.getTreeDocumentId(treeUri)
+            DocumentsContract.getTreeDocumentId(treeUri),
         )
-        val docIdsByName = mutableMapOf<String, MutableList<String>>()
-        resolver.query(
+    val docIdsByName = mutableMapOf<String, MutableList<String>>()
+    resolver
+        .query(
             childrenUri,
             arrayOf(
                 DocumentsContract.Document.COLUMN_DOCUMENT_ID,
-                DocumentsContract.Document.COLUMN_DISPLAY_NAME
+                DocumentsContract.Document.COLUMN_DISPLAY_NAME,
             ),
             null,
             null,
-            null
-        )?.use { cursor ->
-            val docIdIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
-            val nameIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
-            if (docIdIndex >= 0 && nameIndex >= 0) {
-                while (cursor.moveToNext()) {
-                    val docId = cursor.getString(docIdIndex)
-                    val name = cursor.getString(nameIndex)
-                    if (name != null && docId != null) {
-                        docIdsByName.getOrPut(name) { mutableListOf() }.add(docId)
-                    }
-                }
-            }
-        }
-        backupsToPrune(docIdsByName.keys).forEach { name ->
-            val docIds = docIdsByName[name].orEmpty()
-            for (docId in docIds) {
-                try {
-                    DocumentsContract.deleteDocument(
-                        resolver,
-                        DocumentsContract.buildDocumentUriUsingTree(treeUri, docId)
-                    )
-                } catch (_: Exception) {
-                    // Pruning failure shouldn't fail the whole backup run
-                }
-            }
-        }
-    }
-
-    private fun notifyFailureAndFail(message: String): Result {
-        val manager = applicationContext.getSystemService(NotificationManager::class.java)
-        manager.createNotificationChannel(
-            NotificationChannel(CHANNEL_ID, "Backups", NotificationManager.IMPORTANCE_DEFAULT)
+            null,
         )
-        val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
+        ?.use { cursor ->
+          val docIdIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
+          val nameIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
+          if (docIdIndex >= 0 && nameIndex >= 0) {
+            while (cursor.moveToNext()) {
+              val docId = cursor.getString(docIdIndex)
+              val name = cursor.getString(nameIndex)
+              if (name != null && docId != null) {
+                docIdsByName.getOrPut(name) { mutableListOf() }.add(docId)
+              }
+            }
+          }
+        }
+    backupsToPrune(docIdsByName.keys).forEach { name ->
+      val docIds = docIdsByName[name].orEmpty()
+      for (docId in docIds) {
+        try {
+          DocumentsContract.deleteDocument(
+              resolver,
+              DocumentsContract.buildDocumentUriUsingTree(treeUri, docId),
+          )
+        } catch (_: Exception) {
+          // Pruning failure shouldn't fail the whole backup run
+        }
+      }
+    }
+  }
+
+  private fun notifyFailureAndFail(message: String): Result {
+    val manager = applicationContext.getSystemService(NotificationManager::class.java)
+    manager.createNotificationChannel(
+        NotificationChannel(CHANNEL_ID, "Backups", NotificationManager.IMPORTANCE_DEFAULT)
+    )
+    val notification =
+        NotificationCompat.Builder(applicationContext, CHANNEL_ID)
             .setSmallIcon(R.mipmap.ic_launcher_foreground)
             .setContentTitle("Automatic backup failed")
             .setContentText(message)
             .setStyle(NotificationCompat.BigTextStyle().bigText(message))
             .setAutoCancel(true)
             .build()
-        manager.notify(NOTIFICATION_ID, notification)
-        return Result.failure()
+    manager.notify(NOTIFICATION_ID, notification)
+    return Result.failure()
+  }
+
+  companion object {
+    internal fun requireBackupDocumentUri(tree: Uri, document: Uri) {
+      require(
+          document.scheme == "content" &&
+              document.authority == tree.authority &&
+              DocumentsContract.isTreeUri(document) &&
+              DocumentsContract.getTreeDocumentId(document) ==
+                  DocumentsContract.getTreeDocumentId(tree) &&
+              document.pathSegments.let {
+                it.size == 4 && it[2] == "document" && it[3].isNotBlank()
+              }
+      ) {
+        "Backup provider returned an invalid document URI"
+      }
     }
 
-    companion object {
-        internal fun requireBackupDocumentUri(tree: Uri, document: Uri) {
-            require(
-                document.scheme == "content" && document.authority == tree.authority &&
-                    DocumentsContract.isTreeUri(document) &&
-                    DocumentsContract.getTreeDocumentId(document) == DocumentsContract.getTreeDocumentId(tree) &&
-                    document.pathSegments.let { it.size == 4 && it[2] == "document" && it[3].isNotBlank() }
-            ) { "Backup provider returned an invalid document URI" }
-        }
+    private const val WORK_NAME = "encrypted_backup"
+    private const val CHANNEL_ID = "backup"
+    private const val NOTIFICATION_ID = 9002
+    private const val MAX_RETRIES = 2
+    const val KEEP_COUNT = 7
+    private val BACKUP_FILE_PATTERN = Regex("journal-backup-.*\\.enc")
+    private val FILE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmm")
 
-        private const val WORK_NAME = "encrypted_backup"
-        private const val CHANNEL_ID = "backup"
-        private const val NOTIFICATION_ID = 9002
-        private const val MAX_RETRIES = 2
-        const val KEEP_COUNT = 7
-        private val BACKUP_FILE_PATTERN = Regex("journal-backup-.*\\.enc")
-        private val FILE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmm")
+    /** Names sort chronologically, which is what pruning relies on. */
+    fun backupFileName(time: Instant, zone: ZoneId): String =
+        "journal-backup-${FILE_TIME_FORMAT.format(time.atZone(zone))}.enc"
 
-        /** Names sort chronologically, which is what pruning relies on. */
-        fun backupFileName(time: Instant, zone: ZoneId): String =
-            "journal-backup-${FILE_TIME_FORMAT.format(time.atZone(zone))}.enc"
+    /**
+     * The backup files to delete: everything but the newest [KEEP_COUNT]; other files are never
+     * touched.
+     */
+    fun backupsToPrune(fileNames: Collection<String>): List<String> =
+        fileNames.filter { it.matches(BACKUP_FILE_PATTERN) }.sortedDescending().drop(KEEP_COUNT)
 
-        /** The backup files to delete: everything but the newest [KEEP_COUNT]; other files are never touched. */
-        fun backupsToPrune(fileNames: Collection<String>): List<String> =
-            fileNames.filter { it.matches(BACKUP_FILE_PATTERN) }.sortedDescending().drop(KEEP_COUNT)
-
-        fun schedule(context: Context) {
-            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-                WORK_NAME,
-                ExistingPeriodicWorkPolicy.UPDATE,
-                PeriodicWorkRequestBuilder<BackupWorker>(1, TimeUnit.DAYS)
-                    .setInitialDelay(1, TimeUnit.DAYS)
-                    .build()
-            )
-        }
-
-        fun backupNow(context: Context) {
-            WorkManager.getInstance(context)
-                .enqueue(OneTimeWorkRequestBuilder<BackupWorker>().build())
-        }
-
-        fun cancel(context: Context) {
-            WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
-        }
+    fun schedule(context: Context) {
+      WorkManager.getInstance(context)
+          .enqueueUniquePeriodicWork(
+              WORK_NAME,
+              ExistingPeriodicWorkPolicy.UPDATE,
+              PeriodicWorkRequestBuilder<BackupWorker>(1, TimeUnit.DAYS)
+                  .setInitialDelay(1, TimeUnit.DAYS)
+                  .build(),
+          )
     }
+
+    fun backupNow(context: Context) {
+      WorkManager.getInstance(context).enqueue(OneTimeWorkRequestBuilder<BackupWorker>().build())
+    }
+
+    fun cancel(context: Context) {
+      WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
+    }
+  }
 }

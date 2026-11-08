@@ -24,5 +24,5 @@ data class Category(
     val name: String,
     val description: String,
     val url: String?,
-    val color: Color
+    val color: Color,
 )

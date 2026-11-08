@@ -35,73 +35,85 @@ import foo.pilz.freaklog.ui.main.navigation.graphs.ChooseDoseCustomUnitRoute
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.search.suggestion.models.CustomUnitDose
 import foo.pilz.freaklog.ui.utils.evaluateNumericExpression
 import foo.pilz.freaklog.ui.utils.isValidDoseInput
-import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlinx.coroutines.launch
 
 @HiltViewModel
-class ChooseDoseCustomUnitViewModel @Inject constructor(
+class ChooseDoseCustomUnitViewModel
+@Inject
+constructor(
     experienceRepo: ExperienceRepository,
     substanceRepo: SubstanceRepository,
-    state: SavedStateHandle
+    state: SavedStateHandle,
 ) : ViewModel() {
 
-    var customUnit: CustomUnit? by mutableStateOf(null)
-    var doseRemark: String? by mutableStateOf(null)
-    var roaDose: RoaDose? = null
+  var customUnit: CustomUnit? by mutableStateOf(null)
+  var doseRemark: String? by mutableStateOf(null)
+  var roaDose: RoaDose? = null
 
-    init {
-        val chooseDoseCustomUnitRoute = runCatching { state.toRoute<ChooseDoseCustomUnitRoute>() }.getOrNull()
-        val customUnitId = chooseDoseCustomUnitRoute?.customUnitId?.takeIf { it > 0 }
+  init {
+    val chooseDoseCustomUnitRoute =
+        runCatching { state.toRoute<ChooseDoseCustomUnitRoute>() }.getOrNull()
+    val customUnitId =
+        chooseDoseCustomUnitRoute?.customUnitId?.takeIf { it > 0 }
             ?: state.get<Int>("customUnitId")
             ?: -1
-        if (customUnitId != -1) {
-            viewModelScope.launch {
-                val customUnit = experienceRepo.getCustomUnit(customUnitId)
-                this@ChooseDoseCustomUnitViewModel.customUnit = customUnit
-                if (customUnit != null) {
-                    val substance = substanceRepo.getSubstance(customUnit.substanceName)
-                    doseRemark = substance?.dosageRemark
-                    roaDose = substance?.getRoa(customUnit.administrationRoute)?.roaDose
-                }
-            }
+    if (customUnitId != -1) {
+      viewModelScope.launch {
+        val customUnit = experienceRepo.getCustomUnit(customUnitId)
+        this@ChooseDoseCustomUnitViewModel.customUnit = customUnit
+        if (customUnit != null) {
+          val substance = substanceRepo.getSubstance(customUnit.substanceName)
+          doseRemark = substance?.dosageRemark
+          roaDose = substance?.getRoa(customUnit.administrationRoute)?.roaDose
         }
+      }
+    }
+  }
+
+  // editable fields
+  var doseText by mutableStateOf("")
+  var isEstimate by mutableStateOf(false)
+  var estimatedDoseDeviationText by mutableStateOf("")
+
+  fun onDoseTextChange(newDoseText: String) {
+    doseText = newDoseText
+  }
+
+  fun onEstimatedDoseDeviationChange(newEstimatedDeviationText: String) {
+    estimatedDoseDeviationText = newEstimatedDeviationText
+  }
+
+  val dose: Double?
+    get() = evaluateNumericExpression(doseText)
+
+  val estimatedDoseDeviation: Double?
+    get() = evaluateNumericExpression(estimatedDoseDeviationText)
+
+  val isValidDose: Boolean
+    get() = isValidDoseInput(dose, if (isEstimate) estimatedDoseDeviation else null)
+
+  private val customUnitDose: CustomUnitDose?
+    get() {
+      return dose?.let { doseUnwrapped ->
+        return@let customUnit?.let {
+          CustomUnitDose(
+              dose = doseUnwrapped,
+              isEstimate = isEstimate,
+              estimatedDoseStandardDeviation = estimatedDoseDeviation,
+              customUnit = it,
+          )
+        }
+      }
     }
 
-    // editable fields
-    var doseText by mutableStateOf("")
-    var isEstimate by mutableStateOf(false)
-    var estimatedDoseDeviationText by mutableStateOf("")
+  val currentDoseClass: DoseClass?
+    get() = roaDose?.getDoseClass(ingestionDose = customUnitDose?.calculatedDose)
 
-    fun onDoseTextChange(newDoseText: String) {
-        doseText = newDoseText
+  val customUnitCalculationText: String?
+    get() {
+      val cud = customUnitDose ?: return null
+      val calculatedDesc = cud.calculatedDoseDescription ?: return null
+      return "${cud.doseDescription} x ${cud.customUnit.getDoseOfOneUnitDescription()} = $calculatedDesc"
     }
-
-    fun onEstimatedDoseDeviationChange(newEstimatedDeviationText: String) {
-        estimatedDoseDeviationText = newEstimatedDeviationText
-    }
-
-    val dose: Double? get() = evaluateNumericExpression(doseText)
-    val estimatedDoseDeviation: Double? get() = evaluateNumericExpression(estimatedDoseDeviationText)
-    val isValidDose: Boolean get() = isValidDoseInput(dose, if (isEstimate) estimatedDoseDeviation else null)
-
-    private val customUnitDose: CustomUnitDose?
-        get() {
-            return dose?.let { doseUnwrapped ->
-                return@let customUnit?.let {
-                    CustomUnitDose(
-                        dose = doseUnwrapped,
-                        isEstimate = isEstimate,
-                        estimatedDoseStandardDeviation = estimatedDoseDeviation,
-                        customUnit = it
-                    )
-                }
-            }
-        }
-    val currentDoseClass: DoseClass? get() = roaDose?.getDoseClass(ingestionDose = customUnitDose?.calculatedDose)
-    val customUnitCalculationText: String?
-        get() {
-            val cud = customUnitDose ?: return null
-            val calculatedDesc = cud.calculatedDoseDescription ?: return null
-            return "${cud.doseDescription} x ${cud.customUnit.getDoseOfOneUnitDescription()} = $calculatedDesc"
-        }
 }

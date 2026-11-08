@@ -21,16 +21,18 @@ package foo.pilz.freaklog.ui.tabs.journal.addingestion.saferuse
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.navigation.toRoute
+import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.main.navigation.graphs.CheckSaferUseRoute
-import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class SaferUseViewModel @Inject constructor(
+class SaferUseViewModel
+@Inject
+constructor(
     substanceRepo: SubstanceRepository,
     state: SavedStateHandle,
 ) : ViewModel() {
-    val substanceName = state.toRoute<CheckSaferUseRoute>().substanceName
-    val substance = substanceRepo.getSubstance(substanceName)!!
+  val substanceName = state.toRoute<CheckSaferUseRoute>().substanceName
+  val substance = substanceRepo.getSubstance(substanceName)!!
 }

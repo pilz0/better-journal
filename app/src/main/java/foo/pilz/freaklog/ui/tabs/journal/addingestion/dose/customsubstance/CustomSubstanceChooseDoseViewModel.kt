@@ -32,87 +32,104 @@ import foo.pilz.freaklog.ui.main.navigation.graphs.ChooseCustomSubstanceDoseRout
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
 import foo.pilz.freaklog.ui.utils.evaluateNumericExpression
 import foo.pilz.freaklog.ui.utils.isValidDoseInput
+import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import javax.inject.Inject
 
 @HiltViewModel
-class CustomSubstanceChooseDoseViewModel @Inject constructor(
+class CustomSubstanceChooseDoseViewModel
+@Inject
+constructor(
     experienceRepository: ExperienceRepository,
     private val customProfiles: foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles,
     private val userPreferences: foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences,
     state: SavedStateHandle,
 ) : ViewModel() {
-    var substanceName by mutableStateOf("")
-    val administrationRoute: AdministrationRoute
-    private val useIntranasalForRectal: Boolean = runBlocking {
-        userPreferences.useIntranasalForRectalFlow.first()
+  var substanceName by mutableStateOf("")
+  val administrationRoute: AdministrationRoute
+  private val useIntranasalForRectal: Boolean = runBlocking {
+    userPreferences.useIntranasalForRectalFlow.first()
+  }
+  var units by mutableStateOf("mg")
+  var isEstimate by mutableStateOf(false)
+  var doseText by mutableStateOf("")
+  var estimatedDoseDeviationText by mutableStateOf("")
+  var purityText by mutableStateOf("100")
+  private val purity: Double?
+    get() {
+      val p = evaluateNumericExpression(purityText)
+      return if (p != null && p > 0 && p <= 100) {
+        p
+      } else {
+        null
+      }
     }
-    var units by mutableStateOf("mg")
-    var isEstimate by mutableStateOf(false)
-    var doseText by mutableStateOf("")
-    var estimatedDoseDeviationText by mutableStateOf("")
-    var purityText by mutableStateOf("100")
-    private val purity: Double?
-        get() {
-            val p = evaluateNumericExpression(purityText)
-            return if (p != null && p > 0 && p <= 100) {
-                p
-            } else {
-                null
-            }
+
+  val isPurityValid: Boolean
+    get() = purity != null
+
+  val impureDoseWithUnit: String?
+    get() {
+      dose.let {
+        if (it == null) return null
+        purity.let { safePurity ->
+          if (safePurity == null) return null
+          val value = it.div(safePurity).times(100)
+          val unitStr = units.ifBlank { null }
+          val suffix = if (!unitStr.isNullOrBlank()) " $unitStr" else ""
+          return value.toReadableString() + " impure$suffix"
         }
-    val isPurityValid: Boolean get() = purity != null
-    val impureDoseWithUnit: String?
-        get() {
-            dose.let {
-                if (it == null) return null
-                purity.let { safePurity ->
-                    if (safePurity == null) return null
-                    val value = it.div(safePurity).times(100)
-                    val unitStr = units.ifBlank { null }
-                    val suffix = if (!unitStr.isNullOrBlank()) " $unitStr" else ""
-                    return value.toReadableString() + " impure$suffix"
-                }
-            }
-        }
-    val dose: Double? get() = evaluateNumericExpression(doseText)
-    val estimatedDoseStandardDeviation: Double? get() = evaluateNumericExpression(estimatedDoseDeviationText)
-    val isValidDose: Boolean get() = isValidDoseInput(dose, if (isEstimate) estimatedDoseStandardDeviation else null)
-
-    /** Dose thresholds the user stored for this substance and route, if any. */
-    val roaDose: foo.pilz.freaklog.data.substances.classes.roa.RoaDose?
-        get() = customProfiles.getEffectiveRoa(substanceName, administrationRoute, useIntranasalForRectal)?.roaDose
-    val currentDoseClass: foo.pilz.freaklog.data.substances.classes.roa.DoseClass?
-        get() = roaDose?.getDoseClass(ingestionDose = dose)
-
-    fun onDoseTextChange(newDoseText: String) {
-        doseText = newDoseText
+      }
     }
 
-    fun onEstimatedDoseStandardDeviationTextChange(newDeviationText: String) {
-        estimatedDoseDeviationText = newDeviationText
-    }
+  val dose: Double?
+    get() = evaluateNumericExpression(doseText)
 
-    init {
-        val chooseCustomSubstanceDoseRoute: ChooseCustomSubstanceDoseRoute? =
-            runCatching { state.toRoute<ChooseCustomSubstanceDoseRoute>() }.getOrNull()
-        administrationRoute = chooseCustomSubstanceDoseRoute?.administrationRoute
+  val estimatedDoseStandardDeviation: Double?
+    get() = evaluateNumericExpression(estimatedDoseDeviationText)
+
+  val isValidDose: Boolean
+    get() = isValidDoseInput(dose, if (isEstimate) estimatedDoseStandardDeviation else null)
+
+  /** Dose thresholds the user stored for this substance and route, if any. */
+  val roaDose: foo.pilz.freaklog.data.substances.classes.roa.RoaDose?
+    get() =
+        customProfiles
+            .getEffectiveRoa(substanceName, administrationRoute, useIntranasalForRectal)
+            ?.roaDose
+
+  val currentDoseClass: foo.pilz.freaklog.data.substances.classes.roa.DoseClass?
+    get() = roaDose?.getDoseClass(ingestionDose = dose)
+
+  fun onDoseTextChange(newDoseText: String) {
+    doseText = newDoseText
+  }
+
+  fun onEstimatedDoseStandardDeviationTextChange(newDeviationText: String) {
+    estimatedDoseDeviationText = newDeviationText
+  }
+
+  init {
+    val chooseCustomSubstanceDoseRoute: ChooseCustomSubstanceDoseRoute? =
+        runCatching { state.toRoute<ChooseCustomSubstanceDoseRoute>() }.getOrNull()
+    administrationRoute =
+        chooseCustomSubstanceDoseRoute?.administrationRoute
             ?: runCatching { state.get<AdministrationRoute>("administrationRoute") }.getOrNull()
-            ?: state.get<String>("administrationRoute")?.let { runCatching { AdministrationRoute.valueOf(it) }.getOrNull() }
-            ?: AdministrationRoute.ORAL
-        val customSubstanceName = chooseCustomSubstanceDoseRoute?.customSubstanceName?.ifBlank { null }
-            ?: state.get<String>("customSubstanceName")
-        if (customSubstanceName != null) {
-            viewModelScope.launch {
-                val customSubstance =
-                    experienceRepository.getCustomSubstance(customSubstanceName)
-                        ?: return@launch
-                substanceName = customSubstance.name
-                units = customSubstance.units
+            ?: state.get<String>("administrationRoute")?.let {
+              runCatching { AdministrationRoute.valueOf(it) }.getOrNull()
             }
-        }
+            ?: AdministrationRoute.ORAL
+    val customSubstanceName =
+        chooseCustomSubstanceDoseRoute?.customSubstanceName?.ifBlank { null }
+            ?: state.get<String>("customSubstanceName")
+    if (customSubstanceName != null) {
+      viewModelScope.launch {
+        val customSubstance =
+            experienceRepository.getCustomSubstance(customSubstanceName) ?: return@launch
+        substanceName = customSubstance.name
+        units = customSubstance.units
+      }
     }
-
+  }
 }

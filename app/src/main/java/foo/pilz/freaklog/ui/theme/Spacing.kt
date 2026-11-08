@@ -29,13 +29,12 @@ import androidx.compose.ui.unit.dp
 /**
  * Spacing tokens for Freaklog.
  *
- * The upstream codebase scattered raw `.dp` literals across hundreds of
- * composables. New code should use these tokens (via [LocalSpacing] /
- * `MaterialTheme.spacing` extension below) so that paddings, gaps and
- * corner-to-corner gutters stay in lockstep across screens.
+ * The upstream codebase scattered raw `.dp` literals across hundreds of composables. New code
+ * should use these tokens (via [LocalSpacing] / `MaterialTheme.spacing` extension below) so that
+ * paddings, gaps and corner-to-corner gutters stay in lockstep across screens.
  *
- * The named scale follows the common 4-dp baseline grid:
- *   xs = 4, sm = 8, md = 12, lg = 16, xl = 24, xxl = 32.
+ * The named scale follows the common 4-dp baseline grid: xs = 4, sm = 8, md = 12, lg = 16, xl = 24,
+ * xxl = 32.
  */
 @Immutable
 data class Spacing(
@@ -56,26 +55,30 @@ data class Spacing(
     val fabBottomPad: Dp = 52.dp,
     val typographyScale: Float = 1.0f,
 ) {
-    val screenHorizontal: Dp get() = lg
-    val cardPadding: Dp get() = md
-    val sectionGap: Dp get() = lg
-    val itemGap: Dp get() = sm
+  val screenHorizontal: Dp
+    get() = lg
+
+  val cardPadding: Dp
+    get() = md
+
+  val sectionGap: Dp
+    get() = lg
+
+  val itemGap: Dp
+    get() = sm
 }
 
 /**
- * Default [Spacing] instance. Hoisted to a top-level `val` so the Compose
- * theme doesn't allocate a new `Spacing` on every recomposition.
+ * Default [Spacing] instance. Hoisted to a top-level `val` so the Compose theme doesn't allocate a
+ * new `Spacing` on every recomposition.
  */
 val DefaultSpacing: Spacing = Spacing()
 
 val LocalSpacing = compositionLocalOf { DefaultSpacing }
 
 /**
- * Convenience accessor so callers can write `MaterialTheme.spacing.lg`
- * alongside the standard `MaterialTheme.colorScheme` / `.typography` /
- * `.shapes` accessors.
+ * Convenience accessor so callers can write `MaterialTheme.spacing.lg` alongside the standard
+ * `MaterialTheme.colorScheme` / `.typography` / `.shapes` accessors.
  */
 val MaterialTheme.spacing: Spacing
-    @Composable
-    @ReadOnlyComposable
-    get() = LocalSpacing.current
+  @Composable @ReadOnlyComposable get() = LocalSpacing.current

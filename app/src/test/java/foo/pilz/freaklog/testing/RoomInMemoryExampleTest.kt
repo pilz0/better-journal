@@ -10,9 +10,9 @@
 
 package foo.pilz.freaklog.testing
 
-import androidx.test.core.app.ApplicationProvider
 import android.content.Context
 import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isGreaterThan
@@ -32,42 +32,41 @@ import org.robolectric.annotation.Config
  * - Runs on the JVM via Robolectric — no emulator required.
  * - Uses kotlinx-coroutines-test (`runTest`) to drive suspending DAO calls.
  *
- * New tests that need a real `Context`, real Android resources, or real
- * `SharedPreferences` should follow this pattern instead of relying on the
- * legacy `isReturnDefaultValues = true` shim.
+ * New tests that need a real `Context`, real Android resources, or real `SharedPreferences` should
+ * follow this pattern instead of relying on the legacy `isReturnDefaultValues = true` shim.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
 class RoomInMemoryExampleTest {
 
-    private lateinit var db: AppDatabase
+  private lateinit var db: AppDatabase
 
-    @Before
-    fun setUp() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        db = Room
-            .inMemoryDatabaseBuilder(context, AppDatabase::class.java)
+  @Before
+  fun setUp() {
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    db =
+        Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
             // The default executor isn't ideal for tests; allow main-thread
             // queries so we don't have to set up a dispatcher just for the
             // setup blocks. Each test still uses suspend functions.
             .allowMainThreadQueries()
             .build()
-    }
+  }
 
-    @After
-    fun tearDown() {
-        db.close()
-    }
+  @After
+  fun tearDown() {
+    db.close()
+  }
 
-    @Test
-    fun `experience round-trips through the DAO`() = runTest {
-        val dao = db.experienceDao()
-        val sample = EntityBuilders.experience(title = "Roundtrip")
+  @Test
+  fun `experience round-trips through the DAO`() = runTest {
+    val dao = db.experienceDao()
+    val sample = EntityBuilders.experience(title = "Roundtrip")
 
-        val newId = dao.insert(sample)
+    val newId = dao.insert(sample)
 
-        assertThat(newId).isGreaterThan(0L)
-        val fetched = dao.getExperience(newId.toInt())
-        assertThat(fetched).isEqualTo(sample.copy(id = newId.toInt()))
-    }
+    assertThat(newId).isGreaterThan(0L)
+    val fetched = dao.getExperience(newId.toInt())
+    assertThat(fetched).isEqualTo(sample.copy(id = newId.toInt()))
+  }
 }

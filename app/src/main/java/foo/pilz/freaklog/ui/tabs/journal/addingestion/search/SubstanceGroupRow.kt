@@ -19,35 +19,36 @@ fun SubstanceGroupRow(
     group: SubstanceGroupWithItems,
     onTap: () -> Unit,
 ) {
-    val spacing = LocalSpacing.current
-    val subtitle = if (group.items.isEmpty()) {
+  val spacing = LocalSpacing.current
+  val subtitle =
+      if (group.items.isEmpty()) {
         "No substances"
-    } else {
+      } else {
         group.sortedItems.joinToString(", ") { it.substanceName }
-    }
-    Surface(
-        onClick = onTap,
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surface,
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
+      }
+  Surface(
+      onClick = onTap,
+      modifier = Modifier.fillMaxWidth(),
+      color = MaterialTheme.colorScheme.surface,
+  ) {
+    Column(
+        modifier =
+            Modifier.fillMaxWidth()
                 .padding(horizontal = spacing.screenHorizontal, vertical = spacing.md),
-            verticalArrangement = Arrangement.spacedBy(spacing.xs),
-        ) {
-            Text(
-                text = group.group.name,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+        verticalArrangement = Arrangement.spacedBy(spacing.xs),
+    ) {
+      Text(
+          text = group.group.name,
+          style = MaterialTheme.typography.titleMedium,
+          fontWeight = FontWeight.SemiBold,
+      )
+      Text(
+          text = subtitle,
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          maxLines = 2,
+          overflow = TextOverflow.Ellipsis,
+      )
     }
+  }
 }

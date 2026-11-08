@@ -6,16 +6,17 @@ import foo.pilz.freaklog.data.substances.classes.roa.DurationRange
 import foo.pilz.freaklog.data.substances.classes.roa.DurationUnits
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.DataForOneEffectLine
+import java.time.Instant
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.time.Instant
 
 class AllTimelinesModelTest {
 
-    @Test
-    fun `fixedTimeRange with identical start and end has width of at least one second`() {
-        val now = Instant.parse("2026-01-01T12:00:00Z")
-        val model = AllTimelinesModel(
+  @Test
+  fun `fixedTimeRange with identical start and end has width of at least one second`() {
+    val now = Instant.parse("2026-01-01T12:00:00Z")
+    val model =
+        AllTimelinesModel(
             dataForLines = emptyList(),
             dataForRatings = emptyList(),
             timedNotes = emptyList(),
@@ -23,13 +24,14 @@ class AllTimelinesModelTest {
             fixedTimeRange = now..now,
         )
 
-        assertTrue(model.widthInSeconds >= 1f)
-    }
+    assertTrue(model.widthInSeconds >= 1f)
+  }
 
-    @Test
-    fun `custom substance ingestion with custom duration renders non-empty curve`() {
-        val now = Instant.parse("2026-01-01T12:00:00Z")
-        val customDuration = RoaDuration(
+  @Test
+  fun `custom substance ingestion with custom duration renders non-empty curve`() {
+    val now = Instant.parse("2026-01-01T12:00:00Z")
+    val customDuration =
+        RoaDuration(
             onset = null,
             comeup = DurationRange(30f, 30f, DurationUnits.MINUTES),
             peak = DurationRange(2f, 2f, DurationUnits.HOURS),
@@ -37,7 +39,8 @@ class AllTimelinesModelTest {
             total = null,
             afterglow = null,
         )
-        val effectLine = DataForOneEffectLine(
+    val effectLine =
+        DataForOneEffectLine(
             substanceName = "2C-B-FLY",
             route = AdministrationRoute.ORAL,
             roaDuration = customDuration,
@@ -47,25 +50,30 @@ class AllTimelinesModelTest {
             startTime = now,
             endTime = null,
         )
-        val model = AllTimelinesModel(
+    val model =
+        AllTimelinesModel(
             dataForLines = listOf(effectLine),
             dataForRatings = emptyList(),
             timedNotes = emptyList(),
             areSubstanceHeightsIndependent = false,
         )
 
-        val groups = model.timelineGroups(isDarkTheme = false)
-        assertTrue(groups.isNotEmpty())
-        val curve = groups.first().curve
-        assertTrue("Custom substance curve should have segments", curve.segments.isNotEmpty())
-        assertTrue("Segments should contain points", curve.segments.first().points.isNotEmpty())
-        assertTrue("Points should have non-zero heights", curve.segments.first().points.any { it.height > 0f })
-    }
+    val groups = model.timelineGroups(isDarkTheme = false)
+    assertTrue(groups.isNotEmpty())
+    val curve = groups.first().curve
+    assertTrue("Custom substance curve should have segments", curve.segments.isNotEmpty())
+    assertTrue("Segments should contain points", curve.segments.first().points.isNotEmpty())
+    assertTrue(
+        "Points should have non-zero heights",
+        curve.segments.first().points.any { it.height > 0f },
+    )
+  }
 
-    @Test
-    fun `getDataForEffectTimelines preserves custom substance roaDuration when substances list is empty`() {
-        val now = Instant.parse("2026-01-01T12:00:00Z")
-        val customDuration = RoaDuration(
+  @Test
+  fun `getDataForEffectTimelines preserves custom substance roaDuration when substances list is empty`() {
+    val now = Instant.parse("2026-01-01T12:00:00Z")
+    val customDuration =
+        RoaDuration(
             onset = null,
             comeup = DurationRange(30f, 30f, DurationUnits.MINUTES),
             peak = DurationRange(2f, 2f, DurationUnits.HOURS),
@@ -73,7 +81,8 @@ class AllTimelinesModelTest {
             total = null,
             afterglow = null,
         )
-        val ingestion = foo.pilz.freaklog.data.room.experiences.entities.Ingestion(
+    val ingestion =
+        foo.pilz.freaklog.data.room.experiences.entities.Ingestion(
             id = 1,
             experienceId = 1,
             substanceName = "2C-B-FLY",
@@ -88,24 +97,28 @@ class AllTimelinesModelTest {
             consumerName = null,
             customUnitId = null,
         )
-        val ingestionElement = foo.pilz.freaklog.ui.tabs.journal.experience.models.IngestionElement(
-            ingestionWithCompanionAndCustomUnit = foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit(
-                ingestion = ingestion,
-                substanceCompanion = null,
-                customUnit = null,
-            ),
+    val ingestionElement =
+        foo.pilz.freaklog.ui.tabs.journal.experience.models.IngestionElement(
+            ingestionWithCompanionAndCustomUnit =
+                foo.pilz.freaklog.data.room.experiences.relations
+                    .IngestionWithCompanionAndCustomUnit(
+                        ingestion = ingestion,
+                        substanceCompanion = null,
+                        customUnit = null,
+                    ),
             numDots = 2,
             roaDuration = customDuration,
             roaDose = null,
         )
 
-        val effectLines = foo.pilz.freaklog.ui.tabs.journal.experience.ExperienceViewModel.getDataForEffectTimelines(
+    val effectLines =
+        foo.pilz.freaklog.ui.tabs.journal.experience.ExperienceViewModel.getDataForEffectTimelines(
             ingestionElements = listOf(ingestionElement),
             substances = emptyList(),
         )
 
-        org.junit.Assert.assertEquals(1, effectLines.size)
-        org.junit.Assert.assertNotNull(effectLines.first().roaDuration)
-        assertTrue(effectLines.first().height > 0f)
-    }
+    org.junit.Assert.assertEquals(1, effectLines.size)
+    org.junit.Assert.assertNotNull(effectLines.first().roaDuration)
+    assertTrue(effectLines.first().height > 0f)
+  }
 }

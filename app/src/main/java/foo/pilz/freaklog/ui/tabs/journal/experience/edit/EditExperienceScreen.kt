@@ -47,36 +47,36 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 @Composable
 fun EditExperienceScreen(
     navigateBack: () -> Unit,
-    viewModel: EditExperienceViewModel = hiltViewModel()
+    viewModel: EditExperienceViewModel = hiltViewModel(),
 ) {
-    EditExperienceScreen(
-        enteredTitle = viewModel.enteredTitle,
-        onChangeOfEnteredTitle = { viewModel.enteredTitle = it },
-        isEnteredTitleOk = viewModel.isEnteredTitleOk,
-        onDoneTap = {
-            viewModel.onDoneTap()
-            navigateBack()
-        },
-        text = viewModel.enteredText,
-        onTextChange = { viewModel.enteredText = it },
-        location = viewModel.enteredLocation,
-        onLocationChange = { viewModel.enteredLocation = it }
-    )
+  EditExperienceScreen(
+      enteredTitle = viewModel.enteredTitle,
+      onChangeOfEnteredTitle = { viewModel.enteredTitle = it },
+      isEnteredTitleOk = viewModel.isEnteredTitleOk,
+      onDoneTap = {
+        viewModel.onDoneTap()
+        navigateBack()
+      },
+      text = viewModel.enteredText,
+      onTextChange = { viewModel.enteredText = it },
+      location = viewModel.enteredLocation,
+      onLocationChange = { viewModel.enteredLocation = it },
+  )
 }
 
 @Preview
 @Composable
 fun EditExperienceScreenPreview() {
-    EditExperienceScreen(
-        enteredTitle = "Day at the Lake",
-        onChangeOfEnteredTitle = { },
-        isEnteredTitleOk = true,
-        onDoneTap = {},
-        text = "Here are some sample notes",
-        onTextChange = {},
-        location = "Zurich",
-        onLocationChange = {}
-    )
+  EditExperienceScreen(
+      enteredTitle = "Day at the Lake",
+      onChangeOfEnteredTitle = {},
+      isEnteredTitleOk = true,
+      onDoneTap = {},
+      text = "Here are some sample notes",
+      onTextChange = {},
+      location = "Zurich",
+      onLocationChange = {},
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,71 +89,69 @@ fun EditExperienceScreen(
     text: String,
     onTextChange: (String) -> Unit,
     location: String,
-    onLocationChange: (String) -> Unit
+    onLocationChange: (String) -> Unit,
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Edit experience") },
-                actions = {
-                    if (isEnteredTitleOk) {
-                        IconButton(onClick = onDoneTap) {
-                            Icon(
-                                Icons.Filled.Done,
-                                contentDescription = "Done icon"
-                            )
-                        }
-                    }
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Edit experience") },
+            actions = {
+              if (isEnteredTitleOk) {
+                IconButton(onClick = onDoneTap) {
+                  Icon(
+                      Icons.Filled.Done,
+                      contentDescription = "Done icon",
+                  )
                 }
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .padding(10.dp)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            val focusManager = LocalFocusManager.current
-            OutlinedTextField(
-                value = enteredTitle,
-                onValueChange = onChangeOfEnteredTitle,
-                singleLine = true,
-                label = { Text(text = "Title") },
-                isError = !isEnteredTitleOk,
-                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Done,
-                    capitalization = KeyboardCapitalization.Sentences
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = location,
-                onValueChange = onLocationChange,
-                singleLine = true,
-                label = { Text(text = "Location") },
-                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Done,
-                    capitalization = KeyboardCapitalization.Words
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = text,
-                onValueChange = onTextChange,
-                label = { Text(text = "Notes") },
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Default,
-                    capitalization = KeyboardCapitalization.Sentences
-                ),
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-            )
-        }
+              }
+            },
+        )
+      }
+  ) { padding ->
+    Column(
+        modifier = Modifier.padding(padding).padding(10.dp).fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+      val focusManager = LocalFocusManager.current
+      OutlinedTextField(
+          value = enteredTitle,
+          onValueChange = onChangeOfEnteredTitle,
+          singleLine = true,
+          label = { Text(text = "Title") },
+          isError = !isEnteredTitleOk,
+          keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+          keyboardOptions =
+              KeyboardOptions.Default.copy(
+                  imeAction = ImeAction.Done,
+                  capitalization = KeyboardCapitalization.Sentences,
+              ),
+          modifier = Modifier.fillMaxWidth(),
+      )
+      OutlinedTextField(
+          value = location,
+          onValueChange = onLocationChange,
+          singleLine = true,
+          label = { Text(text = "Location") },
+          keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+          keyboardOptions =
+              KeyboardOptions.Default.copy(
+                  imeAction = ImeAction.Done,
+                  capitalization = KeyboardCapitalization.Words,
+              ),
+          modifier = Modifier.fillMaxWidth(),
+      )
+      OutlinedTextField(
+          value = text,
+          onValueChange = onTextChange,
+          label = { Text(text = "Notes") },
+          keyboardOptions =
+              KeyboardOptions.Default.copy(
+                  imeAction = ImeAction.Default,
+                  capitalization = KeyboardCapitalization.Sentences,
+              ),
+          modifier = Modifier.weight(1f).fillMaxWidth(),
+      )
     }
+  }
 }

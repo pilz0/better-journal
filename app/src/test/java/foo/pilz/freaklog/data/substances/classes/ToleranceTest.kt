@@ -25,123 +25,133 @@ import org.junit.Test
 
 class ToleranceTest {
 
-    @Test
-    fun testTolerance_allFieldsPresent() {
-        val tolerance = Tolerance(
+  @Test
+  fun testTolerance_allFieldsPresent() {
+    val tolerance =
+        Tolerance(
             full = "almost immediately",
             half = "5-7 days",
-            zero = "14 days"
+            zero = "14 days",
         )
-        assertEquals("almost immediately", tolerance.full)
-        assertEquals("5-7 days", tolerance.half)
-        assertEquals("14 days", tolerance.zero)
-    }
+    assertEquals("almost immediately", tolerance.full)
+    assertEquals("5-7 days", tolerance.half)
+    assertEquals("14 days", tolerance.zero)
+  }
 
-    @Test
-    fun testTolerance_onlyFull() {
-        val tolerance = Tolerance(
+  @Test
+  fun testTolerance_onlyFull() {
+    val tolerance =
+        Tolerance(
             full = "immediately",
             half = null,
-            zero = null
+            zero = null,
         )
-        assertEquals("immediately", tolerance.full)
-        assertNull(tolerance.half)
-        assertNull(tolerance.zero)
-    }
+    assertEquals("immediately", tolerance.full)
+    assertNull(tolerance.half)
+    assertNull(tolerance.zero)
+  }
 
-    @Test
-    fun testTolerance_onlyHalf() {
-        val tolerance = Tolerance(
+  @Test
+  fun testTolerance_onlyHalf() {
+    val tolerance =
+        Tolerance(
             full = null,
             half = "3 days",
-            zero = null
+            zero = null,
         )
-        assertNull(tolerance.full)
-        assertEquals("3 days", tolerance.half)
-        assertNull(tolerance.zero)
-    }
+    assertNull(tolerance.full)
+    assertEquals("3 days", tolerance.half)
+    assertNull(tolerance.zero)
+  }
 
-    @Test
-    fun testTolerance_onlyZero() {
-        val tolerance = Tolerance(
+  @Test
+  fun testTolerance_onlyZero() {
+    val tolerance =
+        Tolerance(
             full = null,
             half = null,
-            zero = "2 weeks"
+            zero = "2 weeks",
         )
-        assertNull(tolerance.full)
-        assertNull(tolerance.half)
-        assertEquals("2 weeks", tolerance.zero)
-    }
+    assertNull(tolerance.full)
+    assertNull(tolerance.half)
+    assertEquals("2 weeks", tolerance.zero)
+  }
 
-    @Test
-    fun testTolerance_allNull() {
-        val tolerance = Tolerance(
+  @Test
+  fun testTolerance_allNull() {
+    val tolerance =
+        Tolerance(
             full = null,
             half = null,
-            zero = null
+            zero = null,
         )
-        assertNull(tolerance.full)
-        assertNull(tolerance.half)
-        assertNull(tolerance.zero)
-    }
+    assertNull(tolerance.full)
+    assertNull(tolerance.half)
+    assertNull(tolerance.zero)
+  }
 
-    @Test
-    fun testTolerance_fullAndHalf() {
-        val tolerance = Tolerance(
+  @Test
+  fun testTolerance_fullAndHalf() {
+    val tolerance =
+        Tolerance(
             full = "1 hour",
             half = "12 hours",
-            zero = null
+            zero = null,
         )
-        assertEquals("1 hour", tolerance.full)
-        assertEquals("12 hours", tolerance.half)
-        assertNull(tolerance.zero)
-    }
+    assertEquals("1 hour", tolerance.full)
+    assertEquals("12 hours", tolerance.half)
+    assertNull(tolerance.zero)
+  }
 
-    @Test
-    fun testTolerance_halfAndZero() {
-        val tolerance = Tolerance(
+  @Test
+  fun testTolerance_halfAndZero() {
+    val tolerance =
+        Tolerance(
             full = null,
             half = "7 days",
-            zero = "14 days"
+            zero = "14 days",
         )
-        assertNull(tolerance.full)
-        assertEquals("7 days", tolerance.half)
-        assertEquals("14 days", tolerance.zero)
-    }
+    assertNull(tolerance.full)
+    assertEquals("7 days", tolerance.half)
+    assertEquals("14 days", tolerance.zero)
+  }
 
-    @Test
-    fun testTolerance_typicalLSD() {
-        val tolerance = Tolerance(
+  @Test
+  fun testTolerance_typicalLSD() {
+    val tolerance =
+        Tolerance(
             full = "almost immediately after ingestion",
             half = "5-7 days",
-            zero = "14 days"
+            zero = "14 days",
         )
-        assertNotNull(tolerance.full)
-        assertNotNull(tolerance.half)
-        assertNotNull(tolerance.zero)
-    }
+    assertNotNull(tolerance.full)
+    assertNotNull(tolerance.half)
+    assertNotNull(tolerance.zero)
+  }
 
-    @Test
-    fun testTolerance_typicalMDMA() {
-        val tolerance = Tolerance(
+  @Test
+  fun testTolerance_typicalMDMA() {
+    val tolerance =
+        Tolerance(
             full = "with repeated use within 1-2 weeks",
             half = "1 month",
-            zero = "3 months"
+            zero = "3 months",
         )
-        assertNotNull(tolerance.full)
-        assertNotNull(tolerance.half)
-        assertNotNull(tolerance.zero)
-    }
+    assertNotNull(tolerance.full)
+    assertNotNull(tolerance.half)
+    assertNotNull(tolerance.zero)
+  }
 
-    @Test
-    fun testTolerance_emptyStrings() {
-        val tolerance = Tolerance(
+  @Test
+  fun testTolerance_emptyStrings() {
+    val tolerance =
+        Tolerance(
             full = "",
             half = "",
-            zero = ""
+            zero = "",
         )
-        assertEquals("", tolerance.full)
-        assertEquals("", tolerance.half)
-        assertEquals("", tolerance.zero)
-    }
+    assertEquals("", tolerance.full)
+    assertEquals("", tolerance.half)
+    assertEquals("", tolerance.zero)
+  }
 }

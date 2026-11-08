@@ -48,186 +48,195 @@ import foo.pilz.freaklog.ui.theme.horizontalPadding
 import kotlin.math.roundToInt
 
 /**
- * MDMA-specific dose-picker section, shown inside [ChooseDoseScreen] when the user
- * is logging MDMA. Mirrors the iOS app's `ChooseMDMADoseScreen` view.
+ * MDMA-specific dose-picker section, shown inside [ChooseDoseScreen] when the user is logging MDMA.
+ * Mirrors the iOS app's `ChooseMDMADoseScreen` view.
  *
  * Includes:
- *  - a weight + sex based maximum-dose calculator with "Use this dose"
- *  - an effect chart showing desirable vs adverse effects across 10–180 mg
- *  - an educational note about pill purity variability
+ * - a weight + sex based maximum-dose calculator with "Use this dose"
+ * - an effect chart showing desirable vs adverse effects across 10–180 mg
+ * - an educational note about pill purity variability
  */
 @Composable
 fun MDMACalculator(
     onApplyDose: (String) -> Unit,
 ) {
-    ElevatedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = horizontalPadding, vertical = 4.dp),
+  ElevatedCard(
+      modifier = Modifier.fillMaxWidth().padding(horizontal = horizontalPadding, vertical = 4.dp),
+  ) {
+    Column(
+        modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Column(
-            modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                text = "MDMA dose calculator",
-                style = MaterialTheme.typography.titleMedium,
-            )
-            Text(
-                text = "Estimates a safer maximum oral dose based on body weight and biological sex. " +
-                    "Always research current best practices and account for tolerance and drug interactions.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            HorizontalDivider()
-            MDMAMaxDoseSection(onApplyDose = onApplyDose)
-            HorizontalDivider()
-            MDMAOptimalDoseSection()
-            HorizontalDivider()
-            MDMAPillsSection()
-        }
+      Text(
+          text = "MDMA dose calculator",
+          style = MaterialTheme.typography.titleMedium,
+      )
+      Text(
+          text =
+              "Estimates a safer maximum oral dose based on body weight and biological sex. " +
+                  "Always research current best practices and account for tolerance and drug interactions.",
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+      HorizontalDivider()
+      MDMAMaxDoseSection(onApplyDose = onApplyDose)
+      HorizontalDivider()
+      MDMAOptimalDoseSection()
+      HorizontalDivider()
+      MDMAPillsSection()
     }
+  }
 }
 
 @Composable
 private fun MDMAMaxDoseSection(onApplyDose: (String) -> Unit) {
-    var weightKg by remember { mutableFloatStateOf(70f) }
-    var sex by remember { mutableStateOf(MDMAFormulas.Sex.MALE) }
-    val maxDose = remember(weightKg, sex) {
+  var weightKg by remember { mutableFloatStateOf(70f) }
+  var sex by remember { mutableStateOf(MDMAFormulas.Sex.MALE) }
+  val maxDose =
+      remember(weightKg, sex) {
         MDMAFormulas.maxDoseMg(weightKg.toDouble(), sex)
+      }
+  Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Text(
+        text = "Body weight: ${weightKg.roundToInt()} kg",
+        style = MaterialTheme.typography.bodyMedium,
+    )
+    Slider(
+        value = weightKg,
+        onValueChange = { weightKg = (it / 5f).roundToInt() * 5f },
+        valueRange = 40f..150f,
+        steps = ((150 - 40) / 5) - 1,
+    )
+    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+      val options = listOf(MDMAFormulas.Sex.MALE, MDMAFormulas.Sex.FEMALE)
+      options.forEachIndexed { index, option ->
+        SegmentedButton(
+            selected = sex == option,
+            onClick = { sex = option },
+            shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+            label = {
+              Text(
+                  when (option) {
+                    MDMAFormulas.Sex.MALE -> "Male (1.5 mg/kg)"
+                    MDMAFormulas.Sex.FEMALE -> "Female (1.3 mg/kg)"
+                  },
+              )
+            },
+        )
+      }
     }
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-            text = "Body weight: ${weightKg.roundToInt()} kg",
-            style = MaterialTheme.typography.bodyMedium,
-        )
-        Slider(
-            value = weightKg,
-            onValueChange = { weightKg = (it / 5f).roundToInt() * 5f },
-            valueRange = 40f..150f,
-            steps = ((150 - 40) / 5) - 1,
-        )
-        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-            val options = listOf(MDMAFormulas.Sex.MALE, MDMAFormulas.Sex.FEMALE)
-            options.forEachIndexed { index, option ->
-                SegmentedButton(
-                    selected = sex == option,
-                    onClick = { sex = option },
-                    shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
-                    label = {
-                        Text(
-                            when (option) {
-                                MDMAFormulas.Sex.MALE -> "Male (1.5 mg/kg)"
-                                MDMAFormulas.Sex.FEMALE -> "Female (1.3 mg/kg)"
-                            },
-                        )
-                    },
-                )
-            }
-        }
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = "Suggested max dose: ${maxDose.roundToInt()} mg",
-            style = MaterialTheme.typography.titleMedium,
-        )
-        Button(
-            onClick = { onApplyDose(maxDose.roundToInt().toString()) },
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text("Use this dose")
-        }
+    Spacer(Modifier.height(4.dp))
+    Text(
+        text = "Suggested max dose: ${maxDose.roundToInt()} mg",
+        style = MaterialTheme.typography.titleMedium,
+    )
+    Button(
+        onClick = { onApplyDose(maxDose.roundToInt().toString()) },
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+      Text("Use this dose")
     }
+  }
 }
 
 @Composable
 private fun MDMAOptimalDoseSection() {
-    val desirableColor = MaterialTheme.colorScheme.primary
-    val adverseColor = MaterialTheme.colorScheme.error
-    val gridColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
-    // The curves don't depend on any state: sample them once instead of on every draw.
-    val curves = remember {
-        val doses = MDMAFormulas.sampleDoses(CHART_SAMPLE_COUNT)
-        ChartCurves(
-            desirable = doses.map { MDMAFormulas.desirableEffectAt(it).toFloat() },
-            adverse = doses.map { MDMAFormulas.adverseEffectAt(it).toFloat() },
-        )
-    }
-    val desirablePath = remember { Path() }
-    val adversePath = remember { Path() }
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-            text = "Optimal dose (Dutch testing data)",
-            style = MaterialTheme.typography.titleSmall,
-        )
-        Text(
-            text = "Desirable effects peak around ${MDMAFormulas.OPTIMAL_DOSE_MG.roundToInt()} mg, " +
+  val desirableColor = MaterialTheme.colorScheme.primary
+  val adverseColor = MaterialTheme.colorScheme.error
+  val gridColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+  // The curves don't depend on any state: sample them once instead of on every draw.
+  val curves = remember {
+    val doses = MDMAFormulas.sampleDoses(CHART_SAMPLE_COUNT)
+    ChartCurves(
+        desirable = doses.map { MDMAFormulas.desirableEffectAt(it).toFloat() },
+        adverse = doses.map { MDMAFormulas.adverseEffectAt(it).toFloat() },
+    )
+  }
+  val desirablePath = remember { Path() }
+  val adversePath = remember { Path() }
+  Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Text(
+        text = "Optimal dose (Dutch testing data)",
+        style = MaterialTheme.typography.titleSmall,
+    )
+    Text(
+        text =
+            "Desirable effects peak around ${MDMAFormulas.OPTIMAL_DOSE_MG.roundToInt()} mg, " +
                 "while adverse effects rise sharply above that.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    Box(modifier = Modifier.fillMaxWidth().height(140.dp)) {
+      Canvas(modifier = Modifier.fillMaxWidth().height(140.dp)) {
+        val w = size.width
+        val h = size.height
+
+        fun Path.plot(values: List<Float>) {
+          reset()
+          values.forEachIndexed { i, v ->
+            val x = i / (CHART_SAMPLE_COUNT - 1f) * w
+            val y = h - (v * h)
+            if (i == 0) moveTo(x, y) else lineTo(x, y)
+          }
+        }
+
+        // Optimal-dose vertical marker
+        val markerX =
+            ((MDMAFormulas.OPTIMAL_DOSE_MG - MDMAFormulas.CHART_MIN_DOSE_MG) /
+                    (MDMAFormulas.CHART_MAX_DOSE_MG - MDMAFormulas.CHART_MIN_DOSE_MG))
+                .toFloat() * w
+        drawLine(
+            color = gridColor,
+            start = Offset(markerX, 0f),
+            end = Offset(markerX, h),
+            strokeWidth = 2f,
         )
-        Box(modifier = Modifier.fillMaxWidth().height(140.dp)) {
-            Canvas(modifier = Modifier.fillMaxWidth().height(140.dp)) {
-                val w = size.width
-                val h = size.height
 
-                fun Path.plot(values: List<Float>) {
-                    reset()
-                    values.forEachIndexed { i, v ->
-                        val x = i / (CHART_SAMPLE_COUNT - 1f) * w
-                        val y = h - (v * h)
-                        if (i == 0) moveTo(x, y) else lineTo(x, y)
-                    }
-                }
-
-                // Optimal-dose vertical marker
-                val markerX = ((MDMAFormulas.OPTIMAL_DOSE_MG - MDMAFormulas.CHART_MIN_DOSE_MG) /
-                    (MDMAFormulas.CHART_MAX_DOSE_MG - MDMAFormulas.CHART_MIN_DOSE_MG)).toFloat() * w
-                drawLine(
-                    color = gridColor,
-                    start = Offset(markerX, 0f),
-                    end = Offset(markerX, h),
-                    strokeWidth = 2f,
-                )
-
-                desirablePath.plot(curves.desirable)
-                adversePath.plot(curves.adverse)
-                drawPath(
-                    path = desirablePath,
-                    color = desirableColor,
-                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = 4f),
-                )
-                drawPath(
-                    path = adversePath,
-                    color = adverseColor,
-                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = 4f),
-                )
-            }
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Text("${MDMAFormulas.CHART_MIN_DOSE_MG.roundToInt()} mg", style = MaterialTheme.typography.labelSmall)
-            Text(
-                text = "${MDMAFormulas.OPTIMAL_DOSE_MG.roundToInt()} mg (optimal)",
-                style = MaterialTheme.typography.labelSmall,
-            )
-            Text("${MDMAFormulas.CHART_MAX_DOSE_MG.roundToInt()} mg", style = MaterialTheme.typography.labelSmall)
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Legend(color = desirableColor, label = "Desirable")
-            Legend(color = adverseColor, label = "Adverse")
-        }
-        Text(
-            text = "Curves derived from public Dutch drug-testing service data; for orientation only.",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        desirablePath.plot(curves.desirable)
+        adversePath.plot(curves.adverse)
+        drawPath(
+            path = desirablePath,
+            color = desirableColor,
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = 4f),
         )
+        drawPath(
+            path = adversePath,
+            color = adverseColor,
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = 4f),
+        )
+      }
     }
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+      Text(
+          "${MDMAFormulas.CHART_MIN_DOSE_MG.roundToInt()} mg",
+          style = MaterialTheme.typography.labelSmall,
+      )
+      Text(
+          text = "${MDMAFormulas.OPTIMAL_DOSE_MG.roundToInt()} mg (optimal)",
+          style = MaterialTheme.typography.labelSmall,
+      )
+      Text(
+          "${MDMAFormulas.CHART_MAX_DOSE_MG.roundToInt()} mg",
+          style = MaterialTheme.typography.labelSmall,
+      )
+    }
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Legend(color = desirableColor, label = "Desirable")
+      Legend(color = adverseColor, label = "Adverse")
+    }
+    Text(
+        text = "Curves derived from public Dutch drug-testing service data; for orientation only.",
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+  }
 }
 
 private const val CHART_SAMPLE_COUNT = 60
@@ -237,66 +246,66 @@ private class ChartCurves(val desirable: List<Float>, val adverse: List<Float>)
 
 @Composable
 private fun Legend(color: Color, label: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(modifier = Modifier
-            .height(10.dp)
-            .padding(end = 4.dp)) {
-            Canvas(modifier = Modifier.height(10.dp)) {
-                drawRect(color = color, size = androidx.compose.ui.geometry.Size(20f, 4f))
-            }
-        }
-        Spacer(Modifier.padding(start = 16.dp))
-        Text(label, style = MaterialTheme.typography.labelSmall)
+  Row(verticalAlignment = Alignment.CenterVertically) {
+    Box(modifier = Modifier.height(10.dp).padding(end = 4.dp)) {
+      Canvas(modifier = Modifier.height(10.dp)) {
+        drawRect(color = color, size = androidx.compose.ui.geometry.Size(20f, 4f))
+      }
     }
+    Spacer(Modifier.padding(start = 16.dp))
+    Text(label, style = MaterialTheme.typography.labelSmall)
+  }
 }
 
 @Composable
 private fun MDMAPillsSection() {
-    var pillCount by remember { mutableStateOf("1") }
-    var mgPerPill by remember { mutableStateOf("100") }
-    val total = remember(pillCount, mgPerPill) {
+  var pillCount by remember { mutableStateOf("1") }
+  var mgPerPill by remember { mutableStateOf("100") }
+  val total =
+      remember(pillCount, mgPerPill) {
         val pills = pillCount.toDoubleOrNull() ?: return@remember null
         val mg = mgPerPill.toDoubleOrNull() ?: return@remember null
         pills * mg
-    }
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(text = "Estimating from pills", style = MaterialTheme.typography.titleSmall)
-        Text(
-            text = "Pill purity varies wildly between batches. Always test pills with a reagent kit, " +
+      }
+  Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Text(text = "Estimating from pills", style = MaterialTheme.typography.titleSmall)
+    Text(
+        text =
+            "Pill purity varies wildly between batches. Always test pills with a reagent kit, " +
                 "and assume the per-pill mg below is an estimate.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            OutlinedTextField(
-                value = pillCount,
-                onValueChange = { pillCount = it.replace(',', '.') },
-                label = { Text("Pills") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true,
-                modifier = Modifier.weight(1f),
-            )
-            OutlinedTextField(
-                value = mgPerPill,
-                onValueChange = { mgPerPill = it.replace(',', '.') },
-                label = { Text("mg / pill") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true,
-                modifier = Modifier.weight(1f),
-            )
-        }
-        Text(
-            text = "Estimated total: ${total?.let { "${it.roundToInt()} mg" } ?: "—"}",
-            style = MaterialTheme.typography.bodyMedium,
-        )
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+      OutlinedTextField(
+          value = pillCount,
+          onValueChange = { pillCount = it.replace(',', '.') },
+          label = { Text("Pills") },
+          keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+          singleLine = true,
+          modifier = Modifier.weight(1f),
+      )
+      OutlinedTextField(
+          value = mgPerPill,
+          onValueChange = { mgPerPill = it.replace(',', '.') },
+          label = { Text("mg / pill") },
+          keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+          singleLine = true,
+          modifier = Modifier.weight(1f),
+      )
     }
+    Text(
+        text = "Estimated total: ${total?.let { "${it.roundToInt()} mg" } ?: "—"}",
+        style = MaterialTheme.typography.bodyMedium,
+    )
+  }
 }
 
 @Preview
 @Composable
 private fun MDMACalculatorPreview() {
-    MDMACalculator(onApplyDose = {})
+  MDMACalculator(onApplyDose = {})
 }

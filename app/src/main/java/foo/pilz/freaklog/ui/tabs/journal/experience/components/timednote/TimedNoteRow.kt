@@ -45,57 +45,57 @@ import foo.pilz.freaklog.data.room.experiences.entities.TimedNote
 @Preview(showBackground = true)
 @Composable
 fun TimedNoteRowPreview(@PreviewParameter(TimedNotePreviewProvider::class) timedNote: TimedNote) {
-    TimedNoteRow(
-        timedNote = timedNote,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(text = "Sat 7:34")
-    }
+  TimedNoteRow(
+      timedNote = timedNote,
+      modifier = Modifier.fillMaxWidth(),
+  ) {
+    Text(text = "Sat 7:34")
+  }
 }
-
 
 @Composable
 fun TimedNoteRow(
     timedNote: TimedNote,
     modifier: Modifier = Modifier,
-    timeText: @Composable () -> Unit
+    timeText: @Composable () -> Unit,
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = modifier.height(intrinsicSize = IntrinsicSize.Min)
-    ) {
-        val isDarkTheme = isSystemInDarkTheme()
-        val strokeWidth = 3.dp
-        Canvas(modifier = Modifier
-            .fillMaxHeight()
-            .width(strokeWidth)
-            .padding(vertical = 5.dp)) {
-            if (timedNote.isPartOfTimeline) {
-                val strokeWidthPx = strokeWidth.toPx()
-                drawLine(
-                    color = timedNote.color.getComposeColor(isDarkTheme),
-                    start = Offset(x = size.width/2, y = 0f),
-                    end = Offset(x = size.width/2, y = size.height),
-                    strokeWidth = strokeWidthPx,
-                    cap = StrokeCap.Round,
-                    pathEffect = PathEffect.dashPathEffect(
-                        floatArrayOf(
-                            strokeWidthPx,
-                            strokeWidthPx * 2
-                        )
+  Row(
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(10.dp),
+      modifier = modifier.height(intrinsicSize = IntrinsicSize.Min),
+  ) {
+    val isDarkTheme = isSystemInDarkTheme()
+    val strokeWidth = 3.dp
+    Canvas(modifier = Modifier.fillMaxHeight().width(strokeWidth).padding(vertical = 5.dp)) {
+      if (timedNote.isPartOfTimeline) {
+        val strokeWidthPx = strokeWidth.toPx()
+        drawLine(
+            color = timedNote.color.getComposeColor(isDarkTheme),
+            start = Offset(x = size.width / 2, y = 0f),
+            end = Offset(x = size.width / 2, y = size.height),
+            strokeWidth = strokeWidthPx,
+            cap = StrokeCap.Round,
+            pathEffect =
+                PathEffect.dashPathEffect(
+                    floatArrayOf(
+                        strokeWidthPx,
+                        strokeWidthPx * 2,
                     )
-                )
-            }
-        }
-        Column {
-            Row(horizontalArrangement = Arrangement.spacedBy(15.dp), verticalAlignment = Alignment.Bottom) {
-                timeText()
-                if (!timedNote.isPartOfTimeline) {
-                    Text(text = "(Not in timeline)", style = MaterialTheme.typography.bodySmall)
-                }
-            }
-            Text(text = timedNote.note, style = MaterialTheme.typography.bodyLarge)
-        }
+                ),
+        )
+      }
     }
+    Column {
+      Row(
+          horizontalArrangement = Arrangement.spacedBy(15.dp),
+          verticalAlignment = Alignment.Bottom,
+      ) {
+        timeText()
+        if (!timedNote.isPartOfTimeline) {
+          Text(text = "(Not in timeline)", style = MaterialTheme.typography.bodySmall)
+        }
+      }
+      Text(text = timedNote.note, style = MaterialTheme.typography.bodyLarge)
+    }
+  }
 }

@@ -30,67 +30,70 @@ import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.entities.Experience
 import foo.pilz.freaklog.data.room.experiences.entities.Location
 import foo.pilz.freaklog.ui.main.navigation.graphs.EditExperienceRoute
-import kotlinx.coroutines.launch
 import javax.inject.Inject
-
+import kotlinx.coroutines.launch
 
 @HiltViewModel
-class EditExperienceViewModel @Inject constructor(
+class EditExperienceViewModel
+@Inject
+constructor(
     private val repository: ExperienceRepository,
-    state: SavedStateHandle
-) :
-    ViewModel() {
+    state: SavedStateHandle,
+) : ViewModel() {
 
-    var experience: Experience? = null
-    var enteredTitle by mutableStateOf("")
-    val isEnteredTitleOk get() = enteredTitle.isNotBlank()
-    var enteredText by mutableStateOf("")
-    var enteredLocation by mutableStateOf("")
-    private var oldLongitude: Double? = null
-    private var oldLatitude: Double? = null
+  var experience: Experience? = null
+  var enteredTitle by mutableStateOf("")
+  val isEnteredTitleOk
+    get() = enteredTitle.isNotBlank()
 
+  var enteredText by mutableStateOf("")
+  var enteredLocation by mutableStateOf("")
+  private var oldLongitude: Double? = null
+  private var oldLatitude: Double? = null
 
-    init {
-        val experienceId: Int = state.get<Int>("experienceId")
+  init {
+    val experienceId: Int =
+        state.get<Int>("experienceId")
             ?: runCatching { state.toRoute<EditExperienceRoute>().experienceId }.getOrNull()
             ?: -1
-        viewModelScope.launch {
-            val exp = if (experienceId > 0) repository.getExperience(id = experienceId) else null
-            experience = exp
-            if (exp != null) {
-                enteredTitle = exp.title
-                enteredText = exp.text
-                enteredLocation = exp.location?.name ?: ""
-                oldLongitude = exp.location?.longitude
-                oldLatitude = exp.location?.latitude
-            }
-        }
+    viewModelScope.launch {
+      val exp = if (experienceId > 0) repository.getExperience(id = experienceId) else null
+      experience = exp
+      if (exp != null) {
+        enteredTitle = exp.title
+        enteredText = exp.text
+        enteredLocation = exp.location?.name ?: ""
+        oldLongitude = exp.location?.longitude
+        oldLatitude = exp.location?.latitude
+      }
     }
+  }
 
-    fun onDoneTap() {
-        if (isEnteredTitleOk) {
-            val currentExperience = experience ?: return
-            viewModelScope.launch {
-                currentExperience.title = enteredTitle.trim()
-                currentExperience.text = enteredText
-                val trimmedLocation = enteredLocation.trim()
-                val location = if (trimmedLocation.isNotBlank()) {
-                    val isLocationSame = trimmedLocation.equals(
-                        currentExperience.location?.name?.trim(),
-                        ignoreCase = true
-                    )
-                    Location(
-                        name = trimmedLocation,
-                        longitude = if (isLocationSame) oldLongitude else null,
-                        latitude = if (isLocationSame) oldLatitude else null
-                    )
-                } else {
-                    null
-                }
-                currentExperience.location = location
-                repository.update(experience = currentExperience)
+  fun onDoneTap() {
+    if (isEnteredTitleOk) {
+      val currentExperience = experience ?: return
+      viewModelScope.launch {
+        currentExperience.title = enteredTitle.trim()
+        currentExperience.text = enteredText
+        val trimmedLocation = enteredLocation.trim()
+        val location =
+            if (trimmedLocation.isNotBlank()) {
+              val isLocationSame =
+                  trimmedLocation.equals(
+                      currentExperience.location?.name?.trim(),
+                      ignoreCase = true,
+                  )
+              Location(
+                  name = trimmedLocation,
+                  longitude = if (isLocationSame) oldLongitude else null,
+                  latitude = if (isLocationSame) oldLatitude else null,
+              )
+            } else {
+              null
             }
-        }
+        currentExperience.location = location
+        repository.update(experience = currentExperience)
+      }
     }
-
+  }
 }

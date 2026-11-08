@@ -39,8 +39,8 @@ import foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption
 /**
  * Settings UI for the biometric app lock.
  *
- * The toggle is disabled when the device cannot perform biometric authentication.
- * The "Lock after" dropdown is only visible while the lock is enabled.
+ * The toggle is disabled when the device cannot perform biometric authentication. The "Lock after"
+ * dropdown is only visible while the lock is enabled.
  */
 @Composable
 fun LockSettingsSection(
@@ -50,45 +50,45 @@ fun LockSettingsSection(
     onLockEnabledChange: (Boolean) -> Unit,
     onLockTimeOptionChange: (LockTimeOption) -> Unit,
 ) {
-    val canUseBiometrics = biometricAvailability == BiometricAvailability.AVAILABLE
-    Column {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("Lock journal")
-            Switch(
-                // Reflect the persisted setting verbatim so the UI doesn't lie if
-                // biometrics become unavailable while the lock is enabled in prefs.
-                checked = isLockEnabled,
-                enabled = canUseBiometrics,
-                onCheckedChange = onLockEnabledChange,
-            )
-        }
-        if (!canUseBiometrics) {
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = biometricAvailability.message,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error,
-            )
-        }
-        AnimatedVisibility(visible = isLockEnabled) {
-            Column(modifier = Modifier.padding(top = 8.dp)) {
-                Text(
-                    text = "Lock after",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(Modifier.height(4.dp))
-                LockTimeOptionDropdown(
-                    selected = lockTimeOption,
-                    onSelected = onLockTimeOptionChange,
-                )
-            }
-        }
+  val canUseBiometrics = biometricAvailability == BiometricAvailability.AVAILABLE
+  Column {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Text("Lock journal")
+      Switch(
+          // Reflect the persisted setting verbatim so the UI doesn't lie if
+          // biometrics become unavailable while the lock is enabled in prefs.
+          checked = isLockEnabled,
+          enabled = canUseBiometrics,
+          onCheckedChange = onLockEnabledChange,
+      )
     }
+    if (!canUseBiometrics) {
+      Spacer(Modifier.height(4.dp))
+      Text(
+          text = biometricAvailability.message,
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.error,
+      )
+    }
+    AnimatedVisibility(visible = isLockEnabled) {
+      Column(modifier = Modifier.padding(top = 8.dp)) {
+        Text(
+            text = "Lock after",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(4.dp))
+        LockTimeOptionDropdown(
+            selected = lockTimeOption,
+            onSelected = onLockTimeOptionChange,
+        )
+      }
+    }
+  }
 }
 
 @Composable
@@ -96,21 +96,21 @@ private fun LockTimeOptionDropdown(
     selected: LockTimeOption,
     onSelected: (LockTimeOption) -> Unit,
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    Box {
-        OutlinedButton(onClick = { expanded = true }) {
-            Text(selected.displayText)
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            LockTimeOption.entries.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(option.displayText) },
-                    onClick = {
-                        expanded = false
-                        onSelected(option)
-                    },
-                )
-            }
-        }
+  var expanded by remember { mutableStateOf(false) }
+  Box {
+    OutlinedButton(onClick = { expanded = true }) {
+      Text(selected.displayText)
     }
+    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+      LockTimeOption.entries.forEach { option ->
+        DropdownMenuItem(
+            text = { Text(option.displayText) },
+            onClick = {
+              expanded = false
+              onSelected(option)
+            },
+        )
+      }
+    }
+  }
 }

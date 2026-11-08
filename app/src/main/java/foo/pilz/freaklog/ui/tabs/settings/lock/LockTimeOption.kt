@@ -16,29 +16,29 @@ package foo.pilz.freaklog.ui.tabs.settings.lock
  * The values match the iOS app: Immediately / 5 min / 10 min / 30 min / 1 hour.
  */
 enum class LockTimeOption(val displayText: String, val timeoutSeconds: Long) {
-    IMMEDIATELY("Immediately", 0L),
-    AFTER_5_MINUTES("After 5 minutes", 5 * 60L),
-    AFTER_10_MINUTES("After 10 minutes", 10 * 60L),
-    AFTER_30_MINUTES("After 30 minutes", 30 * 60L),
-    AFTER_1_HOUR("After 1 hour", 60 * 60L);
+  IMMEDIATELY("Immediately", 0L),
+  AFTER_5_MINUTES("After 5 minutes", 5 * 60L),
+  AFTER_10_MINUTES("After 10 minutes", 10 * 60L),
+  AFTER_30_MINUTES("After 30 minutes", 30 * 60L),
+  AFTER_1_HOUR("After 1 hour", 60 * 60L);
 
-    companion object {
-        val DEFAULT = IMMEDIATELY
+  companion object {
+    val DEFAULT = IMMEDIATELY
 
-        fun fromName(name: String?): LockTimeOption =
-            entries.firstOrNull { it.name == name } ?: DEFAULT
-    }
+    fun fromName(name: String?): LockTimeOption = entries.firstOrNull { it.name == name } ?: DEFAULT
+  }
 }
 
 /**
  * Pure helper used by [BiometricAuthManager] (and easily unit-testable on the JVM).
  *
  * The journal should re-lock when:
- *  - lock is enabled, and
- *  - more time than [option].timeoutSeconds has passed since the monotonic [lastActiveSeconds] timestamp.
+ * - lock is enabled, and
+ * - more time than [option].timeoutSeconds has passed since the monotonic [lastActiveSeconds]
+ *   timestamp.
  *
- * For [LockTimeOption.IMMEDIATELY] any non-zero gap forces a re-lock so that switching
- * away from the app and back triggers re-authentication.
+ * For [LockTimeOption.IMMEDIATELY] any non-zero gap forces a re-lock so that switching away from
+ * the app and back triggers re-authentication.
  */
 fun shouldLockNow(
     isLockEnabled: Boolean,
@@ -46,9 +46,9 @@ fun shouldLockNow(
     lastActiveSeconds: Long,
     nowSeconds: Long,
 ): Boolean {
-    if (!isLockEnabled) return false
-    if (lastActiveSeconds <= 0L) return true
-    if (nowSeconds < lastActiveSeconds) return true
-    val elapsed = nowSeconds - lastActiveSeconds
-    return elapsed >= option.timeoutSeconds
+  if (!isLockEnabled) return false
+  if (lastActiveSeconds <= 0L) return true
+  if (nowSeconds < lastActiveSeconds) return true
+  val elapsed = nowSeconds - lastActiveSeconds
+  return elapsed >= option.timeoutSeconds
 }

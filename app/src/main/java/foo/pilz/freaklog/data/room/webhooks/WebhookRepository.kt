@@ -11,48 +11,45 @@
 package foo.pilz.freaklog.data.room.webhooks
 
 import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.flowOn
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Singleton
 class WebhookRepository @Inject constructor(private val webhookDao: WebhookDao) {
 
-    fun getAllFlow(): Flow<List<Webhook>> = webhookDao.getAllFlow()
-        .flowOn(Dispatchers.IO)
-        .conflate()
+  fun getAllFlow(): Flow<List<Webhook>> = webhookDao.getAllFlow().flowOn(Dispatchers.IO).conflate()
 
-    fun getEnabledFlow(): Flow<List<Webhook>> = webhookDao.getEnabledFlow()
-        .flowOn(Dispatchers.IO)
-        .conflate()
+  fun getEnabledFlow(): Flow<List<Webhook>> =
+      webhookDao.getEnabledFlow().flowOn(Dispatchers.IO).conflate()
 
-    suspend fun getAll(): List<Webhook> = webhookDao.getAll()
+  suspend fun getAll(): List<Webhook> = webhookDao.getAll()
 
-    suspend fun getEnabled(): List<Webhook> = webhookDao.getEnabled()
+  suspend fun getEnabled(): List<Webhook> = webhookDao.getEnabled()
 
-    suspend fun getById(id: Int): Webhook? = webhookDao.getById(id)
+  suspend fun getById(id: Int): Webhook? = webhookDao.getById(id)
 
-    suspend fun count(): Int = webhookDao.count()
+  suspend fun count(): Int = webhookDao.count()
 
-    suspend fun insert(webhook: Webhook): Long {
-        require(!webhook.isEnabled || foo.pilz.freaklog.data.webhook.isSecureWebhookUrl(webhook.url))
-        return webhookDao.insert(webhook)
-    }
+  suspend fun insert(webhook: Webhook): Long {
+    require(!webhook.isEnabled || foo.pilz.freaklog.data.webhook.isSecureWebhookUrl(webhook.url))
+    return webhookDao.insert(webhook)
+  }
 
-    suspend fun update(webhook: Webhook) {
-        require(!webhook.isEnabled || foo.pilz.freaklog.data.webhook.isSecureWebhookUrl(webhook.url))
-        webhookDao.update(webhook)
-    }
+  suspend fun update(webhook: Webhook) {
+    require(!webhook.isEnabled || foo.pilz.freaklog.data.webhook.isSecureWebhookUrl(webhook.url))
+    webhookDao.update(webhook)
+  }
 
-    suspend fun upsert(webhook: Webhook): Long {
-        require(!webhook.isEnabled || foo.pilz.freaklog.data.webhook.isSecureWebhookUrl(webhook.url))
-        return webhookDao.upsert(webhook)
-    }
+  suspend fun upsert(webhook: Webhook): Long {
+    require(!webhook.isEnabled || foo.pilz.freaklog.data.webhook.isSecureWebhookUrl(webhook.url))
+    return webhookDao.upsert(webhook)
+  }
 
-    suspend fun delete(webhook: Webhook) = webhookDao.delete(webhook)
+  suspend fun delete(webhook: Webhook) = webhookDao.delete(webhook)
 
-    suspend fun deleteAll() = webhookDao.deleteAll()
+  suspend fun deleteAll() = webhookDao.deleteAll()
 }

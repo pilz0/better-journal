@@ -26,68 +26,66 @@ import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
-
 @Singleton
-class FileSystemConnection @Inject constructor(
-    @ApplicationContext private val context: Context
-) {
-    fun getTextFromUri(uri: Uri): String? {
-        try {
-            return context.contentResolver.openInputStream(uri)?.use { input ->
-                input.bufferedReader().use { it.readText() }
+class FileSystemConnection @Inject constructor(@ApplicationContext private val context: Context) {
+  fun getTextFromUri(uri: Uri): String? {
+    try {
+      return context.contentResolver.openInputStream(uri)?.use { input ->
+        input.bufferedReader().use { it.readText() }
+      }
+    } catch (_: Exception) {
+      return null
+    }
+  }
+
+  /** @throws IllegalArgumentException if the file exceeds [MAX_FILE_SIZE]. */
+  fun getBytesFromUri(uri: Uri): ByteArray? =
+      try {
+        context.contentResolver.openInputStream(uri)?.use { stream ->
+          val output = ByteArrayOutputStream()
+          val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+          var bytesRead = stream.read(buffer)
+          while (bytesRead != -1) {
+            require(output.size() + bytesRead <= MAX_FILE_SIZE) {
+              "File exceeds maximum allowed size (50MB)"
             }
-        } catch (_: Exception) {
-            return null
+            output.write(buffer, 0, bytesRead)
+            bytesRead = stream.read(buffer)
+          }
+          output.toByteArray()
         }
+      } catch (e: IllegalArgumentException) {
+        throw e
+      } catch (_: Exception) {
+        null
+      }
+
+  private fun validateExportDestination(uri: Uri) {
+    require(uri.scheme == ContentResolver.SCHEME_CONTENT) {
+      "Unsupported URI scheme: ${uri.scheme}. Only content:// URIs are permitted for export."
     }
+  }
 
-    /** @throws IllegalArgumentException if the file exceeds [MAX_FILE_SIZE]. */
-    fun getBytesFromUri(uri: Uri): ByteArray? =
-        try {
-            context.contentResolver.openInputStream(uri)?.use { stream ->
-                val output = ByteArrayOutputStream()
-                val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                var bytesRead = stream.read(buffer)
-                while (bytesRead != -1) {
-                    require(output.size() + bytesRead <= MAX_FILE_SIZE) {
-                        "File exceeds maximum allowed size (50MB)"
-                    }
-                    output.write(buffer, 0, bytesRead)
-                    bytesRead = stream.read(buffer)
-                }
-                output.toByteArray()
-            }
-        } catch (e: IllegalArgumentException) {
-            throw e
-        } catch (_: Exception) {
-            null
-        }
+  /** @throws java.io.IOException when the destination cannot be written. */
+  fun saveBytesInUri(uri: Uri, bytes: ByteArray) {
+    validateExportDestination(uri)
+    val output =
+        context.contentResolver.openOutputStream(uri) ?: throw java.io.IOException("Failed To Save")
+    output.use { it.write(bytes) }
+  }
 
-    private fun validateExportDestination(uri: Uri) {
-        require(uri.scheme == ContentResolver.SCHEME_CONTENT) {
-            "Unsupported URI scheme: ${uri.scheme}. Only content:// URIs are permitted for export."
-        }
-    }
-
-    /** @throws java.io.IOException when the destination cannot be written. */
-    fun saveBytesInUri(uri: Uri, bytes: ByteArray) {
-        validateExportDestination(uri)
-        val output = context.contentResolver.openOutputStream(uri)
-            ?: throw java.io.IOException("Failed To Save")
-        output.use { it.write(bytes) }
-    }
-
-    /** @throws java.io.IOException when the destination cannot be opened or written. */
-    fun saveTextInUri(uri: Uri, text: String) {
-        validateExportDestination(uri)
-        val output = context.contentResolver.openOutputStream(uri)
+  /** @throws java.io.IOException when the destination cannot be opened or written. */
+  fun saveTextInUri(uri: Uri, text: String) {
+    validateExportDestination(uri)
+    val output =
+        context.contentResolver.openOutputStream(uri)
             ?: throw java.io.IOException("Could not open output stream for URI: $uri")
-        output.use { stream ->
-            stream.bufferedWriter().use { it.write(text) }
-        }
+    output.use { stream ->
+      stream.bufferedWriter().use { it.write(text) }
     }
+  }
 
-    companion object {
-        private const val MAX_FILE_SIZE = 50 * 1024 * 1024
-    }
+  companion object {
+    private const val MAX_FILE_SIZE = 50 * 1024 * 1024
+  }
 }

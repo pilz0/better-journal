@@ -22,153 +22,177 @@ import org.junit.Test
 
 class AiConversationTest {
 
-    /** Replays one scripted reply per request and records what it was asked. */
-    private class ScriptedClient(vararg replies: List<AiStreamEvent>) : AiChatClient {
-        override val standard = AiApiStandard.OPENAI_CHAT
-        private val queue = ArrayDeque(replies.toList())
-        val requests = mutableListOf<AiChatRequest>()
-        var hangAfterText: String? = null
+  /** Replays one scripted reply per request and records what it was asked. */
+  private class ScriptedClient(vararg replies: List<AiStreamEvent>) : AiChatClient {
+    override val standard = AiApiStandard.OPENAI_CHAT
+    private val queue = ArrayDeque(replies.toList())
+    val requests = mutableListOf<AiChatRequest>()
+    var hangAfterText: String? = null
 
-        override fun stream(request: AiChatRequest): Flow<AiStreamEvent> = flow {
-            requests += request
-            hangAfterText?.let {
-                emit(AiStreamEvent.TextDelta(it))
-                awaitCancellation()
-            }
-            queue.removeFirst().forEach { emit(it) }
-        }
-
-        override suspend fun listModels() = emptyList<String>()
+    override fun stream(request: AiChatRequest): Flow<AiStreamEvent> = flow {
+      requests += request
+      hangAfterText?.let {
+        emit(AiStreamEvent.TextDelta(it))
+        awaitCancellation()
+      }
+      queue.removeFirst().forEach { emit(it) }
     }
 
-    private fun text(value: String) = listOf(
-        AiStreamEvent.TextDelta(value),
-        AiStreamEvent.Completed(AiMessage.Assistant(value), "stop"),
-    )
+    override suspend fun listModels() = emptyList<String>()
+  }
 
-    private fun toolCall(vararg calls: AiToolCall, text: String = "") = listOf(
-        AiStreamEvent.Completed(AiMessage.Assistant(text, calls.toList()), "tool_calls"),
-    )
+  private fun text(value: String) =
+      listOf(
+          AiStreamEvent.TextDelta(value),
+          AiStreamEvent.Completed(AiMessage.Assistant(value), "stop"),
+      )
 
-    private fun conversation(
-        client: AiChatClient,
-        maxRounds: Int = 8,
-        tool: suspend (AiToolCall) -> JSONObject = { JSONObject().put("status", "success").put("echo", it.name) },
-    ) = AiConversation(client, "m", "sys", emptyList(), 1000, tool, maxRounds)
+  private fun toolCall(vararg calls: AiToolCall, text: String = "") =
+      listOf(
+          AiStreamEvent.Completed(AiMessage.Assistant(text, calls.toList()), "tool_calls"),
+      )
 
-    @Test
-    fun plainAnswerStreamsAndIsStored() = runTest {
-        val client = ScriptedClient(text("Hello"))
-        val chat = conversation(client)
-        val events = chat.send("hi").toList()
-        assertThat(events).containsExactly(AiTurnEvent.TextDelta("Hello"), AiTurnEvent.Completed("Hello"))
-        assertThat(chat.messages).containsExactly(AiMessage.User("hi"), AiMessage.Assistant("Hello"))
-    }
+  private fun conversation(
+      client: AiChatClient,
+      maxRounds: Int = 8,
+      tool: suspend (AiToolCall) -> JSONObject = {
+        JSONObject().put("status", "success").put("echo", it.name)
+      },
+  ) = AiConversation(client, "m", "sys", emptyList(), 1000, tool, maxRounds)
 
-    @Test
-    fun toolCallsRunAndResultsGoBackToTheModel() = runTest {
-        val call = AiToolCall("c1", "list_recent_experiences", mapOf("limit" to 3))
-        val client = ScriptedClient(toolCall(call), text("Done"))
-        val chat = conversation(client)
-        val events = chat.send("what did I do").toList()
+  @Test
+  fun plainAnswerStreamsAndIsStored() = runTest {
+    val client = ScriptedClient(text("Hello"))
+    val chat = conversation(client)
+    val events = chat.send("hi").toList()
+    assertThat(events)
+        .containsExactly(AiTurnEvent.TextDelta("Hello"), AiTurnEvent.Completed("Hello"))
+    assertThat(chat.messages).containsExactly(AiMessage.User("hi"), AiMessage.Assistant("Hello"))
+  }
 
-        assertThat(events.map { it::class.simpleName }).containsExactly(
-            "ToolStarted", "ToolFinished", "TextDelta", "Completed",
+  @Test
+  fun toolCallsRunAndResultsGoBackToTheModel() = runTest {
+    val call = AiToolCall("c1", "list_recent_experiences", mapOf("limit" to 3))
+    val client = ScriptedClient(toolCall(call), text("Done"))
+    val chat = conversation(client)
+    val events = chat.send("what did I do").toList()
+
+    assertThat(events.map { it::class.simpleName })
+        .containsExactly(
+            "ToolStarted",
+            "ToolFinished",
+            "TextDelta",
+            "Completed",
         )
-        val second = client.requests[1].messages
-        assertThat(second.size).isEqualTo(3)
-        val results = second[2] as AiMessage.ToolResults
-        assertThat(results.results.single().callId).isEqualTo("c1")
-        assertThat(results.results.single().result.getString("echo")).isEqualTo("list_recent_experiences")
-    }
+    val second = client.requests[1].messages
+    assertThat(second.size).isEqualTo(3)
+    val results = second[2] as AiMessage.ToolResults
+    assertThat(results.results.single().callId).isEqualTo("c1")
+    assertThat(results.results.single().result.getString("echo"))
+        .isEqualTo("list_recent_experiences")
+  }
 
-    @Test
-    fun endlessToolCallsStopAtTheRoundCapAndLeaveValidHistory() = runTest {
-        val call = AiToolCall("c", "t", emptyMap())
-        val client = ScriptedClient(toolCall(call), toolCall(call), toolCall(call))
-        val chat = conversation(client, maxRounds = 2)
-        assertFailure { chat.send("loop").toList() }.isInstanceOf(AiException::class)
-        // Nothing was answered, so the whole turn is rolled back.
-        assertThat(chat.messages.isEmpty()).isTrue()
-    }
+  @Test
+  fun endlessToolCallsStopAtTheRoundCapAndLeaveValidHistory() = runTest {
+    val call = AiToolCall("c", "t", emptyMap())
+    val client = ScriptedClient(toolCall(call), toolCall(call), toolCall(call))
+    val chat = conversation(client, maxRounds = 2)
+    assertFailure { chat.send("loop").toList() }.isInstanceOf(AiException::class)
+    // Nothing was answered, so the whole turn is rolled back.
+    assertThat(chat.messages.isEmpty()).isTrue()
+  }
 
-    @Test
-    fun oversizedToolBatchIsRefusedBeforeAnyToolRuns() = runTest {
-        val calls = (0..AiConversation.MAX_TOOL_CALLS_PER_TURN).map { AiToolCall("c$it", "t", emptyMap()) }
-        val client = ScriptedClient(toolCall(*calls.toTypedArray()))
-        var ran = 0
-        val chat = conversation(client, tool = {
-            ran++
-            JSONObject()
-        })
-        assertFailure { chat.send("many").toList() }.isInstanceOf(AiException::class)
-        assertThat(ran).isEqualTo(0)
-        assertThat(chat.messages.isEmpty()).isTrue()
-    }
+  @Test
+  fun oversizedToolBatchIsRefusedBeforeAnyToolRuns() = runTest {
+    val calls =
+        (0..AiConversation.MAX_TOOL_CALLS_PER_TURN).map { AiToolCall("c$it", "t", emptyMap()) }
+    val client = ScriptedClient(toolCall(*calls.toTypedArray()))
+    var ran = 0
+    val chat =
+        conversation(
+            client,
+            tool = {
+              ran++
+              JSONObject()
+            },
+        )
+    assertFailure { chat.send("many").toList() }.isInstanceOf(AiException::class)
+    assertThat(ran).isEqualTo(0)
+    assertThat(chat.messages.isEmpty()).isTrue()
+  }
 
-    @Test
-    fun cancelKeepsPartialTextAsAnswer() = runTest {
-        val client = ScriptedClient().apply { hangAfterText = "Partial" }
-        val chat = conversation(client)
-        val started = CompletableDeferred<Unit>()
-        val job = launch {
-            chat.send("hi").collect { started.complete(Unit) }
+  @Test
+  fun cancelKeepsPartialTextAsAnswer() = runTest {
+    val client = ScriptedClient().apply { hangAfterText = "Partial" }
+    val chat = conversation(client)
+    val started = CompletableDeferred<Unit>()
+    val job = launch {
+      chat.send("hi").collect { started.complete(Unit) }
+    }
+    started.await()
+    job.cancelAndJoin()
+    assertThat(chat.messages).containsExactly(AiMessage.User("hi"), AiMessage.Assistant("Partial"))
+  }
+
+  @Test
+  fun cancelDuringToolDropsUnansweredToolCall() = runTest {
+    val call = AiToolCall("c", "slow", emptyMap())
+    val client = ScriptedClient(toolCall(call))
+    val toolStarted = CompletableDeferred<Unit>()
+    val chat =
+        conversation(client) {
+          toolStarted.complete(Unit)
+          awaitCancellation()
         }
-        started.await()
-        job.cancelAndJoin()
-        assertThat(chat.messages).containsExactly(AiMessage.User("hi"), AiMessage.Assistant("Partial"))
-    }
+    val job = async { chat.send("hi").toList() }
+    toolStarted.await()
+    job.cancelAndJoin()
+    yield()
+    assertThat(chat.messages.isEmpty()).isTrue()
+  }
 
-    @Test
-    fun cancelDuringToolDropsUnansweredToolCall() = runTest {
-        val call = AiToolCall("c", "slow", emptyMap())
-        val client = ScriptedClient(toolCall(call))
-        val toolStarted = CompletableDeferred<Unit>()
-        val chat = conversation(client) {
-            toolStarted.complete(Unit)
-            awaitCancellation()
+  @Test
+  fun streamErrorWithoutTextRollsBackTheTurn() = runTest {
+    val failing =
+        object : AiChatClient {
+          override val standard = AiApiStandard.GEMINI
+
+          override fun stream(request: AiChatRequest): Flow<AiStreamEvent> = flow {
+            throw AiException("boom")
+          }
+
+          override suspend fun listModels() = emptyList<String>()
         }
-        val job = async { chat.send("hi").toList() }
-        toolStarted.await()
-        job.cancelAndJoin()
-        yield()
-        assertThat(chat.messages.isEmpty()).isTrue()
-    }
+    val chat = conversation(failing)
+    assertFailure { chat.send("hi").toList() }.hasMessage("boom")
+    assertThat(chat.messages.isEmpty()).isTrue()
+  }
 
-    @Test
-    fun streamErrorWithoutTextRollsBackTheTurn() = runTest {
-        val failing = object : AiChatClient {
-            override val standard = AiApiStandard.GEMINI
-            override fun stream(request: AiChatRequest): Flow<AiStreamEvent> = flow { throw AiException("boom") }
-            override suspend fun listModels() = emptyList<String>()
+  @Test
+  fun refusalDiscardsStreamedTextFromHistory() = runTest {
+    val refusing =
+        object : AiChatClient {
+          override val standard = AiApiStandard.ANTHROPIC_MESSAGES
+
+          override fun stream(request: AiChatRequest): Flow<AiStreamEvent> = flow {
+            emit(AiStreamEvent.TextDelta("Sure, here"))
+            throw AiException("declined", discardPartial = true)
+          }
+
+          override suspend fun listModels() = emptyList<String>()
         }
-        val chat = conversation(failing)
-        assertFailure { chat.send("hi").toList() }.hasMessage("boom")
-        assertThat(chat.messages.isEmpty()).isTrue()
-    }
+    val chat = conversation(refusing)
+    assertFailure { chat.send("hi").toList() }.hasMessage("declined")
+    assertThat(chat.messages.isEmpty()).isTrue()
+  }
 
-    @Test
-    fun refusalDiscardsStreamedTextFromHistory() = runTest {
-        val refusing = object : AiChatClient {
-            override val standard = AiApiStandard.ANTHROPIC_MESSAGES
-            override fun stream(request: AiChatRequest): Flow<AiStreamEvent> = flow {
-                emit(AiStreamEvent.TextDelta("Sure, here"))
-                throw AiException("declined", discardPartial = true)
-            }
-            override suspend fun listModels() = emptyList<String>()
-        }
-        val chat = conversation(refusing)
-        assertFailure { chat.send("hi").toList() }.hasMessage("declined")
-        assertThat(chat.messages.isEmpty()).isTrue()
-    }
-
-    @Test
-    fun rollbackLastTurnReturnsTheUserText() = runTest {
-        val client = ScriptedClient(text("one"), text("two"))
-        val chat = conversation(client)
-        chat.send("first").toList()
-        chat.send("second").toList()
-        assertThat(chat.rollbackLastTurn()).isEqualTo("second")
-        assertThat(chat.messages).containsExactly(AiMessage.User("first"), AiMessage.Assistant("one"))
-    }
+  @Test
+  fun rollbackLastTurnReturnsTheUserText() = runTest {
+    val client = ScriptedClient(text("one"), text("two"))
+    val chat = conversation(client)
+    chat.send("first").toList()
+    chat.send("second").toList()
+    assertThat(chat.rollbackLastTurn()).isEqualTo("second")
+    assertThat(chat.messages).containsExactly(AiMessage.User("first"), AiMessage.Assistant("one"))
+  }
 }

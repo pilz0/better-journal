@@ -25,53 +25,53 @@ import org.junit.Test
 
 class AdministrationRouteConverterTest {
 
-    private val converter = AdministrationRouteConverter()
+  private val converter = AdministrationRouteConverter()
 
-    // ===== fromAdministrationRoute (enum → String) =====
+  // ===== fromAdministrationRoute (enum → String) =====
 
-    @Test
-    fun testFromAdministrationRoute_orAL() {
-        assertEquals("ORAL", converter.fromAdministrationRoute(AdministrationRoute.ORAL))
+  @Test
+  fun testFromAdministrationRoute_orAL() {
+    assertEquals("ORAL", converter.fromAdministrationRoute(AdministrationRoute.ORAL))
+  }
+
+  @Test
+  fun testFromAdministrationRoute_null() {
+    assertNull(converter.fromAdministrationRoute(null))
+  }
+
+  // ===== toAdministrationRoute (String → enum) =====
+
+  @Test
+  fun testToAdministrationRoute_nullReturnsNull() {
+    assertNull(converter.toAdministrationRoute(null))
+  }
+
+  @Test
+  fun testToAdministrationRoute_allValidNames() {
+    AdministrationRoute.entries.forEach { route ->
+      assertEquals(route, converter.toAdministrationRoute(route.name))
     }
+  }
 
-    @Test
-    fun testFromAdministrationRoute_null() {
-        assertNull(converter.fromAdministrationRoute(null))
+  @Test
+  fun testToAdministrationRoute_unknownValues_fallBackToOral() {
+    listOf("KINECTEEN", "MEDIKINET", "COMPLETELY_UNKNOWN", "").forEach { input ->
+      assertEquals(
+          "Expected ORAL fallback for '$input'",
+          AdministrationRoute.ORAL,
+          converter.toAdministrationRoute(input),
+      )
     }
+  }
 
-    // ===== toAdministrationRoute (String → enum) =====
+  // ===== round-trip =====
 
-    @Test
-    fun testToAdministrationRoute_nullReturnsNull() {
-        assertNull(converter.toAdministrationRoute(null))
+  @Test
+  fun testRoundTrip_allValues() {
+    AdministrationRoute.entries.forEach { route ->
+      val string = converter.fromAdministrationRoute(route)
+      val back = converter.toAdministrationRoute(string)
+      assertEquals("Round-trip failed for $route", route, back)
     }
-
-    @Test
-    fun testToAdministrationRoute_allValidNames() {
-        AdministrationRoute.entries.forEach { route ->
-            assertEquals(route, converter.toAdministrationRoute(route.name))
-        }
-    }
-
-    @Test
-    fun testToAdministrationRoute_unknownValues_fallBackToOral() {
-        listOf("KINECTEEN", "MEDIKINET", "COMPLETELY_UNKNOWN", "").forEach { input ->
-            assertEquals(
-                "Expected ORAL fallback for '$input'",
-                AdministrationRoute.ORAL,
-                converter.toAdministrationRoute(input)
-            )
-        }
-    }
-
-    // ===== round-trip =====
-
-    @Test
-    fun testRoundTrip_allValues() {
-        AdministrationRoute.entries.forEach { route ->
-            val string = converter.fromAdministrationRoute(route)
-            val back = converter.toAdministrationRoute(string)
-            assertEquals("Round-trip failed for $route", route, back)
-        }
-    }
+  }
 }

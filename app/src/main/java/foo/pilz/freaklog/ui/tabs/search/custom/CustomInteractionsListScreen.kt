@@ -44,41 +44,39 @@ fun CustomInteractionsListScreen(
     navigateToPicker: (customSubstanceId: Int, severity: CustomInteractionSeverity) -> Unit,
     viewModel: CustomInteractionsListViewModel = hiltViewModel(),
 ) {
-    val spacing = LocalSpacing.current
-    val grouped = viewModel.groupedFlow.collectAsStateWithLifecycle().value
+  val spacing = LocalSpacing.current
+  val grouped = viewModel.groupedFlow.collectAsStateWithLifecycle().value
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Interactions") },
-                navigationIcon = {
-                    IconButton(onClick = navigateBack) {
-                        Icon(Icons.Default.ChevronLeft, contentDescription = "Back")
-                    }
-                },
-            )
-        },
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(vertical = spacing.sm),
-            verticalArrangement = Arrangement.spacedBy(spacing.sm),
-        ) {
-            CustomInteractionSeverity.entries.forEach { severity ->
-                item(key = "header_${severity.name}") { SectionHeader(severity.displayLabel()) }
-                item(key = "card_${severity.name}") {
-                    SeverityCard(
-                        severity = severity,
-                        entries = grouped[severity].orEmpty(),
-                        onAdd = { navigateToPicker(viewModel.customSubstanceId, severity) },
-                        onRemove = viewModel::remove,
-                    )
-                }
-            }
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Interactions") },
+            navigationIcon = {
+              IconButton(onClick = navigateBack) {
+                Icon(Icons.Default.ChevronLeft, contentDescription = "Back")
+              }
+            },
+        )
+      },
+  ) { padding ->
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().padding(padding),
+        contentPadding = PaddingValues(vertical = spacing.sm),
+        verticalArrangement = Arrangement.spacedBy(spacing.sm),
+    ) {
+      CustomInteractionSeverity.entries.forEach { severity ->
+        item(key = "header_${severity.name}") { SectionHeader(severity.displayLabel()) }
+        item(key = "card_${severity.name}") {
+          SeverityCard(
+              severity = severity,
+              entries = grouped[severity].orEmpty(),
+              onAdd = { navigateToPicker(viewModel.customSubstanceId, severity) },
+              onRemove = viewModel::remove,
+          )
         }
+      }
     }
+  }
 }
 
 @Composable
@@ -88,76 +86,76 @@ private fun SeverityCard(
     onAdd: () -> Unit,
     onRemove: (CustomInteraction) -> Unit,
 ) {
-    val spacing = LocalSpacing.current
-    val accent = severity.toInteractionType().color
+  val spacing = LocalSpacing.current
+  val accent = severity.toInteractionType().color
 
-    ElevatedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = spacing.screenHorizontal),
-    ) {
-        if (entries.isEmpty()) {
-            Text(
-                text = "No ${severity.displayLabel().lowercase()} interactions yet.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(spacing.lg),
-            )
-        } else {
-            entries.forEach { entry ->
-                ListItem(
-                    leadingContent = { AccentBar(color = accent) },
-                    headlineContent = { Text(entry.targetName) },
-                    supportingContent = { Text(entry.targetType.displayLabel()) },
-                    trailingContent = {
-                        IconButton(onClick = { onRemove(entry) }) {
-                            Icon(Icons.Outlined.Close, contentDescription = "Remove")
-                        }
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                )
-            }
-        }
-        FilledTonalButton(
-            onClick = onAdd,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(spacing.md),
-        ) {
-            Icon(Icons.Default.Add, contentDescription = null)
-            Text(
-                text = "Add ${severity.displayLabel().lowercase()} interaction",
-                modifier = Modifier.padding(start = spacing.sm),
-            )
-        }
+  ElevatedCard(
+      modifier = Modifier.fillMaxWidth().padding(horizontal = spacing.screenHorizontal),
+  ) {
+    if (entries.isEmpty()) {
+      Text(
+          text = "No ${severity.displayLabel().lowercase()} interactions yet.",
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          modifier = Modifier.padding(spacing.lg),
+      )
+    } else {
+      entries.forEach { entry ->
+        ListItem(
+            leadingContent = { AccentBar(color = accent) },
+            headlineContent = { Text(entry.targetName) },
+            supportingContent = { Text(entry.targetType.displayLabel()) },
+            trailingContent = {
+              IconButton(onClick = { onRemove(entry) }) {
+                Icon(Icons.Outlined.Close, contentDescription = "Remove")
+              }
+            },
+            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+        )
+      }
     }
+    FilledTonalButton(
+        onClick = onAdd,
+        modifier = Modifier.fillMaxWidth().padding(spacing.md),
+    ) {
+      Icon(Icons.Default.Add, contentDescription = null)
+      Text(
+          text = "Add ${severity.displayLabel().lowercase()} interaction",
+          modifier = Modifier.padding(start = spacing.sm),
+      )
+    }
+  }
 }
 
 @Composable
 private fun AccentBar(color: Color) {
-    Surface(
-        color = color,
-        modifier = Modifier
-            .size(width = 4.dp, height = 32.dp)
-            .clip(RoundedCornerShape(2.dp)),
-    ) {}
+  Surface(
+      color = color,
+      modifier = Modifier.size(width = 4.dp, height = 32.dp).clip(RoundedCornerShape(2.dp)),
+  ) {}
 }
 
-private fun CustomInteractionSeverity.displayLabel(): String = when (this) {
-    CustomInteractionSeverity.DANGEROUS -> "Dangerous"
-    CustomInteractionSeverity.UNSAFE -> "Unsafe"
-    CustomInteractionSeverity.UNCERTAIN -> "Uncertain"
-}
-
-private fun CustomInteractionSeverity.toInteractionType(): InteractionType = when (this) {
-    CustomInteractionSeverity.DANGEROUS -> InteractionType.DANGEROUS
-    CustomInteractionSeverity.UNSAFE -> InteractionType.UNSAFE
-    CustomInteractionSeverity.UNCERTAIN -> InteractionType.UNCERTAIN
-}
-
-private fun foo.pilz.freaklog.data.room.experiences.entities.CustomInteractionTargetType.displayLabel(): String =
+private fun CustomInteractionSeverity.displayLabel(): String =
     when (this) {
-        foo.pilz.freaklog.data.room.experiences.entities.CustomInteractionTargetType.SUBSTANCE -> "Substance"
-        foo.pilz.freaklog.data.room.experiences.entities.CustomInteractionTargetType.CATEGORY -> "Category"
-        foo.pilz.freaklog.data.room.experiences.entities.CustomInteractionTargetType.COMMON -> "Common"
+      CustomInteractionSeverity.DANGEROUS -> "Dangerous"
+      CustomInteractionSeverity.UNSAFE -> "Unsafe"
+      CustomInteractionSeverity.UNCERTAIN -> "Uncertain"
+    }
+
+private fun CustomInteractionSeverity.toInteractionType(): InteractionType =
+    when (this) {
+      CustomInteractionSeverity.DANGEROUS -> InteractionType.DANGEROUS
+      CustomInteractionSeverity.UNSAFE -> InteractionType.UNSAFE
+      CustomInteractionSeverity.UNCERTAIN -> InteractionType.UNCERTAIN
+    }
+
+private fun foo.pilz.freaklog.data.room.experiences.entities.CustomInteractionTargetType
+    .displayLabel(): String =
+    when (this) {
+      foo.pilz.freaklog.data.room.experiences.entities.CustomInteractionTargetType.SUBSTANCE ->
+          "Substance"
+      foo.pilz.freaklog.data.room.experiences.entities.CustomInteractionTargetType.CATEGORY ->
+          "Category"
+      foo.pilz.freaklog.data.room.experiences.entities.CustomInteractionTargetType.COMMON ->
+          "Common"
     }

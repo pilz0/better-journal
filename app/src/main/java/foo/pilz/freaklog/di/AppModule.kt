@@ -21,22 +21,22 @@ package foo.pilz.freaklog.di
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
-import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
 import androidx.sqlite.db.SupportSQLiteDatabase
-import dagger.hilt.android.qualifiers.ApplicationContext
-import dagger.hilt.components.SingletonComponent
-import dagger.hilt.InstallIn
 import dagger.Module
 import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
 import foo.pilz.freaklog.data.room.AppDatabase
+import foo.pilz.freaklog.data.room.SprayDao
 import foo.pilz.freaklog.data.room.experiences.CustomRecipeDao
 import foo.pilz.freaklog.data.room.experiences.ExperienceDao
 import foo.pilz.freaklog.data.room.reminders.ReminderDao
-import foo.pilz.freaklog.data.room.SprayDao
 import javax.inject.Qualifier
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
@@ -47,87 +47,87 @@ import kotlinx.coroutines.SupervisorJob
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    @Singleton
-    @Provides
-    fun provideExperiencesDao(appDatabase: AppDatabase): ExperienceDao =
-        appDatabase.experienceDao()
+  @Singleton
+  @Provides
+  fun provideExperiencesDao(appDatabase: AppDatabase): ExperienceDao = appDatabase.experienceDao()
 
-    @Singleton
-    @Provides
-    fun provideCustomFormulationDao(appDatabase: AppDatabase): foo.pilz.freaklog.data.room.experiences.CustomFormulationDao =
-        appDatabase.customFormulationDao()
+  @Singleton
+  @Provides
+  fun provideCustomFormulationDao(
+      appDatabase: AppDatabase
+  ): foo.pilz.freaklog.data.room.experiences.CustomFormulationDao =
+      appDatabase.customFormulationDao()
 
-    @Singleton
-    @Provides
-    fun provideSprayDao(appDatabase: AppDatabase): SprayDao =
-        appDatabase.sprayDao()
+  @Singleton
+  @Provides
+  fun provideSprayDao(appDatabase: AppDatabase): SprayDao = appDatabase.sprayDao()
 
-    @Singleton
-    @Provides
-    fun provideCustomRecipeDao(appDatabase: AppDatabase): CustomRecipeDao =
-        appDatabase.customRecipeDao()
+  @Singleton
+  @Provides
+  fun provideCustomRecipeDao(appDatabase: AppDatabase): CustomRecipeDao =
+      appDatabase.customRecipeDao()
 
-    @Singleton
-    @Provides
-    fun provideReminderDao(appDatabase: AppDatabase): ReminderDao =
-        appDatabase.reminderDao()
+  @Singleton
+  @Provides
+  fun provideReminderDao(appDatabase: AppDatabase): ReminderDao = appDatabase.reminderDao()
 
-    @Singleton
-    @Provides
-    fun provideInventoryDao(appDatabase: AppDatabase): foo.pilz.freaklog.data.room.inventory.InventoryDao =
-        appDatabase.inventoryDao()
+  @Singleton
+  @Provides
+  fun provideInventoryDao(
+      appDatabase: AppDatabase
+  ): foo.pilz.freaklog.data.room.inventory.InventoryDao = appDatabase.inventoryDao()
 
-    @Singleton
-    @Provides
-    fun provideWebhookDao(appDatabase: AppDatabase): foo.pilz.freaklog.data.room.webhooks.WebhookDao =
-        appDatabase.webhookDao()
+  @Singleton
+  @Provides
+  fun provideWebhookDao(appDatabase: AppDatabase): foo.pilz.freaklog.data.room.webhooks.WebhookDao =
+      appDatabase.webhookDao()
 
-    @Singleton
-    @Provides
-    fun provideIngestionWebhookMessageDao(
-        appDatabase: AppDatabase
-    ): foo.pilz.freaklog.data.room.webhooks.IngestionWebhookMessageDao =
-        appDatabase.ingestionWebhookMessageDao()
+  @Singleton
+  @Provides
+  fun provideIngestionWebhookMessageDao(
+      appDatabase: AppDatabase
+  ): foo.pilz.freaklog.data.room.webhooks.IngestionWebhookMessageDao =
+      appDatabase.ingestionWebhookMessageDao()
 
-    @Singleton
-    @Provides
-    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase =
-        Room.databaseBuilder(
-            context,
-            AppDatabase::class.java,
-            "experiences_db"
-        )
-            .addMigrations(AppDatabase.MIGRATION_21_22)
-            .addCallback(object : androidx.room.RoomDatabase.Callback() {
+  @Singleton
+  @Provides
+  fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase =
+      Room.databaseBuilder(
+              context,
+              AppDatabase::class.java,
+              "experiences_db",
+          )
+          .addMigrations(AppDatabase.MIGRATION_21_22)
+          .addCallback(
+              object : androidx.room.RoomDatabase.Callback() {
                 override fun onCreate(db: SupportSQLiteDatabase) {
-                    super.onCreate(db)
-                    db.execSQL("PRAGMA recursive_triggers = ON")
-                    AppDatabase.createChangeLogTriggers(db)
+                  super.onCreate(db)
+                  db.execSQL("PRAGMA recursive_triggers = ON")
+                  AppDatabase.createChangeLogTriggers(db)
                 }
+
                 override fun onOpen(db: SupportSQLiteDatabase) {
-                    super.onOpen(db)
-                    db.execSQL("PRAGMA recursive_triggers = ON")
+                  super.onOpen(db)
+                  db.execSQL("PRAGMA recursive_triggers = ON")
                 }
-            })
-            .build()
+              }
+          )
+          .build()
 
-    @Singleton
-    @Provides
-    fun providePreferencesDataStore(@ApplicationContext appContext: Context): DataStore<Preferences> {
-        return PreferenceDataStoreFactory.create(
-            corruptionHandler = ReplaceFileCorruptionHandler(
-                produceNewData = { emptyPreferences() }
-            ),
-            produceFile = { appContext.preferencesDataStoreFile("user_preferences") }
-        )
-    }
+  @Singleton
+  @Provides
+  fun providePreferencesDataStore(@ApplicationContext appContext: Context): DataStore<Preferences> {
+    return PreferenceDataStoreFactory.create(
+        corruptionHandler = ReplaceFileCorruptionHandler(produceNewData = { emptyPreferences() }),
+        produceFile = { appContext.preferencesDataStoreFile("user_preferences") },
+    )
+  }
 
-    @Singleton
-    @Provides
-    @ApplicationScope
-    fun providesCoroutineScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+  @Singleton
+  @Provides
+  @ApplicationScope
+  fun providesCoroutineScope(): CoroutineScope =
+      CoroutineScope(SupervisorJob() + Dispatchers.Default)
 }
 
-@Retention(AnnotationRetention.RUNTIME)
-@Qualifier
-annotation class ApplicationScope
+@Retention(AnnotationRetention.RUNTIME) @Qualifier annotation class ApplicationScope

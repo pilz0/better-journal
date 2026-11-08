@@ -8,24 +8,22 @@ import foo.pilz.freaklog.ui.tabs.settings.customunits.add.AddIngestionSearchScre
 import kotlinx.serialization.Serializable
 
 fun NavGraphBuilder.addIntakeLimitGraph(navController: NavController) {
-    navigation<AddIntakeLimitParentRoute>(
-        startDestination = AddIntakeLimitChooseSubstanceRoute,
-    ) {
-        composableWithTransitions<AddIntakeLimitChooseSubstanceRoute> {
-            AddIngestionSearchScreen(
-                navigateToChooseRoute = { substanceName ->
-                    navController.navigate(EditIntakeLimitRoute(substanceName = substanceName))
-                },
-                navigateToCustomSubstanceChooseRoute = { customSubstanceName ->
-                    navController.navigate(EditIntakeLimitRoute(substanceName = customSubstanceName))
-                }
-            )
-        }
+  navigation<AddIntakeLimitParentRoute>(
+      startDestination = AddIntakeLimitChooseSubstanceRoute,
+  ) {
+    composableWithTransitions<AddIntakeLimitChooseSubstanceRoute> {
+      AddIngestionSearchScreen(
+          navigateToChooseRoute = { substanceName ->
+            navController.navigate(EditIntakeLimitRoute(substanceName = substanceName))
+          },
+          navigateToCustomSubstanceChooseRoute = { customSubstanceName ->
+            navController.navigate(EditIntakeLimitRoute(substanceName = customSubstanceName))
+          },
+      )
     }
+  }
 }
 
-@Serializable
-object AddIntakeLimitParentRoute
+@Serializable object AddIntakeLimitParentRoute
 
-@Serializable
-object AddIntakeLimitChooseSubstanceRoute
+@Serializable object AddIntakeLimitChooseSubstanceRoute

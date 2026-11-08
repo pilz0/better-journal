@@ -48,17 +48,18 @@ import foo.pilz.freaklog.ui.theme.horizontalPadding
 
 @Composable
 fun CombinationSettingsScreen(viewModel: CombinationSettingsViewModel = hiltViewModel()) {
-    CombinationSettingsScreen(
-        substanceInteractions = viewModel.optionsFlow.collectAsState().value.map {
+  CombinationSettingsScreen(
+      substanceInteractions =
+          viewModel.optionsFlow.collectAsState().value.map {
             SubstanceInteraction(
                 name = it.name,
                 isOn = it.enabled,
                 toggle = {
-                    viewModel.toggleOption(it.name)
-                }
+                  viewModel.toggleOption(it.name)
+                },
             )
-        }
-    )
+          }
+  )
 }
 
 class SubstanceInteraction(
@@ -70,70 +71,64 @@ class SubstanceInteraction(
 @Preview
 @Composable
 fun CombinationSettingsPreview() {
-    CombinationSettingsScreen(
-        substanceInteractions = listOf(
-            SubstanceInteraction(name = "Alcohol", toggle = {}, isOn = true),
-            SubstanceInteraction(name = "Caffeine", toggle = {}, isOn = false),
-            SubstanceInteraction(name = "Cannabis", toggle = {}, isOn = false),
-            SubstanceInteraction(name = "Grapefruit", toggle = {}, isOn = true),
-            SubstanceInteraction(name = "Hormonal birth control", toggle = {}, isOn = false),
-        )
-    )
+  CombinationSettingsScreen(
+      substanceInteractions =
+          listOf(
+              SubstanceInteraction(name = "Alcohol", toggle = {}, isOn = true),
+              SubstanceInteraction(name = "Caffeine", toggle = {}, isOn = false),
+              SubstanceInteraction(name = "Cannabis", toggle = {}, isOn = false),
+              SubstanceInteraction(name = "Grapefruit", toggle = {}, isOn = true),
+              SubstanceInteraction(name = "Hormonal birth control", toggle = {}, isOn = false),
+          )
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CombinationSettingsScreen(
-    substanceInteractions: List<SubstanceInteraction>
-) {
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Combinations") })
-        }
-    ) { padding ->
+fun CombinationSettingsScreen(substanceInteractions: List<SubstanceInteraction>) {
+  Scaffold(
+      topBar = {
+        TopAppBar(title = { Text("Combinations") })
+      }
+  ) { padding ->
+    Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(padding)) {
+      Spacer(modifier = Modifier.height(5.dp))
+      ElevatedCard(modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 4.dp)) {
         Column(
-            modifier = Modifier
-                .verticalScroll(rememberScrollState())
-                .padding(padding)
+            modifier =
+                Modifier.padding(
+                    horizontal = horizontalPadding,
+                    vertical = 10.dp,
+                )
         ) {
-            Spacer(modifier = Modifier.height(5.dp))
-            ElevatedCard(modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 4.dp)) {
-                Column(
-                    modifier = Modifier.padding(
-                        horizontal = horizontalPadding,
-                        vertical = 10.dp
-                    )
-                ) {
-                    Text(
-                        text = "Interaction alerts",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Text(
-                        text = "Get warnings about interactions with following substances, even if you haven't logged them.",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                    substanceInteractions.forEach { substanceInteraction ->
-                        key(substanceInteraction.name) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(text = substanceInteraction.name)
-                                Switch(
-                                    checked = substanceInteraction.isOn,
-                                    onCheckedChange = { substanceInteraction.toggle() },
-                                    modifier = Modifier.semantics { contentDescription = substanceInteraction.name }
-                                )
-                            }
-                        }
-                    }
-                }
+          Text(
+              text = "Interaction alerts",
+              style = MaterialTheme.typography.titleMedium,
+          )
+          Text(
+              text =
+                  "Get warnings about interactions with following substances, even if you haven't logged them.",
+              style = MaterialTheme.typography.bodySmall,
+          )
+          substanceInteractions.forEach { substanceInteraction ->
+            key(substanceInteraction.name) {
+              Row(
+                  modifier = Modifier.fillMaxWidth(),
+                  horizontalArrangement = Arrangement.SpaceBetween,
+                  verticalAlignment = Alignment.CenterVertically,
+              ) {
+                Text(text = substanceInteraction.name)
+                Switch(
+                    checked = substanceInteraction.isOn,
+                    onCheckedChange = { substanceInteraction.toggle() },
+                    modifier =
+                        Modifier.semantics { contentDescription = substanceInteraction.name },
+                )
+              }
             }
+          }
         }
+      }
     }
+  }
 }
-
-
-
-
