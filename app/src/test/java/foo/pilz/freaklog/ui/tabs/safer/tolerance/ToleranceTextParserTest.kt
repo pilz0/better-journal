@@ -1,78 +1,98 @@
 package foo.pilz.freaklog.ui.tabs.safer.tolerance
 
 import foo.pilz.freaklog.data.substances.classes.Tolerance
-import org.junit.Test
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertNull
+import org.junit.Test
 
 class ToleranceTextParserTest {
 
-    @Test
-    fun testParseDurationText() {
-        assertEquals(14f, ToleranceTextParser.parseDurationText("14 days"))
-        assertEquals(6f, ToleranceTextParser.parseDurationText("5-7 days"))
-        assertEquals(6f, ToleranceTextParser.parseDurationText("5 - 7 days"))
-        assertEquals(7f, ToleranceTextParser.parseDurationText("1 week"))
-        assertEquals(10.5f, ToleranceTextParser.parseDurationText("1 - 2 weeks"))
-        assertEquals(1f, ToleranceTextParser.parseDurationText("24 hours"))
-        assertEquals(45f, ToleranceTextParser.parseDurationText("1 - 2 months"))
-        assertEquals(0f, ToleranceTextParser.parseDurationText("almost immediately after ingestion"))
-        assertEquals(14f, ToleranceTextParser.parseDurationText("develops with prolonged and repeated use"))
-        assertEquals(21f, ToleranceTextParser.parseDurationText("within several weeks of continuous use"))
-        assertNull(ToleranceTextParser.parseDurationText(null))
-        assertNull(ToleranceTextParser.parseDurationText("something completely unknown xyz"))
-    }
+  @Test
+  fun testParseDurationText() {
+    assertEquals(14f, ToleranceTextParser.parseDurationText("14 days"))
+    assertEquals(6f, ToleranceTextParser.parseDurationText("5-7 days"))
+    assertEquals(6f, ToleranceTextParser.parseDurationText("5 - 7 days"))
+    assertEquals(7f, ToleranceTextParser.parseDurationText("1 week"))
+    assertEquals(10.5f, ToleranceTextParser.parseDurationText("1 - 2 weeks"))
+    assertEquals(1f, ToleranceTextParser.parseDurationText("24 hours"))
+    assertEquals(45f, ToleranceTextParser.parseDurationText("1 - 2 months"))
+    assertEquals(0f, ToleranceTextParser.parseDurationText("almost immediately after ingestion"))
+    assertEquals(
+        14f,
+        ToleranceTextParser.parseDurationText("develops with prolonged and repeated use"),
+    )
+    assertEquals(
+        21f,
+        ToleranceTextParser.parseDurationText("within several weeks of continuous use"),
+    )
+    assertNull(ToleranceTextParser.parseDurationText(null))
+    assertNull(ToleranceTextParser.parseDurationText("something completely unknown xyz"))
+  }
 
-    @Test
-    fun testParseFullTolerance() {
-        val parsed = ToleranceTextParser.parse(Tolerance(full = "almost immediately after ingestion", half = "5-7 days", zero = "14 days"))
-        assertNotNull(parsed)
-        assertEquals(0f, parsed!!.fullDays)
-        assertEquals(6f, parsed.halfLifeDays)
-        assertEquals(14f, parsed.zeroDays)
-    }
+  @Test
+  fun testParseFullTolerance() {
+    val parsed =
+        ToleranceTextParser.parse(
+            Tolerance(
+                full = "almost immediately after ingestion",
+                half = "5-7 days",
+                zero = "14 days",
+            )
+        )
+    assertNotNull(parsed)
+    assertEquals(0f, parsed!!.fullDays)
+    assertEquals(6f, parsed.halfLifeDays)
+    assertEquals(14f, parsed.zeroDays)
+  }
 
-    @Test
-    fun testEstimatesMissingFields() {
-        val missingHalf = ToleranceTextParser.parse(Tolerance(full = null, half = null, zero = "14 days"))
-        assertNotNull(missingHalf)
-        assertEquals(7f, missingHalf!!.halfLifeDays)
+  @Test
+  fun testEstimatesMissingFields() {
+    val missingHalf =
+        ToleranceTextParser.parse(Tolerance(full = null, half = null, zero = "14 days"))
+    assertNotNull(missingHalf)
+    assertEquals(7f, missingHalf!!.halfLifeDays)
 
-        val missingZero = ToleranceTextParser.parse(Tolerance(full = null, half = "5 days", zero = null))
-        assertNotNull(missingZero)
-        assertEquals(12.5f, missingZero!!.zeroDays)
+    val missingZero =
+        ToleranceTextParser.parse(Tolerance(full = null, half = "5 days", zero = null))
+    assertNotNull(missingZero)
+    assertEquals(12.5f, missingZero!!.zeroDays)
 
-        assertNull(ToleranceTextParser.parse(Tolerance(full = null, half = null, zero = null)))
-    }
+    assertNull(ToleranceTextParser.parse(Tolerance(full = null, half = null, zero = null)))
+  }
 
-    @Test
-    fun testZeroDaysCoercedToAtLeastHalfDays() {
-        val inverted = ToleranceTextParser.parse(Tolerance(full = null, half = "7 days", zero = "3 days"))
-        assertNotNull(inverted)
-        assertEquals(7f, inverted!!.halfLifeDays)
-        assertEquals(7f, inverted.zeroDays)
-    }
+  @Test
+  fun testZeroDaysCoercedToAtLeastHalfDays() {
+    val inverted =
+        ToleranceTextParser.parse(Tolerance(full = null, half = "7 days", zero = "3 days"))
+    assertNotNull(inverted)
+    assertEquals(7f, inverted!!.halfLifeDays)
+    assertEquals(7f, inverted.zeroDays)
+  }
 
-    @Test
-    fun overlongTextIsNotParsed() {
-        assertNull(ToleranceTextParser.parseDurationText("1".repeat(ToleranceTextParser.MAX_TEXT_LENGTH) + " days"))
-    }
+  @Test
+  fun overlongTextIsNotParsed() {
+    assertNull(
+        ToleranceTextParser.parseDurationText(
+            "1".repeat(ToleranceTextParser.MAX_TEXT_LENGTH) + " days"
+        )
+    )
+  }
 
-    @Test
-    fun numberAfterDecimalPointStillParses() {
-        assertEquals(2.3f, ToleranceTextParser.parseDurationText("1.2.3 days")!!, 1e-4f)
-    }
+  @Test
+  fun numberAfterDecimalPointStillParses() {
+    assertEquals(2.3f, ToleranceTextParser.parseDurationText("1.2.3 days")!!, 1e-4f)
+  }
 
-    @Test
-    fun zeroDurationReturnsNull() {
-        assertNull(ToleranceTextParser.parseDurationText("0 days"))
-        assertNull(ToleranceTextParser.parseDurationText("0-0 days"))
-    }
+  @Test
+  fun zeroDurationReturnsNull() {
+    assertNull(ToleranceTextParser.parseDurationText("0 days"))
+    assertNull(ToleranceTextParser.parseDurationText("0-0 days"))
+  }
 
-    @Test
-    fun hoursConvertedToDays() {
-        assertEquals(0.5f, ToleranceTextParser.parseDurationText("12 hours")!!, 1e-4f)
-        assertEquals(1.5f, ToleranceTextParser.parseDurationText("24 - 48 hours")!!, 1e-4f)
-    }
+  @Test
+  fun hoursConvertedToDays() {
+    assertEquals(0.5f, ToleranceTextParser.parseDurationText("12 hours")!!, 1e-4f)
+    assertEquals(1.5f, ToleranceTextParser.parseDurationText("24 - 48 hours")!!, 1e-4f)
+  }
 }

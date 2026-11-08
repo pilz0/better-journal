@@ -63,31 +63,32 @@ fun CustomUnitsScreen(
     navigateToEditCustomUnit: (customUnitId: Int) -> Unit,
     navigateToAddCustomUnit: () -> Unit,
     navigateToCustomUnitArchive: () -> Unit,
-    ) {
-    CustomUnitsScreenContent(
-        filteredUnits = viewModel.filteredCustomUnitsFlow.collectAsState().value,
-        navigateToEditCustomUnit = navigateToEditCustomUnit,
-        navigateToAddCustomUnit = navigateToAddCustomUnit,
-        navigateToCustomUnitArchive = navigateToCustomUnitArchive,
-        searchText = viewModel.searchTextFlow.collectAsState().value,
-        onSearch = viewModel::onSearch
-    )
+) {
+  CustomUnitsScreenContent(
+      filteredUnits = viewModel.filteredCustomUnitsFlow.collectAsState().value,
+      navigateToEditCustomUnit = navigateToEditCustomUnit,
+      navigateToAddCustomUnit = navigateToAddCustomUnit,
+      navigateToCustomUnitArchive = navigateToCustomUnitArchive,
+      searchText = viewModel.searchTextFlow.collectAsState().value,
+      onSearch = viewModel::onSearch,
+  )
 }
 
 @Preview
 @Composable
 fun CustomUnitsScreenPreview() {
-    CustomUnitsScreenContent(
-        filteredUnits = listOf(
-            CustomUnit.mdmaSample,
-            CustomUnit.twoCBSample
-        ),
-        navigateToEditCustomUnit = { _ -> },
-        navigateToAddCustomUnit = {},
-        navigateToCustomUnitArchive = {},
-        searchText = "",
-        onSearch = {}
-    )
+  CustomUnitsScreenContent(
+      filteredUnits =
+          listOf(
+              CustomUnit.mdmaSample,
+              CustomUnit.twoCBSample,
+          ),
+      navigateToEditCustomUnit = { _ -> },
+      navigateToAddCustomUnit = {},
+      navigateToCustomUnitArchive = {},
+      searchText = "",
+      onSearch = {},
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -100,92 +101,96 @@ fun CustomUnitsScreenContent(
     searchText: String,
     onSearch: (String) -> Unit,
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Custom units") },
-                actions = {
-                    IconButton(onClick = navigateToCustomUnitArchive) {
-                        Icon(Icons.Default.Inventory, contentDescription = "Go to archive")
-                    }
-                })
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                modifier = Modifier.imePadding(),
-                onClick = navigateToAddCustomUnit,
-                icon = {
-                    Icon(Icons.Default.Add, contentDescription = "Add custom unit")
-                },
-                text = {
-                    Text(text = "Custom unit")
-                }
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Custom units") },
+            actions = {
+              IconButton(onClick = navigateToCustomUnitArchive) {
+                Icon(Icons.Default.Inventory, contentDescription = "Go to archive")
+              }
+            },
+        )
+      },
+      floatingActionButton = {
+        ExtendedFloatingActionButton(
+            modifier = Modifier.imePadding(),
+            onClick = navigateToAddCustomUnit,
+            icon = {
+              Icon(Icons.Default.Add, contentDescription = "Add custom unit")
+            },
+            text = {
+              Text(text = "Custom unit")
+            },
+        )
+      },
+  ) { padding ->
+    Column(modifier = Modifier.padding(padding)) {
+      val focusManager = LocalFocusManager.current
+      TextField(
+          modifier = Modifier.fillMaxWidth(),
+          value = searchText,
+          onValueChange = { value ->
+            onSearch(value)
+          },
+          placeholder = { Text(text = "Search") },
+          leadingIcon = {
+            Icon(
+                Icons.Default.Search,
+                contentDescription = "Search",
             )
-        }
-    ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
-            val focusManager = LocalFocusManager.current
-            TextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = searchText,
-                onValueChange = { value ->
-                    onSearch(value)
-                },
-                placeholder = { Text(text = "Search") },
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.Search,
-                        contentDescription = "Search",
-                    )
-                },
-                trailingIcon = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        // clear search button
-                        if (searchText.isNotEmpty()) {
-                            IconButton(onClick = {
-                                onSearch("")
-                            }) {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = "Close",
-                                )
-                            }
-                        }
+          },
+          trailingIcon = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              // clear search button
+              if (searchText.isNotEmpty()) {
+                IconButton(
+                    onClick = {
+                      onSearch("")
                     }
-                },
-                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    autoCorrectEnabled = false,
-                    imeAction = ImeAction.Done,
-                    capitalization = KeyboardCapitalization.Words,
-                ),
-                singleLine = true
-            )
-            if (filteredUnits.isEmpty()) {
-                if(searchText.isEmpty()) {
-                    EmptyScreenDisclaimer(
-                        title = "No custom units yet",
-                        description = "Add your first unit"
-                    )
-                } else {
-                    EmptyScreenDisclaimer(
-                        title = "No custom units found",
-                        description = "No custom unit matches your search"
-                    )
+                ) {
+                  Icon(
+                      Icons.Default.Close,
+                      contentDescription = "Close",
+                  )
                 }
-            } else {
-                LazyColumn {
-                    items(filteredUnits, key = { it.id }) { customUnit ->
-                        CustomUnitRow(
-                            customUnit = customUnit,
-                            navigateToEditCustomUnit = navigateToEditCustomUnit
-                        )
-                        HorizontalDivider()
-                    }
-                }
+              }
             }
+          },
+          keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+          keyboardOptions =
+              KeyboardOptions.Default.copy(
+                  autoCorrectEnabled = false,
+                  imeAction = ImeAction.Done,
+                  capitalization = KeyboardCapitalization.Words,
+              ),
+          singleLine = true,
+      )
+      if (filteredUnits.isEmpty()) {
+        if (searchText.isEmpty()) {
+          EmptyScreenDisclaimer(
+              title = "No custom units yet",
+              description = "Add your first unit",
+          )
+        } else {
+          EmptyScreenDisclaimer(
+              title = "No custom units found",
+              description = "No custom unit matches your search",
+          )
         }
+      } else {
+        LazyColumn {
+          items(filteredUnits, key = { it.id }) { customUnit ->
+            CustomUnitRow(
+                customUnit = customUnit,
+                navigateToEditCustomUnit = navigateToEditCustomUnit,
+            )
+            HorizontalDivider()
+          }
+        }
+      }
     }
+  }
 }
 
 @Composable
@@ -193,28 +198,28 @@ fun CustomUnitRow(
     customUnit: CustomUnit,
     navigateToEditCustomUnit: (customUnitId: Int) -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .clickable {
+  Column(
+      modifier =
+          Modifier.clickable {
                 navigateToEditCustomUnit(customUnit.id)
-            }
-            .fillMaxWidth()
-            .padding(vertical = 10.dp, horizontal = horizontalPadding),
-        horizontalAlignment = Alignment.Start
-    ) {
-        Text(
-            text = "${customUnit.substanceName}, ${customUnit.name}",
-            style = MaterialTheme.typography.titleMedium
-        )
-        Text(
-            text = "${customUnit.getDoseOfOneUnitDescription()} per ${customUnit.unit}",
-            style = MaterialTheme.typography.titleSmall
-        )
-        if (customUnit.note.isNotBlank()) {
-            Text(
-                text = customUnit.note,
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
+              }
+              .fillMaxWidth()
+              .padding(vertical = 10.dp, horizontal = horizontalPadding),
+      horizontalAlignment = Alignment.Start,
+  ) {
+    Text(
+        text = "${customUnit.substanceName}, ${customUnit.name}",
+        style = MaterialTheme.typography.titleMedium,
+    )
+    Text(
+        text = "${customUnit.getDoseOfOneUnitDescription()} per ${customUnit.unit}",
+        style = MaterialTheme.typography.titleSmall,
+    )
+    if (customUnit.note.isNotBlank()) {
+      Text(
+          text = customUnit.note,
+          style = MaterialTheme.typography.bodyMedium,
+      )
     }
+  }
 }

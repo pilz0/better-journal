@@ -28,57 +28,59 @@ fun EditSubstanceGroupScreen(
     navigateToAddItem: (groupId: Int) -> Unit,
     viewModel: EditSubstanceGroupViewModel = hiltViewModel(),
 ) {
-    var isShowingDeleteDialog by remember { mutableStateOf(false) }
-    val name by viewModel.nameFlow.collectAsStateWithLifecycle()
-    val items by viewModel.itemsFlow.collectAsStateWithLifecycle()
+  var isShowingDeleteDialog by remember { mutableStateOf(false) }
+  val name by viewModel.nameFlow.collectAsStateWithLifecycle()
+  val items by viewModel.itemsFlow.collectAsStateWithLifecycle()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Edit substance group") },
-                navigationIcon = {
-                    IconButton(onClick = navigateBack) {
-                        Icon(Icons.Default.ChevronLeft, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    val context = LocalContext.current
-                    IconButton(onClick = { viewModel.share(context) }) {
-                        Icon(Icons.Outlined.IosShare, contentDescription = "Share")
-                    }
-                },
-            )
-        },
-    ) { padding ->
-        SubstanceGroupEditorContent(
-            padding = padding,
-            name = name,
-            onNameChange = viewModel::onNameChange,
-            items = items,
-            onAddItem = { navigateToAddItem(viewModel.id) },
-            onRemoveItem = viewModel::removeItem,
-            onDelete = { isShowingDeleteDialog = true },
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Edit substance group") },
+            navigationIcon = {
+              IconButton(onClick = navigateBack) {
+                Icon(Icons.Default.ChevronLeft, contentDescription = "Back")
+              }
+            },
+            actions = {
+              val context = LocalContext.current
+              IconButton(onClick = { viewModel.share(context) }) {
+                Icon(Icons.Outlined.IosShare, contentDescription = "Share")
+              }
+            },
         )
+      },
+  ) { padding ->
+    SubstanceGroupEditorContent(
+        padding = padding,
+        name = name,
+        onNameChange = viewModel::onNameChange,
+        items = items,
+        onAddItem = { navigateToAddItem(viewModel.id) },
+        onRemoveItem = viewModel::removeItem,
+        onDelete = { isShowingDeleteDialog = true },
+    )
 
-        AnimatedVisibility(visible = isShowingDeleteDialog) {
-            AlertDialog(
-                onDismissRequest = { isShowingDeleteDialog = false },
-                title = { Text("Delete group?") },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            isShowingDeleteDialog = false
-                            viewModel.delete()
-                            navigateBack()
-                        },
-                    ) { Text("Delete") }
+    AnimatedVisibility(visible = isShowingDeleteDialog) {
+      AlertDialog(
+          onDismissRequest = { isShowingDeleteDialog = false },
+          title = { Text("Delete group?") },
+          confirmButton = {
+            TextButton(
+                onClick = {
+                  isShowingDeleteDialog = false
+                  viewModel.delete()
+                  navigateBack()
                 },
-                dismissButton = {
-                    TextButton(onClick = { isShowingDeleteDialog = false }) {
-                        Text("Cancel")
-                    }
-                },
-            )
-        }
+            ) {
+              Text("Delete")
+            }
+          },
+          dismissButton = {
+            TextButton(onClick = { isShowingDeleteDialog = false }) {
+              Text("Cancel")
+            }
+          },
+      )
     }
+  }
 }

@@ -54,36 +54,36 @@ import java.time.LocalDateTime
 @Preview
 @Composable
 fun AddRatingScreenPreview() {
-    AddRatingScreen(
-        onDone = {},
-        selectedTime = LocalDateTime.now(),
-        onTimeChange = {},
-        selectedRating = ShulginRatingOption.TWO_PLUS,
-        onRatingChange = {},
-        canAddOverallRating = true,
-        isOverallRating = false,
-        onChangeIsOverallRating = {}
-    )
+  AddRatingScreen(
+      onDone = {},
+      selectedTime = LocalDateTime.now(),
+      onTimeChange = {},
+      selectedRating = ShulginRatingOption.TWO_PLUS,
+      onRatingChange = {},
+      canAddOverallRating = true,
+      isOverallRating = false,
+      onChangeIsOverallRating = {},
+  )
 }
 
 @Composable
 fun AddRatingScreen(
     viewModel: AddRatingViewModel = hiltViewModel(),
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
 ) {
-    AddRatingScreen(
-        onDone = {
-            viewModel.onDoneTap()
-            navigateBack()
-        },
-        selectedTime = viewModel.localDateTimeFlow.collectAsState().value,
-        onTimeChange = viewModel::onChangeTime,
-        selectedRating = viewModel.selectedRating,
-        onRatingChange = viewModel::onChangeRating,
-        canAddOverallRating = !viewModel.isThereAlreadyAnOverallRatingFlow.collectAsState().value,
-        isOverallRating = viewModel.isThisOverallRating,
-        onChangeIsOverallRating = { viewModel.isThisOverallRating = it }
-    )
+  AddRatingScreen(
+      onDone = {
+        viewModel.onDoneTap()
+        navigateBack()
+      },
+      selectedTime = viewModel.localDateTimeFlow.collectAsState().value,
+      onTimeChange = viewModel::onChangeTime,
+      selectedRating = viewModel.selectedRating,
+      onRatingChange = viewModel::onChangeRating,
+      canAddOverallRating = !viewModel.isThereAlreadyAnOverallRatingFlow.collectAsState().value,
+      isOverallRating = viewModel.isThisOverallRating,
+      onChangeIsOverallRating = { viewModel.isThisOverallRating = it },
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -96,55 +96,51 @@ fun AddRatingScreen(
     onRatingChange: (ShulginRatingOption) -> Unit,
     canAddOverallRating: Boolean,
     isOverallRating: Boolean,
-    onChangeIsOverallRating: (Boolean) -> Unit
+    onChangeIsOverallRating: (Boolean) -> Unit,
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Add Shulgin rating") },
-            )
-        },
-        floatingActionButton = {
-            FloatingDoneButton(
-                onDone = onDone,
-                modifier = Modifier.imePadding(),
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .verticalScroll(rememberScrollState())
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Add Shulgin rating") },
+        )
+      },
+      floatingActionButton = {
+        FloatingDoneButton(
+            onDone = onDone,
+            modifier = Modifier.imePadding(),
+        )
+      },
+  ) { padding ->
+    Column(
+        modifier =
+            Modifier.verticalScroll(rememberScrollState())
                 .padding(padding)
                 .padding(horizontal = horizontalPadding)
-        ) {
-            Spacer(modifier = Modifier.height(3.dp))
-            if (canAddOverallRating) {
-                ElevatedCard(
-                    modifier = Modifier
-                        .padding(vertical = 5.dp)
-                        .fillMaxWidth()
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 3.dp)
-                    ) {
-                        Switch(
-                            checked = isOverallRating,
-                            onCheckedChange = { onChangeIsOverallRating(it) }
-                        )
-                        Text(
-                            text = "Overall rating",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                }
-            }
-            AnimatedVisibility(visible = !isOverallRating) {
-                TimePickerSection(selectedTime = selectedTime, onTimeChange = onTimeChange)
-            }
-            RatingPickerSection(selectedRating = selectedRating, onRatingChange = onRatingChange)
-            RatingsExplanationSection()
+    ) {
+      Spacer(modifier = Modifier.height(3.dp))
+      if (canAddOverallRating) {
+        ElevatedCard(modifier = Modifier.padding(vertical = 5.dp).fillMaxWidth()) {
+          Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(10.dp),
+              modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 3.dp),
+          ) {
+            Switch(
+                checked = isOverallRating,
+                onCheckedChange = { onChangeIsOverallRating(it) },
+            )
+            Text(
+                text = "Overall rating",
+                style = MaterialTheme.typography.titleMedium,
+            )
+          }
         }
+      }
+      AnimatedVisibility(visible = !isOverallRating) {
+        TimePickerSection(selectedTime = selectedTime, onTimeChange = onTimeChange)
+      }
+      RatingPickerSection(selectedRating = selectedRating, onRatingChange = onRatingChange)
+      RatingsExplanationSection()
     }
+  }
 }

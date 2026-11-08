@@ -15,68 +15,72 @@ import foo.pilz.freaklog.data.room.experiences.relations.SubstanceGroupWithItems
 import foo.pilz.freaklog.data.substanceshare.shareSubstanceGroup
 import foo.pilz.freaklog.ui.main.navigation.graphs.EditSubstanceGroupRoute
 import foo.pilz.freaklog.ui.utils.stateInVm
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
-class EditSubstanceGroupViewModel @Inject constructor(
+class EditSubstanceGroupViewModel
+@Inject
+constructor(
     private val groupRepo: SubstanceGroupRepository,
     private val customSubstanceRepo: CustomSubstanceRepository,
     private val experienceRepo: ExperienceRepository,
     state: SavedStateHandle,
 ) : ViewModel() {
 
-    val id: Int = state.toRoute<EditSubstanceGroupRoute>().groupId
+  val id: Int = state.toRoute<EditSubstanceGroupRoute>().groupId
 
-    val groupFlow = groupRepo.getWithItemsFlow(id)
-        .stateInVm(viewModelScope, null as SubstanceGroupWithItems?)
+  val groupFlow =
+      groupRepo.getWithItemsFlow(id).stateInVm(viewModelScope, null as SubstanceGroupWithItems?)
 
-    val itemsFlow = groupFlow.map { it?.sortedItems.orEmpty() }
-        .stateInVm(viewModelScope, emptyList<SubstanceGroupItem>())
+  val itemsFlow =
+      groupFlow
+          .map { it?.sortedItems.orEmpty() }
+          .stateInVm(viewModelScope, emptyList<SubstanceGroupItem>())
 
-    val nameFlow = MutableStateFlow("")
+  val nameFlow = MutableStateFlow("")
 
-    private var hasHydrated = false
+  private var hasHydrated = false
 
-    init {
-        viewModelScope.launch {
-            groupFlow.collect { loaded ->
-                if (loaded != null && !hasHydrated) {
-                    nameFlow.value = loaded.group.name
-                    hasHydrated = true
-                }
-            }
+  init {
+    viewModelScope.launch {
+      groupFlow.collect { loaded ->
+        if (loaded != null && !hasHydrated) {
+          nameFlow.value = loaded.group.name
+          hasHydrated = true
         }
+      }
     }
+  }
 
-    fun onNameChange(value: String) {
-        nameFlow.value = value
-        persist()
-    }
+  fun onNameChange(value: String) {
+    nameFlow.value = value
+    persist()
+  }
 
-    private fun persist() {
-        if (!hasHydrated) return
-        viewModelScope.launch {
-            groupRepo.update(SubstanceGroup(id = id, name = nameFlow.value.trim()))
-        }
+  private fun persist() {
+    if (!hasHydrated) return
+    viewModelScope.launch {
+      groupRepo.update(SubstanceGroup(id = id, name = nameFlow.value.trim()))
     }
+  }
 
-    fun removeItem(item: SubstanceGroupItem) {
-        viewModelScope.launch { groupRepo.deleteItem(item) }
-    }
+  fun removeItem(item: SubstanceGroupItem) {
+    viewModelScope.launch { groupRepo.deleteItem(item) }
+  }
 
-    fun delete() {
-        viewModelScope.launch {
-            groupRepo.delete(SubstanceGroup(id = id, name = nameFlow.value.trim()))
-        }
+  fun delete() {
+    viewModelScope.launch {
+      groupRepo.delete(SubstanceGroup(id = id, name = nameFlow.value.trim()))
     }
+  }
 
-    fun share(context: Context) {
-        viewModelScope.launch {
-            val current = groupRepo.getWithItems(id) ?: return@launch
-            shareSubstanceGroup(context, current, customSubstanceRepo, experienceRepo)
-        }
+  fun share(context: Context) {
+    viewModelScope.launch {
+      val current = groupRepo.getWithItems(id) ?: return@launch
+      shareSubstanceGroup(context, current, customSubstanceRepo, experienceRepo)
     }
+  }
 }

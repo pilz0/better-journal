@@ -27,16 +27,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
 @Composable
-fun FloatingDoneButton(onDone: ()->Unit, modifier: Modifier = Modifier) {
-    ExtendedFloatingActionButton(
-        modifier = modifier,
-        onClick = onDone,
-        icon = {
-            Icon(
-                Icons.Filled.Done,
-                contentDescription = "Done"
-            )
-        },
-        text = { Text("Done") }
-    )
+fun FloatingDoneButton(onDone: () -> Unit, modifier: Modifier = Modifier) {
+  ExtendedFloatingActionButton(
+      modifier = modifier,
+      onClick = onDone,
+      icon = {
+        Icon(
+            Icons.Filled.Done,
+            contentDescription = "Done",
+        )
+      },
+      text = { Text("Done") },
+  )
 }

@@ -44,104 +44,109 @@ fun SubstanceGroupsScreen(
     navigateToEditSubstanceGroup: (groupId: Int) -> Unit,
     viewModel: SubstanceGroupsViewModel = hiltViewModel(),
 ) {
-    val context = LocalContext.current
-    val groups by viewModel.filteredGroupsFlow.collectAsStateWithLifecycle()
-    val searchText by viewModel.searchTextFlow.collectAsStateWithLifecycle()
-    val collision by viewModel.pendingCollision.collectAsStateWithLifecycle()
-    val snackbarText by viewModel.snackbar.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
+  val context = LocalContext.current
+  val groups by viewModel.filteredGroupsFlow.collectAsStateWithLifecycle()
+  val searchText by viewModel.searchTextFlow.collectAsStateWithLifecycle()
+  val collision by viewModel.pendingCollision.collectAsStateWithLifecycle()
+  val snackbarText by viewModel.snackbar.collectAsStateWithLifecycle()
+  val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(snackbarText) {
-        snackbarText?.let {
-            snackbarHostState.showSnackbar(it)
-            viewModel.consumeSnackbar()
-        }
+  LaunchedEffect(snackbarText) {
+    snackbarText?.let {
+      snackbarHostState.showSnackbar(it)
+      viewModel.consumeSnackbar()
     }
+  }
 
-    val importLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
-    ) { uri: Uri? ->
+  val importLauncher =
+      rememberLauncherForActivityResult(contract = ActivityResultContracts.OpenDocument()) {
+          uri: Uri? ->
         uri?.let { viewModel.importFromUri(context, it) }
-    }
+      }
 
-    val spacing = LocalSpacing.current
+  val spacing = LocalSpacing.current
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Substance groups") },
-                actions = {
-                    IconButton(onClick = {
-                        importLauncher.launch(arrayOf("application/json", "*/*"))
-                    }) {
-                        Icon(Icons.Outlined.FileDownload, contentDescription = "Import group")
-                    }
-                },
-            )
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                text = { Text("Substance group") },
-                icon = { Icon(Icons.Default.Add, contentDescription = "Add substance group") },
-                onClick = navigateToAddSubstanceGroup,
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize(),
-        ) {
-            SearchBar(
-                searchText = searchText,
-                onChangeSearchText = viewModel::onSearch,
-                placeholder = "Search substance groups",
-            )
-            if (groups.isEmpty()) {
-                if (searchText.isEmpty()) {
-                    EmptyScreenDisclaimer(
-                        title = "No substance groups yet",
-                        description = "Create a group to add multiple ingestions at once",
-                        icon = Icons.Outlined.Medication,
-                    )
-                } else {
-                    EmptyScreenDisclaimer(
-                        title = "No substance groups found",
-                        description = "No substance group matches your search",
-                        icon = Icons.Outlined.Medication,
-                    )
-                }
-            } else {
-                LazyColumn(
-                    contentPadding = PaddingValues(
-                        vertical = spacing.sm,
-                        horizontal = spacing.screenHorizontal
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(spacing.sm),
-                ) {
-                    items(groups, key = { it.group.id }) { group ->
-                        SubstanceGroupCard(
-                            group = group,
-                            onClick = { navigateToEditSubstanceGroup(group.group.id) },
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    collision?.let { payload ->
-        AlertDialog(
-            onDismissRequest = viewModel::resolveCancel,
-            title = { Text("Group already exists") },
-            text = { Text("A substance group named \"${payload.name}\" is already saved. What do you want to do?") },
-            confirmButton = {
-                TextButton(onClick = viewModel::resolveReplace) { Text("Replace") }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::resolveKeepBoth) { Text("Keep both") }
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Substance groups") },
+            actions = {
+              IconButton(
+                  onClick = {
+                    importLauncher.launch(arrayOf("application/json", "*/*"))
+                  }
+              ) {
+                Icon(Icons.Outlined.FileDownload, contentDescription = "Import group")
+              }
             },
         )
+      },
+      floatingActionButton = {
+        ExtendedFloatingActionButton(
+            text = { Text("Substance group") },
+            icon = { Icon(Icons.Default.Add, contentDescription = "Add substance group") },
+            onClick = navigateToAddSubstanceGroup,
+        )
+      },
+      snackbarHost = { SnackbarHost(snackbarHostState) },
+  ) { padding ->
+    Column(
+        modifier = Modifier.padding(padding).fillMaxSize(),
+    ) {
+      SearchBar(
+          searchText = searchText,
+          onChangeSearchText = viewModel::onSearch,
+          placeholder = "Search substance groups",
+      )
+      if (groups.isEmpty()) {
+        if (searchText.isEmpty()) {
+          EmptyScreenDisclaimer(
+              title = "No substance groups yet",
+              description = "Create a group to add multiple ingestions at once",
+              icon = Icons.Outlined.Medication,
+          )
+        } else {
+          EmptyScreenDisclaimer(
+              title = "No substance groups found",
+              description = "No substance group matches your search",
+              icon = Icons.Outlined.Medication,
+          )
+        }
+      } else {
+        LazyColumn(
+            contentPadding =
+                PaddingValues(
+                    vertical = spacing.sm,
+                    horizontal = spacing.screenHorizontal,
+                ),
+            verticalArrangement = Arrangement.spacedBy(spacing.sm),
+        ) {
+          items(groups, key = { it.group.id }) { group ->
+            SubstanceGroupCard(
+                group = group,
+                onClick = { navigateToEditSubstanceGroup(group.group.id) },
+            )
+          }
+        }
+      }
     }
+  }
+
+  collision?.let { payload ->
+    AlertDialog(
+        onDismissRequest = viewModel::resolveCancel,
+        title = { Text("Group already exists") },
+        text = {
+          Text(
+              "A substance group named \"${payload.name}\" is already saved. What do you want to do?"
+          )
+        },
+        confirmButton = {
+          TextButton(onClick = viewModel::resolveReplace) { Text("Replace") }
+        },
+        dismissButton = {
+          TextButton(onClick = viewModel::resolveKeepBoth) { Text("Keep both") }
+        },
+    )
+  }
 }

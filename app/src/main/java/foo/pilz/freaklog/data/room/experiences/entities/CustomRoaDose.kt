@@ -10,38 +10,37 @@ import kotlinx.serialization.Transient
 
 @Entity(
     primaryKeys = ["customSubstanceId", "route"],
-    indices = [
-        Index(value = ["customSubstanceId"]),
-    ],
-    foreignKeys = [
-        ForeignKey(
-            entity = CustomSubstance::class,
-            parentColumns = ["id"],
-            childColumns = ["customSubstanceId"],
-            onDelete = ForeignKey.CASCADE,
-        )
-    ]
+    indices =
+        [
+            Index(value = ["customSubstanceId"]),
+        ],
+    foreignKeys =
+        [
+            ForeignKey(
+                entity = CustomSubstance::class,
+                parentColumns = ["id"],
+                childColumns = ["customSubstanceId"],
+                onDelete = ForeignKey.CASCADE,
+            )
+        ],
 )
 @Serializable
 data class CustomRoaDose(
-    @Transient
-    var customSubstanceId: Int = 0,
-
+    @Transient var customSubstanceId: Int = 0,
     val route: AdministrationRoute,
-
     val units: String? = null,
     val lightMin: Double? = null,
     val commonMin: Double? = null,
     val strongMin: Double? = null,
     val heavyMin: Double? = null,
 ) {
-    fun toRoaDose(): RoaDose {
-        return RoaDose(
-            units = units ?: "",
-            lightMin = lightMin,
-            commonMin = commonMin,
-            strongMin = strongMin,
-            heavyMin = heavyMin,
-        )
-    }
+  fun toRoaDose(): RoaDose {
+    return RoaDose(
+        units = units ?: "",
+        lightMin = lightMin,
+        commonMin = commonMin,
+        strongMin = strongMin,
+        heavyMin = heavyMin,
+    )
+  }
 }

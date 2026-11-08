@@ -64,20 +64,20 @@ import kotlinx.coroutines.launch
 @Composable
 fun FreakQueryShellScreen(
     navigateBack: () -> Unit,
-    viewModel: FreakQueryShellViewModel = hiltViewModel()
+    viewModel: FreakQueryShellViewModel = hiltViewModel(),
 ) {
-    val state by viewModel.state.collectAsState()
+  val state by viewModel.state.collectAsState()
 
-    FreakQueryShellScreenContent(
-        state = state,
-        navigateBack = navigateBack,
-        onInputChange = viewModel::updateInput,
-        onRun = viewModel::runCurrentInput,
-        onExample = viewModel::runExample,
-        onClear = viewModel::clear,
-        onHistoryUp = viewModel::navigateHistoryUp,
-        onHistoryDown = viewModel::navigateHistoryDown,
-    )
+  FreakQueryShellScreenContent(
+      state = state,
+      navigateBack = navigateBack,
+      onInputChange = viewModel::updateInput,
+      onRun = viewModel::runCurrentInput,
+      onExample = viewModel::runExample,
+      onClear = viewModel::clear,
+      onHistoryUp = viewModel::navigateHistoryUp,
+      onHistoryDown = viewModel::navigateHistoryDown,
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -93,134 +93,136 @@ fun FreakQueryShellScreenContent(
     onHistoryUp: () -> Unit = {},
     onHistoryDown: () -> Unit = {},
 ) {
-    val listState = rememberLazyListState()
-    val uriHandler = LocalUriHandler.current
+  val listState = rememberLazyListState()
+  val uriHandler = LocalUriHandler.current
 
-    LaunchedEffect(state.history.size) {
-        if (state.history.isNotEmpty()) {
-            listState.animateScrollToItem(state.history.lastIndex)
-        }
+  LaunchedEffect(state.history.size) {
+    if (state.history.isNotEmpty()) {
+      listState.animateScrollToItem(state.history.lastIndex)
     }
+  }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("FreakQuery Shell") },
-                navigationIcon = {
-                    IconButton(onClick = navigateBack) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { uriHandler.openUri(FREAKQUERY_GUIDE_URL) }) {
-                        Icon(Icons.AutoMirrored.Outlined.HelpOutline, contentDescription = "FreakQuery Guide")
-                    }
-                    IconButton(onClick = onClear) {
-                        Icon(Icons.Outlined.ClearAll, contentDescription = "Clear")
-                    }
-                }
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("FreakQuery Shell") },
+            navigationIcon = {
+              IconButton(onClick = navigateBack) {
+                Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
+              }
+            },
+            actions = {
+              IconButton(onClick = { uriHandler.openUri(FREAKQUERY_GUIDE_URL) }) {
+                Icon(
+                    Icons.AutoMirrored.Outlined.HelpOutline,
+                    contentDescription = "FreakQuery Guide",
+                )
+              }
+              IconButton(onClick = onClear) {
+                Icon(Icons.Outlined.ClearAll, contentDescription = "Clear")
+              }
+            },
+        )
+      }
+  ) { padding ->
+    Column(modifier = Modifier.padding(padding).fillMaxSize().imePadding()) {
+      Row(
+          modifier =
+              Modifier.fillMaxWidth().padding(horizontal = horizontalPadding, vertical = 8.dp),
+          horizontalArrangement = Arrangement.SpaceBetween,
+      ) {
+        Text(
+            text = "${state.logCount} logs",
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        if (state.isRunning) {
+          CircularProgressIndicator(modifier = Modifier.height(18.dp), strokeWidth = 2.dp)
+        }
+      }
+
+      FlowRow(
+          modifier = Modifier.fillMaxWidth().padding(horizontal = horizontalPadding),
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+          verticalArrangement = Arrangement.spacedBy(4.dp),
+      ) {
+        listOf(
+                "count",
+                "last",
+                "last|dose",
+                "month|count",
+                "ratio=route",
+                "top_substances",
+                "sequence",
             )
+            .forEach { example ->
+              AssistChip(
+                  onClick = { onExample(example) },
+                  label = { Text(example, fontFamily = FontFamily.Monospace) },
+              )
+            }
+      }
+
+      Spacer(modifier = Modifier.height(8.dp))
+
+      LazyColumn(
+          state = listState,
+          modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = horizontalPadding),
+          verticalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+        items(state.history, key = { it.id }) { entry ->
+          ShellEntry(entry = entry) {
+            onInputChange(entry.query)
+          }
         }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-                .imePadding()
+      }
+
+      Row(
+          modifier =
+              Modifier.fillMaxWidth().padding(horizontal = horizontalPadding, vertical = 8.dp),
+          horizontalArrangement = Arrangement.spacedBy(4.dp),
+          verticalAlignment = Alignment.CenterVertically,
+      ) {
+        IconButton(
+            onClick = onHistoryUp,
+            enabled = state.canNavigateHistoryUp && !state.isRunning,
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = horizontalPadding, vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "${state.logCount} logs",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                if (state.isRunning) {
-                    CircularProgressIndicator(modifier = Modifier.height(18.dp), strokeWidth = 2.dp)
-                }
-            }
-
-            FlowRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = horizontalPadding),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                listOf("count", "last", "last|dose", "month|count", "ratio=route", "top_substances", "sequence")
-                    .forEach { example ->
-                        AssistChip(
-                            onClick = { onExample(example) },
-                            label = { Text(example, fontFamily = FontFamily.Monospace) }
-                        )
-                    }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = horizontalPadding),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(state.history, key = { it.id }) { entry ->
-                    ShellEntry(entry = entry) {
-                        onInputChange(entry.query)
-                    }
-                }
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = horizontalPadding, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(
-                    onClick = onHistoryUp,
-                    enabled = state.canNavigateHistoryUp && !state.isRunning
-                ) {
-                    Icon(Icons.Outlined.ArrowUpward, contentDescription = "Previous query")
-                }
-                IconButton(
-                    onClick = onHistoryDown,
-                    enabled = state.canNavigateHistoryDown && !state.isRunning
-                ) {
-                    Icon(Icons.Outlined.ArrowDownward, contentDescription = "Next query")
-                }
-                OutlinedTextField(
-                    value = state.input,
-                    onValueChange = onInputChange,
-                    modifier = Modifier.weight(1f),
-                    enabled = !state.isRunning,
-                    singleLine = true,
-                    leadingIcon = {
-                        Text("fq>", fontFamily = FontFamily.Monospace)
-                    },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-                    keyboardActions = KeyboardActions(onSend = {
-                        if (state.input.trim().isNotBlank() && !state.isRunning) {
-                            onRun()
-                        }
-                    })
-                )
-                IconButton(
-                    onClick = onRun,
-                    enabled = state.input.isNotBlank() && !state.isRunning
-                ) {
-                    Icon(Icons.Outlined.PlayArrow, contentDescription = "Run")
-                }
-            }
+          Icon(Icons.Outlined.ArrowUpward, contentDescription = "Previous query")
         }
+        IconButton(
+            onClick = onHistoryDown,
+            enabled = state.canNavigateHistoryDown && !state.isRunning,
+        ) {
+          Icon(Icons.Outlined.ArrowDownward, contentDescription = "Next query")
+        }
+        OutlinedTextField(
+            value = state.input,
+            onValueChange = onInputChange,
+            modifier = Modifier.weight(1f),
+            enabled = !state.isRunning,
+            singleLine = true,
+            leadingIcon = {
+              Text("fq>", fontFamily = FontFamily.Monospace)
+            },
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+            keyboardActions =
+                KeyboardActions(
+                    onSend = {
+                      if (state.input.trim().isNotBlank() && !state.isRunning) {
+                        onRun()
+                      }
+                    }
+                ),
+        )
+        IconButton(
+            onClick = onRun,
+            enabled = state.input.isNotBlank() && !state.isRunning,
+        ) {
+          Icon(Icons.Outlined.PlayArrow, contentDescription = "Run")
+        }
+      }
     }
+  }
 }
 
 @Composable
@@ -228,80 +230,80 @@ private fun ShellEntry(
     entry: FreakQueryShellEntry,
     onReuse: () -> Unit,
 ) {
-    val clipboard = LocalClipboard.current
-    val coroutineScope = rememberCoroutineScope()
-    val context = LocalContext.current
-    val performHaptic = rememberHaptic()
+  val clipboard = LocalClipboard.current
+  val coroutineScope = rememberCoroutineScope()
+  val context = LocalContext.current
+  val performHaptic = rememberHaptic()
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
-                shape = RoundedCornerShape(8.dp)
-            )
-            .clickable(onClick = onReuse)
-            .padding(12.dp)
+  Column(
+      modifier =
+          Modifier.fillMaxWidth()
+              .background(
+                  color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
+                  shape = RoundedCornerShape(8.dp),
+              )
+              .clickable(onClick = onReuse)
+              .padding(12.dp)
+  ) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "fq> ${entry.query}",
-                fontFamily = FontFamily.Monospace,
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.weight(1f)
-            )
-            IconButton(
-                onClick = {
-                    coroutineScope.launch {
-                        clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("plain text", entry.query)))
-                        performHaptic(HapticType.CLICK)
-                        Toast.makeText(context, "Query copied", Toast.LENGTH_SHORT).show()
-                    }
-                },
-                modifier = Modifier.size(32.dp)
-            ) {
-                Icon(
-                    Icons.Outlined.ContentCopy,
-                    contentDescription = "Copy query",
-                    modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+      Text(
+          text = "fq> ${entry.query}",
+          fontFamily = FontFamily.Monospace,
+          color = MaterialTheme.colorScheme.primary,
+          style = MaterialTheme.typography.bodyMedium,
+          modifier = Modifier.weight(1f),
+      )
+      IconButton(
+          onClick = {
+            coroutineScope.launch {
+              clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("plain text", entry.query)))
+              performHaptic(HapticType.CLICK)
+              Toast.makeText(context, "Query copied", Toast.LENGTH_SHORT).show()
             }
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top
-        ) {
-            Text(
-                text = entry.output,
-                fontFamily = FontFamily.Monospace,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.weight(1f)
-            )
-            IconButton(
-                onClick = {
-                    coroutineScope.launch {
-                        clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("plain text", entry.output)))
-                        performHaptic(HapticType.CLICK)
-                        Toast.makeText(context, "Output copied", Toast.LENGTH_SHORT).show()
-                    }
-                },
-                modifier = Modifier.size(32.dp)
-            ) {
-                Icon(
-                    Icons.Outlined.ContentCopy,
-                    contentDescription = "Copy output",
-                    modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
+          },
+          modifier = Modifier.size(32.dp),
+      ) {
+        Icon(
+            Icons.Outlined.ContentCopy,
+            contentDescription = "Copy query",
+            modifier = Modifier.size(16.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
     }
+    Spacer(modifier = Modifier.height(4.dp))
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top,
+    ) {
+      Text(
+          text = entry.output,
+          fontFamily = FontFamily.Monospace,
+          style = MaterialTheme.typography.bodyMedium,
+          modifier = Modifier.weight(1f),
+      )
+      IconButton(
+          onClick = {
+            coroutineScope.launch {
+              clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("plain text", entry.output)))
+              performHaptic(HapticType.CLICK)
+              Toast.makeText(context, "Output copied", Toast.LENGTH_SHORT).show()
+            }
+          },
+          modifier = Modifier.size(32.dp),
+      ) {
+        Icon(
+            Icons.Outlined.ContentCopy,
+            contentDescription = "Copy output",
+            modifier = Modifier.size(16.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+    }
+  }
 }

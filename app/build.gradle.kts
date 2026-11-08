@@ -1,271 +1,274 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.hilt.android)
-    alias(libs.plugins.androidx.room)
-    alias(libs.plugins.ksp)
-    alias(libs.plugins.detekt)
-    alias(libs.plugins.kover)
+  alias(libs.plugins.android.application)
+  alias(libs.plugins.kotlin.compose)
+  alias(libs.plugins.kotlin.serialization)
+  alias(libs.plugins.hilt.android)
+  alias(libs.plugins.androidx.room)
+  alias(libs.plugins.ksp)
+  alias(libs.plugins.detekt)
+  alias(libs.plugins.kover)
 }
 
 android {
-    namespace = "foo.pilz.freaklog"
-    compileSdk = 37
+  namespace = "foo.pilz.freaklog"
+  compileSdk = 37
 
-    defaultConfig {
-        applicationId = "foo.pilz.freaklog"
-        minSdk = 31
-        targetSdk = 37
-        versionCode = 85
-        versionName = "11.32"
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
+  defaultConfig {
+    applicationId = "foo.pilz.freaklog"
+    minSdk = 31
+    targetSdk = 37
+    versionCode = 85
+    versionName = "11.32"
+    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+  }
 
-    room {
-        schemaDirectory("$projectDir/schemas")
-    }
+  room {
+    schemaDirectory("$projectDir/schemas")
+  }
 
-    lint {
-        checkReleaseBuilds = true
-        // Lint dependencies as well, so reports include issues in libraries we ship.
-        checkDependencies = true
-        // Don't fail the build on lint errors yet; the SARIF is uploaded to
-        // code scanning so reviewers can triage them. Flip to `true` once the
-        // existing baseline is clean.
-        abortOnError = false
-    }
+  lint {
+    checkReleaseBuilds = true
+    // Lint dependencies as well, so reports include issues in libraries we ship.
+    checkDependencies = true
+    // Don't fail the build on lint errors yet; the SARIF is uploaded to
+    // code scanning so reviewers can triage them. Flip to `true` once the
+    // existing baseline is clean.
+    abortOnError = false
+  }
 
-    testOptions {
-        // Enables `Robolectric` and the AndroidX test infra against the
-        // platform stub. We still set `isReturnDefaultValues = true` so any
-        // un-stubbed framework call returns a sensible default rather than
-        // throwing — this preserves the behaviour of the existing test
-        // suite. New tests that need a real Android runtime should use
-        // Robolectric (`@RunWith(RobolectricTestRunner::class)`).
-        unitTests {
-            isReturnDefaultValues = true
-            isIncludeAndroidResources = true
-        }
-        animationsDisabled = true
+  testOptions {
+    // Enables `Robolectric` and the AndroidX test infra against the
+    // platform stub. We still set `isReturnDefaultValues = true` so any
+    // un-stubbed framework call returns a sensible default rather than
+    // throwing — this preserves the behaviour of the existing test
+    // suite. New tests that need a real Android runtime should use
+    // Robolectric (`@RunWith(RobolectricTestRunner::class)`).
+    unitTests {
+      isReturnDefaultValues = true
+      isIncludeAndroidResources = true
     }
+    animationsDisabled = true
+  }
 
-    buildTypes {
-        debug {
-            // Coverage instrumentation for instrumented (connectedAndroidTest)
-            // runs is enabled here so Kover can merge JVM + Android coverage.
-            enableAndroidTestCoverage = true
-        }
-        release {
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-            ndk.debugSymbolLevel = "FULL"
-        }
+  buildTypes {
+    debug {
+      // Coverage instrumentation for instrumented (connectedAndroidTest)
+      // runs is enabled here so Kover can merge JVM + Android coverage.
+      enableAndroidTestCoverage = true
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-        isCoreLibraryDesugaringEnabled = true
+    release {
+      isMinifyEnabled = true
+      isShrinkResources = true
+      proguardFiles(
+          getDefaultProguardFile("proguard-android-optimize.txt"),
+          "proguard-rules.pro",
+      )
+      ndk.debugSymbolLevel = "FULL"
     }
-    buildFeatures {
-        compose = true
-    }
+  }
+  compileOptions {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+    isCoreLibraryDesugaringEnabled = true
+  }
+  buildFeatures {
+    compose = true
+  }
 
-    packaging {
-        resources {
-            // Several test/runtime dependencies (MockK, Kotlin coroutines, Robolectric, …)
-            // ship duplicate license files under META-INF; exclude them so APKs build cleanly.
-            excludes += setOf(
-                "/META-INF/{AL2.0,LGPL2.1}",
-                "/META-INF/LICENSE.md",
-                "/META-INF/LICENSE-notice.md",
-            )
-        }
+  packaging {
+    resources {
+      // Several test/runtime dependencies (MockK, Kotlin coroutines, Robolectric, …)
+      // ship duplicate license files under META-INF; exclude them so APKs build cleanly.
+      excludes +=
+          setOf(
+              "/META-INF/{AL2.0,LGPL2.1}",
+              "/META-INF/LICENSE.md",
+              "/META-INF/LICENSE-notice.md",
+          )
     }
+  }
 }
 
 kotlin {
-    jvmToolchain(17)
-    compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
-    }
+  jvmToolchain(17)
+  compilerOptions {
+    jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+  }
 }
 
 val testJavaVersion = providers.gradleProperty("testJavaVersion").getOrElse("17")
 val testLauncher = javaToolchains.launcherFor {
-    languageVersion.set(JavaLanguageVersion.of(testJavaVersion))
+  languageVersion.set(JavaLanguageVersion.of(testJavaVersion))
 }
 
 tasks.withType<Test>().configureEach {
-    javaLauncher.set(testLauncher)
-    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
+  javaLauncher.set(testLauncher)
+  maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
 
-    // Defaults stay deterministic; compatibility CI deliberately varies these
-    // Gradle inputs, which are also tracked by the test task's up-to-date checks.
-    systemProperty("user.timezone", providers.gradleProperty("testTimezone").getOrElse("UTC"))
-    systemProperty("user.language", providers.gradleProperty("testLanguage").getOrElse("en"))
-    systemProperty("user.country", providers.gradleProperty("testCountry").getOrElse("US"))
-    // Send Robolectric's internal log output to stdout so failures show
-    // diagnostic context in the test report instead of being swallowed.
-    systemProperty("robolectric.logging", "stdout")
-    // The JDK's HttpURLConnection rejects PATCH; WebhookService then sets the
-    // protected `method` field reflectively, which JDK 17 only allows when
-    // java.net is opened to the unnamed module.
-    jvmArgs("--add-opens", "java.base/java.net=ALL-UNNAMED")
+  // Defaults stay deterministic; compatibility CI deliberately varies these
+  // Gradle inputs, which are also tracked by the test task's up-to-date checks.
+  systemProperty("user.timezone", providers.gradleProperty("testTimezone").getOrElse("UTC"))
+  systemProperty("user.language", providers.gradleProperty("testLanguage").getOrElse("en"))
+  systemProperty("user.country", providers.gradleProperty("testCountry").getOrElse("US"))
+  // Send Robolectric's internal log output to stdout so failures show
+  // diagnostic context in the test report instead of being swallowed.
+  systemProperty("robolectric.logging", "stdout")
+  // The JDK's HttpURLConnection rejects PATCH; WebhookService then sets the
+  // protected `method` field reflectively, which JDK 17 only allows when
+  // java.net is opened to the unnamed module.
+  jvmArgs("--add-opens", "java.base/java.net=ALL-UNNAMED")
 
-    testLogging {
-        events("failed", "skipped")
-        showStandardStreams = false
-    }
+  testLogging {
+    events("failed", "skipped")
+    showStandardStreams = false
+  }
 
-    // Allow excluding test patterns from the command line for sharded CI runs:
-    //   ./gradlew testDebugUnitTest -PtestExclude=foo.pilz.freaklog.data.*,foo.pilz.freaklog.ui.*
-    providers.gradleProperty("testExclude").orNull
-        ?.split(",")
-        ?.map { it.trim() }
-        ?.filter { it.isNotEmpty() }
-        ?.forEach { filter.excludeTestsMatching(it) }
+  // Allow excluding test patterns from the command line for sharded CI runs:
+  //   ./gradlew testDebugUnitTest -PtestExclude=foo.pilz.freaklog.data.*,foo.pilz.freaklog.ui.*
+  providers
+      .gradleProperty("testExclude")
+      .orNull
+      ?.split(",")
+      ?.map { it.trim() }
+      ?.filter { it.isNotEmpty() }
+      ?.forEach { filter.excludeTestsMatching(it) }
 }
 
 // --- Detekt ---
 detekt {
-    toolVersion = libs.versions.detekt.get()
-    parallel = true
-    buildUponDefaultConfig = true
-    allRules = false
-    config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
-    baseline = file("$rootDir/config/detekt/baseline.xml")
-    ignoreFailures = false
+  toolVersion = libs.versions.detekt.get()
+  parallel = true
+  buildUponDefaultConfig = true
+  allRules = false
+  config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
+  baseline = file("$rootDir/config/detekt/baseline.xml")
+  ignoreFailures = false
 }
 
 tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
-    jvmTarget = "17"
-    reports {
-        sarif.required.set(true)
-        html.required.set(true)
-        xml.required.set(true)
-        md.required.set(false)
-        txt.required.set(false)
-    }
+  jvmTarget = "17"
+  reports {
+    sarif.required.set(true)
+    html.required.set(true)
+    xml.required.set(true)
+    md.required.set(false)
+    txt.required.set(false)
+  }
 }
 
 tasks.withType<io.gitlab.arturbosch.detekt.DetektCreateBaselineTask>().configureEach {
-    jvmTarget = "17"
+  jvmTarget = "17"
 }
 
 dependencies {
-    implementation(project(":freakquery-android"))
+  implementation(project(":freakquery-android"))
 
-    detektPlugins(libs.detekt.formatting)
+  detektPlugins(libs.detekt.formatting)
 }
 
 // --- Kover (Kotlinx coverage) ---
 kover {
-    reports {
-        filters {
-            excludes {
-                packages(
-                    "*.databinding",
-                    "*.di_*",
-                    "hilt_aggregated_deps",
-                    "dagger.hilt.*",
-                    "*_HiltModules*",
-                    "*_Factory*",
-                    "*_MembersInjector*",
-                )
-                classes(
-                    "*BuildConfig",
-                    "*ComposableSingletons*",
-                    "*\$\$serializer",
-                    "*Application_HiltComponents*",
-                )
-                annotatedBy(
-                    "androidx.compose.runtime.Composable",
-                    "androidx.compose.ui.tooling.preview.Preview",
-                    "dagger.Module",
-                    "dagger.hilt.InstallIn",
-                )
-            }
-        }
-        verify {
-            rule("Project line coverage") {
-                minBound(8)
-            }
-        }
+  reports {
+    filters {
+      excludes {
+        packages(
+            "*.databinding",
+            "*.di_*",
+            "hilt_aggregated_deps",
+            "dagger.hilt.*",
+            "*_HiltModules*",
+            "*_Factory*",
+            "*_MembersInjector*",
+        )
+        classes(
+            "*BuildConfig",
+            "*ComposableSingletons*",
+            "*\$\$serializer",
+            "*Application_HiltComponents*",
+        )
+        annotatedBy(
+            "androidx.compose.runtime.Composable",
+            "androidx.compose.ui.tooling.preview.Preview",
+            "dagger.Module",
+            "dagger.hilt.InstallIn",
+        )
+      }
     }
+    verify {
+      rule("Project line coverage") {
+        minBound(8)
+      }
+    }
+  }
 }
 
 dependencies {
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
-    implementation(libs.androidx.material3.adaptive.navigation.suite.android)
-    implementation(libs.androidx.work.runtime.ktx)
-    implementation(libs.androidx.health.connect)
+  implementation(libs.androidx.core.ktx)
+  implementation(libs.androidx.lifecycle.runtime.ktx)
+  implementation(libs.androidx.activity.compose)
+  implementation(platform(libs.androidx.compose.bom))
+  implementation(libs.androidx.ui)
+  implementation(libs.androidx.ui.graphics)
+  implementation(libs.androidx.ui.tooling.preview)
+  implementation(libs.androidx.material3)
+  implementation(libs.androidx.material3.adaptive.navigation.suite.android)
+  implementation(libs.androidx.work.runtime.ktx)
+  implementation(libs.androidx.health.connect)
 
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.android.compiler)
+  implementation(libs.hilt.android)
+  ksp(libs.hilt.android.compiler)
 
-    implementation(libs.androidx.navigation.compose)
+  implementation(libs.androidx.navigation.compose)
 
-    implementation(libs.androidx.room.runtime)
-    ksp(libs.androidx.room.compiler)
-    implementation(libs.androidx.room.ktx)
+  implementation(libs.androidx.room.runtime)
+  ksp(libs.androidx.room.compiler)
+  implementation(libs.androidx.room.ktx)
 
-    implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.kotlinx.coroutines.android)
+  implementation(libs.kotlinx.coroutines.core)
+  implementation(libs.kotlinx.coroutines.android)
 
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.hilt.navigation.compose)
-    implementation(libs.androidx.material.icons.extended)
-    implementation(libs.androidx.datastore.preferences)
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.compose)
+  implementation(libs.androidx.lifecycle.viewmodel.compose)
+  implementation(libs.androidx.hilt.navigation.compose)
+  implementation(libs.androidx.material.icons.extended)
+  implementation(libs.androidx.datastore.preferences)
+  implementation(libs.kotlinx.serialization.json)
+  implementation(libs.compose)
 
-    implementation(libs.androidx.core.splashscreen)
+  implementation(libs.androidx.core.splashscreen)
 
-    implementation(libs.androidx.glance)
-    implementation(libs.androidx.glance.appwidget)
-    implementation(libs.androidx.glance.material3)
+  implementation(libs.androidx.glance)
+  implementation(libs.androidx.glance.appwidget)
+  implementation(libs.androidx.glance.material3)
 
-    // --- Unit tests (JVM) ---
-    testImplementation(libs.junit)
-    testImplementation(libs.org.json)
-    testImplementation(libs.mockwebserver)
-    testImplementation(libs.mockk)
-    testImplementation(libs.turbine)
-    testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.assertk)
-    testImplementation(libs.robolectric)
-    testImplementation(libs.androidx.room.testing)
-    testImplementation(libs.androidx.test.core)
+  // --- Unit tests (JVM) ---
+  testImplementation(libs.junit)
+  testImplementation(libs.org.json)
+  testImplementation(libs.mockwebserver)
+  testImplementation(libs.mockk)
+  testImplementation(libs.turbine)
+  testImplementation(libs.kotlinx.coroutines.test)
+  testImplementation(libs.assertk)
+  testImplementation(libs.robolectric)
+  testImplementation(libs.androidx.room.testing)
+  testImplementation(libs.androidx.test.core)
 
-    // --- Instrumented tests (on-device) ---
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.test.runner)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    androidTestImplementation(libs.androidx.room.testing)
-    androidTestImplementation(libs.mockk.android)
-    androidTestImplementation(libs.kotlinx.coroutines.test)
-    androidTestImplementation(libs.assertk)
-    androidTestImplementation(libs.turbine)
+  // --- Instrumented tests (on-device) ---
+  androidTestImplementation(libs.androidx.junit)
+  androidTestImplementation(libs.androidx.test.runner)
+  androidTestImplementation(libs.androidx.espresso.core)
+  androidTestImplementation(platform(libs.androidx.compose.bom))
+  androidTestImplementation(libs.androidx.ui.test.junit4)
+  androidTestImplementation(libs.androidx.room.testing)
+  androidTestImplementation(libs.mockk.android)
+  androidTestImplementation(libs.kotlinx.coroutines.test)
+  androidTestImplementation(libs.assertk)
+  androidTestImplementation(libs.turbine)
 
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
+  debugImplementation(libs.androidx.ui.tooling)
+  debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation(libs.compose.markdown)
-    implementation(libs.androidx.biometric)
+  implementation(libs.compose.markdown)
+  implementation(libs.androidx.biometric)
 
-    coreLibraryDesugaring(libs.android.desugarJdkLibs)
+  coreLibraryDesugaring(libs.android.desugarJdkLibs)
 }

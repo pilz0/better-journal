@@ -12,14 +12,14 @@ import foo.pilz.freaklog.data.substances.AdministrationRoute
 
 /** A stable colour per route, used to tell routes apart in lists. */
 val AdministrationRoute.color: AdaptiveColor
-    get() = AdaptiveColor.entries.filter { it.isPreferred }.let { it[ordinal % it.size] }
+  get() = AdaptiveColor.entries.filter { it.isPreferred }.let { it[ordinal % it.size] }
 
 @Composable
 fun RouteColorBar(administrationRoute: AdministrationRoute) {
-    val isDarkTheme = isSystemInDarkTheme()
-    Surface(
-        shape = RoundedCornerShape(2.dp),
-        color = administrationRoute.color.getComposeColor(isDarkTheme),
-        modifier = Modifier.size(width = 4.dp, height = 16.dp)
-    ) {}
+  val isDarkTheme = isSystemInDarkTheme()
+  Surface(
+      shape = RoundedCornerShape(2.dp),
+      color = administrationRoute.color.getComposeColor(isDarkTheme),
+      modifier = Modifier.size(width = 4.dp, height = 16.dp),
+  ) {}
 }

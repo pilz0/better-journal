@@ -46,54 +46,53 @@ import foo.pilz.freaklog.ui.theme.horizontalPadding
 fun SubstanceRowPreview(
     @PreviewParameter(SubstanceModelPreviewProvider::class) substanceModel: SubstanceModel
 ) {
-    SubstanceRow(substanceModel = substanceModel, onTap = {})
+  SubstanceRow(substanceModel = substanceModel, onTap = {})
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SubstanceRow(
     substanceModel: SubstanceModel,
-    onTap: (substanceName: String) -> Unit
+    onTap: (substanceName: String) -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable {
+  Column(
+      modifier =
+          Modifier.fillMaxWidth()
+              .clickable {
                 onTap(substanceModel.name)
-            }
-            .padding(horizontal = horizontalPadding, vertical = 3.dp),
-    ) {
-        Text(
-            text = substanceModel.name,
-            style = MaterialTheme.typography.titleMedium,
-        )
-        if (substanceModel.commonNames.isNotEmpty()) {
-            val commaSeparatedNames = substanceModel.commonNames.joinToString(separator = ", ")
-            Text(text = commaSeparatedNames, style = MaterialTheme.typography.bodySmall)
-        }
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(3.dp),
-            verticalArrangement = Arrangement.spacedBy(3.dp),
-            modifier = Modifier.padding(vertical = 3.dp)
-        ) {
-            substanceModel.categories.forEach {
-                CategoryChipStatic(categoryModel = it)
-            }
-        }
+              }
+              .padding(horizontal = horizontalPadding, vertical = 3.dp),
+  ) {
+    Text(
+        text = substanceModel.name,
+        style = MaterialTheme.typography.titleMedium,
+    )
+    if (substanceModel.commonNames.isNotEmpty()) {
+      val commaSeparatedNames = substanceModel.commonNames.joinToString(separator = ", ")
+      Text(text = commaSeparatedNames, style = MaterialTheme.typography.bodySmall)
     }
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
+        verticalArrangement = Arrangement.spacedBy(3.dp),
+        modifier = Modifier.padding(vertical = 3.dp),
+    ) {
+      substanceModel.categories.forEach {
+        CategoryChipStatic(categoryModel = it)
+      }
+    }
+  }
 }
 
 @Composable
 fun CategoryChipStatic(categoryModel: CategoryModel) {
-    Row(
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .clip(shape = CircleShape)
-            .background(color = categoryModel.color.copy(alpha = 0.2f))
-            .padding(vertical = 2.dp, horizontal = 8.dp)
-
-    ) {
-        Text(text = categoryModel.name, style = MaterialTheme.typography.bodySmall)
-    }
+  Row(
+      horizontalArrangement = Arrangement.Center,
+      verticalAlignment = Alignment.CenterVertically,
+      modifier =
+          Modifier.clip(shape = CircleShape)
+              .background(color = categoryModel.color.copy(alpha = 0.2f))
+              .padding(vertical = 2.dp, horizontal = 8.dp),
+  ) {
+    Text(text = categoryModel.name, style = MaterialTheme.typography.bodySmall)
+  }
 }

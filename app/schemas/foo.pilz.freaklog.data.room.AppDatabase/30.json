@@ -62,26 +62,20 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [
           {
             "name": "index_Experience_sortDate",
             "unique": false,
-            "columnNames": [
-              "sortDate"
-            ],
+            "columnNames": ["sortDate"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_Experience_sortDate` ON `${TABLE_NAME}` (`sortDate`)"
           },
           {
             "name": "index_Experience_creationDate",
             "unique": false,
-            "columnNames": [
-              "creationDate"
-            ],
+            "columnNames": ["creationDate"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_Experience_creationDate` ON `${TABLE_NAME}` (`creationDate`)"
           }
@@ -205,44 +199,34 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [
           {
             "name": "index_Ingestion_experienceId",
             "unique": false,
-            "columnNames": [
-              "experienceId"
-            ],
+            "columnNames": ["experienceId"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_Ingestion_experienceId` ON `${TABLE_NAME}` (`experienceId`)"
           },
           {
             "name": "index_Ingestion_time",
             "unique": false,
-            "columnNames": [
-              "time"
-            ],
+            "columnNames": ["time"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_Ingestion_time` ON `${TABLE_NAME}` (`time`)"
           },
           {
             "name": "index_Ingestion_substanceName",
             "unique": false,
-            "columnNames": [
-              "substanceName"
-            ],
+            "columnNames": ["substanceName"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_Ingestion_substanceName` ON `${TABLE_NAME}` (`substanceName`)"
           },
           {
             "name": "index_Ingestion_customUnitId",
             "unique": false,
-            "columnNames": [
-              "customUnitId"
-            ],
+            "columnNames": ["customUnitId"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_Ingestion_customUnitId` ON `${TABLE_NAME}` (`customUnitId`)"
           }
@@ -272,9 +256,7 @@
         ],
         "primaryKey": {
           "autoGenerate": false,
-          "columnNames": [
-            "substanceName"
-          ]
+          "columnNames": ["substanceName"]
         }
       },
       {
@@ -343,17 +325,13 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [
           {
             "name": "index_CustomSubstance_name",
             "unique": false,
-            "columnNames": [
-              "name"
-            ],
+            "columnNames": ["name"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_CustomSubstance_name` ON `${TABLE_NAME}` (`name`)"
           }
@@ -394,17 +372,13 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [
           {
             "name": "index_ShulginRating_experienceId",
             "unique": false,
-            "columnNames": [
-              "experienceId"
-            ],
+            "columnNames": ["experienceId"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_ShulginRating_experienceId` ON `${TABLE_NAME}` (`experienceId`)"
           }
@@ -459,18 +433,13 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [
           {
             "name": "index_TimedNote_experienceId_time",
             "unique": false,
-            "columnNames": [
-              "experienceId",
-              "time"
-            ],
+            "columnNames": ["experienceId", "time"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_TimedNote_experienceId_time` ON `${TABLE_NAME}` (`experienceId`, `time`)"
           }
@@ -563,26 +532,20 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [
           {
             "name": "index_CustomUnit_creationDate",
             "unique": false,
-            "columnNames": [
-              "creationDate"
-            ],
+            "columnNames": ["creationDate"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_CustomUnit_creationDate` ON `${TABLE_NAME}` (`creationDate`)"
           },
           {
             "name": "index_CustomUnit_substanceName",
             "unique": false,
-            "columnNames": [
-              "substanceName"
-            ],
+            "columnNames": ["substanceName"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_CustomUnit_substanceName` ON `${TABLE_NAME}` (`substanceName`)"
           }
@@ -631,26 +594,20 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [
           {
             "name": "index_Spray_creationDate",
             "unique": false,
-            "columnNames": [
-              "creationDate"
-            ],
+            "columnNames": ["creationDate"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_Spray_creationDate` ON `${TABLE_NAME}` (`creationDate`)"
           },
           {
             "name": "index_Spray_isPreferred",
             "unique": false,
-            "columnNames": [
-              "isPreferred"
-            ],
+            "columnNames": ["isPreferred"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_Spray_isPreferred` ON `${TABLE_NAME}` (`isPreferred`)"
           }
@@ -772,9 +729,7 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         }
       },
       {
@@ -819,19 +774,13 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [
           {
             "name": "index_CustomRecipe_isArchived_lastUsedDate_creationDate",
             "unique": false,
-            "columnNames": [
-              "isArchived",
-              "lastUsedDate",
-              "creationDate"
-            ],
+            "columnNames": ["isArchived", "lastUsedDate", "creationDate"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_CustomRecipe_isArchived_lastUsedDate_creationDate` ON `${TABLE_NAME}` (`isArchived`, `lastUsedDate`, `creationDate`)"
           }
@@ -900,26 +849,20 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [
           {
             "name": "index_CustomRecipeComponent_customRecipeId",
             "unique": false,
-            "columnNames": [
-              "customRecipeId"
-            ],
+            "columnNames": ["customRecipeId"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_CustomRecipeComponent_customRecipeId` ON `${TABLE_NAME}` (`customRecipeId`)"
           },
           {
             "name": "index_CustomRecipeComponent_customUnitId",
             "unique": false,
-            "columnNames": [
-              "customUnitId"
-            ],
+            "columnNames": ["customUnitId"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_CustomRecipeComponent_customUnitId` ON `${TABLE_NAME}` (`customUnitId`)"
           }
@@ -929,12 +872,8 @@
             "table": "CustomRecipe",
             "onDelete": "CASCADE",
             "onUpdate": "NO ACTION",
-            "columns": [
-              "customRecipeId"
-            ],
-            "referencedColumns": [
-              "id"
-            ]
+            "columns": ["customRecipeId"],
+            "referencedColumns": ["id"]
           }
         ]
       },
@@ -975,26 +914,20 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [
           {
             "name": "index_InventoryItem_addedAt",
             "unique": false,
-            "columnNames": [
-              "addedAt"
-            ],
+            "columnNames": ["addedAt"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_InventoryItem_addedAt` ON `${TABLE_NAME}` (`addedAt`)"
           },
           {
             "name": "index_InventoryItem_substanceName",
             "unique": false,
-            "columnNames": [
-              "substanceName"
-            ],
+            "columnNames": ["substanceName"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_InventoryItem_substanceName` ON `${TABLE_NAME}` (`substanceName`)"
           }
@@ -1055,9 +988,7 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         }
       },
       {
@@ -1097,27 +1028,20 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [
           {
             "name": "index_ingestion_webhook_message_ingestionId_webhookId",
             "unique": true,
-            "columnNames": [
-              "ingestionId",
-              "webhookId"
-            ],
+            "columnNames": ["ingestionId", "webhookId"],
             "orders": [],
             "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_ingestion_webhook_message_ingestionId_webhookId` ON `${TABLE_NAME}` (`ingestionId`, `webhookId`)"
           },
           {
             "name": "index_ingestion_webhook_message_webhookId",
             "unique": false,
-            "columnNames": [
-              "webhookId"
-            ],
+            "columnNames": ["webhookId"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_ingestion_webhook_message_webhookId` ON `${TABLE_NAME}` (`webhookId`)"
           }
@@ -1127,23 +1051,15 @@
             "table": "Ingestion",
             "onDelete": "CASCADE",
             "onUpdate": "NO ACTION",
-            "columns": [
-              "ingestionId"
-            ],
-            "referencedColumns": [
-              "id"
-            ]
+            "columns": ["ingestionId"],
+            "referencedColumns": ["id"]
           },
           {
             "table": "webhook",
             "onDelete": "CASCADE",
             "onUpdate": "NO ACTION",
-            "columns": [
-              "webhookId"
-            ],
-            "referencedColumns": [
-              "id"
-            ]
+            "columns": ["webhookId"],
+            "referencedColumns": ["id"]
           }
         ]
       },
@@ -1178,9 +1094,7 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "seq"
-          ]
+          "columnNames": ["seq"]
         }
       },
       {
@@ -1274,9 +1188,7 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         }
       },
       {
@@ -1344,17 +1256,13 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [
           {
             "name": "index_IntakeLimit_substanceName",
             "unique": false,
-            "columnNames": [
-              "substanceName"
-            ],
+            "columnNames": ["substanceName"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_IntakeLimit_substanceName` ON `${TABLE_NAME}` (`substanceName`)"
           }
@@ -1389,18 +1297,13 @@
         ],
         "primaryKey": {
           "autoGenerate": false,
-          "columnNames": [
-            "customSubstanceId",
-            "route"
-          ]
+          "columnNames": ["customSubstanceId", "route"]
         },
         "indices": [
           {
             "name": "index_CustomRoa_customSubstanceId",
             "unique": false,
-            "columnNames": [
-              "customSubstanceId"
-            ],
+            "columnNames": ["customSubstanceId"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_CustomRoa_customSubstanceId` ON `${TABLE_NAME}` (`customSubstanceId`)"
           }
@@ -1410,12 +1313,8 @@
             "table": "CustomSubstance",
             "onDelete": "CASCADE",
             "onUpdate": "NO ACTION",
-            "columns": [
-              "customSubstanceId"
-            ],
-            "referencedColumns": [
-              "id"
-            ]
+            "columns": ["customSubstanceId"],
+            "referencedColumns": ["id"]
           }
         ]
       },
@@ -1463,18 +1362,13 @@
         ],
         "primaryKey": {
           "autoGenerate": false,
-          "columnNames": [
-            "customSubstanceId",
-            "route"
-          ]
+          "columnNames": ["customSubstanceId", "route"]
         },
         "indices": [
           {
             "name": "index_CustomRoaDose_customSubstanceId",
             "unique": false,
-            "columnNames": [
-              "customSubstanceId"
-            ],
+            "columnNames": ["customSubstanceId"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_CustomRoaDose_customSubstanceId` ON `${TABLE_NAME}` (`customSubstanceId`)"
           }
@@ -1484,12 +1378,8 @@
             "table": "CustomSubstance",
             "onDelete": "CASCADE",
             "onUpdate": "NO ACTION",
-            "columns": [
-              "customSubstanceId"
-            ],
-            "referencedColumns": [
-              "id"
-            ]
+            "columns": ["customSubstanceId"],
+            "referencedColumns": ["id"]
           }
         ]
       },
@@ -1587,18 +1477,13 @@
         ],
         "primaryKey": {
           "autoGenerate": false,
-          "columnNames": [
-            "route",
-            "customSubstanceId"
-          ]
+          "columnNames": ["route", "customSubstanceId"]
         },
         "indices": [
           {
             "name": "index_CustomRoaDuration_customSubstanceId",
             "unique": false,
-            "columnNames": [
-              "customSubstanceId"
-            ],
+            "columnNames": ["customSubstanceId"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_CustomRoaDuration_customSubstanceId` ON `${TABLE_NAME}` (`customSubstanceId`)"
           }
@@ -1608,12 +1493,8 @@
             "table": "CustomSubstance",
             "onDelete": "CASCADE",
             "onUpdate": "NO ACTION",
-            "columns": [
-              "customSubstanceId"
-            ],
-            "referencedColumns": [
-              "id"
-            ]
+            "columns": ["customSubstanceId"],
+            "referencedColumns": ["id"]
           }
         ]
       },
@@ -1654,19 +1535,13 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [
           {
             "name": "index_CustomInteraction_customSubstanceId_severity_targetName",
             "unique": true,
-            "columnNames": [
-              "customSubstanceId",
-              "severity",
-              "targetName"
-            ],
+            "columnNames": ["customSubstanceId", "severity", "targetName"],
             "orders": [],
             "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_CustomInteraction_customSubstanceId_severity_targetName` ON `${TABLE_NAME}` (`customSubstanceId`, `severity`, `targetName`)"
           }
@@ -1676,12 +1551,8 @@
             "table": "CustomSubstance",
             "onDelete": "CASCADE",
             "onUpdate": "NO ACTION",
-            "columns": [
-              "customSubstanceId"
-            ],
-            "referencedColumns": [
-              "id"
-            ]
+            "columns": ["customSubstanceId"],
+            "referencedColumns": ["id"]
           }
         ]
       },
@@ -1704,18 +1575,13 @@
         ],
         "primaryKey": {
           "autoGenerate": false,
-          "columnNames": [
-            "customSubstanceId",
-            "categoryName"
-          ]
+          "columnNames": ["customSubstanceId", "categoryName"]
         },
         "indices": [
           {
             "name": "index_CustomCrossTolerance_customSubstanceId",
             "unique": false,
-            "columnNames": [
-              "customSubstanceId"
-            ],
+            "columnNames": ["customSubstanceId"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_CustomCrossTolerance_customSubstanceId` ON `${TABLE_NAME}` (`customSubstanceId`)"
           }
@@ -1725,12 +1591,8 @@
             "table": "CustomSubstance",
             "onDelete": "CASCADE",
             "onUpdate": "NO ACTION",
-            "columns": [
-              "customSubstanceId"
-            ],
-            "referencedColumns": [
-              "id"
-            ]
+            "columns": ["customSubstanceId"],
+            "referencedColumns": ["id"]
           }
         ]
       },
@@ -1753,18 +1615,13 @@
         ],
         "primaryKey": {
           "autoGenerate": false,
-          "columnNames": [
-            "customSubstanceId",
-            "categoryName"
-          ]
+          "columnNames": ["customSubstanceId", "categoryName"]
         },
         "indices": [
           {
             "name": "index_CustomCategoryAssignment_customSubstanceId",
             "unique": false,
-            "columnNames": [
-              "customSubstanceId"
-            ],
+            "columnNames": ["customSubstanceId"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_CustomCategoryAssignment_customSubstanceId` ON `${TABLE_NAME}` (`customSubstanceId`)"
           }
@@ -1774,12 +1631,8 @@
             "table": "CustomSubstance",
             "onDelete": "CASCADE",
             "onUpdate": "NO ACTION",
-            "columns": [
-              "customSubstanceId"
-            ],
-            "referencedColumns": [
-              "id"
-            ]
+            "columns": ["customSubstanceId"],
+            "referencedColumns": ["id"]
           }
         ]
       },
@@ -1802,9 +1655,7 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         }
       },
       {
@@ -1876,26 +1727,20 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [
           {
             "name": "index_SubstanceGroupItem_groupId",
             "unique": false,
-            "columnNames": [
-              "groupId"
-            ],
+            "columnNames": ["groupId"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_SubstanceGroupItem_groupId` ON `${TABLE_NAME}` (`groupId`)"
           },
           {
             "name": "index_SubstanceGroupItem_customUnitId",
             "unique": false,
-            "columnNames": [
-              "customUnitId"
-            ],
+            "columnNames": ["customUnitId"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_SubstanceGroupItem_customUnitId` ON `${TABLE_NAME}` (`customUnitId`)"
           }
@@ -1905,23 +1750,15 @@
             "table": "SubstanceGroup",
             "onDelete": "CASCADE",
             "onUpdate": "NO ACTION",
-            "columns": [
-              "groupId"
-            ],
-            "referencedColumns": [
-              "id"
-            ]
+            "columns": ["groupId"],
+            "referencedColumns": ["id"]
           },
           {
             "table": "CustomUnit",
             "onDelete": "SET NULL",
             "onUpdate": "NO ACTION",
-            "columns": [
-              "customUnitId"
-            ],
-            "referencedColumns": [
-              "id"
-            ]
+            "columns": ["customUnitId"],
+            "referencedColumns": ["id"]
           }
         ]
       },
@@ -1967,26 +1804,20 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [
           {
             "name": "index_BloodPressureReading_experienceId",
             "unique": false,
-            "columnNames": [
-              "experienceId"
-            ],
+            "columnNames": ["experienceId"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_BloodPressureReading_experienceId` ON `${TABLE_NAME}` (`experienceId`)"
           },
           {
             "name": "index_BloodPressureReading_time",
             "unique": false,
-            "columnNames": [
-              "time"
-            ],
+            "columnNames": ["time"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_BloodPressureReading_time` ON `${TABLE_NAME}` (`time`)"
           }
@@ -1996,12 +1827,8 @@
             "table": "Experience",
             "onDelete": "CASCADE",
             "onUpdate": "NO ACTION",
-            "columns": [
-              "experienceId"
-            ],
-            "referencedColumns": [
-              "id"
-            ]
+            "columns": ["experienceId"],
+            "referencedColumns": ["id"]
           }
         ]
       }

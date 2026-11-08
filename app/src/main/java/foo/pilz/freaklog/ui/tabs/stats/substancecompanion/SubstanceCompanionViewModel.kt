@@ -33,6 +33,10 @@ import foo.pilz.freaklog.ui.main.navigation.graphs.SubstanceCompanionRoute
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.search.suggestion.models.CustomUnitDose
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
 import foo.pilz.freaklog.ui.utils.getTimeDifferenceText
+import java.time.Instant
+import java.time.Period
+import java.time.ZoneId
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -47,244 +51,272 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.time.Instant
-import java.time.Period
-import java.time.ZoneId
-import javax.inject.Inject
 
 @HiltViewModel
-class SubstanceCompanionViewModel @Inject constructor(
+class SubstanceCompanionViewModel
+@Inject
+constructor(
     experienceRepo: ExperienceRepository,
     substanceRepo: SubstanceRepository,
-    state: SavedStateHandle
+    state: SavedStateHandle,
 ) : ViewModel() {
 
-    // One shared ticker instead of a separate timer loop per collecting pipeline.
-    private val currentTimeFlow: Flow<Instant> = flow {
-        while (true) {
-            emit(Instant.now())
-            delay(timeMillis = 1000 * 10)
-        }
-    }.shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000), replay = 1)
+  // One shared ticker instead of a separate timer loop per collecting pipeline.
+  private val currentTimeFlow: Flow<Instant> =
+      flow {
+            while (true) {
+              emit(Instant.now())
+              delay(timeMillis = 1000 * 10)
+            }
+          }
+          .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000), replay = 1)
 
-    private val substanceCompanionRoute = state.toRoute<SubstanceCompanionRoute>()
-    private val substanceName = substanceCompanionRoute.substanceName
-    val consumerName = substanceCompanionRoute.consumerName
+  private val substanceCompanionRoute = state.toRoute<SubstanceCompanionRoute>()
+  private val substanceName = substanceCompanionRoute.substanceName
+  val consumerName = substanceCompanionRoute.consumerName
 
-    private val substance = substanceRepo.getSubstance(substanceName)
-    val tolerance = substance?.tolerance
-    val crossTolerances = substance?.crossTolerances ?: emptyList()
+  private val substance = substanceRepo.getSubstance(substanceName)
+  val tolerance = substance?.tolerance
+  val crossTolerances = substance?.crossTolerances ?: emptyList()
 
-    /** Dose thresholds from PsychonautWiki for the first ROA that has dose data. */
-    val doseThresholds: DoseThresholds? = substance?.roas
-        ?.firstOrNull { it.roaDose != null }
-        ?.roaDose
-        ?.let { d -> DoseThresholds(d.units, d.lightMin, d.commonMin, d.strongMin, d.heavyMin) }
+  /** Dose thresholds from PsychonautWiki for the first ROA that has dose data. */
+  val doseThresholds: DoseThresholds? =
+      substance
+          ?.roas
+          ?.firstOrNull { it.roaDose != null }
+          ?.roaDose
+          ?.let { d -> DoseThresholds(d.units, d.lightMin, d.commonMin, d.strongMin, d.heavyMin) }
 
-    val thisCompanionFlow: StateFlow<SubstanceCompanion?> =
-        experienceRepo.getSubstanceCompanionFlow(substanceName).stateIn(
-            initialValue = null,
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000)
-        )
+  val thisCompanionFlow: StateFlow<SubstanceCompanion?> =
+      experienceRepo
+          .getSubstanceCompanionFlow(substanceName)
+          .stateIn(
+              initialValue = null,
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+          )
 
-    private val _selectedTimeRange = MutableStateFlow(DosageTimeRange.WEEKS_26)
-    val selectedTimeRange = _selectedTimeRange.asStateFlow()
+  private val _selectedTimeRange = MutableStateFlow(DosageTimeRange.WEEKS_26)
+  val selectedTimeRange = _selectedTimeRange.asStateFlow()
 
-    private val _showAverage = MutableStateFlow(false)
-    val showAverage = _showAverage.asStateFlow()
+  private val _showAverage = MutableStateFlow(false)
+  val showAverage = _showAverage.asStateFlow()
 
-    private val _showTrendLine = MutableStateFlow(false)
-    val showTrendLine = _showTrendLine.asStateFlow()
+  private val _showTrendLine = MutableStateFlow(false)
+  val showTrendLine = _showTrendLine.asStateFlow()
 
-    private val _selectedMetric = MutableStateFlow(DosageMetric.TOTAL_DOSE)
-    val selectedMetric = _selectedMetric.asStateFlow()
+  private val _selectedMetric = MutableStateFlow(DosageMetric.TOTAL_DOSE)
+  val selectedMetric = _selectedMetric.asStateFlow()
 
-    fun setTimeRange(range: DosageTimeRange) {
-        viewModelScope.launch { _selectedTimeRange.emit(range) }
-    }
+  fun setTimeRange(range: DosageTimeRange) {
+    viewModelScope.launch { _selectedTimeRange.emit(range) }
+  }
 
-    fun toggleShowAverage(show: Boolean) {
-        viewModelScope.launch { _showAverage.emit(show) }
-    }
+  fun toggleShowAverage(show: Boolean) {
+    viewModelScope.launch { _showAverage.emit(show) }
+  }
 
-    fun toggleShowTrendLine(show: Boolean) {
-        viewModelScope.launch { _showTrendLine.emit(show) }
-    }
+  fun toggleShowTrendLine(show: Boolean) {
+    viewModelScope.launch { _showTrendLine.emit(show) }
+  }
 
-    fun setMetric(metric: DosageMetric) {
-        viewModelScope.launch { _selectedMetric.emit(metric) }
-    }
+  fun setMetric(metric: DosageMetric) {
+    viewModelScope.launch { _selectedMetric.emit(metric) }
+  }
 
-    // Source of all ingestions for this substance/consumer.
-    // Shared once via stateIn so the downstream pipelines below
-    // (`dosageStatsFlow`, `ingestionBurstsFlow`, `frequencyFlow`)
-    // don't each re-collect (and re-query) the underlying Room flow.
-    private val allIngestionsFlow = experienceRepo.getSortedIngestionsWithExperienceAndCustomUnitFlow(substanceName)
-        .map { list -> list.filter { it.ingestion.consumerName == consumerName } }
-        .flowOn(Dispatchers.Default)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+  // Source of all ingestions for this substance/consumer.
+  // Shared once via stateIn so the downstream pipelines below
+  // (`dosageStatsFlow`, `ingestionBurstsFlow`, `frequencyFlow`)
+  // don't each re-collect (and re-query) the underlying Room flow.
+  private val allIngestionsFlow =
+      experienceRepo
+          .getSortedIngestionsWithExperienceAndCustomUnitFlow(substanceName)
+          .map { list -> list.filter { it.ingestion.consumerName == consumerName } }
+          .flowOn(Dispatchers.Default)
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val dosageStatsFlow: StateFlow<SubstanceDosageStatsModel> =
-        combine(allIngestionsFlow, selectedTimeRange, currentTimeFlow) { ingestions, timeRange, currentTime ->
+  val dosageStatsFlow: StateFlow<SubstanceDosageStatsModel> =
+      combine(allIngestionsFlow, selectedTimeRange, currentTimeFlow) {
+              ingestions,
+              timeRange,
+              currentTime ->
             SubstanceDosageStatsHelper.build(
                 ingestions = ingestions.map { it.ingestion },
                 range = timeRange,
                 now = currentTime,
                 zone = ZoneId.systemDefault(),
             )
-        }.flowOn(Dispatchers.Default).stateIn(
-            initialValue = SubstanceDosageStatsModel(
-                buckets = emptyList(),
-                summary = SubstanceDosageSummary(
-                    totalSessions = 0,
-                    totalKnownDose = null,
-                    averageKnownDosePerSession = null,
-                    peakKnownDose = null,
-                    unknownDoseCount = 0,
-                    unitsUsed = emptyList(),
-                    longestGapDays = null,
-                    currentStreakWeeks = 0,
-                ),
-                hasMixedUnits = false,
-            ),
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000)
-        )
+          }
+          .flowOn(Dispatchers.Default)
+          .stateIn(
+              initialValue =
+                  SubstanceDosageStatsModel(
+                      buckets = emptyList(),
+                      summary =
+                          SubstanceDosageSummary(
+                              totalSessions = 0,
+                              totalKnownDose = null,
+                              averageKnownDosePerSession = null,
+                              peakKnownDose = null,
+                              unknownDoseCount = 0,
+                              unitsUsed = emptyList(),
+                              longestGapDays = null,
+                              currentStreakWeeks = 0,
+                          ),
+                      hasMixedUnits = false,
+                  ),
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+          )
 
-    val ingestionBurstsFlow: StateFlow<List<IngestionsBurst>> =
-        allIngestionsFlow
-            .combine(currentTimeFlow) { sortedIngestionsWithExperiences, currentTime ->
-                val experiencesWithIngestions =
-                    sortedIngestionsWithExperiences.groupBy { it.ingestion.experienceId }
-                var lastDate = currentTime
-                val allIngestionBursts: MutableList<IngestionsBurst> = mutableListOf()
-                for (oneExperience in experiencesWithIngestions) {
-                    val experience = oneExperience.value.firstOrNull()?.experience ?: continue
-                    val ingestionsSorted = oneExperience.value.map {
+  val ingestionBurstsFlow: StateFlow<List<IngestionsBurst>> =
+      allIngestionsFlow
+          .combine(currentTimeFlow) { sortedIngestionsWithExperiences, currentTime ->
+            val experiencesWithIngestions = sortedIngestionsWithExperiences.groupBy {
+              it.ingestion.experienceId
+            }
+            var lastDate = currentTime
+            val allIngestionBursts: MutableList<IngestionsBurst> = mutableListOf()
+            for (oneExperience in experiencesWithIngestions) {
+              val experience = oneExperience.value.firstOrNull()?.experience ?: continue
+              val ingestionsSorted =
+                  oneExperience.value
+                      .map {
                         IngestionsBurst.IngestionAndCustomUnit(it.ingestion, it.customUnit)
-                    }.sortedBy { it.ingestion.time }
-                    val experienceStart = ingestionsSorted.first().ingestion.time
-                    val experienceEnd = ingestionsSorted.last().ingestion.time
-                    val diffText = getTimeDifferenceText(
-                        fromInstant = experienceEnd,
-                        toInstant = lastDate
-                    )
-                    allIngestionBursts.add(
-                        IngestionsBurst(
-                            timeUntil = diffText,
-                            experience = experience,
-                            ingestions = ingestionsSorted
-                        )
-                    )
-                    lastDate = experienceStart
-                }
-                allIngestionBursts
-            }.flowOn(Dispatchers.Default).stateIn(
-                initialValue = emptyList(),
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000)
-            )
+                      }
+                      .sortedBy { it.ingestion.time }
+              val experienceStart = ingestionsSorted.first().ingestion.time
+              val experienceEnd = ingestionsSorted.last().ingestion.time
+              val diffText =
+                  getTimeDifferenceText(
+                      fromInstant = experienceEnd,
+                      toInstant = lastDate,
+                  )
+              allIngestionBursts.add(
+                  IngestionsBurst(
+                      timeUntil = diffText,
+                      experience = experience,
+                      ingestions = ingestionsSorted,
+                  )
+              )
+              lastDate = experienceStart
+            }
+            allIngestionBursts
+          }
+          .flowOn(Dispatchers.Default)
+          .stateIn(
+              initialValue = emptyList(),
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+          )
 
-    /**
-     * Frequency of this substance over three time ranges, normalized to the busiest range.
-     * Used by the "Usage frequency" section of the screen.
-     */
-    val frequencyFlow: StateFlow<SubstanceFrequency> = combine(allIngestionsFlow, currentTimeFlow) { ingestions, now ->
-        SubstanceFrequency.compute(
-            ingestions = ingestions.map { it.ingestion },
-            now = now,
-            zone = ZoneId.systemDefault(),
-        )
-    }.flowOn(Dispatchers.Default).stateIn(
-        initialValue = SubstanceFrequency(0, 0, 0),
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+  /**
+   * Frequency of this substance over three time ranges, normalized to the busiest range. Used by
+   * the "Usage frequency" section of the screen.
+   */
+  val frequencyFlow: StateFlow<SubstanceFrequency> =
+      combine(allIngestionsFlow, currentTimeFlow) { ingestions, now ->
+            SubstanceFrequency.compute(
+                ingestions = ingestions.map { it.ingestion },
+                now = now,
+                zone = ZoneId.systemDefault(),
+            )
+          }
+          .flowOn(Dispatchers.Default)
+          .stateIn(
+              initialValue = SubstanceFrequency(0, 0, 0),
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+          )
 }
 
 enum class DosageTimeRange(val displayText: String, val title: String, val period: Period?) {
-    DAYS_30("30D",  "Last 30 Days",    Period.ofDays(30)),
-    WEEKS_26("26W", "Last 26 Weeks",   Period.ofWeeks(26)),
-    MONTHS_12("12M","Last 12 Months",  Period.ofMonths(12)),
-    ALL("All",      "All Time",        null)
+  DAYS_30("30D", "Last 30 Days", Period.ofDays(30)),
+  WEEKS_26("26W", "Last 26 Weeks", Period.ofWeeks(26)),
+  MONTHS_12("12M", "Last 12 Months", Period.ofMonths(12)),
+  ALL("All", "All Time", null),
 }
 
 /**
- * Counts of distinct experiences containing this substance, broken down by time range.
- * Used by the SubstanceCompanionScreen "Usage frequency" section.
+ * Counts of distinct experiences containing this substance, broken down by time range. Used by the
+ * SubstanceCompanionScreen "Usage frequency" section.
  */
 data class SubstanceFrequency(
     val last30Days: Int,
     val last12Months: Int,
     val allTime: Int,
 ) {
-    companion object {
-        /**
-         * Counts distinct experiences in a single pass. The ranges are nested, so the
-         * narrower cutoffs are only checked once the wider one matched. Future-dated
-         * ingestions count toward all time but not toward the past periods.
-         */
-        fun compute(ingestions: List<Ingestion>, now: Instant, zone: ZoneId): SubstanceFrequency {
-            val zonedNow = now.atZone(zone)
-            val last12MonthsFrom = zonedNow.minusMonths(12).toInstant()
-            val last30DaysFrom = zonedNow.minusDays(30).toInstant()
-            val allTime = HashSet<Int>()
-            val last12Months = HashSet<Int>()
-            val last30Days = HashSet<Int>()
-            for (ingestion in ingestions) {
-                val experienceId = ingestion.experienceId
-                allTime.add(experienceId)
-                if (ingestion.time <= now && ingestion.time >= last12MonthsFrom) {
-                    last12Months.add(experienceId)
-                    if (ingestion.time >= last30DaysFrom) {
-                        last30Days.add(experienceId)
-                    }
-                }
-            }
-            return SubstanceFrequency(
-                last30Days = last30Days.size,
-                last12Months = last12Months.size,
-                allTime = allTime.size,
-            )
+  companion object {
+    /**
+     * Counts distinct experiences in a single pass. The ranges are nested, so the narrower cutoffs
+     * are only checked once the wider one matched. Future-dated ingestions count toward all time
+     * but not toward the past periods.
+     */
+    fun compute(ingestions: List<Ingestion>, now: Instant, zone: ZoneId): SubstanceFrequency {
+      val zonedNow = now.atZone(zone)
+      val last12MonthsFrom = zonedNow.minusMonths(12).toInstant()
+      val last30DaysFrom = zonedNow.minusDays(30).toInstant()
+      val allTime = HashSet<Int>()
+      val last12Months = HashSet<Int>()
+      val last30Days = HashSet<Int>()
+      for (ingestion in ingestions) {
+        val experienceId = ingestion.experienceId
+        allTime.add(experienceId)
+        if (ingestion.time <= now && ingestion.time >= last12MonthsFrom) {
+          last12Months.add(experienceId)
+          if (ingestion.time >= last30DaysFrom) {
+            last30Days.add(experienceId)
+          }
         }
+      }
+      return SubstanceFrequency(
+          last30Days = last30Days.size,
+          last12Months = last12Months.size,
+          allTime = allTime.size,
+      )
     }
+  }
 }
 
 data class IngestionsBurst(
     val timeUntil: String,
     val experience: Experience,
-    val ingestions: List<IngestionAndCustomUnit>
+    val ingestions: List<IngestionAndCustomUnit>,
 ) {
-    data class IngestionAndCustomUnit(
-        val ingestion: Ingestion,
-        val customUnit: CustomUnit?
-    ) {
-        val customUnitDose: CustomUnitDose?
-            get() = ingestion.dose?.let { doseUnwrapped ->
-                customUnit?.let { customUnitUnwrapped ->
-                    CustomUnitDose(
-                        dose = doseUnwrapped,
-                        isEstimate = ingestion.isDoseAnEstimate,
-                        estimatedDoseStandardDeviation = ingestion.estimatedDoseStandardDeviation,
-                        customUnit = customUnitUnwrapped
-                    )
-                }
+  data class IngestionAndCustomUnit(
+      val ingestion: Ingestion,
+      val customUnit: CustomUnit?,
+  ) {
+    val customUnitDose: CustomUnitDose?
+      get() =
+          ingestion.dose?.let { doseUnwrapped ->
+            customUnit?.let { customUnitUnwrapped ->
+              CustomUnitDose(
+                  dose = doseUnwrapped,
+                  isEstimate = ingestion.isDoseAnEstimate,
+                  estimatedDoseStandardDeviation = ingestion.estimatedDoseStandardDeviation,
+                  customUnit = customUnitUnwrapped,
+              )
             }
-        val doseDescription: String
-            get() = customUnitDose?.doseDescription ?: ingestionDoseDescription
+          }
 
-        private val ingestionDoseDescription get() = ingestion.dose?.let { dose ->
+    val doseDescription: String
+      get() = customUnitDose?.doseDescription ?: ingestionDoseDescription
+
+    private val ingestionDoseDescription
+      get() =
+          ingestion.dose?.let { dose ->
             ingestion.estimatedDoseStandardDeviation?.let { estimatedDoseStandardDeviation ->
-                "${dose.toReadableString()}±${estimatedDoseStandardDeviation.toReadableString()} ${ingestion.units}"
-            } ?: run {
-                val description = "${dose.toReadableString()} ${ingestion.units}"
-                if (ingestion.isDoseAnEstimate) {
-                    "~$description"
-                } else {
-                    description
-                }
+              "${dose.toReadableString()}±${estimatedDoseStandardDeviation.toReadableString()} ${ingestion.units}"
             }
-        } ?: "Unknown dose"
-    }
+                ?: run {
+                  val description = "${dose.toReadableString()} ${ingestion.units}"
+                  if (ingestion.isDoseAnEstimate) {
+                    "~$description"
+                  } else {
+                    description
+                  }
+                }
+          } ?: "Unknown dose"
+  }
 }

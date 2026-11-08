@@ -8,8 +8,9 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
 sealed class ColorImportResult {
-    data class Imported(val applied: Int, val skipped: Int) : ColorImportResult()
-    data class Failed(val reason: ImportFailure) : ColorImportResult()
+  data class Imported(val applied: Int, val skipped: Int) : ColorImportResult()
+
+  data class Failed(val reason: ImportFailure) : ColorImportResult()
 }
 
 data class ColorImportPlan(
@@ -24,39 +25,45 @@ suspend fun parseAndImportColors(
     uri: Uri,
     experienceRepository: ExperienceRepository,
 ): ColorImportResult {
-    val text = try {
+  val text =
+      try {
         context.contentResolver.openInputStream(uri)?.use { it.bufferedReader().readText() }
-    } catch (e: Exception) {
+      } catch (e: Exception) {
         null
-    } ?: return ColorImportResult.Failed(ImportFailure.OpenStream)
+      } ?: return ColorImportResult.Failed(ImportFailure.OpenStream)
 
-    val envelope = try {
+  val envelope =
+      try {
         json.decodeFromString(SharedSubstanceColorsEnvelope.serializer(), text)
-    } catch (e: SerializationException) {
+      } catch (e: SerializationException) {
         return ColorImportResult.Failed(ImportFailure.Parse)
-    }
+      }
 
-    if (envelope.format != SHARED_SUBSTANCE_COLORS_FORMAT || envelope.version > SHARED_SUBSTANCE_COLORS_VERSION) {
-        return ColorImportResult.Failed(ImportFailure.UnsupportedFormat)
-    }
+  if (
+      envelope.format != SHARED_SUBSTANCE_COLORS_FORMAT ||
+          envelope.version > SHARED_SUBSTANCE_COLORS_VERSION
+  ) {
+    return ColorImportResult.Failed(ImportFailure.UnsupportedFormat)
+  }
 
-    val existing = experienceRepository.getAllSubstanceCompanions().associateBy { it.substanceName }
-    val plan = computeColorImport(envelope.colors, existing.keys)
-    val companionsToUpdate = plan.toApply.mapNotNull { entry ->
+  val existing = experienceRepository.getAllSubstanceCompanions().associateBy { it.substanceName }
+  val plan = computeColorImport(envelope.colors, existing.keys)
+  val companionsToUpdate =
+      plan.toApply.mapNotNull { entry ->
         val companion = existing[entry.substanceName] ?: return@mapNotNull null
         companion.copy(color = AdaptiveColor.Custom(entry.colorArgb))
-    }
-    if (companionsToUpdate.isNotEmpty()) {
-        experienceRepository.updateSubstanceCompanions(companionsToUpdate)
-    }
-    return ColorImportResult.Imported(applied = companionsToUpdate.size, skipped = plan.skipped.size)
+      }
+  if (companionsToUpdate.isNotEmpty()) {
+    experienceRepository.updateSubstanceCompanions(companionsToUpdate)
+  }
+  return ColorImportResult.Imported(applied = companionsToUpdate.size, skipped = plan.skipped.size)
 }
 
 fun computeColorImport(
     colors: List<SharedSubstanceColor>,
     existingNames: Set<String>,
 ): ColorImportPlan {
-    val deduplicated = colors.distinctBy { it.substanceName }
-    val (toApply, skipped) = deduplicated.partition { it.substanceName in existingNames }
-    return ColorImportPlan(toApply = toApply, skipped = skipped)
+  val deduplicated = colors.distinctBy { it.substanceName }
+  val (toApply, skipped) = deduplicated.partition { it.substanceName in existingNames }
+  return ColorImportPlan(toApply = toApply, skipped = skipped)
 }

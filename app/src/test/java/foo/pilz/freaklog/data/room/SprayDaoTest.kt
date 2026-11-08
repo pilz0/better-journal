@@ -23,6 +23,7 @@ import assertk.assertions.isInstanceOf
 import assertk.assertions.isNotNull
 import assertk.assertions.isNull
 import foo.pilz.freaklog.data.room.experiences.entities.Spray
+import java.time.Instant
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -30,211 +31,218 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import java.time.Instant
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
 class SprayDaoTest {
 
-    private lateinit var db: AppDatabase
-    private lateinit var dao: SprayDao
+  private lateinit var db: AppDatabase
+  private lateinit var dao: SprayDao
 
-    @Before
-    fun setUp() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        db = Room
-            .inMemoryDatabaseBuilder(context, AppDatabase::class.java)
+  @Before
+  fun setUp() {
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    db =
+        Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-        dao = db.sprayDao()
-    }
+    dao = db.sprayDao()
+  }
 
-    @After
-    fun tearDown() {
-        db.close()
-    }
+  @After
+  fun tearDown() {
+    db.close()
+  }
 
-    @Test
-    fun `insert and getSprayById retrieves the exact spray`() = runTest {
-        val spray = Spray(
+  @Test
+  fun `insert and getSprayById retrieves the exact spray`() = runTest {
+    val spray =
+        Spray(
             name = "Ketamine Nasal Spray",
             contentInMl = 10.0,
             numSprays = 100.0,
             creationDate = Instant.parse("2026-01-01T10:00:00Z"),
-            isPreferred = false
+            isPreferred = false,
         )
 
-        val id = dao.insert(spray)
-        val loaded = dao.getSprayById(id.toInt())
+    val id = dao.insert(spray)
+    val loaded = dao.getSprayById(id.toInt())
 
-        assertThat(loaded).isNotNull()
-        assertThat(loaded!!.name).isEqualTo("Ketamine Nasal Spray")
-        assertThat(loaded.contentInMl).isEqualTo(10.0)
-        assertThat(loaded.numSprays).isEqualTo(100.0)
-    }
+    assertThat(loaded).isNotNull()
+    assertThat(loaded!!.name).isEqualTo("Ketamine Nasal Spray")
+    assertThat(loaded.contentInMl).isEqualTo(10.0)
+    assertThat(loaded.numSprays).isEqualTo(100.0)
+  }
 
-    @Test
-    fun `getAllSprays returns sprays ordered by creationDate descending`() = runTest {
-        val sprayOld = Spray(
+  @Test
+  fun `getAllSprays returns sprays ordered by creationDate descending`() = runTest {
+    val sprayOld =
+        Spray(
             name = "Old Spray",
             contentInMl = 10.0,
             numSprays = 100.0,
-            creationDate = Instant.parse("2026-01-01T10:00:00Z")
+            creationDate = Instant.parse("2026-01-01T10:00:00Z"),
         )
-        val sprayNew = Spray(
+    val sprayNew =
+        Spray(
             name = "New Spray",
             contentInMl = 15.0,
             numSprays = 150.0,
-            creationDate = Instant.parse("2026-02-01T10:00:00Z")
+            creationDate = Instant.parse("2026-02-01T10:00:00Z"),
         )
 
-        dao.insert(sprayOld)
-        dao.insert(sprayNew)
+    dao.insert(sprayOld)
+    dao.insert(sprayNew)
 
-        val all = dao.getAllSprays()
-        assertThat(all).hasSize(2)
-        assertThat(all.map { it.name }).containsExactly("New Spray", "Old Spray")
-    }
+    val all = dao.getAllSprays()
+    assertThat(all).hasSize(2)
+    assertThat(all.map { it.name }).containsExactly("New Spray", "Old Spray")
+  }
 
-    @Test
-    fun `update modifies spray correctly`() = runTest {
-        val spray = Spray(
+  @Test
+  fun `update modifies spray correctly`() = runTest {
+    val spray =
+        Spray(
             name = "Saline Spray",
             contentInMl = 20.0,
-            numSprays = 200.0
+            numSprays = 200.0,
         )
-        val id = dao.insert(spray).toInt()
+    val id = dao.insert(spray).toInt()
 
-        val updated = spray.copy(id = id, name = "Modified Saline Spray", numSprays = 220.0)
-        dao.update(updated)
+    val updated = spray.copy(id = id, name = "Modified Saline Spray", numSprays = 220.0)
+    dao.update(updated)
 
-        val fetched = dao.getSprayById(id)
-        assertThat(fetched).isNotNull()
-        assertThat(fetched!!.name).isEqualTo("Modified Saline Spray")
-        assertThat(fetched.numSprays).isEqualTo(220.0)
-    }
+    val fetched = dao.getSprayById(id)
+    assertThat(fetched).isNotNull()
+    assertThat(fetched!!.name).isEqualTo("Modified Saline Spray")
+    assertThat(fetched.numSprays).isEqualTo(220.0)
+  }
 
-    @Test
-    fun `delete removes the spray`() = runTest {
-        val spray = Spray(name = "Temp Spray", contentInMl = 10.0, numSprays = 100.0)
-        val id = dao.insert(spray).toInt()
+  @Test
+  fun `delete removes the spray`() = runTest {
+    val spray = Spray(name = "Temp Spray", contentInMl = 10.0, numSprays = 100.0)
+    val id = dao.insert(spray).toInt()
 
-        val toDelete = dao.getSprayById(id)!!
-        dao.delete(toDelete)
+    val toDelete = dao.getSprayById(id)!!
+    dao.delete(toDelete)
 
-        val fetched = dao.getSprayById(id)
-        assertThat(fetched).isNull()
-    }
+    val fetched = dao.getSprayById(id)
+    assertThat(fetched).isNull()
+  }
 
-    @Test
-    fun `setPreferred and clearAllPreferred toggle preferred flag`() = runTest {
-        val spray1 = Spray(name = "Spray 1", contentInMl = 10.0, numSprays = 100.0, isPreferred = false)
-        val spray2 = Spray(name = "Spray 2", contentInMl = 10.0, numSprays = 100.0, isPreferred = false)
+  @Test
+  fun `setPreferred and clearAllPreferred toggle preferred flag`() = runTest {
+    val spray1 = Spray(name = "Spray 1", contentInMl = 10.0, numSprays = 100.0, isPreferred = false)
+    val spray2 = Spray(name = "Spray 2", contentInMl = 10.0, numSprays = 100.0, isPreferred = false)
 
-        dao.insert(spray1)
-        val id2 = dao.insert(spray2).toInt()
+    dao.insert(spray1)
+    val id2 = dao.insert(spray2).toInt()
 
-        dao.setPreferred(id2)
-        val preferred = dao.getPreferredSpray()
-        assertThat(preferred).isNotNull()
-        assertThat(preferred!!.id).isEqualTo(id2)
+    dao.setPreferred(id2)
+    val preferred = dao.getPreferredSpray()
+    assertThat(preferred).isNotNull()
+    assertThat(preferred!!.id).isEqualTo(id2)
 
-        dao.clearAllPreferred()
-        val nonePreferred = dao.getPreferredSpray()
-        assertThat(nonePreferred).isNull()
-    }
+    dao.clearAllPreferred()
+    val nonePreferred = dao.getPreferredSpray()
+    assertThat(nonePreferred).isNull()
+  }
 
-    @Test
-    fun `setPreferredAtomic switches the preferred spray`() = runTest {
-        val spray = Spray(name = "First", contentInMl = 10.0, numSprays = 100.0, isPreferred = true)
-        val firstId = dao.insert(spray).toInt()
-        val secondId = dao.insert(spray.copy(name = "Second", isPreferred = false)).toInt()
+  @Test
+  fun `setPreferredAtomic switches the preferred spray`() = runTest {
+    val spray = Spray(name = "First", contentInMl = 10.0, numSprays = 100.0, isPreferred = true)
+    val firstId = dao.insert(spray).toInt()
+    val secondId = dao.insert(spray.copy(name = "Second", isPreferred = false)).toInt()
 
-        dao.setPreferredAtomic(secondId)
+    dao.setPreferredAtomic(secondId)
 
-        assertThat(dao.getSprayById(firstId)?.isPreferred).isEqualTo(false)
-        assertThat(dao.getAllSprays().filter { it.isPreferred }.map { it.id }).containsExactly(secondId)
-    }
+    assertThat(dao.getSprayById(firstId)?.isPreferred).isEqualTo(false)
+    assertThat(dao.getAllSprays().filter { it.isPreferred }.map { it.id }).containsExactly(secondId)
+  }
 
-    @Test
-    fun `insertWithPreferred clears the previous preferred spray`() = runTest {
-        val spray = Spray(name = "First", contentInMl = 10.0, numSprays = 100.0, isPreferred = true)
-        val firstId = dao.insert(spray).toInt()
+  @Test
+  fun `insertWithPreferred clears the previous preferred spray`() = runTest {
+    val spray = Spray(name = "First", contentInMl = 10.0, numSprays = 100.0, isPreferred = true)
+    val firstId = dao.insert(spray).toInt()
 
-        val secondId = dao.insertWithPreferred(spray.copy(name = "Second")).toInt()
+    val secondId = dao.insertWithPreferred(spray.copy(name = "Second")).toInt()
 
-        assertThat(dao.getSprayById(firstId)?.isPreferred).isEqualTo(false)
-        assertThat(dao.getAllSprays().filter { it.isPreferred }.map { it.id }).containsExactly(secondId)
-        assertThat(dao.getSprayById(secondId)?.name).isEqualTo("Second")
-    }
+    assertThat(dao.getSprayById(firstId)?.isPreferred).isEqualTo(false)
+    assertThat(dao.getAllSprays().filter { it.isPreferred }.map { it.id }).containsExactly(secondId)
+    assertThat(dao.getSprayById(secondId)?.name).isEqualTo("Second")
+  }
 
-    @Test
-    fun `setPreferredAtomic restores the preference when the update fails`() = runTest {
-        val spray = Spray(name = "First", contentInMl = 10.0, numSprays = 100.0, isPreferred = true)
-        val firstId = dao.insert(spray).toInt()
-        val secondId = dao.insert(spray.copy(name = "Second", isPreferred = false)).toInt()
-        db.openHelper.writableDatabase.execSQL(
-            """
-            CREATE TRIGGER reject_preferred_update BEFORE UPDATE OF isPreferred ON spray
-            WHEN NEW.isPreferred = 1
-            BEGIN SELECT RAISE(ABORT, 'Preferred update rejected'); END
-            """.trimIndent()
-        )
+  @Test
+  fun `setPreferredAtomic restores the preference when the update fails`() = runTest {
+    val spray = Spray(name = "First", contentInMl = 10.0, numSprays = 100.0, isPreferred = true)
+    val firstId = dao.insert(spray).toInt()
+    val secondId = dao.insert(spray.copy(name = "Second", isPreferred = false)).toInt()
+    db.openHelper.writableDatabase.execSQL(
+        """
+        CREATE TRIGGER reject_preferred_update BEFORE UPDATE OF isPreferred ON spray
+        WHEN NEW.isPreferred = 1
+        BEGIN SELECT RAISE(ABORT, 'Preferred update rejected'); END
+        """
+            .trimIndent()
+    )
 
-        val failure = runCatching { dao.setPreferredAtomic(secondId) }.exceptionOrNull()
+    val failure = runCatching { dao.setPreferredAtomic(secondId) }.exceptionOrNull()
 
-        assertThat(failure).isNotNull().isInstanceOf(SQLiteConstraintException::class.java)
-        assertThat(dao.getAllSprays().filter { it.isPreferred }.map { it.id }).containsExactly(firstId)
-        assertThat(dao.getSprayById(secondId)?.isPreferred).isEqualTo(false)
-    }
+    assertThat(failure).isNotNull().isInstanceOf(SQLiteConstraintException::class.java)
+    assertThat(dao.getAllSprays().filter { it.isPreferred }.map { it.id }).containsExactly(firstId)
+    assertThat(dao.getSprayById(secondId)?.isPreferred).isEqualTo(false)
+  }
 
-    @Test
-    fun `insertWithPreferred restores the preference when the insert fails`() = runTest {
-        val spray = Spray(name = "First", contentInMl = 10.0, numSprays = 100.0, isPreferred = true)
-        val firstId = dao.insert(spray).toInt()
-        db.openHelper.writableDatabase.execSQL(
-            """
-            CREATE TRIGGER reject_preferred_insert BEFORE INSERT ON spray
-            WHEN NEW.isPreferred = 1
-            BEGIN SELECT RAISE(ABORT, 'Preferred insert rejected'); END
-            """.trimIndent()
-        )
+  @Test
+  fun `insertWithPreferred restores the preference when the insert fails`() = runTest {
+    val spray = Spray(name = "First", contentInMl = 10.0, numSprays = 100.0, isPreferred = true)
+    val firstId = dao.insert(spray).toInt()
+    db.openHelper.writableDatabase.execSQL(
+        """
+        CREATE TRIGGER reject_preferred_insert BEFORE INSERT ON spray
+        WHEN NEW.isPreferred = 1
+        BEGIN SELECT RAISE(ABORT, 'Preferred insert rejected'); END
+        """
+            .trimIndent()
+    )
 
-        val failure = runCatching { dao.insertWithPreferred(spray.copy(name = "Second")) }.exceptionOrNull()
+    val failure =
+        runCatching { dao.insertWithPreferred(spray.copy(name = "Second")) }.exceptionOrNull()
 
-        assertThat(failure).isNotNull().isInstanceOf(SQLiteConstraintException::class.java)
-        assertThat(dao.getAllSprays().map { it.id }).containsExactly(firstId)
-        assertThat(dao.getPreferredSpray()?.id).isEqualTo(firstId)
-    }
+    assertThat(failure).isNotNull().isInstanceOf(SQLiteConstraintException::class.java)
+    assertThat(dao.getAllSprays().map { it.id }).containsExactly(firstId)
+    assertThat(dao.getPreferredSpray()?.id).isEqualTo(firstId)
+  }
 
-    @Test
-    fun `repository insert replaces the preferred spray`() = runTest {
-        val repository = SprayRepository(dao)
-        val first = Spray(name = "First", contentInMl = 10.0, numSprays = 100.0, isPreferred = true)
-        repository.insert(first)
-        val secondId = repository.insert(first.copy(name = "Second")).toInt()
+  @Test
+  fun `repository insert replaces the preferred spray`() = runTest {
+    val repository = SprayRepository(dao)
+    val first = Spray(name = "First", contentInMl = 10.0, numSprays = 100.0, isPreferred = true)
+    repository.insert(first)
+    val secondId = repository.insert(first.copy(name = "Second")).toInt()
 
-        assertThat(dao.getAllSprays().filter { it.isPreferred }.map { it.id }).containsExactly(secondId)
-        assertThat(repository.getPreferredSpray()?.id).isEqualTo(secondId)
-    }
+    assertThat(dao.getAllSprays().filter { it.isPreferred }.map { it.id }).containsExactly(secondId)
+    assertThat(repository.getPreferredSpray()?.id).isEqualTo(secondId)
+  }
 
-    @Test
-    fun `repository insert of a nonpreferred spray preserves the preference`() = runTest {
-        val repository = SprayRepository(dao)
-        val spray = Spray(name = "Preferred", contentInMl = 10.0, numSprays = 100.0, isPreferred = true)
-        val preferredId = repository.insert(spray).toInt()
-        repository.insert(spray.copy(name = "Other", isPreferred = false))
+  @Test
+  fun `repository insert of a nonpreferred spray preserves the preference`() = runTest {
+    val repository = SprayRepository(dao)
+    val spray = Spray(name = "Preferred", contentInMl = 10.0, numSprays = 100.0, isPreferred = true)
+    val preferredId = repository.insert(spray).toInt()
+    repository.insert(spray.copy(name = "Other", isPreferred = false))
 
-        assertThat(dao.getAllSprays().filter { it.isPreferred }.map { it.id }).containsExactly(preferredId)
-    }
+    assertThat(dao.getAllSprays().filter { it.isPreferred }.map { it.id })
+        .containsExactly(preferredId)
+  }
 
-    @Test
-    fun `deleteAll removes all spray records`() = runTest {
-        dao.insert(Spray(name = "Spray A", contentInMl = 10.0, numSprays = 100.0))
-        dao.insert(Spray(name = "Spray B", contentInMl = 10.0, numSprays = 100.0))
+  @Test
+  fun `deleteAll removes all spray records`() = runTest {
+    dao.insert(Spray(name = "Spray A", contentInMl = 10.0, numSprays = 100.0))
+    dao.insert(Spray(name = "Spray B", contentInMl = 10.0, numSprays = 100.0))
 
-        dao.deleteAll()
-        val all = dao.getAllSprays()
-        assertThat(all).isEmpty()
-    }
+    dao.deleteAll()
+    val all = dao.getAllSprays()
+    assertThat(all).isEmpty()
+  }
 }

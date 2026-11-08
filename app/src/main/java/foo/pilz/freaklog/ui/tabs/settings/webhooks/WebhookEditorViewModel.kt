@@ -22,77 +22,81 @@ import foo.pilz.freaklog.data.room.webhooks.WebhookRepository
 import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
 import foo.pilz.freaklog.ui.main.navigation.graphs.WebhookEditorRoute
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
+import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
-class WebhookEditorViewModel @Inject constructor(
+class WebhookEditorViewModel
+@Inject
+constructor(
     private val webhookRepository: WebhookRepository,
     private val userPreferences: UserPreferences,
-    state: SavedStateHandle
+    state: SavedStateHandle,
 ) : ViewModel() {
 
-    /** Webhook id being edited, or null when creating a new one. */
-    val webhookId: Int? = state.toRoute<WebhookEditorRoute>().webhookId.takeIf { it >= 0 }
+  /** Webhook id being edited, or null when creating a new one. */
+  val webhookId: Int? = state.toRoute<WebhookEditorRoute>().webhookId.takeIf { it >= 0 }
 
-    var name by mutableStateOf("")
-    var url by mutableStateOf("")
-    var displayName by mutableStateOf("")
-    var template by mutableStateOf("")
-    var isHyperlinked by mutableStateOf(true)
-    var isEnabled by mutableStateOf(true)
-    var useFreakQuery by mutableStateOf(true)
-    var freakQuerySeparator by mutableStateOf(", ")
-    var sortOrder: Int = 0
+  var name by mutableStateOf("")
+  var url by mutableStateOf("")
+  var displayName by mutableStateOf("")
+  var template by mutableStateOf("")
+  var isHyperlinked by mutableStateOf(true)
+  var isEnabled by mutableStateOf(true)
+  var useFreakQuery by mutableStateOf(true)
+  var freakQuerySeparator by mutableStateOf(", ")
+  var sortOrder: Int = 0
 
-    /**
-     * Guard so [save] cannot persist the in-memory defaults for
-     * [useFreakQuery] / [freakQuerySeparator] before the async load in [init]
-     * finishes.
-     */
-    private var isPrefsLoaded: Boolean = false
+  /**
+   * Guard so [save] cannot persist the in-memory defaults for [useFreakQuery] /
+   * [freakQuerySeparator] before the async load in [init] finishes.
+   */
+  private var isPrefsLoaded: Boolean = false
 
-    val isExisting: Boolean get() = webhookId != null
+  val isExisting: Boolean
+    get() = webhookId != null
 
-    init {
-        viewModelScope.launch {
-            useFreakQuery = userPreferences.webhookUseFreakQueryFlow.first()
-            freakQuerySeparator = userPreferences.webhookFreakQuerySeparatorFlow.first()
-            isPrefsLoaded = true
+  init {
+    viewModelScope.launch {
+      useFreakQuery = userPreferences.webhookUseFreakQueryFlow.first()
+      freakQuerySeparator = userPreferences.webhookFreakQuerySeparatorFlow.first()
+      isPrefsLoaded = true
 
-            val id = webhookId ?: return@launch
-            val existing = webhookRepository.getById(id) ?: return@launch
-            name = existing.name
-            url = existing.url
-            displayName = existing.displayName
-            template = existing.template
-            isHyperlinked = existing.isHyperlinked
-            isEnabled = existing.isEnabled
-            sortOrder = existing.sortOrder
-        }
+      val id = webhookId ?: return@launch
+      val existing = webhookRepository.getById(id) ?: return@launch
+      name = existing.name
+      url = existing.url
+      displayName = existing.displayName
+      template = existing.template
+      isHyperlinked = existing.isHyperlinked
+      isEnabled = existing.isEnabled
+      sortOrder = existing.sortOrder
     }
+  }
 
-    val canSave: Boolean
-        get() = foo.pilz.freaklog.data.webhook.isSecureWebhookUrl(url) && name.isNotBlank() && isPrefsLoaded
+  val canSave: Boolean
+    get() =
+        foo.pilz.freaklog.data.webhook.isSecureWebhookUrl(url) && name.isNotBlank() && isPrefsLoaded
 
-    fun save(onDone: () -> Unit) {
-        if (!isPrefsLoaded) return
-        viewModelScope.launch {
-            val webhook = Webhook(
-                id = webhookId ?: 0,
-                name = name.trim(),
-                url = url.trim(),
-                displayName = displayName.trim(),
-                template = template,
-                isHyperlinked = isHyperlinked,
-                isEnabled = isEnabled,
-                sortOrder = sortOrder
-            )
-            webhookRepository.upsert(webhook)
-            userPreferences.saveWebhookUseFreakQuery(useFreakQuery)
-            userPreferences.saveWebhookFreakQuerySeparator(freakQuerySeparator)
-            onDone()
-        }
+  fun save(onDone: () -> Unit) {
+    if (!isPrefsLoaded) return
+    viewModelScope.launch {
+      val webhook =
+          Webhook(
+              id = webhookId ?: 0,
+              name = name.trim(),
+              url = url.trim(),
+              displayName = displayName.trim(),
+              template = template,
+              isHyperlinked = isHyperlinked,
+              isEnabled = isEnabled,
+              sortOrder = sortOrder,
+          )
+      webhookRepository.upsert(webhook)
+      userPreferences.saveWebhookUseFreakQuery(useFreakQuery)
+      userPreferences.saveWebhookFreakQuerySeparator(freakQuerySeparator)
+      onDone()
     }
+  }
 }

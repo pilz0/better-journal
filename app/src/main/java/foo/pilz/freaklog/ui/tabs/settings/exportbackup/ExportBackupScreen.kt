@@ -69,196 +69,230 @@ import java.time.Instant
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExportBackupScreen(viewModel: ExportBackupViewModel = hiltViewModel()) {
-    val filter = viewModel.exportFilterFlow.collectAsState().value
-    val usedSubstanceNames = viewModel.usedSubstanceNamesFlow.collectAsState().value
-    val exportPassphrase = viewModel.exportPassphrase.collectAsState().value
-    val pendingEncryptedImport = viewModel.pendingEncryptedImport.collectAsState().value
-    val backupDirUri = viewModel.backupDirUriFlow.collectAsState().value
-    val lastBackupTime = viewModel.lastBackupTimeFlow.collectAsState().value
+  val filter = viewModel.exportFilterFlow.collectAsState().value
+  val usedSubstanceNames = viewModel.usedSubstanceNamesFlow.collectAsState().value
+  val exportPassphrase = viewModel.exportPassphrase.collectAsState().value
+  val pendingEncryptedImport = viewModel.pendingEncryptedImport.collectAsState().value
+  val backupDirUri = viewModel.backupDirUriFlow.collectAsState().value
+  val lastBackupTime = viewModel.lastBackupTimeFlow.collectAsState().value
 
-    var showSubstanceDialog by remember { mutableStateOf(false) }
-    var importToConfirm by remember { mutableStateOf<Uri?>(null) }
-    var backupFolderToSetUp by remember { mutableStateOf<Uri?>(null) }
+  var showSubstanceDialog by remember { mutableStateOf(false) }
+  var importToConfirm by remember { mutableStateOf<Uri?>(null) }
+  var backupFolderToSetUp by remember { mutableStateOf<Uri?>(null) }
 
-    val exportName = "Journal ${Instant.now().getStringOfPattern("dd MMM yyyy")}"
-    val launcherEncrypted = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument("application/octet-stream")
-    ) { uri -> uri?.let(viewModel::exportEncryptedFile) }
-    val launcherPlaintext = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument("application/json")
-    ) { uri -> uri?.let(viewModel::exportPlaintextFile) }
-    val launcherImport = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument()
-    ) { uri -> importToConfirm = uri }
-    val substanceCollision = viewModel.substanceCollision.collectAsState().value
-    val launcherSubstance = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument()
-    ) { uri -> uri?.let(viewModel::importSubstanceFile) }
-    val launcherBackupFolder = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocumentTree()
-    ) { uri -> backupFolderToSetUp = uri }
+  val exportName = "Journal ${Instant.now().getStringOfPattern("dd MMM yyyy")}"
+  val launcherEncrypted =
+      rememberLauncherForActivityResult(
+          ActivityResultContracts.CreateDocument("application/octet-stream")
+      ) { uri ->
+        uri?.let(viewModel::exportEncryptedFile)
+      }
+  val launcherPlaintext =
+      rememberLauncherForActivityResult(
+          ActivityResultContracts.CreateDocument("application/json")
+      ) { uri ->
+        uri?.let(viewModel::exportPlaintextFile)
+      }
+  val launcherImport =
+      rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        importToConfirm = uri
+      }
+  val substanceCollision = viewModel.substanceCollision.collectAsState().value
+  val launcherSubstance =
+      rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let(viewModel::importSubstanceFile)
+      }
+  val launcherBackupFolder =
+      rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+        backupFolderToSetUp = uri
+      }
 
-    Scaffold(
-        topBar = { TopAppBar(title = { Text("Export & backup") }) },
-        snackbarHost = { SnackbarHost(viewModel.snackbarHostState) },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
+  Scaffold(
+      topBar = { TopAppBar(title = { Text("Export & backup") }) },
+      snackbarHost = { SnackbarHost(viewModel.snackbarHostState) },
+  ) { padding ->
+    Column(
+        modifier =
+            Modifier.padding(padding)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = horizontalPadding, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            SectionCard("What to export") {
-                ExportFilterControls(
-                    filter = filter,
-                    setFilter = viewModel::setExportFilter,
-                    usedSubstanceCount = usedSubstanceNames.size,
-                    onPickSubstances = { showSubstanceDialog = true },
-                )
-            }
-            SectionCard("Export") {
-                Button(onClick = { launcherEncrypted.launch("$exportName.enc") }, Modifier.fillMaxWidth()) {
-                    Text("Export encrypted")
-                }
-                OutlinedButton(onClick = { launcherPlaintext.launch("$exportName.json") }, Modifier.fillMaxWidth()) {
-                    Text("Export plaintext")
-                }
-            }
-            SectionCard("Import") {
-                Text(
-                    "Importing replaces everything currently in the journal. Plaintext and encrypted exports " +
-                        "are both accepted.",
-                    style = MaterialTheme.typography.bodySmall,
-                )
-                OutlinedButton(onClick = { launcherImport.launch(arrayOf("*/*")) }, Modifier.fillMaxWidth()) {
-                    Text("Import file")
-                }
-            }
-            SectionCard("Custom substances") {
-                Text(
-                    "Adds a custom substance from a shared substance file, including its doses, durations " +
-                        "and interactions. To share one, open it in the search tab and use Doses & effects.",
-                    style = MaterialTheme.typography.bodySmall,
-                )
-                OutlinedButton(onClick = { launcherSubstance.launch(arrayOf("*/*")) }, Modifier.fillMaxWidth()) {
-                    Text("Import substance file")
-                }
-            }
-            SectionCard("Automatic backups") {
-                if (backupDirUri == null) {
-                    Text(
-                        "Writes an encrypted full export to a folder you choose once a day and keeps the " +
-                            "newest 7.",
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                    Button(onClick = { launcherBackupFolder.launch(null) }, Modifier.fillMaxWidth()) {
-                        Text("Choose backup folder")
-                    }
-                } else {
-                    Text(
-                        "Last backup: " + (lastBackupTime?.getStringOfPattern("dd MMM yyyy HH:mm") ?: "none yet"),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Button(onClick = viewModel::backupNow, Modifier.fillMaxWidth()) { Text("Back up now") }
-                    OutlinedButton(onClick = viewModel::disableAutomaticBackups, Modifier.fillMaxWidth()) {
-                        Text("Turn off automatic backups")
-                    }
-                }
-            }
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+      SectionCard("What to export") {
+        ExportFilterControls(
+            filter = filter,
+            setFilter = viewModel::setExportFilter,
+            usedSubstanceCount = usedSubstanceNames.size,
+            onPickSubstances = { showSubstanceDialog = true },
+        )
+      }
+      SectionCard("Export") {
+        Button(onClick = { launcherEncrypted.launch("$exportName.enc") }, Modifier.fillMaxWidth()) {
+          Text("Export encrypted")
         }
+        OutlinedButton(
+            onClick = { launcherPlaintext.launch("$exportName.json") },
+            Modifier.fillMaxWidth(),
+        ) {
+          Text("Export plaintext")
+        }
+      }
+      SectionCard("Import") {
+        Text(
+            "Importing replaces everything currently in the journal. Plaintext and encrypted exports " +
+                "are both accepted.",
+            style = MaterialTheme.typography.bodySmall,
+        )
+        OutlinedButton(
+            onClick = { launcherImport.launch(arrayOf("*/*")) },
+            Modifier.fillMaxWidth(),
+        ) {
+          Text("Import file")
+        }
+      }
+      SectionCard("Custom substances") {
+        Text(
+            "Adds a custom substance from a shared substance file, including its doses, durations " +
+                "and interactions. To share one, open it in the search tab and use Doses & effects.",
+            style = MaterialTheme.typography.bodySmall,
+        )
+        OutlinedButton(
+            onClick = { launcherSubstance.launch(arrayOf("*/*")) },
+            Modifier.fillMaxWidth(),
+        ) {
+          Text("Import substance file")
+        }
+      }
+      SectionCard("Automatic backups") {
+        if (backupDirUri == null) {
+          Text(
+              "Writes an encrypted full export to a folder you choose once a day and keeps the " +
+                  "newest 7.",
+              style = MaterialTheme.typography.bodySmall,
+          )
+          Button(onClick = { launcherBackupFolder.launch(null) }, Modifier.fillMaxWidth()) {
+            Text("Choose backup folder")
+          }
+        } else {
+          Text(
+              "Last backup: " +
+                  (lastBackupTime?.getStringOfPattern("dd MMM yyyy HH:mm") ?: "none yet"),
+              style = MaterialTheme.typography.bodyMedium,
+          )
+          Button(onClick = viewModel::backupNow, Modifier.fillMaxWidth()) { Text("Back up now") }
+          OutlinedButton(onClick = viewModel::disableAutomaticBackups, Modifier.fillMaxWidth()) {
+            Text("Turn off automatic backups")
+          }
+        }
+      }
     }
+  }
 
-    if (substanceCollision != null) {
-        AlertDialog(
-            onDismissRequest = viewModel::dismissSubstanceCollision,
-            title = { Text("${substanceCollision.name} already exists") },
-            text = { Text("Replace the existing custom substance, or keep both under different names?") },
-            confirmButton = {
-                TextButton(onClick = { viewModel.resolveSubstanceCollision(replace = false) }) { Text("Keep both") }
-            },
-            dismissButton = {
-                Row {
-                    TextButton(onClick = viewModel::dismissSubstanceCollision) { Text("Cancel") }
-                    TextButton(onClick = { viewModel.resolveSubstanceCollision(replace = true) }) { Text("Replace") }
-                }
-            },
-        )
-    }
-    if (showSubstanceDialog) {
-        SubstanceFilterDialog(
-            allNames = usedSubstanceNames,
-            selected = filter.substanceNames,
-            onConfirm = {
-                viewModel.setExportFilter(filter.copy(substanceNames = it))
-                showSubstanceDialog = false
-            },
-            onDismiss = { showSubstanceDialog = false },
-        )
-    }
-    importToConfirm?.let { uri ->
-        AlertDialog(
-            onDismissRequest = { importToConfirm = null },
-            title = { Text("Replace all journal data?") },
-            text = { Text("Everything currently in the journal is deleted and replaced by the file's contents.") },
-            confirmButton = {
-                TextButton(onClick = {
-                    importToConfirm = null
-                    viewModel.handleImportFile(uri)
-                }) { Text("Import") }
-            },
-            dismissButton = { TextButton(onClick = { importToConfirm = null }) { Text("Cancel") } },
-        )
-    }
-    if (pendingEncryptedImport != null) {
-        PasswordDialog(
-            title = "Encrypted file",
-            description = "Enter the passphrase this file was encrypted with.",
-            confirmLabel = "Import",
-            onConfirm = viewModel::importWithPassphrase,
-            onDismiss = viewModel::clearPendingImport,
-        )
-    }
-    backupFolderToSetUp?.let { uri ->
-        PasswordDialog(
-            title = "Backup password",
-            description = "Backups are encrypted with this password. It cannot be recovered, so store it " +
+  if (substanceCollision != null) {
+    AlertDialog(
+        onDismissRequest = viewModel::dismissSubstanceCollision,
+        title = { Text("${substanceCollision.name} already exists") },
+        text = {
+          Text("Replace the existing custom substance, or keep both under different names?")
+        },
+        confirmButton = {
+          TextButton(onClick = { viewModel.resolveSubstanceCollision(replace = false) }) {
+            Text("Keep both")
+          }
+        },
+        dismissButton = {
+          Row {
+            TextButton(onClick = viewModel::dismissSubstanceCollision) { Text("Cancel") }
+            TextButton(onClick = { viewModel.resolveSubstanceCollision(replace = true) }) {
+              Text("Replace")
+            }
+          }
+        },
+    )
+  }
+  if (showSubstanceDialog) {
+    SubstanceFilterDialog(
+        allNames = usedSubstanceNames,
+        selected = filter.substanceNames,
+        onConfirm = {
+          viewModel.setExportFilter(filter.copy(substanceNames = it))
+          showSubstanceDialog = false
+        },
+        onDismiss = { showSubstanceDialog = false },
+    )
+  }
+  importToConfirm?.let { uri ->
+    AlertDialog(
+        onDismissRequest = { importToConfirm = null },
+        title = { Text("Replace all journal data?") },
+        text = {
+          Text(
+              "Everything currently in the journal is deleted and replaced by the file's contents."
+          )
+        },
+        confirmButton = {
+          TextButton(
+              onClick = {
+                importToConfirm = null
+                viewModel.handleImportFile(uri)
+              }
+          ) {
+            Text("Import")
+          }
+        },
+        dismissButton = { TextButton(onClick = { importToConfirm = null }) { Text("Cancel") } },
+    )
+  }
+  if (pendingEncryptedImport != null) {
+    PasswordDialog(
+        title = "Encrypted file",
+        description = "Enter the passphrase this file was encrypted with.",
+        confirmLabel = "Import",
+        onConfirm = viewModel::importWithPassphrase,
+        onDismiss = viewModel::clearPendingImport,
+    )
+  }
+  backupFolderToSetUp?.let { uri ->
+    PasswordDialog(
+        title = "Backup password",
+        description =
+            "Backups are encrypted with this password. It cannot be recovered, so store it " +
                 "somewhere safe.",
-            confirmLabel = "Turn on",
-            onConfirm = {
-                backupFolderToSetUp = null
-                viewModel.enableAutomaticBackups(uri, it)
-            },
-            onDismiss = { backupFolderToSetUp = null },
-        )
-    }
-    if (exportPassphrase != null) {
-        AlertDialog(
-            onDismissRequest = {},
-            title = { Text("Save this passphrase") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("The export cannot be opened without it, and it is not shown again.")
-                    SelectionContainer {
-                        Text(exportPassphrase, fontFamily = FontFamily.Monospace)
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = viewModel::clearExportPassphrase) { Text("I saved it") }
-            },
-        )
-    }
+        confirmLabel = "Turn on",
+        onConfirm = {
+          backupFolderToSetUp = null
+          viewModel.enableAutomaticBackups(uri, it)
+        },
+        onDismiss = { backupFolderToSetUp = null },
+    )
+  }
+  if (exportPassphrase != null) {
+    AlertDialog(
+        onDismissRequest = {},
+        title = { Text("Save this passphrase") },
+        text = {
+          Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("The export cannot be opened without it, and it is not shown again.")
+            SelectionContainer {
+              Text(exportPassphrase, fontFamily = FontFamily.Monospace)
+            }
+          }
+        },
+        confirmButton = {
+          TextButton(onClick = viewModel::clearExportPassphrase) { Text("I saved it") }
+        },
+    )
+  }
 }
 
 @Composable
 private fun SectionCard(title: String, content: @Composable () -> Unit) {
-    ElevatedCard(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
-            content()
-        }
+  ElevatedCard(Modifier.fillMaxWidth()) {
+    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+      Text(title, style = MaterialTheme.typography.titleMedium)
+      content()
     }
+  }
 }
 
 @Composable
@@ -268,53 +302,59 @@ private fun ExportFilterControls(
     usedSubstanceCount: Int,
     onPickSubstances: () -> Unit,
 ) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        FilterChip(
-            selected = filter.category == null,
-            onClick = { setFilter(filter.copy(category = null)) },
-            label = { Text("All") },
-        )
-        IngestionCategory.entries.forEach { category ->
-            FilterChip(
-                selected = filter.category == category,
-                onClick = { setFilter(filter.copy(category = category)) },
-                label = { Text(category.displayText) },
-            )
+  Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    FilterChip(
+        selected = filter.category == null,
+        onClick = { setFilter(filter.copy(category = null)) },
+        label = { Text("All") },
+    )
+    IngestionCategory.entries.forEach { category ->
+      FilterChip(
+          selected = filter.category == category,
+          onClick = { setFilter(filter.copy(category = category)) },
+          label = { Text(category.displayText) },
+      )
+    }
+  }
+  OutlinedButton(onClick = onPickSubstances, Modifier.fillMaxWidth()) {
+    Text(
+        when (val selected = filter.substanceNames) {
+          null -> "All substances"
+          else -> "${selected.size} of $usedSubstanceCount substances"
         }
-    }
-    OutlinedButton(onClick = onPickSubstances, Modifier.fillMaxWidth()) {
-        Text(
-            when (val selected = filter.substanceNames) {
-                null -> "All substances"
-                else -> "${selected.size} of $usedSubstanceCount substances"
-            }
-        )
-    }
-    SwitchRow("Include other consumers", filter.includeOtherConsumers) {
-        setFilter(filter.copy(includeOtherConsumers = it))
-    }
-    SwitchRow("Include notes", filter.includeNotes) { setFilter(filter.copy(includeNotes = it)) }
-    SwitchRow("Include timed notes", filter.includeTimedNotes) { setFilter(filter.copy(includeTimedNotes = it)) }
-    SwitchRow("Include locations", filter.includeLocations) { setFilter(filter.copy(includeLocations = it)) }
-    SwitchRow("Include ratings", filter.includeRatings) { setFilter(filter.copy(includeRatings = it)) }
-    if (filter.isActive) {
-        Text(
-            "A filtered export leaves out reminders and webhooks.",
-            style = MaterialTheme.typography.bodySmall,
-        )
-    }
+    )
+  }
+  SwitchRow("Include other consumers", filter.includeOtherConsumers) {
+    setFilter(filter.copy(includeOtherConsumers = it))
+  }
+  SwitchRow("Include notes", filter.includeNotes) { setFilter(filter.copy(includeNotes = it)) }
+  SwitchRow("Include timed notes", filter.includeTimedNotes) {
+    setFilter(filter.copy(includeTimedNotes = it))
+  }
+  SwitchRow("Include locations", filter.includeLocations) {
+    setFilter(filter.copy(includeLocations = it))
+  }
+  SwitchRow("Include ratings", filter.includeRatings) {
+    setFilter(filter.copy(includeRatings = it))
+  }
+  if (filter.isActive) {
+    Text(
+        "A filtered export leaves out reminders and webhooks.",
+        style = MaterialTheme.typography.bodySmall,
+    )
+  }
 }
 
 @Composable
 private fun SwitchRow(text: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(text)
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
-    }
+  Row(
+      modifier = Modifier.fillMaxWidth(),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.SpaceBetween,
+  ) {
+    Text(text)
+    Switch(checked = checked, onCheckedChange = onCheckedChange)
+  }
 }
 
 @Composable
@@ -324,31 +364,34 @@ private fun SubstanceFilterDialog(
     onConfirm: (Set<String>?) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var current by remember { mutableStateOf(selected ?: allNames.toSet()) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Substances to export") },
-        text = {
-            LazyColumn(Modifier.heightIn(max = 360.dp)) {
-                items(allNames, key = { it }) { name ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { current = if (name in current) current - name else current + name },
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Checkbox(checked = name in current, onCheckedChange = null)
-                        Text(name, Modifier.padding(start = 8.dp, top = 8.dp, bottom = 8.dp))
-                    }
-                }
+  var current by remember { mutableStateOf(selected ?: allNames.toSet()) }
+  AlertDialog(
+      onDismissRequest = onDismiss,
+      title = { Text("Substances to export") },
+      text = {
+        LazyColumn(Modifier.heightIn(max = 360.dp)) {
+          items(allNames, key = { it }) { name ->
+            Row(
+                modifier =
+                    Modifier.fillMaxWidth().clickable {
+                      current = if (name in current) current - name else current + name
+                    },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+              Checkbox(checked = name in current, onCheckedChange = null)
+              Text(name, Modifier.padding(start = 8.dp, top = 8.dp, bottom = 8.dp))
             }
-        },
-        confirmButton = {
-            // Selecting everything is the same as not filtering by substance at all.
-            TextButton(onClick = { onConfirm(current.takeIf { it.size < allNames.size }) }) { Text("Done") }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
-    )
+          }
+        }
+      },
+      confirmButton = {
+        // Selecting everything is the same as not filtering by substance at all.
+        TextButton(onClick = { onConfirm(current.takeIf { it.size < allNames.size }) }) {
+          Text("Done")
+        }
+      },
+      dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+  )
 }
 
 @Composable
@@ -359,25 +402,27 @@ private fun PasswordDialog(
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var password by remember { mutableStateOf("") }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(description)
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
-                    label = { Text("Passphrase") },
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(password) }, enabled = password.isNotBlank()) { Text(confirmLabel) }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
-    )
+  var password by remember { mutableStateOf("") }
+  AlertDialog(
+      onDismissRequest = onDismiss,
+      title = { Text(title) },
+      text = {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+          Text(description)
+          OutlinedTextField(
+              value = password,
+              onValueChange = { password = it },
+              singleLine = true,
+              visualTransformation = PasswordVisualTransformation(),
+              label = { Text("Passphrase") },
+          )
+        }
+      },
+      confirmButton = {
+        TextButton(onClick = { onConfirm(password) }, enabled = password.isNotBlank()) {
+          Text(confirmLabel)
+        }
+      },
+      dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+  )
 }

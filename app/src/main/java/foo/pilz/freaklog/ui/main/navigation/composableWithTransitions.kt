@@ -37,43 +37,47 @@ import androidx.navigation.compose.composable
 inline fun <reified T : Any> NavGraphBuilder.composableWithTransitions(
     noinline content: @Composable (AnimatedVisibilityScope.(NavBackStackEntry) -> Unit)
 ) {
-    val withinTabTransitionTimeInMs = 300
-    val tabSwitchTimeInMs = 200
-    composable<T>(
-        exitTransition = {
-            if (isChangingTab()) {
-                fadeOut(animationSpec = tween(tabSwitchTimeInMs))
-            } else {
-                slideOutHorizontally(
-                    targetOffsetX = { -300 },
-                    animationSpec = tween(withinTabTransitionTimeInMs)
-                ) + fadeOut(animationSpec = tween(withinTabTransitionTimeInMs))
-            }
-        },
-        popEnterTransition = {
-            EnterTransition.None
-        },
-        enterTransition = {
-            if (isChangingTab()) {
-                fadeIn(animationSpec = tween(tabSwitchTimeInMs))
-            } else {
-                slideInHorizontally(
-                    initialOffsetX = { 300 },
-                    animationSpec = tween(withinTabTransitionTimeInMs)
-                ) + fadeIn(animationSpec = tween(withinTabTransitionTimeInMs))
-            }
-        },
-        popExitTransition = {
-            ExitTransition.None
-        },
-        content = content
-    )
+  val withinTabTransitionTimeInMs = 300
+  val tabSwitchTimeInMs = 200
+  composable<T>(
+      exitTransition = {
+        if (isChangingTab()) {
+          fadeOut(animationSpec = tween(tabSwitchTimeInMs))
+        } else {
+          slideOutHorizontally(
+              targetOffsetX = { -300 },
+              animationSpec = tween(withinTabTransitionTimeInMs),
+          ) + fadeOut(animationSpec = tween(withinTabTransitionTimeInMs))
+        }
+      },
+      popEnterTransition = {
+        EnterTransition.None
+      },
+      enterTransition = {
+        if (isChangingTab()) {
+          fadeIn(animationSpec = tween(tabSwitchTimeInMs))
+        } else {
+          slideInHorizontally(
+              initialOffsetX = { 300 },
+              animationSpec = tween(withinTabTransitionTimeInMs),
+          ) + fadeIn(animationSpec = tween(withinTabTransitionTimeInMs))
+        }
+      },
+      popExitTransition = {
+        ExitTransition.None
+      },
+      content = content,
+  )
 }
 
 fun AnimatedContentTransitionScope<NavBackStackEntry>.isChangingTab(): Boolean {
-    val initialTopLevel = initialState.destination.hierarchy.firstOrNull { navDestination ->
-        topLevelRoutes(showInventory = true).any { navDestination.hasRoute(it.route::class) } }
-    val targetTopLevel = targetState.destination.hierarchy.firstOrNull { navDestination ->
-        topLevelRoutes(showInventory = true).any { navDestination.hasRoute(it.route::class) } }
-    return initialTopLevel != targetTopLevel
+  val initialTopLevel =
+      initialState.destination.hierarchy.firstOrNull { navDestination ->
+        topLevelRoutes(showInventory = true).any { navDestination.hasRoute(it.route::class) }
+      }
+  val targetTopLevel =
+      targetState.destination.hierarchy.firstOrNull { navDestination ->
+        topLevelRoutes(showInventory = true).any { navDestination.hasRoute(it.route::class) }
+      }
+  return initialTopLevel != targetTopLevel
 }

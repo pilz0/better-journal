@@ -11,11 +11,11 @@ fun CustomCrossTolerancePickerScreen(
     navigateBack: () -> Unit,
     viewModel: CustomCrossTolerancePickerViewModel = hiltViewModel(),
 ) {
-    val selected = viewModel.selectedNamesFlow.collectAsStateWithLifecycle().value
-    CustomCategoriesPickerScreen(
-        categories = viewModel.allCategories,
-        selectedNames = selected,
-        navigateBack = navigateBack,
-        onToggle = viewModel::toggle,
-    )
+  val selected = viewModel.selectedNamesFlow.collectAsStateWithLifecycle().value
+  CustomCategoriesPickerScreen(
+      categories = viewModel.allCategories,
+      selectedNames = selected,
+      navigateBack = navigateBack,
+      onToggle = viewModel::toggle,
+  )
 }

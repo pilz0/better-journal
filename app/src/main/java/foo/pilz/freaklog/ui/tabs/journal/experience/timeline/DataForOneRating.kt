@@ -23,6 +23,5 @@ import java.time.Instant
 
 data class DataForOneRating(
     val time: Instant,
-    val option: ShulginRatingOption
+    val option: ShulginRatingOption,
 )
-

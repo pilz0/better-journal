@@ -18,149 +18,149 @@
 
 package foo.pilz.freaklog.ui.utils
 
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
-import java.time.Instant
-import java.time.temporal.ChronoUnit
 
 class DateUtilsTest {
 
-    // ===== getInstant Tests =====
+  // ===== getInstant Tests =====
 
-    @Test
-    fun testGetInstant_validDate() {
-        val instant = getInstant(2022, 6, 15, 14, 30)
-        assertNotNull(instant)
-    }
+  @Test
+  fun testGetInstant_validDate() {
+    val instant = getInstant(2022, 6, 15, 14, 30)
+    assertNotNull(instant)
+  }
 
-    @Test
-    fun testGetInstant_startOfDay() {
-        val instant = getInstant(2022, 1, 1, 0, 0)
-        assertNotNull(instant)
-    }
+  @Test
+  fun testGetInstant_startOfDay() {
+    val instant = getInstant(2022, 1, 1, 0, 0)
+    assertNotNull(instant)
+  }
 
-    @Test
-    fun testGetInstant_endOfDay() {
-        val instant = getInstant(2022, 12, 31, 23, 59)
-        assertNotNull(instant)
-    }
+  @Test
+  fun testGetInstant_endOfDay() {
+    val instant = getInstant(2022, 12, 31, 23, 59)
+    assertNotNull(instant)
+  }
 
-    // ===== getStringOfPattern Tests (on Instant) =====
+  // ===== getStringOfPattern Tests (on Instant) =====
 
-    @Test
-    fun testGetStringOfPattern_hourMinute() {
-        val instant = getInstant(2022, 9, 23, 9, 20)!!
-        assertEquals("09:20", instant.getStringOfPattern("HH:mm"))
-    }
+  @Test
+  fun testGetStringOfPattern_hourMinute() {
+    val instant = getInstant(2022, 9, 23, 9, 20)!!
+    assertEquals("09:20", instant.getStringOfPattern("HH:mm"))
+  }
 
-    @Test
-    fun testGetStringOfPattern_dateFormat() {
-        val instant = getInstant(2022, 9, 23, 12, 0)!!
-        val result = instant.getStringOfPattern("yyyy-MM-dd")
-        assertEquals("2022-09-23", result)
-    }
+  @Test
+  fun testGetStringOfPattern_dateFormat() {
+    val instant = getInstant(2022, 9, 23, 12, 0)!!
+    val result = instant.getStringOfPattern("yyyy-MM-dd")
+    assertEquals("2022-09-23", result)
+  }
 
-    @Test
-    fun testGetStringOfPattern_hourOnly() {
-        val instant = getInstant(2022, 6, 15, 14, 30)!!
-        val result = instant.getStringOfPattern("HH")
-        assertEquals("14", result)
-    }
+  @Test
+  fun testGetStringOfPattern_hourOnly() {
+    val instant = getInstant(2022, 6, 15, 14, 30)!!
+    val result = instant.getStringOfPattern("HH")
+    assertEquals("14", result)
+  }
 
-    @Test
-    fun testGetStringOfPattern_yearOnly() {
-        val instant = getInstant(2025, 6, 15, 14, 30)!!
-        val result = instant.getStringOfPattern("yyyy")
-        assertEquals("2025", result)
-    }
+  @Test
+  fun testGetStringOfPattern_yearOnly() {
+    val instant = getInstant(2025, 6, 15, 14, 30)!!
+    val result = instant.getStringOfPattern("yyyy")
+    assertEquals("2025", result)
+  }
 
-    // ===== getDateWithWeekdayText Tests =====
+  // ===== getDateWithWeekdayText Tests =====
 
-    @Test
-    fun testGetDateWithWeekdayText_format() {
-        val instant = getInstant(2022, 9, 23, 12, 0)!!
-        val result = instant.getDateWithWeekdayText()
-        // Should be in format "EEE dd MMM yyyy" which includes day of month and year
-        assertNotNull(result)
-        assertTrue(result.contains("23"))
-        assertTrue(result.contains("2022"))
-    }
+  @Test
+  fun testGetDateWithWeekdayText_format() {
+    val instant = getInstant(2022, 9, 23, 12, 0)!!
+    val result = instant.getDateWithWeekdayText()
+    // Should be in format "EEE dd MMM yyyy" which includes day of month and year
+    assertNotNull(result)
+    assertTrue(result.contains("23"))
+    assertTrue(result.contains("2022"))
+  }
 
-    @Test
-    fun testGetShortWeekdayText_returnsWeekday() {
-        val instant = getInstant(2022, 9, 23, 12, 0)!!
-        val result = instant.getShortWeekdayText()
-        // Should be a weekday abbreviation like "Fri"
-        assertNotNull(result)
-        assertTrue(result.length >= 2)
-    }
+  @Test
+  fun testGetShortWeekdayText_returnsWeekday() {
+    val instant = getInstant(2022, 9, 23, 12, 0)!!
+    val result = instant.getShortWeekdayText()
+    // Should be a weekday abbreviation like "Fri"
+    assertNotNull(result)
+    assertTrue(result.length >= 2)
+  }
 
-    // ===== getLocalDateTime / getInstant roundtrip Tests =====
+  // ===== getLocalDateTime / getInstant roundtrip Tests =====
 
-    @Test
-    fun testLocalDateTimeRoundtrip() {
-        val original = getInstant(2022, 6, 15, 14, 30)!!
-        val localDateTime = original.getLocalDateTime()
-        val roundtrip = localDateTime.getInstant()
-        
-        // Should be within 1 second due to potential nanosecond differences
-        val diff = java.time.Duration.between(original, roundtrip).abs()
-        assertTrue(diff.seconds < 1)
-    }
+  @Test
+  fun testLocalDateTimeRoundtrip() {
+    val original = getInstant(2022, 6, 15, 14, 30)!!
+    val localDateTime = original.getLocalDateTime()
+    val roundtrip = localDateTime.getInstant()
 
-    // ===== getTimeDifferenceText Tests =====
+    // Should be within 1 second due to potential nanosecond differences
+    val diff = java.time.Duration.between(original, roundtrip).abs()
+    assertTrue(diff.seconds < 1)
+  }
 
-    @Test
-    fun testGetTimeDifferenceText_minutesDifference() {
-        val fromDate = Instant.now().minus(30, ChronoUnit.MINUTES)
-        val text = getTimeDifferenceText(fromDate, Instant.now())
-        assertTrue(text.contains("minutes"))
-    }
+  // ===== getTimeDifferenceText Tests =====
 
-    @Test
-    fun testGetTimeDifferenceText_hoursDifference() {
-        val fromDate = Instant.now().minus(5, ChronoUnit.HOURS)
-        val text = getTimeDifferenceText(fromDate, Instant.now())
-        assertTrue(text.contains("hours"))
-    }
+  @Test
+  fun testGetTimeDifferenceText_minutesDifference() {
+    val fromDate = Instant.now().minus(30, ChronoUnit.MINUTES)
+    val text = getTimeDifferenceText(fromDate, Instant.now())
+    assertTrue(text.contains("minutes"))
+  }
 
-    @Test
-    fun testGetTimeDifferenceText_daysDifference() {
-        val fromDate = Instant.now().minus(5, ChronoUnit.DAYS)
-        val text = getTimeDifferenceText(fromDate, Instant.now())
-        assertTrue(text.contains("days"))
-    }
+  @Test
+  fun testGetTimeDifferenceText_hoursDifference() {
+    val fromDate = Instant.now().minus(5, ChronoUnit.HOURS)
+    val text = getTimeDifferenceText(fromDate, Instant.now())
+    assertTrue(text.contains("hours"))
+  }
 
-    @Test
-    fun testGetTimeDifferenceText_weeksDifference() {
-        val fromDate = Instant.now().minus(42, ChronoUnit.DAYS) // 6 weeks
-        val text = getTimeDifferenceText(fromDate, Instant.now())
-        assertTrue(text.contains("weeks"))
-    }
+  @Test
+  fun testGetTimeDifferenceText_daysDifference() {
+    val fromDate = Instant.now().minus(5, ChronoUnit.DAYS)
+    val text = getTimeDifferenceText(fromDate, Instant.now())
+    assertTrue(text.contains("days"))
+  }
 
-    @Test
-    fun testGetTimeDifferenceText_monthsDifference() {
-        val fromDate = Instant.now().minus(100, ChronoUnit.DAYS)
-        val text = getTimeDifferenceText(fromDate, Instant.now())
-        assertTrue(text.contains("months"))
-    }
+  @Test
+  fun testGetTimeDifferenceText_weeksDifference() {
+    val fromDate = Instant.now().minus(42, ChronoUnit.DAYS) // 6 weeks
+    val text = getTimeDifferenceText(fromDate, Instant.now())
+    assertTrue(text.contains("weeks"))
+  }
 
-    @Test
-    fun testGetTimeDifferenceText_yearsDifference() {
-        val fromDate = Instant.now().minus(900, ChronoUnit.DAYS)
-        val text = getTimeDifferenceText(fromDate, Instant.now())
-        assertTrue(text.contains("years"))
-    }
+  @Test
+  fun testGetTimeDifferenceText_monthsDifference() {
+    val fromDate = Instant.now().minus(100, ChronoUnit.DAYS)
+    val text = getTimeDifferenceText(fromDate, Instant.now())
+    assertTrue(text.contains("months"))
+  }
 
-    @Test
-    fun testGetTimeDifferenceText_exactHours() {
-        val fromDate = Instant.now().minus(2, ChronoUnit.DAYS).plus(3, ChronoUnit.HOURS)
-        val text = getTimeDifferenceText(fromDate, Instant.now())
-        assertEquals("45 hours", text)
-    }
+  @Test
+  fun testGetTimeDifferenceText_yearsDifference() {
+    val fromDate = Instant.now().minus(900, ChronoUnit.DAYS)
+    val text = getTimeDifferenceText(fromDate, Instant.now())
+    assertTrue(text.contains("years"))
+  }
 
-    private fun assertTrue(condition: Boolean) {
-        org.junit.Assert.assertTrue(condition)
-    }
+  @Test
+  fun testGetTimeDifferenceText_exactHours() {
+    val fromDate = Instant.now().minus(2, ChronoUnit.DAYS).plus(3, ChronoUnit.HOURS)
+    val text = getTimeDifferenceText(fromDate, Instant.now())
+    assertEquals("45 hours", text)
+  }
+
+  private fun assertTrue(condition: Boolean) {
+    org.junit.Assert.assertTrue(condition)
+  }
 }

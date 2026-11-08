@@ -9,30 +9,32 @@ const val MAX_DIASTOLIC = 180
 data class BloodPressureFieldErrors(val systolic: String?, val diastolic: String?)
 
 fun bloodPressureFieldErrors(systolic: String, diastolic: String): BloodPressureFieldErrors {
-    val sys = systolic.trim().replace(',', '.').toDoubleOrNull()
-    val dia = diastolic.trim().replace(',', '.').toDoubleOrNull()
-    val systolicError = when {
+  val sys = systolic.trim().replace(',', '.').toDoubleOrNull()
+  val dia = diastolic.trim().replace(',', '.').toDoubleOrNull()
+  val systolicError =
+      when {
         systolic.isBlank() -> null
         sys == null -> "Enter a number"
         sys !in MIN_SYSTOLIC.toDouble()..MAX_SYSTOLIC.toDouble() ->
             "Must be between $MIN_SYSTOLIC and $MAX_SYSTOLIC mmHg"
         dia != null && sys <= dia -> "Must be above diastolic"
         else -> null
-    }
-    val diastolicError = when {
+      }
+  val diastolicError =
+      when {
         diastolic.isBlank() -> null
         dia == null -> "Enter a number"
         dia !in MIN_DIASTOLIC.toDouble()..MAX_DIASTOLIC.toDouble() ->
             "Must be between $MIN_DIASTOLIC and $MAX_DIASTOLIC mmHg"
         else -> null
-    }
-    return BloodPressureFieldErrors(systolicError, diastolicError)
+      }
+  return BloodPressureFieldErrors(systolicError, diastolicError)
 }
 
 fun isBloodPressureInputValid(systolic: String, diastolic: String): Boolean {
-    val sys = systolic.trim().replace(',', '.').toDoubleOrNull() ?: return false
-    val dia = diastolic.trim().replace(',', '.').toDoubleOrNull() ?: return false
-    return sys in MIN_SYSTOLIC.toDouble()..MAX_SYSTOLIC.toDouble() &&
-        dia in MIN_DIASTOLIC.toDouble()..MAX_DIASTOLIC.toDouble() &&
-        sys > dia
+  val sys = systolic.trim().replace(',', '.').toDoubleOrNull() ?: return false
+  val dia = diastolic.trim().replace(',', '.').toDoubleOrNull() ?: return false
+  return sys in MIN_SYSTOLIC.toDouble()..MAX_SYSTOLIC.toDouble() &&
+      dia in MIN_DIASTOLIC.toDouble()..MAX_DIASTOLIC.toDouble() &&
+      sys > dia
 }

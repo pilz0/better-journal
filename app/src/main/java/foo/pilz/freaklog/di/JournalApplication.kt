@@ -21,37 +21,37 @@ package foo.pilz.freaklog.di
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
 import foo.pilz.freaklog.data.room.webhooks.WebhookSeeder
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltAndroidApp
 class JournalApplication : Application() {
 
-    @Inject
-    lateinit var webhookSeeder: WebhookSeeder
+  @Inject lateinit var webhookSeeder: WebhookSeeder
 
-    // Injected only so it is created at startup: it loads custom substance profiles
-    // into memory before the first screen asks for them synchronously.
-    @Inject
-    lateinit var customSubstanceProfiles: foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles
+  // Injected only so it is created at startup: it loads custom substance profiles
+  // into memory before the first screen asks for them synchronously.
+  @Inject
+  lateinit var customSubstanceProfiles:
+      foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles
 
-    @Inject
-    @ApplicationScope
-    lateinit var applicationScope: CoroutineScope
+  @Inject @ApplicationScope lateinit var applicationScope: CoroutineScope
 
-    override fun onCreate() {
-        super.onCreate()
-        foo.pilz.freaklog.ui.tabs.journal.experience.notification.TimelineNotificationChannel.create(this)
-        applicationScope.launch {
-            // Migrate the legacy single-webhook configuration into the new
-            // multi-webhook tables on first launch after upgrade. Idempotent.
-            // Wrap in try/catch so a failed migration cannot crash app startup.
-            try {
-                webhookSeeder.seedIfNeeded()
-            } catch (e: Exception) {
-                android.util.Log.e("JournalApplication", "Webhook seeding failed", e)
-            }
-        }
+  override fun onCreate() {
+    super.onCreate()
+    foo.pilz.freaklog.ui.tabs.journal.experience.notification.TimelineNotificationChannel.create(
+        this
+    )
+    applicationScope.launch {
+      // Migrate the legacy single-webhook configuration into the new
+      // multi-webhook tables on first launch after upgrade. Idempotent.
+      // Wrap in try/catch so a failed migration cannot crash app startup.
+      try {
+        webhookSeeder.seedIfNeeded()
+      } catch (e: Exception) {
+        android.util.Log.e("JournalApplication", "Webhook seeding failed", e)
+      }
     }
+  }
 }

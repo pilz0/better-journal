@@ -38,29 +38,29 @@ import foo.pilz.freaklog.ui.theme.horizontalPadding
 fun SubstanceRowAddIngestionPreview(
     @PreviewParameter(SubstanceModelPreviewProvider::class) substanceModel: SubstanceModel
 ) {
-    SubstanceRowAddIngestion(substanceModel = substanceModel, onTap = {})
+  SubstanceRowAddIngestion(substanceModel = substanceModel, onTap = {})
 }
 
 @Composable
 fun SubstanceRowAddIngestion(
     substanceModel: SubstanceModel,
-    onTap: (substanceName: String) -> Unit
+    onTap: (substanceName: String) -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable {
+  Column(
+      modifier =
+          Modifier.fillMaxWidth()
+              .clickable {
                 onTap(substanceModel.name)
-            }
-            .padding(horizontal = horizontalPadding, vertical = 8.dp),
-    ) {
-        Text(
-            text = substanceModel.name,
-            style = MaterialTheme.typography.titleMedium,
-        )
-        if (substanceModel.commonNames.isNotEmpty()) {
-            val commaSeparatedNames = substanceModel.commonNames.joinToString(separator = ", ")
-            Text(text = commaSeparatedNames, style = MaterialTheme.typography.bodySmall)
-        }
+              }
+              .padding(horizontal = horizontalPadding, vertical = 8.dp),
+  ) {
+    Text(
+        text = substanceModel.name,
+        style = MaterialTheme.typography.titleMedium,
+    )
+    if (substanceModel.commonNames.isNotEmpty()) {
+      val commaSeparatedNames = substanceModel.commonNames.joinToString(separator = ", ")
+      Text(text = commaSeparatedNames, style = MaterialTheme.typography.bodySmall)
     }
+  }
 }

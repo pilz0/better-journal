@@ -27,8 +27,7 @@ import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestion
 import foo.pilz.freaklog.data.substances.classes.IngestionCategory
 
 /**
- * What a partial export keeps. The defaults keep everything, so
- * `ExportFilter()` is a full export.
+ * What a partial export keeps. The defaults keep everything, so `ExportFilter()` is a full export.
  */
 data class ExportFilter(
     val category: IngestionCategory? = null,
@@ -39,13 +38,17 @@ data class ExportFilter(
     val includeLocations: Boolean = true,
     val includeRatings: Boolean = true,
 ) {
-    /** True when the filter can drop whole ingestions (and with them their dependants). */
-    val hasIngestionFilters: Boolean
-        get() = category != null || substanceNames != null || !includeOtherConsumers
+  /** True when the filter can drop whole ingestions (and with them their dependants). */
+  val hasIngestionFilters: Boolean
+    get() = category != null || substanceNames != null || !includeOtherConsumers
 
-    val isActive: Boolean
-        get() = hasIngestionFilters ||
-            !includeNotes || !includeTimedNotes || !includeLocations || !includeRatings
+  val isActive: Boolean
+    get() =
+        hasIngestionFilters ||
+            !includeNotes ||
+            !includeTimedNotes ||
+            !includeLocations ||
+            !includeRatings
 }
 
 /** The journal rows an export is built from, before serialization. */
@@ -55,58 +58,68 @@ data class ExportData(
     val substanceCompanions: List<SubstanceCompanion>,
     val customSubstances: List<CustomSubstance>,
     val intakeLimits: List<IntakeLimit> = emptyList(),
-    val customSubstanceDetails: List<foo.pilz.freaklog.data.substanceshare.SharedSubstance> = emptyList(),
-    val bloodPressureReadings: List<foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading> = emptyList(),
+    val customSubstanceDetails: List<foo.pilz.freaklog.data.substanceshare.SharedSubstance> =
+        emptyList(),
+    val bloodPressureReadings:
+        List<foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading> =
+        emptyList(),
 ) {
-    fun filtered(filter: ExportFilter): ExportData {
-        if (!filter.isActive) return this
+  fun filtered(filter: ExportFilter): ExportData {
+    if (!filter.isActive) return this
 
-        val unitsById = customUnits.associateBy { it.id }
-        val companionsByName = substanceCompanions.associateBy { it.substanceName }
+    val unitsById = customUnits.associateBy { it.id }
+    val companionsByName = substanceCompanions.associateBy { it.substanceName }
 
-        fun matches(ingestion: Ingestion): Boolean {
-            val computedCategory = ingestion.computedCategory(
-                customUnit = ingestion.customUnitId?.let { unitsById[it] },
-                substanceCompanion = companionsByName[ingestion.substanceName],
-            )
-            return (filter.includeOtherConsumers || ingestion.consumerName == null) &&
-                (filter.substanceNames == null || ingestion.substanceName in filter.substanceNames) &&
-                (filter.category == null || computedCategory == filter.category)
-        }
+    fun matches(ingestion: Ingestion): Boolean {
+      val computedCategory =
+          ingestion.computedCategory(
+              customUnit = ingestion.customUnitId?.let { unitsById[it] },
+              substanceCompanion = companionsByName[ingestion.substanceName],
+          )
+      return (filter.includeOtherConsumers || ingestion.consumerName == null) &&
+          (filter.substanceNames == null || ingestion.substanceName in filter.substanceNames) &&
+          (filter.category == null || computedCategory == filter.category)
+    }
 
-        fun scrub(ingestion: Ingestion): Ingestion =
-            if (filter.includeNotes) ingestion else ingestion.copy(notes = null)
+    fun scrub(ingestion: Ingestion): Ingestion =
+        if (filter.includeNotes) ingestion else ingestion.copy(notes = null)
 
-        val filteredExperiences = experiences
+    val filteredExperiences =
+        experiences
             .map { exp ->
-                exp.copy(
-                    experience = exp.experience.copy(
-                        text = if (filter.includeNotes) exp.experience.text else "",
-                        location = if (filter.includeLocations) exp.experience.location else null,
-                    ),
-                    ingestions = exp.ingestions.filter(::matches).map(::scrub),
-                    timedNotes = if (filter.includeTimedNotes) exp.timedNotes else emptyList(),
-                    ratings = if (filter.includeRatings) exp.ratings else emptyList(),
-                )
+              exp.copy(
+                  experience =
+                      exp.experience.copy(
+                          text = if (filter.includeNotes) exp.experience.text else "",
+                          location = if (filter.includeLocations) exp.experience.location else null,
+                      ),
+                  ingestions = exp.ingestions.filter(::matches).map(::scrub),
+                  timedNotes = if (filter.includeTimedNotes) exp.timedNotes else emptyList(),
+                  ratings = if (filter.includeRatings) exp.ratings else emptyList(),
+              )
             }
             .filter { !filter.hasIngestionFilters || it.ingestions.isNotEmpty() }
 
-        val keptIngestions = filteredExperiences.flatMap { it.ingestions }
-        val keptSubstanceNames = keptIngestions.map { it.substanceName }.toSet()
-        val keptUnitIds = keptIngestions.mapNotNull { it.customUnitId }.toSet()
-        val keptExperienceIds = filteredExperiences.map { it.experience.id }.toSet()
-        val prune = filter.hasIngestionFilters
+    val keptIngestions = filteredExperiences.flatMap { it.ingestions }
+    val keptSubstanceNames = keptIngestions.map { it.substanceName }.toSet()
+    val keptUnitIds = keptIngestions.mapNotNull { it.customUnitId }.toSet()
+    val keptExperienceIds = filteredExperiences.map { it.experience.id }.toSet()
+    val prune = filter.hasIngestionFilters
 
-        return ExportData(
-            experiences = filteredExperiences,
-            customUnits = customUnits
+    return ExportData(
+        experiences = filteredExperiences,
+        customUnits =
+            customUnits
                 .filter { !prune || it.id in keptUnitIds }
                 .map { if (filter.includeNotes) it else it.copy(note = "") },
-            substanceCompanions = substanceCompanions.filter { !prune || it.substanceName in keptSubstanceNames },
-            customSubstances = customSubstances.filter { !prune || it.name in keptSubstanceNames },
-            intakeLimits = intakeLimits.filter { !prune || it.substanceName in keptSubstanceNames },
-            customSubstanceDetails = customSubstanceDetails.filter { !prune || it.name in keptSubstanceNames },
-            bloodPressureReadings = bloodPressureReadings.filter { it.experienceId in keptExperienceIds },
-        )
-    }
+        substanceCompanions =
+            substanceCompanions.filter { !prune || it.substanceName in keptSubstanceNames },
+        customSubstances = customSubstances.filter { !prune || it.name in keptSubstanceNames },
+        intakeLimits = intakeLimits.filter { !prune || it.substanceName in keptSubstanceNames },
+        customSubstanceDetails =
+            customSubstanceDetails.filter { !prune || it.name in keptSubstanceNames },
+        bloodPressureReadings =
+            bloodPressureReadings.filter { it.experienceId in keptExperienceIds },
+    )
+  }
 }

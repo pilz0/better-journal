@@ -59,193 +59,188 @@ fun CustomSubstanceEditorContent(
     risksFilled: Boolean = false,
     onDelete: (() -> Unit)? = null,
 ) {
-    val spacing = LocalSpacing.current
-    val scrollState = rememberScrollState()
-    val focusManager = LocalFocusManager.current
+  val spacing = LocalSpacing.current
+  val scrollState = rememberScrollState()
+  val focusManager = LocalFocusManager.current
 
-    Column(
-        modifier = Modifier
-            .padding(padding)
-            .verticalScroll(scrollState),
-        verticalArrangement = Arrangement.spacedBy(spacing.sm),
+  Column(
+      modifier = Modifier.padding(padding).verticalScroll(scrollState),
+      verticalArrangement = Arrangement.spacedBy(spacing.sm),
+  ) {
+    SectionHeader("Basics")
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = spacing.screenHorizontal),
     ) {
-        SectionHeader("Basics")
-        ElevatedCard(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = spacing.screenHorizontal),
-        ) {
-            Column(
-                modifier = Modifier.padding(spacing.lg),
-                verticalArrangement = Arrangement.spacedBy(spacing.sm),
-            ) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = onNameChange,
-                    label = { Text("Name") },
-                    keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
-                        capitalization = KeyboardCapitalization.Words,
-                    ),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                OutlinedTextField(
-                    value = units,
-                    onValueChange = onUnitsChange,
-                    label = { Text("Units") },
-                    keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    OutlinedButton(onClick = { onUnitsChange("µg") }) { Text("µg") }
-                    OutlinedButton(onClick = { onUnitsChange("mg") }) { Text("mg") }
-                    OutlinedButton(onClick = { onUnitsChange("g") }) { Text("g") }
-                    OutlinedButton(onClick = { onUnitsChange("mL") }) { Text("mL") }
-                }
-                OutlinedTextField(
-                    value = summary,
-                    onValueChange = onSummaryChange,
-                    label = { Text("Summary") },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
-                        capitalization = KeyboardCapitalization.Sentences,
-                    ),
-                    minLines = 2,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-        }
-
-        SectionHeader("Default ingestion category")
-        ElevatedCard(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = spacing.screenHorizontal),
-        ) {
-            Column(modifier = Modifier.padding(horizontal = spacing.lg, vertical = spacing.sm)) {
-                Text(
-                    text = "Ingestions of this substance use this category by default unless overridden.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(vertical = spacing.xs),
-                )
-                IngestionCategoryPicker(
-                    category,
-                    onCategoryChange,
-                    inheritedCategory = null,
-                )
-            }
-        }
-
-        val sectionRows = buildList {
-            if (onNavigateToCategories != null) {
-                add(
-                    SectionRowSpec(
-                        title = "Categories",
-                        valueText = if (categoriesCount == 0) "None" else "$categoriesCount selected",
-                        onClick = onNavigateToCategories,
-                    )
-                )
-            }
-            if (onNavigateToRoutes != null) {
-                add(
-                    SectionRowSpec(
-                        title = "Routes",
-                        valueText = if (routesCount == 0) "None" else "$routesCount",
-                        onClick = onNavigateToRoutes,
-                    )
-                )
-            }
-            if (onNavigateToInteractions != null) {
-                add(
-                    SectionRowSpec(
-                        title = "Interactions",
-                        valueText = if (interactionsCount == 0) "None" else "$interactionsCount",
-                        onClick = onNavigateToInteractions,
-                    )
-                )
-            }
-            if (onNavigateToTolerance != null) {
-                add(
-                    SectionRowSpec(
-                        title = "Tolerance",
-                        valueText = if (toleranceFilled) "Set" else "None",
-                        onClick = onNavigateToTolerance,
-                    )
-                )
-            }
-            if (onNavigateToRisks != null) {
-                add(
-                    SectionRowSpec(
-                        title = "Risks & effects",
-                        valueText = if (risksFilled) "Set" else "None",
-                        onClick = onNavigateToRisks,
-                    )
-                )
-            }
-        }
-
-        if (sectionRows.isNotEmpty()) {
-            SectionHeader("Details")
-            ElevatedCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = spacing.screenHorizontal),
-            ) {
-                Column {
-                    sectionRows.forEachIndexed { index, row ->
-                        ListItem(
-                            headlineContent = { Text(row.title) },
-                            supportingContent = {
-                                Text(
-                                    text = row.valueText,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            },
-                            trailingContent = {
-                                Icon(
-                                    Icons.Default.ChevronRight,
-                                    contentDescription = null,
-                                )
-                            },
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                            modifier = Modifier.clickable(onClick = row.onClick),
-                        )
-                        if (index < sectionRows.lastIndex) {
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = spacing.lg),
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
-        if (onDelete != null) {
-            TextButton(
-                onClick = onDelete,
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error,
+      Column(
+          modifier = Modifier.padding(spacing.lg),
+          verticalArrangement = Arrangement.spacedBy(spacing.sm),
+      ) {
+        OutlinedTextField(
+            value = name,
+            onValueChange = onNameChange,
+            label = { Text("Name") },
+            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+            keyboardOptions =
+                KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    capitalization = KeyboardCapitalization.Words,
                 ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = spacing.screenHorizontal, vertical = spacing.md),
-            ) {
-                Icon(Icons.Outlined.Delete, contentDescription = null)
-                Text(
-                    text = "Delete substance",
-                    modifier = Modifier.padding(start = spacing.sm),
-                )
-            }
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        OutlinedTextField(
+            value = units,
+            onValueChange = onUnitsChange,
+            label = { Text("Units") },
+            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+          OutlinedButton(onClick = { onUnitsChange("µg") }) { Text("µg") }
+          OutlinedButton(onClick = { onUnitsChange("mg") }) { Text("mg") }
+          OutlinedButton(onClick = { onUnitsChange("g") }) { Text("g") }
+          OutlinedButton(onClick = { onUnitsChange("mL") }) { Text("mL") }
         }
+        OutlinedTextField(
+            value = summary,
+            onValueChange = onSummaryChange,
+            label = { Text("Summary") },
+            keyboardOptions =
+                KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    capitalization = KeyboardCapitalization.Sentences,
+                ),
+            minLines = 2,
+            modifier = Modifier.fillMaxWidth(),
+        )
+      }
     }
+
+    SectionHeader("Default ingestion category")
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = spacing.screenHorizontal),
+    ) {
+      Column(modifier = Modifier.padding(horizontal = spacing.lg, vertical = spacing.sm)) {
+        Text(
+            text = "Ingestions of this substance use this category by default unless overridden.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(vertical = spacing.xs),
+        )
+        IngestionCategoryPicker(
+            category,
+            onCategoryChange,
+            inheritedCategory = null,
+        )
+      }
+    }
+
+    val sectionRows = buildList {
+      if (onNavigateToCategories != null) {
+        add(
+            SectionRowSpec(
+                title = "Categories",
+                valueText = if (categoriesCount == 0) "None" else "$categoriesCount selected",
+                onClick = onNavigateToCategories,
+            )
+        )
+      }
+      if (onNavigateToRoutes != null) {
+        add(
+            SectionRowSpec(
+                title = "Routes",
+                valueText = if (routesCount == 0) "None" else "$routesCount",
+                onClick = onNavigateToRoutes,
+            )
+        )
+      }
+      if (onNavigateToInteractions != null) {
+        add(
+            SectionRowSpec(
+                title = "Interactions",
+                valueText = if (interactionsCount == 0) "None" else "$interactionsCount",
+                onClick = onNavigateToInteractions,
+            )
+        )
+      }
+      if (onNavigateToTolerance != null) {
+        add(
+            SectionRowSpec(
+                title = "Tolerance",
+                valueText = if (toleranceFilled) "Set" else "None",
+                onClick = onNavigateToTolerance,
+            )
+        )
+      }
+      if (onNavigateToRisks != null) {
+        add(
+            SectionRowSpec(
+                title = "Risks & effects",
+                valueText = if (risksFilled) "Set" else "None",
+                onClick = onNavigateToRisks,
+            )
+        )
+      }
+    }
+
+    if (sectionRows.isNotEmpty()) {
+      SectionHeader("Details")
+      ElevatedCard(
+          modifier = Modifier.fillMaxWidth().padding(horizontal = spacing.screenHorizontal),
+      ) {
+        Column {
+          sectionRows.forEachIndexed { index, row ->
+            ListItem(
+                headlineContent = { Text(row.title) },
+                supportingContent = {
+                  Text(
+                      text = row.valueText,
+                      color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  )
+                },
+                trailingContent = {
+                  Icon(
+                      Icons.Default.ChevronRight,
+                      contentDescription = null,
+                  )
+                },
+                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                modifier = Modifier.clickable(onClick = row.onClick),
+            )
+            if (index < sectionRows.lastIndex) {
+              HorizontalDivider(
+                  modifier = Modifier.padding(horizontal = spacing.lg),
+              )
+            }
+          }
+        }
+      }
+    }
+
+    if (onDelete != null) {
+      TextButton(
+          onClick = onDelete,
+          colors =
+              ButtonDefaults.textButtonColors(
+                  contentColor = MaterialTheme.colorScheme.error,
+              ),
+          modifier =
+              Modifier.fillMaxWidth()
+                  .padding(horizontal = spacing.screenHorizontal, vertical = spacing.md),
+      ) {
+        Icon(Icons.Outlined.Delete, contentDescription = null)
+        Text(
+            text = "Delete substance",
+            modifier = Modifier.padding(start = spacing.sm),
+        )
+      }
+    }
+  }
 }
 
 private data class SectionRowSpec(

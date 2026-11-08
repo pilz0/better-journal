@@ -28,467 +28,491 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.SavedTimeDisplayOption
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences.PreferencesKeys.WEBHOOK_URL
 import foo.pilz.freaklog.ui.tabs.settings.funny.FunnyConfig
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 
 @Singleton
 class UserPreferences @Inject constructor(private val dataStore: DataStore<Preferences>) {
-    private object PreferencesKeys {
-        val KEY_TIME_DISPLAY_OPTION = stringPreferencesKey("key_time_display_option")
+  private object PreferencesKeys {
+    val KEY_TIME_DISPLAY_OPTION = stringPreferencesKey("key_time_display_option")
 
-        // last ingestion time of experience is used when adding an ingestion from a past experience
-        // cloned ingestion time is used to copy the time from another ingestion
-        // those values need to be set/reset whenever an ingestion is added
-        val KEY_LAST_INGESTION_OF_EXPERIENCE = longPreferencesKey("KEY_LAST_INGESTION_OF_EXPERIENCE")
-        val KEY_CLONED_INGESTION_TIME = longPreferencesKey("KEY_CLONED_INGESTION_TIME")
+    // last ingestion time of experience is used when adding an ingestion from a past experience
+    // cloned ingestion time is used to copy the time from another ingestion
+    // those values need to be set/reset whenever an ingestion is added
+    val KEY_LAST_INGESTION_OF_EXPERIENCE = longPreferencesKey("KEY_LAST_INGESTION_OF_EXPERIENCE")
+    val KEY_CLONED_INGESTION_TIME = longPreferencesKey("KEY_CLONED_INGESTION_TIME")
 
-        val KEY_HIDE_ORAL_DISCLAIMER = booleanPreferencesKey("key_hide_oral_disclaimer")
-        val KEY_HIDE_DOSAGE_DOTS = booleanPreferencesKey("key_hide_dosage_dots")
-        val KEY_ARE_SUBSTANCE_HEIGHTS_INDEPENDENT = booleanPreferencesKey("KEY_ARE_SUBSTANCE_HEIGHTS_INDEPENDENT")
-        val KEY_IS_TIMELINE_HIDDEN = booleanPreferencesKey("KEY_IS_TIMELINE_HIDDEN")
-        val KEY_HIDE_SAFER = booleanPreferencesKey("KEY_HIDE_SAFER")
-        val KEY_HIDE_STATS = booleanPreferencesKey("KEY_HIDE_STATS")
-        val KEY_HIDE_DRUGS = booleanPreferencesKey("KEY_HIDE_DRUGS")
-        val KEY_HAPTIC_FEEDBACK_ENABLED = booleanPreferencesKey("KEY_HAPTIC_FEEDBACK_ENABLED")
+    val KEY_HIDE_ORAL_DISCLAIMER = booleanPreferencesKey("key_hide_oral_disclaimer")
+    val KEY_HIDE_DOSAGE_DOTS = booleanPreferencesKey("key_hide_dosage_dots")
+    val KEY_ARE_SUBSTANCE_HEIGHTS_INDEPENDENT =
+        booleanPreferencesKey("KEY_ARE_SUBSTANCE_HEIGHTS_INDEPENDENT")
+    val KEY_IS_TIMELINE_HIDDEN = booleanPreferencesKey("KEY_IS_TIMELINE_HIDDEN")
+    val KEY_HIDE_SAFER = booleanPreferencesKey("KEY_HIDE_SAFER")
+    val KEY_HIDE_STATS = booleanPreferencesKey("KEY_HIDE_STATS")
+    val KEY_HIDE_DRUGS = booleanPreferencesKey("KEY_HIDE_DRUGS")
+    val KEY_HAPTIC_FEEDBACK_ENABLED = booleanPreferencesKey("KEY_HAPTIC_FEEDBACK_ENABLED")
 
-        val WEBHOOK_URL = stringPreferencesKey("webhook_url")
+    val WEBHOOK_URL = stringPreferencesKey("webhook_url")
 
-        val WEBHOOK_NAME = stringPreferencesKey("webhook_name")
+    val WEBHOOK_NAME = stringPreferencesKey("webhook_name")
 
-        val WEBHOOK_TEMPLATE = stringPreferencesKey("webhook_template")
+    val WEBHOOK_TEMPLATE = stringPreferencesKey("webhook_template")
 
-        // True once the legacy single-webhook preferences above have been migrated
-        // into the `webhook` table. See WebhookSeeder.
-        val WEBHOOK_SEEDED = booleanPreferencesKey("webhook_seeded")
+    // True once the legacy single-webhook preferences above have been migrated
+    // into the `webhook` table. See WebhookSeeder.
+    val WEBHOOK_SEEDED = booleanPreferencesKey("webhook_seeded")
 
-        val TIMELINE_NOTIFICATION_AUTO_START = booleanPreferencesKey("timeline_notification_auto_start")
-        val ACTIVE_NOTIFICATION_EXPERIENCE_ID = intPreferencesKey("active_notification_experience_id")
-        val HEART_RATE_ENABLED = booleanPreferencesKey("heart_rate_enabled")
-        val KEY_SLEEP_STAGES_ENABLED = booleanPreferencesKey("KEY_SLEEP_STAGES_ENABLED")
-        val KEY_BLOOD_PRESSURE_DISPLAY = stringPreferencesKey("KEY_BLOOD_PRESSURE_DISPLAY")
-        val KEY_FUN_MODE = booleanPreferencesKey("KEY_FUN_MODE")
-        val KEY_TEAMS_SKIN = booleanPreferencesKey("KEY_TEAMS_SKIN")
-        val BACKUP_DIR_URI = stringPreferencesKey("backup_dir_uri")
-        val BACKUP_PASSWORD_SEALED = stringPreferencesKey("backup_password_sealed")
-        val LAST_BACKUP_TIME = longPreferencesKey("last_backup_time")
+    val TIMELINE_NOTIFICATION_AUTO_START = booleanPreferencesKey("timeline_notification_auto_start")
+    val ACTIVE_NOTIFICATION_EXPERIENCE_ID = intPreferencesKey("active_notification_experience_id")
+    val HEART_RATE_ENABLED = booleanPreferencesKey("heart_rate_enabled")
+    val KEY_SLEEP_STAGES_ENABLED = booleanPreferencesKey("KEY_SLEEP_STAGES_ENABLED")
+    val KEY_BLOOD_PRESSURE_DISPLAY = stringPreferencesKey("KEY_BLOOD_PRESSURE_DISPLAY")
+    val KEY_FUN_MODE = booleanPreferencesKey("KEY_FUN_MODE")
+    val KEY_TEAMS_SKIN = booleanPreferencesKey("KEY_TEAMS_SKIN")
+    val BACKUP_DIR_URI = stringPreferencesKey("backup_dir_uri")
+    val BACKUP_PASSWORD_SEALED = stringPreferencesKey("backup_password_sealed")
+    val LAST_BACKUP_TIME = longPreferencesKey("last_backup_time")
 
-        // Provider profiles and their keys are kept by AiProfileStore.
-        val AI_ASSISTANT_ENABLED = booleanPreferencesKey("ai_assistant_enabled")
-        val AI_ANODYNE_ENABLED = booleanPreferencesKey("ai_anodyne_enabled")
-        val AI_ANODYNE_BASE_URL = stringPreferencesKey("ai_anodyne_base_url")
+    // Provider profiles and their keys are kept by AiProfileStore.
+    val AI_ASSISTANT_ENABLED = booleanPreferencesKey("ai_assistant_enabled")
+    val AI_ANODYNE_ENABLED = booleanPreferencesKey("ai_anodyne_enabled")
+    val AI_ANODYNE_BASE_URL = stringPreferencesKey("ai_anodyne_base_url")
 
-        val WEBHOOK_USE_FREAKQUERY = booleanPreferencesKey("webhook_use_freakquery")
-        val WEBHOOK_FREAKQUERY_SEPARATOR = stringPreferencesKey("webhook_freakquery_separator")
+    val WEBHOOK_USE_FREAKQUERY = booleanPreferencesKey("webhook_use_freakquery")
+    val WEBHOOK_FREAKQUERY_SEPARATOR = stringPreferencesKey("webhook_freakquery_separator")
 
-        val KEY_INVENTORY_ENABLED = booleanPreferencesKey("key_inventory_enabled")
+    val KEY_INVENTORY_ENABLED = booleanPreferencesKey("key_inventory_enabled")
 
-        val KEY_REDOSE_ONSET_FRACTION = stringPreferencesKey("key_redose_onset_fraction")
-        val KEY_REDOSE_COMEUP_FRACTION = stringPreferencesKey("key_redose_comeup_fraction")
-        val KEY_REDOSE_PEAK_FRACTION = stringPreferencesKey("key_redose_peak_fraction")
-        val KEY_REDOSE_SHOW = booleanPreferencesKey("key_redose_show")
+    val KEY_REDOSE_ONSET_FRACTION = stringPreferencesKey("key_redose_onset_fraction")
+    val KEY_REDOSE_COMEUP_FRACTION = stringPreferencesKey("key_redose_comeup_fraction")
+    val KEY_REDOSE_PEAK_FRACTION = stringPreferencesKey("key_redose_peak_fraction")
+    val KEY_REDOSE_SHOW = booleanPreferencesKey("key_redose_show")
 
-        // App lock (biometric)
-        val KEY_LOCK_ENABLED = booleanPreferencesKey("key_lock_enabled")
-        val KEY_LOCK_TIME_OPTION = stringPreferencesKey("key_lock_time_option")
-        val KEY_LOCK_LAST_ACTIVE = longPreferencesKey("key_lock_last_active_epoch_seconds")
+    // App lock (biometric)
+    val KEY_LOCK_ENABLED = booleanPreferencesKey("key_lock_enabled")
+    val KEY_LOCK_TIME_OPTION = stringPreferencesKey("key_lock_time_option")
+    val KEY_LOCK_LAST_ACTIVE = longPreferencesKey("key_lock_last_active_epoch_seconds")
 
-        val KEY_USE_INTRANASAL_FOR_RECTAL = booleanPreferencesKey("key_use_intranasal_for_rectal")
+    val KEY_USE_INTRANASAL_FOR_RECTAL = booleanPreferencesKey("key_use_intranasal_for_rectal")
+  }
+
+  suspend fun saveTimeDisplayOption(value: SavedTimeDisplayOption) {
+    dataStore.edit { preferences ->
+      preferences[PreferencesKeys.KEY_TIME_DISPLAY_OPTION] = value.name
     }
+  }
 
-    suspend fun saveTimeDisplayOption(value: SavedTimeDisplayOption) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.KEY_TIME_DISPLAY_OPTION] = value.name
-        }
+  val savedTimeDisplayOptionFlow: Flow<SavedTimeDisplayOption> =
+      dataStore.data.map { preferences ->
+        val name =
+            preferences[PreferencesKeys.KEY_TIME_DISPLAY_OPTION] ?: SavedTimeDisplayOption.AUTO.name
+        SavedTimeDisplayOption.valueOf(name)
+      }
+
+  suspend fun saveLastIngestionTimeOfExperience(value: Instant?) {
+    dataStore.edit { preferences ->
+      preferences[PreferencesKeys.KEY_LAST_INGESTION_OF_EXPERIENCE] = value?.epochSecond ?: 0L
     }
+  }
 
-    val savedTimeDisplayOptionFlow: Flow<SavedTimeDisplayOption> = dataStore.data
-        .map { preferences ->
-            val name = preferences[PreferencesKeys.KEY_TIME_DISPLAY_OPTION] ?: SavedTimeDisplayOption.AUTO.name
-            SavedTimeDisplayOption.valueOf(name)
+  val lastIngestionTimeOfExperienceFlow: Flow<Instant?> =
+      dataStore.data.map { preferences ->
+        val epochSecond = preferences[PreferencesKeys.KEY_LAST_INGESTION_OF_EXPERIENCE] ?: 0L
+        if (epochSecond != 0L) {
+          Instant.ofEpochSecond(epochSecond)
+        } else {
+          null
         }
+      }
 
-    suspend fun saveLastIngestionTimeOfExperience(value: Instant?) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.KEY_LAST_INGESTION_OF_EXPERIENCE] = value?.epochSecond ?: 0L
-        }
+  suspend fun saveClonedIngestionTime(value: Instant?) {
+    dataStore.edit { preferences ->
+      preferences[PreferencesKeys.KEY_CLONED_INGESTION_TIME] = value?.epochSecond ?: 0L
     }
+  }
 
-    val lastIngestionTimeOfExperienceFlow: Flow<Instant?> = dataStore.data
-        .map { preferences ->
-            val epochSecond = preferences[PreferencesKeys.KEY_LAST_INGESTION_OF_EXPERIENCE] ?: 0L
-            if (epochSecond != 0L) {
-                Instant.ofEpochSecond(epochSecond)
-            } else {
-                null
-            }
+  val clonedIngestionTimeFlow: Flow<Instant?> =
+      dataStore.data.map { preferences ->
+        val epochSecond = preferences[PreferencesKeys.KEY_CLONED_INGESTION_TIME] ?: 0L
+        if (epochSecond != 0L) {
+          Instant.ofEpochSecond(epochSecond)
+        } else {
+          null
         }
+      }
 
-    suspend fun saveClonedIngestionTime(value: Instant?) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.KEY_CLONED_INGESTION_TIME] = value?.epochSecond ?: 0L
-        }
+  suspend fun saveOralDisclaimerIsHidden(value: Boolean) {
+    dataStore.edit { preferences ->
+      preferences[PreferencesKeys.KEY_HIDE_ORAL_DISCLAIMER] = value
     }
+  }
 
-    val clonedIngestionTimeFlow: Flow<Instant?> = dataStore.data
-        .map { preferences ->
-            val epochSecond = preferences[PreferencesKeys.KEY_CLONED_INGESTION_TIME] ?: 0L
-            if (epochSecond != 0L) {
-                Instant.ofEpochSecond(epochSecond)
-            } else {
-                null
-            }
-        }
+  val isOralDisclaimerHiddenFlow: Flow<Boolean> =
+      dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.KEY_HIDE_ORAL_DISCLAIMER] ?: false
+      }
 
-    suspend fun saveOralDisclaimerIsHidden(value: Boolean) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.KEY_HIDE_ORAL_DISCLAIMER] = value
-        }
+  suspend fun saveDosageDotsAreHidden(value: Boolean) {
+    dataStore.edit { preferences ->
+      preferences[PreferencesKeys.KEY_HIDE_DOSAGE_DOTS] = value
     }
+  }
 
-    val isOralDisclaimerHiddenFlow: Flow<Boolean> = dataStore.data
-        .map { preferences ->
-            preferences[PreferencesKeys.KEY_HIDE_ORAL_DISCLAIMER] ?: false
-        }
+  val areDosageDotsHiddenFlow: Flow<Boolean> =
+      dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.KEY_HIDE_DOSAGE_DOTS] ?: false
+      }
 
-    suspend fun saveDosageDotsAreHidden(value: Boolean) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.KEY_HIDE_DOSAGE_DOTS] = value
-        }
+  suspend fun saveAreSubstanceHeightsIndependent(value: Boolean) {
+    dataStore.edit { preferences ->
+      preferences[PreferencesKeys.KEY_ARE_SUBSTANCE_HEIGHTS_INDEPENDENT] = value
     }
+  }
 
-    val areDosageDotsHiddenFlow: Flow<Boolean> = dataStore.data
-        .map { preferences ->
-            preferences[PreferencesKeys.KEY_HIDE_DOSAGE_DOTS] ?: false
-        }
+  val areSubstanceHeightsIndependentFlow: Flow<Boolean> =
+      dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.KEY_ARE_SUBSTANCE_HEIGHTS_INDEPENDENT] ?: false
+      }
 
-    suspend fun saveAreSubstanceHeightsIndependent(value: Boolean) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.KEY_ARE_SUBSTANCE_HEIGHTS_INDEPENDENT] = value
-        }
+  val isTimelineHiddenFlow: Flow<Boolean> =
+      dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.KEY_IS_TIMELINE_HIDDEN] ?: false
+      }
+
+  suspend fun saveIsTimelineHidden(value: Boolean) {
+    dataStore.edit { preferences ->
+      preferences[PreferencesKeys.KEY_IS_TIMELINE_HIDDEN] = value
     }
+  }
 
-    val areSubstanceHeightsIndependentFlow: Flow<Boolean> = dataStore.data
-        .map { preferences ->
-            preferences[PreferencesKeys.KEY_ARE_SUBSTANCE_HEIGHTS_INDEPENDENT] ?: false
-        }
+  val activateSaferFlow: Flow<Boolean> =
+      dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.KEY_HIDE_SAFER] ?: false
+      }
 
-    val isTimelineHiddenFlow: Flow<Boolean> = dataStore.data
-        .map { preferences ->
-            preferences[PreferencesKeys.KEY_IS_TIMELINE_HIDDEN] ?: false
-        }
-
-    suspend fun saveIsTimelineHidden(value: Boolean) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.KEY_IS_TIMELINE_HIDDEN] = value
-        }
+  suspend fun saveActivateSafer(value: Boolean) {
+    dataStore.edit { preferences ->
+      preferences[PreferencesKeys.KEY_HIDE_SAFER] = value
     }
+  }
 
-    val activateSaferFlow: Flow<Boolean> = dataStore.data
-        .map { preferences ->
-            preferences[PreferencesKeys.KEY_HIDE_SAFER] ?: false
-        }
-    suspend fun saveActivateSafer(value: Boolean) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.KEY_HIDE_SAFER] = value
-        }
+  val isStatsHiddenFlow: Flow<Boolean> =
+      dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.KEY_HIDE_STATS] ?: false
+      }
+
+  suspend fun saveIsStatsHidden(value: Boolean) {
+    dataStore.edit { preferences ->
+      preferences[PreferencesKeys.KEY_HIDE_STATS] = value
     }
+  }
 
-    val isStatsHiddenFlow: Flow<Boolean> = dataStore.data
-        .map { preferences ->
-            preferences[PreferencesKeys.KEY_HIDE_STATS] ?: false
-        }
-    suspend fun saveIsStatsHidden(value: Boolean) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.KEY_HIDE_STATS] = value
-        }
+  val isDrugsHiddenFlow: Flow<Boolean> =
+      dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.KEY_HIDE_DRUGS] ?: false
+      }
+
+  suspend fun saveIsDrugsHidden(value: Boolean) {
+    dataStore.edit { preferences ->
+      preferences[PreferencesKeys.KEY_HIDE_DRUGS] = value
     }
+  }
 
-    val isDrugsHiddenFlow: Flow<Boolean> = dataStore.data
-        .map { preferences ->
-            preferences[PreferencesKeys.KEY_HIDE_DRUGS] ?: false
+  fun readWebhookURL(): Flow<String> =
+      dataStore.data.map { preferences ->
+        (preferences[WEBHOOK_URL] ?: "")
+      }
+
+  suspend fun writeWebhookURL(value: String) {
+    dataStore.edit { preferences ->
+      preferences[WEBHOOK_URL] = value
+    }
+  }
+
+  fun readWebhookName(): Flow<String> =
+      dataStore.data.map { preferences ->
+        (preferences[PreferencesKeys.WEBHOOK_NAME] ?: "")
+      }
+
+  suspend fun writeWebhookName(value: String) {
+    dataStore.edit { preferences ->
+      preferences[PreferencesKeys.WEBHOOK_NAME] = value
+    }
+  }
+
+  fun readWebhookTemplate(): Flow<String> =
+      dataStore.data.map { preferences ->
+        (preferences[PreferencesKeys.WEBHOOK_TEMPLATE] ?: "")
+      }
+
+  suspend fun writeWebhookTemplate(value: String) {
+    dataStore.edit { preferences ->
+      preferences[PreferencesKeys.WEBHOOK_TEMPLATE] = value
+    }
+  }
+
+  /** Whether the legacy single-webhook preferences have already been migrated. */
+  suspend fun isWebhookSeeded(): Boolean =
+      dataStore.data.map { it[PreferencesKeys.WEBHOOK_SEEDED] ?: false }.first()
+
+  suspend fun markWebhookSeeded() {
+    dataStore.edit { it[PreferencesKeys.WEBHOOK_SEEDED] = true }
+  }
+
+  val isTimelineNotificationAutoStartEnabledFlow: Flow<Boolean> =
+      dataStore.data.map { it[PreferencesKeys.TIMELINE_NOTIFICATION_AUTO_START] ?: false }
+
+  suspend fun saveTimelineNotificationAutoStartEnabled(value: Boolean) {
+    dataStore.edit { it[PreferencesKeys.TIMELINE_NOTIFICATION_AUTO_START] = value }
+  }
+
+  /** The experience the live notification is tracking, or null while it is off. */
+  val activeNotificationExperienceIdFlow: Flow<Int?> =
+      dataStore.data.map { it[PreferencesKeys.ACTIVE_NOTIFICATION_EXPERIENCE_ID] }
+
+  suspend fun saveActiveNotificationExperienceId(id: Int?) {
+    dataStore.edit {
+      if (id != null) {
+        it[PreferencesKeys.ACTIVE_NOTIFICATION_EXPERIENCE_ID] = id
+      } else {
+        it.remove(PreferencesKeys.ACTIVE_NOTIFICATION_EXPERIENCE_ID)
+      }
+    }
+  }
+
+  /** Whether timelines show vitals read from Health Connect. Off until the user opts in. */
+  val isVitalsEnabledFlow: Flow<Boolean> =
+      dataStore.data.map { it[PreferencesKeys.HEART_RATE_ENABLED] ?: false }
+
+  suspend fun saveIsVitalsEnabled(value: Boolean) {
+    dataStore.edit { it[PreferencesKeys.HEART_RATE_ENABLED] = value }
+  }
+
+  val areSleepStagesEnabledFlow: Flow<Boolean> =
+      dataStore.data.map { it[PreferencesKeys.KEY_SLEEP_STAGES_ENABLED] ?: false }
+
+  suspend fun saveAreSleepStagesEnabled(value: Boolean) {
+    dataStore.edit { it[PreferencesKeys.KEY_SLEEP_STAGES_ENABLED] = value }
+  }
+
+  val bloodPressureDisplayFlow: Flow<BloodPressureDisplay> =
+      dataStore.data.map { preferences ->
+        try {
+          BloodPressureDisplay.valueOf(
+              preferences[PreferencesKeys.KEY_BLOOD_PRESSURE_DISPLAY]
+                  ?: BloodPressureDisplay.COMBINED.name
+          )
+        } catch (_: IllegalArgumentException) {
+          BloodPressureDisplay.COMBINED
         }
-    suspend fun saveIsDrugsHidden(value: Boolean) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.KEY_HIDE_DRUGS] = value
-        }
+      }
+
+  suspend fun saveBloodPressureDisplay(value: BloodPressureDisplay) {
+    dataStore.edit { it[PreferencesKeys.KEY_BLOOD_PRESSURE_DISPLAY] = value.name }
+  }
+
+  /** Opt-in easter eggs; [FunnyConfig.teamsSkin] is the "ultra fun mode" that disguises screens. */
+  val funnyConfigFlow: Flow<FunnyConfig> =
+      dataStore.data.map { preferences ->
+        FunnyConfig(
+            enableFunny = preferences[PreferencesKeys.KEY_FUN_MODE] ?: false,
+            teamsSkin = preferences[PreferencesKeys.KEY_TEAMS_SKIN] ?: false,
+        )
+      }
+
+  suspend fun saveFunnyConfig(funnyConfig: FunnyConfig) {
+    dataStore.edit { preferences ->
+      preferences[PreferencesKeys.KEY_FUN_MODE] = funnyConfig.enableFunny
+      preferences[PreferencesKeys.KEY_TEAMS_SKIN] = funnyConfig.teamsSkin
     }
+  }
 
-    fun readWebhookURL(): Flow<String> = dataStore.data
-        .map { preferences ->
-            (preferences[WEBHOOK_URL] ?: "")
-        }
-    suspend fun writeWebhookURL(value: String) {
-        dataStore.edit { preferences ->
-            preferences[WEBHOOK_URL] = value
-        }
+  val backupDirUriFlow: Flow<String?> = dataStore.data.map { it[PreferencesKeys.BACKUP_DIR_URI] }
+  val backupPasswordSealedFlow: Flow<String?> =
+      dataStore.data.map { it[PreferencesKeys.BACKUP_PASSWORD_SEALED] }
+  val lastBackupTimeFlow: Flow<Instant?> =
+      dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.LAST_BACKUP_TIME]?.let(Instant::ofEpochMilli)
+      }
+
+  suspend fun saveBackupConfig(dirUri: String, sealedPassword: String) {
+    dataStore.edit {
+      it[PreferencesKeys.BACKUP_DIR_URI] = dirUri
+      it[PreferencesKeys.BACKUP_PASSWORD_SEALED] = sealedPassword
     }
+  }
 
-    fun readWebhookName(): Flow<String> = dataStore.data
-        .map { preferences ->
-            (preferences[PreferencesKeys.WEBHOOK_NAME] ?: "")
-        }
-    suspend fun writeWebhookName(value: String) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.WEBHOOK_NAME] = value
-        }
+  suspend fun clearBackupConfig() {
+    dataStore.edit {
+      it.remove(PreferencesKeys.BACKUP_DIR_URI)
+      it.remove(PreferencesKeys.BACKUP_PASSWORD_SEALED)
     }
+  }
 
-    fun readWebhookTemplate(): Flow<String> = dataStore.data
-        .map { preferences ->
-            (preferences[PreferencesKeys.WEBHOOK_TEMPLATE] ?: "")
-        }
-    suspend fun writeWebhookTemplate(value: String) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.WEBHOOK_TEMPLATE] = value
-        }
+  suspend fun saveLastBackupTime(time: Instant) {
+    dataStore.edit { it[PreferencesKeys.LAST_BACKUP_TIME] = time.toEpochMilli() }
+  }
+
+  val webhookUseFreakQueryFlow: Flow<Boolean> =
+      dataStore.data.map { it[PreferencesKeys.WEBHOOK_USE_FREAKQUERY] ?: true }
+
+  suspend fun saveWebhookUseFreakQuery(value: Boolean) {
+    dataStore.edit { it[PreferencesKeys.WEBHOOK_USE_FREAKQUERY] = value }
+  }
+
+  val webhookFreakQuerySeparatorFlow: Flow<String> =
+      dataStore.data.map { it[PreferencesKeys.WEBHOOK_FREAKQUERY_SEPARATOR] ?: ", " }
+
+  suspend fun saveWebhookFreakQuerySeparator(value: String) {
+    dataStore.edit { it[PreferencesKeys.WEBHOOK_FREAKQUERY_SEPARATOR] = value }
+  }
+
+  val isHapticFeedbackEnabledFlow: Flow<Boolean> =
+      dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.KEY_HAPTIC_FEEDBACK_ENABLED] ?: true
+      }
+
+  suspend fun saveHapticFeedbackEnabled(value: Boolean) {
+    dataStore.edit { preferences ->
+      preferences[PreferencesKeys.KEY_HAPTIC_FEEDBACK_ENABLED] = value
     }
+  }
 
-    /** Whether the legacy single-webhook preferences have already been migrated. */
-    suspend fun isWebhookSeeded(): Boolean = dataStore.data
-        .map { it[PreferencesKeys.WEBHOOK_SEEDED] ?: false }
-        .first()
+  val aiAssistantEnabledFlow: Flow<Boolean> =
+      dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.AI_ASSISTANT_ENABLED] ?: false
+      }
 
-    suspend fun markWebhookSeeded() {
-        dataStore.edit { it[PreferencesKeys.WEBHOOK_SEEDED] = true }
+  suspend fun saveAiAssistantEnabled(value: Boolean) {
+    dataStore.edit { preferences ->
+      preferences[PreferencesKeys.AI_ASSISTANT_ENABLED] = value
     }
+  }
 
-    val isTimelineNotificationAutoStartEnabledFlow: Flow<Boolean> = dataStore.data
-        .map { it[PreferencesKeys.TIMELINE_NOTIFICATION_AUTO_START] ?: false }
+  /**
+   * Whether the assistant may look substances up on anodyne.wiki (only substance names are sent).
+   */
+  val aiAnodyneEnabledFlow: Flow<Boolean> =
+      dataStore.data.map { preferences -> preferences[PreferencesKeys.AI_ANODYNE_ENABLED] ?: true }
 
-    suspend fun saveTimelineNotificationAutoStartEnabled(value: Boolean) {
-        dataStore.edit { it[PreferencesKeys.TIMELINE_NOTIFICATION_AUTO_START] = value }
+  suspend fun saveAiAnodyneEnabled(value: Boolean) {
+    dataStore.edit { preferences -> preferences[PreferencesKeys.AI_ANODYNE_ENABLED] = value }
+  }
+
+  /** Base URL of the AnodyneWiki-compatible API; blank means the default. */
+  val aiAnodyneBaseUrlFlow: Flow<String> =
+      dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.AI_ANODYNE_BASE_URL].orEmpty()
+      }
+
+  suspend fun saveAiAnodyneBaseUrl(value: String) {
+    dataStore.edit { preferences ->
+      if (value.isBlank()) {
+        preferences.remove(PreferencesKeys.AI_ANODYNE_BASE_URL)
+      } else {
+        preferences[PreferencesKeys.AI_ANODYNE_BASE_URL] = value.trim()
+      }
     }
+  }
 
-    /** The experience the live notification is tracking, or null while it is off. */
-    val activeNotificationExperienceIdFlow: Flow<Int?> = dataStore.data
-        .map { it[PreferencesKeys.ACTIVE_NOTIFICATION_EXPERIENCE_ID] }
+  // ---- Inventory tab ----
 
-    suspend fun saveActiveNotificationExperienceId(id: Int?) {
-        dataStore.edit {
-            if (id != null) {
-                it[PreferencesKeys.ACTIVE_NOTIFICATION_EXPERIENCE_ID] = id
-            } else {
-                it.remove(PreferencesKeys.ACTIVE_NOTIFICATION_EXPERIENCE_ID)
-            }
-        }
-    }
-
-    /** Whether timelines show vitals read from Health Connect. Off until the user opts in. */
-    val isVitalsEnabledFlow: Flow<Boolean> = dataStore.data
-        .map { it[PreferencesKeys.HEART_RATE_ENABLED] ?: false }
-
-    suspend fun saveIsVitalsEnabled(value: Boolean) {
-        dataStore.edit { it[PreferencesKeys.HEART_RATE_ENABLED] = value }
-    }
-
-    val areSleepStagesEnabledFlow: Flow<Boolean> = dataStore.data
-        .map { it[PreferencesKeys.KEY_SLEEP_STAGES_ENABLED] ?: false }
-
-    suspend fun saveAreSleepStagesEnabled(value: Boolean) {
-        dataStore.edit { it[PreferencesKeys.KEY_SLEEP_STAGES_ENABLED] = value }
-    }
-
-    val bloodPressureDisplayFlow: Flow<BloodPressureDisplay> = dataStore.data
-        .map { preferences ->
-            try {
-                BloodPressureDisplay.valueOf(
-                    preferences[PreferencesKeys.KEY_BLOOD_PRESSURE_DISPLAY]
-                        ?: BloodPressureDisplay.COMBINED.name
-                )
-            } catch (_: IllegalArgumentException) {
-                BloodPressureDisplay.COMBINED
-            }
-        }
-
-    suspend fun saveBloodPressureDisplay(value: BloodPressureDisplay) {
-        dataStore.edit { it[PreferencesKeys.KEY_BLOOD_PRESSURE_DISPLAY] = value.name }
-    }
-
-    /** Opt-in easter eggs; [FunnyConfig.teamsSkin] is the "ultra fun mode" that disguises screens. */
-    val funnyConfigFlow: Flow<FunnyConfig> = dataStore.data
-        .map { preferences ->
-            FunnyConfig(
-                enableFunny = preferences[PreferencesKeys.KEY_FUN_MODE] ?: false,
-                teamsSkin = preferences[PreferencesKeys.KEY_TEAMS_SKIN] ?: false,
-            )
-        }
-
-    suspend fun saveFunnyConfig(funnyConfig: FunnyConfig) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.KEY_FUN_MODE] = funnyConfig.enableFunny
-            preferences[PreferencesKeys.KEY_TEAMS_SKIN] = funnyConfig.teamsSkin
-        }
-    }
-
-    val backupDirUriFlow: Flow<String?> = dataStore.data.map { it[PreferencesKeys.BACKUP_DIR_URI] }
-    val backupPasswordSealedFlow: Flow<String?> = dataStore.data.map { it[PreferencesKeys.BACKUP_PASSWORD_SEALED] }
-    val lastBackupTimeFlow: Flow<Instant?> = dataStore.data
-        .map { prefs -> prefs[PreferencesKeys.LAST_BACKUP_TIME]?.let(Instant::ofEpochMilli) }
-
-    suspend fun saveBackupConfig(dirUri: String, sealedPassword: String) {
-        dataStore.edit {
-            it[PreferencesKeys.BACKUP_DIR_URI] = dirUri
-            it[PreferencesKeys.BACKUP_PASSWORD_SEALED] = sealedPassword
-        }
-    }
-
-    suspend fun clearBackupConfig() {
-        dataStore.edit {
-            it.remove(PreferencesKeys.BACKUP_DIR_URI)
-            it.remove(PreferencesKeys.BACKUP_PASSWORD_SEALED)
-        }
-    }
-
-    suspend fun saveLastBackupTime(time: Instant) {
-        dataStore.edit { it[PreferencesKeys.LAST_BACKUP_TIME] = time.toEpochMilli() }
-    }
-
-    val webhookUseFreakQueryFlow: Flow<Boolean> = dataStore.data
-        .map { it[PreferencesKeys.WEBHOOK_USE_FREAKQUERY] ?: true }
-    suspend fun saveWebhookUseFreakQuery(value: Boolean) {
-        dataStore.edit { it[PreferencesKeys.WEBHOOK_USE_FREAKQUERY] = value }
-    }
-
-    val webhookFreakQuerySeparatorFlow: Flow<String> = dataStore.data
-        .map { it[PreferencesKeys.WEBHOOK_FREAKQUERY_SEPARATOR] ?: ", " }
-    suspend fun saveWebhookFreakQuerySeparator(value: String) {
-        dataStore.edit { it[PreferencesKeys.WEBHOOK_FREAKQUERY_SEPARATOR] = value }
-    }
-
-    val isHapticFeedbackEnabledFlow: Flow<Boolean> = dataStore.data
-        .map { preferences ->
-            preferences[PreferencesKeys.KEY_HAPTIC_FEEDBACK_ENABLED] ?: true
-        }
-
-    suspend fun saveHapticFeedbackEnabled(value: Boolean) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.KEY_HAPTIC_FEEDBACK_ENABLED] = value
-        }
-    }
-
-    val aiAssistantEnabledFlow: Flow<Boolean> = dataStore.data
-        .map { preferences ->
-            preferences[PreferencesKeys.AI_ASSISTANT_ENABLED] ?: false
-        }
-
-    suspend fun saveAiAssistantEnabled(value: Boolean) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.AI_ASSISTANT_ENABLED] = value
-        }
-    }
-
-    /** Whether the assistant may look substances up on anodyne.wiki (only substance names are sent). */
-    val aiAnodyneEnabledFlow: Flow<Boolean> = dataStore.data
-        .map { preferences -> preferences[PreferencesKeys.AI_ANODYNE_ENABLED] ?: true }
-
-    suspend fun saveAiAnodyneEnabled(value: Boolean) {
-        dataStore.edit { preferences -> preferences[PreferencesKeys.AI_ANODYNE_ENABLED] = value }
-    }
-
-    /** Base URL of the AnodyneWiki-compatible API; blank means the default. */
-    val aiAnodyneBaseUrlFlow: Flow<String> = dataStore.data
-        .map { preferences -> preferences[PreferencesKeys.AI_ANODYNE_BASE_URL].orEmpty() }
-
-    suspend fun saveAiAnodyneBaseUrl(value: String) {
-        dataStore.edit { preferences ->
-            if (value.isBlank()) {
-                preferences.remove(PreferencesKeys.AI_ANODYNE_BASE_URL)
-            } else {
-                preferences[PreferencesKeys.AI_ANODYNE_BASE_URL] = value.trim()
-            }
-        }
-    }
-
-    // ---- Inventory tab ----
-
-    val isInventoryEnabledFlow: Flow<Boolean> = dataStore.data.map { prefs ->
+  val isInventoryEnabledFlow: Flow<Boolean> =
+      dataStore.data.map { prefs ->
         prefs[PreferencesKeys.KEY_INVENTORY_ENABLED] ?: false
-    }
+      }
 
-    suspend fun saveInventoryEnabled(value: Boolean) {
-        dataStore.edit { prefs -> prefs[PreferencesKeys.KEY_INVENTORY_ENABLED] = value }
-    }
+  suspend fun saveInventoryEnabled(value: Boolean) {
+    dataStore.edit { prefs -> prefs[PreferencesKeys.KEY_INVENTORY_ENABLED] = value }
+  }
 
-    // ---- Redose recommendation ----
+  // ---- Redose recommendation ----
 
-    val isRedoseShownFlow: Flow<Boolean> = dataStore.data.map { prefs ->
+  val isRedoseShownFlow: Flow<Boolean> =
+      dataStore.data.map { prefs ->
         prefs[PreferencesKeys.KEY_REDOSE_SHOW] ?: true
-    }
+      }
 
-    suspend fun saveRedoseShown(value: Boolean) {
-        dataStore.edit { prefs -> prefs[PreferencesKeys.KEY_REDOSE_SHOW] = value }
-    }
+  suspend fun saveRedoseShown(value: Boolean) {
+    dataStore.edit { prefs -> prefs[PreferencesKeys.KEY_REDOSE_SHOW] = value }
+  }
 
-    val redoseOnsetFractionFlow: Flow<Float> = dataStore.data.map { prefs ->
+  val redoseOnsetFractionFlow: Flow<Float> =
+      dataStore.data.map { prefs ->
         prefs[PreferencesKeys.KEY_REDOSE_ONSET_FRACTION]?.toFloatOrNull() ?: 1.0f
-    }
+      }
 
-    val redoseComeupFractionFlow: Flow<Float> = dataStore.data.map { prefs ->
+  val redoseComeupFractionFlow: Flow<Float> =
+      dataStore.data.map { prefs ->
         prefs[PreferencesKeys.KEY_REDOSE_COMEUP_FRACTION]?.toFloatOrNull() ?: 1.0f
-    }
+      }
 
-    val redosePeakFractionFlow: Flow<Float> = dataStore.data.map { prefs ->
+  val redosePeakFractionFlow: Flow<Float> =
+      dataStore.data.map { prefs ->
         prefs[PreferencesKeys.KEY_REDOSE_PEAK_FRACTION]?.toFloatOrNull() ?: 0.5f
+      }
+
+  suspend fun saveRedoseFractions(onset: Float, comeup: Float, peak: Float) {
+    dataStore.edit { prefs ->
+      prefs[PreferencesKeys.KEY_REDOSE_ONSET_FRACTION] = onset.toString()
+      prefs[PreferencesKeys.KEY_REDOSE_COMEUP_FRACTION] = comeup.toString()
+      prefs[PreferencesKeys.KEY_REDOSE_PEAK_FRACTION] = peak.toString()
     }
+  }
 
-    suspend fun saveRedoseFractions(onset: Float, comeup: Float, peak: Float) {
-        dataStore.edit { prefs ->
-            prefs[PreferencesKeys.KEY_REDOSE_ONSET_FRACTION] = onset.toString()
-            prefs[PreferencesKeys.KEY_REDOSE_COMEUP_FRACTION] = comeup.toString()
-            prefs[PreferencesKeys.KEY_REDOSE_PEAK_FRACTION] = peak.toString()
-        }
-    }
+  // ---- App lock (biometric) ----
 
-    // ---- App lock (biometric) ----
-
-    val isLockEnabledFlow: Flow<Boolean> = dataStore.data.map { prefs ->
+  val isLockEnabledFlow: Flow<Boolean> =
+      dataStore.data.map { prefs ->
         prefs[PreferencesKeys.KEY_LOCK_ENABLED] ?: false
-    }
+      }
 
-    suspend fun saveLockEnabled(value: Boolean) {
-        dataStore.edit { prefs -> prefs[PreferencesKeys.KEY_LOCK_ENABLED] = value }
-    }
+  suspend fun saveLockEnabled(value: Boolean) {
+    dataStore.edit { prefs -> prefs[PreferencesKeys.KEY_LOCK_ENABLED] = value }
+  }
 
-    val lockTimeOptionFlow: Flow<foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption> =
-        dataStore.data.map { prefs ->
-            foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption.fromName(
-                prefs[PreferencesKeys.KEY_LOCK_TIME_OPTION]
-            )
-        }
+  val lockTimeOptionFlow: Flow<foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption> =
+      dataStore.data.map { prefs ->
+        foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption.fromName(
+            prefs[PreferencesKeys.KEY_LOCK_TIME_OPTION]
+        )
+      }
 
-    suspend fun saveLockTimeOption(value: foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption) {
-        dataStore.edit { prefs -> prefs[PreferencesKeys.KEY_LOCK_TIME_OPTION] = value.name }
-    }
+  suspend fun saveLockTimeOption(value: foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption) {
+    dataStore.edit { prefs -> prefs[PreferencesKeys.KEY_LOCK_TIME_OPTION] = value.name }
+  }
 
-    /**
-     * Last time the app was foregrounded, expressed as epoch seconds. 0 means "unknown",
-     * which is treated as "needs to lock" by [foo.pilz.freaklog.ui.tabs.settings.lock.shouldLockNow].
-     */
-    val lastActiveEpochSecondsFlow: Flow<Long> = dataStore.data.map { prefs ->
+  /**
+   * Last time the app was foregrounded, expressed as epoch seconds. 0 means "unknown", which is
+   * treated as "needs to lock" by [foo.pilz.freaklog.ui.tabs.settings.lock.shouldLockNow].
+   */
+  val lastActiveEpochSecondsFlow: Flow<Long> =
+      dataStore.data.map { prefs ->
         prefs[PreferencesKeys.KEY_LOCK_LAST_ACTIVE] ?: 0L
-    }
+      }
 
-    suspend fun saveLastActiveEpochSeconds(value: Long) {
-        dataStore.edit { prefs -> prefs[PreferencesKeys.KEY_LOCK_LAST_ACTIVE] = value }
-    }
+  suspend fun saveLastActiveEpochSeconds(value: Long) {
+    dataStore.edit { prefs -> prefs[PreferencesKeys.KEY_LOCK_LAST_ACTIVE] = value }
+  }
 
-    val useIntranasalForRectalFlow: Flow<Boolean> = dataStore.data.map { prefs ->
+  val useIntranasalForRectalFlow: Flow<Boolean> =
+      dataStore.data.map { prefs ->
         prefs[PreferencesKeys.KEY_USE_INTRANASAL_FOR_RECTAL] ?: false
-    }
+      }
 
-    suspend fun saveUseIntranasalForRectal(value: Boolean) {
-        dataStore.edit { prefs ->
-            prefs[PreferencesKeys.KEY_USE_INTRANASAL_FOR_RECTAL] = value
-        }
+  suspend fun saveUseIntranasalForRectal(value: Boolean) {
+    dataStore.edit { prefs ->
+      prefs[PreferencesKeys.KEY_USE_INTRANASAL_FOR_RECTAL] = value
     }
+  }
 }
 
 enum class BloodPressureDisplay(val displayName: String) {
-    OFF("Off"),
-    SEPARATE("Separate list"),
-    COMBINED("Combined"),
+  OFF("Off"),
+  SEPARATE("Separate list"),
+  COMBINED("Combined"),
 }

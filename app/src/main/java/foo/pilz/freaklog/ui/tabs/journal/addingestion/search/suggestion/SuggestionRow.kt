@@ -45,14 +45,24 @@ import foo.pilz.freaklog.ui.theme.horizontalPadding
 
 @Preview(showBackground = true)
 @Composable
-fun SuggestionRowPreview(@PreviewParameter(SubstanceSuggestionProvider::class) suggestion: Suggestion) {
-    SuggestionRow(
-        suggestion = suggestion,
-        navigateToDose = { _: String, _: AdministrationRoute -> },
-        navigateToCustomUnitChooseDose = {},
-        navigateToCustomDose = { _: String, _: AdministrationRoute -> },
-        navigateToChooseTime = { _: String, _: AdministrationRoute, _: Double?, _: String?, _: Boolean, _: Double?, _: Int? -> },
-    )
+fun SuggestionRowPreview(
+    @PreviewParameter(SubstanceSuggestionProvider::class) suggestion: Suggestion
+) {
+  SuggestionRow(
+      suggestion = suggestion,
+      navigateToDose = { _: String, _: AdministrationRoute -> },
+      navigateToCustomUnitChooseDose = {},
+      navigateToCustomDose = { _: String, _: AdministrationRoute -> },
+      navigateToChooseTime = {
+          _: String,
+          _: AdministrationRoute,
+          _: Double?,
+          _: String?,
+          _: Boolean,
+          _: Double?,
+          _: Int? ->
+      },
+  )
 }
 
 @Composable
@@ -61,25 +71,37 @@ fun SuggestionRow(
     navigateToDose: (substanceName: String, route: AdministrationRoute) -> Unit,
     navigateToCustomUnitChooseDose: (customUnitId: Int) -> Unit,
     navigateToCustomDose: (customSubstanceName: String, route: AdministrationRoute) -> Unit,
-    navigateToChooseTime: (substanceName: String, route: AdministrationRoute, dose: Double?, units: String?, isEstimate: Boolean, estimatedDoseStandardDeviation: Double?, customUnitId: Int?) -> Unit,
+    navigateToChooseTime:
+        (
+            substanceName: String,
+            route: AdministrationRoute,
+            dose: Double?,
+            units: String?,
+            isEstimate: Boolean,
+            estimatedDoseStandardDeviation: Double?,
+            customUnitId: Int?,
+        ) -> Unit,
 ) {
-    when(suggestion) {
-        is Suggestion.CustomSubstanceSuggestion -> CustomSubstanceSuggestionRow(
+  when (suggestion) {
+    is Suggestion.CustomSubstanceSuggestion ->
+        CustomSubstanceSuggestionRow(
             customSubstanceSuggestion = suggestion,
             navigateToCustomDose = navigateToCustomDose,
-            navigateToChooseTime = navigateToChooseTime
+            navigateToChooseTime = navigateToChooseTime,
         )
-        is Suggestion.CustomUnitSuggestion -> CustomUnitSuggestionRow(
+    is Suggestion.CustomUnitSuggestion ->
+        CustomUnitSuggestionRow(
             customUnitSuggestion = suggestion,
             navigateToCustomUnitChooseDose = navigateToCustomUnitChooseDose,
-            navigateToChooseTime = navigateToChooseTime
+            navigateToChooseTime = navigateToChooseTime,
         )
-        is Suggestion.PureSubstanceSuggestion -> PureSubstanceSuggestionRow(
+    is Suggestion.PureSubstanceSuggestion ->
+        PureSubstanceSuggestionRow(
             pureSubstanceSuggestion = suggestion,
             navigateToDose = navigateToDose,
-            navigateToChooseTime = navigateToChooseTime
+            navigateToChooseTime = navigateToChooseTime,
         )
-    }
+  }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -87,73 +109,92 @@ fun SuggestionRow(
 fun PureSubstanceSuggestionRow(
     pureSubstanceSuggestion: Suggestion.PureSubstanceSuggestion,
     navigateToDose: (substanceName: String, route: AdministrationRoute) -> Unit,
-    navigateToChooseTime: (substanceName: String, route: AdministrationRoute, dose: Double?, units: String?, isEstimate: Boolean, estimatedDoseStandardDeviation: Double?, customUnitId: Int?) -> Unit,
+    navigateToChooseTime:
+        (
+            substanceName: String,
+            route: AdministrationRoute,
+            dose: Double?,
+            units: String?,
+            isEstimate: Boolean,
+            estimatedDoseStandardDeviation: Double?,
+            customUnitId: Int?,
+        ) -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 10.dp, bottom = 5.dp)
-            .padding(horizontal = horizontalPadding)
+  Column(
+      modifier =
+          Modifier.fillMaxWidth()
+              .padding(top = 10.dp, bottom = 5.dp)
+              .padding(horizontal = horizontalPadding)
+  ) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ColorCircle(adaptiveColor = pureSubstanceSuggestion.adaptiveColor)
-            Text(
-                text = pureSubstanceSuggestion.substanceName + " " + pureSubstanceSuggestion.administrationRoute.displayText.lowercase(),
-                style = MaterialTheme.typography.titleMedium
-            )
-        }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-            pureSubstanceSuggestion.dosesAndUnit.forEach { doseAndUnit ->
-                SuggestionChip(
-                    onClick = {
-                        navigateToChooseTime(
-                            pureSubstanceSuggestion.substanceName,
-                            pureSubstanceSuggestion.administrationRoute,
-                            doseAndUnit.dose,
-                            doseAndUnit.unit,
-                            doseAndUnit.isEstimate,
-                            doseAndUnit.estimatedDoseStandardDeviation,
-                            null
-                        )
-                    },
-                    label = {
-                        if (doseAndUnit.dose != null) {
-                            val description =
-                                "${doseAndUnit.dose.toReadableString()} ${doseAndUnit.unit}"
-                            if (doseAndUnit.isEstimate) {
-                                if (doseAndUnit.estimatedDoseStandardDeviation != null) {
-                                    Text(
-                                        text = "${doseAndUnit.dose.toReadableString()}±${
+      ColorCircle(adaptiveColor = pureSubstanceSuggestion.adaptiveColor)
+      Text(
+          text =
+              pureSubstanceSuggestion.substanceName +
+                  " " +
+                  pureSubstanceSuggestion.administrationRoute.displayText.lowercase(),
+          style = MaterialTheme.typography.titleMedium,
+      )
+    }
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+      pureSubstanceSuggestion.dosesAndUnit.forEach { doseAndUnit ->
+        SuggestionChip(
+            onClick = {
+              navigateToChooseTime(
+                  pureSubstanceSuggestion.substanceName,
+                  pureSubstanceSuggestion.administrationRoute,
+                  doseAndUnit.dose,
+                  doseAndUnit.unit,
+                  doseAndUnit.isEstimate,
+                  doseAndUnit.estimatedDoseStandardDeviation,
+                  null,
+              )
+            },
+            label = {
+              if (doseAndUnit.dose != null) {
+                val description = "${doseAndUnit.dose.toReadableString()} ${doseAndUnit.unit}"
+                if (doseAndUnit.isEstimate) {
+                  if (doseAndUnit.estimatedDoseStandardDeviation != null) {
+                    Text(
+                        text =
+                            "${doseAndUnit.dose.toReadableString()}±${
                                             doseAndUnit.estimatedDoseStandardDeviation.toReadableString()
                                         } ${doseAndUnit.unit}"
-                                    )
-                                } else {
-                                    Text(text = "~$description")
-                                }
-                            } else {
-                                Text(text = description)
-                            }
-                        } else {
-                            Text(text = "Unknown")
-                        }
-                    },
-                )
-            }
-            SuggestionChip(onClick = {
-                navigateToDose(
-                    pureSubstanceSuggestion.substanceName,
-                    pureSubstanceSuggestion.administrationRoute
-                )
-            }, label = {
-                Text("Other dose")
-            }, icon = {
-                Icon(
-                    imageVector = Icons.Default.Keyboard,
-                    contentDescription = "Keyboard"
-                )
-            })
-        }
+                    )
+                  } else {
+                    Text(text = "~$description")
+                  }
+                } else {
+                  Text(text = description)
+                }
+              } else {
+                Text(text = "Unknown")
+              }
+            },
+        )
+      }
+      SuggestionChip(
+          onClick = {
+            navigateToDose(
+                pureSubstanceSuggestion.substanceName,
+                pureSubstanceSuggestion.administrationRoute,
+            )
+          },
+          label = {
+            Text("Other dose")
+          },
+          icon = {
+            Icon(
+                imageVector = Icons.Default.Keyboard,
+                contentDescription = "Keyboard",
+            )
+          },
+      )
     }
+  }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -161,50 +202,74 @@ fun PureSubstanceSuggestionRow(
 fun CustomUnitSuggestionRow(
     customUnitSuggestion: Suggestion.CustomUnitSuggestion,
     navigateToCustomUnitChooseDose: (customUnitId: Int) -> Unit,
-    navigateToChooseTime: (substanceName: String, route: AdministrationRoute, dose: Double?, units: String?, isEstimate: Boolean, estimatedDoseStandardDeviation: Double?, customUnitId: Int?) -> Unit,
+    navigateToChooseTime:
+        (
+            substanceName: String,
+            route: AdministrationRoute,
+            dose: Double?,
+            units: String?,
+            isEstimate: Boolean,
+            estimatedDoseStandardDeviation: Double?,
+            customUnitId: Int?,
+        ) -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 10.dp, bottom = 5.dp)
-            .padding(horizontal = horizontalPadding)
+  Column(
+      modifier =
+          Modifier.fillMaxWidth()
+              .padding(top = 10.dp, bottom = 5.dp)
+              .padding(horizontal = horizontalPadding)
+  ) {
+    val customUnit = customUnitSuggestion.customUnit
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        val customUnit = customUnitSuggestion.customUnit
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ColorCircle(adaptiveColor = customUnitSuggestion.adaptiveColor)
-            Text(
-                text = customUnit.substanceName + " " + customUnit.administrationRoute.displayText.lowercase() + ", " + customUnit.name,
-                style = MaterialTheme.typography.titleMedium
-            )
-        }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-            customUnitSuggestion.dosesAndUnit.forEach { customUnitDose ->
-                SuggestionChip(onClick = {
-                    navigateToChooseTime(
-                        customUnit.substanceName,
-                        customUnit.administrationRoute,
-                        customUnitDose.dose,
-                        customUnit.unit,
-                        customUnitDose.isEstimate,
-                        customUnitDose.estimatedDoseStandardDeviation,
-                        customUnit.id
-                    )
-                }, label = {
-                    Text(text = customUnitDose.getDoseDescription(customUnit.getPluralizableUnit()))
-                })
-            }
-            SuggestionChip(onClick = {
-                navigateToCustomUnitChooseDose(customUnit.id)
-            }, label = {
-                Text(text = "Other dose")
-            }, icon = {
-                Icon(
-                    imageVector = Icons.Default.Keyboard,
-                    contentDescription = "Keyboard"
-                )
-            })
-        }
+      ColorCircle(adaptiveColor = customUnitSuggestion.adaptiveColor)
+      Text(
+          text =
+              customUnit.substanceName +
+                  " " +
+                  customUnit.administrationRoute.displayText.lowercase() +
+                  ", " +
+                  customUnit.name,
+          style = MaterialTheme.typography.titleMedium,
+      )
     }
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+      customUnitSuggestion.dosesAndUnit.forEach { customUnitDose ->
+        SuggestionChip(
+            onClick = {
+              navigateToChooseTime(
+                  customUnit.substanceName,
+                  customUnit.administrationRoute,
+                  customUnitDose.dose,
+                  customUnit.unit,
+                  customUnitDose.isEstimate,
+                  customUnitDose.estimatedDoseStandardDeviation,
+                  customUnit.id,
+              )
+            },
+            label = {
+              Text(text = customUnitDose.getDoseDescription(customUnit.getPluralizableUnit()))
+            },
+        )
+      }
+      SuggestionChip(
+          onClick = {
+            navigateToCustomUnitChooseDose(customUnit.id)
+          },
+          label = {
+            Text(text = "Other dose")
+          },
+          icon = {
+            Icon(
+                imageVector = Icons.Default.Keyboard,
+                contentDescription = "Keyboard",
+            )
+          },
+      )
+    }
+  }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -212,71 +277,90 @@ fun CustomUnitSuggestionRow(
 fun CustomSubstanceSuggestionRow(
     customSubstanceSuggestion: Suggestion.CustomSubstanceSuggestion,
     navigateToCustomDose: (customSubstanceName: String, route: AdministrationRoute) -> Unit,
-    navigateToChooseTime: (substanceName: String, route: AdministrationRoute, dose: Double?, units: String?, isEstimate: Boolean, estimatedDoseStandardDeviation: Double?, customUnitId: Int?) -> Unit,
+    navigateToChooseTime:
+        (
+            substanceName: String,
+            route: AdministrationRoute,
+            dose: Double?,
+            units: String?,
+            isEstimate: Boolean,
+            estimatedDoseStandardDeviation: Double?,
+            customUnitId: Int?,
+        ) -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 10.dp, bottom = 5.dp)
-            .padding(horizontal = horizontalPadding)
+  Column(
+      modifier =
+          Modifier.fillMaxWidth()
+              .padding(top = 10.dp, bottom = 5.dp)
+              .padding(horizontal = horizontalPadding)
+  ) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ColorCircle(adaptiveColor = customSubstanceSuggestion.adaptiveColor)
-            Text(
-                text = customSubstanceSuggestion.customSubstance.name + " " + customSubstanceSuggestion.administrationRoute.displayText.lowercase(),
-                style = MaterialTheme.typography.titleMedium
-            )
-        }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-            customSubstanceSuggestion.dosesAndUnit.forEach { doseAndUnit ->
-                SuggestionChip(
-                    onClick = {
-                        navigateToChooseTime(
-                            customSubstanceSuggestion.customSubstance.name,
-                            customSubstanceSuggestion.administrationRoute,
-                            doseAndUnit.dose,
-                            doseAndUnit.unit,
-                            doseAndUnit.isEstimate,
-                            doseAndUnit.estimatedDoseStandardDeviation,
-                            null
-                        )
-                    },
-                    label = {
-                        if (doseAndUnit.dose != null) {
-                            val description =
-                                "${doseAndUnit.dose.toReadableString()} ${doseAndUnit.unit}"
-                            if (doseAndUnit.isEstimate) {
-                                if (doseAndUnit.estimatedDoseStandardDeviation != null) {
-                                    Text(
-                                        text = "${doseAndUnit.dose.toReadableString()}±${
+      ColorCircle(adaptiveColor = customSubstanceSuggestion.adaptiveColor)
+      Text(
+          text =
+              customSubstanceSuggestion.customSubstance.name +
+                  " " +
+                  customSubstanceSuggestion.administrationRoute.displayText.lowercase(),
+          style = MaterialTheme.typography.titleMedium,
+      )
+    }
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+      customSubstanceSuggestion.dosesAndUnit.forEach { doseAndUnit ->
+        SuggestionChip(
+            onClick = {
+              navigateToChooseTime(
+                  customSubstanceSuggestion.customSubstance.name,
+                  customSubstanceSuggestion.administrationRoute,
+                  doseAndUnit.dose,
+                  doseAndUnit.unit,
+                  doseAndUnit.isEstimate,
+                  doseAndUnit.estimatedDoseStandardDeviation,
+                  null,
+              )
+            },
+            label = {
+              if (doseAndUnit.dose != null) {
+                val description = "${doseAndUnit.dose.toReadableString()} ${doseAndUnit.unit}"
+                if (doseAndUnit.isEstimate) {
+                  if (doseAndUnit.estimatedDoseStandardDeviation != null) {
+                    Text(
+                        text =
+                            "${doseAndUnit.dose.toReadableString()}±${
                                             doseAndUnit.estimatedDoseStandardDeviation.toReadableString()
                                         } ${doseAndUnit.unit}"
-                                    )
-                                } else {
-                                    Text(text = "~$description")
-                                }
-                            } else {
-                                Text(text = description)
-                            }
-                        } else {
-                            Text(text = "Unknown")
-                        }
-                    },
-                )
-            }
-            SuggestionChip(onClick = {
-                navigateToCustomDose(
-                    customSubstanceSuggestion.customSubstance.name,
-                    customSubstanceSuggestion.administrationRoute
-                )
-            }, label = {
-                Text("Other dose")
-            }, icon = {
-                Icon(
-                    imageVector = Icons.Default.Keyboard,
-                    contentDescription = "Keyboard"
-                )
-            })
-        }
+                    )
+                  } else {
+                    Text(text = "~$description")
+                  }
+                } else {
+                  Text(text = description)
+                }
+              } else {
+                Text(text = "Unknown")
+              }
+            },
+        )
+      }
+      SuggestionChip(
+          onClick = {
+            navigateToCustomDose(
+                customSubstanceSuggestion.customSubstance.name,
+                customSubstanceSuggestion.administrationRoute,
+            )
+          },
+          label = {
+            Text("Other dose")
+          },
+          icon = {
+            Icon(
+                imageVector = Icons.Default.Keyboard,
+                contentDescription = "Keyboard",
+            )
+          },
+      )
     }
+  }
 }

@@ -68,18 +68,16 @@ import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestion
 import foo.pilz.freaklog.ui.tabs.journal.components.ExperienceRow
 import foo.pilz.freaklog.ui.theme.JournalTheme
 import foo.pilz.freaklog.ui.theme.horizontalPadding
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
+import kotlinx.coroutines.launch
 
 @Preview
 @Composable
 fun CalendarJournalScreenPreview() {
-    JournalTheme {
-        CalendarJournalScreen(
-            navigateToExperiencePopNothing = {}
-        )
-    }
+  JournalTheme {
+    CalendarJournalScreen(navigateToExperiencePopNothing = {})
+  }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -88,126 +86,132 @@ fun CalendarJournalScreen(
     navigateToExperiencePopNothing: (experienceId: Int) -> Unit,
     dayViewModel: DayViewModel = hiltViewModel(),
 ) {
-    val today = remember { LocalDate.now() }
-    val currentMonth = remember { YearMonth.now() }
-    val startMonth = remember { currentMonth.minusYears(20) }
-    val endMonth = remember { currentMonth.plusMonths(10) }
-    val firstDayOfWeek = remember { firstDayOfWeekFromLocale() }
+  val today = remember { LocalDate.now() }
+  val currentMonth = remember { YearMonth.now() }
+  val startMonth = remember { currentMonth.minusYears(20) }
+  val endMonth = remember { currentMonth.plusMonths(10) }
+  val firstDayOfWeek = remember { firstDayOfWeekFromLocale() }
 
-    val state = rememberCalendarState(
-        startMonth = startMonth,
-        endMonth = endMonth,
-        firstVisibleMonth = currentMonth,
-        firstDayOfWeek = firstDayOfWeek
-    )
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Journal") },
-                actions = {
-                    val coroutineScope = rememberCoroutineScope()
-                    TextButton(onClick = {
-                        coroutineScope.launch {
-                            state.animateScrollToMonth(YearMonth.now())
-                        }
-                    }) {
-                        Text(text = "Today")
+  val state =
+      rememberCalendarState(
+          startMonth = startMonth,
+          endMonth = endMonth,
+          firstVisibleMonth = currentMonth,
+          firstDayOfWeek = firstDayOfWeek,
+      )
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Journal") },
+            actions = {
+              val coroutineScope = rememberCoroutineScope()
+              TextButton(
+                  onClick = {
+                    coroutineScope.launch {
+                      state.animateScrollToMonth(YearMonth.now())
                     }
-                }
-            )
-        },
-    ) { padding ->
-        val sheetState = rememberModalBottomSheetState()
-        var showBottomSheet by remember { mutableStateOf(false) }
-        var experienceIdsToShowInSheet: List<Int> by remember {
-            mutableStateOf(emptyList())
-        }
-        if (showBottomSheet) {
-            ModalBottomSheet(
-                onDismissRequest = {
-                    showBottomSheet = false
-                },
-                sheetState = sheetState
-            ) {
-                val scope = rememberCoroutineScope()
-                SheetContent(
-                    experienceIds = experienceIdsToShowInSheet,
-                    navigateToExperiencePopNothing = navigateToExperiencePopNothing,
-                    dismissSheet = {
-                        scope.launch { sheetState.hide() }.invokeOnCompletion {
-                            if (!sheetState.isVisible) {
-                                showBottomSheet = false
-                            }
-                        }
-                    })
-            }
-        }
-        VerticalCalendar(
-            modifier = Modifier.padding(padding),
-            state = state,
-            dayContent = { calendarDay ->
-                Day(
-                    day = calendarDay,
-                    today = today,
-                    navigateToExperiencePopNothing = navigateToExperiencePopNothing,
-                    chooseBetweenExperiences = { experienceIds ->
-                        experienceIdsToShowInSheet = experienceIds
-                        showBottomSheet = true
-                    },
-                    viewModel = dayViewModel,
-                )
+                  }
+              ) {
+                Text(text = "Today")
+              }
             },
-            contentPadding = PaddingValues(horizontalPadding),
-            monthHeader = {
-                Text(
-                    text = "${it.yearMonth.month} ${it.yearMonth.year}",
-                    style = MaterialTheme.typography.titleLarge
-                )
-            }
         )
+      },
+  ) { padding ->
+    val sheetState = rememberModalBottomSheetState()
+    var showBottomSheet by remember { mutableStateOf(false) }
+    var experienceIdsToShowInSheet: List<Int> by remember {
+      mutableStateOf(emptyList())
     }
+    if (showBottomSheet) {
+      ModalBottomSheet(
+          onDismissRequest = {
+            showBottomSheet = false
+          },
+          sheetState = sheetState,
+      ) {
+        val scope = rememberCoroutineScope()
+        SheetContent(
+            experienceIds = experienceIdsToShowInSheet,
+            navigateToExperiencePopNothing = navigateToExperiencePopNothing,
+            dismissSheet = {
+              scope
+                  .launch { sheetState.hide() }
+                  .invokeOnCompletion {
+                    if (!sheetState.isVisible) {
+                      showBottomSheet = false
+                    }
+                  }
+            },
+        )
+      }
+    }
+    VerticalCalendar(
+        modifier = Modifier.padding(padding),
+        state = state,
+        dayContent = { calendarDay ->
+          Day(
+              day = calendarDay,
+              today = today,
+              navigateToExperiencePopNothing = navigateToExperiencePopNothing,
+              chooseBetweenExperiences = { experienceIds ->
+                experienceIdsToShowInSheet = experienceIds
+                showBottomSheet = true
+              },
+              viewModel = dayViewModel,
+          )
+        },
+        contentPadding = PaddingValues(horizontalPadding),
+        monthHeader = {
+          Text(
+              text = "${it.yearMonth.month} ${it.yearMonth.year}",
+              style = MaterialTheme.typography.titleLarge,
+          )
+        },
+    )
+  }
 }
 
 @Composable
 fun SheetContent(
     experienceIds: List<Int>,
     navigateToExperiencePopNothing: (experienceId: Int) -> Unit,
-    dismissSheet: () -> Unit
+    dismissSheet: () -> Unit,
 ) {
-    LazyColumn {
-        items(experienceIds, key = { it }) { experienceId ->
-            ExperienceRowWithFetch(
-                experienceId = experienceId,
-                navigateToExperiencePopNothing,
-                dismissSheet
-            )
-            HorizontalDivider()
-        }
+  LazyColumn {
+    items(experienceIds, key = { it }) { experienceId ->
+      ExperienceRowWithFetch(
+          experienceId = experienceId,
+          navigateToExperiencePopNothing,
+          dismissSheet,
+      )
+      HorizontalDivider()
     }
+  }
 }
 
 @Composable
 fun ExperienceRowWithFetch(
     experienceId: Int,
     navigateToExperiencePopNothing: (experienceId: Int) -> Unit,
-    dismissSheet: () -> Unit
+    dismissSheet: () -> Unit,
 ) {
-    val viewModel: ExperienceFetchViewModel = hiltViewModel()
-    val experienceState: MutableState<ExperienceWithIngestionsCompanionsAndRatings?> =
-        remember(experienceId) { mutableStateOf(null) }
-    LaunchedEffect(key1 = experienceId) {
-        experienceState.value = viewModel.getExperience(experienceId)
-    }
-    experienceState.value?.let { experience ->
-        ExperienceRow(
-            experience,
-            navigateToExperienceScreen = {
-                dismissSheet()
-                navigateToExperiencePopNothing(experienceId)
-            },
-            isTimeRelativeToNow = false
-        )
-    }
+  val viewModel: ExperienceFetchViewModel = hiltViewModel()
+  val experienceState: MutableState<ExperienceWithIngestionsCompanionsAndRatings?> =
+      remember(experienceId) { mutableStateOf(null) }
+  LaunchedEffect(key1 = experienceId) {
+    experienceState.value = viewModel.getExperience(experienceId)
+  }
+  experienceState.value?.let { experience ->
+    ExperienceRow(
+        experience,
+        navigateToExperienceScreen = {
+          dismissSheet()
+          navigateToExperiencePopNothing(experienceId)
+        },
+        isTimeRelativeToNow = false,
+    )
+  }
 }
 
 @Composable
@@ -218,98 +222,96 @@ fun Day(
     chooseBetweenExperiences: (experienceIds: List<Int>) -> Unit,
     viewModel: DayViewModel = hiltViewModel(),
 ) {
-    if (day.position == DayPosition.MonthDate) {
-        val experienceInfoState: MutableState<ExperienceInfo> = remember(day) {
-            mutableStateOf(
-                ExperienceInfo(
-                    experienceIds = emptyList(),
-                    colors = emptyList()
-                )
-            )
+  if (day.position == DayPosition.MonthDate) {
+    val experienceInfoState: MutableState<ExperienceInfo> =
+        remember(day) {
+          mutableStateOf(
+              ExperienceInfo(
+                  experienceIds = emptyList(),
+                  colors = emptyList(),
+              )
+          )
         }
-        LaunchedEffect(day) {
-            experienceInfoState.value = viewModel.getExperienceInfo(day)
-        }
-        val experienceInfos = experienceInfoState.value
-        val aspectRatioModifier = Modifier.aspectRatio(1f) // This is important for square sizing!
-        val modifier = if (experienceInfos.experienceIds.count() == 1) {
-            aspectRatioModifier.clickable {
-                navigateToExperiencePopNothing(experienceInfos.experienceIds.first())
-            }
+    LaunchedEffect(day) {
+      experienceInfoState.value = viewModel.getExperienceInfo(day)
+    }
+    val experienceInfos = experienceInfoState.value
+    val aspectRatioModifier = Modifier.aspectRatio(1f) // This is important for square sizing!
+    val modifier =
+        if (experienceInfos.experienceIds.count() == 1) {
+          aspectRatioModifier.clickable {
+            navigateToExperiencePopNothing(experienceInfos.experienceIds.first())
+          }
         } else if (experienceInfos.experienceIds.count() > 1) {
-            aspectRatioModifier.clickable {
-                chooseBetweenExperiences(experienceInfos.experienceIds)
-            }
+          aspectRatioModifier.clickable {
+            chooseBetweenExperiences(experienceInfos.experienceIds)
+          }
         } else {
-            aspectRatioModifier
+          aspectRatioModifier
         }
-        val isToday = day.date == today
-        val dayText = day.date.dayOfMonth.toString()
-        Box(
-            modifier = modifier
+    val isToday = day.date == today
+    val dayText = day.date.dayOfMonth.toString()
+    Box(
+        modifier =
+            modifier
                 .padding(4.dp)
                 .background(
-                    if (isToday) MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f) else Color.Transparent,
-                    shape = RoundedCornerShape(20)
-                ).semantics {
-                    contentDescription = dayText + " " + day.date.month.name
-                },
-            contentAlignment = Alignment.Center
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                if (isToday) {
-                    Text(
-                        text = dayText,
-                    )
-                } else if (experienceInfos.experienceIds.isEmpty()) {
-                    Text(
-                        text = dayText,
-                        color = if (isSystemInDarkTheme()) Color.Gray else Color.LightGray
-                    )
-                } else {
-                    Text(
-                        text = dayText,
-                    )
-                }
-                HorizontalColorRectangle(
-                    modifier = Modifier
-                        .height(7.dp)
-                        .fillMaxWidth(fraction = 0.7f)
-                        .clip(RoundedCornerShape(2.dp)),
-                    colors = experienceInfos.colors
+                    if (isToday) MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f)
+                    else Color.Transparent,
+                    shape = RoundedCornerShape(20),
                 )
-            }
+                .semantics {
+                  contentDescription = dayText + " " + day.date.month.name
+                },
+        contentAlignment = Alignment.Center,
+    ) {
+      Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        if (isToday) {
+          Text(
+              text = dayText,
+          )
+        } else if (experienceInfos.experienceIds.isEmpty()) {
+          Text(
+              text = dayText,
+              color = if (isSystemInDarkTheme()) Color.Gray else Color.LightGray,
+          )
+        } else {
+          Text(
+              text = dayText,
+          )
         }
-    } else {
-        Box(modifier = Modifier.aspectRatio(1f))
+        HorizontalColorRectangle(
+            modifier =
+                Modifier.height(7.dp).fillMaxWidth(fraction = 0.7f).clip(RoundedCornerShape(2.dp)),
+            colors = experienceInfos.colors,
+        )
+      }
     }
+  } else {
+    Box(modifier = Modifier.aspectRatio(1f))
+  }
 }
 
 @Composable
 fun HorizontalColorRectangle(
     modifier: Modifier,
-    colors: List<AdaptiveColor>
+    colors: List<AdaptiveColor>,
 ) {
-    val isDarkTheme = isSystemInDarkTheme()
-    if (colors.size >= 2) {
-        val brush = remember(colors, isDarkTheme) {
-            val composeColors = colors.map { it.getComposeColor(isDarkTheme) }
-            Brush.horizontalGradient(colors = composeColors)
+  val isDarkTheme = isSystemInDarkTheme()
+  if (colors.size >= 2) {
+    val brush =
+        remember(colors, isDarkTheme) {
+          val composeColors = colors.map { it.getComposeColor(isDarkTheme) }
+          Brush.horizontalGradient(colors = composeColors)
         }
-        Box(
-            modifier = modifier
-                .background(brush),
-        ) {}
-    } else if (colors.size == 1) {
-        Box(
-            modifier = modifier
-                .background(
-                    colors.first().getComposeColor(isDarkTheme)
-                ),
-        ) {}
-    } else {
-        Box(
-            modifier = modifier
-        ) {}
-    }
+    Box(
+        modifier = modifier.background(brush),
+    ) {}
+  } else if (colors.size == 1) {
+    Box(
+        modifier = modifier.background(colors.first().getComposeColor(isDarkTheme)),
+    ) {}
+  } else {
+    Box(modifier = modifier) {}
+  }
 }

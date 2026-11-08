@@ -9,9 +9,7 @@ import kotlinx.serialization.Transient
 @Entity(indices = [Index(value = ["name"])])
 @Serializable
 data class CustomSubstance(
-    @Transient
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    @Transient @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
     var units: String,
     var description: String,

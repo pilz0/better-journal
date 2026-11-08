@@ -59,55 +59,56 @@ import foo.pilz.freaklog.data.substances.AdministrationRoute
 fun ChooseRouteScreen(
     navigateToChooseDose: (administrationRoute: AdministrationRoute) -> Unit,
     navigateToRouteExplanationScreen: () -> Unit,
-    viewModel: ChooseRouteViewModel = hiltViewModel()
+    viewModel: ChooseRouteViewModel = hiltViewModel(),
 ) {
-    ChooseRouteScreen(
-        showOtherRoutes = viewModel.showOtherRoutes,
-        onChangeOfShowOtherRoutes = {
-            viewModel.showOtherRoutes = it
-        },
-        pwRoutes = viewModel.pwRoutes,
-        otherRoutesChunked = viewModel.otherRoutesChunked,
-        onRouteTapped = { route ->
-            if (route.isInjectionMethod) {
-                viewModel.currentRoute = route
-                viewModel.isShowingInjectionDialog = true
-            } else {
-                navigateToChooseDose(route)
-            }
-        },
-        navigateToRouteExplanationScreen = navigateToRouteExplanationScreen,
-        isShowingInjectionDialog = viewModel.isShowingInjectionDialog,
-        navigateWithCurrentRoute = {
-            navigateToChooseDose(viewModel.currentRoute)
-        },
-        dismissInjectionDialog = {
-            viewModel.isShowingInjectionDialog = false
-        },
-        substanceName = viewModel.substanceName
-    )
+  ChooseRouteScreen(
+      showOtherRoutes = viewModel.showOtherRoutes,
+      onChangeOfShowOtherRoutes = {
+        viewModel.showOtherRoutes = it
+      },
+      pwRoutes = viewModel.pwRoutes,
+      otherRoutesChunked = viewModel.otherRoutesChunked,
+      onRouteTapped = { route ->
+        if (route.isInjectionMethod) {
+          viewModel.currentRoute = route
+          viewModel.isShowingInjectionDialog = true
+        } else {
+          navigateToChooseDose(route)
+        }
+      },
+      navigateToRouteExplanationScreen = navigateToRouteExplanationScreen,
+      isShowingInjectionDialog = viewModel.isShowingInjectionDialog,
+      navigateWithCurrentRoute = {
+        navigateToChooseDose(viewModel.currentRoute)
+      },
+      dismissInjectionDialog = {
+        viewModel.isShowingInjectionDialog = false
+      },
+      substanceName = viewModel.substanceName,
+  )
 }
 
 @Preview
 @Composable
 fun ChooseRouteScreenPreview() {
-    val pwRoutes = listOf(AdministrationRoute.INSUFFLATED, AdministrationRoute.ORAL)
-    val otherRoutes = AdministrationRoute.entries.filter { route ->
+  val pwRoutes = listOf(AdministrationRoute.INSUFFLATED, AdministrationRoute.ORAL)
+  val otherRoutes =
+      AdministrationRoute.entries.filter { route ->
         !pwRoutes.contains(route)
-    }
-    val otherRoutesChunked = otherRoutes.chunked(2)
-    ChooseRouteScreen(
-        showOtherRoutes = false,
-        onChangeOfShowOtherRoutes = {},
-        pwRoutes = pwRoutes,
-        otherRoutesChunked = otherRoutesChunked,
-        onRouteTapped = {},
-        navigateToRouteExplanationScreen = {},
-        isShowingInjectionDialog = false,
-        navigateWithCurrentRoute = {},
-        dismissInjectionDialog = {},
-        substanceName = "LSD"
-    )
+      }
+  val otherRoutesChunked = otherRoutes.chunked(2)
+  ChooseRouteScreen(
+      showOtherRoutes = false,
+      onChangeOfShowOtherRoutes = {},
+      pwRoutes = pwRoutes,
+      otherRoutesChunked = otherRoutesChunked,
+      onRouteTapped = {},
+      navigateToRouteExplanationScreen = {},
+      isShowingInjectionDialog = false,
+      navigateWithCurrentRoute = {},
+      dismissInjectionDialog = {},
+      substanceName = "LSD",
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -124,143 +125,141 @@ fun ChooseRouteScreen(
     dismissInjectionDialog: () -> Unit,
     substanceName: String,
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("$substanceName route") },
-                navigationIcon = {
-                    if (showOtherRoutes && pwRoutes.isNotEmpty()) {
-                        IconButton(onClick = { onChangeOfShowOtherRoutes(false) }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back"
-                            )
-                        }
-                    }
-                },
-                actions = {
-                    IconButton(onClick = navigateToRouteExplanationScreen) {
-                        Icon(
-                            imageVector = Icons.Outlined.Info,
-                            contentDescription = "Administration routes info"
-                        )
-                    }
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("$substanceName route") },
+            navigationIcon = {
+              if (showOtherRoutes && pwRoutes.isNotEmpty()) {
+                IconButton(onClick = { onChangeOfShowOtherRoutes(false) }) {
+                  Icon(
+                      imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                      contentDescription = "Back",
+                  )
                 }
-            )
-        }
-    ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
-            LinearProgressIndicator(
-                progress = { 0.5f },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            AnimatedVisibility(visible = isShowingInjectionDialog) {
-                InjectionDialog(
-                    navigateToNext = navigateWithCurrentRoute,
-                    dismiss = dismissInjectionDialog
+              }
+            },
+            actions = {
+              IconButton(onClick = navigateToRouteExplanationScreen) {
+                Icon(
+                    imageVector = Icons.Outlined.Info,
+                    contentDescription = "Administration routes info",
                 )
-            }
-            AdministrationRoutePicker(
-                showOtherRoutes = showOtherRoutes,
-                onChangeOfShowOtherRoutes = onChangeOfShowOtherRoutes,
-                pwRoutes = pwRoutes,
-                otherRoutesChunked = otherRoutesChunked,
-                onRouteTapped = onRouteTapped
-            )
-        }
+              }
+            },
+        )
+      }
+  ) { padding ->
+    Column(modifier = Modifier.padding(padding)) {
+      LinearProgressIndicator(
+          progress = { 0.5f },
+          modifier = Modifier.fillMaxWidth(),
+      )
+      AnimatedVisibility(visible = isShowingInjectionDialog) {
+        InjectionDialog(
+            navigateToNext = navigateWithCurrentRoute,
+            dismiss = dismissInjectionDialog,
+        )
+      }
+      AdministrationRoutePicker(
+          showOtherRoutes = showOtherRoutes,
+          onChangeOfShowOtherRoutes = onChangeOfShowOtherRoutes,
+          pwRoutes = pwRoutes,
+          otherRoutesChunked = otherRoutesChunked,
+          onRouteTapped = onRouteTapped,
+      )
     }
+  }
 }
 
 @Preview
 @Composable
 fun InjectionDialogPreview() {
-    InjectionDialog(
-        navigateToNext = {},
-        dismiss = {}
-    )
+  InjectionDialog(
+      navigateToNext = {},
+      dismiss = {},
+  )
 }
 
 @Composable
 fun InjectionDialog(
     navigateToNext: () -> Unit,
-    dismiss: () -> Unit
+    dismiss: () -> Unit,
 ) {
-    AlertDialog(
-        onDismissRequest = dismiss,
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(imageVector = Icons.Default.Warning, contentDescription = "Warning")
-                Spacer(modifier = Modifier.width(ButtonDefaults.IconSpacing))
-                Text(text = "Safer injection", style = MaterialTheme.typography.headlineSmall)
-            }
-        },
-        text = {
-            Column {
-                Text("Using and sharing injection equipment is an extremely high-risk activity and is never truly safe to do in a non-medical context.")
-                Text("Read the safer injection guide:")
-                SaferInjectionLink()
-                Text("This guide is provided for educational and harm reduction purposes only and we strongly discourage users from engaging in this activity.")
-
-            }
-
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    dismiss()
-                    navigateToNext()
-                }
-            ) {
-                Text("Continue")
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = dismiss
-            ) {
-                Text("Cancel")
-            }
+  AlertDialog(
+      onDismissRequest = dismiss,
+      title = {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Icon(imageVector = Icons.Default.Warning, contentDescription = "Warning")
+          Spacer(modifier = Modifier.width(ButtonDefaults.IconSpacing))
+          Text(text = "Safer injection", style = MaterialTheme.typography.headlineSmall)
         }
-    )
+      },
+      text = {
+        Column {
+          Text(
+              "Using and sharing injection equipment is an extremely high-risk activity and is never truly safe to do in a non-medical context."
+          )
+          Text("Read the safer injection guide:")
+          SaferInjectionLink()
+          Text(
+              "This guide is provided for educational and harm reduction purposes only and we strongly discourage users from engaging in this activity."
+          )
+        }
+      },
+      confirmButton = {
+        TextButton(
+            onClick = {
+              dismiss()
+              navigateToNext()
+            }
+        ) {
+          Text("Continue")
+        }
+      },
+      dismissButton = {
+        TextButton(onClick = dismiss) {
+          Text("Cancel")
+        }
+      },
+  )
 }
 
 @Composable
 fun RouteBox(route: AdministrationRoute, titleStyle: TextStyle) {
-    val screenHeightPx = LocalWindowInfo.current.containerSize.height
-    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = route.displayText,
-                textAlign = TextAlign.Center,
-                style = titleStyle
-            )
-            if (screenHeightPx > 500) {
-                Text(
-                    text = route.description,
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-        }
+  val screenHeightPx = LocalWindowInfo.current.containerSize.height
+  Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+      Text(
+          text = route.displayText,
+          textAlign = TextAlign.Center,
+          style = titleStyle,
+      )
+      if (screenHeightPx > 500) {
+        Text(
+            text = route.description,
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodySmall,
+        )
+      }
     }
+  }
 }
-
 
 @Composable
 fun SaferInjectionLink() {
-    val uriHandler = LocalUriHandler.current
-    TextButton(onClick = {
+  val uriHandler = LocalUriHandler.current
+  TextButton(
+      onClick = {
         uriHandler.openUri(AdministrationRoute.SAFER_INJECTION_ARTICLE_URL)
-    }) {
-        Icon(
-            Icons.Outlined.OpenInBrowser,
-            contentDescription = "Open link",
-            modifier = Modifier.size(ButtonDefaults.IconSize),
-        )
-        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-        Text("Safer injection guide")
-    }
+      }
+  ) {
+    Icon(
+        Icons.Outlined.OpenInBrowser,
+        contentDescription = "Open link",
+        modifier = Modifier.size(ButtonDefaults.IconSize),
+    )
+    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+    Text("Safer injection guide")
+  }
 }
-

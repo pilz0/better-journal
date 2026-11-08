@@ -22,46 +22,48 @@ package foo.pilz.freaklog.data.substances.classes.roa
 data class DurationRange(
     val min: Float?,
     val max: Float?,
-    val units: DurationUnits?
+    val units: DurationUnits?,
 ) {
-    val text: String
-        get() {
-            val suffix = units?.shortText.orEmpty()
-            val minClean = min?.toString()?.removeSuffix(".0")
-            val maxClean = max?.toString()?.removeSuffix(".0")
-            return when {
-                minClean == null && maxClean == null -> ""
-                minClean != null && maxClean == null -> "$minClean$suffix"
-                minClean == null && maxClean != null -> "$maxClean$suffix"
-                minClean == maxClean -> "$minClean$suffix"
-                else -> "$minClean-$maxClean$suffix"
-            }
-        }
+  val text: String
+    get() {
+      val suffix = units?.shortText.orEmpty()
+      val minClean = min?.toString()?.removeSuffix(".0")
+      val maxClean = max?.toString()?.removeSuffix(".0")
+      return when {
+        minClean == null && maxClean == null -> ""
+        minClean != null && maxClean == null -> "$minClean$suffix"
+        minClean == null && maxClean != null -> "$maxClean$suffix"
+        minClean == maxClean -> "$minClean$suffix"
+        else -> "$minClean-$maxClean$suffix"
+      }
+    }
 
-    // Derived values: kept out of Room columns and out of serialized output.
-    @androidx.room.Ignore
-    @kotlinx.serialization.Transient
-    val minInSec: Float? = if (units != null) {
+  // Derived values: kept out of Room columns and out of serialized output.
+  @androidx.room.Ignore
+  @kotlinx.serialization.Transient
+  val minInSec: Float? =
+      if (units != null) {
         min?.times(units.inSecondsMultiplier)?.takeIf { it.isFinite() && it >= 0f }
-    } else {
+      } else {
         null
-    }
+      }
 
-    @androidx.room.Ignore
-    @kotlinx.serialization.Transient
-    val maxInSec: Float? = if (units != null) {
+  @androidx.room.Ignore
+  @kotlinx.serialization.Transient
+  val maxInSec: Float? =
+      if (units != null) {
         max?.times(units.inSecondsMultiplier)?.takeIf { it.isFinite() && it >= 0f }
-    } else {
+      } else {
         null
-    }
+      }
 
-    fun interpolateAtValueInSeconds(value: Float): Float? {
-        if (units == null || !value.isFinite()) return null
-        val effMin = (min ?: max)?.takeIf { it.isFinite() && it >= 0f } ?: return null
-        val effMax = (max ?: min)?.takeIf { it.isFinite() && it >= 0f } ?: return null
-        val diff = effMax - effMin
-        val withUnit = effMin + diff.times(value)
-        val sec = withUnit.times(units.inSecondsMultiplier)
-        return sec.takeIf { it.isFinite() }?.coerceAtLeast(0f)
-    }
+  fun interpolateAtValueInSeconds(value: Float): Float? {
+    if (units == null || !value.isFinite()) return null
+    val effMin = (min ?: max)?.takeIf { it.isFinite() && it >= 0f } ?: return null
+    val effMax = (max ?: min)?.takeIf { it.isFinite() && it >= 0f } ?: return null
+    val diff = effMax - effMin
+    val withUnit = effMin + diff.times(value)
+    val sec = withUnit.times(units.inSecondsMultiplier)
+    return sec.takeIf { it.isFinite() }?.coerceAtLeast(0f)
+  }
 }

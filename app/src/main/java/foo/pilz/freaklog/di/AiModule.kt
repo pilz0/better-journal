@@ -12,7 +12,5 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 abstract class AiModule {
 
-    @Binds
-    @Singleton
-    abstract fun bindAiKeyCipher(cipher: KeystoreAiKeyCipher): AiKeyCipher
+  @Binds @Singleton abstract fun bindAiKeyCipher(cipher: KeystoreAiKeyCipher): AiKeyCipher
 }

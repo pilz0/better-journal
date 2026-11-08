@@ -9,32 +9,31 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @Entity(
-    foreignKeys = [
-        ForeignKey(
-            entity = SubstanceGroup::class,
-            parentColumns = ["id"],
-            childColumns = ["groupId"],
-            onDelete = ForeignKey.CASCADE,
-        ),
-        ForeignKey(
-            entity = CustomUnit::class,
-            parentColumns = ["id"],
-            childColumns = ["customUnitId"],
-            onDelete = ForeignKey.SET_NULL,
-        ),
-    ],
-    indices = [
-        Index(value = ["groupId"]),
-        Index(value = ["customUnitId"]),
-    ],
+    foreignKeys =
+        [
+            ForeignKey(
+                entity = SubstanceGroup::class,
+                parentColumns = ["id"],
+                childColumns = ["groupId"],
+                onDelete = ForeignKey.CASCADE,
+            ),
+            ForeignKey(
+                entity = CustomUnit::class,
+                parentColumns = ["id"],
+                childColumns = ["customUnitId"],
+                onDelete = ForeignKey.SET_NULL,
+            ),
+        ],
+    indices =
+        [
+            Index(value = ["groupId"]),
+            Index(value = ["customUnitId"]),
+        ],
 )
 @Serializable
 data class SubstanceGroupItem(
-    @Transient
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
-    @Transient
-    var groupId: Int = 0,
+    @Transient @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @Transient var groupId: Int = 0,
     val sortOrder: Int,
     val substanceName: String,
     val isCustomSubstance: Boolean = false,

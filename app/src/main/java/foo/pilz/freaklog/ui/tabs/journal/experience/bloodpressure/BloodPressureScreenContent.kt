@@ -33,38 +33,38 @@ import java.time.LocalDateTime
 @Preview
 @Composable
 fun BloodPressureScreenContentPreview() {
-    val spacing = LocalSpacing.current
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Add Blood Pressure Measurement") },
-                actions = {
-                    IconButton(onClick = { }) {
-                        Icon(
-                            Icons.Filled.Done,
-                            contentDescription = "Done Icon"
-                        )
-                    }
-                }
-            )
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
+  val spacing = LocalSpacing.current
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Add Blood Pressure Measurement") },
+            actions = {
+              IconButton(onClick = {}) {
+                Icon(
+                    Icons.Filled.Done,
+                    contentDescription = "Done Icon",
+                )
+              }
+            },
+        )
+      },
+  ) { padding ->
+    Column(
+        modifier =
+            Modifier.padding(padding)
                 .padding(horizontal = spacing.screenHorizontal, vertical = spacing.md),
-            verticalArrangement = Arrangement.spacedBy(spacing.sm)
-        ) {
-            BloodPressureScreenContent(
-                selectedTime = LocalDateTime.now(),
-                onTimeChange = {},
-                diastolic = "140",
-                systolic = "90",
-                onDiastolicChange = {},
-                onSystolicChange = {}
-            )
-        }
+        verticalArrangement = Arrangement.spacedBy(spacing.sm),
+    ) {
+      BloodPressureScreenContent(
+          selectedTime = LocalDateTime.now(),
+          onTimeChange = {},
+          diastolic = "140",
+          systolic = "90",
+          onDiastolicChange = {},
+          onSystolicChange = {},
+      )
     }
+  }
 }
 
 @Composable
@@ -80,63 +80,66 @@ fun BloodPressureScreenContent(
     systolicError: String? = null,
     diastolicError: String? = null,
 ) {
-    val spacing = LocalSpacing.current
-    val focusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
+  val spacing = LocalSpacing.current
+  val focusRequester = remember { FocusRequester() }
+  val focusManager = LocalFocusManager.current
 
-    LaunchedEffect(Unit) {
-        if (shouldFocusTextFieldOnAppear) {
-            focusRequester.requestFocus()
-        }
+  LaunchedEffect(Unit) {
+    if (shouldFocusTextFieldOnAppear) {
+      focusRequester.requestFocus()
     }
+  }
 
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(spacing.sm)
-    ) {
-        OutlinedTextField(
-            value = systolic,
-            onValueChange = onSystolicChange,
-            label = { Text(text = "Systolic") },
-            trailingIcon = { Text(text = "mmHg") },
-            isError = systolicError != null,
-            keyboardActions = KeyboardActions(onDone = {
-                focusManager.clearFocus()
-            }),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier
-                .fillMaxWidth()
-                .focusRequester(focusRequester)
-        )
-        if (systolicError != null) {
-            Text(
-                text = systolicError,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
-        OutlinedTextField(
-            value = diastolic,
-            onValueChange = onDiastolicChange,
-            label = { Text(text = "Diastolic") },
-            trailingIcon = { Text(text = "mmHg") },
-            isError = diastolicError != null,
-            keyboardActions = KeyboardActions(onDone = {
-                focusManager.clearFocus()
-            }),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier
-                .fillMaxWidth()
-        )
-        if (diastolicError != null) {
-            Text(
-                text = diastolicError,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
-        TimePickerSection(selectedTime = selectedTime, onTimeChange = onTimeChange)
+  Column(
+      modifier = modifier,
+      verticalArrangement = Arrangement.spacedBy(spacing.sm),
+  ) {
+    OutlinedTextField(
+        value = systolic,
+        onValueChange = onSystolicChange,
+        label = { Text(text = "Systolic") },
+        trailingIcon = { Text(text = "mmHg") },
+        isError = systolicError != null,
+        keyboardActions =
+            KeyboardActions(
+                onDone = {
+                  focusManager.clearFocus()
+                }
+            ),
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+    )
+    if (systolicError != null) {
+      Text(
+          text = systolicError,
+          color = MaterialTheme.colorScheme.error,
+          style = MaterialTheme.typography.bodySmall,
+      )
     }
+    OutlinedTextField(
+        value = diastolic,
+        onValueChange = onDiastolicChange,
+        label = { Text(text = "Diastolic") },
+        trailingIcon = { Text(text = "mmHg") },
+        isError = diastolicError != null,
+        keyboardActions =
+            KeyboardActions(
+                onDone = {
+                  focusManager.clearFocus()
+                }
+            ),
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        modifier = Modifier.fillMaxWidth(),
+    )
+    if (diastolicError != null) {
+      Text(
+          text = diastolicError,
+          color = MaterialTheme.colorScheme.error,
+          style = MaterialTheme.typography.bodySmall,
+      )
+    }
+    TimePickerSection(selectedTime = selectedTime, onTimeChange = onTimeChange)
+  }
 }

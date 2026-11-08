@@ -26,31 +26,34 @@ import org.robolectric.annotation.Config
 @Config(sdk = [33])
 class TimelineNotificationIntentTest {
 
-    @Test
-    fun `buildOpenIntent for specific experience creates OPEN_EXPERIENCE action and sets extra`() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        val experienceId = 42
+  @Test
+  fun `buildOpenIntent for specific experience creates OPEN_EXPERIENCE action and sets extra`() {
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    val experienceId = 42
 
-        val intent = TimelineNotificationRenderer.buildOpenIntent(context, experienceId)
+    val intent = TimelineNotificationRenderer.buildOpenIntent(context, experienceId)
 
-        assertThat(intent.action).isEqualTo("${context.packageName}${MainActivity.ACTION_OPEN_EXPERIENCE}")
-        assertThat(intent.getIntExtra("experienceId", -1)).isEqualTo(42)
-        assertThat((intent.flags and Intent.FLAG_ACTIVITY_NEW_TASK) != 0).isTrue()
-        assertThat((intent.flags and Intent.FLAG_ACTIVITY_CLEAR_TOP) != 0).isTrue()
-    }
+    assertThat(intent.action)
+        .isEqualTo("${context.packageName}${MainActivity.ACTION_OPEN_EXPERIENCE}")
+    assertThat(intent.getIntExtra("experienceId", -1)).isEqualTo(42)
+    assertThat((intent.flags and Intent.FLAG_ACTIVITY_NEW_TASK) != 0).isTrue()
+    assertThat((intent.flags and Intent.FLAG_ACTIVITY_CLEAR_TOP) != 0).isTrue()
+  }
 
-    @Test
-    fun `buildOpenIntent for global timeline creates JOURNAL_SCREEN action without experienceId`() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
+  @Test
+  fun `buildOpenIntent for global timeline creates JOURNAL_SCREEN action without experienceId`() {
+    val context = ApplicationProvider.getApplicationContext<Context>()
 
-        val intent = TimelineNotificationRenderer.buildOpenIntent(
+    val intent =
+        TimelineNotificationRenderer.buildOpenIntent(
             context,
-            TimelineNotificationService.GLOBAL_TIMELINE_ID
+            TimelineNotificationService.GLOBAL_TIMELINE_ID,
         )
 
-        assertThat(intent.action).isEqualTo("${context.packageName}${MainActivity.ACTION_JOURNAL_SCREEN}")
-        assertThat(intent.getIntExtra("experienceId", -1)).isEqualTo(-1)
-        assertThat((intent.flags and Intent.FLAG_ACTIVITY_NEW_TASK) != 0).isTrue()
-        assertThat((intent.flags and Intent.FLAG_ACTIVITY_CLEAR_TOP) != 0).isTrue()
-    }
+    assertThat(intent.action)
+        .isEqualTo("${context.packageName}${MainActivity.ACTION_JOURNAL_SCREEN}")
+    assertThat(intent.getIntExtra("experienceId", -1)).isEqualTo(-1)
+    assertThat((intent.flags and Intent.FLAG_ACTIVITY_NEW_TASK) != 0).isTrue()
+    assertThat((intent.flags and Intent.FLAG_ACTIVITY_CLEAR_TOP) != 0).isTrue()
+  }
 }

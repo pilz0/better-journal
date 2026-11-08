@@ -34,48 +34,53 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class CustomSubstanceChooseDoseViewModelTest {
 
-    private val testDispatcher = StandardTestDispatcher()
-    private val experienceRepository = mockk<ExperienceRepository>()
-    private val customProfiles = mockk<CustomSubstanceProfiles>()
-    private val userPreferences = mockk<UserPreferences>()
+  private val testDispatcher = StandardTestDispatcher()
+  private val experienceRepository = mockk<ExperienceRepository>()
+  private val customProfiles = mockk<CustomSubstanceProfiles>()
+  private val userPreferences = mockk<UserPreferences>()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(testDispatcher)
-        every { userPreferences.useIntranasalForRectalFlow } returns flowOf(false)
-        every { customProfiles.getEffectiveRoa(any(), any(), any()) } returns null
-        coEvery { experienceRepository.getCustomSubstance(any()) } returns CustomSubstance(
+  @Before
+  fun setUp() {
+    Dispatchers.setMain(testDispatcher)
+    every { userPreferences.useIntranasalForRectalFlow } returns flowOf(false)
+    every { customProfiles.getEffectiveRoa(any(), any(), any()) } returns null
+    coEvery { experienceRepository.getCustomSubstance(any()) } returns
+        CustomSubstance(
             name = "2C-B-FLY",
             units = "mg",
-            description = "Custom test substance"
+            description = "Custom test substance",
         )
-    }
+  }
 
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+  @After
+  fun tearDown() {
+    Dispatchers.resetMain()
+  }
 
-    @Test
-    fun `init loads custom substance and validates positive dose`() = runTest(testDispatcher) {
-        val customSubstance = CustomSubstance(
-            name = "2C-B-FLY",
-            units = "mg",
-            description = "Custom test substance"
-        )
+  @Test
+  fun `init loads custom substance and validates positive dose`() =
+      runTest(testDispatcher) {
+        val customSubstance =
+            CustomSubstance(
+                name = "2C-B-FLY",
+                units = "mg",
+                description = "Custom test substance",
+            )
         coEvery { experienceRepository.getCustomSubstance("2C-B-FLY") } returns customSubstance
 
-        val viewModel = CustomSubstanceChooseDoseViewModel(
-            experienceRepository = experienceRepository,
-            customProfiles = customProfiles,
-            userPreferences = userPreferences,
-            state = SavedStateHandle(
-                mapOf(
-                    "customSubstanceName" to "2C-B-FLY",
-                    "administrationRoute" to AdministrationRoute.ORAL,
-                )
-            ),
-        )
+        val viewModel =
+            CustomSubstanceChooseDoseViewModel(
+                experienceRepository = experienceRepository,
+                customProfiles = customProfiles,
+                userPreferences = userPreferences,
+                state =
+                    SavedStateHandle(
+                        mapOf(
+                            "customSubstanceName" to "2C-B-FLY",
+                            "administrationRoute" to AdministrationRoute.ORAL,
+                        )
+                    ),
+            )
         advanceUntilIdle()
 
         assertEquals("2C-B-FLY", viewModel.substanceName)
@@ -116,25 +121,28 @@ class CustomSubstanceChooseDoseViewModelTest {
         assertEquals("20 impure mg", viewModel.impureDoseWithUnit)
 
         viewModel.viewModelScope.cancel()
-    }
+      }
 
-    @Test
-    fun `init decodes serialized route from SavedStateHandle without ClassCastException`() = runTest(testDispatcher) {
-        val state = SavedStateHandle(
-            mapOf(
-                "customSubstanceName" to "2C-B-FLY",
-                "administrationRoute" to "INSUFFLATED"
+  @Test
+  fun `init decodes serialized route from SavedStateHandle without ClassCastException`() =
+      runTest(testDispatcher) {
+        val state =
+            SavedStateHandle(
+                mapOf(
+                    "customSubstanceName" to "2C-B-FLY",
+                    "administrationRoute" to "INSUFFLATED",
+                )
             )
-        )
-        val viewModel = CustomSubstanceChooseDoseViewModel(
-            experienceRepository = experienceRepository,
-            customProfiles = customProfiles,
-            userPreferences = userPreferences,
-            state = state,
-        )
+        val viewModel =
+            CustomSubstanceChooseDoseViewModel(
+                experienceRepository = experienceRepository,
+                customProfiles = customProfiles,
+                userPreferences = userPreferences,
+                state = state,
+            )
         advanceUntilIdle()
 
         assertEquals(AdministrationRoute.INSUFFLATED, viewModel.administrationRoute)
         viewModel.viewModelScope.cancel()
-    }
+      }
 }

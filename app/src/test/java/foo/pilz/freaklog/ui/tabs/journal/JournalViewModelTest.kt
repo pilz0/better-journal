@@ -37,87 +37,104 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class JournalViewModelTest {
 
-    private val testDispatcher = UnconfinedTestDispatcher()
-    private val experienceRepo = mockk<ExperienceRepository>()
-    private val searchRepo = mockk<SearchRepository>()
-    private val dataStore = mockk<DataStore<Preferences>>()
-    private val userPreferences = mockk<UserPreferences>()
-    private val skinEligibility = mockk<UltraFunSkinEligibility>()
-    private val outlookSkinController = mockk<OutlookSkinController>(relaxed = true)
+  private val testDispatcher = UnconfinedTestDispatcher()
+  private val experienceRepo = mockk<ExperienceRepository>()
+  private val searchRepo = mockk<SearchRepository>()
+  private val dataStore = mockk<DataStore<Preferences>>()
+  private val userPreferences = mockk<UserPreferences>()
+  private val skinEligibility = mockk<UltraFunSkinEligibility>()
+  private val outlookSkinController = mockk<OutlookSkinController>(relaxed = true)
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(testDispatcher)
-        every { userPreferences.aiAssistantEnabledFlow } returns flowOf(false)
-        every { skinEligibility.eligibleFlow } returns flowOf(false)
-        every { searchRepo.getMatchingSubstances(any(), any(), any()) } returns emptyList()
-    }
+  @Before
+  fun setUp() {
+    Dispatchers.setMain(testDispatcher)
+    every { userPreferences.aiAssistantEnabledFlow } returns flowOf(false)
+    every { skinEligibility.eligibleFlow } returns flowOf(false)
+    every { searchRepo.getMatchingSubstances(any(), any(), any()) } returns emptyList()
+  }
 
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+  @After
+  fun tearDown() {
+    Dispatchers.resetMain()
+  }
 
-    @Test
-    fun `experiences flow filters favorites and handles null companions`() = runBlocking {
-        val exp1 = ExperienceWithIngestionsCompanionsAndRatings(
+  @Test
+  fun `experiences flow filters favorites and handles null companions`() = runBlocking {
+    val exp1 =
+        ExperienceWithIngestionsCompanionsAndRatings(
             experience = EntityBuilders.experience(id = 1, title = "First", isFavorite = false),
-            ingestionsWithCompanions = listOf(
-                IngestionWithCompanionAndCustomUnit(
-                    ingestion = EntityBuilders.ingestion(id = 1, experienceId = 1, substanceName = "Custom Sub"),
-                    substanceCompanion = null,
-                    customUnit = null
-                )
-            ),
-            ratings = emptyList()
+            ingestionsWithCompanions =
+                listOf(
+                    IngestionWithCompanionAndCustomUnit(
+                        ingestion =
+                            EntityBuilders.ingestion(
+                                id = 1,
+                                experienceId = 1,
+                                substanceName = "Custom Sub",
+                            ),
+                        substanceCompanion = null,
+                        customUnit = null,
+                    )
+                ),
+            ratings = emptyList(),
         )
-        val exp2 = ExperienceWithIngestionsCompanionsAndRatings(
+    val exp2 =
+        ExperienceWithIngestionsCompanionsAndRatings(
             experience = EntityBuilders.experience(id = 2, title = "Second", isFavorite = true),
             ingestionsWithCompanions = emptyList(),
-            ratings = emptyList()
+            ratings = emptyList(),
         )
 
-        every { experienceRepo.getSortedExperienceWithIngestionsCompanionsAndRatingsFlow() } returns
-            flowOf(listOf(exp1, exp2))
-        every { experienceRepo.getCustomSubstancesFlow() } returns flowOf(emptyList())
+    every { experienceRepo.getSortedExperienceWithIngestionsCompanionsAndRatingsFlow() } returns
+        flowOf(listOf(exp1, exp2))
+    every { experienceRepo.getCustomSubstancesFlow() } returns flowOf(emptyList())
 
-        val viewModel = JournalViewModel(
+    val viewModel =
+        JournalViewModel(
             experienceRepo = experienceRepo,
             searchRepository = searchRepo,
             dataStore = dataStore,
             userPreferences = userPreferences,
             skinEligibility = skinEligibility,
-            outlookSkinController = outlookSkinController
+            outlookSkinController = outlookSkinController,
         )
 
-        val collectJob = launch(start = CoroutineStart.UNDISPATCHED) {
-            viewModel.experiences.collect()
+    val collectJob =
+        launch(start = CoroutineStart.UNDISPATCHED) {
+          viewModel.experiences.collect()
         }
 
-        val initialExperiences = withTimeout(5000) {
-            viewModel.experiences.first { it.size == 2 }
+    val initialExperiences =
+        withTimeout(5000) {
+          viewModel.experiences.first { it.size == 2 }
         }
-        assertThat(initialExperiences).hasSize(2)
+    assertThat(initialExperiences).hasSize(2)
 
-        viewModel.onChangeFavorite(true)
-        val favorites = withTimeout(5000) {
-            viewModel.experiences.first { it.map { experience -> experience.experience.id } == listOf(2) }
+    viewModel.onChangeFavorite(true)
+    val favorites =
+        withTimeout(5000) {
+          viewModel.experiences.first {
+            it.map { experience -> experience.experience.id } == listOf(2)
+          }
         }
-        assertThat(favorites.map { it.experience.id }).containsExactly(2)
+    assertThat(favorites.map { it.experience.id }).containsExactly(2)
 
-        viewModel.onChangeFavorite(false)
-        viewModel.search("Fir")
-        viewModel.search("Firs")
-        viewModel.search("First")
-        val searchResults = withTimeout(5000) {
-            viewModel.experiences.first { it.map { experience -> experience.experience.id } == listOf(1) }
+    viewModel.onChangeFavorite(false)
+    viewModel.search("Fir")
+    viewModel.search("Firs")
+    viewModel.search("First")
+    val searchResults =
+        withTimeout(5000) {
+          viewModel.experiences.first {
+            it.map { experience -> experience.experience.id } == listOf(1)
+          }
         }
-        assertThat(searchResults.map { it.experience.id }).containsExactly(1)
-        verify(exactly = 0) { searchRepo.getMatchingSubstances("Fir", any(), any()) }
-        verify(exactly = 0) { searchRepo.getMatchingSubstances("Firs", any(), any()) }
-        verify(exactly = 1) { searchRepo.getMatchingSubstances("First", any(), any()) }
+    assertThat(searchResults.map { it.experience.id }).containsExactly(1)
+    verify(exactly = 0) { searchRepo.getMatchingSubstances("Fir", any(), any()) }
+    verify(exactly = 0) { searchRepo.getMatchingSubstances("Firs", any(), any()) }
+    verify(exactly = 1) { searchRepo.getMatchingSubstances("First", any(), any()) }
 
-        collectJob.cancel()
-        viewModel.viewModelScope.cancel()
-    }
+    collectJob.cancel()
+    viewModel.viewModelScope.cancel()
+  }
 }

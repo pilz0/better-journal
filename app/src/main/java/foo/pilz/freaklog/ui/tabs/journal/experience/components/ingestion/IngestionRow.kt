@@ -42,19 +42,20 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.models.IngestionElement
 
 @Preview(showBackground = true)
 @Composable
-fun IngestionRowPreview(@PreviewParameter(IngestionRowPreviewProvider::class) ingestionElement: IngestionElement) {
-    IngestionRow(
-        ingestionElement = ingestionElement,
-        areDosageDotsHidden = false,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(
-            text = "Fri 07:17",
-            style = MaterialTheme.typography.labelMedium
-        )
-    }
+fun IngestionRowPreview(
+    @PreviewParameter(IngestionRowPreviewProvider::class) ingestionElement: IngestionElement
+) {
+  IngestionRow(
+      ingestionElement = ingestionElement,
+      areDosageDotsHidden = false,
+      modifier = Modifier.fillMaxWidth(),
+  ) {
+    Text(
+        text = "Fri 07:17",
+        style = MaterialTheme.typography.labelMedium,
+    )
+  }
 }
-
 
 @Composable
 fun IngestionRow(
@@ -63,62 +64,66 @@ fun IngestionRow(
     modifier: Modifier = Modifier,
     time: @Composable () -> Unit,
 ) {
-    val ingestionWithCompanionAndCustomUnit = ingestionElement.ingestionWithCompanionAndCustomUnit
-    val ingestion = ingestionWithCompanionAndCustomUnit.ingestion
-    val customUnit = ingestionWithCompanionAndCustomUnit.customUnit
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = modifier.height(intrinsicSize = IntrinsicSize.Min)
-    ) {
-        VerticalLine(color = ingestionWithCompanionAndCustomUnit.substanceCompanion?.color ?: AdaptiveColor.RED)
-        Column {
-            time()
-            val title = if (customUnit != null) {
-                "${ingestion.substanceName}, ${customUnit.name}"
+  val ingestionWithCompanionAndCustomUnit = ingestionElement.ingestionWithCompanionAndCustomUnit
+  val ingestion = ingestionWithCompanionAndCustomUnit.ingestion
+  val customUnit = ingestionWithCompanionAndCustomUnit.customUnit
+  Row(
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(10.dp),
+      modifier = modifier.height(intrinsicSize = IntrinsicSize.Min),
+  ) {
+    VerticalLine(
+        color = ingestionWithCompanionAndCustomUnit.substanceCompanion?.color ?: AdaptiveColor.RED
+    )
+    Column {
+      time()
+      val title =
+          if (customUnit != null) {
+            "${ingestion.substanceName}, ${customUnit.name}"
+          } else {
+            ingestion.substanceName
+          }
+      Text(
+          modifier = Modifier.weight(1f),
+          text = title,
+          style = MaterialTheme.typography.titleMedium,
+      )
+      Row(
+          horizontalArrangement = Arrangement.SpaceBetween,
+          modifier = Modifier.fillMaxWidth(),
+      ) {
+        val text = buildAnnotatedString {
+          append(ingestionWithCompanionAndCustomUnit.doseDescription)
+          withStyle(style = SpanStyle(color = Color.Gray)) {
+            if (customUnit == null) {
+              append(" " + ingestion.administrationRoute.displayText.lowercase())
             } else {
-                ingestion.substanceName
+              ingestionWithCompanionAndCustomUnit.customUnitDose?.calculatedDoseDescription?.let {
+                append(" = $it ${ingestion.administrationRoute.displayText.lowercase()}")
+              }
+                  ?: run {
+                    append(
+                        " = unknown dose ${ingestion.administrationRoute.displayText.lowercase()}"
+                    )
+                  }
             }
-            Text(
-                modifier = Modifier.weight(1f),
-                text = title,
-                style = MaterialTheme.typography.titleMedium
-            )
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                val text = buildAnnotatedString {
-                    append(ingestionWithCompanionAndCustomUnit.doseDescription)
-                    withStyle(style = SpanStyle(color = Color.Gray)) {
-                        if (customUnit == null) {
-                            append(" " + ingestion.administrationRoute.displayText.lowercase())
-                        } else {
-                            ingestionWithCompanionAndCustomUnit.customUnitDose?.calculatedDoseDescription?.let {
-                                append(" = $it ${ingestion.administrationRoute.displayText.lowercase()}")
-                            } ?: run {
-                                append(" = unknown dose ${ingestion.administrationRoute.displayText.lowercase()}")
-                            }
-                        }
-                        if (ingestion.administrationSite != null)
-                        {
-                            append(" (" + ingestion.administrationSite + ")")
-                        }
-                        else {
-                            append("")
-                        }
-                    }
-                }
-                Text(text = text, style = MaterialTheme.typography.titleSmall)
-                val numDots = ingestionElement.numDots
-                if (numDots != null && !areDosageDotsHidden) {
-                    DotRows(numDots = numDots)
-                }
+            if (ingestion.administrationSite != null) {
+              append(" (" + ingestion.administrationSite + ")")
+            } else {
+              append("")
             }
-            val note = ingestion.notes
-            if (!note.isNullOrBlank()) {
-                Text(text = note, style = MaterialTheme.typography.bodySmall)
-            }
+          }
         }
+        Text(text = text, style = MaterialTheme.typography.titleSmall)
+        val numDots = ingestionElement.numDots
+        if (numDots != null && !areDosageDotsHidden) {
+          DotRows(numDots = numDots)
+        }
+      }
+      val note = ingestion.notes
+      if (!note.isNullOrBlank()) {
+        Text(text = note, style = MaterialTheme.typography.bodySmall)
+      }
     }
+  }
 }

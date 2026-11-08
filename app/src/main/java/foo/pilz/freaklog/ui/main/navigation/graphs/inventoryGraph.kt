@@ -12,23 +12,22 @@ import foo.pilz.freaklog.ui.main.navigation.composableWithTransitions
 import foo.pilz.freaklog.ui.tabs.inventory.InventoryScreen
 import kotlinx.serialization.Serializable
 
-@Serializable
-object InventoryScreenRoute
+@Serializable object InventoryScreenRoute
 
 fun NavGraphBuilder.inventoryGraph(navController: NavController) {
-    navigation<InventoryTopLevelRoute>(
-        startDestination = InventoryScreenRoute,
-    ) {
-        composableWithTransitions<InventoryScreenRoute> {
-            InventoryScreen(
-                navigateToAddIngestionForSubstance = { substanceName, isCustom ->
-                    if (isCustom) {
-                        navController.navigate(CustomSubstanceChooseRouteRoute(substanceName))
-                    } else {
-                        navController.navigate(CheckInteractionsRoute(substanceName))
-                    }
-                }
-            )
-        }
+  navigation<InventoryTopLevelRoute>(
+      startDestination = InventoryScreenRoute,
+  ) {
+    composableWithTransitions<InventoryScreenRoute> {
+      InventoryScreen(
+          navigateToAddIngestionForSubstance = { substanceName, isCustom ->
+            if (isCustom) {
+              navController.navigate(CustomSubstanceChooseRouteRoute(substanceName))
+            } else {
+              navController.navigate(CheckInteractionsRoute(substanceName))
+            }
+          }
+      )
     }
+  }
 }

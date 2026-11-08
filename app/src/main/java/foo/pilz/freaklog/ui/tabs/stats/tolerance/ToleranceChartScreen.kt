@@ -36,8 +36,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -74,23 +74,24 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
-private val TOLERANCE_DATE_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("dd. MM. yyyy")
+private val TOLERANCE_DATE_FORMATTER: DateTimeFormatter =
+    DateTimeFormatter.ofPattern("dd. MM. yyyy")
 
 @Composable
 fun ToleranceChartScreen(
     viewModel: ToleranceChartViewModel = hiltViewModel(),
 ) {
-    val toleranceData by viewModel.toleranceDataFlow.collectAsState()
-    val sinceDate by viewModel.sinceDate.collectAsState()
-    val isTimeRelative by viewModel.isTimeRelative.collectAsState()
+  val toleranceData by viewModel.toleranceDataFlow.collectAsState()
+  val sinceDate by viewModel.sinceDate.collectAsState()
+  val isTimeRelative by viewModel.isTimeRelative.collectAsState()
 
-    ToleranceChartScreenContent(
-        toleranceData = toleranceData,
-        sinceDate = sinceDate,
-        isTimeRelative = isTimeRelative,
-        onChangeSinceDate = viewModel::setSinceDate,
-        onChangeIsTimeRelative = viewModel::setIsTimeRelative,
-    )
+  ToleranceChartScreenContent(
+      toleranceData = toleranceData,
+      sinceDate = sinceDate,
+      isTimeRelative = isTimeRelative,
+      onChangeSinceDate = viewModel::setSinceDate,
+      onChangeIsTimeRelative = viewModel::setIsTimeRelative,
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -102,397 +103,387 @@ fun ToleranceChartScreenContent(
     onChangeSinceDate: (Instant) -> Unit,
     onChangeIsTimeRelative: (Boolean) -> Unit,
 ) {
-    var showDatePicker by remember { mutableStateOf(false) }
-    var showLimitationsSheet by remember { mutableStateOf(false) }
-    var showInfoSheet by remember { mutableStateOf(false) }
+  var showDatePicker by remember { mutableStateOf(false) }
+  var showLimitationsSheet by remember { mutableStateOf(false) }
+  var showInfoSheet by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-           TopAppBar(
-               title = {
-                   Text(
-                       text = "Tolerance",
-                   )
-               }
-           )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = {
+              Text(
+                  text = "Tolerance",
+              )
+            }
+        )
+      }
+  ) { padding ->
+    Column(
+        modifier =
+            Modifier.fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = horizontalPadding)
                 .verticalScroll(rememberScrollState())
+    ) {
+      // Settings Area
+      Row(
+          modifier =
+              Modifier.fillMaxWidth()
+                  .padding(vertical = 8.dp)
+                  .clip(RoundedCornerShape(8.dp))
+                  .clickable { showDatePicker = true }
+                  .padding(vertical = 8.dp, horizontal = 4.dp),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Text(
+            text = "Start Date",
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        val localDate = sinceDate.atZone(ZoneId.systemDefault()).toLocalDate()
+        Text(
+            text = localDate.format(TOLERANCE_DATE_FORMATTER),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+
+      Row(
+          modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp).padding(horizontal = 4.dp),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Text(
+            text = "Relative time",
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        Switch(
+            checked = isTimeRelative,
+            onCheckedChange = onChangeIsTimeRelative,
+        )
+      }
+
+      Spacer(modifier = Modifier.height(16.dp))
+
+      if (toleranceData.toleranceWindows.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxWidth().height(200.dp),
+            contentAlignment = Alignment.Center,
         ) {
-            // Settings Area
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable { showDatePicker = true }
-                    .padding(vertical = 8.dp, horizontal = 4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Start Date",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                val localDate = sinceDate.atZone(ZoneId.systemDefault()).toLocalDate()
-                Text(
-                    text = localDate.format(TOLERANCE_DATE_FORMATTER),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-                    .padding(horizontal = 4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Relative time",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Switch(
-                    checked = isTimeRelative,
-                    onCheckedChange = onChangeIsTimeRelative
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            if (toleranceData.toleranceWindows.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "No ingestions with tolerance info",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            } else {
-                ToleranceChart(
-                    toleranceWindows = toleranceData.toleranceWindows,
-                    isTimeRelative = isTimeRelative,
-                    sinceDate = sinceDate
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Excluding 2C-B, Bupropion, Ibuprofen, Progesterone, Methylphenidate, 4-MMC, 5-Hydroxytryptophan, Paracetamol, Ketamine, N-Acetylcysteine, and Lisdexamfetamine because of missing tolerance info",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            InfoRow(
-                title = "Chart Limitations",
-                onClick = { showLimitationsSheet = true }
-            )
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            InfoRow(
-                title = "Tolerance Info",
-                onClick = { showInfoSheet = true }
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
+          Text(
+              text = "No ingestions with tolerance info",
+              style = MaterialTheme.typography.bodyLarge,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+              textAlign = TextAlign.Center,
+          )
         }
-    }
+      } else {
+        ToleranceChart(
+            toleranceWindows = toleranceData.toleranceWindows,
+            isTimeRelative = isTimeRelative,
+            sinceDate = sinceDate,
+        )
+      }
 
-    if (showDatePicker) {
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = sinceDate.toEpochMilli()
-        )
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        datePickerState.selectedDateMillis?.let { millis ->
-                            onChangeSinceDate(Instant.ofEpochMilli(millis))
-                        }
-                        showDatePicker = false
-                    }
-                ) {
-                    Text("OK")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) {
-                    Text("Cancel")
-                }
-            }
-        ) {
-            DatePicker(state = datePickerState)
-        }
-    }
-    
-    if (showLimitationsSheet) {
-        ChartLimitationsSheet(
-            onDismissRequest = { showLimitationsSheet = false }
-        )
-    }
+      Spacer(modifier = Modifier.height(16.dp))
 
-    if (showInfoSheet) {
-        ToleranceInfoSheet(
-            onDismissRequest = { showInfoSheet = false }
-        )
+      Text(
+          text =
+              "Excluding 2C-B, Bupropion, Ibuprofen, Progesterone, Methylphenidate, 4-MMC, 5-Hydroxytryptophan, Paracetamol, Ketamine, N-Acetylcysteine, and Lisdexamfetamine because of missing tolerance info",
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+
+      Spacer(modifier = Modifier.height(24.dp))
+
+      InfoRow(
+          title = "Chart Limitations",
+          onClick = { showLimitationsSheet = true },
+      )
+
+      Spacer(modifier = Modifier.height(8.dp))
+
+      InfoRow(
+          title = "Tolerance Info",
+          onClick = { showInfoSheet = true },
+      )
+
+      Spacer(modifier = Modifier.height(32.dp))
     }
+  }
+
+  if (showDatePicker) {
+    val datePickerState =
+        rememberDatePickerState(initialSelectedDateMillis = sinceDate.toEpochMilli())
+    DatePickerDialog(
+        onDismissRequest = { showDatePicker = false },
+        confirmButton = {
+          TextButton(
+              onClick = {
+                datePickerState.selectedDateMillis?.let { millis ->
+                  onChangeSinceDate(Instant.ofEpochMilli(millis))
+                }
+                showDatePicker = false
+              }
+          ) {
+            Text("OK")
+          }
+        },
+        dismissButton = {
+          TextButton(onClick = { showDatePicker = false }) {
+            Text("Cancel")
+          }
+        },
+    ) {
+      DatePicker(state = datePickerState)
+    }
+  }
+
+  if (showLimitationsSheet) {
+    ChartLimitationsSheet(onDismissRequest = { showLimitationsSheet = false })
+  }
+
+  if (showInfoSheet) {
+    ToleranceInfoSheet(onDismissRequest = { showInfoSheet = false })
+  }
 }
 
 @Composable
 fun InfoRow(
     title: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-            .clickable(onClick = onClick)
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = Icons.Default.Info, // Or a specific icon if needed
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge
-            )
-        }
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+  Row(
+      modifier =
+          Modifier.fillMaxWidth()
+              .clip(RoundedCornerShape(12.dp))
+              .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+              .clickable(onClick = onClick)
+              .padding(16.dp),
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+      Icon(
+          imageVector = Icons.Default.Info, // Or a specific icon if needed
+          contentDescription = null,
+          tint = MaterialTheme.colorScheme.primary,
+      )
+      Spacer(modifier = Modifier.width(16.dp))
+      Text(
+          text = title,
+          style = MaterialTheme.typography.bodyLarge,
+      )
     }
+    Icon(
+        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+  }
 }
 
 @Composable
 fun ToleranceChart(
     toleranceWindows: List<ToleranceWindow>,
     isTimeRelative: Boolean,
-    sinceDate: Instant
+    sinceDate: Instant,
 ) {
-    val isDarkTheme = isSystemInDarkTheme()
+  val isDarkTheme = isSystemInDarkTheme()
 
-    if (toleranceWindows.isEmpty()) return
+  if (toleranceWindows.isEmpty()) return
 
-    val now = Instant.now()
-    val minTime = sinceDate
-    val maxTimeInWindows = toleranceWindows.maxOfOrNull { it.end } ?: now
-    val maxTime = if (maxTimeInWindows > now) maxTimeInWindows else now
-    
-    val totalDuration = Duration.between(minTime, maxTime).toMillis().coerceAtLeast(1L)
-    val nowMillis = now.toEpochMilli()
-    val minTimeMillis = minTime.toEpochMilli()
+  val now = Instant.now()
+  val minTime = sinceDate
+  val maxTimeInWindows = toleranceWindows.maxOfOrNull { it.end } ?: now
+  val maxTime = if (maxTimeInWindows > now) maxTimeInWindows else now
 
-    // Distinct substances, sorted if needed. The input list toleranceWindows contains all windows.
-    // We need to know which substance goes to which row.
-    // The view model seems to provide them sorted by name or so.
-    val substanceNames = toleranceWindows.map { it.substanceName }.distinct().sorted()
-    val numberOfRows = substanceNames.size
-    
-    val rowHeight = 32.dp
-    val chartHeight = rowHeight * numberOfRows
+  val totalDuration = Duration.between(minTime, maxTime).toMillis().coerceAtLeast(1L)
+  val nowMillis = now.toEpochMilli()
+  val minTimeMillis = minTime.toEpochMilli()
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        
-        Row(modifier = Modifier.fillMaxWidth()) {
-            // Substance Labels Column
-            Column(
-                modifier = Modifier
-                    .width(100.dp) // Fixed width for labels
-                    .padding(end = 8.dp)
-            ) {
-                substanceNames.forEach { name ->
-                    Box(
-                        modifier = Modifier.height(rowHeight),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        Text(
-                            text = name,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1
-                        )
-                    }
-                }
-            }
+  // Distinct substances, sorted if needed. The input list toleranceWindows contains all windows.
+  // We need to know which substance goes to which row.
+  // The view model seems to provide them sorted by name or so.
+  val substanceNames = toleranceWindows.map { it.substanceName }.distinct().sorted()
+  val numberOfRows = substanceNames.size
 
-            // Chart Area
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(chartHeight)
-            ) {
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    val canvasWidth = size.width
-                    val canvasHeight = size.height
-                    val singleRowHeight = canvasHeight / numberOfRows
+  val rowHeight = 32.dp
+  val chartHeight = rowHeight * numberOfRows
 
-                    // Draw vertical grid lines (every 7 days? Or monthly?)
-                    // Screenshot shows monthly/weekly lines. Let's stick to weekly for now or calculate roughly.
-                    val oneWeekMillis = Duration.ofDays(7).toMillis()
-                    var currentGridTime = minTimeMillis
-                    
-                    // Alleviate start offset to align with week boundaries if possible, but simple fixed step is fine for now
-                    while (currentGridTime <= maxTime.toEpochMilli()) {
-                         val gridX = ((currentGridTime - minTimeMillis).toFloat() / totalDuration) * canvasWidth
-                         if (gridX in 0f..canvasWidth) {
-                             drawLine(
-                                color = if (isDarkTheme) Color.White.copy(alpha = 0.1f) else Color.Black.copy(alpha = 0.1f),
-                                start = Offset(gridX, 0f),
-                                end = Offset(gridX, canvasHeight),
-                                strokeWidth = 1f
-                             )
-                         }
-                         currentGridTime += oneWeekMillis
-                    }
-
-                    toleranceWindows.forEach { window ->
-                        val substanceIndex = substanceNames.indexOf(window.substanceName)
-                        if (substanceIndex >= 0) {
-                            val startMillis = window.start.toEpochMilli().coerceAtLeast(minTimeMillis)
-                            val endMillis = window.end.toEpochMilli()
-                            
-                            if (endMillis > minTimeMillis) {
-                                val startX = ((startMillis - minTimeMillis).toFloat() / totalDuration) * canvasWidth
-                                val endX = ((endMillis - minTimeMillis).toFloat() / totalDuration) * canvasWidth
-                                val topY = substanceIndex * singleRowHeight
-                                val barWidth = (endX - startX).coerceAtLeast(2f) // Minimum visible width
-
-                                // Bar height slightly smaller than row
-                                val barHeight = singleRowHeight.toDp().toPx() * 0.6f
-                                val barTopOffset = (singleRowHeight - barHeight) / 2
-
-                                drawRoundRect(
-                                    color = window.barColor,
-                                    topLeft = Offset(startX, topY + barTopOffset),
-                                    size = Size(barWidth, barHeight),
-                                    cornerRadius = CornerRadius(4.dp.toPx(), 4.dp.toPx())
-                                )
-                            }
-                        }
-                    }
-
-                    // Draw current time line
-                    val nowX = ((nowMillis - minTimeMillis).toFloat() / totalDuration) * canvasWidth
-                    if (nowX in 0f..canvasWidth) {
-                        drawLine(
-                            color = Color.White, // Strong white as in screenshot
-                            start = Offset(nowX, 0f),
-                            end = Offset(nowX, canvasHeight),
-                            strokeWidth = 2f
-                        )
-                    }
-                }
-            }
+  Column(modifier = Modifier.fillMaxWidth()) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+      // Substance Labels Column
+      Column(
+          modifier =
+              Modifier.width(100.dp) // Fixed width for labels
+                  .padding(end = 8.dp)
+      ) {
+        substanceNames.forEach { name ->
+          Box(
+              modifier = Modifier.height(rowHeight),
+              contentAlignment = Alignment.CenterStart,
+          ) {
+            Text(
+                text = name,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+            )
+          }
         }
+      }
 
-        // Time labels below chart
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 100.dp) // Align with chart start
-        ) {
-              Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(top = 4.dp)
-                ) {
-                    Text(
-                        text = if (isTimeRelative) getRelativeTimeLabel(minTime) else minTime.getStringOfPattern("MMM d"),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.align(Alignment.CenterStart)
-                    )
+      // Chart Area
+      Box(modifier = Modifier.weight(1f).height(chartHeight)) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+          val canvasWidth = size.width
+          val canvasHeight = size.height
+          val singleRowHeight = canvasHeight / numberOfRows
 
-                    // We could add more intermediate labels if needed
-                    
-                    Text(
-                        text = if (isTimeRelative) getRelativeTimeLabel(maxTime) else maxTime.getStringOfPattern("MMM d"),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.align(Alignment.CenterEnd)
-                    )
-                }
+          // Draw vertical grid lines (every 7 days? Or monthly?)
+          // Screenshot shows monthly/weekly lines. Let's stick to weekly for now or calculate
+          // roughly.
+          val oneWeekMillis = Duration.ofDays(7).toMillis()
+          var currentGridTime = minTimeMillis
+
+          // Alleviate start offset to align with week boundaries if possible, but simple fixed step
+          // is fine for now
+          while (currentGridTime <= maxTime.toEpochMilli()) {
+            val gridX = ((currentGridTime - minTimeMillis).toFloat() / totalDuration) * canvasWidth
+            if (gridX in 0f..canvasWidth) {
+              drawLine(
+                  color =
+                      if (isDarkTheme) Color.White.copy(alpha = 0.1f)
+                      else Color.Black.copy(alpha = 0.1f),
+                  start = Offset(gridX, 0f),
+                  end = Offset(gridX, canvasHeight),
+                  strokeWidth = 1f,
+              )
+            }
+            currentGridTime += oneWeekMillis
+          }
+
+          toleranceWindows.forEach { window ->
+            val substanceIndex = substanceNames.indexOf(window.substanceName)
+            if (substanceIndex >= 0) {
+              val startMillis = window.start.toEpochMilli().coerceAtLeast(minTimeMillis)
+              val endMillis = window.end.toEpochMilli()
+
+              if (endMillis > minTimeMillis) {
+                val startX = ((startMillis - minTimeMillis).toFloat() / totalDuration) * canvasWidth
+                val endX = ((endMillis - minTimeMillis).toFloat() / totalDuration) * canvasWidth
+                val topY = substanceIndex * singleRowHeight
+                val barWidth = (endX - startX).coerceAtLeast(2f) // Minimum visible width
+
+                // Bar height slightly smaller than row
+                val barHeight = singleRowHeight.toDp().toPx() * 0.6f
+                val barTopOffset = (singleRowHeight - barHeight) / 2
+
+                drawRoundRect(
+                    color = window.barColor,
+                    topLeft = Offset(startX, topY + barTopOffset),
+                    size = Size(barWidth, barHeight),
+                    cornerRadius = CornerRadius(4.dp.toPx(), 4.dp.toPx()),
+                )
+              }
+            }
+          }
+
+          // Draw current time line
+          val nowX = ((nowMillis - minTimeMillis).toFloat() / totalDuration) * canvasWidth
+          if (nowX in 0f..canvasWidth) {
+            drawLine(
+                color = Color.White, // Strong white as in screenshot
+                start = Offset(nowX, 0f),
+                end = Offset(nowX, canvasHeight),
+                strokeWidth = 2f,
+            )
+          }
         }
-
+      }
     }
+
+    // Time labels below chart
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(start = 100.dp) // Align with chart start
+    ) {
+      Box(modifier = Modifier.weight(1f).padding(top = 4.dp)) {
+        Text(
+            text =
+                if (isTimeRelative) getRelativeTimeLabel(minTime)
+                else minTime.getStringOfPattern("MMM d"),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.align(Alignment.CenterStart),
+        )
+
+        // We could add more intermediate labels if needed
+
+        Text(
+            text =
+                if (isTimeRelative) getRelativeTimeLabel(maxTime)
+                else maxTime.getStringOfPattern("MMM d"),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.align(Alignment.CenterEnd),
+        )
+      }
+    }
+  }
 }
 
 private fun getRelativeTimeLabel(time: Instant): String {
-    val now = Instant.now()
-    val duration = Duration.between(time, now)
-    
-    return when {
-        duration.isNegative -> {
-            val absDuration = duration.abs()
-            when {
-                absDuration.toDays() > 0 -> "in ${absDuration.toDays()}d"
-                absDuration.toHours() > 0 -> "in ${absDuration.toHours()}h"
-                else -> "in ${absDuration.toMinutes()}m"
-            }
-        }
-        duration.toDays() > 0 -> "${duration.toDays()}d ago"
-        duration.toHours() > 0 -> "${duration.toHours()}h ago"
-        else -> "${duration.toMinutes()}m ago"
+  val now = Instant.now()
+  val duration = Duration.between(time, now)
+
+  return when {
+    duration.isNegative -> {
+      val absDuration = duration.abs()
+      when {
+        absDuration.toDays() > 0 -> "in ${absDuration.toDays()}d"
+        absDuration.toHours() > 0 -> "in ${absDuration.toHours()}h"
+        else -> "in ${absDuration.toMinutes()}m"
+      }
     }
+    duration.toDays() > 0 -> "${duration.toDays()}d ago"
+    duration.toHours() > 0 -> "${duration.toHours()}h ago"
+    else -> "${duration.toMinutes()}m ago"
+  }
 }
 
 @Preview
 @Composable
 fun ToleranceChartScreenPreview() {
-    val now = Instant.now()
-    val lsdWindow = ToleranceWindow(
-        substanceName = "Cocaine",
-        start = now.minus(10, ChronoUnit.DAYS),
-        end = now.plus(4, ChronoUnit.DAYS),
-        toleranceType = ToleranceType.FULL,
-        substanceColor = Color(0xFFFF453A) // Red-ish color
-    )
-    val mushroomsWindow = ToleranceWindow(
-        substanceName = "Mephedrone",
-        start = now.minus(2, ChronoUnit.DAYS),
-        end = now.plus(5, ChronoUnit.DAYS),
-        toleranceType = ToleranceType.HALF,
-        substanceColor = Color(0xFF32D74B) // Green-ish color
-    )
+  val now = Instant.now()
+  val lsdWindow =
+      ToleranceWindow(
+          substanceName = "Cocaine",
+          start = now.minus(10, ChronoUnit.DAYS),
+          end = now.plus(4, ChronoUnit.DAYS),
+          toleranceType = ToleranceType.FULL,
+          substanceColor = Color(0xFFFF453A), // Red-ish color
+      )
+  val mushroomsWindow =
+      ToleranceWindow(
+          substanceName = "Mephedrone",
+          start = now.minus(2, ChronoUnit.DAYS),
+          end = now.plus(5, ChronoUnit.DAYS),
+          toleranceType = ToleranceType.HALF,
+          substanceColor = Color(0xFF32D74B), // Green-ish color
+      )
 
-    ToleranceChartScreenContent(
-        toleranceData = ToleranceData(
-            toleranceWindows = listOf(lsdWindow,mushroomsWindow),
-            numberOfSubstancesInChart = 2,
-            substancesInIngestionsButNotChart = listOf("DMT", "2C-B"),
-            substanceCompanions = emptyList()
-        ),
-        sinceDate = Instant.now().minus(Duration.ofDays(90)),
-        isTimeRelative = false,
-        onChangeSinceDate = {},
-        onChangeIsTimeRelative = {},
-    )
+  ToleranceChartScreenContent(
+      toleranceData =
+          ToleranceData(
+              toleranceWindows = listOf(lsdWindow, mushroomsWindow),
+              numberOfSubstancesInChart = 2,
+              substancesInIngestionsButNotChart = listOf("DMT", "2C-B"),
+              substanceCompanions = emptyList(),
+          ),
+      sinceDate = Instant.now().minus(Duration.ofDays(90)),
+      isTimeRelative = false,
+      onChangeSinceDate = {},
+      onChangeIsTimeRelative = {},
+  )
 }

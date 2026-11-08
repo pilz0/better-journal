@@ -12,15 +12,15 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class TimelinePrivacyTest {
-    @Test
-    fun lockedJournalNeverLoadsNotificationData() = runTest {
-        val context = mockk<Context>()
-        val experiences = mockk<ExperienceRepository>()
-        val prefs = mockk<UserPreferences> { every { isLockEnabledFlow } returns flowOf(true) }
-        val renderer = TimelineNotificationRenderer(context, experiences, mockk(), prefs, mockk())
-        assertNull(renderer.render(1))
-        assertNull(renderer.render(TimelineNotificationService.GLOBAL_TIMELINE_ID))
-        coVerify(exactly = 0) { experiences.getExperience(any()) }
-        coVerify(exactly = 0) { experiences.getIngestionsWithCompanions(any(), any()) }
-    }
+  @Test
+  fun lockedJournalNeverLoadsNotificationData() = runTest {
+    val context = mockk<Context>()
+    val experiences = mockk<ExperienceRepository>()
+    val prefs = mockk<UserPreferences> { every { isLockEnabledFlow } returns flowOf(true) }
+    val renderer = TimelineNotificationRenderer(context, experiences, mockk(), prefs, mockk())
+    assertNull(renderer.render(1))
+    assertNull(renderer.render(TimelineNotificationService.GLOBAL_TIMELINE_ID))
+    coVerify(exactly = 0) { experiences.getExperience(any()) }
+    coVerify(exactly = 0) { experiences.getIngestionsWithCompanions(any(), any()) }
+  }
 }

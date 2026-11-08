@@ -32,38 +32,35 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 
-
 @Composable
 fun CardWithTitle(
     modifier: Modifier = Modifier,
     title: String,
     innerPaddingHorizontal: Dp = horizontalPadding,
-    content: @Composable (ColumnScope.() -> Unit)
+    content: @Composable (ColumnScope.() -> Unit),
 ) {
-    ElevatedCard(modifier = modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(
-                    horizontal = innerPaddingHorizontal,
-                    vertical = 4.dp,
-                )
-            )
-            Column(
-                Modifier
-                    .padding(horizontal = innerPaddingHorizontal)
-            ) {
-                content()
-            }
-        }
+  ElevatedCard(modifier = modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+      Text(
+          text = title,
+          style = MaterialTheme.typography.titleMedium,
+          modifier =
+              Modifier.padding(
+                  horizontal = innerPaddingHorizontal,
+                  vertical = 4.dp,
+              ),
+      )
+      Column(Modifier.padding(horizontal = innerPaddingHorizontal)) {
+        content()
+      }
     }
+  }
 }
 
 @Preview
 @Composable
 fun CardWithTitlePreview() {
-    CardWithTitle(title = "Your card") {
-        Text(text = "Content", modifier = Modifier.fillMaxWidth())
-    }
+  CardWithTitle(title = "Your card") {
+    Text(text = "Content", modifier = Modifier.fillMaxWidth())
+  }
 }

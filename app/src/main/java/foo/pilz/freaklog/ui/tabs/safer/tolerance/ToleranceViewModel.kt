@@ -9,79 +9,84 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 @HiltViewModel
-class ToleranceViewModel @Inject constructor(
+class ToleranceViewModel
+@Inject
+constructor(
     private val toleranceCalculator: ToleranceCalculator,
     private val substanceRepo: SubstanceRepository,
     private val experienceRepo: ExperienceRepository,
     private val customProfiles: CustomSubstanceProfiles,
 ) : ViewModel() {
 
-    private val _recentTolerances = MutableStateFlow<List<ToleranceEstimate>>(emptyList())
-    val recentTolerances: StateFlow<List<ToleranceEstimate>> = _recentTolerances
+  private val _recentTolerances = MutableStateFlow<List<ToleranceEstimate>>(emptyList())
+  val recentTolerances: StateFlow<List<ToleranceEstimate>> = _recentTolerances
 
-    private val _searchedTolerance = MutableStateFlow<ToleranceEstimate?>(null)
-    val searchedTolerance: StateFlow<ToleranceEstimate?> = _searchedTolerance
+  private val _searchedTolerance = MutableStateFlow<ToleranceEstimate?>(null)
+  val searchedTolerance: StateFlow<ToleranceEstimate?> = _searchedTolerance
 
-    private val _isLoading = MutableStateFlow(true)
-    val isLoading: StateFlow<Boolean> = _isLoading
+  private val _isLoading = MutableStateFlow(true)
+  val isLoading: StateFlow<Boolean> = _isLoading
 
-    var searchText by mutableStateOf("")
-        private set
+  var searchText by mutableStateOf("")
+    private set
 
-    private val builtInSubstanceNames by lazy { substanceRepo.getAllSubstances().map { it.name } }
+  private val builtInSubstanceNames by lazy { substanceRepo.getAllSubstances().map { it.name } }
 
-    // Custom profiles load asynchronously and can change, so they are read on every lookup.
-    private val allSubstanceNames: Sequence<String>
-        get() = (builtInSubstanceNames.asSequence() + customProfiles.byNameFlow.value.keys.asSequence())
+  // Custom profiles load asynchronously and can change, so they are read on every lookup.
+  private val allSubstanceNames: Sequence<String>
+    get() =
+        (builtInSubstanceNames.asSequence() + customProfiles.byNameFlow.value.keys.asSequence())
             .distinctBy { it.trim().lowercase() }
 
-    val searchSuggestions: List<String> get() {
-        if (searchText.isBlank()) return emptyList()
-        val lower = searchText.lowercase()
-        return allSubstanceNames
-            .filter { it.contains(lower, ignoreCase = true) }
-            .take(5)
-            .toList()
+  val searchSuggestions: List<String>
+    get() {
+      if (searchText.isBlank()) return emptyList()
+      val lower = searchText.lowercase()
+      return allSubstanceNames.filter { it.contains(lower, ignoreCase = true) }.take(5).toList()
     }
 
-    init {
-        viewModelScope.launch {
-            val now = Instant.now()
-            val since = now.minus(90, ChronoUnit.DAYS)
-            val recentIngestions = experienceRepo.getLatestIngestionOfEverySubstanceSinceDate(since)
-            val substanceNames = recentIngestions.map { it.substanceName }.distinct()
+  init {
+    viewModelScope.launch {
+      val now = Instant.now()
+      val since = now.minus(90, ChronoUnit.DAYS)
+      val recentIngestions = experienceRepo.getLatestIngestionOfEverySubstanceSinceDate(since)
+      val substanceNames = recentIngestions.map { it.substanceName }.distinct()
 
-            val estimates = substanceNames.mapNotNull { name ->
+      val estimates =
+          substanceNames
+              .mapNotNull { name ->
                 toleranceCalculator.calculate(name)
-            }.filter { estimate ->
+              }
+              .filter { estimate ->
                 val lastUse = estimate.lastIngestionTime ?: return@filter false
                 val daysSinceUse = Duration.between(lastUse, now).toDays()
                 estimate.toleranceLevel > 0f || daysSinceUse <= estimate.zeroDays.toLong() + 7
-            }.sortedByDescending { it.toleranceLevel }
+              }
+              .sortedByDescending { it.toleranceLevel }
 
-            _recentTolerances.value = estimates
-            _isLoading.value = false
-        }
+      _recentTolerances.value = estimates
+      _isLoading.value = false
     }
+  }
 
-    fun onSearchTextChange(text: String) {
-        searchText = text
-        _searchedTolerance.value = null
-    }
+  fun onSearchTextChange(text: String) {
+    searchText = text
+    _searchedTolerance.value = null
+  }
 
-    fun onSelectSubstance(substanceName: String) {
-        searchText = substanceName
-        viewModelScope.launch {
-            _searchedTolerance.value = toleranceCalculator.calculate(substanceName)
-        }
+  fun onSelectSubstance(substanceName: String) {
+    searchText = substanceName
+    viewModelScope.launch {
+      _searchedTolerance.value = toleranceCalculator.calculate(substanceName)
     }
+  }
 }

@@ -33,58 +33,56 @@ fun CustomRisksEditorScreen(
     navigateBack: () -> Unit,
     viewModel: CustomRisksEditorViewModel = hiltViewModel(),
 ) {
-    val spacing = LocalSpacing.current
-    val effects = viewModel.effectsFlow.collectAsStateWithLifecycle().value
-    val general = viewModel.generalRisksFlow.collectAsStateWithLifecycle().value
-    val longTerm = viewModel.longTermRisksFlow.collectAsStateWithLifecycle().value
+  val spacing = LocalSpacing.current
+  val effects = viewModel.effectsFlow.collectAsStateWithLifecycle().value
+  val general = viewModel.generalRisksFlow.collectAsStateWithLifecycle().value
+  val longTerm = viewModel.longTermRisksFlow.collectAsStateWithLifecycle().value
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Risks & effects") },
-                navigationIcon = {
-                    IconButton(onClick = navigateBack) {
-                        Icon(Icons.Default.ChevronLeft, contentDescription = "Back")
-                    }
-                },
-            )
-        },
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(vertical = spacing.sm),
-            verticalArrangement = Arrangement.spacedBy(spacing.sm),
-        ) {
-            item { SectionHeader("Effects") }
-            item {
-                LongTextCard(
-                    value = effects,
-                    onChange = viewModel::onEffectsChange,
-                    label = "Effects",
-                )
-            }
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Risks & effects") },
+            navigationIcon = {
+              IconButton(onClick = navigateBack) {
+                Icon(Icons.Default.ChevronLeft, contentDescription = "Back")
+              }
+            },
+        )
+      },
+  ) { padding ->
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().padding(padding),
+        contentPadding = PaddingValues(vertical = spacing.sm),
+        verticalArrangement = Arrangement.spacedBy(spacing.sm),
+    ) {
+      item { SectionHeader("Effects") }
+      item {
+        LongTextCard(
+            value = effects,
+            onChange = viewModel::onEffectsChange,
+            label = "Effects",
+        )
+      }
 
-            item { SectionHeader("Risks") }
-            item {
-                LongTextCard(
-                    value = general,
-                    onChange = viewModel::onGeneralRisksChange,
-                    label = "General risks",
-                )
-            }
+      item { SectionHeader("Risks") }
+      item {
+        LongTextCard(
+            value = general,
+            onChange = viewModel::onGeneralRisksChange,
+            label = "General risks",
+        )
+      }
 
-            item { SectionHeader("Long-term risks") }
-            item {
-                LongTextCard(
-                    value = longTerm,
-                    onChange = viewModel::onLongTermRisksChange,
-                    label = "Long-term risks",
-                )
-            }
-        }
+      item { SectionHeader("Long-term risks") }
+      item {
+        LongTextCard(
+            value = longTerm,
+            onChange = viewModel::onLongTermRisksChange,
+            label = "Long-term risks",
+        )
+      }
     }
+  }
 }
 
 @Composable
@@ -93,24 +91,23 @@ private fun LongTextCard(
     onChange: (String) -> Unit,
     label: String,
 ) {
-    val spacing = LocalSpacing.current
-    ElevatedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = spacing.screenHorizontal),
-    ) {
-        Column(modifier = Modifier.padding(spacing.lg)) {
-            OutlinedTextField(
-                value = value,
-                onValueChange = onChange,
-                label = { Text(label) },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
-                    capitalization = KeyboardCapitalization.Sentences,
-                ),
-                minLines = 4,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
+  val spacing = LocalSpacing.current
+  ElevatedCard(
+      modifier = Modifier.fillMaxWidth().padding(horizontal = spacing.screenHorizontal),
+  ) {
+    Column(modifier = Modifier.padding(spacing.lg)) {
+      OutlinedTextField(
+          value = value,
+          onValueChange = onChange,
+          label = { Text(label) },
+          keyboardOptions =
+              KeyboardOptions(
+                  keyboardType = KeyboardType.Text,
+                  capitalization = KeyboardCapitalization.Sentences,
+              ),
+          minLines = 4,
+          modifier = Modifier.fillMaxWidth(),
+      )
     }
+  }
 }

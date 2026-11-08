@@ -34,24 +34,25 @@ import foo.pilz.freaklog.ui.theme.horizontalPadding
 @Composable
 fun CustomUnitRowAddIngestion(
     customUnit: CustomUnit,
-    navigateToCustomUnitChooseDose: (customUnitId: Int) -> Unit
+    navigateToCustomUnitChooseDose: (customUnitId: Int) -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .clickable {
+  Column(
+      modifier =
+          Modifier.clickable {
                 navigateToCustomUnitChooseDose(customUnit.id)
-            }
-            .fillMaxWidth()
-            .padding(vertical = 10.dp, horizontal = horizontalPadding),
-        horizontalAlignment = Alignment.Start
-    ) {
-        Text(
-            text = "${customUnit.substanceName} ${customUnit.administrationRoute.displayText.lowercase()}, ${customUnit.name}",
-            style = MaterialTheme.typography.titleMedium
-        )
-        Text(
-            text = "${customUnit.getDoseOfOneUnitDescription()} per ${customUnit.unit}",
-            style = MaterialTheme.typography.titleSmall
-        )
-    }
+              }
+              .fillMaxWidth()
+              .padding(vertical = 10.dp, horizontal = horizontalPadding),
+      horizontalAlignment = Alignment.Start,
+  ) {
+    Text(
+        text =
+            "${customUnit.substanceName} ${customUnit.administrationRoute.displayText.lowercase()}, ${customUnit.name}",
+        style = MaterialTheme.typography.titleMedium,
+    )
+    Text(
+        text = "${customUnit.getDoseOfOneUnitDescription()} per ${customUnit.unit}",
+        style = MaterialTheme.typography.titleSmall,
+    )
+  }
 }

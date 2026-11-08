@@ -12,10 +12,10 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/') }}
 
 env:
-  main_project_module: 'app'
+  main_project_module: "app"
   # Deterministic JVM defaults for tests.
-  TZ: 'UTC'
-  LANG: 'en_US.UTF-8'
+  TZ: "UTC"
+  LANG: "en_US.UTF-8"
 
 jobs:
   # =========================================================================
@@ -61,7 +61,7 @@ jobs:
   wrapper-validation:
     name: Validate Gradle wrapper
     runs-on: ubuntu-latest
-    needs: [ resolve-env ]
+    needs: [resolve-env]
     permissions:
       contents: read
     steps:
@@ -80,7 +80,7 @@ jobs:
   schema-verification:
     name: Validate Room schemas & dataset invariants
     runs-on: ubuntu-latest
-    needs: [ resolve-env ]
+    needs: [resolve-env]
     permissions:
       contents: read
     steps:
@@ -127,7 +127,7 @@ jobs:
   flake-invariants:
     name: Nix Flake Invariant Checks
     runs-on: ubuntu-latest
-    needs: [ resolve-env ]
+    needs: [resolve-env]
     permissions:
       contents: read
     steps:
@@ -149,13 +149,38 @@ jobs:
       - name: Run Nix flake checks
         run: nix flake check
 
+  format-check:
+    name: Formatting (treefmt)
+    runs-on: ubuntu-latest
+    needs: [resolve-env]
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@448cde739abec1eaf0646249e3d25bb8d9bc7702 # v31.11.2
+        with:
+          extra_nix_config: |
+            extra-allowed-uris = http:// https://
+
+      - name: Check formatting with treefmt
+        run: nix fmt -- --fail-on-change
+
   # =========================================================================
   # STAGE 3: STATIC ANALYSIS & ARCHITECTURAL HYGIENE
   # =========================================================================
   architecture-hygiene:
     name: Architecture & Hygiene
     runs-on: ubuntu-latest
-    needs: [ wrapper-validation, schema-verification ]
+    needs: [wrapper-validation, schema-verification]
     permissions:
       contents: read
     steps:
@@ -257,7 +282,7 @@ jobs:
   detekt:
     name: Detekt
     runs-on: ubuntu-latest
-    needs: [ wrapper-validation ]
+    needs: [wrapper-validation]
     permissions:
       contents: read
       security-events: write
@@ -274,8 +299,8 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
@@ -303,7 +328,7 @@ jobs:
   lint:
     name: Android Lint
     runs-on: ubuntu-latest
-    needs: [ wrapper-validation, schema-verification ]
+    needs: [wrapper-validation, schema-verification]
     permissions:
       contents: read
       security-events: write
@@ -320,8 +345,8 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
@@ -352,7 +377,7 @@ jobs:
   test-freakquery:
     name: FreakQuery Engine Unit Tests
     runs-on: ubuntu-latest
-    needs: [ detekt ]
+    needs: [detekt]
     permissions:
       contents: read
     steps:
@@ -368,8 +393,8 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
@@ -391,7 +416,7 @@ jobs:
   test:
     name: Run Unit Tests (${{ matrix.test-suite }})
     runs-on: ubuntu-latest
-    needs: [ detekt, architecture-hygiene ]
+    needs: [detekt, architecture-hygiene]
     permissions:
       contents: read
       checks: write
@@ -404,7 +429,7 @@ jobs:
           - test-suite: ui
             test-args: '--tests "foo.pilz.freaklog.ui.*"'
           - test-suite: misc
-            test-args: '-PtestExclude=foo.pilz.freaklog.data.*,foo.pilz.freaklog.ui.*'
+            test-args: "-PtestExclude=foo.pilz.freaklog.data.*,foo.pilz.freaklog.ui.*"
     steps:
       - name: Harden the runner
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
@@ -418,8 +443,8 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
@@ -433,7 +458,7 @@ jobs:
         if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         uses: mikepenz/action-junit-report@6ef3fdcfcd5f0b5d14df3e659ef19b8c6820f93d # v6.6.1
         with:
-          report_paths: 'app/build/test-results/testDebugUnitTest/*.xml'
+          report_paths: "app/build/test-results/testDebugUnitTest/*.xml"
           check_name: Unit Test Results (${{ matrix.test-suite }})
           require_tests: true
 
@@ -449,14 +474,14 @@ jobs:
   compatibility:
     name: JVM compatibility (JDK ${{ matrix.java }}, ${{ matrix.environment.name }})
     runs-on: ubuntu-latest
-    needs: [ wrapper-validation, schema-verification ]
+    needs: [wrapper-validation, schema-verification]
     timeout-minutes: 45
     permissions:
       contents: read
     strategy:
       fail-fast: false
       matrix:
-        java: [ '17', '21' ]
+        java: ["17", "21"]
         environment:
           - name: berlin
             timezone: Europe/Berlin
@@ -484,7 +509,7 @@ jobs:
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
           java-version: ${{ matrix.java }}
-          distribution: 'temurin'
+          distribution: "temurin"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
@@ -495,8 +520,8 @@ jobs:
         if: matrix.java != '17'
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
           update-java-home: false
 
       - name: Exercise scheduling, export, and parsing in regional JVM defaults
@@ -528,7 +553,7 @@ jobs:
   build-apk-debug:
     name: Assemble Debug APK
     runs-on: ubuntu-latest
-    needs: [ test, test-freakquery ]
+    needs: [test, test-freakquery]
     permissions:
       contents: read
     steps:
@@ -544,8 +569,8 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
@@ -565,7 +590,7 @@ jobs:
   verify-apk-debug:
     name: Verify Debug APK
     runs-on: ubuntu-latest
-    needs: [ build-apk-debug ]
+    needs: [build-apk-debug]
     permissions:
       contents: read
     steps:
@@ -592,7 +617,7 @@ jobs:
   build-apk-release:
     name: Assemble Release APK
     runs-on: ubuntu-latest
-    needs: [ test, lint ]
+    needs: [test, lint]
     permissions:
       contents: read
     steps:
@@ -608,8 +633,8 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
@@ -637,7 +662,7 @@ jobs:
   verify-apk-release:
     name: Verify Release APK
     runs-on: ubuntu-latest
-    needs: [ build-apk-release ]
+    needs: [build-apk-release]
     permissions:
       contents: read
     steps:
@@ -664,7 +689,7 @@ jobs:
   build-aab-release:
     name: Assemble Release Bundle (AAB)
     runs-on: ubuntu-latest
-    needs: [ test, lint ]
+    needs: [test, lint]
     permissions:
       contents: read
     steps:
@@ -680,8 +705,8 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
@@ -701,7 +726,7 @@ jobs:
   verify-aab-release:
     name: Verify Release Bundle
     runs-on: ubuntu-latest
-    needs: [ build-aab-release ]
+    needs: [build-aab-release]
     permissions:
       contents: read
     steps:
@@ -728,13 +753,13 @@ jobs:
   nix-build:
     name: Nix Build (${{ matrix.app-type }})
     runs-on: ubuntu-latest
-    needs: [ flake-invariants, test-freakquery ]
+    needs: [flake-invariants, test-freakquery]
     permissions:
       contents: read
     strategy:
       fail-fast: false
       matrix:
-        app-type: [ apk, aab ]
+        app-type: [apk, aab]
     steps:
       - name: Harden the runner
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
@@ -764,7 +789,7 @@ jobs:
   verify-nix-build:
     name: Verify Nix APK presence
     runs-on: ubuntu-latest
-    needs: [ nix-build ]
+    needs: [nix-build]
     permissions:
       contents: read
     steps:
@@ -788,7 +813,7 @@ jobs:
   build-test-fixtures:
     name: Build Test Fixtures (androidTest APK)
     runs-on: ubuntu-latest
-    needs: [ test, wrapper-validation ]
+    needs: [test, wrapper-validation]
     permissions:
       contents: read
     steps:
@@ -804,8 +829,8 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
@@ -825,7 +850,7 @@ jobs:
   verify-test-fixtures:
     name: Verify Test Fixtures
     runs-on: ubuntu-latest
-    needs: [ build-test-fixtures ]
+    needs: [build-test-fixtures]
     permissions:
       contents: read
     steps:
@@ -853,7 +878,7 @@ jobs:
   coverage:
     name: Coverage report
     runs-on: ubuntu-latest
-    needs: [ test, test-freakquery ]
+    needs: [test, test-freakquery]
     permissions:
       contents: read
     steps:
@@ -869,8 +894,8 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
@@ -895,7 +920,7 @@ jobs:
   release-verification:
     name: Release unit tests and lint
     runs-on: ubuntu-latest
-    needs: [ verify-apk-release, verify-aab-release ]
+    needs: [verify-apk-release, verify-aab-release]
     timeout-minutes: 60
     permissions:
       contents: read
@@ -912,8 +937,8 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
@@ -936,7 +961,7 @@ jobs:
 
   connected-tests:
     name: Android runtime matrix
-    needs: [ verify-test-fixtures ]
+    needs: [verify-test-fixtures]
     permissions:
       contents: read
     uses: ./.github/workflows/instrumented-tests.yml
@@ -947,7 +972,18 @@ jobs:
   quality-gate:
     name: Quality & artifact attestation gate
     runs-on: ubuntu-latest
-    needs: [ verify-apk-debug, verify-apk-release, verify-aab-release, verify-nix-build, verify-test-fixtures, coverage, release-verification, compatibility ]
+    needs:
+      [
+        verify-apk-debug,
+        verify-apk-release,
+        verify-aab-release,
+        verify-nix-build,
+        verify-test-fixtures,
+        coverage,
+        release-verification,
+        compatibility,
+        format-check,
+      ]
     permissions:
       contents: read
     steps:
@@ -962,6 +998,7 @@ jobs:
           echo "           FREAKLOG CI PIPELINE QUALITY GATE             "
           echo "========================================================="
           echo " ✓ Static Analysis (Detekt, Lint, Architecture Hygiene)  "
+          echo " ✓ Formatting (treefmt: Nix, Kotlin, YAML, JSON, Markdown)"
           echo " ✓ Unit Test Matrix (Data, UI, Misc, FreakQuery Engine)  "
           echo " ✓ JVM & Regional Environment Compatibility (JDK 17, 21) "
           echo " ✓ Build Artifact Verification (APK Debug, Release, AAB) "
@@ -977,7 +1014,7 @@ jobs:
   ci-passed:
     name: CI passed
     runs-on: ubuntu-latest
-    needs: [ quality-gate, connected-tests ]
+    needs: [quality-gate, connected-tests]
     if: always()
     permissions: {}
     steps:

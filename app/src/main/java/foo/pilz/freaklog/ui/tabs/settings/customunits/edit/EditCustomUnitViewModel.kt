@@ -25,6 +25,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.substances.AdministrationRoute
@@ -33,138 +34,148 @@ import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.main.navigation.graphs.EditCustomUnitRoute
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
-import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
 @HiltViewModel
-class EditCustomUnitViewModel @Inject constructor(
+class EditCustomUnitViewModel
+@Inject
+constructor(
     private val experienceRepo: ExperienceRepository,
     substanceRepository: SubstanceRepository,
-    state: SavedStateHandle
+    state: SavedStateHandle,
 ) : ViewModel() {
 
-    private var customUnit: CustomUnit? = null
+  private var customUnit: CustomUnit? = null
 
-    var roaDose: RoaDose? = null
+  var roaDose: RoaDose? = null
 
-    var name by mutableStateOf("")
+  var name by mutableStateOf("")
 
-    var numberOfIngestionsWithThisCustomUnit: Int? by mutableStateOf(null)
+  var numberOfIngestionsWithThisCustomUnit: Int? by mutableStateOf(null)
 
-    var substanceName by mutableStateOf("")
-    var administrationRoute by mutableStateOf(AdministrationRoute.ORAL)
+  var substanceName by mutableStateOf("")
+  var administrationRoute by mutableStateOf(AdministrationRoute.ORAL)
 
-    val currentDoseClass: DoseClass? get() = roaDose?.getDoseClass(ingestionDose = dose)
+  val currentDoseClass: DoseClass?
+    get() = roaDose?.getDoseClass(ingestionDose = dose)
 
-    fun onChangeOfName(newName: String) {
-        name = newName
+  fun onChangeOfName(newName: String) {
+    name = newName
+  }
+
+  var unit by mutableStateOf("")
+
+  fun onChangeOfUnit(newUnit: String) {
+    unit = newUnit
+  }
+
+  var unitPlural by mutableStateOf("")
+
+  fun onChangeOfUnitPlural(newUnit: String) {
+    unitPlural = newUnit
+  }
+
+  var originalUnit by mutableStateOf("")
+
+  fun onChangeOfOriginalUnit(newUnit: String) {
+    originalUnit = newUnit
+  }
+
+  var doseText by mutableStateOf("")
+
+  fun onChangeOfDose(newDose: String) {
+    doseText = newDose
+  }
+
+  val dose: Double?
+    get() = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(doseText)
+
+  var estimatedDoseDeviationText by mutableStateOf("")
+
+  fun onChangeOfEstimatedDoseDeviation(newEstimatedDoseDeviation: String) {
+    estimatedDoseDeviationText = newEstimatedDoseDeviation
+  }
+
+  val estimatedDoseStandardDeviation: Double?
+    get() = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(estimatedDoseDeviationText)
+
+  var isEstimate by mutableStateOf(false)
+
+  fun onChangeOfIsEstimate(newIsEstimate: Boolean) {
+    isEstimate = newIsEstimate
+  }
+
+  var isArchived by mutableStateOf(false)
+
+  fun onChangeOfIsArchived(newIsArchived: Boolean) {
+    isArchived = newIsArchived
+  }
+
+  var note by mutableStateOf("")
+
+  fun onChangeOfNote(newNote: String) {
+    note = newNote
+  }
+
+  fun updateAndDismissAfter(dismiss: () -> Unit) {
+    viewModelScope.launch {
+      customUnit?.let {
+        it.dose = dose
+        it.name = name
+        it.isEstimate = isEstimate
+        it.originalUnit = originalUnit
+        it.unitPlural = unitPlural
+        it.estimatedDoseStandardDeviation = if (isEstimate) estimatedDoseStandardDeviation else null
+        it.isArchived = isArchived
+        it.unit = unit
+        it.note = note
+        experienceRepo.update(it)
+      }
+      withContext(Dispatchers.Main) {
+        dismiss()
+      }
     }
+  }
 
-    var unit by mutableStateOf("")
-
-    fun onChangeOfUnit(newUnit: String) {
-        unit = newUnit
+  fun deleteCustomUnit(dismiss: () -> Unit) {
+    viewModelScope.launch {
+      customUnit?.let {
+        experienceRepo.delete(customUnit = it)
+      }
+      withContext(Dispatchers.Main) {
+        dismiss()
+      }
     }
+  }
 
-    var unitPlural by mutableStateOf("")
-
-    fun onChangeOfUnitPlural(newUnit: String) {
-        unitPlural = newUnit
+  init {
+    val customUnitRoute: EditCustomUnitRoute = state.toRoute()
+    val customUnitId = customUnitRoute.customUnitId
+    viewModelScope.launch {
+      val customUnitWithIngestions = experienceRepo.getCustomUnitWithIngestions(customUnitId)
+      val customUnit = customUnitWithIngestions?.customUnit
+      this@EditCustomUnitViewModel.customUnit = customUnit
+      if (customUnit != null) {
+        substanceName = customUnit.substanceName
+        administrationRoute = customUnit.administrationRoute
+        val substance = substanceRepository.getSubstance(customUnit.substanceName)
+        roaDose = substance?.getRoa(customUnit.administrationRoute)?.roaDose
+        originalUnit = customUnit.originalUnit
+        name = customUnit.name
+        val pluralizableUnit = customUnit.getPluralizableUnit()
+        unit = customUnit.unit
+        unitPlural = pluralizableUnit.plural
+        doseText = customUnit.dose?.toReadableString() ?: ""
+        estimatedDoseDeviationText =
+            customUnit.estimatedDoseStandardDeviation?.toReadableString() ?: ""
+        isEstimate = customUnit.isEstimate
+        isArchived = customUnit.isArchived
+        note = customUnit.note
+      }
+      numberOfIngestionsWithThisCustomUnit = customUnitWithIngestions?.ingestions?.size
     }
-
-    var originalUnit by mutableStateOf("")
-
-    fun onChangeOfOriginalUnit(newUnit: String) {
-        originalUnit = newUnit
-    }
-
-    var doseText by mutableStateOf("")
-    fun onChangeOfDose(newDose: String) {
-        doseText = newDose
-    }
-    val dose: Double? get() = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(doseText)
-
-    var estimatedDoseDeviationText by mutableStateOf("")
-    fun onChangeOfEstimatedDoseDeviation(newEstimatedDoseDeviation: String) {
-        estimatedDoseDeviationText = newEstimatedDoseDeviation
-    }
-    val estimatedDoseStandardDeviation: Double? get() = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(estimatedDoseDeviationText)
-
-
-    var isEstimate by mutableStateOf(false)
-    fun onChangeOfIsEstimate(newIsEstimate: Boolean) {
-        isEstimate = newIsEstimate
-    }
-
-    var isArchived by mutableStateOf(false)
-    fun onChangeOfIsArchived(newIsArchived: Boolean) {
-        isArchived = newIsArchived
-    }
-
-    var note by mutableStateOf("")
-
-    fun onChangeOfNote(newNote: String) {
-        note = newNote
-    }
-
-    fun updateAndDismissAfter(dismiss: () -> Unit) {
-        viewModelScope.launch {
-            customUnit?.let {
-                it.dose = dose
-                it.name = name
-                it.isEstimate = isEstimate
-                it.originalUnit = originalUnit
-                it.unitPlural = unitPlural
-                it.estimatedDoseStandardDeviation = if (isEstimate) estimatedDoseStandardDeviation else null
-                it.isArchived = isArchived
-                it.unit = unit
-                it.note = note
-                experienceRepo.update(it)
-            }
-            withContext(Dispatchers.Main) {
-                dismiss()
-            }
-        }
-    }
-
-    fun deleteCustomUnit(dismiss: () -> Unit) {
-        viewModelScope.launch {
-            customUnit?.let {
-                experienceRepo.delete(customUnit = it)
-            }
-            withContext(Dispatchers.Main) {
-                dismiss()
-            }
-        }
-    }
-
-    init {
-        val customUnitRoute: EditCustomUnitRoute = state.toRoute()
-        val customUnitId = customUnitRoute.customUnitId
-        viewModelScope.launch {
-            val customUnitWithIngestions = experienceRepo.getCustomUnitWithIngestions(customUnitId)
-            val customUnit = customUnitWithIngestions?.customUnit
-            this@EditCustomUnitViewModel.customUnit = customUnit
-            if (customUnit != null) {
-                substanceName = customUnit.substanceName
-                administrationRoute = customUnit.administrationRoute
-                val substance = substanceRepository.getSubstance(customUnit.substanceName)
-                roaDose = substance?.getRoa(customUnit.administrationRoute)?.roaDose
-                originalUnit = customUnit.originalUnit
-                name = customUnit.name
-                val pluralizableUnit = customUnit.getPluralizableUnit()
-                unit = customUnit.unit
-                unitPlural = pluralizableUnit.plural
-                doseText = customUnit.dose?.toReadableString() ?: ""
-                estimatedDoseDeviationText = customUnit.estimatedDoseStandardDeviation?.toReadableString() ?: ""
-                isEstimate = customUnit.isEstimate
-                isArchived = customUnit.isArchived
-                note = customUnit.note
-            }
-            numberOfIngestionsWithThisCustomUnit = customUnitWithIngestions?.ingestions?.size
-        }
-    }
+  }
 }

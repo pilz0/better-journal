@@ -36,194 +36,211 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChooseDoseViewModelTest {
 
-    private val testDispatcher = StandardTestDispatcher()
-    private val substanceRepository = mockk<SubstanceRepository>()
-    private val experienceRepository = mockk<ExperienceRepository>()
-    private val userPreferences = mockk<UserPreferences>()
+  private val testDispatcher = StandardTestDispatcher()
+  private val substanceRepository = mockk<SubstanceRepository>()
+  private val experienceRepository = mockk<ExperienceRepository>()
+  private val userPreferences = mockk<UserPreferences>()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(testDispatcher)
-        every { userPreferences.useIntranasalForRectalFlow } returns flowOf(false)
-        coEvery { experienceRepository.getIntakeLimitsForSubstance(any()) } returns emptyList()
-    }
+  @Before
+  fun setUp() {
+    Dispatchers.setMain(testDispatcher)
+    every { userPreferences.useIntranasalForRectalFlow } returns flowOf(false)
+    coEvery { experienceRepository.getIntakeLimitsForSubstance(any()) } returns emptyList()
+  }
 
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+  @After
+  fun tearDown() {
+    Dispatchers.resetMain()
+  }
 
-    @Test
-    fun `init with known substance populates substance details and calculates purity`() {
-        val oralDose = RoaDose(
+  @Test
+  fun `init with known substance populates substance details and calculates purity`() {
+    val oralDose =
+        RoaDose(
             units = "mg",
             lightMin = 5.0,
             commonMin = 10.0,
             strongMin = 20.0,
             heavyMin = 30.0,
         )
-        val roa = Roa(
+    val roa =
+        Roa(
             route = AdministrationRoute.ORAL,
             roaDose = oralDose,
             roaDuration = null,
             bioavailability = null,
         )
-        val knownSubstance = mockk<Substance> {
-            every { name } returns "Ketamine"
-            every { dosageRemark } returns "Test remark"
-            every { getEffectiveRoa(AdministrationRoute.ORAL, any()) } returns roa
-            every { getRoa(AdministrationRoute.ORAL) } returns roa
+    val knownSubstance =
+        mockk<Substance> {
+          every { name } returns "Ketamine"
+          every { dosageRemark } returns "Test remark"
+          every { getEffectiveRoa(AdministrationRoute.ORAL, any()) } returns roa
+          every { getRoa(AdministrationRoute.ORAL) } returns roa
         }
-        every { substanceRepository.getSubstance("Ketamine") } returns knownSubstance
+    every { substanceRepository.getSubstance("Ketamine") } returns knownSubstance
 
-        val viewModel = ChooseDoseViewModel(
+    val viewModel =
+        ChooseDoseViewModel(
             repository = substanceRepository,
             experienceRepo = experienceRepository,
             userPreferences = userPreferences,
-            state = SavedStateHandle(
-                mapOf(
-                    "substanceName" to "Ketamine",
-                    "administrationRoute" to AdministrationRoute.ORAL,
-                )
-            ),
+            state =
+                SavedStateHandle(
+                    mapOf(
+                        "substanceName" to "Ketamine",
+                        "administrationRoute" to AdministrationRoute.ORAL,
+                    )
+                ),
         )
 
-        assertNotNull(viewModel.substance)
-        assertEquals("Ketamine", viewModel.substanceName)
-        assertEquals("Test remark", viewModel.doseRemark)
-        assertEquals(AdministrationRoute.ORAL, viewModel.administrationRoute)
-        assertEquals(oralDose, viewModel.roaDose)
+    assertNotNull(viewModel.substance)
+    assertEquals("Ketamine", viewModel.substanceName)
+    assertEquals("Test remark", viewModel.doseRemark)
+    assertEquals(AdministrationRoute.ORAL, viewModel.administrationRoute)
+    assertEquals(oralDose, viewModel.roaDose)
 
-        // Dose validation
-        assertFalse(viewModel.isValidDose)
-        viewModel.onDoseTextChange("15")
-        assertTrue(viewModel.isValidDose)
-        assertEquals(15.0, viewModel.dose ?: 0.0, 0.001)
+    // Dose validation
+    assertFalse(viewModel.isValidDose)
+    viewModel.onDoseTextChange("15")
+    assertTrue(viewModel.isValidDose)
+    assertEquals(15.0, viewModel.dose ?: 0.0, 0.001)
 
-        // Impure dose calculation
-        viewModel.purityText = "75"
-        assertEquals("20 impure mg", viewModel.impureDoseWithUnit)
-        viewModel.viewModelScope.cancel()
-    }
+    // Impure dose calculation
+    viewModel.purityText = "75"
+    assertEquals("20 impure mg", viewModel.impureDoseWithUnit)
+    viewModel.viewModelScope.cancel()
+  }
 
-    @Test
-    fun `init with unknown or custom substance does not crash and handles null gracefully`() {
-        every { substanceRepository.getSubstance("2C-B-FLY") } returns null
+  @Test
+  fun `init with unknown or custom substance does not crash and handles null gracefully`() {
+    every { substanceRepository.getSubstance("2C-B-FLY") } returns null
 
-        val viewModel = ChooseDoseViewModel(
+    val viewModel =
+        ChooseDoseViewModel(
             repository = substanceRepository,
             experienceRepo = experienceRepository,
             userPreferences = userPreferences,
-            state = SavedStateHandle(
-                mapOf(
-                    "substanceName" to "2C-B-FLY",
-                    "administrationRoute" to AdministrationRoute.ORAL,
-                )
-            ),
+            state =
+                SavedStateHandle(
+                    mapOf(
+                        "substanceName" to "2C-B-FLY",
+                        "administrationRoute" to AdministrationRoute.ORAL,
+                    )
+                ),
         )
 
-        assertNull(viewModel.substance)
-        assertEquals("2C-B-FLY", viewModel.substanceName)
-        assertNull(viewModel.doseRemark)
-        assertNull(viewModel.roaDose)
-        assertNull(viewModel.roaDuration)
+    assertNull(viewModel.substance)
+    assertEquals("2C-B-FLY", viewModel.substanceName)
+    assertNull(viewModel.doseRemark)
+    assertNull(viewModel.roaDose)
+    assertNull(viewModel.roaDuration)
 
-        // User can still type doses
-        viewModel.onDoseTextChange("10")
-        assertTrue(viewModel.isValidDose)
-        assertEquals(10.0, viewModel.dose ?: 0.0, 0.001)
+    // User can still type doses
+    viewModel.onDoseTextChange("10")
+    assertTrue(viewModel.isValidDose)
+    assertEquals(10.0, viewModel.dose ?: 0.0, 0.001)
 
-        // Impure dose without unit or with fallback unit
-        viewModel.purityText = "50"
-        assertEquals("20 impure", viewModel.impureDoseWithUnit)
-        viewModel.units = "mg"
-        assertEquals("20 impure mg", viewModel.impureDoseWithUnit)
-        viewModel.viewModelScope.cancel()
-    }
+    // Impure dose without unit or with fallback unit
+    viewModel.purityText = "50"
+    assertEquals("20 impure", viewModel.impureDoseWithUnit)
+    viewModel.units = "mg"
+    assertEquals("20 impure mg", viewModel.impureDoseWithUnit)
+    viewModel.viewModelScope.cancel()
+  }
 
-    @Test
-    fun `useIntranasalForRectal substitutes intranasal dose for rectal administration`() {
-        val sniffDose = RoaDose(
+  @Test
+  fun `useIntranasalForRectal substitutes intranasal dose for rectal administration`() {
+    val sniffDose =
+        RoaDose(
             units = "mg",
             lightMin = 10.0,
             commonMin = 20.0,
             strongMin = 40.0,
             heavyMin = 60.0,
         )
-        val insufflatedRoa = Roa(
+    val insufflatedRoa =
+        Roa(
             route = AdministrationRoute.INSUFFLATED,
             roaDose = sniffDose,
             roaDuration = null,
             bioavailability = null,
         )
-        val substance = mockk<Substance> {
-            every { name } returns "Ketamine"
-            every { dosageRemark } returns null
-            every { getEffectiveRoa(AdministrationRoute.RECTAL, true) } returns insufflatedRoa
-            every { getRoa(AdministrationRoute.RECTAL) } returns null
+    val substance =
+        mockk<Substance> {
+          every { name } returns "Ketamine"
+          every { dosageRemark } returns null
+          every { getEffectiveRoa(AdministrationRoute.RECTAL, true) } returns insufflatedRoa
+          every { getRoa(AdministrationRoute.RECTAL) } returns null
         }
-        every { substanceRepository.getSubstance("Ketamine") } returns substance
-        every { userPreferences.useIntranasalForRectalFlow } returns flowOf(true)
+    every { substanceRepository.getSubstance("Ketamine") } returns substance
+    every { userPreferences.useIntranasalForRectalFlow } returns flowOf(true)
 
-        val viewModel = ChooseDoseViewModel(
+    val viewModel =
+        ChooseDoseViewModel(
             repository = substanceRepository,
             experienceRepo = experienceRepository,
             userPreferences = userPreferences,
-            state = SavedStateHandle(
-                mapOf(
-                    "substanceName" to "Ketamine",
-                    "administrationRoute" to AdministrationRoute.RECTAL,
-                )
-            ),
+            state =
+                SavedStateHandle(
+                    mapOf(
+                        "substanceName" to "Ketamine",
+                        "administrationRoute" to AdministrationRoute.RECTAL,
+                    )
+                ),
         )
 
-        assertEquals(AdministrationRoute.RECTAL, viewModel.administrationRoute)
-        assertEquals(sniffDose, viewModel.roaDose)
-        viewModel.viewModelScope.cancel()
-    }
+    assertEquals(AdministrationRoute.RECTAL, viewModel.administrationRoute)
+    assertEquals(sniffDose, viewModel.roaDose)
+    viewModel.viewModelScope.cancel()
+  }
 
-    @Test
-    fun `init decodes serialized ChooseDoseRoute from SavedStateHandle`() {
-        val insufflatedDose = RoaDose(
+  @Test
+  fun `init decodes serialized ChooseDoseRoute from SavedStateHandle`() {
+    val insufflatedDose =
+        RoaDose(
             units = "mg",
             lightMin = 10.0,
             commonMin = 30.0,
             strongMin = 60.0,
             heavyMin = 100.0,
         )
-        val insufflatedRoa = Roa(
+    val insufflatedRoa =
+        Roa(
             route = AdministrationRoute.INSUFFLATED,
             roaDose = insufflatedDose,
             roaDuration = null,
             bioavailability = null,
         )
-        val substance = mockk<Substance> {
-            every { name } returns "Ketamine"
-            every { dosageRemark } returns null
-            every { getEffectiveRoa(AdministrationRoute.INSUFFLATED, any()) } returns insufflatedRoa
-            every { getRoa(AdministrationRoute.INSUFFLATED) } returns insufflatedRoa
+    val substance =
+        mockk<Substance> {
+          every { name } returns "Ketamine"
+          every { dosageRemark } returns null
+          every { getEffectiveRoa(AdministrationRoute.INSUFFLATED, any()) } returns insufflatedRoa
+          every { getRoa(AdministrationRoute.INSUFFLATED) } returns insufflatedRoa
         }
-        every { substanceRepository.getSubstance("Ketamine") } returns substance
+    every { substanceRepository.getSubstance("Ketamine") } returns substance
 
-        // Navigation encodes enum arguments as String in the SavedStateHandle bundle.
-        // This ensures the type-safe toRoute<ChooseDoseRoute>() decoding path is verified,
-        // rather than the flat get<AdministrationRoute> fallback.
-        val state = SavedStateHandle(
+    // Navigation encodes enum arguments as String in the SavedStateHandle bundle.
+    // This ensures the type-safe toRoute<ChooseDoseRoute>() decoding path is verified,
+    // rather than the flat get<AdministrationRoute> fallback.
+    val state =
+        SavedStateHandle(
             mapOf(
                 "substanceName" to "Ketamine",
                 "administrationRoute" to AdministrationRoute.INSUFFLATED.name,
             )
         )
-        val viewModel = ChooseDoseViewModel(
+    val viewModel =
+        ChooseDoseViewModel(
             repository = substanceRepository,
             experienceRepo = experienceRepository,
             userPreferences = userPreferences,
             state = state,
         )
 
-        assertEquals("Ketamine", viewModel.substanceName)
-        assertEquals(AdministrationRoute.INSUFFLATED, viewModel.administrationRoute)
-        assertEquals(insufflatedDose, viewModel.roaDose)
-        viewModel.viewModelScope.cancel()
-    }
+    assertEquals("Ketamine", viewModel.substanceName)
+    assertEquals(AdministrationRoute.INSUFFLATED, viewModel.administrationRoute)
+    assertEquals(insufflatedDose, viewModel.roaDose)
+    viewModel.viewModelScope.cancel()
+  }
 }

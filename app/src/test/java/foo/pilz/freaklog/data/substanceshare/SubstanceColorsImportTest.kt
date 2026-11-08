@@ -7,55 +7,59 @@ import org.junit.Test
 
 class SubstanceColorsImportTest {
 
-    private val json = Json { ignoreUnknownKeys = true }
+  private val json = Json { ignoreUnknownKeys = true }
 
-    @Test
-    fun envelopeRoundTrips() {
-        val envelope = SharedSubstanceColorsEnvelope(
+  @Test
+  fun envelopeRoundTrips() {
+    val envelope =
+        SharedSubstanceColorsEnvelope(
             format = SHARED_SUBSTANCE_COLORS_FORMAT,
             version = SHARED_SUBSTANCE_COLORS_VERSION,
-            colors = listOf(
-                SharedSubstanceColor("MDMA", 0xFFCA9EE6.toInt()),
-                SharedSubstanceColor("LSD", 0xFF8839EF.toInt()),
-            ),
+            colors =
+                listOf(
+                    SharedSubstanceColor("MDMA", 0xFFCA9EE6.toInt()),
+                    SharedSubstanceColor("LSD", 0xFF8839EF.toInt()),
+                ),
         )
-        val text = json.encodeToString(SharedSubstanceColorsEnvelope.serializer(), envelope)
-        val decoded = json.decodeFromString(SharedSubstanceColorsEnvelope.serializer(), text)
-        assertEquals(envelope, decoded)
-    }
+    val text = json.encodeToString(SharedSubstanceColorsEnvelope.serializer(), envelope)
+    val decoded = json.decodeFromString(SharedSubstanceColorsEnvelope.serializer(), text)
+    assertEquals(envelope, decoded)
+  }
 
-    @Test
-    fun computeColorImportAppliesOnlyKnownSubstances() {
-        val colors = listOf(
+  @Test
+  fun computeColorImportAppliesOnlyKnownSubstances() {
+    val colors =
+        listOf(
             SharedSubstanceColor("MDMA", 1),
             SharedSubstanceColor("LSD", 2),
             SharedSubstanceColor("Ketamine", 3),
         )
-        val plan = computeColorImport(colors, existingNames = setOf("MDMA", "Ketamine"))
-        assertEquals(listOf("MDMA", "Ketamine"), plan.toApply.map { it.substanceName })
-        assertEquals(listOf("LSD"), plan.skipped.map { it.substanceName })
-    }
+    val plan = computeColorImport(colors, existingNames = setOf("MDMA", "Ketamine"))
+    assertEquals(listOf("MDMA", "Ketamine"), plan.toApply.map { it.substanceName })
+    assertEquals(listOf("LSD"), plan.skipped.map { it.substanceName })
+  }
 
-    @Test
-    fun computeColorImportSkipsAllWhenNoneKnown() {
-        val colors = listOf(SharedSubstanceColor("MDMA", 1))
-        val plan = computeColorImport(colors, existingNames = emptySet())
-        assertTrue(plan.toApply.isEmpty())
-        assertEquals(1, plan.skipped.size)
-    }
+  @Test
+  fun computeColorImportSkipsAllWhenNoneKnown() {
+    val colors = listOf(SharedSubstanceColor("MDMA", 1))
+    val plan = computeColorImport(colors, existingNames = emptySet())
+    assertTrue(plan.toApply.isEmpty())
+    assertEquals(1, plan.skipped.size)
+  }
 
-    @Test
-    fun computeColorImportDeduplicatesDuplicateSubstances() {
-        val colors = listOf(
+  @Test
+  fun computeColorImportDeduplicatesDuplicateSubstances() {
+    val colors =
+        listOf(
             SharedSubstanceColor("MDMA", 1),
             SharedSubstanceColor("MDMA", 2),
             SharedSubstanceColor("Unknown", 3),
             SharedSubstanceColor("Unknown", 4),
         )
-        val plan = computeColorImport(colors, existingNames = setOf("MDMA"))
-        assertEquals(1, plan.toApply.size)
-        assertEquals(1, plan.toApply.first().colorArgb)
-        assertEquals(1, plan.skipped.size)
-        assertEquals("Unknown", plan.skipped.first().substanceName)
-    }
+    val plan = computeColorImport(colors, existingNames = setOf("MDMA"))
+    assertEquals(1, plan.toApply.size)
+    assertEquals(1, plan.toApply.first().colorArgb)
+    assertEquals(1, plan.skipped.size)
+    assertEquals("Unknown", plan.skipped.first().substanceName)
+  }
 }

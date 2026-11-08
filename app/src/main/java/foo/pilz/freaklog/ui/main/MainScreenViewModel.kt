@@ -26,65 +26,74 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
+import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 val ARE_CONDITIONS_ACCEPTED = booleanPreferencesKey("are_conditions_accepted")
 
 @HiltViewModel
-class MainScreenViewModel @Inject constructor(
+class MainScreenViewModel
+@Inject
+constructor(
     private val dataStore: DataStore<Preferences>,
     private val userPreferences: UserPreferences,
 ) : ViewModel() {
 
-    val isAcceptedFlow: StateFlow<Boolean> = dataStore.data
-        .map { preferences ->
+  val isAcceptedFlow: StateFlow<Boolean> =
+      dataStore.data
+          .map { preferences ->
             preferences[ARE_CONDITIONS_ACCEPTED] ?: false
-        }.stateIn(
-            initialValue = true,
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000)
-        )
+          }
+          .stateIn(
+              initialValue = true,
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+          )
 
-    val activateSaferFlow = userPreferences.activateSaferFlow.stateIn(
-        initialValue = false,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+  val activateSaferFlow =
+      userPreferences.activateSaferFlow.stateIn(
+          initialValue = false,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    val isStatsHiddenFlow = userPreferences.isStatsHiddenFlow.stateIn(
-        initialValue = false,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+  val isStatsHiddenFlow =
+      userPreferences.isStatsHiddenFlow.stateIn(
+          initialValue = false,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    val isDrugsHiddenFlow = userPreferences.isDrugsHiddenFlow.stateIn(
-        initialValue = false,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+  val isDrugsHiddenFlow =
+      userPreferences.isDrugsHiddenFlow.stateIn(
+          initialValue = false,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    val isInventoryEnabledFlow = userPreferences.isInventoryEnabledFlow.stateIn(
-        initialValue = false,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+  val isInventoryEnabledFlow =
+      userPreferences.isInventoryEnabledFlow.stateIn(
+          initialValue = false,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    val isHapticFeedbackEnabledFlow = userPreferences.isHapticFeedbackEnabledFlow.stateIn(
-        initialValue = true,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+  val isHapticFeedbackEnabledFlow =
+      userPreferences.isHapticFeedbackEnabledFlow.stateIn(
+          initialValue = true,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    fun accept() {
-        viewModelScope.launch {
-            dataStore.edit { settings ->
-                settings[ARE_CONDITIONS_ACCEPTED] = true
-            }
-        }
+  fun accept() {
+    viewModelScope.launch {
+      dataStore.edit { settings ->
+        settings[ARE_CONDITIONS_ACCEPTED] = true
+      }
     }
+  }
 }

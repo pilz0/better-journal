@@ -27,57 +27,61 @@ fun AddSubstanceGroupScreen(
     navigateToAddItem: (groupId: Int) -> Unit,
     viewModel: AddSubstanceGroupViewModel = hiltViewModel(),
 ) {
-    var isShowingDiscardDialog by remember { mutableStateOf(false) }
-    val name by viewModel.nameFlow.collectAsStateWithLifecycle()
-    val id by viewModel.idFlow.collectAsStateWithLifecycle()
-    val items by viewModel.itemsFlow.collectAsStateWithLifecycle()
+  var isShowingDiscardDialog by remember { mutableStateOf(false) }
+  val name by viewModel.nameFlow.collectAsStateWithLifecycle()
+  val id by viewModel.idFlow.collectAsStateWithLifecycle()
+  val items by viewModel.itemsFlow.collectAsStateWithLifecycle()
 
-    BackHandler { isShowingDiscardDialog = true }
+  BackHandler { isShowingDiscardDialog = true }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Add substance group") },
-                navigationIcon = {
-                    IconButton(onClick = { isShowingDiscardDialog = true }) {
-                        Icon(Icons.Default.ChevronLeft, contentDescription = "Back")
-                    }
-                },
-            )
-        },
-    ) { padding ->
-        SubstanceGroupEditorContent(
-            padding = padding,
-            name = name,
-            onNameChange = viewModel::onNameChange,
-            items = items,
-            onAddItem = id?.let { groupId -> { navigateToAddItem(groupId) } },
-            onRemoveItem = viewModel::removeItem,
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Add substance group") },
+            navigationIcon = {
+              IconButton(onClick = { isShowingDiscardDialog = true }) {
+                Icon(Icons.Default.ChevronLeft, contentDescription = "Back")
+              }
+            },
         )
+      },
+  ) { padding ->
+    SubstanceGroupEditorContent(
+        padding = padding,
+        name = name,
+        onNameChange = viewModel::onNameChange,
+        items = items,
+        onAddItem = id?.let { groupId -> { navigateToAddItem(groupId) } },
+        onRemoveItem = viewModel::removeItem,
+    )
 
-        AnimatedVisibility(visible = isShowingDiscardDialog) {
-            AlertDialog(
-                onDismissRequest = { isShowingDiscardDialog = false },
-                title = { Text("Discard group?") },
-                text = { Text("Anything you have entered will be lost.") },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            isShowingDiscardDialog = false
-                            viewModel.deleteDraft()
-                            navigateBack()
-                        },
-                    ) { Text("Discard") }
+    AnimatedVisibility(visible = isShowingDiscardDialog) {
+      AlertDialog(
+          onDismissRequest = { isShowingDiscardDialog = false },
+          title = { Text("Discard group?") },
+          text = { Text("Anything you have entered will be lost.") },
+          confirmButton = {
+            TextButton(
+                onClick = {
+                  isShowingDiscardDialog = false
+                  viewModel.deleteDraft()
+                  navigateBack()
                 },
-                dismissButton = {
-                    TextButton(onClick = {
-                        isShowingDiscardDialog = false
-                        navigateBack()
-                    }) {
-                        Text("Keep")
-                    }
-                },
-            )
-        }
+            ) {
+              Text("Discard")
+            }
+          },
+          dismissButton = {
+            TextButton(
+                onClick = {
+                  isShowingDiscardDialog = false
+                  navigateBack()
+                }
+            ) {
+              Text("Keep")
+            }
+          },
+      )
     }
+  }
 }

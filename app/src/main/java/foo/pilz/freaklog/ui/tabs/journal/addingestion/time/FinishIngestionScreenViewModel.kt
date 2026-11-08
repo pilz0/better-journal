@@ -46,6 +46,12 @@ import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import foo.pilz.freaklog.ui.utils.getInstant
 import foo.pilz.freaklog.ui.utils.getLocalDateTime
 import foo.pilz.freaklog.ui.utils.getStringOfPattern
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -58,29 +64,26 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.time.Duration
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.temporal.ChronoUnit
-import javax.inject.Inject
 
 const val hourLimitToSeparateIngestions: Long = 12
 
 enum class IngestionTimePickerOption {
-    POINT_IN_TIME, TIME_RANGE
+  POINT_IN_TIME,
+  TIME_RANGE,
 }
 
 enum class IngestionTimePreset(val label: String, val minutesAgo: Long) {
-    NOW("Now", 0),
-    FIFTEEN_MINUTES_AGO("15m ago", 15),
-    THIRTY_MINUTES_AGO("30m ago", 30),
-    ONE_HOUR_AGO("1h ago", 60),
-    TWO_HOURS_AGO("2h ago", 120)
+  NOW("Now", 0),
+  FIFTEEN_MINUTES_AGO("15m ago", 15),
+  THIRTY_MINUTES_AGO("30m ago", 30),
+  ONE_HOUR_AGO("1h ago", 60),
+  TWO_HOURS_AGO("2h ago", 120),
 }
 
 @HiltViewModel
-class FinishIngestionScreenViewModel @Inject constructor(
+class FinishIngestionScreenViewModel
+@Inject
+constructor(
     private val experienceRepo: ExperienceRepository,
     private val userPreferences: UserPreferences,
     private val webhookRepository: WebhookRepository,
@@ -88,438 +91,488 @@ class FinishIngestionScreenViewModel @Inject constructor(
     private val customFormulationRepository: CustomFormulationRepository,
     private val substanceRepository: SubstanceRepositoryInterface,
     @ApplicationScope private val externalScope: CoroutineScope,
-    @dagger.hilt.android.qualifiers.ApplicationContext private val appContext: android.content.Context,
-    state: SavedStateHandle
+    @dagger.hilt.android.qualifiers.ApplicationContext
+    private val appContext: android.content.Context,
+    state: SavedStateHandle,
 ) : ViewModel() {
-    
-    data class FormulationOption(
-        val name: String,
-        val isCustom: Boolean,
-        val customFormulationId: Int? = null
-    )
 
-    private val finishIngestionRoute: FinishIngestionRoute? =
-        runCatching { state.toRoute<FinishIngestionRoute>() }.getOrNull()
+  data class FormulationOption(
+      val name: String,
+      val isCustom: Boolean,
+      val customFormulationId: Int? = null,
+  )
 
-    private val _administrationRoute: AdministrationRoute =
-        finishIngestionRoute?.administrationRoute
-            ?: runCatching { state.get<AdministrationRoute>("administrationRoute") }.getOrNull()
-            ?: state.get<String>("administrationRoute")?.let { runCatching { AdministrationRoute.valueOf(it) }.getOrNull() }
-            ?: AdministrationRoute.ORAL
-    val administrationRoute: AdministrationRoute
-        get() = _administrationRoute
+  private val finishIngestionRoute: FinishIngestionRoute? =
+      runCatching { state.toRoute<FinishIngestionRoute>() }.getOrNull()
 
-    var substanceName by mutableStateOf(
-        finishIngestionRoute?.substanceName ?: state.get<String>("substanceName").orEmpty()
-    )
+  private val _administrationRoute: AdministrationRoute =
+      finishIngestionRoute?.administrationRoute
+          ?: runCatching { state.get<AdministrationRoute>("administrationRoute") }.getOrNull()
+          ?: state.get<String>("administrationRoute")?.let {
+            runCatching { AdministrationRoute.valueOf(it) }.getOrNull()
+          }
+          ?: AdministrationRoute.ORAL
+  val administrationRoute: AdministrationRoute
+    get() = _administrationRoute
 
-    private val dose: Double? =
-        finishIngestionRoute?.dose ?: state.get<Double>("dose")
-    private val units: String? =
-        (finishIngestionRoute?.units ?: state.get<String>("units"))?.takeIf { it != "null" }
-    private val isEstimate: Boolean =
-        finishIngestionRoute?.isEstimate ?: state.get<Boolean>("isEstimate") ?: false
-    private val estimatedDoseStandardDeviation: Double? =
-        finishIngestionRoute?.estimatedDoseStandardDeviation ?: state.get<Double>("estimatedDoseStandardDeviation")
-    private val customUnitId: Int? =
-        finishIngestionRoute?.customUnitId ?: state.get<Int>("customUnitId")
-    private var substanceCompanion: SubstanceCompanion? = null
+  var substanceName by
+      mutableStateOf(
+          finishIngestionRoute?.substanceName ?: state.get<String>("substanceName").orEmpty()
+      )
 
-    // Check if site selection is relevant for the current administration route
-    val showSiteSelection: Boolean
-        get() = _administrationRoute.showSiteSelection
+  private val dose: Double? = finishIngestionRoute?.dose ?: state.get<Double>("dose")
+  private val units: String? =
+      (finishIngestionRoute?.units ?: state.get<String>("units"))?.takeIf { it != "null" }
+  private val isEstimate: Boolean =
+      finishIngestionRoute?.isEstimate ?: state.get<Boolean>("isEstimate") ?: false
+  private val estimatedDoseStandardDeviation: Double? =
+      finishIngestionRoute?.estimatedDoseStandardDeviation
+          ?: state.get<Double>("estimatedDoseStandardDeviation")
+  private val customUnitId: Int? =
+      finishIngestionRoute?.customUnitId ?: state.get<Int>("customUnitId")
+  private var substanceCompanion: SubstanceCompanion? = null
 
-    // Get the appropriate site options for the current administration route
-    val siteOptions: List<String>
-        get() = _administrationRoute.siteOptions
+  // Check if site selection is relevant for the current administration route
+  val showSiteSelection: Boolean
+    get() = _administrationRoute.showSiteSelection
 
-    var selectedFormulationName by mutableStateOf<String?>(null)
-    var selectedCustomFormulationId by mutableStateOf<Int?>(null)
+  // Get the appropriate site options for the current administration route
+  val siteOptions: List<String>
+    get() = _administrationRoute.siteOptions
 
-    val localDateTimeStartFlow = MutableStateFlow(LocalDateTime.now())
-    val localDateTimeEndFlow = MutableStateFlow(LocalDateTime.now().plusMinutes(30))
-    val ingestionTimePickerOptionFlow = MutableStateFlow(IngestionTimePickerOption.POINT_IN_TIME)
-    val experiencesInRangeFlow = MutableStateFlow<List<ExperienceWithIngestions>>(emptyList())
-    val selectedExperienceFlow = MutableStateFlow<ExperienceWithIngestions?>(null)
-    var enteredTitle by mutableStateOf(LocalDateTime.now().getStringOfPattern("dd MMMM yyyy"))
-    val isEnteredTitleOk get() = enteredTitle.isNotEmpty()
-    var consumerName by mutableStateOf("")
-    var ingestionCategory: foo.pilz.freaklog.data.substances.classes.IngestionCategory? by mutableStateOf(null)
-    var inheritedCategory: foo.pilz.freaklog.data.substances.classes.IngestionCategory? by mutableStateOf(null)
+  var selectedFormulationName by mutableStateOf<String?>(null)
+  var selectedCustomFormulationId by mutableStateOf<Int?>(null)
 
-    /**
-     * Mutable map of webhook-id -> "should send to this webhook" for the
-     * current ingestion. Initialised to all enabled webhooks pre-selected.
-     */
-    val selectedWebhookIds: SnapshotStateMap<Int, Boolean> = mutableStateMapOf()
+  val localDateTimeStartFlow = MutableStateFlow(LocalDateTime.now())
+  val localDateTimeEndFlow = MutableStateFlow(LocalDateTime.now().plusMinutes(30))
+  val ingestionTimePickerOptionFlow = MutableStateFlow(IngestionTimePickerOption.POINT_IN_TIME)
+  val experiencesInRangeFlow = MutableStateFlow<List<ExperienceWithIngestions>>(emptyList())
+  val selectedExperienceFlow = MutableStateFlow<ExperienceWithIngestions?>(null)
+  var enteredTitle by mutableStateOf(LocalDateTime.now().getStringOfPattern("dd MMMM yyyy"))
+  val isEnteredTitleOk
+    get() = enteredTitle.isNotEmpty()
 
-    val enabledWebhooksFlow: StateFlow<List<Webhook>> =
-        webhookRepository.getEnabledFlow()
-            .stateIn(
-                initialValue = emptyList(),
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000)
-            )
+  var consumerName by mutableStateOf("")
+  var ingestionCategory: foo.pilz.freaklog.data.substances.classes.IngestionCategory? by
+      mutableStateOf(null)
+  var inheritedCategory: foo.pilz.freaklog.data.substances.classes.IngestionCategory? by
+      mutableStateOf(null)
 
-    init {
-        viewModelScope.launch {
-            val companion = experienceRepo.getSubstanceCompanionFlow(substanceName).first()
-            val customUnit = customUnitId?.let { experienceRepo.getCustomUnit(it) }
-            inheritedCategory = customUnit?.defaultCategory
-                ?: companion?.defaultCategory
-                ?: foo.pilz.freaklog.data.substances.classes.IngestionCategory.DEFAULT_INGESTION_CATEGORY
-        }
-        viewModelScope.launch {
-            // Pre-select every enabled webhook by default. We only mutate
-            // entries that the user hasn't already touched.
-            enabledWebhooksFlow.collect { hooks ->
-                for (hook in hooks) {
-                    if (!selectedWebhookIds.containsKey(hook.id)) {
-                        selectedWebhookIds[hook.id] = true
-                    }
-                }
-            }
-        }
-        viewModelScope.launch {
-            val lastIngestionTimeOfExperience =
-                userPreferences.lastIngestionTimeOfExperienceFlow.first()
-            val clonedIngestionTime = userPreferences.clonedIngestionTimeFlow.first()
-            if (clonedIngestionTime != null) {
-                localDateTimeStartFlow.emit(clonedIngestionTime.getLocalDateTime())
-                localDateTimeEndFlow.emit(clonedIngestionTime.plus(30, ChronoUnit.MINUTES).getLocalDateTime())
-                updateTitleBasedOnTime(clonedIngestionTime)
-            } else if (lastIngestionTimeOfExperience != null) {
-                val wasLastIngestionOfExperienceLessThan20HoursAgo =
-                    lastIngestionTimeOfExperience > Instant.now().minus(20, ChronoUnit.HOURS)
-                if (wasLastIngestionOfExperienceLessThan20HoursAgo) {
-                    localDateTimeStartFlow.emit(lastIngestionTimeOfExperience.getLocalDateTime())
-                    localDateTimeEndFlow.emit(lastIngestionTimeOfExperience.plus(30, ChronoUnit.MINUTES).getLocalDateTime())
-                    updateTitleBasedOnTime(lastIngestionTimeOfExperience)
-                }
-            }
-            updateExperiencesBasedOnSelectedTime()
-            val allCompanions = experienceRepo.getAllSubstanceCompanionsFlow().first()
-            val thisCompanion = allCompanions.firstOrNull { it.substanceName == substanceName }
-            substanceCompanion = thisCompanion
-            if (thisCompanion == null) {
-                isShowingColorPicker = true
-                val alreadyUsedColors = allCompanions.map { it.color }
-                val otherColors = AdaptiveColor.entries.filter { !alreadyUsedColors.contains(it) }
-                selectedColor = otherColors.filter { it.isPreferred }.randomOrNull()
-                    ?: otherColors.randomOrNull() ?: AdaptiveColor.entries.random()
-            } else {
-                selectedColor = thisCompanion.color
-            }
-            isLoadingColor = false
-        }
+  /**
+   * Mutable map of webhook-id -> "should send to this webhook" for the current ingestion.
+   * Initialised to all enabled webhooks pre-selected.
+   */
+  val selectedWebhookIds: SnapshotStateMap<Int, Boolean> = mutableStateMapOf()
+
+  val enabledWebhooksFlow: StateFlow<List<Webhook>> =
+      webhookRepository
+          .getEnabledFlow()
+          .stateIn(
+              initialValue = emptyList(),
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+          )
+
+  init {
+    viewModelScope.launch {
+      val companion = experienceRepo.getSubstanceCompanionFlow(substanceName).first()
+      val customUnit = customUnitId?.let { experienceRepo.getCustomUnit(it) }
+      inheritedCategory =
+          customUnit?.defaultCategory
+              ?: companion?.defaultCategory
+              ?: foo.pilz.freaklog.data.substances.classes.IngestionCategory
+                  .DEFAULT_INGESTION_CATEGORY
     }
-
-    fun setWebhookSelected(webhookId: Int, selected: Boolean) {
-        selectedWebhookIds[webhookId] = selected
-    }
-
-
-    fun onChangeTimePickerOption(ingestionTimePickerOption: IngestionTimePickerOption) =
-        viewModelScope.launch {
-            ingestionTimePickerOptionFlow.emit(ingestionTimePickerOption)
+    viewModelScope.launch {
+      // Pre-select every enabled webhook by default. We only mutate
+      // entries that the user hasn't already touched.
+      enabledWebhooksFlow.collect { hooks ->
+        for (hook in hooks) {
+          if (!selectedWebhookIds.containsKey(hook.id)) {
+            selectedWebhookIds[hook.id] = true
+          }
         }
-
-    private val sortedExperiencesFlow = experienceRepo.getSortedExperiencesWithIngestionsFlow()
-
-    val sortedConsumerNamesFlow =
-        experienceRepo.getSortedIngestions(limit = 200).map { ingestions ->
-            return@map ingestions.mapNotNull { it.consumerName }.distinct()
-        }.stateIn(
-            initialValue = emptyList(),
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000)
+      }
+    }
+    viewModelScope.launch {
+      val lastIngestionTimeOfExperience = userPreferences.lastIngestionTimeOfExperienceFlow.first()
+      val clonedIngestionTime = userPreferences.clonedIngestionTimeFlow.first()
+      if (clonedIngestionTime != null) {
+        localDateTimeStartFlow.emit(clonedIngestionTime.getLocalDateTime())
+        localDateTimeEndFlow.emit(
+            clonedIngestionTime.plus(30, ChronoUnit.MINUTES).getLocalDateTime()
         )
+        updateTitleBasedOnTime(clonedIngestionTime)
+      } else if (lastIngestionTimeOfExperience != null) {
+        val wasLastIngestionOfExperienceLessThan20HoursAgo =
+            lastIngestionTimeOfExperience > Instant.now().minus(20, ChronoUnit.HOURS)
+        if (wasLastIngestionOfExperienceLessThan20HoursAgo) {
+          localDateTimeStartFlow.emit(lastIngestionTimeOfExperience.getLocalDateTime())
+          localDateTimeEndFlow.emit(
+              lastIngestionTimeOfExperience.plus(30, ChronoUnit.MINUTES).getLocalDateTime()
+          )
+          updateTitleBasedOnTime(lastIngestionTimeOfExperience)
+        }
+      }
+      updateExperiencesBasedOnSelectedTime()
+      val allCompanions = experienceRepo.getAllSubstanceCompanionsFlow().first()
+      val thisCompanion = allCompanions.firstOrNull { it.substanceName == substanceName }
+      substanceCompanion = thisCompanion
+      if (thisCompanion == null) {
+        isShowingColorPicker = true
+        val alreadyUsedColors = allCompanions.map { it.color }
+        val otherColors = AdaptiveColor.entries.filter { !alreadyUsedColors.contains(it) }
+        selectedColor =
+            otherColors.filter { it.isPreferred }.randomOrNull()
+                ?: otherColors.randomOrNull()
+                ?: AdaptiveColor.entries.random()
+      } else {
+        selectedColor = thisCompanion.color
+      }
+      isLoadingColor = false
+    }
+  }
 
-    val availableFormulationsFlow: StateFlow<List<FormulationOption>> = customFormulationRepository.getAll()
-        .map { allCustoms ->
-            val matchingCustoms = allCustoms.filter { it.substanceName == substanceName && it.baseRoa == _administrationRoute }
-            val builtin = substanceRepository.getSubstance(substanceName)?.formulations?.filter { it.route == _administrationRoute } ?: emptyList()
-            
+  fun setWebhookSelected(webhookId: Int, selected: Boolean) {
+    selectedWebhookIds[webhookId] = selected
+  }
+
+  fun onChangeTimePickerOption(ingestionTimePickerOption: IngestionTimePickerOption) =
+      viewModelScope.launch {
+        ingestionTimePickerOptionFlow.emit(ingestionTimePickerOption)
+      }
+
+  private val sortedExperiencesFlow = experienceRepo.getSortedExperiencesWithIngestionsFlow()
+
+  val sortedConsumerNamesFlow =
+      experienceRepo
+          .getSortedIngestions(limit = 200)
+          .map { ingestions ->
+            return@map ingestions.mapNotNull { it.consumerName }.distinct()
+          }
+          .stateIn(
+              initialValue = emptyList(),
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+          )
+
+  val availableFormulationsFlow: StateFlow<List<FormulationOption>> =
+      customFormulationRepository
+          .getAll()
+          .map { allCustoms ->
+            val matchingCustoms = allCustoms.filter {
+              it.substanceName == substanceName && it.baseRoa == _administrationRoute
+            }
+            val builtin =
+                substanceRepository.getSubstance(substanceName)?.formulations?.filter {
+                  it.route == _administrationRoute
+                } ?: emptyList()
+
             val options = mutableListOf<FormulationOption>()
             builtin.forEach { options.add(FormulationOption(name = it.name, isCustom = false)) }
-            matchingCustoms.forEach { options.add(FormulationOption(name = it.name, isCustom = true, customFormulationId = it.id)) }
+            matchingCustoms.forEach {
+              options.add(
+                  FormulationOption(name = it.name, isCustom = true, customFormulationId = it.id)
+              )
+            }
             options
-        }.stateIn(
-            initialValue = emptyList(),
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000)
-        )
+          }
+          .stateIn(
+              initialValue = emptyList(),
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+          )
 
-    var isLoadingColor by mutableStateOf(true)
-    var isShowingColorPicker by mutableStateOf(false)
-    var selectedColor: AdaptiveColor by mutableStateOf(AdaptiveColor.BLUE)
-    var note by mutableStateOf("")
-    var administrationSite by mutableStateOf("")
-    var saltForm by mutableStateOf("")
-    private var hasTitleBeenChanged = false
+  var isLoadingColor by mutableStateOf(true)
+  var isShowingColorPicker by mutableStateOf(false)
+  var selectedColor: AdaptiveColor by mutableStateOf(AdaptiveColor.BLUE)
+  var note by mutableStateOf("")
+  var administrationSite by mutableStateOf("")
+  var saltForm by mutableStateOf("")
+  private var hasTitleBeenChanged = false
 
-    fun changeTitle(newTitle: String) {
-        enteredTitle = newTitle
-        hasTitleBeenChanged = true
-    }
+  fun changeTitle(newTitle: String) {
+    enteredTitle = newTitle
+    hasTitleBeenChanged = true
+  }
 
-    fun changeConsumerName(newName: String) {
-        consumerName = newName
-    }
+  fun changeConsumerName(newName: String) {
+    consumerName = newName
+  }
 
-    fun changeAdministrationSite(newSite: String) {
-        administrationSite = newSite
-    }
+  fun changeAdministrationSite(newSite: String) {
+    administrationSite = newSite
+  }
 
-    fun changeSaltForm(value: String) {
-        saltForm = value
-    }
+  fun changeSaltForm(value: String) {
+    saltForm = value
+  }
 
-    val previousNotesFlow: StateFlow<List<String>> =
-        experienceRepo.getSortedIngestionsFlow(substanceName, limit = 10).map { list ->
+  val previousNotesFlow: StateFlow<List<String>> =
+      experienceRepo
+          .getSortedIngestionsFlow(substanceName, limit = 10)
+          .map { list ->
             list.mapNotNull { it.notes }.filter { it.isNotBlank() }.distinct()
-        }.stateIn(
-            initialValue = emptyList(),
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000)
-        )
+          }
+          .stateIn(
+              initialValue = emptyList(),
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+          )
 
-    val previousSaltFormsFlow: StateFlow<List<String>> =
-        experienceRepo.getSortedIngestionsFlow(substanceName, limit = 10).map { list ->
+  val previousSaltFormsFlow: StateFlow<List<String>> =
+      experienceRepo
+          .getSortedIngestionsFlow(substanceName, limit = 10)
+          .map { list ->
             list.mapNotNull { it.saltForm }.filter { it.isNotBlank() }.distinct()
-        }.stateIn(
-            initialValue = emptyList(),
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000)
-        )
+          }
+          .stateIn(
+              initialValue = emptyList(),
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+          )
 
-    private val companionFlow = experienceRepo.getAllSubstanceCompanionsFlow()
+  private val companionFlow = experienceRepo.getAllSubstanceCompanionsFlow()
 
-    val alreadyUsedColorsFlow: StateFlow<List<AdaptiveColor>> =
-        companionFlow.map { companions ->
+  val alreadyUsedColorsFlow: StateFlow<List<AdaptiveColor>> =
+      companionFlow
+          .map { companions ->
             companions.map { it.color }.distinct()
-        }.stateIn(
-            initialValue = emptyList(),
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000)
-        )
+          }
+          .stateIn(
+              initialValue = emptyList(),
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+          )
 
-    val otherColorsFlow: StateFlow<List<AdaptiveColor>> =
-        alreadyUsedColorsFlow.map { alreadyUsedColors ->
+  val otherColorsFlow: StateFlow<List<AdaptiveColor>> =
+      alreadyUsedColorsFlow
+          .map { alreadyUsedColors ->
             AdaptiveColor.entries.filter {
-                !alreadyUsedColors.contains(it)
+              !alreadyUsedColors.contains(it)
             }
-        }.stateIn(
-            initialValue = emptyList(),
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000)
+          }
+          .stateIn(
+              initialValue = emptyList(),
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+          )
+
+  private val newExperienceIdToUseFlow: Flow<Int> = sortedExperiencesFlow.map { experiences ->
+    val previousMax = experiences.maxOfOrNull { it.experience.id } ?: 1
+    return@map previousMax + 1
+  }
+
+  fun onChangeOfSelectedExperience(experienceWithIngestions: ExperienceWithIngestions?) =
+      viewModelScope.launch {
+        selectedExperienceFlow.emit(experienceWithIngestions)
+      }
+
+  fun applyTimePreset(preset: IngestionTimePreset, now: Instant = Instant.now()) =
+      onChangeStartDateOrTime(now.minus(preset.minutesAgo, ChronoUnit.MINUTES).getLocalDateTime())
+
+  fun onChangeStartDateOrTime(newLocalDateTime: LocalDateTime) = viewModelScope.launch {
+    localDateTimeStartFlow.emit(newLocalDateTime)
+    updateExperiencesBasedOnSelectedTime()
+    val startTime = newLocalDateTime.atZone(ZoneId.systemDefault()).toInstant()
+    if (!hasTitleBeenChanged) {
+      updateTitleBasedOnTime(startTime)
+    }
+    val endTime = localDateTimeEndFlow.first().atZone(ZoneId.systemDefault()).toInstant()
+    if (startTime > endTime || Duration.between(startTime, endTime).toHours() > 24) {
+      val newEndTime = startTime.plus(30, ChronoUnit.MINUTES)
+      localDateTimeEndFlow.emit(newEndTime.getLocalDateTime())
+    }
+  }
+
+  fun onChangeEndDateOrTime(newLocalDateTime: LocalDateTime) = viewModelScope.launch {
+    localDateTimeEndFlow.emit(newLocalDateTime)
+    val endTime = newLocalDateTime.atZone(ZoneId.systemDefault()).toInstant()
+    val startTime = localDateTimeStartFlow.first().atZone(ZoneId.systemDefault()).toInstant()
+    if (startTime > endTime) {
+      val newStartTime = endTime.minus(30, ChronoUnit.MINUTES)
+      localDateTimeStartFlow.emit(newStartTime.getLocalDateTime())
+      // The corrected start can fall outside the selected experience or on another day.
+      updateExperiencesBasedOnSelectedTime()
+      if (!hasTitleBeenChanged) {
+        updateTitleBasedOnTime(newStartTime)
+      }
+    }
+  }
+
+  private fun updateTitleBasedOnTime(time: Instant) {
+    enteredTitle = time.getStringOfPattern("dd MMMM yyyy")
+  }
+
+  private suspend fun updateExperiencesBasedOnSelectedTime() {
+    val selectedInstant = localDateTimeStartFlow.value.getInstant()
+    val zone = ZoneId.systemDefault()
+    val fromInstant = selectedInstant.atZone(zone).minusDays(3).toInstant()
+    val toInstant = selectedInstant.atZone(zone).plusDays(1).toInstant()
+    val experiencesInRange =
+        experienceRepo.getSortedExperiencesWithIngestionsWithSortDateBetween(
+            fromInstant = fromInstant,
+            toInstant = toInstant,
         )
-
-    private val newExperienceIdToUseFlow: Flow<Int> = sortedExperiencesFlow.map { experiences ->
-        val previousMax = experiences.maxOfOrNull { it.experience.id } ?: 1
-        return@map previousMax + 1
+    experiencesInRangeFlow.emit(experiencesInRange)
+    val closestExperience = experiencesInRange.firstOrNull { experience ->
+      val sortedIngestions = experience.ingestions.sortedBy { it.time }
+      val firstIngestionTime = sortedIngestions.firstOrNull()?.time ?: return@firstOrNull false
+      val upperBoundBasedOnFirstIngestion = firstIngestionTime.plus(15, ChronoUnit.HOURS)
+      val lastIngestionTime = sortedIngestions.lastOrNull()?.time ?: return@firstOrNull false
+      val upperBoundBasedOnLastIngestion = lastIngestionTime.plus(3, ChronoUnit.HOURS)
+      val finalUpperBound = maxOf(upperBoundBasedOnFirstIngestion, upperBoundBasedOnLastIngestion)
+      val lowerBound = firstIngestionTime.minus(3, ChronoUnit.HOURS)
+      return@firstOrNull selectedInstant in lowerBound..finalUpperBound
     }
+    selectedExperienceFlow.emit(closestExperience)
+  }
 
-    fun onChangeOfSelectedExperience(experienceWithIngestions: ExperienceWithIngestions?) =
-        viewModelScope.launch {
-            selectedExperienceFlow.emit(experienceWithIngestions)
-        }
+  var isShowingLimitWarning by mutableStateOf(false)
+    private set
 
-    fun applyTimePreset(preset: IngestionTimePreset, now: Instant = Instant.now()) =
-        onChangeStartDateOrTime(now.minus(preset.minutesAgo, ChronoUnit.MINUTES).getLocalDateTime())
+  var limitWarningStatuses by
+      mutableStateOf<List<foo.pilz.freaklog.ui.tabs.settings.intakelimits.IntakeLimitStatus>>(
+          emptyList()
+      )
+    private set
 
-    fun onChangeStartDateOrTime(newLocalDateTime: LocalDateTime) = viewModelScope.launch {
-        localDateTimeStartFlow.emit(newLocalDateTime)
-        updateExperiencesBasedOnSelectedTime()
-        val startTime = newLocalDateTime.atZone(ZoneId.systemDefault()).toInstant()
-        if (!hasTitleBeenChanged) {
-            updateTitleBasedOnTime(startTime)
-        }
-        val endTime = localDateTimeEndFlow.first().atZone(ZoneId.systemDefault()).toInstant()
-        if (startTime > endTime || Duration.between(startTime, endTime).toHours() > 24) {
-            val newEndTime = startTime.plus(30, ChronoUnit.MINUTES)
-            localDateTimeEndFlow.emit(newEndTime.getLocalDateTime())
-        }
-    }
+  private var pendingDismiss: (() -> Unit)? = null
 
-    fun onChangeEndDateOrTime(newLocalDateTime: LocalDateTime) = viewModelScope.launch {
-        localDateTimeEndFlow.emit(newLocalDateTime)
-        val endTime = newLocalDateTime.atZone(ZoneId.systemDefault()).toInstant()
-        val startTime =
-            localDateTimeStartFlow.first().atZone(ZoneId.systemDefault()).toInstant()
-        if (startTime > endTime) {
-            val newStartTime = endTime.minus(30, ChronoUnit.MINUTES)
-            localDateTimeStartFlow.emit(newStartTime.getLocalDateTime())
-            // The corrected start can fall outside the selected experience or on another day.
-            updateExperiencesBasedOnSelectedTime()
-            if (!hasTitleBeenChanged) {
-                updateTitleBasedOnTime(newStartTime)
-            }
-        }
-    }
-
-    private fun updateTitleBasedOnTime(time: Instant) {
-        enteredTitle = time.getStringOfPattern("dd MMMM yyyy")
-    }
-
-    private suspend fun updateExperiencesBasedOnSelectedTime() {
-        val selectedInstant = localDateTimeStartFlow.value.getInstant()
-        val zone = ZoneId.systemDefault()
-        val fromInstant = selectedInstant.atZone(zone).minusDays(3).toInstant()
-        val toInstant = selectedInstant.atZone(zone).plusDays(1).toInstant()
-        val experiencesInRange =
-            experienceRepo.getSortedExperiencesWithIngestionsWithSortDateBetween(
-                fromInstant = fromInstant,
-                toInstant = toInstant
+  /** Saves right away unless the dose would cross an intake limit, in which case it asks first. */
+  fun onDoneClicked(dismiss: () -> Unit) {
+    viewModelScope.launch {
+      val breached =
+          if (consumerName.isBlank()) {
+            foo.pilz.freaklog.ui.tabs.settings.intakelimits.loadBreachedIntakeLimits(
+                experienceRepo = experienceRepo,
+                substanceName = substanceName,
+                pendingDose = dose,
+                pendingUnits = units,
+                pendingCustomUnitId = customUnitId,
             )
-        experiencesInRangeFlow.emit(experiencesInRange)
-        val closestExperience = experiencesInRange.firstOrNull { experience ->
-            val sortedIngestions = experience.ingestions.sortedBy { it.time }
-            val firstIngestionTime =
-                sortedIngestions.firstOrNull()?.time ?: return@firstOrNull false
-            val upperBoundBasedOnFirstIngestion = firstIngestionTime.plus(15, ChronoUnit.HOURS)
-            val lastIngestionTime = sortedIngestions.lastOrNull()?.time ?: return@firstOrNull false
-            val upperBoundBasedOnLastIngestion = lastIngestionTime.plus(3, ChronoUnit.HOURS)
-            val finalUpperBound =
-                maxOf(upperBoundBasedOnFirstIngestion, upperBoundBasedOnLastIngestion)
-            val lowerBound = firstIngestionTime.minus(3, ChronoUnit.HOURS)
-            return@firstOrNull selectedInstant in lowerBound..finalUpperBound
-        }
-        selectedExperienceFlow.emit(closestExperience)
+          } else {
+            emptyList()
+          }
+      if (breached.isEmpty()) {
+        createSaveAndDismissAfter(dismiss)
+      } else {
+        limitWarningStatuses = breached
+        pendingDismiss = dismiss
+        isShowingLimitWarning = true
+      }
     }
+  }
 
-    var isShowingLimitWarning by mutableStateOf(false)
-        private set
-    var limitWarningStatuses by mutableStateOf<List<foo.pilz.freaklog.ui.tabs.settings.intakelimits.IntakeLimitStatus>>(emptyList())
-        private set
-    private var pendingDismiss: (() -> Unit)? = null
+  fun confirmLimitWarningAndSave() {
+    isShowingLimitWarning = false
+    pendingDismiss?.let { createSaveAndDismissAfter(it) }
+    pendingDismiss = null
+  }
 
-    /** Saves right away unless the dose would cross an intake limit, in which case it asks first. */
-    fun onDoneClicked(dismiss: () -> Unit) {
-        viewModelScope.launch {
-            val breached = if (consumerName.isBlank()) {
-                foo.pilz.freaklog.ui.tabs.settings.intakelimits.loadBreachedIntakeLimits(
-                    experienceRepo = experienceRepo,
-                    substanceName = substanceName,
-                    pendingDose = dose,
-                    pendingUnits = units,
-                    pendingCustomUnitId = customUnitId,
-                )
-            } else {
-                emptyList()
-            }
-            if (breached.isEmpty()) {
-                createSaveAndDismissAfter(dismiss)
-            } else {
-                limitWarningStatuses = breached
-                pendingDismiss = dismiss
-                isShowingLimitWarning = true
-            }
-        }
+  fun dismissLimitWarning() {
+    isShowingLimitWarning = false
+    pendingDismiss = null
+  }
+
+  fun createSaveAndDismissAfter(dismiss: () -> Unit) {
+    viewModelScope.launch {
+      createAndSaveIngestion()
+      withContext(Dispatchers.Main) {
+        dismiss()
+      }
     }
+  }
 
-    fun confirmLimitWarningAndSave() {
-        isShowingLimitWarning = false
-        pendingDismiss?.let { createSaveAndDismissAfter(it) }
-        pendingDismiss = null
-    }
-
-    fun dismissLimitWarning() {
-        isShowingLimitWarning = false
-        pendingDismiss = null
-    }
-
-    fun createSaveAndDismissAfter(dismiss: () -> Unit) {
-        viewModelScope.launch {
-            createAndSaveIngestion()
-            withContext(Dispatchers.Main) {
-                dismiss()
-            }
-        }
-    }
-
-    private suspend fun createAndSaveIngestion() {
-        val substanceCompanion = SubstanceCompanion(
+  private suspend fun createAndSaveIngestion() {
+    val substanceCompanion =
+        SubstanceCompanion(
             substanceName,
-            color = selectedColor
+            color = selectedColor,
         )
-        val oldIdToUse = selectedExperienceFlow.firstOrNull()?.experience?.id
-        var newIngestion: Ingestion
-        if (oldIdToUse == null) {
-            val newIdToUse = newExperienceIdToUseFlow.firstOrNull() ?: 1
-            val ingestionTime =
-                localDateTimeStartFlow.first().atZone(ZoneId.systemDefault()).toInstant()
-            val newExperience = Experience(
-                id = newIdToUse,
-                title = enteredTitle,
-                text = "",
-                creationDate = Instant.now(),
-                sortDate = ingestionTime,
-                location = null // todo: allow to add real location
-            )
-            newIngestion = createNewIngestion(newExperience.id)
-            val insertedId = experienceRepo.insertIngestionExperienceAndCompanion(
-                ingestion = newIngestion,
-                experience = newExperience,
-                substanceCompanion = substanceCompanion
-            )
-            newIngestion = newIngestion.copy(id = insertedId.toInt())
-        } else {
-            newIngestion = createNewIngestion(oldIdToUse)
-            val insertedId = experienceRepo.insertIngestionAndCompanion(
-                ingestion = newIngestion,
-                substanceCompanion = substanceCompanion
-            )
-            newIngestion = newIngestion.copy(id = insertedId.toInt())
-        }
-        
-        // Capture the selection on the (currently main-thread) caller before
-        // launching background work — SnapshotStateMap is not safe to read
-        // from arbitrary threads.
-        val selectionSnapshot: Map<Int, Boolean> = selectedWebhookIds.toMap()
-        // Refresh a running live notification, or start one if the user opted in.
-        foo.pilz.freaklog.ui.tabs.journal.experience.notification.TimelineNotificationService.refreshOrAutoStart(
+    val oldIdToUse = selectedExperienceFlow.firstOrNull()?.experience?.id
+    var newIngestion: Ingestion
+    if (oldIdToUse == null) {
+      val newIdToUse = newExperienceIdToUseFlow.firstOrNull() ?: 1
+      val ingestionTime = localDateTimeStartFlow.first().atZone(ZoneId.systemDefault()).toInstant()
+      val newExperience =
+          Experience(
+              id = newIdToUse,
+              title = enteredTitle,
+              text = "",
+              creationDate = Instant.now(),
+              sortDate = ingestionTime,
+              location = null, // todo: allow to add real location
+          )
+      newIngestion = createNewIngestion(newExperience.id)
+      val insertedId =
+          experienceRepo.insertIngestionExperienceAndCompanion(
+              ingestion = newIngestion,
+              experience = newExperience,
+              substanceCompanion = substanceCompanion,
+          )
+      newIngestion = newIngestion.copy(id = insertedId.toInt())
+    } else {
+      newIngestion = createNewIngestion(oldIdToUse)
+      val insertedId =
+          experienceRepo.insertIngestionAndCompanion(
+              ingestion = newIngestion,
+              substanceCompanion = substanceCompanion,
+          )
+      newIngestion = newIngestion.copy(id = insertedId.toInt())
+    }
+
+    // Capture the selection on the (currently main-thread) caller before
+    // launching background work — SnapshotStateMap is not safe to read
+    // from arbitrary threads.
+    val selectionSnapshot: Map<Int, Boolean> = selectedWebhookIds.toMap()
+    // Refresh a running live notification, or start one if the user opted in.
+    foo.pilz.freaklog.ui.tabs.journal.experience.notification.TimelineNotificationService
+        .refreshOrAutoStart(
             appContext,
             userPreferences,
-            newIngestion.experienceId
+            newIngestion.experienceId,
         )
-        // Send webhook notification in background
-        externalScope.launch {
-            ingestionWebhookSender.send(listOf(newIngestion), selectionSnapshot)
-        }
+    // Send webhook notification in background
+    externalScope.launch {
+      ingestionWebhookSender.send(listOf(newIngestion), selectionSnapshot)
     }
+  }
 
-    private suspend fun createNewIngestion(experienceId: Int): Ingestion {
-        val time = localDateTimeStartFlow.first().atZone(ZoneId.systemDefault()).toInstant()
-        val ingestionTimePickerOption = ingestionTimePickerOptionFlow.first()
-        val endTime = when (ingestionTimePickerOption) {
-            IngestionTimePickerOption.POINT_IN_TIME -> null
-            IngestionTimePickerOption.TIME_RANGE -> maxOf(
-                localDateTimeEndFlow.first().atZone(ZoneId.systemDefault()).toInstant(),
-                time
-            )
+  private suspend fun createNewIngestion(experienceId: Int): Ingestion {
+    val time = localDateTimeStartFlow.first().atZone(ZoneId.systemDefault()).toInstant()
+    val ingestionTimePickerOption = ingestionTimePickerOptionFlow.first()
+    val endTime =
+        when (ingestionTimePickerOption) {
+          IngestionTimePickerOption.POINT_IN_TIME -> null
+          IngestionTimePickerOption.TIME_RANGE ->
+              maxOf(
+                  localDateTimeEndFlow.first().atZone(ZoneId.systemDefault()).toInstant(),
+                  time,
+              )
         }
-        return Ingestion(
-            substanceName = substanceName,
-            time = time,
-            endTime = endTime,
-            administrationRoute = administrationRoute,
-            dose = dose,
-            isDoseAnEstimate = isEstimate,
-            estimatedDoseStandardDeviation = estimatedDoseStandardDeviation,
-            units = units,
-            experienceId = experienceId,
-            notes = note,
-            stomachFullness = null, // todo: allow to add real stomach fullness
-            consumerName = consumerName.ifBlank {
-                null
+    return Ingestion(
+        substanceName = substanceName,
+        time = time,
+        endTime = endTime,
+        administrationRoute = administrationRoute,
+        dose = dose,
+        isDoseAnEstimate = isEstimate,
+        estimatedDoseStandardDeviation = estimatedDoseStandardDeviation,
+        units = units,
+        experienceId = experienceId,
+        notes = note,
+        stomachFullness = null, // todo: allow to add real stomach fullness
+        consumerName =
+            consumerName.ifBlank {
+              null
             },
-            customUnitId = customUnitId,
-            administrationSite = administrationSite.ifBlank { null },
-            formulationName = selectedFormulationName,
-            customFormulationId = selectedCustomFormulationId,
-            saltForm = saltForm.ifBlank { null },
-            category = ingestionCategory
-        )
-    }
+        customUnitId = customUnitId,
+        administrationSite = administrationSite.ifBlank { null },
+        formulationName = selectedFormulationName,
+        customFormulationId = selectedCustomFormulationId,
+        saltForm = saltForm.ifBlank { null },
+        category = ingestionCategory,
+    )
+  }
 }

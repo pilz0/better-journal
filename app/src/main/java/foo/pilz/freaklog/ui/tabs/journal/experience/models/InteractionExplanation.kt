@@ -20,5 +20,5 @@ package foo.pilz.freaklog.ui.tabs.journal.experience.models
 
 data class InteractionExplanation(
     val name: String,
-    val url: String
+    val url: String,
 )

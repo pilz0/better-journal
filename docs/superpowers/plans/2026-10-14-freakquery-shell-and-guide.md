@@ -4,7 +4,8 @@
 
 **Goal:** Enhance the FreakQuery shell in the Android app (history navigation, clipboard copy, dual tag/template evaluation, guide link), author a comprehensive web guide in `../freaklog-website`, and link it to the app.
 
-**Architecture:** 
+**Architecture:**
+
 1. Android app: Update `Constants.kt` with `FREAKQUERY_GUIDE_URL`, extend `FreakQueryShellViewModel` with query history cycling and automatic template rendering, update `FreakQueryShellScreen` with history controls, copy actions, and a top bar docs link using `LocalUriHandler` and `LocalClipboardManager`. Add a docs link in `WebhookEditorScreen`.
 2. Website: Add `freakquery.html` to `../freaklog-website` styled to match the dark theme, complete with reference tables, syntax explanations, webhook examples, and cheat sheets. Link it from `index.html` and `privacy.html`.
 
@@ -15,6 +16,7 @@
 ### Task 1: Add Documentation URL Constant
 
 **Files:**
+
 - Modify: `app/src/main/java/foo/pilz/freaklog/ui/Constants.kt`
 
 - [ ] **Step 1: Add `FREAKQUERY_GUIDE_URL` to `Constants.kt`**
@@ -40,6 +42,7 @@ git commit -m "feat(freakquery): add FREAKQUERY_GUIDE_URL constant"
 ### Task 2: Enhance FreakQueryShellViewModel with History Navigation & Template Evaluation
 
 **Files:**
+
 - Modify: `app/src/main/java/foo/pilz/freaklog/ui/tabs/settings/freakquery/FreakQueryShellViewModel.kt`
 - Create: `app/src/test/java/foo/pilz/freaklog/ui/tabs/settings/freakquery/FreakQueryShellViewModelTest.kt`
 
@@ -155,6 +158,7 @@ Expected: Compilation failure or missing methods (`navigateHistoryUp`, `navigate
 - [ ] **Step 3: Update `FreakQueryShellViewModel.kt`**
 
 Update `FreakQueryShellState` and `FreakQueryShellViewModel`:
+
 - Add `canNavigateHistoryUp: Boolean` and `canNavigateHistoryDown: Boolean` to `FreakQueryShellState`.
 - Maintain `sentQueries: List<String>`, `historyCursor: Int?`, and `draftInput: String`.
 - Implement `navigateHistoryUp()` and `navigateHistoryDown()`.
@@ -178,6 +182,7 @@ git commit -m "feat(freakquery): add history navigation and template evaluation 
 ### Task 3: Enhance FreakQueryShellScreen UI
 
 **Files:**
+
 - Modify: `app/src/main/java/foo/pilz/freaklog/ui/tabs/settings/freakquery/FreakQueryShellScreen.kt`
 
 - [ ] **Step 1: Implement UI features in `FreakQueryShellScreen.kt`**
@@ -212,6 +217,7 @@ git commit -m "feat(freakquery): add copy controls, history cycling, and documen
 ### Task 4: Link FreakQuery Documentation in WebhookEditorScreen
 
 **Files:**
+
 - Modify: `app/src/main/java/foo/pilz/freaklog/ui/tabs/settings/webhooks/WebhookEditorScreen.kt`
 
 - [ ] **Step 1: Add guide link to `WebhookEditorScreen.kt`**
@@ -234,6 +240,7 @@ git commit -m "feat(webhook): link FreakQuery syntax guide in WebhookEditorScree
 ### Task 5: Create FreakQuery Documentation in `freaklog-website`
 
 **Files:**
+
 - Create: `../freaklog-website/freakquery.html`
 - Modify: `../freaklog-website/index.html`
 - Modify: `../freaklog-website/privacy.html`
@@ -260,6 +267,7 @@ git commit -m "feat(webhook): link FreakQuery syntax guide in WebhookEditorScree
 - [ ] **Step 3: Check website HTML syntax and commit in `../freaklog-website`**
 
 Run:
+
 ```bash
 git -C ../freaklog-website status
 git -C ../freaklog-website add freakquery.html index.html privacy.html
@@ -271,6 +279,7 @@ git -C ../freaklog-website commit -m "docs: add comprehensive FreakQuery syntax 
 ### Task 6: Final Verification & Testing
 
 **Files:**
+
 - All touched files in both repositories
 
 - [ ] **Step 1: Run complete test suite**
@@ -281,17 +290,21 @@ Expected: ALL TESTS PASS
 - [ ] **Step 2: Run Detekt and Android Lint**
 
 Run:
+
 ```bash
 ./gradlew detekt --no-daemon
 ./gradlew :app:lintDebug --no-daemon
 ```
+
 Expected: ALL CHECKS PASS
 
 - [ ] **Step 3: Review git status in both repos**
 
 Run:
+
 ```bash
 git status
 git -C ../freaklog-website status
 ```
+
 Expected: Clean working directories on both repositories.

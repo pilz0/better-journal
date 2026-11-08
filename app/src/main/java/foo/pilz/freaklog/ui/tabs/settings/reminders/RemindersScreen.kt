@@ -71,133 +71,133 @@ fun RemindersScreen(
     navigateToEdit: (Int) -> Unit,
     viewModel: RemindersViewModel = hiltViewModel(),
 ) {
-    val reminders by viewModel.reminders.collectAsState()
-    val context = LocalContext.current
-    var canExact by remember { mutableStateOf(viewModel.canScheduleExactAlarms()) }
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        // Re-check the exact-alarm permission whenever the screen resumes (e.g. after the
-        // user comes back from the system settings page) so the banner clears without a
-        // wasteful polling loop.
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                canExact = viewModel.canScheduleExactAlarms()
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+  val reminders by viewModel.reminders.collectAsState()
+  val context = LocalContext.current
+  var canExact by remember { mutableStateOf(viewModel.canScheduleExactAlarms()) }
+  val lifecycleOwner = LocalLifecycleOwner.current
+  DisposableEffect(lifecycleOwner) {
+    // Re-check the exact-alarm permission whenever the screen resumes (e.g. after the
+    // user comes back from the system settings page) so the banner clears without a
+    // wasteful polling loop.
+    val observer = LifecycleEventObserver { _, event ->
+      if (event == Lifecycle.Event.ON_RESUME) {
+        canExact = viewModel.canScheduleExactAlarms()
+      }
     }
+    lifecycleOwner.lifecycle.addObserver(observer)
+    onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+  }
 
-    PostNotificationsPermissionRequester()
+  PostNotificationsPermissionRequester()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Reminders") },
-                navigationIcon = {
-                    IconButton(onClick = navigateBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                }
-            )
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                text = { Text("Add reminder") },
-                icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                onClick = { navigateToEdit(-1) },
-            )
-        }
-    ) { padding ->
-        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
-            if (!canExact) {
-                ExactAlarmBanner(
-                    onOpenSettings = {
-                        val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
-                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                        context.startActivity(intent)
-                    }
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Reminders") },
+            navigationIcon = {
+              IconButton(onClick = navigateBack) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
                 )
+              }
+            },
+        )
+      },
+      floatingActionButton = {
+        ExtendedFloatingActionButton(
+            text = { Text("Add reminder") },
+            icon = { Icon(Icons.Default.Add, contentDescription = null) },
+            onClick = { navigateToEdit(-1) },
+        )
+      },
+  ) { padding ->
+    Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+      if (!canExact) {
+        ExactAlarmBanner(
+            onOpenSettings = {
+              val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+              intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+              context.startActivity(intent)
             }
-            if (reminders.isEmpty()) {
-                EmptyState(onAdd = { navigateToEdit(-1) })
-            } else {
-                ReminderList(
-                    reminders = reminders,
-                    onEdit = { navigateToEdit(it.id) },
-                    onToggle = viewModel::toggleReminder,
-                    onDelete = viewModel::deleteReminder,
-                    onDuplicate = viewModel::duplicateReminder,
-                )
-            }
-        }
+        )
+      }
+      if (reminders.isEmpty()) {
+        EmptyState(onAdd = { navigateToEdit(-1) })
+      } else {
+        ReminderList(
+            reminders = reminders,
+            onEdit = { navigateToEdit(it.id) },
+            onToggle = viewModel::toggleReminder,
+            onDelete = viewModel::deleteReminder,
+            onDuplicate = viewModel::duplicateReminder,
+        )
+      }
     }
+  }
 }
 
 @Composable
 private fun ExactAlarmBanner(onOpenSettings: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .background(
-                MaterialTheme.colorScheme.errorContainer,
-                shape = RoundedCornerShape(12.dp)
-            )
-            .padding(16.dp)
-    ) {
-        Column {
-            Text(
-                "Exact alarms not allowed",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onErrorContainer,
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "Reminders may fire late or not at all. Grant the permission so they fire on time.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onErrorContainer,
-            )
-            TextButton(onClick = onOpenSettings) {
-                Text("Open settings")
-            }
-        }
+  Box(
+      modifier =
+          Modifier.fillMaxWidth()
+              .padding(horizontal = 16.dp, vertical = 8.dp)
+              .background(
+                  MaterialTheme.colorScheme.errorContainer,
+                  shape = RoundedCornerShape(12.dp),
+              )
+              .padding(16.dp)
+  ) {
+    Column {
+      Text(
+          "Exact alarms not allowed",
+          style = MaterialTheme.typography.titleSmall,
+          color = MaterialTheme.colorScheme.onErrorContainer,
+      )
+      Spacer(Modifier.height(4.dp))
+      Text(
+          "Reminders may fire late or not at all. Grant the permission so they fire on time.",
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onErrorContainer,
+      )
+      TextButton(onClick = onOpenSettings) {
+        Text("Open settings")
+      }
     }
+  }
 }
 
 @Composable
 private fun EmptyState(onAdd: () -> Unit) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.padding(32.dp),
-        ) {
-            Icon(
-                Icons.Outlined.NotificationsOff,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                "No reminders yet",
-                style = MaterialTheme.typography.titleLarge,
-            )
-            Text(
-                "Add a reminder to get notified when it's time to take a substance.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            TextButton(onClick = onAdd) {
-                Icon(Icons.Default.Add, contentDescription = null)
-                Spacer(Modifier.size(4.dp))
-                Text("Add reminder")
-            }
-        }
+  Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.padding(32.dp),
+    ) {
+      Icon(
+          Icons.Outlined.NotificationsOff,
+          contentDescription = null,
+          modifier = Modifier.size(64.dp),
+          tint = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+      Text(
+          "No reminders yet",
+          style = MaterialTheme.typography.titleLarge,
+      )
+      Text(
+          "Add a reminder to get notified when it's time to take a substance.",
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+      TextButton(onClick = onAdd) {
+        Icon(Icons.Default.Add, contentDescription = null)
+        Spacer(Modifier.size(4.dp))
+        Text("Add reminder")
+      }
     }
+  }
 }
 
 @Composable
@@ -208,37 +208,37 @@ private fun ReminderList(
     onDelete: (Reminder) -> Unit,
     onDuplicate: (Reminder) -> Unit,
 ) {
-    val (active, inactive) = reminders.partition { it.isEnabled }
-    LazyColumn(
-        contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 96.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        if (active.isNotEmpty()) {
-            item(key = "header_active") {
-                SectionHeader("Active")
-            }
-            items(active, key = { it.id }) {
-                ReminderRow(it, onEdit, onToggle, onDelete, onDuplicate)
-            }
-        }
-        if (inactive.isNotEmpty()) {
-            item(key = "spacer_inactive") { Spacer(Modifier.height(8.dp)) }
-            item(key = "header_inactive") { SectionHeader("Disabled") }
-            items(inactive, key = { it.id }) {
-                ReminderRow(it, onEdit, onToggle, onDelete, onDuplicate)
-            }
-        }
+  val (active, inactive) = reminders.partition { it.isEnabled }
+  LazyColumn(
+      contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 96.dp),
+      verticalArrangement = Arrangement.spacedBy(12.dp),
+  ) {
+    if (active.isNotEmpty()) {
+      item(key = "header_active") {
+        SectionHeader("Active")
+      }
+      items(active, key = { it.id }) {
+        ReminderRow(it, onEdit, onToggle, onDelete, onDuplicate)
+      }
     }
+    if (inactive.isNotEmpty()) {
+      item(key = "spacer_inactive") { Spacer(Modifier.height(8.dp)) }
+      item(key = "header_inactive") { SectionHeader("Disabled") }
+      items(inactive, key = { it.id }) {
+        ReminderRow(it, onEdit, onToggle, onDelete, onDuplicate)
+      }
+    }
+  }
 }
 
 @Composable
 private fun SectionHeader(text: String) {
-    Text(
-        text = text.uppercase(),
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(start = 4.dp, top = 4.dp, bottom = 4.dp),
-    )
+  Text(
+      text = text.uppercase(),
+      style = MaterialTheme.typography.labelMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+      modifier = Modifier.padding(start = 4.dp, top = 4.dp, bottom = 4.dp),
+  )
 }
 
 @Composable
@@ -249,67 +249,67 @@ private fun ReminderRow(
     onDelete: (Reminder) -> Unit,
     onDuplicate: (Reminder) -> Unit,
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = { onEdit(reminder) },
-        colors = CardDefaults.cardColors(),
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    if (reminder.isEnabled) Icons.Outlined.NotificationsActive
-                    else Icons.Outlined.NotificationsOff,
-                    contentDescription = null,
-                    tint = if (reminder.isEnabled) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(Modifier.size(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        reminder.title.ifBlank { reminder.substanceName ?: "Reminder" },
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        ReminderSchedule.summarize(reminder),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    val doseLine = doseSummary(reminder)
-                    if (doseLine.isNotBlank()) {
-                        Text(
-                            doseLine,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    if (reminder.isEnabled) {
-                        val now = System.currentTimeMillis()
-                        val nextFire = ReminderSchedule.nextFireAt(reminder, now)
-                        val countdown = nextFire?.let { humanizeCountdown(it - now) }
-                            ?: "No upcoming fire"
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            "Next: $countdown",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                    }
-                }
-                Switch(
-                    checked = reminder.isEnabled,
-                    onCheckedChange = { onToggle(reminder) },
-                )
-                ReminderRowMenu(
-                    reminder = reminder,
-                    onEdit = onEdit,
-                    onDelete = onDelete,
-                    onDuplicate = onDuplicate,
-                )
-            }
+  Card(
+      modifier = Modifier.fillMaxWidth(),
+      onClick = { onEdit(reminder) },
+      colors = CardDefaults.cardColors(),
+  ) {
+    Column(modifier = Modifier.padding(16.dp)) {
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            if (reminder.isEnabled) Icons.Outlined.NotificationsActive
+            else Icons.Outlined.NotificationsOff,
+            contentDescription = null,
+            tint =
+                if (reminder.isEnabled) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.size(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+          Text(
+              reminder.title.ifBlank { reminder.substanceName ?: "Reminder" },
+              style = MaterialTheme.typography.titleMedium,
+              fontWeight = FontWeight.SemiBold,
+          )
+          Spacer(Modifier.height(2.dp))
+          Text(
+              ReminderSchedule.summarize(reminder),
+              style = MaterialTheme.typography.bodyMedium,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+          val doseLine = doseSummary(reminder)
+          if (doseLine.isNotBlank()) {
+            Text(
+                doseLine,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
+          if (reminder.isEnabled) {
+            val now = System.currentTimeMillis()
+            val nextFire = ReminderSchedule.nextFireAt(reminder, now)
+            val countdown = nextFire?.let { humanizeCountdown(it - now) } ?: "No upcoming fire"
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "Next: $countdown",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
+            )
+          }
         }
+        Switch(
+            checked = reminder.isEnabled,
+            onCheckedChange = { onToggle(reminder) },
+        )
+        ReminderRowMenu(
+            reminder = reminder,
+            onEdit = onEdit,
+            onDelete = onDelete,
+            onDuplicate = onDuplicate,
+        )
+      }
     }
+  }
 }
 
 @Composable
@@ -319,67 +319,68 @@ private fun ReminderRowMenu(
     onDelete: (Reminder) -> Unit,
     onDuplicate: (Reminder) -> Unit,
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    Box {
-        IconButton(onClick = { expanded = true }) {
-            Icon(Icons.Default.MoreVert, contentDescription = "More")
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            DropdownMenuItem(
-                text = { Text("Edit") },
-                leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
-                onClick = {
-                    expanded = false
-                    onEdit(reminder)
-                },
-            )
-            DropdownMenuItem(
-                text = { Text("Duplicate") },
-                leadingIcon = { Icon(Icons.Default.ContentCopy, contentDescription = null) },
-                onClick = {
-                    expanded = false
-                    onDuplicate(reminder)
-                },
-            )
-            HorizontalDivider()
-            DropdownMenuItem(
-                text = { Text("Delete") },
-                leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) },
-                onClick = {
-                    expanded = false
-                    onDelete(reminder)
-                },
-            )
-        }
+  var expanded by remember { mutableStateOf(false) }
+  Box {
+    IconButton(onClick = { expanded = true }) {
+      Icon(Icons.Default.MoreVert, contentDescription = "More")
     }
+    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+      DropdownMenuItem(
+          text = { Text("Edit") },
+          leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
+          onClick = {
+            expanded = false
+            onEdit(reminder)
+          },
+      )
+      DropdownMenuItem(
+          text = { Text("Duplicate") },
+          leadingIcon = { Icon(Icons.Default.ContentCopy, contentDescription = null) },
+          onClick = {
+            expanded = false
+            onDuplicate(reminder)
+          },
+      )
+      HorizontalDivider()
+      DropdownMenuItem(
+          text = { Text("Delete") },
+          leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) },
+          onClick = {
+            expanded = false
+            onDelete(reminder)
+          },
+      )
+    }
+  }
 }
 
 private fun doseSummary(reminder: Reminder): String {
-    val parts = mutableListOf<String>()
-    val dose = reminder.dose
-    if (dose != null) {
-        val doseText = if (dose == dose.toLong().toDouble()) dose.toLong().toString() else dose.toString()
-        val units = reminder.units?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
-        parts += "$doseText$units"
-    }
-    val substance = reminder.substanceName?.takeIf { it.isNotBlank() }
-    if (substance != null) parts += substance
-    val route = reminder.administrationRoute?.takeIf { it.isNotBlank() }
-    if (route != null) parts += route.lowercase().replaceFirstChar { it.uppercase() }
-    return parts.joinToString(" · ")
+  val parts = mutableListOf<String>()
+  val dose = reminder.dose
+  if (dose != null) {
+    val doseText =
+        if (dose == dose.toLong().toDouble()) dose.toLong().toString() else dose.toString()
+    val units = reminder.units?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
+    parts += "$doseText$units"
+  }
+  val substance = reminder.substanceName?.takeIf { it.isNotBlank() }
+  if (substance != null) parts += substance
+  val route = reminder.administrationRoute?.takeIf { it.isNotBlank() }
+  if (route != null) parts += route.lowercase().replaceFirstChar { it.uppercase() }
+  return parts.joinToString(" · ")
 }
 
 private fun humanizeCountdown(deltaMillis: Long): String {
-    if (deltaMillis < 0) return "due now"
-    val totalMinutes = deltaMillis / 60_000L
-    if (totalMinutes < 1) return "in <1 min"
-    if (totalMinutes < 60) return "in ${totalMinutes} min"
-    val totalHours = totalMinutes / 60
-    val mins = totalMinutes % 60
-    if (totalHours < 24) {
-        return if (mins == 0L) "in ${totalHours} h" else "in ${totalHours} h ${mins} m"
-    }
-    val days = totalHours / 24
-    val hours = totalHours % 24
-    return if (hours == 0L) "in ${days} d" else "in ${days} d ${hours} h"
+  if (deltaMillis < 0) return "due now"
+  val totalMinutes = deltaMillis / 60_000L
+  if (totalMinutes < 1) return "in <1 min"
+  if (totalMinutes < 60) return "in ${totalMinutes} min"
+  val totalHours = totalMinutes / 60
+  val mins = totalMinutes % 60
+  if (totalHours < 24) {
+    return if (mins == 0L) "in ${totalHours} h" else "in ${totalHours} h ${mins} m"
+  }
+  val days = totalHours / 24
+  val hours = totalHours % 24
+  return if (hours == 0L) "in ${days} d" else "in ${days} d ${hours} h"
 }

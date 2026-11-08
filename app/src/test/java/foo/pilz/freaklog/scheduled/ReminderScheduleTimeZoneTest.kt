@@ -1,12 +1,12 @@
 package foo.pilz.freaklog.scheduled
 
 import foo.pilz.freaklog.data.room.reminders.entities.Reminder
+import java.time.Instant
+import java.time.ZoneId
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.time.Instant
-import java.time.ZoneId
 
 /** Expected instants are explicit so a shared scheduling error cannot make the oracle pass. */
 @RunWith(Parameterized::class)
@@ -16,24 +16,31 @@ class ReminderScheduleTimeZoneTest(
     private val from: String,
     private val expected: String,
 ) {
-    @Test
-    fun dailyReminderResolvesClockChangesAndMidnight() {
-        val reminder = Reminder(
-            title = "Clock change", hour = 0, minute = 0, isEnabled = true,
+  @Test
+  fun dailyReminderResolvesClockChangesAndMidnight() {
+    val reminder =
+        Reminder(
+            title = "Clock change",
+            hour = 0,
+            minute = 0,
+            isEnabled = true,
             timesOfDay = times,
         )
-        assertEquals(
-            Instant.parse(expected).toEpochMilli(),
-            ReminderSchedule.nextFireAt(
-                reminder, Instant.parse(from).toEpochMilli(), ZoneId.of(zoneName)
-            ),
-        )
-    }
+    assertEquals(
+        Instant.parse(expected).toEpochMilli(),
+        ReminderSchedule.nextFireAt(
+            reminder,
+            Instant.parse(from).toEpochMilli(),
+            ZoneId.of(zoneName),
+        ),
+    )
+  }
 
-    companion object {
-        @JvmStatic
-        @Parameterized.Parameters(name = "{0}: {1} after {2}")
-        fun cases(): List<Array<String>> = listOf(
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters(name = "{0}: {1} after {2}")
+    fun cases(): List<Array<String>> =
+        listOf(
             // Nonexistent local times move forward by the daylight saving gap.
             arrayOf("Europe/Berlin", "02:30", "2026-03-29T00:00:00Z", "2026-03-29T01:30:00Z"),
             arrayOf("America/New_York", "02:30", "2026-03-08T05:00:00Z", "2026-03-08T07:30:00Z"),
@@ -46,5 +53,5 @@ class ReminderScheduleTimeZoneTest(
             arrayOf("Pacific/Kiritimati", "00:15", "2026-01-07T10:00:00Z", "2026-01-07T10:15:00Z"),
             arrayOf("UTC", "00:00", "2026-12-31T23:59:59Z", "2027-01-01T00:00:00Z"),
         )
-    }
+  }
 }

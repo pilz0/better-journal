@@ -26,12 +26,13 @@ data class RoaDuration(
     val peak: DurationRange?,
     val offset: DurationRange?,
     val total: DurationRange?,
-    val afterglow: DurationRange?
+    val afterglow: DurationRange?,
 ) {
-    fun totalDurationInSeconds(weight: Float, withAfterglow: Boolean): Float {
-        val phases = listOfNotNull(onset, comeup, peak, offset, afterglow.takeIf { withAfterglow })
+  fun totalDurationInSeconds(weight: Float, withAfterglow: Boolean): Float {
+    val phases =
+        listOfNotNull(onset, comeup, peak, offset, afterglow.takeIf { withAfterglow })
             .sumOf { it.interpolateAtValueInSeconds(weight)?.toDouble() ?: 0.0 }
             .toFloat()
-        return max(total?.interpolateAtValueInSeconds(weight) ?: 0f, phases)
-    }
+    return max(total?.interpolateAtValueInSeconds(weight) ?: 0f, phases)
+  }
 }

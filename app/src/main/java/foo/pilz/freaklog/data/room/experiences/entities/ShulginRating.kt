@@ -24,15 +24,15 @@ import androidx.room.PrimaryKey
 import java.time.Instant
 
 @Entity(
-    indices = [
-        Index(value = ["experienceId"]),
-    ]
+    indices =
+        [
+            Index(value = ["experienceId"]),
+        ]
 )
 data class ShulginRating(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
     var time: Instant?,
     var creationDate: Instant? = Instant.now(),
     var option: ShulginRatingOption,
-    var experienceId: Int
+    var experienceId: Int,
 )

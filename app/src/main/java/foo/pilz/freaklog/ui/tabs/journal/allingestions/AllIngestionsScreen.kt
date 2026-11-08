@@ -83,21 +83,21 @@ import java.time.format.FormatStyle
 @Composable
 fun AllIngestionsScreen(
     viewModel: AllIngestionsViewModel = hiltViewModel(),
-    navigateToEditIngestion: (Int) -> Unit
+    navigateToEditIngestion: (Int) -> Unit,
 ) {
-    val sections by viewModel.ingestionSectionsFlow.collectAsState()
-    val searchText by viewModel.searchText.collectAsState()
-    val isTimeRelative by viewModel.isTimeRelative.collectAsState()
+  val sections by viewModel.ingestionSectionsFlow.collectAsState()
+  val searchText by viewModel.searchText.collectAsState()
+  val isTimeRelative by viewModel.isTimeRelative.collectAsState()
 
-    AllIngestionsScreenContent(
-        sections = sections,
-        searchText = searchText,
-        isTimeRelative = isTimeRelative,
-        onSearchTextChange = viewModel::setSearchText,
-        onTimeRelativeChange = viewModel::setIsTimeRelative,
-        onIngestionClick = { navigateToEditIngestion(it.ingestion.id) },
-        onDeleteIngestion = { viewModel.deleteIngestion(it.ingestion) }
-    )
+  AllIngestionsScreenContent(
+      sections = sections,
+      searchText = searchText,
+      isTimeRelative = isTimeRelative,
+      onSearchTextChange = viewModel::setSearchText,
+      onTimeRelativeChange = viewModel::setIsTimeRelative,
+      onIngestionClick = { navigateToEditIngestion(it.ingestion.id) },
+      onDeleteIngestion = { viewModel.deleteIngestion(it.ingestion) },
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -109,128 +109,125 @@ fun AllIngestionsScreenContent(
     onSearchTextChange: (String) -> Unit,
     onTimeRelativeChange: (Boolean) -> Unit,
     onIngestionClick: (IngestionWithCompanionAndCustomUnit) -> Unit,
-    onDeleteIngestion: (IngestionWithCompanionAndCustomUnit) -> Unit
+    onDeleteIngestion: (IngestionWithCompanionAndCustomUnit) -> Unit,
 ) {
-    var ingestionToDelete by remember { mutableStateOf<IngestionWithCompanionAndCustomUnit?>(null) }
+  var ingestionToDelete by remember { mutableStateOf<IngestionWithCompanionAndCustomUnit?>(null) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("All Ingestions") },
-                actions = {
-                    IconToggleButton(
-                        checked = isTimeRelative,
-                        onCheckedChange = onTimeRelativeChange
-                    ) {
-                        if (isTimeRelative) {
-                            Icon(Icons.Filled.Timer, contentDescription = "Absolute time")
-                        } else {
-                            Icon(Icons.Outlined.Timer, contentDescription = "Relative time")
-                        }
-                    }
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("All Ingestions") },
+            actions = {
+              IconToggleButton(
+                  checked = isTimeRelative,
+                  onCheckedChange = onTimeRelativeChange,
+              ) {
+                if (isTimeRelative) {
+                  Icon(Icons.Filled.Timer, contentDescription = "Absolute time")
+                } else {
+                  Icon(Icons.Outlined.Timer, contentDescription = "Relative time")
                 }
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            // Search bar
-            val focusManager = LocalFocusManager.current
-            TextField(
-                value = searchText,
-                onValueChange = onSearchTextChange,
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Search by substance name") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
-                trailingIcon = {
-                    if (searchText.isNotEmpty()) {
-                        IconButton(onClick = { onSearchTextChange("") }) {
-                            Icon(Icons.Default.Close, contentDescription = "Clear")
-                        }
-                    }
-                },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Done,
-                    capitalization = KeyboardCapitalization.Sentences
-                ),
-                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                singleLine = true
-            )
-
-            if (sections.isEmpty()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = horizontalPadding),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = if (searchText.isEmpty()) "No ingestions yet" else "No results",
-                        style = MaterialTheme.typography.headlineSmall,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            } else {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    sections.forEach { section ->
-                        item(key = "header_${section.date}") {
-                            SectionHeader(date = section.date)
-                        }
-                        items(section.ingestions, key = { it.ingestion.id }) { ingestionWithCompanion ->
-                            IngestionItem(
-                                ingestionWithCompanion = ingestionWithCompanion,
-                                isTimeRelative = isTimeRelative,
-                                onClick = { onIngestionClick(ingestionWithCompanion) },
-                                onDelete = { ingestionToDelete = ingestionWithCompanion }
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(start = 0.dp))
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    ingestionToDelete?.let { ingestionWithCompanion ->
-        AlertDialog(
-            onDismissRequest = { ingestionToDelete = null },
-            title = { Text("Delete Ingestion?") },
-            text = { Text("This will permanently delete this ${ingestionWithCompanion.ingestion.substanceName} ingestion.") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onDeleteIngestion(ingestionWithCompanion)
-                        ingestionToDelete = null
-                    }
-                ) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
-                }
+              }
             },
-            dismissButton = {
-                TextButton(onClick = { ingestionToDelete = null }) {
-                    Text("Cancel")
-                }
-            }
         )
+      }
+  ) { padding ->
+    Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+      // Search bar
+      val focusManager = LocalFocusManager.current
+      TextField(
+          value = searchText,
+          onValueChange = onSearchTextChange,
+          modifier = Modifier.fillMaxWidth(),
+          placeholder = { Text("Search by substance name") },
+          leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+          trailingIcon = {
+            if (searchText.isNotEmpty()) {
+              IconButton(onClick = { onSearchTextChange("") }) {
+                Icon(Icons.Default.Close, contentDescription = "Clear")
+              }
+            }
+          },
+          keyboardOptions =
+              KeyboardOptions(
+                  keyboardType = KeyboardType.Text,
+                  imeAction = ImeAction.Done,
+                  capitalization = KeyboardCapitalization.Sentences,
+              ),
+          keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+          singleLine = true,
+      )
+
+      if (sections.isEmpty()) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(horizontal = horizontalPadding),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+          Text(
+              text = if (searchText.isEmpty()) "No ingestions yet" else "No results",
+              style = MaterialTheme.typography.headlineSmall,
+              textAlign = TextAlign.Center,
+          )
+        }
+      } else {
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+          sections.forEach { section ->
+            item(key = "header_${section.date}") {
+              SectionHeader(date = section.date)
+            }
+            items(section.ingestions, key = { it.ingestion.id }) { ingestionWithCompanion ->
+              IngestionItem(
+                  ingestionWithCompanion = ingestionWithCompanion,
+                  isTimeRelative = isTimeRelative,
+                  onClick = { onIngestionClick(ingestionWithCompanion) },
+                  onDelete = { ingestionToDelete = ingestionWithCompanion },
+              )
+              HorizontalDivider(modifier = Modifier.padding(start = 0.dp))
+            }
+          }
+        }
+      }
     }
+  }
+
+  ingestionToDelete?.let { ingestionWithCompanion ->
+    AlertDialog(
+        onDismissRequest = { ingestionToDelete = null },
+        title = { Text("Delete Ingestion?") },
+        text = {
+          Text(
+              "This will permanently delete this ${ingestionWithCompanion.ingestion.substanceName} ingestion."
+          )
+        },
+        confirmButton = {
+          TextButton(
+              onClick = {
+                onDeleteIngestion(ingestionWithCompanion)
+                ingestionToDelete = null
+              }
+          ) {
+            Text("Delete", color = MaterialTheme.colorScheme.error)
+          }
+        },
+        dismissButton = {
+          TextButton(onClick = { ingestionToDelete = null }) {
+            Text("Cancel")
+          }
+        },
+    )
+  }
 }
 
 @Composable
 fun SectionHeader(date: LocalDate) {
-    val dateFormatter = remember { DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM) }
-    Text(
-        text = date.format(dateFormatter),
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = horizontalPadding, vertical = 8.dp)
-    )
+  val dateFormatter = remember { DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM) }
+  Text(
+      text = date.format(dateFormatter),
+      style = MaterialTheme.typography.titleMedium,
+      fontWeight = FontWeight.Bold,
+      modifier = Modifier.fillMaxWidth().padding(horizontal = horizontalPadding, vertical = 8.dp),
+  )
 }
 
 @Composable
@@ -238,84 +235,89 @@ fun IngestionItem(
     ingestionWithCompanion: IngestionWithCompanionAndCustomUnit,
     isTimeRelative: Boolean,
     onClick: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
 ) {
-    val isDarkTheme = isSystemInDarkTheme()
-    val ingestion = ingestionWithCompanion.ingestion
-    val color = (ingestionWithCompanion.substanceCompanion?.color ?: AdaptiveColor.RED).getComposeColor(isDarkTheme)
+  val isDarkTheme = isSystemInDarkTheme()
+  val ingestion = ingestionWithCompanion.ingestion
+  val color =
+      (ingestionWithCompanion.substanceCompanion?.color ?: AdaptiveColor.RED).getComposeColor(
+          isDarkTheme
+      )
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = horizontalPadding, vertical = 5.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Surface(
-            shape = RoundedCornerShape(4.dp),
-            color = color,
-            modifier = Modifier.size(8.dp, 40.dp)
-        ) {}
+  Row(
+      modifier =
+          Modifier.fillMaxWidth()
+              .clickable(onClick = onClick)
+              .padding(horizontal = horizontalPadding, vertical = 5.dp),
+      verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Surface(
+        shape = RoundedCornerShape(4.dp),
+        color = color,
+        modifier = Modifier.size(8.dp, 40.dp),
+    ) {}
 
-        Spacer(modifier = Modifier.width(12.dp))
+    Spacer(modifier = Modifier.width(12.dp))
 
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = ingestion.substanceName,
-                style = MaterialTheme.typography.titleMedium
-            )
-            Row {
-                Text(
-                    text = "${ingestionWithCompanion.doseDescription} • ${ingestion.administrationRoute.displayText}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
+    Column(modifier = Modifier.weight(1f)) {
+      Text(
+          text = ingestion.substanceName,
+          style = MaterialTheme.typography.titleMedium,
+      )
+      Row {
         Text(
-            text = if (isTimeRelative) {
-                getRelativeTimeString(ingestion.time)
-            } else {
-                ingestion.time.getStringOfPattern("HH:mm")
-            },
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            text =
+                "${ingestionWithCompanion.doseDescription} • ${ingestion.administrationRoute.displayText}",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-
-        IconButton(onClick = onDelete) {
-            Icon(
-                Icons.Default.Delete,
-                contentDescription = "Delete",
-                tint = MaterialTheme.colorScheme.error
-            )
-        }
+      }
     }
+
+    Text(
+        text =
+            if (isTimeRelative) {
+              getRelativeTimeString(ingestion.time)
+            } else {
+              ingestion.time.getStringOfPattern("HH:mm")
+            },
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+
+    IconButton(onClick = onDelete) {
+      Icon(
+          Icons.Default.Delete,
+          contentDescription = "Delete",
+          tint = MaterialTheme.colorScheme.error,
+      )
+    }
+  }
 }
 
 private fun getRelativeTimeString(time: Instant): String {
-    val now = Instant.now()
-    val duration = Duration.between(time, now)
+  val now = Instant.now()
+  val duration = Duration.between(time, now)
 
-    return when {
-        duration.isNegative || duration.toMinutes() < 1 -> "now"
-        duration.toHours() < 1 -> "${duration.toMinutes()}m ago"
-        duration.toDays() < 1 -> "${duration.toHours()}h ago"
-        duration.toDays() < 7 -> "${duration.toDays()}d ago"
-        else -> time.getStringOfPattern("MMM d")
-    }
+  return when {
+    duration.isNegative || duration.toMinutes() < 1 -> "now"
+    duration.toHours() < 1 -> "${duration.toMinutes()}m ago"
+    duration.toDays() < 1 -> "${duration.toHours()}h ago"
+    duration.toDays() < 7 -> "${duration.toDays()}d ago"
+    else -> time.getStringOfPattern("MMM d")
+  }
 }
 
 @Preview
 @Composable
 fun AllIngestionsScreenPreview() {
-    AllIngestionsScreenContent(
-        sections = emptyList(),
-        searchText = "",
-        isTimeRelative = false,
-        onSearchTextChange = {},
-        onTimeRelativeChange = {},
-        onIngestionClick = {},
-        onDeleteIngestion = {}
-    )
+  AllIngestionsScreenContent(
+      sections = emptyList(),
+      searchText = "",
+      isTimeRelative = false,
+      onSearchTextChange = {},
+      onTimeRelativeChange = {},
+      onIngestionClick = {},
+      onDeleteIngestion = {},
+  )
 }

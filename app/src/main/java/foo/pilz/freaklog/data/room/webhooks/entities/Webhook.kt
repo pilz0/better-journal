@@ -16,13 +16,12 @@ import androidx.room.PrimaryKey
 /**
  * A user-configured webhook destination (Discord-compatible).
  *
- * Multiple webhooks can be configured; users choose per-ingestion which
- * ones receive a notification.
+ * Multiple webhooks can be configured; users choose per-ingestion which ones receive a
+ * notification.
  */
 @Entity(tableName = "webhook")
 data class Webhook(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
     /** User-visible label, e.g. "Friends server". */
     val name: String,
     /** Discord webhook URL. */
@@ -39,5 +38,5 @@ data class Webhook(
     /** Global on/off switch without deleting. */
     val isEnabled: Boolean = true,
     /** Stable ordering for the settings list and per-ingestion checklist. */
-    val sortOrder: Int = 0
+    val sortOrder: Int = 0,
 )

@@ -1,14 +1,14 @@
 package foo.pilz.freaklog.data.ai.provider
 
+import java.io.IOException
 import kotlinx.coroutines.flow.Flow
 import org.json.JSONObject
-import java.io.IOException
 
 /** The wire protocol a provider speaks. Self-hosted servers usually implement one of these. */
 enum class AiApiStandard(val label: String) {
-    OPENAI_CHAT("OpenAI Chat Completions"),
-    ANTHROPIC_MESSAGES("Anthropic Messages"),
-    GEMINI("Google Gemini"),
+  OPENAI_CHAT("OpenAI Chat Completions"),
+  ANTHROPIC_MESSAGES("Anthropic Messages"),
+  GEMINI("Google Gemini"),
 }
 
 /** A function call the model wants the app to execute. */
@@ -21,7 +21,8 @@ data class AiToolCall(
 )
 
 data class AiToolResult(val callId: String?, val name: String, val result: JSONObject) {
-    val isError: Boolean get() = result.optString("status") == "error"
+  val isError: Boolean
+    get() = result.optString("status") == "error"
 }
 
 /** A provider's own representation of an assistant turn, echoed back verbatim to that provider. */
@@ -29,19 +30,19 @@ data class NativeContent(val standard: AiApiStandard, val json: JSONObject)
 
 /** Provider-neutral conversation history. */
 sealed interface AiMessage {
-    data class User(val text: String) : AiMessage
+  data class User(val text: String) : AiMessage
 
-    data class Assistant(
-        val text: String,
-        val toolCalls: List<AiToolCall> = emptyList(),
-        /**
-         * Raw provider content. It keeps fields that must survive the round-trip, such as
-         * Gemini's `thoughtSignature` and Anthropic's signed `thinking` blocks.
-         */
-        val native: NativeContent? = null,
-    ) : AiMessage
+  data class Assistant(
+      val text: String,
+      val toolCalls: List<AiToolCall> = emptyList(),
+      /**
+       * Raw provider content. It keeps fields that must survive the round-trip, such as Gemini's
+       * `thoughtSignature` and Anthropic's signed `thinking` blocks.
+       */
+      val native: NativeContent? = null,
+  ) : AiMessage
 
-    data class ToolResults(val results: List<AiToolResult>) : AiMessage
+  data class ToolResults(val results: List<AiToolResult>) : AiMessage
 }
 
 /** A tool the model may call. [parameters] is a JSON Schema object with lowercase types. */
@@ -56,10 +57,10 @@ data class AiChatRequest(
 )
 
 sealed interface AiStreamEvent {
-    data class TextDelta(val text: String) : AiStreamEvent
+  data class TextDelta(val text: String) : AiStreamEvent
 
-    /** Always the last event of a successful stream. */
-    data class Completed(val message: AiMessage.Assistant, val stopReason: String?) : AiStreamEvent
+  /** Always the last event of a successful stream. */
+  data class Completed(val message: AiMessage.Assistant, val stopReason: String?) : AiStreamEvent
 }
 
 /** Where and how to reach a provider. */
@@ -67,18 +68,18 @@ data class AiEndpoint(val baseUrl: String, val apiKey: String)
 
 /** One provider's implementation of an [AiApiStandard]. */
 interface AiChatClient {
-    val standard: AiApiStandard
+  val standard: AiApiStandard
 
-    /** Streams one model turn. Errors are thrown as [AiException]. */
-    fun stream(request: AiChatRequest): Flow<AiStreamEvent>
+  /** Streams one model turn. Errors are thrown as [AiException]. */
+  fun stream(request: AiChatRequest): Flow<AiStreamEvent>
 
-    /** Model ids the endpoint offers, sorted. */
-    suspend fun listModels(): List<String>
+  /** Model ids the endpoint offers, sorted. */
+  suspend fun listModels(): List<String>
 }
 
 /**
- * A readable failure talking to a provider. [discardPartial] means text streamed before the
- * failure must not be kept as an answer (e.g. a mid-stream refusal).
+ * A readable failure talking to a provider. [discardPartial] means text streamed before the failure
+ * must not be kept as an answer (e.g. a mid-stream refusal).
  */
 class AiException(
     message: String,

@@ -28,50 +28,50 @@ import org.json.JSONObject
 fun JSONObject.getOptionalJSONObject(name: String): JSONObject? = optJSONObject(name)
 
 fun JSONObject.getOptionalString(name: String): String? {
-    if (!has(name) || isNull(name)) return null
-    return try {
-        getString(name)
-    } catch (e: Exception) {
-        null
-    }
+  if (!has(name) || isNull(name)) return null
+  return try {
+    getString(name)
+  } catch (e: Exception) {
+    null
+  }
 }
 
 fun JSONObject.getOptionalBoolean(name: String): Boolean? {
-    if (!has(name) || isNull(name)) return null
-    return try {
-        getBoolean(name)
-    } catch (e: Exception) {
-        null
-    }
+  if (!has(name) || isNull(name)) return null
+  return try {
+    getBoolean(name)
+  } catch (e: Exception) {
+    null
+  }
 }
 
 fun JSONObject.getOptionalLong(name: String): Long? {
-    if (!has(name) || isNull(name)) return null
-    return try {
-        getLong(name)
-    } catch (e: Exception) {
-        null
-    }
+  if (!has(name) || isNull(name)) return null
+  return try {
+    getLong(name)
+  } catch (e: Exception) {
+    null
+  }
 }
 
 fun JSONObject.getOptionalJSONArray(name: String): JSONArray? = optJSONArray(name)
 
 fun JSONObject.getOptionalDouble(name: String): Double? {
-    if (!has(name) || isNull(name)) return null
-    return try {
-        getDouble(name)
-    } catch (e: Exception) {
-        null
-    }
+  if (!has(name) || isNull(name)) return null
+  return try {
+    getDouble(name)
+  } catch (e: Exception) {
+    null
+  }
 }
 
 fun JSONArray.getOptionalString(index: Int): String? {
-    if (isNull(index)) return null
-    return try {
-        getString(index)
-    } catch (e: Exception) {
-        null
-    }
+  if (isNull(index)) return null
+  return try {
+    getString(index)
+  } catch (e: Exception) {
+    null
+  }
 }
 
 fun JSONArray.getOptionalJSONObject(index: Int): JSONObject? = optJSONObject(index)

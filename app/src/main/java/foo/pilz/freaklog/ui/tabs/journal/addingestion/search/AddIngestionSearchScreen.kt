@@ -83,38 +83,48 @@ fun AddIngestionSearchScreen(
     navigateToCheckSaferUse: (substanceName: String) -> Unit,
     navigateToChooseRoute: (substanceName: String) -> Unit,
     navigateToDose: (substanceName: String, route: AdministrationRoute) -> Unit,
-    navigateToChooseCustomSubstanceDose: (customSubstanceName: String, route: AdministrationRoute) -> Unit,
-    navigateToChooseTime: (substanceName: String, route: AdministrationRoute, dose: Double?, units: String?, isEstimate: Boolean, estimatedDoseStandardDeviation: Double?, customUnitId: Int?) -> Unit,
+    navigateToChooseCustomSubstanceDose:
+        (customSubstanceName: String, route: AdministrationRoute) -> Unit,
+    navigateToChooseTime:
+        (
+            substanceName: String,
+            route: AdministrationRoute,
+            dose: Double?,
+            units: String?,
+            isEstimate: Boolean,
+            estimatedDoseStandardDeviation: Double?,
+            customUnitId: Int?,
+        ) -> Unit,
     navigateToCustomSubstanceChooseRoute: (customSubstanceName: String) -> Unit,
     navigateToCustomUnitChooseDose: (customUnitId: Int) -> Unit,
     navigateToAddCustomSubstanceScreen: (searchText: String) -> Unit,
     navigateToSubstanceGroupFinish: (groupId: Int) -> Unit,
-    viewModel: AddIngestionSearchViewModel = hiltViewModel()
+    viewModel: AddIngestionSearchViewModel = hiltViewModel(),
 ) {
-    val searchText = viewModel.searchTextFlow.collectAsState().value
-    AddIngestionSearchScreen(
-        navigateToCheckInteractions = navigateToCheckInteractions,
-        navigateToCheckSaferUse = navigateToCheckSaferUse,
-        navigateToChooseRoute = navigateToChooseRoute,
-        navigateToCustomDose = navigateToChooseCustomSubstanceDose,
-        navigateToCustomSubstanceChooseRoute = navigateToCustomSubstanceChooseRoute,
-        navigateToChooseTime = navigateToChooseTime,
-        navigateToDose = navigateToDose,
-        navigateToAddCustomSubstanceScreen = {
-            navigateToAddCustomSubstanceScreen(searchText)
-        },
-        navigateToCustomUnitChooseDose = navigateToCustomUnitChooseDose,
-        suggestions = viewModel.filteredSuggestions.collectAsState().value,
-        searchText = searchText,
-        onChangeSearchText = {
-            viewModel.updateSearchText(it)
-        },
-        filteredSubstances = viewModel.filteredSubstancesFlow.collectAsState().value,
-        filteredCustomUnits = viewModel.filteredCustomUnitsFlow.collectAsState().value,
-        filteredCustomSubstances = viewModel.filteredCustomSubstancesFlow.collectAsState().value,
-        filteredSubstanceGroups = viewModel.filteredSubstanceGroupsFlow.collectAsState().value,
-        navigateToSubstanceGroupFinish = navigateToSubstanceGroupFinish,
-    )
+  val searchText = viewModel.searchTextFlow.collectAsState().value
+  AddIngestionSearchScreen(
+      navigateToCheckInteractions = navigateToCheckInteractions,
+      navigateToCheckSaferUse = navigateToCheckSaferUse,
+      navigateToChooseRoute = navigateToChooseRoute,
+      navigateToCustomDose = navigateToChooseCustomSubstanceDose,
+      navigateToCustomSubstanceChooseRoute = navigateToCustomSubstanceChooseRoute,
+      navigateToChooseTime = navigateToChooseTime,
+      navigateToDose = navigateToDose,
+      navigateToAddCustomSubstanceScreen = {
+        navigateToAddCustomSubstanceScreen(searchText)
+      },
+      navigateToCustomUnitChooseDose = navigateToCustomUnitChooseDose,
+      suggestions = viewModel.filteredSuggestions.collectAsState().value,
+      searchText = searchText,
+      onChangeSearchText = {
+        viewModel.updateSearchText(it)
+      },
+      filteredSubstances = viewModel.filteredSubstancesFlow.collectAsState().value,
+      filteredCustomUnits = viewModel.filteredCustomUnitsFlow.collectAsState().value,
+      filteredCustomSubstances = viewModel.filteredCustomSubstancesFlow.collectAsState().value,
+      filteredSubstanceGroups = viewModel.filteredSubstanceGroupsFlow.collectAsState().value,
+      navigateToSubstanceGroupFinish = navigateToSubstanceGroupFinish,
+  )
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -125,7 +135,16 @@ fun AddIngestionSearchScreen(
     navigateToCheckSaferUse: (substanceName: String) -> Unit,
     navigateToDose: (substanceName: String, route: AdministrationRoute) -> Unit,
     navigateToCustomDose: (customSubstanceName: String, route: AdministrationRoute) -> Unit,
-    navigateToChooseTime: (substanceName: String, route: AdministrationRoute, dose: Double?, units: String?, isEstimate: Boolean, estimatedDoseStandardDeviation: Double?, customUnitId: Int?) -> Unit,
+    navigateToChooseTime:
+        (
+            substanceName: String,
+            route: AdministrationRoute,
+            dose: Double?,
+            units: String?,
+            isEstimate: Boolean,
+            estimatedDoseStandardDeviation: Double?,
+            customUnitId: Int?,
+        ) -> Unit,
     navigateToCustomSubstanceChooseRoute: (customSubstanceName: String) -> Unit,
     navigateToAddCustomSubstanceScreen: () -> Unit,
     navigateToCustomUnitChooseDose: (customUnitId: Int) -> Unit,
@@ -138,211 +157,219 @@ fun AddIngestionSearchScreen(
     filteredSubstanceGroups: List<SubstanceGroupWithItems> = emptyList(),
     navigateToSubstanceGroupFinish: (groupId: Int) -> Unit = {},
 ) {
-    val focusRequester = remember { FocusRequester() }
-    var isFocused by remember { mutableStateOf(false) }
-    val focusManager = LocalFocusManager.current
-    Scaffold(
-        floatingActionButton = {
-            if (!isFocused) {
-                FloatingActionButton(onClick = { focusRequester.requestFocus() }) {
-                    Icon(Icons.Default.Keyboard, contentDescription = "Keyboard")
-                }
-            }
+  val focusRequester = remember { FocusRequester() }
+  var isFocused by remember { mutableStateOf(false) }
+  val focusManager = LocalFocusManager.current
+  Scaffold(
+      floatingActionButton = {
+        if (!isFocused) {
+          FloatingActionButton(onClick = { focusRequester.requestFocus() }) {
+            Icon(Icons.Default.Keyboard, contentDescription = "Keyboard")
+          }
         }
-    ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
-            LinearProgressIndicator(
-                progress = { 0.17f },
-                modifier = Modifier.fillMaxWidth().clearAndSetSemantics {  },
+      }
+  ) { padding ->
+    Column(modifier = Modifier.padding(padding)) {
+      LinearProgressIndicator(
+          progress = { 0.17f },
+          modifier = Modifier.fillMaxWidth().clearAndSetSemantics {},
+      )
+      TextField(
+          value = searchText,
+          onValueChange = { value ->
+            onChangeSearchText(value)
+          },
+          modifier =
+              Modifier.fillMaxWidth()
+                  .focusRequester(focusRequester)
+                  .onFocusChanged { focusState ->
+                    isFocused = focusState.isFocused
+                  }
+                  .clearAndSetSemantics {},
+          placeholder = { Text(text = "Search substances") },
+          leadingIcon = {
+            Icon(
+                Icons.Default.Search,
+                contentDescription = "Search",
             )
-            TextField(
-                value = searchText,
-                onValueChange = { value ->
-                    onChangeSearchText(value)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester)
-                    .onFocusChanged { focusState ->
-                        isFocused = focusState.isFocused
-                    }.clearAndSetSemantics {  },
-                placeholder = { Text(text = "Search substances") },
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.Search,
-                        contentDescription = "Search",
-                    )
-                },
-                trailingIcon = {
-                    Row {
-                        if (searchText.isNotEmpty()) {
-                            IconButton(onClick = {
-                                onChangeSearchText("")
-                            }) {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = "Close",
-                                )
-                            }
-                        }
+          },
+          trailingIcon = {
+            Row {
+              if (searchText.isNotEmpty()) {
+                IconButton(
+                    onClick = {
+                      onChangeSearchText("")
                     }
-                },
-                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    autoCorrectEnabled = false,
-                    imeAction = ImeAction.Done,
-                    capitalization = KeyboardCapitalization.Words,
-                ),
-                singleLine = true
-            )
-            LazyColumn {
-                if (filteredSubstanceGroups.isNotEmpty()) {
-                    stickyHeader {
-                        SectionHeader(title = "Substance groups")
-                    }
-                    items(filteredSubstanceGroups, key = { "sg_${it.group.id}" }) { group ->
-                        SubstanceGroupRow(
-                            group = group,
-                            onTap = { navigateToSubstanceGroupFinish(group.group.id) },
-                        )
-                        HorizontalDivider()
-                    }
+                ) {
+                  Icon(
+                      Icons.Default.Close,
+                      contentDescription = "Close",
+                  )
                 }
-                if (suggestions.isNotEmpty()) {
-                    stickyHeader {
-                        SectionHeader(title = "Quick logging")
-                    }
-                }
-                itemsIndexed(
-                    suggestions,
-                    key = { _, suggestion ->
-                        when (suggestion) {
-                            is Suggestion.PureSubstanceSuggestion ->
-                                "pure:${suggestion.substanceName}:${suggestion.administrationRoute}"
-                            is Suggestion.CustomUnitSuggestion ->
-                                "unit:${suggestion.customUnit.id}"
-                            is Suggestion.CustomSubstanceSuggestion ->
-                                "custom:${suggestion.customSubstance.id}:${suggestion.administrationRoute}"
-                        }
-                    }
-                ) { index, suggestion ->
-                    SuggestionRow(
-                        suggestion = suggestion,
-                        navigateToDose = navigateToDose,
-                        navigateToCustomUnitChooseDose = navigateToCustomUnitChooseDose,
-                        navigateToCustomDose = navigateToCustomDose,
-                        navigateToChooseTime = navigateToChooseTime
-                    )
-                    if (index < suggestions.size - 1) {
-                        HorizontalDivider()
-                    }
-                }
-                if (filteredCustomSubstances.isNotEmpty()) {
-                    stickyHeader {
-                        SectionHeader(title = "Custom substances")
-                    }
-                }
-                itemsIndexed(
-                    filteredCustomSubstances,
-                    key = { _, customSubstance -> "customSubstance:${customSubstance.id}" }
-                ) { index, customSubstance ->
-                    SubstanceRowAddIngestion(substanceModel = SubstanceModel(
-                        name = customSubstance.name,
-                        commonNames = emptyList(),
-                        categories = emptyList(),
-                        hasSaferUse = false,
-                        hasInteractions = false
-                    ), onTap = {
-                        navigateToCustomSubstanceChooseRoute(customSubstance.name)
-                    })
-                    if (index < filteredCustomSubstances.size - 1) {
-                        HorizontalDivider()
-                    }
-                }
-                if (filteredCustomUnits.isNotEmpty()) {
-                    stickyHeader {
-                        SectionHeader(title = "Custom units")
-                    }
-                }
-                itemsIndexed(
-                    filteredCustomUnits,
-                    key = { _, customUnit -> "customUnit:${customUnit.id}" }
-                ) { index, customUnit ->
-                    CustomUnitRowAddIngestion(
-                        customUnit = customUnit,
-                        navigateToCustomUnitChooseDose = navigateToCustomUnitChooseDose)
-                    if (index < filteredCustomUnits.size - 1) {
-                        HorizontalDivider()
-                    }
-                }
-                if (filteredSubstances.isNotEmpty()) {
-                    stickyHeader {
-                        SectionHeader(title = "Substances")
-                    }
-                }
-                items(filteredSubstances, key = { it.name }) { substance ->
-                    SubstanceRowAddIngestion(substanceModel = substance, onTap = {
-                        if (substance.hasSaferUse) {
-                            navigateToCheckSaferUse(substance.name)
-                        } else if (substance.hasInteractions) {
-                            navigateToCheckInteractions(substance.name)
-                        } else {
-                            navigateToChooseRoute(substance.name)
-                        }
-                    })
-                    HorizontalDivider()
-                }
-                item {
-                    HorizontalDivider()
-                    TextButton(
-                        onClick = navigateToAddCustomSubstanceScreen,
-                        modifier = Modifier.padding(horizontal = horizontalPadding)
-                    ) {
-                        Icon(
-                            Icons.Outlined.Add, contentDescription = "Add"
-                        )
-                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text(text = "Add custom substance")
-                    }
-                    HorizontalDivider()
-                }
-                item {
-                    if (filteredSubstances.isEmpty() && filteredCustomSubstances.isEmpty()) {
-                        Text("No matching substance found", modifier = Modifier.padding(10.dp))
-                    }
-                }
+              }
             }
+          },
+          keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+          keyboardOptions =
+              KeyboardOptions.Default.copy(
+                  autoCorrectEnabled = false,
+                  imeAction = ImeAction.Done,
+                  capitalization = KeyboardCapitalization.Words,
+              ),
+          singleLine = true,
+      )
+      LazyColumn {
+        if (filteredSubstanceGroups.isNotEmpty()) {
+          stickyHeader {
+            SectionHeader(title = "Substance groups")
+          }
+          items(filteredSubstanceGroups, key = { "sg_${it.group.id}" }) { group ->
+            SubstanceGroupRow(
+                group = group,
+                onTap = { navigateToSubstanceGroupFinish(group.group.id) },
+            )
+            HorizontalDivider()
+          }
         }
+        if (suggestions.isNotEmpty()) {
+          stickyHeader {
+            SectionHeader(title = "Quick logging")
+          }
+        }
+        itemsIndexed(
+            suggestions,
+            key = { _, suggestion ->
+              when (suggestion) {
+                is Suggestion.PureSubstanceSuggestion ->
+                    "pure:${suggestion.substanceName}:${suggestion.administrationRoute}"
+                is Suggestion.CustomUnitSuggestion -> "unit:${suggestion.customUnit.id}"
+                is Suggestion.CustomSubstanceSuggestion ->
+                    "custom:${suggestion.customSubstance.id}:${suggestion.administrationRoute}"
+              }
+            },
+        ) { index, suggestion ->
+          SuggestionRow(
+              suggestion = suggestion,
+              navigateToDose = navigateToDose,
+              navigateToCustomUnitChooseDose = navigateToCustomUnitChooseDose,
+              navigateToCustomDose = navigateToCustomDose,
+              navigateToChooseTime = navigateToChooseTime,
+          )
+          if (index < suggestions.size - 1) {
+            HorizontalDivider()
+          }
+        }
+        if (filteredCustomSubstances.isNotEmpty()) {
+          stickyHeader {
+            SectionHeader(title = "Custom substances")
+          }
+        }
+        itemsIndexed(
+            filteredCustomSubstances,
+            key = { _, customSubstance -> "customSubstance:${customSubstance.id}" },
+        ) { index, customSubstance ->
+          SubstanceRowAddIngestion(
+              substanceModel =
+                  SubstanceModel(
+                      name = customSubstance.name,
+                      commonNames = emptyList(),
+                      categories = emptyList(),
+                      hasSaferUse = false,
+                      hasInteractions = false,
+                  ),
+              onTap = {
+                navigateToCustomSubstanceChooseRoute(customSubstance.name)
+              },
+          )
+          if (index < filteredCustomSubstances.size - 1) {
+            HorizontalDivider()
+          }
+        }
+        if (filteredCustomUnits.isNotEmpty()) {
+          stickyHeader {
+            SectionHeader(title = "Custom units")
+          }
+        }
+        itemsIndexed(
+            filteredCustomUnits,
+            key = { _, customUnit -> "customUnit:${customUnit.id}" },
+        ) { index, customUnit ->
+          CustomUnitRowAddIngestion(
+              customUnit = customUnit,
+              navigateToCustomUnitChooseDose = navigateToCustomUnitChooseDose,
+          )
+          if (index < filteredCustomUnits.size - 1) {
+            HorizontalDivider()
+          }
+        }
+        if (filteredSubstances.isNotEmpty()) {
+          stickyHeader {
+            SectionHeader(title = "Substances")
+          }
+        }
+        items(filteredSubstances, key = { it.name }) { substance ->
+          SubstanceRowAddIngestion(
+              substanceModel = substance,
+              onTap = {
+                if (substance.hasSaferUse) {
+                  navigateToCheckSaferUse(substance.name)
+                } else if (substance.hasInteractions) {
+                  navigateToCheckInteractions(substance.name)
+                } else {
+                  navigateToChooseRoute(substance.name)
+                }
+              },
+          )
+          HorizontalDivider()
+        }
+        item {
+          HorizontalDivider()
+          TextButton(
+              onClick = navigateToAddCustomSubstanceScreen,
+              modifier = Modifier.padding(horizontal = horizontalPadding),
+          ) {
+            Icon(
+                Icons.Outlined.Add,
+                contentDescription = "Add",
+            )
+            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+            Text(text = "Add custom substance")
+          }
+          HorizontalDivider()
+        }
+        item {
+          if (filteredSubstances.isEmpty() && filteredCustomSubstances.isEmpty()) {
+            Text("No matching substance found", modifier = Modifier.padding(10.dp))
+          }
+        }
+      }
     }
+  }
 }
 
 @Composable
 fun SectionHeader(title: String) {
-    Box(modifier = Modifier
-        .fillMaxWidth()
-        .background(MaterialTheme.colorScheme.background)) {
-        Surface(
-            color = MaterialTheme.colorScheme.secondaryContainer,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(
-                modifier = Modifier
-                    .padding(horizontal = horizontalPadding, vertical = 5.dp)
-                    .fillMaxWidth(),
-                text = title,
-                style = MaterialTheme.typography.titleSmall
-            )
-        }
+  Box(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background)) {
+    Surface(
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+      Text(
+          modifier =
+              Modifier.padding(horizontal = horizontalPadding, vertical = 5.dp).fillMaxWidth(),
+          text = title,
+          style = MaterialTheme.typography.titleSmall,
+      )
     }
+  }
 }
-
 
 @Composable
 fun ColorCircle(adaptiveColor: AdaptiveColor) {
-    val isDarkTheme = isSystemInDarkTheme()
-    Surface(
-        shape = CircleShape,
-        color = adaptiveColor.getComposeColor(isDarkTheme),
-        modifier = Modifier.size(25.dp)
-    ) {}
+  val isDarkTheme = isSystemInDarkTheme()
+  Surface(
+      shape = CircleShape,
+      color = adaptiveColor.getComposeColor(isDarkTheme),
+      modifier = Modifier.size(25.dp),
+  ) {}
 }

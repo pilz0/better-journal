@@ -37,6 +37,7 @@ import foo.pilz.freaklog.data.room.webhooks.WebhookRepository
 import foo.pilz.freaklog.ui.tabs.settings.FileSystemConnection
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import foo.pilz.freaklog.ui.utils.stateInVm
+import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,11 +46,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import javax.inject.Inject
 
 @HiltViewModel
 @Suppress("TooManyFunctions")
-class ExportBackupViewModel @Inject constructor(
+class ExportBackupViewModel
+@Inject
+constructor(
     @ApplicationContext private val appContext: Context,
     private val experienceRepository: ExperienceRepository,
     private val webhookRepository: WebhookRepository,
@@ -58,219 +60,254 @@ class ExportBackupViewModel @Inject constructor(
     private val exportEncryption: ExportEncryption,
     private val backupPasswordStore: BackupPasswordStore,
     private val auth: foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthManager,
-    private val customSubstanceRepository: foo.pilz.freaklog.data.room.experiences.CustomSubstanceRepository,
+    private val customSubstanceRepository:
+        foo.pilz.freaklog.data.room.experiences.CustomSubstanceRepository,
 ) : ViewModel() {
 
-    val snackbarHostState = SnackbarHostState()
+  val snackbarHostState = SnackbarHostState()
 
-    private val lenientJson = Json { ignoreUnknownKeys = true }
+  private val lenientJson = Json { ignoreUnknownKeys = true }
 
-    val exportFilterFlow = MutableStateFlow(ExportFilter())
-    val usedSubstanceNamesFlow = MutableStateFlow<List<String>>(emptyList())
+  val exportFilterFlow = MutableStateFlow(ExportFilter())
+  val usedSubstanceNamesFlow = MutableStateFlow<List<String>>(emptyList())
 
-    /** Set after an encrypted export so the UI can show the one-time passphrase. */
-    private val _exportPassphrase = MutableStateFlow<String?>(null)
-    val exportPassphrase: StateFlow<String?> = _exportPassphrase.asStateFlow()
+  /** Set after an encrypted export so the UI can show the one-time passphrase. */
+  private val _exportPassphrase = MutableStateFlow<String?>(null)
+  val exportPassphrase: StateFlow<String?> = _exportPassphrase.asStateFlow()
 
-    /** An encrypted file waiting for the user to type its passphrase. */
-    private val _pendingEncryptedImport = MutableStateFlow<Uri?>(null)
-    val pendingEncryptedImport: StateFlow<Uri?> = _pendingEncryptedImport.asStateFlow()
+  /** An encrypted file waiting for the user to type its passphrase. */
+  private val _pendingEncryptedImport = MutableStateFlow<Uri?>(null)
+  val pendingEncryptedImport: StateFlow<Uri?> = _pendingEncryptedImport.asStateFlow()
 
-    val backupDirUriFlow = userPreferences.backupDirUriFlow.stateInVm(viewModelScope, null)
-    val lastBackupTimeFlow = userPreferences.lastBackupTimeFlow.stateInVm(viewModelScope, null)
+  val backupDirUriFlow = userPreferences.backupDirUriFlow.stateInVm(viewModelScope, null)
+  val lastBackupTimeFlow = userPreferences.lastBackupTimeFlow.stateInVm(viewModelScope, null)
 
-    init {
-        viewModelScope.launch {
-            usedSubstanceNamesFlow.value = experienceRepository.getAllSubstanceCompanions()
-                .map { it.substanceName }
-                .sorted()
-        }
+  init {
+    viewModelScope.launch {
+      usedSubstanceNamesFlow.value =
+          experienceRepository.getAllSubstanceCompanions().map { it.substanceName }.sorted()
     }
+  }
 
-    fun setExportFilter(filter: ExportFilter) {
-        exportFilterFlow.value = filter
+  fun setExportFilter(filter: ExportFilter) {
+    exportFilterFlow.value = filter
+  }
+
+  fun clearExportPassphrase() {
+    _exportPassphrase.value = null
+  }
+
+  fun clearPendingImport() {
+    _pendingEncryptedImport.value = null
+  }
+
+  fun exportPlaintextFile(uri: Uri) = export { json ->
+    check(!auth.shouldLock.value) { "Journal locked" }
+    fileSystemConnection.saveBytesInUri(uri, json.toByteArray())
+  }
+
+  fun exportEncryptedFile(uri: Uri) = export { json ->
+    val encrypted = exportEncryption.encrypt(json.toByteArray())
+    check(!auth.shouldLock.value) { "Journal locked" }
+    fileSystemConnection.saveBytesInUri(uri, encrypted.data)
+    _exportPassphrase.value = encrypted.passphrase
+  }
+
+  @Suppress("TooGenericExceptionCaught")
+  private fun export(write: (json: String) -> Unit) {
+    if (auth.shouldLock.value) return
+    viewModelScope.launch {
+      if (auth.shouldLock.value) return@launch
+      val message =
+          try {
+            withContext(Dispatchers.Default) {
+              write(
+                  buildJournalExportJson(
+                      experienceRepository,
+                      webhookRepository,
+                      exportFilterFlow.value,
+                  )
+              )
+            }
+            "Export successful"
+          } catch (e: CancellationException) {
+            throw e
+          } catch (_: Exception) {
+            "Export failed"
+          }
+      snackbarHostState.showSnackbar(message)
     }
+  }
 
-    fun clearExportPassphrase() {
-        _exportPassphrase.value = null
+  /** Imports a plaintext export right away; an encrypted one waits for [importWithPassphrase]. */
+  fun handleImportFile(uri: Uri) {
+    if (auth.shouldLock.value) return
+    viewModelScope.launch {
+      if (auth.shouldLock.value) return@launch
+      val bytes = readImportBytes(uri) ?: return@launch
+      when {
+        ExportEncryption.looksLikeJson(bytes) -> importPlaintext(bytes.decodeToString())
+        else -> _pendingEncryptedImport.value = uri
+      }
     }
+  }
 
-    fun clearPendingImport() {
-        _pendingEncryptedImport.value = null
-    }
-
-    fun exportPlaintextFile(uri: Uri) = export { json ->
-        check(!auth.shouldLock.value) { "Journal locked" }
-        fileSystemConnection.saveBytesInUri(uri, json.toByteArray())
-    }
-
-    fun exportEncryptedFile(uri: Uri) = export { json ->
-        val encrypted = exportEncryption.encrypt(json.toByteArray())
-        check(!auth.shouldLock.value) { "Journal locked" }
-        fileSystemConnection.saveBytesInUri(uri, encrypted.data)
-        _exportPassphrase.value = encrypted.passphrase
-    }
-
-    @Suppress("TooGenericExceptionCaught")
-    private fun export(write: (json: String) -> Unit) {
-        if (auth.shouldLock.value) return
-        viewModelScope.launch {
-            if (auth.shouldLock.value) return@launch
-            val message = try {
-                withContext(Dispatchers.Default) {
-                    write(buildJournalExportJson(experienceRepository, webhookRepository, exportFilterFlow.value))
+  @Suppress("TooGenericExceptionCaught")
+  fun importWithPassphrase(passphrase: String) {
+    if (auth.shouldLock.value) return
+    viewModelScope.launch {
+      if (auth.shouldLock.value) return@launch
+      val uri = _pendingEncryptedImport.value ?: return@launch
+      _pendingEncryptedImport.value = null
+      val bytes = readImportBytes(uri) ?: return@launch
+      val text =
+          try {
+            withContext(Dispatchers.Default) {
+              exportEncryption.decrypt(bytes, passphrase).decodeToString()
+            }
+          } catch (e: CancellationException) {
+            throw e
+          } catch (_: Exception) {
+            snackbarHostState.showSnackbar(
+                if (ExportEncryption.isUnsupportedV2Export(bytes)) {
+                  "This file uses a newer encryption format that this app cannot read"
+                } else {
+                  "Import failed - check your passphrase"
                 }
-                "Export successful"
-            } catch (e: CancellationException) {
-                throw e
-            } catch (_: Exception) {
-                "Export failed"
-            }
-            snackbarHostState.showSnackbar(message)
-        }
+            )
+            return@launch
+          }
+      importPlaintext(text)
     }
+  }
 
-    /** Imports a plaintext export right away; an encrypted one waits for [importWithPassphrase]. */
-    fun handleImportFile(uri: Uri) {
-        if (auth.shouldLock.value) return
-        viewModelScope.launch {
-            if (auth.shouldLock.value) return@launch
-            val bytes = readImportBytes(uri) ?: return@launch
-            when {
-                ExportEncryption.looksLikeJson(bytes) -> importPlaintext(bytes.decodeToString())
-                else -> _pendingEncryptedImport.value = uri
+  private suspend fun readImportBytes(uri: Uri): ByteArray? =
+      try {
+        withContext(Dispatchers.IO) { fileSystemConnection.getBytesFromUri(uri) }
+            .also {
+              if (it == null) snackbarHostState.showSnackbar("File not found")
             }
-        }
-    }
-
-    @Suppress("TooGenericExceptionCaught")
-    fun importWithPassphrase(passphrase: String) {
-        if (auth.shouldLock.value) return
-        viewModelScope.launch {
-            if (auth.shouldLock.value) return@launch
-            val uri = _pendingEncryptedImport.value ?: return@launch
-            _pendingEncryptedImport.value = null
-            val bytes = readImportBytes(uri) ?: return@launch
-            val text = try {
-                withContext(Dispatchers.Default) { exportEncryption.decrypt(bytes, passphrase).decodeToString() }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (_: Exception) {
-                snackbarHostState.showSnackbar(
-                    if (ExportEncryption.isUnsupportedV2Export(bytes)) {
-                        "This file uses a newer encryption format that this app cannot read"
-                    } else {
-                        "Import failed - check your passphrase"
-                    }
-                )
-                return@launch
-            }
-            importPlaintext(text)
-        }
-    }
-
-    private suspend fun readImportBytes(uri: Uri): ByteArray? = try {
-        withContext(Dispatchers.IO) { fileSystemConnection.getBytesFromUri(uri) }.also {
-            if (it == null) snackbarHostState.showSnackbar("File not found")
-        }
-    } catch (e: IllegalArgumentException) {
+      } catch (e: IllegalArgumentException) {
         snackbarHostState.showSnackbar(e.message ?: "Could not read file")
         null
-    }
+      }
 
-    @Suppress("TooGenericExceptionCaught")
-    private suspend fun importPlaintext(text: String) {
-        val journalExport = try {
-            withContext(Dispatchers.Default) {
-                lenientJson.decodeFromString<JournalExport>(text)
-            }
+  @Suppress("TooGenericExceptionCaught")
+  private suspend fun importPlaintext(text: String) {
+    val journalExport =
+        try {
+          withContext(Dispatchers.Default) {
+            lenientJson.decodeFromString<JournalExport>(text)
+          }
         } catch (e: CancellationException) {
-            throw e
+          throw e
         } catch (_: Exception) {
-            snackbarHostState.showSnackbar("Decoding file failed")
-            return
+          snackbarHostState.showSnackbar("Decoding file failed")
+          return
         }
-        val message = try {
-            experienceRepository.replaceEverything(journalExport)
-            "Import successful"
+    val message =
+        try {
+          experienceRepository.replaceEverything(journalExport)
+          "Import successful"
         } catch (e: CancellationException) {
-            throw e
+          throw e
         } catch (e: Exception) {
-            "Restore failed: ${e.message}"
+          "Restore failed: ${e.message}"
         }
-        snackbarHostState.showSnackbar(message)
-    }
+    snackbarHostState.showSnackbar(message)
+  }
 
-    /** A shared substance whose name is already taken, waiting for the user to pick replace or keep both. */
-    private val _substanceCollision = MutableStateFlow<foo.pilz.freaklog.data.substanceshare.SharedSubstance?>(null)
-    val substanceCollision: StateFlow<foo.pilz.freaklog.data.substanceshare.SharedSubstance?> = _substanceCollision.asStateFlow()
+  /**
+   * A shared substance whose name is already taken, waiting for the user to pick replace or keep
+   * both.
+   */
+  private val _substanceCollision =
+      MutableStateFlow<foo.pilz.freaklog.data.substanceshare.SharedSubstance?>(null)
+  val substanceCollision: StateFlow<foo.pilz.freaklog.data.substanceshare.SharedSubstance?> =
+      _substanceCollision.asStateFlow()
 
-    fun importSubstanceFile(uri: Uri) {
-        if (auth.shouldLock.value) return
-        viewModelScope.launch {
-            if (auth.shouldLock.value) return@launch
-            when (val result = foo.pilz.freaklog.data.substanceshare.parseAndImport(appContext, uri, customSubstanceRepository)) {
-                is foo.pilz.freaklog.data.substanceshare.ImportResult.Imported -> snackbarHostState.showSnackbar("Imported ${result.name}")
-                is foo.pilz.freaklog.data.substanceshare.ImportResult.CollisionPending -> _substanceCollision.value = result.payload
-                is foo.pilz.freaklog.data.substanceshare.ImportResult.Failed -> snackbarHostState.showSnackbar(
-                    when (result.reason) {
-                        foo.pilz.freaklog.data.substanceshare.ImportFailure.OpenStream -> "File not found"
-                        foo.pilz.freaklog.data.substanceshare.ImportFailure.Parse -> "This is not a substance file"
-                        foo.pilz.freaklog.data.substanceshare.ImportFailure.UnsupportedFormat -> "This substance file needs a newer app version"
-                    }
-                )
-            }
-        }
-    }
-
-    fun resolveSubstanceCollision(replace: Boolean) {
-        val payload = _substanceCollision.value ?: return
-        _substanceCollision.value = null
-        viewModelScope.launch {
-            val name = if (replace) {
-                foo.pilz.freaklog.data.substanceshare.resolveCollisionReplace(payload, customSubstanceRepository)
-                payload.name
-            } else {
-                val existingNames = experienceRepository.getAllCustomSubstanceNames().toSet()
-                foo.pilz.freaklog.data.substanceshare.resolveCollisionKeepBoth(
-                    payload,
-                    existingNames,
-                    customSubstanceRepository,
-                )
-            }
-            snackbarHostState.showSnackbar("Imported $name")
-        }
-    }
-
-    fun dismissSubstanceCollision() {
-        _substanceCollision.value = null
-    }
-
-    fun enableAutomaticBackups(dirUri: Uri, password: String) {
-        if (auth.shouldLock.value) return
-        viewModelScope.launch {
-            if (auth.shouldLock.value) return@launch
-            // Without a persisted grant the worker loses access to the folder after a reboot.
-            appContext.contentResolver.takePersistableUriPermission(
-                dirUri,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+  fun importSubstanceFile(uri: Uri) {
+    if (auth.shouldLock.value) return
+    viewModelScope.launch {
+      if (auth.shouldLock.value) return@launch
+      when (
+          val result =
+              foo.pilz.freaklog.data.substanceshare.parseAndImport(
+                  appContext,
+                  uri,
+                  customSubstanceRepository,
+              )
+      ) {
+        is foo.pilz.freaklog.data.substanceshare.ImportResult.Imported ->
+            snackbarHostState.showSnackbar("Imported ${result.name}")
+        is foo.pilz.freaklog.data.substanceshare.ImportResult.CollisionPending ->
+            _substanceCollision.value = result.payload
+        is foo.pilz.freaklog.data.substanceshare.ImportResult.Failed ->
+            snackbarHostState.showSnackbar(
+                when (result.reason) {
+                  foo.pilz.freaklog.data.substanceshare.ImportFailure.OpenStream -> "File not found"
+                  foo.pilz.freaklog.data.substanceshare.ImportFailure.Parse ->
+                      "This is not a substance file"
+                  foo.pilz.freaklog.data.substanceshare.ImportFailure.UnsupportedFormat ->
+                      "This substance file needs a newer app version"
+                }
             )
-            userPreferences.saveBackupConfig(dirUri.toString(), backupPasswordStore.seal(password))
-            BackupWorker.schedule(appContext)
-            BackupWorker.backupNow(appContext)
-        }
+      }
     }
+  }
 
-    fun disableAutomaticBackups() {
-        viewModelScope.launch {
-            BackupWorker.cancel(appContext)
-            userPreferences.clearBackupConfig()
-        }
+  fun resolveSubstanceCollision(replace: Boolean) {
+    val payload = _substanceCollision.value ?: return
+    _substanceCollision.value = null
+    viewModelScope.launch {
+      val name =
+          if (replace) {
+            foo.pilz.freaklog.data.substanceshare.resolveCollisionReplace(
+                payload,
+                customSubstanceRepository,
+            )
+            payload.name
+          } else {
+            val existingNames = experienceRepository.getAllCustomSubstanceNames().toSet()
+            foo.pilz.freaklog.data.substanceshare.resolveCollisionKeepBoth(
+                payload,
+                existingNames,
+                customSubstanceRepository,
+            )
+          }
+      snackbarHostState.showSnackbar("Imported $name")
     }
+  }
 
-    fun backupNow() {
-        if (auth.shouldLock.value) return
-        BackupWorker.backupNow(appContext)
-        viewModelScope.launch { snackbarHostState.showSnackbar("Backup started") }
+  fun dismissSubstanceCollision() {
+    _substanceCollision.value = null
+  }
+
+  fun enableAutomaticBackups(dirUri: Uri, password: String) {
+    if (auth.shouldLock.value) return
+    viewModelScope.launch {
+      if (auth.shouldLock.value) return@launch
+      // Without a persisted grant the worker loses access to the folder after a reboot.
+      appContext.contentResolver.takePersistableUriPermission(
+          dirUri,
+          Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+      )
+      userPreferences.saveBackupConfig(dirUri.toString(), backupPasswordStore.seal(password))
+      BackupWorker.schedule(appContext)
+      BackupWorker.backupNow(appContext)
     }
+  }
+
+  fun disableAutomaticBackups() {
+    viewModelScope.launch {
+      BackupWorker.cancel(appContext)
+      userPreferences.clearBackupConfig()
+    }
+  }
+
+  fun backupNow() {
+    if (auth.shouldLock.value) return
+    BackupWorker.backupNow(appContext)
+    viewModelScope.launch { snackbarHostState.showSnackbar("Backup started") }
+  }
 }

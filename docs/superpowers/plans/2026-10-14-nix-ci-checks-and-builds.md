@@ -13,46 +13,49 @@
 ### Task 1: Add `nix-build` job to `.github/workflows/build.yml` and update `ci-passed`
 
 **Files:**
+
 - Modify: `.github/workflows/build.yml:380-433`
 
 - [ ] **Step 1: Add `nix-build` matrix job in `.github/workflows/build.yml`**
-Add the `nix-build` job with `app-type: [ apk, aab ]`, `step-security/harden-runner`, `actions/checkout`, `cachix/install-nix-action`, `nix build .#${{ matrix.app-type }}`, and artifact upload using `actions/upload-artifact`.
+      Add the `nix-build` job with `app-type: [ apk, aab ]`, `step-security/harden-runner`, `actions/checkout`, `cachix/install-nix-action`, `nix build .#${{ matrix.app-type }}`, and artifact upload using `actions/upload-artifact`.
 
 - [ ] **Step 2: Update `ci-passed` dependencies in `.github/workflows/build.yml`**
-Add `nix-build` to the `needs:` array of `ci-passed`.
+      Add `nix-build` to the `needs:` array of `ci-passed`.
 
 - [ ] **Step 3: Verify workflow syntax and security invariants**
-Run the nix check derivation for workflow security invariants:
-`nix run --inputs-from . nixpkgs#python3 -- -c "import yaml; yaml.safe_load(open('.github/workflows/build.yml'))"` or run `nix flake check` to verify invariants.
+      Run the nix check derivation for workflow security invariants:
+      `nix run --inputs-from . nixpkgs#python3 -- -c "import yaml; yaml.safe_load(open('.github/workflows/build.yml'))"` or run `nix flake check` to verify invariants.
 
 - [ ] **Step 4: Commit changes**
-`git add .github/workflows/build.yml && git commit -m "ci: add nix-build matrix job and wire into ci-passed"`
+      `git add .github/workflows/build.yml && git commit -m "ci: add nix-build matrix job and wire into ci-passed"`
 
 ---
 
 ### Task 2: Update documentation in `AGENTS.md`
 
 **Files:**
+
 - Modify: `AGENTS.md`
 
 - [ ] **Step 1: Update CI/CD workflow table and descriptions in `AGENTS.md`**
-Update the documentation to mention the `nix-build` matrix job (building APK and AAB) alongside `nix-checks` in `build.yml`.
+      Update the documentation to mention the `nix-build` matrix job (building APK and AAB) alongside `nix-checks` in `build.yml`.
 
 - [ ] **Step 2: Verify documentation formatting**
-Ensure markdown tables and formatting remain clean and accurate.
+      Ensure markdown tables and formatting remain clean and accurate.
 
 - [ ] **Step 3: Commit changes**
-`git add AGENTS.md && git commit -m "docs: document nix-build job in CI/CD section of AGENTS.md"`
+      `git add AGENTS.md && git commit -m "docs: document nix-build job in CI/CD section of AGENTS.md"`
 
 ---
 
 ### Task 3: Comprehensive Verification
 
 **Files:**
+
 - Read-only verification across `.github/workflows/build.yml`, `flake.nix`, `AGENTS.md`.
 
 - [ ] **Step 1: Run Nix flake checks**
-Run `nix flake check` to verify that `nix-workflow-security-invariants` and other flake checks pass.
+      Run `nix flake check` to verify that `nix-workflow-security-invariants` and other flake checks pass.
 
 - [ ] **Step 2: Verify git status and diff**
-Ensure no unneeded files were modified and clean working tree.
+      Ensure no unneeded files were modified and clean working tree.

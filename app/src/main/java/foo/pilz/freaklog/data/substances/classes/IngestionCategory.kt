@@ -6,16 +6,16 @@ import kotlinx.serialization.Serializable
 @Keep
 @Serializable
 enum class IngestionCategory {
-    MEDICINAL {
-        override val displayText = "Medicinal"
-    },
-    RECREATIONAL {
-        override val displayText = "Recreational"
-    };
+  MEDICINAL {
+    override val displayText = "Medicinal"
+  },
+  RECREATIONAL {
+    override val displayText = "Recreational"
+  };
 
-    abstract val displayText: String
+  abstract val displayText: String
 
-    companion object {
-        val DEFAULT_INGESTION_CATEGORY = RECREATIONAL
-    }
+  companion object {
+    val DEFAULT_INGESTION_CATEGORY = RECREATIONAL
+  }
 }

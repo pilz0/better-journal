@@ -30,71 +30,74 @@ import kotlin.math.sqrt
 
 sealed class Suggestion(open val sortInstant: Instant) {
 
-    abstract fun isInSearch(searchText: String, substanceNames: Set<String>): Boolean
+  abstract fun isInSearch(searchText: String, substanceNames: Set<String>): Boolean
 
-    data class PureSubstanceSuggestion(
-        val administrationRoute: AdministrationRoute,
-        val substanceName: String,
-        val adaptiveColor: AdaptiveColor,
-        val dosesAndUnit: List<DoseAndUnit>,
-        override val sortInstant: Instant
-    ) : Suggestion(sortInstant = sortInstant) {
-        override fun isInSearch(searchText: String, substanceNames: Set<String>): Boolean {
-            return substanceNames.contains(substanceName)
-        }
+  data class PureSubstanceSuggestion(
+      val administrationRoute: AdministrationRoute,
+      val substanceName: String,
+      val adaptiveColor: AdaptiveColor,
+      val dosesAndUnit: List<DoseAndUnit>,
+      override val sortInstant: Instant,
+  ) : Suggestion(sortInstant = sortInstant) {
+    override fun isInSearch(searchText: String, substanceNames: Set<String>): Boolean {
+      return substanceNames.contains(substanceName)
     }
+  }
 
-    data class CustomUnitSuggestion(
-        val customUnit: CustomUnit,
-        val adaptiveColor: AdaptiveColor,
-        val dosesAndUnit: List<CustomUnitDoseSuggestion>,
-        override val sortInstant: Instant
-    ) : Suggestion(sortInstant = sortInstant) {
-        override fun isInSearch(searchText: String, substanceNames: Set<String>): Boolean {
-            if (searchText.isEmpty()) {
-                return true
-            }
-            if (substanceNames.contains(customUnit.substanceName)) {
-                return true
-            }
-            return customUnit.name.contains(
-                searchText,
-                ignoreCase = true
-            ) || customUnit.unit.contains(
-                searchText,
-                ignoreCase = true
-            ) || customUnit.note.contains(searchText, ignoreCase = true)
-        }
+  data class CustomUnitSuggestion(
+      val customUnit: CustomUnit,
+      val adaptiveColor: AdaptiveColor,
+      val dosesAndUnit: List<CustomUnitDoseSuggestion>,
+      override val sortInstant: Instant,
+  ) : Suggestion(sortInstant = sortInstant) {
+    override fun isInSearch(searchText: String, substanceNames: Set<String>): Boolean {
+      if (searchText.isEmpty()) {
+        return true
+      }
+      if (substanceNames.contains(customUnit.substanceName)) {
+        return true
+      }
+      return customUnit.name.contains(
+          searchText,
+          ignoreCase = true,
+      ) ||
+          customUnit.unit.contains(
+              searchText,
+              ignoreCase = true,
+          ) ||
+          customUnit.note.contains(searchText, ignoreCase = true)
     }
+  }
 
-    data class CustomSubstanceSuggestion(
-        val administrationRoute: AdministrationRoute,
-        val customSubstance: CustomSubstance,
-        val adaptiveColor: AdaptiveColor,
-        val dosesAndUnit: List<DoseAndUnit>,
-        override val sortInstant: Instant
-    ) : Suggestion(sortInstant = sortInstant) {
-        override fun isInSearch(searchText: String, substanceNames: Set<String>): Boolean {
-            if (searchText.isEmpty()) {
-                return true
-            }
-            return customSubstance.name.contains(searchText, ignoreCase = true)
-        }
+  data class CustomSubstanceSuggestion(
+      val administrationRoute: AdministrationRoute,
+      val customSubstance: CustomSubstance,
+      val adaptiveColor: AdaptiveColor,
+      val dosesAndUnit: List<DoseAndUnit>,
+      override val sortInstant: Instant,
+  ) : Suggestion(sortInstant = sortInstant) {
+    override fun isInSearch(searchText: String, substanceNames: Set<String>): Boolean {
+      if (searchText.isEmpty()) {
+        return true
+      }
+      return customSubstance.name.contains(searchText, ignoreCase = true)
     }
+  }
 }
 
 data class DoseAndUnit(
     val dose: Double?,
     val unit: String,
     val isEstimate: Boolean,
-    val estimatedDoseStandardDeviation: Double?
+    val estimatedDoseStandardDeviation: Double?,
 ) {
-    // used to check if distinct
-    val comparatorValue: String get() {
-        if (dose == null) {
-            return "U"
-        }
-        return dose.toString() + unit + isEstimate + estimatedDoseStandardDeviation
+  // used to check if distinct
+  val comparatorValue: String
+    get() {
+      if (dose == null) {
+        return "U"
+      }
+      return dose.toString() + unit + isEstimate + estimatedDoseStandardDeviation
     }
 }
 
@@ -103,127 +106,128 @@ data class CustomUnitDoseSuggestion(
     val isEstimate: Boolean,
     val estimatedDoseStandardDeviation: Double?,
 ) {
-    // used to check if distinct
-    val comparatorValue: String get() {
-        if (dose == null) {
-            return "U"
-        }
-        return dose.toString() + isEstimate + estimatedDoseStandardDeviation
+  // used to check if distinct
+  val comparatorValue: String
+    get() {
+      if (dose == null) {
+        return "U"
+      }
+      return dose.toString() + isEstimate + estimatedDoseStandardDeviation
     }
 
-    // e.g. 2 pills
-    fun getDoseDescription(pluralizableUnit: PluralizableUnit): String {
-        if (dose == null) {
-            return "Unknown"
-        }
-        val description = dose.toStringWith(pluralizableUnit = pluralizableUnit)
-        return if (isEstimate) {
-            if (estimatedDoseStandardDeviation != null) {
-                "${dose.toReadableString()}±${estimatedDoseStandardDeviation.toReadableString()} ${
+  // e.g. 2 pills
+  fun getDoseDescription(pluralizableUnit: PluralizableUnit): String {
+    if (dose == null) {
+      return "Unknown"
+    }
+    val description = dose.toStringWith(pluralizableUnit = pluralizableUnit)
+    return if (isEstimate) {
+      if (estimatedDoseStandardDeviation != null) {
+        "${dose.toReadableString()}±${estimatedDoseStandardDeviation.toReadableString()} ${
                     pluralizableUnit.justUnit(dose)
                 }"
-            } else {
-                "~$description"
-            }
-        } else {
-            description
-        }
+      } else {
+        "~$description"
+      }
+    } else {
+      description
     }
+  }
 }
 
 data class CustomUnitDose(
     val dose: Double,
     val isEstimate: Boolean,
     val estimatedDoseStandardDeviation: Double?,
-    val customUnit: CustomUnit
+    val customUnit: CustomUnit,
 ) {
-    val calculatedDose: Double?
-        get() = customUnit.dose?.let { dosePerUnit ->
-            dose * dosePerUnit
+  val calculatedDose: Double?
+    get() =
+        customUnit.dose?.let { dosePerUnit ->
+          dose * dosePerUnit
         }
 
-    // https://www.mathsisfun.com/data/standard-deviation.html
-    // https://en.m.wikipedia.org/wiki/Distribution_of_the_product_of_two_random_variables
-    // Var(X*Y) = Var(X)*Var(Y) + Var(X)*E(Y)^2 + Var(Y)*E(X)^2
-    val calculatedDoseStandardDeviation: Double?
-        get() {
-            return customUnit.dose?.let { expectationY ->
-                val standardDeviationY =
-                    if (customUnit.isEstimate) (customUnit.estimatedDoseStandardDeviation
-                        ?: 0.0) else 0.0
-                val expectationX = dose
-                val standardDeviationX =
-                    if (isEstimate) (estimatedDoseStandardDeviation ?: 0.0) else 0.0
-                val varX = standardDeviationX.pow(2)
-                val varY = standardDeviationY.pow(2)
-                val expX2 = expectationX.pow(2)
-                val expY2 = expectationY.pow(2)
-                val productVariance = (varX * varY) + (varX * expY2) + (varY * expX2)
-                if (productVariance > 0.0000001 && productVariance.isFinite()) {
-                    return sqrt(productVariance)
-                } else {
-                    return null
-                }
+  // https://www.mathsisfun.com/data/standard-deviation.html
+  // https://en.m.wikipedia.org/wiki/Distribution_of_the_product_of_two_random_variables
+  // Var(X*Y) = Var(X)*Var(Y) + Var(X)*E(Y)^2 + Var(Y)*E(X)^2
+  val calculatedDoseStandardDeviation: Double?
+    get() {
+      return customUnit.dose?.let { expectationY ->
+        val standardDeviationY =
+            if (customUnit.isEstimate) (customUnit.estimatedDoseStandardDeviation ?: 0.0) else 0.0
+        val expectationX = dose
+        val standardDeviationX = if (isEstimate) (estimatedDoseStandardDeviation ?: 0.0) else 0.0
+        val varX = standardDeviationX.pow(2)
+        val varY = standardDeviationY.pow(2)
+        val expX2 = expectationX.pow(2)
+        val expY2 = expectationY.pow(2)
+        val productVariance = (varX * varY) + (varX * expY2) + (varY * expX2)
+        if (productVariance > 0.0000001 && productVariance.isFinite()) {
+          return sqrt(productVariance)
+        } else {
+          return null
+        }
+      }
+    }
+
+  // 20 mg or 20±2 mg
+  val calculatedDoseDescription: String?
+    get() {
+      return calculatedDose?.let { calculatedDoseUnwrapped ->
+        calculatedDoseStandardDeviation?.let {
+          return "${calculatedDoseUnwrapped.toReadableString()}±${it.toReadableString()} ${customUnit.originalUnit}"
+        }
+            ?: run {
+              val description =
+                  "${calculatedDoseUnwrapped.toReadableString()} ${customUnit.originalUnit}"
+              if (isEstimate || customUnit.isEstimate) {
+                return "~$description"
+              } else {
+                return description
+              }
             }
-        }
+      }
+    }
 
-    // 20 mg or 20±2 mg
-    val calculatedDoseDescription: String?
-        get() {
-            return calculatedDose?.let { calculatedDoseUnwrapped ->
-                calculatedDoseStandardDeviation?.let {
-                    return "${calculatedDoseUnwrapped.toReadableString()}±${it.toReadableString()} ${customUnit.originalUnit}"
-                } ?: run {
-                    val description =
-                        "${calculatedDoseUnwrapped.toReadableString()} ${customUnit.originalUnit}"
-                    if (isEstimate || customUnit.isEstimate) {
-                        return "~$description"
-                    } else {
-                        return description
-                    }
-                }
-            }
-        }
-
-    // 2 pills
-    val doseDescription: String
-        get() {
-            val pluralizableUnit = customUnit.getPluralizableUnit()
-            val description = dose.toStringWith(pluralizableUnit = pluralizableUnit)
-            return if (isEstimate) {
-                if (estimatedDoseStandardDeviation != null) {
-                    "${dose.toReadableString()}±${estimatedDoseStandardDeviation.toReadableString()} ${
+  // 2 pills
+  val doseDescription: String
+    get() {
+      val pluralizableUnit = customUnit.getPluralizableUnit()
+      val description = dose.toStringWith(pluralizableUnit = pluralizableUnit)
+      return if (isEstimate) {
+        if (estimatedDoseStandardDeviation != null) {
+          "${dose.toReadableString()}±${estimatedDoseStandardDeviation.toReadableString()} ${
                         pluralizableUnit.justUnit(dose)
                     }"
-                } else {
-                    "~$description"
-                }
-            } else {
-                description
-            }
+        } else {
+          "~$description"
         }
+      } else {
+        description
+      }
+    }
 }
 
 fun Double.toStringWith(pluralizableUnit: PluralizableUnit): String {
-    return if (this != 1.0) {
-        "${this.toReadableString()} ${pluralizableUnit.plural}"
-    } else {
-        "${this.toReadableString()} ${pluralizableUnit.singular}"
-    }
+  return if (this != 1.0) {
+    "${this.toReadableString()} ${pluralizableUnit.plural}"
+  } else {
+    "${this.toReadableString()} ${pluralizableUnit.singular}"
+  }
 }
 
 fun Int.toStringWith(pluralizableUnit: PluralizableUnit): String {
-    return if (this != 1) {
-        "$this ${pluralizableUnit.plural}"
-    } else {
-        "$this ${pluralizableUnit.singular}"
-    }
+  return if (this != 1) {
+    "$this ${pluralizableUnit.plural}"
+  } else {
+    "$this ${pluralizableUnit.singular}"
+  }
 }
 
 fun PluralizableUnit.justUnit(basedOn: Double): String {
-    return if (basedOn != 1.0) {
-        plural
-    } else {
-        singular
-    }
+  return if (basedOn != 1.0) {
+    plural
+  } else {
+    singular
+  }
 }

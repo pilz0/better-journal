@@ -11,25 +11,23 @@ import kotlinx.serialization.Transient
 
 @Entity(
     primaryKeys = ["customSubstanceId", "route"],
-    indices = [
-        Index(value = ["customSubstanceId"]),
-    ],
-    foreignKeys = [
-        ForeignKey(
-            entity = CustomSubstance::class,
-            parentColumns = ["id"],
-            childColumns = ["customSubstanceId"],
-            onDelete = ForeignKey.CASCADE,
-        )
-    ]
+    indices =
+        [
+            Index(value = ["customSubstanceId"]),
+        ],
+    foreignKeys =
+        [
+            ForeignKey(
+                entity = CustomSubstance::class,
+                parentColumns = ["id"],
+                childColumns = ["customSubstanceId"],
+                onDelete = ForeignKey.CASCADE,
+            )
+        ],
 )
 @Serializable
 data class CustomRoa(
-    @Transient
-    var customSubstanceId: Int = 0,
-
+    @Transient var customSubstanceId: Int = 0,
     val route: AdministrationRoute,
-
-    @Embedded(prefix = "bioavailability_")
-    val bioavailability: Bioavailability? = null,
+    @Embedded(prefix = "bioavailability_") val bioavailability: Bioavailability? = null,
 )

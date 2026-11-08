@@ -31,16 +31,25 @@ data class ExperienceWithIngestionsCompanionsAndRatings(
     @Relation(
         entity = Ingestion::class,
         parentColumn = "id",
-        entityColumn = "experienceId"
-    ) val ingestionsWithCompanions: List<IngestionWithCompanionAndCustomUnit>,
+        entityColumn = "experienceId",
+    )
+    val ingestionsWithCompanions: List<IngestionWithCompanionAndCustomUnit>,
     @Relation(
         entity = ShulginRating::class,
         parentColumn = "id",
-        entityColumn = "experienceId"
-    ) val ratings: List<ShulginRating>
+        entityColumn = "experienceId",
+    )
+    val ratings: List<ShulginRating>,
 ) {
-    val sortInstant: Instant get() = ingestionsWithCompanions.firstOrNull()?.ingestion?.time ?: experience.sortDate
-    private val highestRatingOption: ShulginRatingOption? get() = ratings.maxOfOrNull { it.option }
-    private val overallRatingOption: ShulginRatingOption? get() = ratings.firstOrNull { it.time == null }?.option
-    val rating: ShulginRatingOption? get() = overallRatingOption ?: highestRatingOption
+  val sortInstant: Instant
+    get() = ingestionsWithCompanions.firstOrNull()?.ingestion?.time ?: experience.sortDate
+
+  private val highestRatingOption: ShulginRatingOption?
+    get() = ratings.maxOfOrNull { it.option }
+
+  private val overallRatingOption: ShulginRatingOption?
+    get() = ratings.firstOrNull { it.time == null }?.option
+
+  val rating: ShulginRatingOption?
+    get() = overallRatingOption ?: highestRatingOption
 }

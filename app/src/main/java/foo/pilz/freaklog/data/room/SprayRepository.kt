@@ -19,33 +19,32 @@
 package foo.pilz.freaklog.data.room
 
 import foo.pilz.freaklog.data.room.experiences.entities.Spray
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.flowOn
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Singleton
 class SprayRepository @Inject constructor(private val sprayDao: SprayDao) {
-    
-    fun getAllSpraysFlow(): Flow<List<Spray>> = sprayDao.getAllSpraysFlow()
-        .flowOn(Dispatchers.IO)
-        .conflate()
 
-    suspend fun getAllSprays(): List<Spray> = sprayDao.getAllSprays()
+  fun getAllSpraysFlow(): Flow<List<Spray>> =
+      sprayDao.getAllSpraysFlow().flowOn(Dispatchers.IO).conflate()
 
-    suspend fun getPreferredSpray(): Spray? = sprayDao.getPreferredSpray()
+  suspend fun getAllSprays(): List<Spray> = sprayDao.getAllSprays()
 
-    suspend fun getSprayById(id: Int): Spray? = sprayDao.getSprayById(id)
+  suspend fun getPreferredSpray(): Spray? = sprayDao.getPreferredSpray()
 
-    suspend fun insert(spray: Spray): Long = sprayDao.insertWithPreferred(spray)
+  suspend fun getSprayById(id: Int): Spray? = sprayDao.getSprayById(id)
 
-    suspend fun update(spray: Spray) = sprayDao.update(spray)
+  suspend fun insert(spray: Spray): Long = sprayDao.insertWithPreferred(spray)
 
-    suspend fun delete(spray: Spray) = sprayDao.delete(spray)
+  suspend fun update(spray: Spray) = sprayDao.update(spray)
 
-    suspend fun setPreferred(id: Int) = sprayDao.setPreferredAtomic(id)
+  suspend fun delete(spray: Spray) = sprayDao.delete(spray)
 
-    suspend fun deleteAll() = sprayDao.deleteAll()
+  suspend fun setPreferred(id: Int) = sprayDao.setPreferredAtomic(id)
+
+  suspend fun deleteAll() = sprayDao.deleteAll()
 }

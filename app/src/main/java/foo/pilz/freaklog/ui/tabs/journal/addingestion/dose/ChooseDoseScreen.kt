@@ -89,58 +89,65 @@ import java.time.Instant
 
 @Composable
 fun ChooseDoseScreen(
-    navigateToChooseTimeAndMaybeColor: (units: String?, isEstimate: Boolean, dose: Double?, estimatedDoseStandardDeviation: Double?) -> Unit,
+    navigateToChooseTimeAndMaybeColor:
+        (
+            units: String?,
+            isEstimate: Boolean,
+            dose: Double?,
+            estimatedDoseStandardDeviation: Double?,
+        ) -> Unit,
     navigateToVolumetricDosingScreenOnJournalTab: () -> Unit,
     navigateToSaferSniffingScreen: () -> Unit,
     navigateToCreateCustomUnit: () -> Unit,
-    viewModel: ChooseDoseViewModel = hiltViewModel()
+    viewModel: ChooseDoseViewModel = hiltViewModel(),
 ) {
-    ChooseDoseScreen(
-        navigateToVolumetricDosingScreen = navigateToVolumetricDosingScreenOnJournalTab,
-        navigateToSaferSniffingScreen = navigateToSaferSniffingScreen,
-        substanceName = viewModel.substanceName,
-        roaDose = viewModel.roaDose,
-        administrationRoute = viewModel.administrationRoute,
-        doseText = viewModel.doseText,
-        doseRemark = viewModel.doseRemark,
-        onChangeDoseText = viewModel::onDoseTextChange,
-        estimatedDoseStandardDeviationText = viewModel.estimatedDoseStandardDeviationText,
-        onChangeEstimatedDoseStandardDeviationText = viewModel::onEstimatedDoseStandardDeviationChange,
-        isValidDose = viewModel.isValidDose,
-        isEstimate = viewModel.isEstimate,
-        onChangeIsEstimate = {
-            viewModel.isEstimate = it
-        },
-        navigateToNext = {
-            navigateToChooseTimeAndMaybeColor(
-                viewModel.units,
-                viewModel.isEstimate,
-                viewModel.dose,
-                if (viewModel.isEstimate) viewModel.estimatedDoseStandardDeviation else null
-            )
-        },
-        useUnknownDoseAndNavigate = {
-            navigateToChooseTimeAndMaybeColor(
-                viewModel.units,
-                false,
-                null,
-                null
-            )
-        },
-        currentDoseClass = viewModel.currentDoseClass,
-        purityText = viewModel.purityText,
-        onPurityChange = {
-            viewModel.purityText = it
-        },
-        isValidPurity = viewModel.isPurityValid,
-        convertedDoseAndUnitText = viewModel.impureDoseWithUnit,
-        isShowingUnitsField = viewModel.roaDose?.units?.isBlank() ?: true,
-        units = viewModel.units,
-        onChangeOfUnits = { viewModel.units = it },
-        navigateToCreateCustomUnit = navigateToCreateCustomUnit,
-        roaDuration = viewModel.roaDuration,
-        intakeLimitStatuses = viewModel.intakeLimitStatuses,
-    )
+  ChooseDoseScreen(
+      navigateToVolumetricDosingScreen = navigateToVolumetricDosingScreenOnJournalTab,
+      navigateToSaferSniffingScreen = navigateToSaferSniffingScreen,
+      substanceName = viewModel.substanceName,
+      roaDose = viewModel.roaDose,
+      administrationRoute = viewModel.administrationRoute,
+      doseText = viewModel.doseText,
+      doseRemark = viewModel.doseRemark,
+      onChangeDoseText = viewModel::onDoseTextChange,
+      estimatedDoseStandardDeviationText = viewModel.estimatedDoseStandardDeviationText,
+      onChangeEstimatedDoseStandardDeviationText =
+          viewModel::onEstimatedDoseStandardDeviationChange,
+      isValidDose = viewModel.isValidDose,
+      isEstimate = viewModel.isEstimate,
+      onChangeIsEstimate = {
+        viewModel.isEstimate = it
+      },
+      navigateToNext = {
+        navigateToChooseTimeAndMaybeColor(
+            viewModel.units,
+            viewModel.isEstimate,
+            viewModel.dose,
+            if (viewModel.isEstimate) viewModel.estimatedDoseStandardDeviation else null,
+        )
+      },
+      useUnknownDoseAndNavigate = {
+        navigateToChooseTimeAndMaybeColor(
+            viewModel.units,
+            false,
+            null,
+            null,
+        )
+      },
+      currentDoseClass = viewModel.currentDoseClass,
+      purityText = viewModel.purityText,
+      onPurityChange = {
+        viewModel.purityText = it
+      },
+      isValidPurity = viewModel.isPurityValid,
+      convertedDoseAndUnitText = viewModel.impureDoseWithUnit,
+      isShowingUnitsField = viewModel.roaDose?.units?.isBlank() ?: true,
+      units = viewModel.units,
+      onChangeOfUnits = { viewModel.units = it },
+      navigateToCreateCustomUnit = navigateToCreateCustomUnit,
+      roaDuration = viewModel.roaDuration,
+      intakeLimitStatuses = viewModel.intakeLimitStatuses,
+  )
 }
 
 @Preview
@@ -148,63 +155,63 @@ fun ChooseDoseScreen(
 fun ChooseDoseScreenPreview(
     @PreviewParameter(RoaDosePreviewProvider::class) roaDose: RoaDose,
 ) {
-    ChooseDoseScreen(
-        navigateToVolumetricDosingScreen = {},
-        navigateToSaferSniffingScreen = {},
-        substanceName = "Example substance",
-        roaDose = roaDose,
-        administrationRoute = AdministrationRoute.INSUFFLATED,
-        doseRemark = "This is a dose remark",
-        doseText = "5",
-        onChangeDoseText = {},
-        estimatedDoseStandardDeviationText = "",
-        onChangeEstimatedDoseStandardDeviationText = {},
-        isValidDose = true,
-        isEstimate = false,
-        onChangeIsEstimate = {},
-        navigateToNext = {},
-        useUnknownDoseAndNavigate = {},
-        currentDoseClass = DoseClass.THRESHOLD,
-        purityText = "20",
-        onPurityChange = {},
-        isValidPurity = true,
-        convertedDoseAndUnitText = "25 impure mg",
-        isShowingUnitsField = false,
-        units = "mg",
-        onChangeOfUnits = {},
-        navigateToCreateCustomUnit = {},
-    )
+  ChooseDoseScreen(
+      navigateToVolumetricDosingScreen = {},
+      navigateToSaferSniffingScreen = {},
+      substanceName = "Example substance",
+      roaDose = roaDose,
+      administrationRoute = AdministrationRoute.INSUFFLATED,
+      doseRemark = "This is a dose remark",
+      doseText = "5",
+      onChangeDoseText = {},
+      estimatedDoseStandardDeviationText = "",
+      onChangeEstimatedDoseStandardDeviationText = {},
+      isValidDose = true,
+      isEstimate = false,
+      onChangeIsEstimate = {},
+      navigateToNext = {},
+      useUnknownDoseAndNavigate = {},
+      currentDoseClass = DoseClass.THRESHOLD,
+      purityText = "20",
+      onPurityChange = {},
+      isValidPurity = true,
+      convertedDoseAndUnitText = "25 impure mg",
+      isShowingUnitsField = false,
+      units = "mg",
+      onChangeOfUnits = {},
+      navigateToCreateCustomUnit = {},
+  )
 }
 
 @Preview
 @Composable
 fun ChooseDoseScreenPreview2() {
-    ChooseDoseScreen(
-        navigateToVolumetricDosingScreen = {},
-        navigateToSaferSniffingScreen = {},
-        substanceName = "Example Substance",
-        roaDose = null,
-        administrationRoute = AdministrationRoute.ORAL,
-        doseRemark = null,
-        doseText = "5",
-        onChangeDoseText = {},
-        estimatedDoseStandardDeviationText = "",
-        onChangeEstimatedDoseStandardDeviationText = {},
-        isValidDose = true,
-        isEstimate = false,
-        onChangeIsEstimate = {},
-        navigateToNext = {},
-        useUnknownDoseAndNavigate = {},
-        currentDoseClass = null,
-        purityText = "20",
-        onPurityChange = {},
-        isValidPurity = true,
-        convertedDoseAndUnitText = "25 impure mg",
-        isShowingUnitsField = false,
-        units = "mg",
-        onChangeOfUnits = {},
-        navigateToCreateCustomUnit = {}
-    )
+  ChooseDoseScreen(
+      navigateToVolumetricDosingScreen = {},
+      navigateToSaferSniffingScreen = {},
+      substanceName = "Example Substance",
+      roaDose = null,
+      administrationRoute = AdministrationRoute.ORAL,
+      doseRemark = null,
+      doseText = "5",
+      onChangeDoseText = {},
+      estimatedDoseStandardDeviationText = "",
+      onChangeEstimatedDoseStandardDeviationText = {},
+      isValidDose = true,
+      isEstimate = false,
+      onChangeIsEstimate = {},
+      navigateToNext = {},
+      useUnknownDoseAndNavigate = {},
+      currentDoseClass = null,
+      purityText = "20",
+      onPurityChange = {},
+      isValidPurity = true,
+      convertedDoseAndUnitText = "25 impure mg",
+      isShowingUnitsField = false,
+      units = "mg",
+      onChangeOfUnits = {},
+      navigateToCreateCustomUnit = {},
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -235,368 +242,398 @@ fun ChooseDoseScreen(
     onChangeOfUnits: (units: String) -> Unit,
     navigateToCreateCustomUnit: () -> Unit,
     roaDuration: foo.pilz.freaklog.data.substances.classes.roa.RoaDuration? = null,
-    intakeLimitStatuses: List<foo.pilz.freaklog.ui.tabs.settings.intakelimits.IntakeLimitStatus> = emptyList(),
+    intakeLimitStatuses: List<foo.pilz.freaklog.ui.tabs.settings.intakelimits.IntakeLimitStatus> =
+        emptyList(),
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("$substanceName ${administrationRoute.displayText} dose") })
-        },
-        floatingActionButton = {
-            if (isValidDose) {
-                ExtendedFloatingActionButton(
-                    modifier = Modifier.imePadding(),
-                    onClick = navigateToNext,
-                    icon = {
-                        Icon(
-                            Icons.AutoMirrored.Filled.NavigateNext,
-                            contentDescription = "Next"
-                        )
-                    },
-                    text = { Text("Next") },
+  Scaffold(
+      topBar = {
+        TopAppBar(title = { Text("$substanceName ${administrationRoute.displayText} dose") })
+      },
+      floatingActionButton = {
+        if (isValidDose) {
+          ExtendedFloatingActionButton(
+              modifier = Modifier.imePadding(),
+              onClick = navigateToNext,
+              icon = {
+                Icon(
+                    Icons.AutoMirrored.Filled.NavigateNext,
+                    contentDescription = "Next",
                 )
-            }
+              },
+              text = { Text("Next") },
+          )
         }
-    ) { padding ->
+      },
+  ) { padding ->
+    Column(modifier = Modifier.padding(padding).verticalScroll(rememberScrollState())) {
+      LinearProgressIndicator(
+          progress = { 0.67f },
+          modifier = Modifier.fillMaxWidth(),
+      )
+      Spacer(modifier = Modifier.height(4.dp))
+      if (intakeLimitStatuses.isNotEmpty()) {
+        foo.pilz.freaklog.ui.tabs.settings.intakelimits.IntakeLimitBannerContent(
+            statuses = intakeLimitStatuses,
+            modifier = Modifier.padding(vertical = 4.dp),
+        )
+      }
+      ElevatedCard(
+          modifier =
+              Modifier.padding(
+                  horizontal = horizontalPadding,
+                  vertical = 4.dp,
+              )
+      ) {
         Column(
-            modifier = Modifier
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
+            modifier =
+                Modifier.padding(
+                    horizontal = horizontalPadding,
+                    vertical = 10.dp,
+                )
         ) {
-            LinearProgressIndicator(
-                progress = { 0.67f },
+          var isDoseRemarkExpanded by remember { mutableStateOf(false) }
+          Row(
+              modifier =
+                  Modifier.clickable {
+                    isDoseRemarkExpanded = !isDoseRemarkExpanded
+                  },
+              verticalAlignment = Alignment.CenterVertically,
+          ) {
+            val finalDoseInfoText =
+                if (doseRemark.isNullOrBlank()) DOSE_DISCLAIMER
+                else "$doseRemark\n\n$DOSE_DISCLAIMER"
+            Text(
+                modifier = Modifier.weight(1f),
+                text = finalDoseInfoText,
+                maxLines = if (isDoseRemarkExpanded) Int.MAX_VALUE else 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (!isDoseRemarkExpanded) {
+              Icon(
+                  imageVector = Icons.Default.Expand,
+                  contentDescription = "Expand",
+              )
+            }
+          }
+          Spacer(modifier = Modifier.height(5.dp))
+          if (roaDose != null) {
+            RoaDoseView(roaDose = roaDose)
+            ProjectedTimeline(
+                substanceName = substanceName,
+                administrationRoute = administrationRoute,
+                roaDuration = roaDuration,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+          } else {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              Icon(
+                  imageVector = Icons.Default.Warning,
+                  contentDescription = "Dosage warning",
+              )
+              Spacer(modifier = Modifier.width(ButtonDefaults.IconSpacing))
+              Text(
+                  text =
+                      "There is no dosage info for this administration route. Research dosages somewhere else.",
+              )
+            }
+          }
+          OptionalDosageUnitDisclaimer(substanceName)
+        }
+      }
+      if (substanceName == "Alcohol") {
+        AlcoholCalculator(onApplyDose = onChangeDoseText)
+      } else if (
+          foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.mdma.MDMAFormulas.isMdma(
+              substanceName
+          )
+      ) {
+        foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.mdma.MDMACalculator(
+            onApplyDose = onChangeDoseText
+        )
+      }
+      ElevatedCard(
+          modifier =
+              Modifier.padding(
+                  horizontal = horizontalPadding,
+                  vertical = 4.dp,
+              )
+      ) {
+        Column(
+            modifier =
+                Modifier.padding(
+                    horizontal = horizontalPadding,
+                    vertical = 10.dp,
+                )
+        ) {
+          if (roaDose != null) {
+            AnimatedVisibility(visible = currentDoseClass != null) {
+              if (currentDoseClass != null) {
+                CurrentDoseClassInfo(currentDoseClass, roaDose)
+              }
+            }
+          }
+          val focusManager = LocalFocusManager.current
+          val focusRequester = remember { FocusRequester() }
+          val textStyle = MaterialTheme.typography.titleMedium
+          LaunchedEffect(Unit) {
+            focusRequester.requestFocus()
+          }
+          OutlinedTextField(
+              value = doseText,
+              onValueChange = {
+                onChangeDoseText(
+                    it.replace(
+                        oldChar = ',',
+                        newChar = '.',
+                    )
+                )
+              },
+              textStyle = textStyle,
+              label = { Text("Pure Dose", style = textStyle) },
+              isError = !isValidDose,
+              trailingIcon = {
+                Text(
+                    text = units,
+                    style = textStyle,
+                    modifier = Modifier.padding(horizontal = horizontalPadding),
+                )
+              },
+              keyboardActions =
+                  KeyboardActions(
+                      onDone = {
+                        focusManager.clearFocus()
+                      }
+                  ),
+              keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+              singleLine = true,
+              modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+          )
+          if (isShowingUnitsField) {
+            OutlinedTextField(
+                value = units,
+                onValueChange = onChangeOfUnits,
+                label = { Text("Units") },
+                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
-            Spacer(modifier = Modifier.height(4.dp))
-            if (intakeLimitStatuses.isNotEmpty()) {
-                foo.pilz.freaklog.ui.tabs.settings.intakelimits.IntakeLimitBannerContent(
-                    statuses = intakeLimitStatuses,
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
-            }
-            ElevatedCard(
-                modifier = Modifier.padding(
-                    horizontal = horizontalPadding,
-                    vertical = 4.dp
-                )
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth(),
             ) {
-                Column(
-                    modifier = Modifier.padding(
-                        horizontal = horizontalPadding,
-                        vertical = 10.dp
-                    )
-                ) {
-                    var isDoseRemarkExpanded by remember { mutableStateOf(false) }
-                    Row(modifier = Modifier.clickable {
-                        isDoseRemarkExpanded = !isDoseRemarkExpanded
-                    }, verticalAlignment = Alignment.CenterVertically) {
-                        val finalDoseInfoText =
-                            if (doseRemark.isNullOrBlank()) DOSE_DISCLAIMER else "$doseRemark\n\n$DOSE_DISCLAIMER"
-                        Text(
-                            modifier = Modifier.weight(1f),
-                            text = finalDoseInfoText,
-                            maxLines = if (isDoseRemarkExpanded) Int.MAX_VALUE else 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        if (!isDoseRemarkExpanded) {
-                            Icon(
-                                imageVector = Icons.Default.Expand,
-                                contentDescription = "Expand"
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(5.dp))
-                    if (roaDose != null) {
-                        RoaDoseView(roaDose = roaDose)
-                        ProjectedTimeline(
-                            substanceName = substanceName,
-                            administrationRoute = administrationRoute,
-                            roaDuration = roaDuration,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                    } else {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Warning,
-                                contentDescription = "Dosage warning"
-                            )
-                            Spacer(modifier = Modifier.width(ButtonDefaults.IconSpacing))
-                            Text(
-                                text = "There is no dosage info for this administration route. Research dosages somewhere else.",
-                            )
-                        }
-                    }
-                    OptionalDosageUnitDisclaimer(substanceName)
-                }
+              OutlinedButton(onClick = { onChangeOfUnits("µg") }) {
+                Text(text = "µg")
+              }
+              OutlinedButton(onClick = { onChangeOfUnits("mg") }) {
+                Text(text = "mg")
+              }
+              OutlinedButton(onClick = { onChangeOfUnits("g") }) {
+                Text(text = "g")
+              }
+              OutlinedButton(onClick = { onChangeOfUnits("mL") }) {
+                Text(text = "mL")
+              }
             }
-            if (substanceName == "Alcohol") {
-                AlcoholCalculator(onApplyDose = onChangeDoseText)
-            } else if (foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.mdma.MDMAFormulas.isMdma(substanceName)) {
-                foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.mdma.MDMACalculator(
-                    onApplyDose = onChangeDoseText
-                )
-            }
-            ElevatedCard(
-                modifier = Modifier.padding(
-                    horizontal = horizontalPadding,
-                    vertical = 4.dp
-                )
-            ) {
-                Column(
-                    modifier = Modifier.padding(
-                        horizontal = horizontalPadding,
-                        vertical = 10.dp
+          }
+          Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(10.dp),
+          ) {
+            Switch(checked = isEstimate, onCheckedChange = onChangeIsEstimate)
+            Text("Estimate", style = MaterialTheme.typography.titleMedium)
+          }
+          AnimatedVisibility(visible = isEstimate) {
+            Column {
+              OutlinedTextField(
+                  value = estimatedDoseStandardDeviationText,
+                  onValueChange = {
+                    onChangeEstimatedDoseStandardDeviationText(
+                        it.replace(
+                            oldChar = ',',
+                            newChar = '.',
+                        )
                     )
-                ) {
-                    if (roaDose != null) {
-                        AnimatedVisibility(visible = currentDoseClass != null) {
-                            if (currentDoseClass != null) {
-                                CurrentDoseClassInfo(currentDoseClass, roaDose)
-                            }
-                        }
-                    }
-                    val focusManager = LocalFocusManager.current
-                    val focusRequester = remember { FocusRequester() }
-                    val textStyle = MaterialTheme.typography.titleMedium
-                    LaunchedEffect(Unit) {
-                        focusRequester.requestFocus()
-                    }
-                    OutlinedTextField(
-                        value = doseText,
-                        onValueChange = {
-                            onChangeDoseText(
-                                it.replace(
-                                    oldChar = ',',
-                                    newChar = '.'
-                                )
-                            )
-                        },
-                        textStyle = textStyle,
-                        label = { Text("Pure Dose", style = textStyle) },
-                        isError = !isValidDose,
-                        trailingIcon = {
-                            Text(
-                                text = units,
-                                style = textStyle,
-                                modifier = Modifier.padding(horizontal = horizontalPadding)
-                            )
-                        },
-                        keyboardActions = KeyboardActions(onDone = {
+                  },
+                  textStyle = textStyle,
+                  label = { Text("Estimated standard deviation", style = textStyle) },
+                  trailingIcon = {
+                    Text(
+                        text = units,
+                        style = textStyle,
+                        modifier = Modifier.padding(horizontal = horizontalPadding),
+                    )
+                  },
+                  keyboardActions =
+                      KeyboardActions(
+                          onDone = {
                             focusManager.clearFocus()
-                        }),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        singleLine = true,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .focusRequester(focusRequester)
-                    )
-                    if (isShowingUnitsField) {
-                        OutlinedTextField(
-                            value = units,
-                            onValueChange = onChangeOfUnits,
-                            label = { Text("Units") },
-                            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            OutlinedButton(onClick = { onChangeOfUnits("µg") }) {
-                                Text(text = "µg")
-                            }
-                            OutlinedButton(onClick = { onChangeOfUnits("mg") }) {
-                                Text(text = "mg")
-                            }
-                            OutlinedButton(onClick = { onChangeOfUnits("g") }) {
-                                Text(text = "g")
-                            }
-                            OutlinedButton(onClick = { onChangeOfUnits("mL") }) {
-                                Text(text = "mL")
-                            }
-                        }
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        Switch(checked = isEstimate, onCheckedChange = onChangeIsEstimate)
-                        Text("Estimate", style = MaterialTheme.typography.titleMedium)
-                    }
-                    AnimatedVisibility(visible = isEstimate) {
-                        Column {
-                            OutlinedTextField(
-                                value = estimatedDoseStandardDeviationText,
-                                onValueChange = {
-                                    onChangeEstimatedDoseStandardDeviationText(
-                                        it.replace(
-                                            oldChar = ',',
-                                            newChar = '.'
-                                        )
-                                    )
-                                },
-                                textStyle = textStyle,
-                                label = { Text("Estimated standard deviation", style = textStyle) },
-                                trailingIcon = {
-                                    Text(
-                                        text = units,
-                                        style = textStyle,
-                                        modifier = Modifier.padding(horizontal = horizontalPadding)
-                                    )
-                                },
-                                keyboardActions = KeyboardActions(onDone = {
-                                    focusManager.clearFocus()
-                                }),
-                                isError = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(estimatedDoseStandardDeviationText) == null,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                            val mean = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(doseText)
-                            val standardDeviation = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(estimatedDoseStandardDeviationText)
-                            val isExplanationShown = mean != null && standardDeviation != null
-                            AnimatedVisibility(isExplanationShown) {
-                                if (mean != null && standardDeviation != null) {
-                                    StandardDeviationExplanation(
-                                        mean = mean,
-                                        standardDeviation = standardDeviation,
-                                        unit = units
-                                    )
-                                }
-                            }
-                        }
-                    }
+                          }
+                      ),
+                  isError =
+                      foo.pilz.freaklog.ui.utils.evaluateNumericExpression(
+                          estimatedDoseStandardDeviationText
+                      ) == null,
+                  keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                  singleLine = true,
+                  modifier = Modifier.fillMaxWidth(),
+              )
+              val mean = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(doseText)
+              val standardDeviation =
+                  foo.pilz.freaklog.ui.utils.evaluateNumericExpression(
+                      estimatedDoseStandardDeviationText
+                  )
+              val isExplanationShown = mean != null && standardDeviation != null
+              AnimatedVisibility(isExplanationShown) {
+                if (mean != null && standardDeviation != null) {
+                  StandardDeviationExplanation(
+                      mean = mean,
+                      standardDeviation = standardDeviation,
+                      unit = units,
+                  )
                 }
+              }
             }
-            ElevatedCard(
-                modifier = Modifier.padding(
-                    horizontal = horizontalPadding,
-                    vertical = 4.dp
-                )
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(
-                            horizontal = horizontalPadding,
-                            vertical = 10.dp
-                        )
-                        .fillMaxWidth()
-                ) {
-                    if (substanceName == "Cannabis" && administrationRoute == AdministrationRoute.SMOKED) {
-                        Text("Prefer to log weight of bud, hash or log another unit related to joint, vaporizer or bong?")
-                    } else if (substanceName == "Psilocybin mushrooms") {
-                        Text("Prefer to log weight of mushrooms instead of mg Psilocybin?")
-                    } else if (substanceName == "Alcohol") {
-                        Text("Prefer to log number of drinks, beer or wine instead of g of Ethanol?")
-                    } else if (substanceName == "Caffeine") {
-                        Text("Prefer to log coffee, tea or energy drink instead of mg Caffeine?")
-                    } else {
-                        val unitSuggestions = when (administrationRoute) {
-                            AdministrationRoute.ORAL -> "pills, capsules or raw powder weight"
-                            AdministrationRoute.SMOKED -> "hits"
-                            AdministrationRoute.INSUFFLATED -> "sprays, spoons, scoops, lines or raw powder weight"
-                            AdministrationRoute.BUCCAL -> "pouches"
-                            AdministrationRoute.TRANSDERMAL -> "patches"
-                            else -> "pills, sprays, spoons or powder weight"
-                        }
-                        Text(text = "Prefer to log with a different unit such as $unitSuggestions?")
-                    }
-                    Spacer(modifier = Modifier.height(5.dp))
-                    OutlinedButton(onClick = navigateToCreateCustomUnit) {
-                        Text("Create a custom unit")
-                    }
-                }
-            }
-            var isShowingUnknownDoseDialog by remember { mutableStateOf(false) }
-            TextButton(onClick = { isShowingUnknownDoseDialog = true }) {
-                Text(text = "Log unknown dose")
-            }
-            AnimatedVisibility(visible = isValidDose) {
-                ElevatedCard(
-                    modifier = Modifier.padding(
-                        horizontal = horizontalPadding,
-                        vertical = 4.dp
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier.padding(
-                            horizontal = horizontalPadding,
-                            vertical = 10.dp
-                        )
-                    ) {
-                        PurityCalculation(
-                            purityText = purityText,
-                            onPurityChange = onPurityChange,
-                            convertedDoseAndUnitText = convertedDoseAndUnitText,
-                            isValidPurity = isValidPurity
-                        )
-                    }
-                }
-            }
-            AnimatedVisibility(visible = isShowingUnknownDoseDialog) {
-                UnknownDoseDialog(
-                    useUnknownDoseAndNavigate = useUnknownDoseAndNavigate,
-                    dismiss = { isShowingUnknownDoseDialog = false }
-                )
-            }
-            if (administrationRoute == AdministrationRoute.INSUFFLATED) {
-                TextButton(onClick = navigateToSaferSniffingScreen) {
-                    Icon(
-                        Icons.Outlined.Info,
-                        contentDescription = "Info",
-                        modifier = Modifier.size(ButtonDefaults.IconSize),
-                    )
-                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                    Text(text = "Safer sniffing")
-                }
-            } else if (administrationRoute == AdministrationRoute.RECTAL) {
-                val uriHandler = LocalUriHandler.current
-                TextButton(onClick = { uriHandler.openUri(AdministrationRoute.SAFER_PLUGGING_ARTICLE_URL) }) {
-                    Icon(
-                        Icons.Outlined.OpenInBrowser,
-                        contentDescription = "Open link"
-                    )
-                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                    Text("Safer plugging")
-                }
-            }
-            if (roaDose?.shouldUseVolumetricDosing == true) {
-                TextButton(onClick = navigateToVolumetricDosingScreen) {
-                    Icon(
-                        Icons.Outlined.Info,
-                        contentDescription = "Info",
-                        modifier = Modifier.size(ButtonDefaults.IconSize),
-                    )
-                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                    Text(text = "Volumetric liquid dosing")
-                }
-            }
-            if (administrationRoute == AdministrationRoute.SMOKED && substanceName != "Cannabis") {
-                ElevatedCard(
-                    modifier = Modifier.padding(
-                        horizontal = horizontalPadding,
-                        vertical = 4.dp
-                    )
-                ) {
-                    ChasingTheDragonText(
-                        modifier = Modifier.padding(
-                            horizontal = horizontalPadding,
-                            vertical = 10.dp
-                        )
-                    )
-                }
-            }
+          }
         }
+      }
+      ElevatedCard(
+          modifier =
+              Modifier.padding(
+                  horizontal = horizontalPadding,
+                  vertical = 4.dp,
+              )
+      ) {
+        Column(
+            modifier =
+                Modifier.padding(
+                        horizontal = horizontalPadding,
+                        vertical = 10.dp,
+                    )
+                    .fillMaxWidth()
+        ) {
+          if (substanceName == "Cannabis" && administrationRoute == AdministrationRoute.SMOKED) {
+            Text(
+                "Prefer to log weight of bud, hash or log another unit related to joint, vaporizer or bong?"
+            )
+          } else if (substanceName == "Psilocybin mushrooms") {
+            Text("Prefer to log weight of mushrooms instead of mg Psilocybin?")
+          } else if (substanceName == "Alcohol") {
+            Text("Prefer to log number of drinks, beer or wine instead of g of Ethanol?")
+          } else if (substanceName == "Caffeine") {
+            Text("Prefer to log coffee, tea or energy drink instead of mg Caffeine?")
+          } else {
+            val unitSuggestions =
+                when (administrationRoute) {
+                  AdministrationRoute.ORAL -> "pills, capsules or raw powder weight"
+                  AdministrationRoute.SMOKED -> "hits"
+                  AdministrationRoute.INSUFFLATED ->
+                      "sprays, spoons, scoops, lines or raw powder weight"
+                  AdministrationRoute.BUCCAL -> "pouches"
+                  AdministrationRoute.TRANSDERMAL -> "patches"
+                  else -> "pills, sprays, spoons or powder weight"
+                }
+            Text(text = "Prefer to log with a different unit such as $unitSuggestions?")
+          }
+          Spacer(modifier = Modifier.height(5.dp))
+          OutlinedButton(onClick = navigateToCreateCustomUnit) {
+            Text("Create a custom unit")
+          }
+        }
+      }
+      var isShowingUnknownDoseDialog by remember { mutableStateOf(false) }
+      TextButton(onClick = { isShowingUnknownDoseDialog = true }) {
+        Text(text = "Log unknown dose")
+      }
+      AnimatedVisibility(visible = isValidDose) {
+        ElevatedCard(
+            modifier =
+                Modifier.padding(
+                    horizontal = horizontalPadding,
+                    vertical = 4.dp,
+                )
+        ) {
+          Column(
+              modifier =
+                  Modifier.padding(
+                      horizontal = horizontalPadding,
+                      vertical = 10.dp,
+                  )
+          ) {
+            PurityCalculation(
+                purityText = purityText,
+                onPurityChange = onPurityChange,
+                convertedDoseAndUnitText = convertedDoseAndUnitText,
+                isValidPurity = isValidPurity,
+            )
+          }
+        }
+      }
+      AnimatedVisibility(visible = isShowingUnknownDoseDialog) {
+        UnknownDoseDialog(
+            useUnknownDoseAndNavigate = useUnknownDoseAndNavigate,
+            dismiss = { isShowingUnknownDoseDialog = false },
+        )
+      }
+      if (administrationRoute == AdministrationRoute.INSUFFLATED) {
+        TextButton(onClick = navigateToSaferSniffingScreen) {
+          Icon(
+              Icons.Outlined.Info,
+              contentDescription = "Info",
+              modifier = Modifier.size(ButtonDefaults.IconSize),
+          )
+          Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+          Text(text = "Safer sniffing")
+        }
+      } else if (administrationRoute == AdministrationRoute.RECTAL) {
+        val uriHandler = LocalUriHandler.current
+        TextButton(
+            onClick = { uriHandler.openUri(AdministrationRoute.SAFER_PLUGGING_ARTICLE_URL) }
+        ) {
+          Icon(
+              Icons.Outlined.OpenInBrowser,
+              contentDescription = "Open link",
+          )
+          Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+          Text("Safer plugging")
+        }
+      }
+      if (roaDose?.shouldUseVolumetricDosing == true) {
+        TextButton(onClick = navigateToVolumetricDosingScreen) {
+          Icon(
+              Icons.Outlined.Info,
+              contentDescription = "Info",
+              modifier = Modifier.size(ButtonDefaults.IconSize),
+          )
+          Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+          Text(text = "Volumetric liquid dosing")
+        }
+      }
+      if (administrationRoute == AdministrationRoute.SMOKED && substanceName != "Cannabis") {
+        ElevatedCard(
+            modifier =
+                Modifier.padding(
+                    horizontal = horizontalPadding,
+                    vertical = 4.dp,
+                )
+        ) {
+          ChasingTheDragonText(
+              modifier =
+                  Modifier.padding(
+                      horizontal = horizontalPadding,
+                      vertical = 10.dp,
+                  )
+          )
+        }
+      }
     }
+  }
 }
 
 /**
- * Shows the projected experience curve using the real AllTimelines graph.
- * Builds a single-ingestion [AllTimelinesModel] starting at the current time,
- * giving the user an accurate picture of how the experience will unfold.
+ * Shows the projected experience curve using the real AllTimelines graph. Builds a single-ingestion
+ * [AllTimelinesModel] starting at the current time, giving the user an accurate picture of how the
+ * experience will unfold.
  */
 @Composable
 private fun ProjectedTimeline(
@@ -605,42 +642,41 @@ private fun ProjectedTimeline(
     roaDuration: RoaDuration?,
     modifier: Modifier = Modifier,
 ) {
-    if (roaDuration == null) return
-    val startTime = remember { Instant.now() }
-    val model = remember(roaDuration, substanceName, administrationRoute) {
+  if (roaDuration == null) return
+  val startTime = remember { Instant.now() }
+  val model =
+      remember(roaDuration, substanceName, administrationRoute) {
         AllTimelinesModel(
-            dataForLines = listOf(
-                DataForOneEffectLine(
-                    substanceName = substanceName,
-                    route = administrationRoute,
-                    roaDuration = roaDuration,
-                    height = 1f,
-                    horizontalWeight = 1f,
-                    color = AdaptiveColor.BLUE,
-                    startTime = startTime,
-                    endTime = null,
-                )
-            ),
+            dataForLines =
+                listOf(
+                    DataForOneEffectLine(
+                        substanceName = substanceName,
+                        route = administrationRoute,
+                        roaDuration = roaDuration,
+                        height = 1f,
+                        horizontalWeight = 1f,
+                        color = AdaptiveColor.BLUE,
+                        startTime = startTime,
+                        endTime = null,
+                    )
+                ),
             dataForRatings = emptyList(),
             timedNotes = emptyList(),
             areSubstanceHeightsIndependent = false,
             useBatemanCurve = true,
         )
-    }
-    Column(modifier = modifier) {
-        Text(
-            text = "Projected timeline",
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        AllTimelines(
-            model = model,
-            isShowingCurrentTime = true,
-            timeDisplayOption = TimeDisplayOption.RELATIVE_TO_START,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(130.dp)
-                .padding(top = 4.dp),
-        )
-    }
+      }
+  Column(modifier = modifier) {
+    Text(
+        text = "Projected timeline",
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    AllTimelines(
+        model = model,
+        isShowingCurrentTime = true,
+        timeDisplayOption = TimeDisplayOption.RELATIVE_TO_START,
+        modifier = Modifier.fillMaxWidth().height(130.dp).padding(top = 4.dp),
+    )
+  }
 }

@@ -48,108 +48,105 @@ fun AdministrationRoutePicker(
     otherRoutesChunked: List<List<AdministrationRoute>>,
     onRouteTapped: (route: AdministrationRoute) -> Unit,
 ) {
-    val spacing = 6
-    Column(
-        modifier = Modifier.padding(10.dp),
-        verticalArrangement = Arrangement.spacedBy(spacing.dp)
+  val spacing = 6
+  Column(
+      modifier = Modifier.padding(10.dp),
+      verticalArrangement = Arrangement.spacedBy(spacing.dp),
+  ) {
+    val isShowingOther = showOtherRoutes || pwRoutes.isEmpty()
+    AnimatedVisibility(
+        visible = isShowingOther,
+        enter = fadeIn(),
+        exit = fadeOut(),
     ) {
-        val isShowingOther = showOtherRoutes || pwRoutes.isEmpty()
-        AnimatedVisibility(
-            visible = isShowingOther,
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(spacing.dp)
-            ) {
-                otherRoutesChunked.forEach { otherRouteChunk ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        horizontalArrangement = Arrangement.spacedBy(spacing.dp)
-                    ) {
-                        otherRouteChunk.forEach { route ->
-                            ElevatedCard(
-                                modifier = Modifier
-                                    .clickable {
-                                        onRouteTapped(route)
-                                    }
-                                    .fillMaxHeight()
-                                    .weight(1f)
-                            ) {
-                                RouteBox(
-                                    route = route,
-                                    titleStyle = MaterialTheme.typography.headlineSmall
-                                )
-                            }
-                        }
-                        if (otherRouteChunk.size == 1) {
-                            Box(modifier = Modifier.weight(1f))
-                        }
-                    }
-                }
+      Column(verticalArrangement = Arrangement.spacedBy(spacing.dp)) {
+        otherRoutesChunked.forEach { otherRouteChunk ->
+          Row(
+              modifier = Modifier.fillMaxWidth().weight(1f),
+              horizontalArrangement = Arrangement.spacedBy(spacing.dp),
+          ) {
+            otherRouteChunk.forEach { route ->
+              ElevatedCard(
+                  modifier =
+                      Modifier.clickable {
+                            onRouteTapped(route)
+                          }
+                          .fillMaxHeight()
+                          .weight(1f)
+              ) {
+                RouteBox(
+                    route = route,
+                    titleStyle = MaterialTheme.typography.headlineSmall,
+                )
+              }
             }
-        }
-        AnimatedVisibility(
-            visible = !isShowingOther,
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(spacing.dp),
-            ) {
-                pwRoutes.forEach { route ->
-                    ElevatedCard(
-                        modifier = Modifier
-                            .clickable {
-                                onRouteTapped(route)
-                            }
-                            .fillMaxWidth()
-                            .weight(5f)
-                    ) {
-                        RouteBox(
-                            route = route,
-                            titleStyle = MaterialTheme.typography.headlineSmall
-                        )
-                    }
-                }
-                ElevatedCard(
-                    modifier = Modifier
-                        .clickable {
-                            onChangeOfShowOtherRoutes(true)
-                        }
-                        .fillMaxWidth()
-                        .weight(5f)
-                ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        Text(
-                            text = "Other routes",
-                            style = MaterialTheme.typography.headlineSmall
-                        )
-                    }
-                }
+            if (otherRouteChunk.size == 1) {
+              Box(modifier = Modifier.weight(1f))
             }
+          }
         }
+      }
     }
+    AnimatedVisibility(
+        visible = !isShowingOther,
+        enter = fadeIn(),
+        exit = fadeOut(),
+    ) {
+      Column(
+          verticalArrangement = Arrangement.spacedBy(spacing.dp),
+      ) {
+        pwRoutes.forEach { route ->
+          ElevatedCard(
+              modifier =
+                  Modifier.clickable {
+                        onRouteTapped(route)
+                      }
+                      .fillMaxWidth()
+                      .weight(5f)
+          ) {
+            RouteBox(
+                route = route,
+                titleStyle = MaterialTheme.typography.headlineSmall,
+            )
+          }
+        }
+        ElevatedCard(
+            modifier =
+                Modifier.clickable {
+                      onChangeOfShowOtherRoutes(true)
+                    }
+                    .fillMaxWidth()
+                    .weight(5f)
+        ) {
+          Box(
+              contentAlignment = Alignment.Center,
+              modifier = Modifier.fillMaxSize(),
+          ) {
+            Text(
+                text = "Other routes",
+                style = MaterialTheme.typography.headlineSmall,
+            )
+          }
+        }
+      }
+    }
+  }
 }
 
 @Preview
 @Composable
 fun AdministrationRoutePickerPreview() {
-    val pwRoutes = listOf(AdministrationRoute.INSUFFLATED, AdministrationRoute.ORAL)
-    val otherRoutes = AdministrationRoute.entries.filter { route ->
+  val pwRoutes = listOf(AdministrationRoute.INSUFFLATED, AdministrationRoute.ORAL)
+  val otherRoutes =
+      AdministrationRoute.entries.filter { route ->
         !pwRoutes.contains(route)
-    }
-    val otherRoutesChunked = otherRoutes.chunked(2)
-    AdministrationRoutePicker(
-        showOtherRoutes = false,
-        onChangeOfShowOtherRoutes = {},
-        pwRoutes = pwRoutes,
-        otherRoutesChunked = otherRoutesChunked,
-        onRouteTapped = {},
-    )
+      }
+  val otherRoutesChunked = otherRoutes.chunked(2)
+  AdministrationRoutePicker(
+      showOtherRoutes = false,
+      onChangeOfShowOtherRoutes = {},
+      pwRoutes = pwRoutes,
+      otherRoutesChunked = otherRoutesChunked,
+      onRouteTapped = {},
+  )
 }

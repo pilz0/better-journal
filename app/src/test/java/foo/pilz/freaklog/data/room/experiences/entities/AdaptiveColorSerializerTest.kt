@@ -24,43 +24,44 @@ import org.junit.Test
 
 class AdaptiveColorSerializerTest {
 
-    private val json = Json
+  private val json = Json
 
-    @Test
-    fun testSerialize_preset_writesNameAsString() {
-        val encoded = json.encodeToString(AdaptiveColorSerializer, AdaptiveColor.RED)
-        assertEquals("\"RED\"", encoded)
-    }
+  @Test
+  fun testSerialize_preset_writesNameAsString() {
+    val encoded = json.encodeToString(AdaptiveColorSerializer, AdaptiveColor.RED)
+    assertEquals("\"RED\"", encoded)
+  }
 
-    @Test
-    fun testDeserialize_presetByName_backwardsCompat() {
-        // JSON exports written when AdaptiveColor was an enum used the bare name string.
-        val decoded = json.decodeFromString(AdaptiveColorSerializer, "\"BLUE\"")
-        assertEquals(AdaptiveColor.BLUE, decoded)
-    }
+  @Test
+  fun testDeserialize_presetByName_backwardsCompat() {
+    // JSON exports written when AdaptiveColor was an enum used the bare name string.
+    val decoded = json.decodeFromString(AdaptiveColorSerializer, "\"BLUE\"")
+    assertEquals(AdaptiveColor.BLUE, decoded)
+  }
 
-    @Test
-    fun testSerialize_custom_writesCustomPrefixedHex() {
-        val encoded = json.encodeToString(
+  @Test
+  fun testSerialize_custom_writesCustomPrefixedHex() {
+    val encoded =
+        json.encodeToString(
             AdaptiveColorSerializer,
-            AdaptiveColor.Custom(0xFF112233.toInt())
+            AdaptiveColor.Custom(0xFF112233.toInt()),
         )
-        assertEquals("\"CUSTOM_FF112233\"", encoded)
-    }
+    assertEquals("\"CUSTOM_FF112233\"", encoded)
+  }
 
-    @Test
-    fun testRoundTrip_custom() {
-        val original = AdaptiveColor.Custom(0xFFABCDEF.toInt())
-        val encoded = json.encodeToString(AdaptiveColorSerializer, original)
-        val decoded = json.decodeFromString(AdaptiveColorSerializer, encoded)
-        assertEquals(original, decoded)
-    }
+  @Test
+  fun testRoundTrip_custom() {
+    val original = AdaptiveColor.Custom(0xFFABCDEF.toInt())
+    val encoded = json.encodeToString(AdaptiveColorSerializer, original)
+    val decoded = json.decodeFromString(AdaptiveColorSerializer, encoded)
+    assertEquals(original, decoded)
+  }
 
-    @Test
-    fun testRoundTrip_preset() {
-        val original = AdaptiveColor.MAROON
-        val encoded = json.encodeToString(AdaptiveColorSerializer, original)
-        val decoded = json.decodeFromString(AdaptiveColorSerializer, encoded)
-        assertEquals(original, decoded)
-    }
+  @Test
+  fun testRoundTrip_preset() {
+    val original = AdaptiveColor.MAROON
+    val encoded = json.encodeToString(AdaptiveColorSerializer, original)
+    val decoded = json.decodeFromString(AdaptiveColorSerializer, encoded)
+    assertEquals(original, decoded)
+  }
 }

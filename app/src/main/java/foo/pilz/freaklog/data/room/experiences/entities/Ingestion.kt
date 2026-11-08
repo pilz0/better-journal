@@ -25,16 +25,16 @@ import foo.pilz.freaklog.data.substances.AdministrationRoute
 import java.time.Instant
 
 @Entity(
-    indices = [
-        Index(value = ["experienceId"]),
-        Index(value = ["time"]),
-        Index(value = ["substanceName"]),
-        Index(value = ["customUnitId"]),
-    ]
+    indices =
+        [
+            Index(value = ["experienceId"]),
+            Index(value = ["time"]),
+            Index(value = ["substanceName"]),
+            Index(value = ["customUnitId"]),
+        ]
 )
 data class Ingestion(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val substanceName: String,
     var time: Instant,
     var endTime: Instant? = null,
@@ -54,15 +54,15 @@ data class Ingestion(
     var formulationName: String? = null,
     var customFormulationId: Int? = null,
     var saltForm: String? = null,
-    var category: foo.pilz.freaklog.data.substances.classes.IngestionCategory? = null
+    var category: foo.pilz.freaklog.data.substances.classes.IngestionCategory? = null,
 ) {
-    fun computedCategory(
-        customUnit: CustomUnit?,
-        substanceCompanion: SubstanceCompanion?
-    ): foo.pilz.freaklog.data.substances.classes.IngestionCategory {
-        return category
-            ?: customUnit?.defaultCategory
-            ?: substanceCompanion?.defaultCategory
-            ?: foo.pilz.freaklog.data.substances.classes.IngestionCategory.DEFAULT_INGESTION_CATEGORY
-    }
+  fun computedCategory(
+      customUnit: CustomUnit?,
+      substanceCompanion: SubstanceCompanion?,
+  ): foo.pilz.freaklog.data.substances.classes.IngestionCategory {
+    return category
+        ?: customUnit?.defaultCategory
+        ?: substanceCompanion?.defaultCategory
+        ?: foo.pilz.freaklog.data.substances.classes.IngestionCategory.DEFAULT_INGESTION_CATEGORY
+  }
 }

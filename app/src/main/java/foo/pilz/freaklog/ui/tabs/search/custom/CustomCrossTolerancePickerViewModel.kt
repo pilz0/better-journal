@@ -10,33 +10,37 @@ import foo.pilz.freaklog.data.substances.classes.Category
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.main.navigation.graphs.CustomCrossTolerancePickerRoute
 import foo.pilz.freaklog.ui.utils.stateInVm
+import javax.inject.Inject
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
-class CustomCrossTolerancePickerViewModel @Inject constructor(
+class CustomCrossTolerancePickerViewModel
+@Inject
+constructor(
     substanceRepo: SubstanceRepository,
     private val customRepo: CustomSubstanceRepository,
     state: SavedStateHandle,
 ) : ViewModel() {
 
-    val customSubstanceId = state.toRoute<CustomCrossTolerancePickerRoute>().customSubstanceId
+  val customSubstanceId = state.toRoute<CustomCrossTolerancePickerRoute>().customSubstanceId
 
-    val allCategories: List<Category> = substanceRepo.getAllCategories()
+  val allCategories: List<Category> = substanceRepo.getAllCategories()
 
-    val selectedNamesFlow = customRepo.getCrossTolerancesFlow(customSubstanceId)
-        .map { list -> list.map { it.categoryName }.toSet() }
-        .stateInVm(viewModelScope, emptySet())
+  val selectedNamesFlow =
+      customRepo
+          .getCrossTolerancesFlow(customSubstanceId)
+          .map { list -> list.map { it.categoryName }.toSet() }
+          .stateInVm(viewModelScope, emptySet())
 
-    fun toggle(categoryName: String) {
-        viewModelScope.launch {
-            val current = selectedNamesFlow.value
-            if (current.contains(categoryName)) {
-                customRepo.unassignCrossTolerance(customSubstanceId, categoryName)
-            } else {
-                customRepo.assignCrossTolerance(customSubstanceId, categoryName)
-            }
-        }
+  fun toggle(categoryName: String) {
+    viewModelScope.launch {
+      val current = selectedNamesFlow.value
+      if (current.contains(categoryName)) {
+        customRepo.unassignCrossTolerance(customSubstanceId, categoryName)
+      } else {
+        customRepo.assignCrossTolerance(customSubstanceId, categoryName)
+      }
     }
+  }
 }

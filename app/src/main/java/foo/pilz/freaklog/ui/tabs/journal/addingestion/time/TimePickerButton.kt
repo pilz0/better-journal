@@ -43,45 +43,47 @@ fun TimePickerButton(
     onChange: (LocalDateTime) -> Unit,
     timeString: String,
     modifier: Modifier = Modifier,
-    hasOutline: Boolean = true
+    hasOutline: Boolean = true,
 ) {
-    val context = LocalContext.current
-    val dialogTheme =
-        if (isSystemInDarkTheme()) R.style.DialogThemeDark else R.style.DialogThemeLight
-    val showTimePickerDialog = {
-        TimePickerDialog(
+  val context = LocalContext.current
+  val dialogTheme = if (isSystemInDarkTheme()) R.style.DialogThemeDark else R.style.DialogThemeLight
+  val showTimePickerDialog = {
+    TimePickerDialog(
             context,
             dialogTheme,
             { _, newHour: Int, newMinute: Int ->
-                onChange(
-                    LocalDateTime.now()
-                        .withYear(localDateTime.year)
-                        .withMonth(localDateTime.monthValue)
-                        .withDayOfMonth(localDateTime.dayOfMonth)
-                        .withHour(newHour)
-                        .withMinute(newMinute)
-                )
-            }, localDateTime.hour, localDateTime.minute, DateFormat.is24HourFormat(context)
-        ).show()
+              onChange(
+                  LocalDateTime.now()
+                      .withYear(localDateTime.year)
+                      .withMonth(localDateTime.monthValue)
+                      .withDayOfMonth(localDateTime.dayOfMonth)
+                      .withHour(newHour)
+                      .withMinute(newMinute)
+              )
+            },
+            localDateTime.hour,
+            localDateTime.minute,
+            DateFormat.is24HourFormat(context),
+        )
+        .show()
+  }
+  if (hasOutline) {
+    OutlinedButton(onClick = showTimePickerDialog, modifier = modifier.clearAndSetSemantics {}) {
+      Icon(
+          Icons.Outlined.Schedule,
+          contentDescription = "Open time picker",
+      )
+      Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+      Text(timeString)
     }
-    if (hasOutline) {
-        OutlinedButton(onClick = showTimePickerDialog, modifier = modifier.clearAndSetSemantics {  }) {
-            Icon(
-                Icons.Outlined.Schedule,
-                contentDescription = "Open time picker"
-            )
-            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-            Text(timeString)
-        }
-    } else {
-        TextButton(onClick = showTimePickerDialog, modifier = modifier.clearAndSetSemantics {  }) {
-            Icon(
-                Icons.Outlined.Schedule,
-                contentDescription = "Open time picker"
-            )
-            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-            Text(timeString)
-        }
+  } else {
+    TextButton(onClick = showTimePickerDialog, modifier = modifier.clearAndSetSemantics {}) {
+      Icon(
+          Icons.Outlined.Schedule,
+          contentDescription = "Open time picker",
+      )
+      Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+      Text(timeString)
     }
-
+  }
 }

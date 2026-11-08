@@ -10,233 +10,239 @@
 
 package foo.pilz.freaklog.ui
 
+import java.time.DayOfWeek
+import java.time.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.time.DayOfWeek
-import java.time.LocalDate
 
 class WidgetHeatmapModelTest {
 
-    private val today: LocalDate = LocalDate.of(2024, 6, 15) // Saturday
+  private val today: LocalDate = LocalDate.of(2024, 6, 15) // Saturday
 
-    @Test
-    fun `grid ends on the Saturday of the current week`() {
-        val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
-        assertEquals(DayOfWeek.SATURDAY, model.endDate.dayOfWeek)
+  @Test
+  fun `grid ends on the Saturday of the current week`() {
+    val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
+    assertEquals(DayOfWeek.SATURDAY, model.endDate.dayOfWeek)
+  }
+
+  @Test
+  fun `grid starts on a Sunday so each column is Sun to Sat`() {
+    val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
+    assertEquals(DayOfWeek.SUNDAY, model.startDate.dayOfWeek)
+  }
+
+  @Test
+  fun `default 53 weeks produces 371 cells`() {
+    val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
+    assertEquals(53, model.weeks)
+    assertEquals(53 * 7, model.cells.size)
+  }
+
+  @Test
+  fun `each cell is in column 0 to weeks-1 and row 0 to 6`() {
+    val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
+    model.cells.forEach { cell ->
+      assertTrue(cell.column in 0 until model.weeks)
+      assertTrue(cell.row in 0..6)
+      assertEquals(0, cell.count)
+      assertEquals(0, cell.intensity)
     }
+  }
 
-    @Test
-    fun `grid starts on a Sunday so each column is Sun to Sat`() {
-        val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
-        assertEquals(DayOfWeek.SUNDAY, model.startDate.dayOfWeek)
-    }
+  @Test
+  fun `row order is Sunday=0 through Saturday=6`() {
+    val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
+    // The first column starts at the Sunday of startDate.
+    val firstColumn = model.cells.filter { it.column == 0 }.sortedBy { it.row }
+    assertEquals(DayOfWeek.SUNDAY, firstColumn[0].date.dayOfWeek)
+    assertEquals(DayOfWeek.SATURDAY, firstColumn[6].date.dayOfWeek)
+  }
 
-    @Test
-    fun `default 53 weeks produces 371 cells`() {
-        val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
-        assertEquals(53, model.weeks)
-        assertEquals(53 * 7, model.cells.size)
-    }
-
-    @Test
-    fun `each cell is in column 0 to weeks-1 and row 0 to 6`() {
-        val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
-        model.cells.forEach { cell ->
-            assertTrue(cell.column in 0 until model.weeks)
-            assertTrue(cell.row in 0..6)
-            assertEquals(0, cell.count)
-            assertEquals(0, cell.intensity)
-        }
-    }
-
-    @Test
-    fun `row order is Sunday=0 through Saturday=6`() {
-        val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
-        // The first column starts at the Sunday of startDate.
-        val firstColumn = model.cells.filter { it.column == 0 }.sortedBy { it.row }
-        assertEquals(DayOfWeek.SUNDAY, firstColumn[0].date.dayOfWeek)
-        assertEquals(DayOfWeek.SATURDAY, firstColumn[6].date.dayOfWeek)
-    }
-
-    @Test
-    fun `ingestion counts are tallied per day`() {
-        val day = today.minusDays(5)
-        val model = WidgetHeatmapModel.build(
+  @Test
+  fun `ingestion counts are tallied per day`() {
+    val day = today.minusDays(5)
+    val model =
+        WidgetHeatmapModel.build(
             today = today,
             ingestionDates = listOf(day, day, day, today),
         )
-        val cellForDay = model.cells.first { it.date == day }
-        val cellForToday = model.cells.first { it.date == today }
-        assertEquals(3, cellForDay.count)
-        assertEquals(1, cellForToday.count)
-        assertTrue(cellForDay.intensity in 1..WidgetHeatmapModel.INTENSITY_BUCKETS)
-        assertTrue(cellForToday.intensity in 1..WidgetHeatmapModel.INTENSITY_BUCKETS)
-    }
+    val cellForDay = model.cells.first { it.date == day }
+    val cellForToday = model.cells.first { it.date == today }
+    assertEquals(3, cellForDay.count)
+    assertEquals(1, cellForToday.count)
+    assertTrue(cellForDay.intensity in 1..WidgetHeatmapModel.INTENSITY_BUCKETS)
+    assertTrue(cellForToday.intensity in 1..WidgetHeatmapModel.INTENSITY_BUCKETS)
+  }
 
-    @Test
-    fun `ingestions outside the window are ignored`() {
-        val outside = today.minusYears(5)
-        val model = WidgetHeatmapModel.build(today = today, ingestionDates = listOf(outside))
-        assertEquals(0, model.totalIngestions)
-        assertTrue(model.cells.all { it.count == 0 })
-    }
+  @Test
+  fun `ingestions outside the window are ignored`() {
+    val outside = today.minusYears(5)
+    val model = WidgetHeatmapModel.build(today = today, ingestionDates = listOf(outside))
+    assertEquals(0, model.totalIngestions)
+    assertTrue(model.cells.all { it.count == 0 })
+  }
 
-    @Test
-    fun `bucket scaling is monotonic and never exceeds INTENSITY_BUCKETS`() {
-        // Simulate a year with a few high-count days plus many low-count days.
-        val maxBucket = WidgetHeatmapModel.INTENSITY_BUCKETS
-        for (count in 1..50) {
-            val bucket = WidgetHeatmapModel.bucketFor(count = count, maxCount = 50)
-            assertTrue("bucket $bucket out of range for count=$count", bucket in 1..maxBucket)
-        }
-        // Empty input always yields bucket 0.
-        assertEquals(0, WidgetHeatmapModel.bucketFor(0, 10))
-        assertEquals(0, WidgetHeatmapModel.bucketFor(5, 0))
-        // Highest count maps to the top bucket.
-        assertEquals(maxBucket, WidgetHeatmapModel.bucketFor(50, 50))
+  @Test
+  fun `bucket scaling is monotonic and never exceeds INTENSITY_BUCKETS`() {
+    // Simulate a year with a few high-count days plus many low-count days.
+    val maxBucket = WidgetHeatmapModel.INTENSITY_BUCKETS
+    for (count in 1..50) {
+      val bucket = WidgetHeatmapModel.bucketFor(count = count, maxCount = 50)
+      assertTrue("bucket $bucket out of range for count=$count", bucket in 1..maxBucket)
     }
+    // Empty input always yields bucket 0.
+    assertEquals(0, WidgetHeatmapModel.bucketFor(0, 10))
+    assertEquals(0, WidgetHeatmapModel.bucketFor(5, 0))
+    // Highest count maps to the top bucket.
+    assertEquals(maxBucket, WidgetHeatmapModel.bucketFor(50, 50))
+  }
 
-    @Test
-    fun `sqrt scaling spreads small counts beyond bucket 1`() {
-        // Linear scaling would compress counts 1..5 with maxCount=100 all to the lowest bucket;
-        // sqrt scaling should give count 25 a higher bucket than count 1.
-        val low = WidgetHeatmapModel.bucketFor(count = 1, maxCount = 100)
-        val mid = WidgetHeatmapModel.bucketFor(count = 25, maxCount = 100)
-        assertTrue("mid bucket ($mid) should be greater than low ($low)", mid > low)
+  @Test
+  fun `sqrt scaling spreads small counts beyond bucket 1`() {
+    // Linear scaling would compress counts 1..5 with maxCount=100 all to the lowest bucket;
+    // sqrt scaling should give count 25 a higher bucket than count 1.
+    val low = WidgetHeatmapModel.bucketFor(count = 1, maxCount = 100)
+    val mid = WidgetHeatmapModel.bucketFor(count = 25, maxCount = 100)
+    assertTrue("mid bucket ($mid) should be greater than low ($low)", mid > low)
+  }
+
+  @Test
+  fun `month labels are produced at column boundaries`() {
+    val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
+    assertNotNull(model.monthLabels)
+    // We always span ~12 months so we expect at least 10 labels.
+    assertTrue(
+        "expected many month labels but got ${model.monthLabels.size}",
+        model.monthLabels.size in 10..14,
+    )
+    // First label corresponds to startDate's month.
+    assertEquals(model.startDate.month, model.monthLabels.first().month)
+  }
+
+  @Test
+  fun `consecutive month labels are non-decreasing in column`() {
+    val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
+    for (i in 0 until model.monthLabels.size - 1) {
+      assertTrue(model.monthLabels[i].column < model.monthLabels[i + 1].column)
     }
+  }
 
-    @Test
-    fun `month labels are produced at column boundaries`() {
-        val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
-        assertNotNull(model.monthLabels)
-        // We always span ~12 months so we expect at least 10 labels.
-        assertTrue(
-            "expected many month labels but got ${model.monthLabels.size}",
-            model.monthLabels.size in 10..14,
-        )
-        // First label corresponds to startDate's month.
-        assertEquals(model.startDate.month, model.monthLabels.first().month)
+  @Test
+  fun `today is the last cell of the right-most column when today is Saturday`() {
+    val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
+    val lastCol = model.cells.filter { it.column == model.weeks - 1 }.sortedBy { it.row }
+    assertEquals(today, lastCol[6].date)
+  }
+
+  @Test
+  fun `for a non-Saturday today, the right-most Saturday is in the future`() {
+    val tuesday = LocalDate.of(2024, 6, 11) // Tuesday
+    val model = WidgetHeatmapModel.build(today = tuesday, ingestionDates = emptyList())
+    assertEquals(DayOfWeek.SATURDAY, model.endDate.dayOfWeek)
+    assertFalse(model.endDate.isBefore(tuesday))
+  }
+
+  @Test(expected = IllegalArgumentException::class)
+  fun `zero weeks is rejected`() {
+    WidgetHeatmapModel.build(today = today, ingestionDates = emptyList(), weeks = 0)
+  }
+
+  @Test
+  fun `a single week spans exactly Sunday to Saturday`() {
+    val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList(), weeks = 1)
+    assertEquals(7, model.cells.size)
+    assertEquals(LocalDate.of(2024, 6, 9), model.startDate)
+    assertEquals(today, model.endDate)
+    assertEquals(1, model.monthLabels.size)
+    assertEquals(0, model.monthLabels.first().column)
+  }
+
+  @Test
+  fun `cells cover consecutive days from startDate to endDate`() {
+    val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
+    model.cells.forEachIndexed { index, cell ->
+      assertEquals(model.startDate.plusDays(index.toLong()), cell.date)
+      assertEquals(index / 7, cell.column)
+      assertEquals(index % 7, cell.row)
     }
+    assertEquals(model.endDate, model.cells.last().date)
+  }
 
-    @Test
-    fun `consecutive month labels are non-decreasing in column`() {
-        val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
-        for (i in 0 until model.monthLabels.size - 1) {
-            assertTrue(model.monthLabels[i].column < model.monthLabels[i + 1].column)
-        }
-    }
-
-    @Test
-    fun `today is the last cell of the right-most column when today is Saturday`() {
-        val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
-        val lastCol = model.cells.filter { it.column == model.weeks - 1 }.sortedBy { it.row }
-        assertEquals(today, lastCol[6].date)
-    }
-
-    @Test
-    fun `for a non-Saturday today, the right-most Saturday is in the future`() {
-        val tuesday = LocalDate.of(2024, 6, 11) // Tuesday
-        val model = WidgetHeatmapModel.build(today = tuesday, ingestionDates = emptyList())
-        assertEquals(DayOfWeek.SATURDAY, model.endDate.dayOfWeek)
-        assertFalse(model.endDate.isBefore(tuesday))
-    }
-
-    @Test(expected = IllegalArgumentException::class)
-    fun `zero weeks is rejected`() {
-        WidgetHeatmapModel.build(today = today, ingestionDates = emptyList(), weeks = 0)
-    }
-
-    @Test
-    fun `a single week spans exactly Sunday to Saturday`() {
-        val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList(), weeks = 1)
-        assertEquals(7, model.cells.size)
-        assertEquals(LocalDate.of(2024, 6, 9), model.startDate)
-        assertEquals(today, model.endDate)
-        assertEquals(1, model.monthLabels.size)
-        assertEquals(0, model.monthLabels.first().column)
-    }
-
-    @Test
-    fun `cells cover consecutive days from startDate to endDate`() {
-        val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
-        model.cells.forEachIndexed { index, cell ->
-            assertEquals(model.startDate.plusDays(index.toLong()), cell.date)
-            assertEquals(index / 7, cell.column)
-            assertEquals(index % 7, cell.row)
-        }
-        assertEquals(model.endDate, model.cells.last().date)
-    }
-
-    @Test
-    fun `window boundaries are inclusive`() {
-        val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
-        val dates = listOf(
+  @Test
+  fun `window boundaries are inclusive`() {
+    val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
+    val dates =
+        listOf(
             model.startDate.minusDays(1),
             model.startDate,
             model.endDate,
             model.endDate.plusDays(1),
         )
-        val counted = WidgetHeatmapModel.build(today = today, ingestionDates = dates)
-        assertEquals(2, counted.totalIngestions)
-        assertEquals(1, counted.cells.first().count)
-        assertEquals(1, counted.cells.last().count)
-    }
+    val counted = WidgetHeatmapModel.build(today = today, ingestionDates = dates)
+    assertEquals(2, counted.totalIngestions)
+    assertEquals(1, counted.cells.first().count)
+    assertEquals(1, counted.cells.last().count)
+  }
 
-    @Test
-    fun `totalIngestions sums counts of all visible cells`() {
-        val dates = listOf(today, today, today.minusDays(1), today.minusDays(30), today.minusYears(3))
-        val model = WidgetHeatmapModel.build(today = today, ingestionDates = dates)
-        assertEquals(4, model.totalIngestions)
-        assertEquals(model.totalIngestions, model.cells.sumOf { it.count })
-    }
+  @Test
+  fun `totalIngestions sums counts of all visible cells`() {
+    val dates = listOf(today, today, today.minusDays(1), today.minusDays(30), today.minusYears(3))
+    val model = WidgetHeatmapModel.build(today = today, ingestionDates = dates)
+    assertEquals(4, model.totalIngestions)
+    assertEquals(model.totalIngestions, model.cells.sumOf { it.count })
+  }
 
-    @Test
-    fun `busiest day gets the top bucket and empty days stay at zero`() {
-        val busy = today.minusDays(2)
-        val quiet = today.minusDays(10)
-        val model = WidgetHeatmapModel.build(
+  @Test
+  fun `busiest day gets the top bucket and empty days stay at zero`() {
+    val busy = today.minusDays(2)
+    val quiet = today.minusDays(10)
+    val model =
+        WidgetHeatmapModel.build(
             today = today,
             ingestionDates = List(25) { busy } + quiet,
         )
-        assertEquals(WidgetHeatmapModel.INTENSITY_BUCKETS, model.cells.first { it.date == busy }.intensity)
-        assertEquals(1, model.cells.first { it.date == quiet }.intensity)
-        assertTrue(model.cells.filter { it.count == 0 }.all { it.intensity == 0 })
-    }
+    assertEquals(
+        WidgetHeatmapModel.INTENSITY_BUCKETS,
+        model.cells.first { it.date == busy }.intensity,
+    )
+    assertEquals(1, model.cells.first { it.date == quiet }.intensity)
+    assertTrue(model.cells.filter { it.count == 0 }.all { it.intensity == 0 })
+  }
 
-    @Test
-    fun `bucketFor is non-decreasing in count`() {
-        var previous = 0
-        for (count in 0..100) {
-            val bucket = WidgetHeatmapModel.bucketFor(count = count, maxCount = 100)
-            assertTrue("bucket for $count ($bucket) dropped below $previous", bucket >= previous)
-            previous = bucket
-        }
+  @Test
+  fun `bucketFor is non-decreasing in count`() {
+    var previous = 0
+    for (count in 0..100) {
+      val bucket = WidgetHeatmapModel.bucketFor(count = count, maxCount = 100)
+      assertTrue("bucket for $count ($bucket) dropped below $previous", bucket >= previous)
+      previous = bucket
     }
+  }
 
-    @Test
-    fun `bucketFor treats negative inputs as empty`() {
-        assertEquals(0, WidgetHeatmapModel.bucketFor(count = -1, maxCount = 10))
-        assertEquals(0, WidgetHeatmapModel.bucketFor(count = 3, maxCount = -5))
-    }
+  @Test
+  fun `bucketFor treats negative inputs as empty`() {
+    assertEquals(0, WidgetHeatmapModel.bucketFor(count = -1, maxCount = 10))
+    assertEquals(0, WidgetHeatmapModel.bucketFor(count = 3, maxCount = -5))
+  }
 
-    @Test
-    fun `bucketFor clamps counts above maxCount to the top bucket`() {
-        assertEquals(
-            WidgetHeatmapModel.INTENSITY_BUCKETS,
-            WidgetHeatmapModel.bucketFor(count = 1_000, maxCount = 10),
-        )
-    }
+  @Test
+  fun `bucketFor clamps counts above maxCount to the top bucket`() {
+    assertEquals(
+        WidgetHeatmapModel.INTENSITY_BUCKETS,
+        WidgetHeatmapModel.bucketFor(count = 1_000, maxCount = 10),
+    )
+  }
 
-    @Test
-    fun `month labels start at the column of each month's first Sunday`() {
-        val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
-        model.monthLabels.drop(1).forEach { label ->
-            val sunday = model.startDate.plusDays(label.column * 7L)
-            assertEquals(label.month, sunday.month)
-            assertTrue("column ${label.column} is not the month's first Sunday", sunday.dayOfMonth <= 7)
-        }
+  @Test
+  fun `month labels start at the column of each month's first Sunday`() {
+    val model = WidgetHeatmapModel.build(today = today, ingestionDates = emptyList())
+    model.monthLabels.drop(1).forEach { label ->
+      val sunday = model.startDate.plusDays(label.column * 7L)
+      assertEquals(label.month, sunday.month)
+      assertTrue("column ${label.column} is not the month's first Sunday", sunday.dayOfMonth <= 7)
     }
+  }
 }

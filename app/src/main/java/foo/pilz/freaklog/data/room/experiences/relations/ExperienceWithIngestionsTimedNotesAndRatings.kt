@@ -30,16 +30,19 @@ data class ExperienceWithIngestionsTimedNotesAndRatings(
     @Relation(
         entity = Ingestion::class,
         parentColumn = "id",
-        entityColumn = "experienceId"
-    ) val ingestions: List<Ingestion>,
+        entityColumn = "experienceId",
+    )
+    val ingestions: List<Ingestion>,
     @Relation(
         entity = TimedNote::class,
         parentColumn = "id",
-        entityColumn = "experienceId"
-    ) val timedNotes: List<TimedNote>,
+        entityColumn = "experienceId",
+    )
+    val timedNotes: List<TimedNote>,
     @Relation(
         entity = ShulginRating::class,
         parentColumn = "id",
-        entityColumn = "experienceId"
-    ) val ratings: List<ShulginRating>
+        entityColumn = "experienceId",
+    )
+    val ratings: List<ShulginRating>,
 )

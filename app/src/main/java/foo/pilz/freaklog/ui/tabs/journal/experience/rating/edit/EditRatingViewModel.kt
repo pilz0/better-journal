@@ -25,72 +25,75 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.entities.ShulginRating
 import foo.pilz.freaklog.data.room.experiences.entities.ShulginRatingOption
 import foo.pilz.freaklog.ui.main.navigation.graphs.EditRatingRoute
 import foo.pilz.freaklog.ui.utils.getInstant
 import foo.pilz.freaklog.ui.utils.getLocalDateTime
-import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalDateTime
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import javax.inject.Inject
 
 @HiltViewModel
-class EditRatingViewModel @Inject constructor(
+class EditRatingViewModel
+@Inject
+constructor(
     private val experienceRepo: ExperienceRepository,
-    state: SavedStateHandle
+    state: SavedStateHandle,
 ) : ViewModel() {
-    private val ratingId: Int
-    var selectedRatingOption by mutableStateOf(ShulginRatingOption.TWO_PLUS)
-    var localDateTimeFlow = MutableStateFlow(LocalDateTime.now())
-    var rating: ShulginRating? = null
-    var isOverallRatingFlow = MutableStateFlow(false)
+  private val ratingId: Int
+  var selectedRatingOption by mutableStateOf(ShulginRatingOption.TWO_PLUS)
+  var localDateTimeFlow = MutableStateFlow(LocalDateTime.now())
+  var rating: ShulginRating? = null
+  var isOverallRatingFlow = MutableStateFlow(false)
 
-    init {
-        val editRatingRoute = state.toRoute<EditRatingRoute>()
-        val ratingId = editRatingRoute.ratingId
-        this.ratingId = ratingId
-        viewModelScope.launch {
-            val loadedRating = experienceRepo.getRating(id = ratingId) ?: return@launch
-            rating = loadedRating
-            loadedRating.time?.also { time ->
-                localDateTimeFlow.emit(time.getLocalDateTime())
-            } ?: run {
-                isOverallRatingFlow.value = true
-            }
-            selectedRatingOption = loadedRating.option
-        }
+  init {
+    val editRatingRoute = state.toRoute<EditRatingRoute>()
+    val ratingId = editRatingRoute.ratingId
+    this.ratingId = ratingId
+    viewModelScope.launch {
+      val loadedRating = experienceRepo.getRating(id = ratingId) ?: return@launch
+      rating = loadedRating
+      loadedRating.time?.also { time ->
+        localDateTimeFlow.emit(time.getLocalDateTime())
+      }
+          ?: run {
+            isOverallRatingFlow.value = true
+          }
+      selectedRatingOption = loadedRating.option
     }
+  }
 
-    fun onChangeTime(newLocalDateTime: LocalDateTime) {
-        viewModelScope.launch {
-            localDateTimeFlow.emit(newLocalDateTime)
-        }
+  fun onChangeTime(newLocalDateTime: LocalDateTime) {
+    viewModelScope.launch {
+      localDateTimeFlow.emit(newLocalDateTime)
     }
+  }
 
-    fun onChangeRating(newRating: ShulginRatingOption) {
-        selectedRatingOption = newRating
-    }
+  fun onChangeRating(newRating: ShulginRatingOption) {
+    selectedRatingOption = newRating
+  }
 
-    fun delete() {
-        viewModelScope.launch {
-            rating?.let {
-                experienceRepo.delete(it)
-            }
-        }
+  fun delete() {
+    viewModelScope.launch {
+      rating?.let {
+        experienceRepo.delete(it)
+      }
     }
+  }
 
-    fun onDoneTap() {
-        viewModelScope.launch {
-            val selectedInstant = localDateTimeFlow.firstOrNull()?.getInstant() ?: return@launch
-            rating?.let {
-                it.time = if (isOverallRatingFlow.value) null else selectedInstant
-                it.option = selectedRatingOption
-                experienceRepo.update(it)
-            }
-        }
+  fun onDoneTap() {
+    viewModelScope.launch {
+      val selectedInstant = localDateTimeFlow.firstOrNull()?.getInstant() ?: return@launch
+      rating?.let {
+        it.time = if (isOverallRatingFlow.value) null else selectedInstant
+        it.option = selectedRatingOption
+        experienceRepo.update(it)
+      }
     }
+  }
 }

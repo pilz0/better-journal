@@ -28,9 +28,9 @@ import foo.pilz.freaklog.ui.theme.horizontalPadding
 
 @Composable
 fun CardTitle(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 5.dp)
-    )
+  Text(
+      text = title,
+      style = MaterialTheme.typography.titleMedium,
+      modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 5.dp),
+  )
 }

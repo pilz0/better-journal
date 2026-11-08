@@ -17,6 +17,7 @@ import foo.pilz.freaklog.data.export.ExperienceSerializable
 import foo.pilz.freaklog.data.export.JournalExport
 import foo.pilz.freaklog.data.room.AppDatabase
 import foo.pilz.freaklog.testing.EntityBuilders
+import java.time.Instant
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -26,63 +27,65 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import java.time.Instant
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
 class ReplaceEverythingTest {
 
-    private lateinit var db: AppDatabase
-    private lateinit var dao: ExperienceDao
+  private lateinit var db: AppDatabase
+  private lateinit var dao: ExperienceDao
 
-    @Before
-    fun setUp() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        db = Room
-            .inMemoryDatabaseBuilder(context, AppDatabase::class.java)
+  @Before
+  fun setUp() {
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    db =
+        Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-        dao = db.experienceDao()
-    }
+    dao = db.experienceDao()
+  }
 
-    @After
-    fun tearDown() {
-        db.close()
-    }
+  @After
+  fun tearDown() {
+    db.close()
+  }
 
-    @Test
-    fun `replaceEverything atomically replaces existing experiences and ingestions with new export`() = runTest {
+  @Test
+  fun `replaceEverything atomically replaces existing experiences and ingestions with new export`() =
+      runTest {
         val oldId = dao.insert(EntityBuilders.experience(title = "Old experience")).toInt()
         dao.insert(EntityBuilders.ingestion(experienceId = oldId))
 
-        val export = JournalExport(
-            experiences = listOf(
-                ExperienceSerializable(
-                    title = "Imported experience",
-                    text = "Freshly imported",
-                    creationDate = Instant.parse("2026-02-01T12:00:00Z"),
-                    sortDate = Instant.parse("2026-02-01T12:00:00Z"),
-                    isFavorite = true,
-                    location = null,
-                    ingestions = emptyList(),
-                    ratings = emptyList(),
-                    timedNotes = emptyList(),
-                    bloodPressure = emptyList(),
-                )
-            ),
-            customUnits = emptyList(),
-            reminders = emptyList(),
-            webhooks = emptyList(),
-            substanceGroups = emptyList(),
-            customSubstances = emptyList(),
-            customSubstanceDetails = emptyList(),
-            intakeLimits = emptyList(),
-        )
+        val export =
+            JournalExport(
+                experiences =
+                    listOf(
+                        ExperienceSerializable(
+                            title = "Imported experience",
+                            text = "Freshly imported",
+                            creationDate = Instant.parse("2026-02-01T12:00:00Z"),
+                            sortDate = Instant.parse("2026-02-01T12:00:00Z"),
+                            isFavorite = true,
+                            location = null,
+                            ingestions = emptyList(),
+                            ratings = emptyList(),
+                            timedNotes = emptyList(),
+                            bloodPressure = emptyList(),
+                        )
+                    ),
+                customUnits = emptyList(),
+                reminders = emptyList(),
+                webhooks = emptyList(),
+                substanceGroups = emptyList(),
+                customSubstances = emptyList(),
+                customSubstanceDetails = emptyList(),
+                intakeLimits = emptyList(),
+            )
 
         dao.replaceEverything(export)
 
         val imported = dao.getExperience(1)
         assertNotNull(imported)
         assertEquals("Imported experience", imported!!.title)
-    }
+      }
 }

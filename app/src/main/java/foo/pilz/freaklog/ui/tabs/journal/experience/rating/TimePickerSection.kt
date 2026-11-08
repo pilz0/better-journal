@@ -35,7 +35,7 @@ import java.time.LocalDateTime
 @Preview
 @Composable
 fun TimePickerSectionPreview() {
-    TimePickerSection(selectedTime = LocalDateTime.now(), onTimeChange = {})
+  TimePickerSection(selectedTime = LocalDateTime.now(), onTimeChange = {})
 }
 
 @Composable
@@ -43,23 +43,23 @@ fun TimePickerSection(
     selectedTime: LocalDateTime,
     onTimeChange: (LocalDateTime) -> Unit,
 ) {
-    CardWithTitle(title = "Time") {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            DatePickerButton(
-                localDateTime = selectedTime,
-                onChange = onTimeChange,
-                dateString = selectedTime.getDateWithWeekdayText(),
-                modifier = Modifier.fillMaxWidth()
-            )
-            TimePickerButton(
-                localDateTime = selectedTime,
-                onChange = onTimeChange,
-                timeString = selectedTime.getShortTimeText(),
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
+  CardWithTitle(title = "Time") {
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+      DatePickerButton(
+          localDateTime = selectedTime,
+          onChange = onTimeChange,
+          dateString = selectedTime.getDateWithWeekdayText(),
+          modifier = Modifier.fillMaxWidth(),
+      )
+      TimePickerButton(
+          localDateTime = selectedTime,
+          onChange = onTimeChange,
+          timeString = selectedTime.getShortTimeText(),
+          modifier = Modifier.fillMaxWidth(),
+      )
     }
+  }
 }

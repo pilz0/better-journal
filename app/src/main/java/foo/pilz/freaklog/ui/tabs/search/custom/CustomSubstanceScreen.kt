@@ -74,23 +74,23 @@ fun CustomSubstanceScreen(
     navigateToEdit: (customSubstanceId: Int) -> Unit,
     viewModel: CustomSubstanceViewModel = hiltViewModel(),
 ) {
-    val context = LocalContext.current
-    val substance = viewModel.substanceFlow.collectAsStateWithLifecycle().value
-    var hasLoaded by remember { mutableStateOf(false) }
-    LaunchedEffect(substance) {
-        if (substance != null) hasLoaded = true
-        else if (hasLoaded) navigateBack()
-    }
-    CustomSubstanceScreen(
-        substance = substance,
-        categoriesByName = viewModel.categoriesByName,
-        ingestionTime = viewModel.ingestionTimeFlow.collectAsStateWithLifecycle().value,
-        onChangeIngestionTime = viewModel::changeIngestionTime,
-        timelineDisplayOption = viewModel.timelineDisplayOptionFlow.collectAsStateWithLifecycle().value,
-        navigateBack = navigateBack,
-        navigateToEdit = { substance?.let { navigateToEdit(it.substance.id) } },
-        onShare = { viewModel.share(context) },
-    )
+  val context = LocalContext.current
+  val substance = viewModel.substanceFlow.collectAsStateWithLifecycle().value
+  var hasLoaded by remember { mutableStateOf(false) }
+  LaunchedEffect(substance) {
+    if (substance != null) hasLoaded = true else if (hasLoaded) navigateBack()
+  }
+  CustomSubstanceScreen(
+      substance = substance,
+      categoriesByName = viewModel.categoriesByName,
+      ingestionTime = viewModel.ingestionTimeFlow.collectAsStateWithLifecycle().value,
+      onChangeIngestionTime = viewModel::changeIngestionTime,
+      timelineDisplayOption =
+          viewModel.timelineDisplayOptionFlow.collectAsStateWithLifecycle().value,
+      navigateBack = navigateBack,
+      navigateToEdit = { substance?.let { navigateToEdit(it.substance.id) } },
+      onShare = { viewModel.share(context) },
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -105,327 +105,325 @@ fun CustomSubstanceScreen(
     navigateToEdit: () -> Unit,
     onShare: () -> Unit,
 ) {
-    val spacing = LocalSpacing.current
+  val spacing = LocalSpacing.current
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(substance?.substance?.name ?: "") },
-                navigationIcon = {
-                    IconButton(onClick = navigateBack) {
-                        Icon(Icons.Default.ChevronLeft, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onShare) {
-                        Icon(Icons.Outlined.IosShare, contentDescription = "Share")
-                    }
-                    IconButton(onClick = navigateToEdit) {
-                        Icon(Icons.Outlined.Edit, contentDescription = "Edit")
-                    }
-                },
-            )
-        },
-    ) { padding ->
-        if (substance == null) {
-            return@Scaffold
-        }
-
-        val custom = substance.substance
-        val roaInfos = substance.roaInfos
-        val customCategories = substance.categories
-            .mapNotNull { categoriesByName[it.categoryName] }
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(vertical = spacing.sm),
-            verticalArrangement = Arrangement.spacedBy(spacing.sm),
-        ) {
-            if (custom.summary != null || customCategories.isNotEmpty()) {
-                item(key = "summary_card") {
-                    ElevatedCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = spacing.screenHorizontal),
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(spacing.lg),
-                            verticalArrangement = Arrangement.spacedBy(spacing.md),
-                        ) {
-                            if (custom.summary != null) {
-                                Text(
-                                    text = custom.summary!!,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                            if (customCategories.isNotEmpty()) {
-                                FlowRow(
-                                    horizontalArrangement = Arrangement.spacedBy(spacing.xs),
-                                    verticalArrangement = Arrangement.spacedBy(spacing.xs),
-                                ) {
-                                    customCategories.forEach { category ->
-                                        CategoryChip(category)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            val roasWithDoses = roaInfos.filter { info ->
-                val dose = info.dose
-                dose != null && (dose.lightMin != null || dose.commonMin != null ||
-                        dose.strongMin != null || dose.heavyMin != null)
-            }
-
-            if (roasWithDoses.isNotEmpty()) {
-                item(key = "dosage_header") { SectionHeader("Dosage") }
-                item(key = "dosage_card") {
-                    ElevatedCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = spacing.screenHorizontal),
-                    ) {
-                        Column(modifier = Modifier.padding(spacing.lg)) {
-                            roasWithDoses.forEachIndexed { index, info ->
-                                RouteDoseBlock(info)
-                                if (index < roasWithDoses.size - 1) {
-                                    Spacer(modifier = Modifier.height(spacing.md))
-                                    HorizontalDivider()
-                                    Spacer(modifier = Modifier.height(spacing.md))
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            val tolerance = Tolerance(
-                full = custom.toleranceFull,
-                half = custom.toleranceHalf,
-                zero = custom.toleranceZero,
-            ).takeIf { it.full != null || it.half != null || it.zero != null }
-
-            val crossToleranceNames = substance.crossTolerances.map { it.categoryName }
-
-            if (tolerance != null || crossToleranceNames.isNotEmpty()) {
-                item(key = "tolerance_header") { SectionHeader("Tolerance") }
-                item(key = "tolerance_card") {
-                    ElevatedCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = spacing.screenHorizontal),
-                    ) {
-                        ToleranceSection(
-                            tolerance = tolerance,
-                            crossTolerances = crossToleranceNames,
-                        )
-                    }
-                }
-            }
-
-            val roasWithDurations = roaInfos.filter { info ->
-                val duration = info.duration
-                duration != null && (duration.onset != null || duration.comeup != null ||
-                        duration.peak != null || duration.offset != null || duration.total != null)
-            }
-
-            if (roasWithDurations.isNotEmpty()) {
-                item(key = "duration_header") { SectionHeader("Duration") }
-                item(key = "duration_card") {
-                    ElevatedCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = spacing.screenHorizontal),
-                    ) {
-                        Column(modifier = Modifier.padding(spacing.lg)) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Text(
-                                    text = "Start:",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
-                                Spacer(modifier = Modifier.width(spacing.sm))
-                                TimePickerButton(
-                                    localDateTime = ingestionTime,
-                                    onChange = onChangeIngestionTime,
-                                    timeString = ingestionTime.getShortTimeText(),
-                                    hasOutline = false,
-                                )
-                                val isTimeALotDifferentToNow = ChronoUnit.MINUTES.between(
-                                    ingestionTime, LocalDateTime.now()
-                                ).absoluteValue > 5
-                                AnimatedVisibility(visible = isTimeALotDifferentToNow) {
-                                    IconButton(onClick = { onChangeIngestionTime(LocalDateTime.now()) }) {
-                                        Icon(
-                                            imageVector = Icons.Default.Update,
-                                            contentDescription = "Reset to now",
-                                        )
-                                    }
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(spacing.md))
-
-                            when (timelineDisplayOption) {
-                                TimelineDisplayOption.Hidden -> {}
-                                TimelineDisplayOption.Loading -> {
-                                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                                }
-
-                                TimelineDisplayOption.NotWorthDrawing -> {}
-                                is TimelineDisplayOption.Shown -> {
-                                    AllTimelines(
-                                        model = timelineDisplayOption.allTimelinesModel,
-                                        isShowingCurrentTime = false,
-                                        timeDisplayOption = TimeDisplayOption.RELATIVE_TO_NOW,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(200.dp),
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(spacing.md))
-                            HorizontalDivider()
-                            Spacer(modifier = Modifier.height(spacing.md))
-
-                            roasWithDurations.forEachIndexed { index, info ->
-                                RouteDurationBlock(info)
-                                if (index < roasWithDurations.size - 1) {
-                                    Spacer(modifier = Modifier.height(spacing.md))
-                                    HorizontalDivider()
-                                    Spacer(modifier = Modifier.height(spacing.md))
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            val interactionRows = buildInteractionRows(substance.interactions)
-            if (interactionRows.isNotEmpty()) {
-                item(key = "interactions_header") { SectionHeader("Interactions") }
-                item(key = "interactions_card") { InteractionsContent(rows = interactionRows) }
-            }
-
-            if (custom.effectsText != null) {
-                item(key = "effects_header") { SectionHeader("Effects") }
-                item(key = "effects_card") { TextCard(custom.effectsText!!) }
-            }
-
-            if (custom.generalRisks != null) {
-                item(key = "risks_header") { SectionHeader("Risks") }
-                item(key = "risks_card") { TextCard(custom.generalRisks!!) }
-            }
-
-            if (custom.longTermRisks != null) {
-                item(key = "long_term_risks_header") { SectionHeader("Long-term risks") }
-                item(key = "long_term_risks_card") { TextCard(custom.longTermRisks!!) }
-            }
-        }
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text(substance?.substance?.name ?: "") },
+            navigationIcon = {
+              IconButton(onClick = navigateBack) {
+                Icon(Icons.Default.ChevronLeft, contentDescription = "Back")
+              }
+            },
+            actions = {
+              IconButton(onClick = onShare) {
+                Icon(Icons.Outlined.IosShare, contentDescription = "Share")
+              }
+              IconButton(onClick = navigateToEdit) {
+                Icon(Icons.Outlined.Edit, contentDescription = "Edit")
+              }
+            },
+        )
+      },
+  ) { padding ->
+    if (substance == null) {
+      return@Scaffold
     }
+
+    val custom = substance.substance
+    val roaInfos = substance.roaInfos
+    val customCategories = substance.categories.mapNotNull { categoriesByName[it.categoryName] }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().padding(padding),
+        contentPadding = PaddingValues(vertical = spacing.sm),
+        verticalArrangement = Arrangement.spacedBy(spacing.sm),
+    ) {
+      if (custom.summary != null || customCategories.isNotEmpty()) {
+        item(key = "summary_card") {
+          ElevatedCard(
+              modifier = Modifier.fillMaxWidth().padding(horizontal = spacing.screenHorizontal),
+          ) {
+            Column(
+                modifier = Modifier.padding(spacing.lg),
+                verticalArrangement = Arrangement.spacedBy(spacing.md),
+            ) {
+              if (custom.summary != null) {
+                Text(
+                    text = custom.summary!!,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+              }
+              if (customCategories.isNotEmpty()) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(spacing.xs),
+                    verticalArrangement = Arrangement.spacedBy(spacing.xs),
+                ) {
+                  customCategories.forEach { category ->
+                    CategoryChip(category)
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      val roasWithDoses = roaInfos.filter { info ->
+        val dose = info.dose
+        dose != null &&
+            (dose.lightMin != null ||
+                dose.commonMin != null ||
+                dose.strongMin != null ||
+                dose.heavyMin != null)
+      }
+
+      if (roasWithDoses.isNotEmpty()) {
+        item(key = "dosage_header") { SectionHeader("Dosage") }
+        item(key = "dosage_card") {
+          ElevatedCard(
+              modifier = Modifier.fillMaxWidth().padding(horizontal = spacing.screenHorizontal),
+          ) {
+            Column(modifier = Modifier.padding(spacing.lg)) {
+              roasWithDoses.forEachIndexed { index, info ->
+                RouteDoseBlock(info)
+                if (index < roasWithDoses.size - 1) {
+                  Spacer(modifier = Modifier.height(spacing.md))
+                  HorizontalDivider()
+                  Spacer(modifier = Modifier.height(spacing.md))
+                }
+              }
+            }
+          }
+        }
+      }
+
+      val tolerance =
+          Tolerance(
+                  full = custom.toleranceFull,
+                  half = custom.toleranceHalf,
+                  zero = custom.toleranceZero,
+              )
+              .takeIf { it.full != null || it.half != null || it.zero != null }
+
+      val crossToleranceNames = substance.crossTolerances.map { it.categoryName }
+
+      if (tolerance != null || crossToleranceNames.isNotEmpty()) {
+        item(key = "tolerance_header") { SectionHeader("Tolerance") }
+        item(key = "tolerance_card") {
+          ElevatedCard(
+              modifier = Modifier.fillMaxWidth().padding(horizontal = spacing.screenHorizontal),
+          ) {
+            ToleranceSection(
+                tolerance = tolerance,
+                crossTolerances = crossToleranceNames,
+            )
+          }
+        }
+      }
+
+      val roasWithDurations = roaInfos.filter { info ->
+        val duration = info.duration
+        duration != null &&
+            (duration.onset != null ||
+                duration.comeup != null ||
+                duration.peak != null ||
+                duration.offset != null ||
+                duration.total != null)
+      }
+
+      if (roasWithDurations.isNotEmpty()) {
+        item(key = "duration_header") { SectionHeader("Duration") }
+        item(key = "duration_card") {
+          ElevatedCard(
+              modifier = Modifier.fillMaxWidth().padding(horizontal = spacing.screenHorizontal),
+          ) {
+            Column(modifier = Modifier.padding(spacing.lg)) {
+              Row(
+                  verticalAlignment = Alignment.CenterVertically,
+                  modifier = Modifier.fillMaxWidth(),
+              ) {
+                Text(
+                    text = "Start:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Spacer(modifier = Modifier.width(spacing.sm))
+                TimePickerButton(
+                    localDateTime = ingestionTime,
+                    onChange = onChangeIngestionTime,
+                    timeString = ingestionTime.getShortTimeText(),
+                    hasOutline = false,
+                )
+                val isTimeALotDifferentToNow =
+                    ChronoUnit.MINUTES.between(
+                            ingestionTime,
+                            LocalDateTime.now(),
+                        )
+                        .absoluteValue > 5
+                AnimatedVisibility(visible = isTimeALotDifferentToNow) {
+                  IconButton(onClick = { onChangeIngestionTime(LocalDateTime.now()) }) {
+                    Icon(
+                        imageVector = Icons.Default.Update,
+                        contentDescription = "Reset to now",
+                    )
+                  }
+                }
+              }
+
+              Spacer(modifier = Modifier.height(spacing.md))
+
+              when (timelineDisplayOption) {
+                TimelineDisplayOption.Hidden -> {}
+                TimelineDisplayOption.Loading -> {
+                  LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                }
+
+                TimelineDisplayOption.NotWorthDrawing -> {}
+                is TimelineDisplayOption.Shown -> {
+                  AllTimelines(
+                      model = timelineDisplayOption.allTimelinesModel,
+                      isShowingCurrentTime = false,
+                      timeDisplayOption = TimeDisplayOption.RELATIVE_TO_NOW,
+                      modifier = Modifier.fillMaxWidth().height(200.dp),
+                  )
+                }
+              }
+
+              Spacer(modifier = Modifier.height(spacing.md))
+              HorizontalDivider()
+              Spacer(modifier = Modifier.height(spacing.md))
+
+              roasWithDurations.forEachIndexed { index, info ->
+                RouteDurationBlock(info)
+                if (index < roasWithDurations.size - 1) {
+                  Spacer(modifier = Modifier.height(spacing.md))
+                  HorizontalDivider()
+                  Spacer(modifier = Modifier.height(spacing.md))
+                }
+              }
+            }
+          }
+        }
+      }
+
+      val interactionRows = buildInteractionRows(substance.interactions)
+      if (interactionRows.isNotEmpty()) {
+        item(key = "interactions_header") { SectionHeader("Interactions") }
+        item(key = "interactions_card") { InteractionsContent(rows = interactionRows) }
+      }
+
+      if (custom.effectsText != null) {
+        item(key = "effects_header") { SectionHeader("Effects") }
+        item(key = "effects_card") { TextCard(custom.effectsText!!) }
+      }
+
+      if (custom.generalRisks != null) {
+        item(key = "risks_header") { SectionHeader("Risks") }
+        item(key = "risks_card") { TextCard(custom.generalRisks!!) }
+      }
+
+      if (custom.longTermRisks != null) {
+        item(key = "long_term_risks_header") { SectionHeader("Long-term risks") }
+        item(key = "long_term_risks_card") { TextCard(custom.longTermRisks!!) }
+      }
+    }
+  }
 }
 
 @Composable
 private fun CategoryChip(category: Category) {
-    val spacing = LocalSpacing.current
-    Surface(
-        shape = CircleShape,
-        color = category.color.copy(alpha = 0.15f),
-    ) {
-        Text(
-            text = category.name,
-            style = MaterialTheme.typography.labelMedium,
-            modifier = Modifier.padding(horizontal = spacing.md, vertical = spacing.sm),
-        )
-    }
+  val spacing = LocalSpacing.current
+  Surface(
+      shape = CircleShape,
+      color = category.color.copy(alpha = 0.15f),
+  ) {
+    Text(
+        text = category.name,
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier.padding(horizontal = spacing.md, vertical = spacing.sm),
+    )
+  }
 }
 
 @Composable
 private fun RouteDoseBlock(info: CustomRoaInfo) {
-    val spacing = LocalSpacing.current
-    Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
-        Text(
-            text = info.route.displayText,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary,
-        )
-        val roaDose = info.dose?.toRoaDose()
-        if (roaDose != null) {
-            RoaDoseView(roaDose = roaDose)
-        }
-        val bio = info.roa?.bioavailability
-        if (bio != null) {
-            Text(
-                text = "Bioavailability: ${bio.min?.toReadableString() ?: ".."}-${bio.max?.toReadableString() ?: ".."}%",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+  val spacing = LocalSpacing.current
+  Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
+    Text(
+        text = info.route.displayText,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.primary,
+    )
+    val roaDose = info.dose?.toRoaDose()
+    if (roaDose != null) {
+      RoaDoseView(roaDose = roaDose)
     }
+    val bio = info.roa?.bioavailability
+    if (bio != null) {
+      Text(
+          text =
+              "Bioavailability: ${bio.min?.toReadableString() ?: ".."}-${bio.max?.toReadableString() ?: ".."}%",
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+    }
+  }
 }
 
 @Composable
 private fun RouteDurationBlock(info: CustomRoaInfo) {
-    val spacing = LocalSpacing.current
-    Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-        ) {
-            RouteColorBar(info.route)
-            Text(
-                text = info.route.displayText,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.primary,
-            )
-        }
-        val roaDuration = info.duration?.toRoaDuration()
-        if (roaDuration != null) {
-            RoaDurationView(roaDuration = roaDuration)
-        }
+  val spacing = LocalSpacing.current
+  Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+    ) {
+      RouteColorBar(info.route)
+      Text(
+          text = info.route.displayText,
+          style = MaterialTheme.typography.titleMedium,
+          fontWeight = FontWeight.SemiBold,
+          color = MaterialTheme.colorScheme.primary,
+      )
     }
+    val roaDuration = info.duration?.toRoaDuration()
+    if (roaDuration != null) {
+      RoaDurationView(roaDuration = roaDuration)
+    }
+  }
 }
 
 @Composable
 private fun TextCard(text: String) {
-    val spacing = LocalSpacing.current
-    ElevatedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = spacing.screenHorizontal),
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(spacing.lg),
-        )
-    }
+  val spacing = LocalSpacing.current
+  ElevatedCard(
+      modifier = Modifier.fillMaxWidth().padding(horizontal = spacing.screenHorizontal),
+  ) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(spacing.lg),
+    )
+  }
 }
 
 private fun buildInteractionRows(
     interactions: List<CustomInteraction>,
 ): List<Pair<String, InteractionType>> {
-    val rows = mutableListOf<Pair<String, InteractionType>>()
-    interactions
-        .filter { it.severity == CustomInteractionSeverity.DANGEROUS }
-        .forEach { rows.add(it.targetName to InteractionType.DANGEROUS) }
-    interactions
-        .filter { it.severity == CustomInteractionSeverity.UNSAFE }
-        .forEach { rows.add(it.targetName to InteractionType.UNSAFE) }
-    interactions
-        .filter { it.severity == CustomInteractionSeverity.UNCERTAIN }
-        .forEach { rows.add(it.targetName to InteractionType.UNCERTAIN) }
-    return rows
+  val rows = mutableListOf<Pair<String, InteractionType>>()
+  interactions
+      .filter { it.severity == CustomInteractionSeverity.DANGEROUS }
+      .forEach { rows.add(it.targetName to InteractionType.DANGEROUS) }
+  interactions
+      .filter { it.severity == CustomInteractionSeverity.UNSAFE }
+      .forEach { rows.add(it.targetName to InteractionType.UNSAFE) }
+  interactions
+      .filter { it.severity == CustomInteractionSeverity.UNCERTAIN }
+      .forEach { rows.add(it.targetName to InteractionType.UNCERTAIN) }
+  return rows
 }

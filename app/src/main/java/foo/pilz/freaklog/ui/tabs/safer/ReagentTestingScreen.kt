@@ -46,59 +46,62 @@ import foo.pilz.freaklog.ui.theme.horizontalPadding
 @Preview
 @Composable
 fun ReagentTestingScreen() {
-    val uriHandler = LocalUriHandler.current
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Reagent testing") },
-                actions = {
-                    TextButton(
-                        onClick = { uriHandler.openUri("https://psychonautwiki.org/wiki/Reagent_testing_kits") },
-                    ) {
-                        Text("Article")
-                    }
-                }
-            )
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
+  val uriHandler = LocalUriHandler.current
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Reagent testing") },
+            actions = {
+              TextButton(
+                  onClick = {
+                    uriHandler.openUri("https://psychonautwiki.org/wiki/Reagent_testing_kits")
+                  },
+              ) {
+                Text("Article")
+              }
+            },
+        )
+      },
+  ) { padding ->
+    Column(
+        modifier =
+            Modifier.fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(padding)
                 .padding(horizontal = horizontalPadding)
-        ) {
-            ElevatedCard(modifier = Modifier.padding(vertical = 3.dp)) {
-                Column(modifier = Modifier.padding(horizontal = horizontalPadding)) {
-                    SectionText(
-                        text = """Reagent testing kits is a drug testing method that uses chemical solutions that change in color when applied to a chemical compound. They can help determine what chemical might be present in a given sample. In many cases they do not rule out the possibility of another similar compound being present in addition to or instead of the one suspected.
+    ) {
+      ElevatedCard(modifier = Modifier.padding(vertical = 3.dp)) {
+        Column(modifier = Modifier.padding(horizontal = horizontalPadding)) {
+          SectionText(
+              text =
+                  """Reagent testing kits is a drug testing method that uses chemical solutions that change in color when applied to a chemical compound. They can help determine what chemical might be present in a given sample. In many cases they do not rule out the possibility of another similar compound being present in addition to or instead of the one suspected.
 Although very few substances are effective at dosages that allow the use of paper blotters, LSD is not the only one: It's essential to test for its presence to avoid substances of the NBOMe class. Additionally, it's becoming increasingly important to test for possible Fentanyl contamination, since this substance is effective at dosages that make it possible to put very high quantities on a single blotter.
 Reagents can only determine the presence, not the quantity or purity, of a particular substance. Dark color reactions will tend to override reactions to other substances also in the pill. A positive or negative reaction for a substance does not indicate that a drug is safe. No drug use is 100% safe. Make wise decisions and take responsibility for your health and well-being; no one else can."""
-                    )
-                    VerticalSpace()
-                }
-            }
-            ElevatedCard(modifier = Modifier.padding(vertical = 5.dp)) {
-                Column(
-                    Modifier.padding(vertical = 5.dp)
-                ) {
-                    Text(
-                        text = "Kit sellers",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(horizontal = 10.dp)
-                    )
-                    Spacer(modifier = Modifier.height(5.dp))
-                    HorizontalDivider()
-                    TextButton(onClick = { uriHandler.openUri("https://dancesafe.org/testing-kit-instructions/") }) {
-                        Text(text = "DanceSafe")
-                    }
-                    HorizontalDivider()
-                    TextButton(onClick = { uriHandler.openUri("https://bunkpolice.com") }) {
-                        Text(text = "Bunk Police")
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.height(5.dp))
+          )
+          VerticalSpace()
         }
+      }
+      ElevatedCard(modifier = Modifier.padding(vertical = 5.dp)) {
+        Column(Modifier.padding(vertical = 5.dp)) {
+          Text(
+              text = "Kit sellers",
+              style = MaterialTheme.typography.titleMedium,
+              modifier = Modifier.padding(horizontal = 10.dp),
+          )
+          Spacer(modifier = Modifier.height(5.dp))
+          HorizontalDivider()
+          TextButton(
+              onClick = { uriHandler.openUri("https://dancesafe.org/testing-kit-instructions/") }
+          ) {
+            Text(text = "DanceSafe")
+          }
+          HorizontalDivider()
+          TextButton(onClick = { uriHandler.openUri("https://bunkpolice.com") }) {
+            Text(text = "Bunk Police")
+          }
+        }
+      }
+      Spacer(modifier = Modifier.height(5.dp))
     }
+  }
 }

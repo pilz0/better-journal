@@ -8,8 +8,6 @@ import kotlinx.serialization.Transient
 @Entity
 @Serializable
 data class SubstanceGroup(
-    @Transient
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    @Transient @PrimaryKey(autoGenerate = true) val id: Int = 0,
     var name: String,
 )

@@ -24,16 +24,16 @@ import androidx.room.PrimaryKey
 import java.time.Instant
 
 @Entity(
-    indices = [
-        Index(value = ["isArchived", "lastUsedDate", "creationDate"]),
-    ]
+    indices =
+        [
+            Index(value = ["isArchived", "lastUsedDate", "creationDate"]),
+        ]
 )
 data class CustomRecipe(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
     val creationDate: Instant = Instant.now(),
     val lastUsedDate: Instant? = null,
     val isArchived: Boolean = false,
-    val note: String = ""
+    val note: String = "",
 )

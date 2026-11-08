@@ -25,52 +25,50 @@ import foo.pilz.freaklog.ui.theme.LocalSpacing
 fun EmptyScreenDisclaimer(
     title: String,
     description: String,
-    icon: ImageVector = Icons.AutoMirrored.Outlined.TrendingUp
+    icon: ImageVector = Icons.AutoMirrored.Outlined.TrendingUp,
 ) {
-    val spacing = LocalSpacing.current
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(spacing.xxl)
+  val spacing = LocalSpacing.current
+  Box(
+      contentAlignment = Alignment.Center,
+      modifier = Modifier.fillMaxSize().padding(spacing.xxl),
+  ) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(spacing.md),
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(spacing.md)
-        ) {
-            Surface(
-                shape = RoundedCornerShape(spacing.cornerLg),
-                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                modifier = Modifier.size(spacing.iconXl)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        modifier = Modifier.size(spacing.iconLg),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(spacing.xs)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center
-                )
-
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+      Surface(
+          shape = RoundedCornerShape(spacing.cornerLg),
+          color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+          modifier = Modifier.size(spacing.iconXl),
+      ) {
+        Box(contentAlignment = Alignment.Center) {
+          Icon(
+              imageVector = icon,
+              contentDescription = null,
+              modifier = Modifier.size(spacing.iconLg),
+              tint = MaterialTheme.colorScheme.primary,
+          )
         }
+      }
+
+      Column(
+          horizontalAlignment = Alignment.CenterHorizontally,
+          verticalArrangement = Arrangement.spacedBy(spacing.xs),
+      ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center,
+        )
+
+        Text(
+            text = description,
+            style = MaterialTheme.typography.bodySmall,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
     }
+  }
 }

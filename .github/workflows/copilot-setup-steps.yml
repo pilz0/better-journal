@@ -30,8 +30,8 @@ jobs:
     # Match the deterministic JVM defaults used by the rest of CI so any local
     # Gradle invocations the agent runs behave the same as the build workflow.
     env:
-      TZ: 'UTC'
-      LANG: 'en_US.UTF-8'
+      TZ: "UTC"
+      LANG: "en_US.UTF-8"
 
     steps:
       - name: Harden the runner

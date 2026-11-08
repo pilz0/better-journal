@@ -9,45 +9,45 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 /**
  * Reschedules every enabled reminder when:
- *  - the device boots (BOOT_COMPLETED)
- *  - the app is updated (MY_PACKAGE_REPLACED)
- *  - the system clock or timezone changes
+ * - the device boots (BOOT_COMPLETED)
+ * - the app is updated (MY_PACKAGE_REPLACED)
+ * - the system clock or timezone changes
  *
- * AlarmManager forgets all alarms on reboot, so without this receiver the user's reminders
- * silently stop firing after restarting their phone.
+ * AlarmManager forgets all alarms on reboot, so without this receiver the user's reminders silently
+ * stop firing after restarting their phone.
  */
 @AndroidEntryPoint
 class BootCompletedReceiver : BroadcastReceiver() {
 
-    @Inject lateinit var notificationScheduler: NotificationScheduler
+  @Inject lateinit var notificationScheduler: NotificationScheduler
 
-    override fun onReceive(context: Context, intent: Intent) {
-        when (intent.action) {
-            Intent.ACTION_BOOT_COMPLETED,
-            Intent.ACTION_MY_PACKAGE_REPLACED,
-            Intent.ACTION_LOCKED_BOOT_COMPLETED,
-            Intent.ACTION_TIME_CHANGED,
-            Intent.ACTION_TIMEZONE_CHANGED -> Unit
-            else -> return
-        }
-        val pendingResult = goAsync()
-        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            try {
-                NotificationScheduler.ensureNotificationChannel(context)
-                notificationScheduler.rescheduleAll()
-            } catch (t: Throwable) {
-                Log.e("BootCompletedReceiver", "Failed to reschedule reminders on boot/time change", t)
-            } finally {
-                pendingResult.finish()
-            }
-        }
+  override fun onReceive(context: Context, intent: Intent) {
+    when (intent.action) {
+      Intent.ACTION_BOOT_COMPLETED,
+      Intent.ACTION_MY_PACKAGE_REPLACED,
+      Intent.ACTION_LOCKED_BOOT_COMPLETED,
+      Intent.ACTION_TIME_CHANGED,
+      Intent.ACTION_TIMEZONE_CHANGED -> Unit
+      else -> return
     }
+    val pendingResult = goAsync()
+    CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+      try {
+        NotificationScheduler.ensureNotificationChannel(context)
+        notificationScheduler.rescheduleAll()
+      } catch (t: Throwable) {
+        Log.e("BootCompletedReceiver", "Failed to reschedule reminders on boot/time change", t)
+      } finally {
+        pendingResult.finish()
+      }
+    }
+  }
 }

@@ -7,16 +7,16 @@ data class FullDurationRange(
     val minInSeconds: Float,
     val maxInSeconds: Float,
 ) {
-    fun interpolateAtValueInSeconds(value: Float): Float {
-        val diff = maxInSeconds - minInSeconds
-        return minInSeconds + diff.times(value)
-    }
+  fun interpolateAtValueInSeconds(value: Float): Float {
+    val diff = maxInSeconds - minInSeconds
+    return minInSeconds + diff.times(value)
+  }
 }
 
 fun DurationRange.toFullDurationRange(): FullDurationRange? {
-    val min = minInSec ?: maxInSec ?: return null
-    val max = maxInSec ?: minInSec ?: return null
-    return FullDurationRange(min, max)
+  val min = minInSec ?: maxInSec ?: return null
+  val max = maxInSec ?: minInSec ?: return null
+  return FullDurationRange(min, max)
 }
 
 data class FullTimelineDurations(
@@ -27,13 +27,18 @@ data class FullTimelineDurations(
 )
 
 fun RoaDuration.toFullTimelineDurations(): FullTimelineDurations? {
-    val onsetInSeconds = onset?.interpolateAtValueInSeconds(0.5f)
-    val comeupInSeconds = comeup?.interpolateAtValueInSeconds(0.5f)
-    val peakInSeconds = peak?.interpolateAtValueInSeconds(0.5f)
-    val offsetInSeconds = offset?.interpolateAtValueInSeconds(0.5f)
-    return if (onsetInSeconds != null && comeupInSeconds != null && peakInSeconds != null && offsetInSeconds != null) {
-        FullTimelineDurations(onsetInSeconds, comeupInSeconds, peakInSeconds, offsetInSeconds)
-    } else {
-        null
-    }
+  val onsetInSeconds = onset?.interpolateAtValueInSeconds(0.5f)
+  val comeupInSeconds = comeup?.interpolateAtValueInSeconds(0.5f)
+  val peakInSeconds = peak?.interpolateAtValueInSeconds(0.5f)
+  val offsetInSeconds = offset?.interpolateAtValueInSeconds(0.5f)
+  return if (
+      onsetInSeconds != null &&
+          comeupInSeconds != null &&
+          peakInSeconds != null &&
+          offsetInSeconds != null
+  ) {
+    FullTimelineDurations(onsetInSeconds, comeupInSeconds, peakInSeconds, offsetInSeconds)
+  } else {
+    null
+  }
 }

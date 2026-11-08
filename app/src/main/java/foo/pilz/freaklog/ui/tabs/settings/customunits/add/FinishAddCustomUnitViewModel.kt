@@ -25,130 +25,147 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.substances.classes.Substance
 import foo.pilz.freaklog.data.substances.classes.roa.DoseClass
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.main.navigation.graphs.FinishAddCustomUnitRoute
-import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
 @HiltViewModel
-class FinishAddCustomUnitViewModel @Inject constructor(
+class FinishAddCustomUnitViewModel
+@Inject
+constructor(
     private val experienceRepo: ExperienceRepository,
     substanceRepository: SubstanceRepository,
-    state: SavedStateHandle
+    state: SavedStateHandle,
 ) : ViewModel() {
-    private val finishAddCustomUnitRoute = state.toRoute<FinishAddCustomUnitRoute>()
-    var substanceName by mutableStateOf("")
-    val administrationRoute = finishAddCustomUnitRoute.administrationRoute
+  private val finishAddCustomUnitRoute = state.toRoute<FinishAddCustomUnitRoute>()
+  var substanceName by mutableStateOf("")
+  val administrationRoute = finishAddCustomUnitRoute.administrationRoute
 
-    var substance by mutableStateOf<Substance?>(null)
-    val roaDose get() = substance?.getRoa(administrationRoute)?.roaDose
+  var substance by mutableStateOf<Substance?>(null)
+  val roaDose
+    get() = substance?.getRoa(administrationRoute)?.roaDose
 
-    var name by mutableStateOf("")
-    var isUnitsFieldShown by mutableStateOf(false)
+  var name by mutableStateOf("")
+  var isUnitsFieldShown by mutableStateOf(false)
 
-    val currentDoseClass: DoseClass? get() = roaDose?.getDoseClass(ingestionDose = dose)
+  val currentDoseClass: DoseClass?
+    get() = roaDose?.getDoseClass(ingestionDose = dose)
 
-    fun onChangeOfName(newName: String) {
-        name = newName
-    }
+  fun onChangeOfName(newName: String) {
+    name = newName
+  }
 
-    var unit by mutableStateOf("")
+  var unit by mutableStateOf("")
 
-    fun onChangeOfUnit(newUnit: String) {
-        unit = newUnit
-        unitPlural = if (newUnit != "mg" && newUnit != "g" && newUnit.lowercase() != "ml" && newUnit.lastOrNull() != 's') {
-            newUnit + "s"
+  fun onChangeOfUnit(newUnit: String) {
+    unit = newUnit
+    unitPlural =
+        if (
+            newUnit != "mg" &&
+                newUnit != "g" &&
+                newUnit.lowercase() != "ml" &&
+                newUnit.lastOrNull() != 's'
+        ) {
+          newUnit + "s"
         } else {
-            newUnit
+          newUnit
         }
-    }
+  }
 
-    var unitPlural by mutableStateOf("")
+  var unitPlural by mutableStateOf("")
 
-    fun onChangeOfUnitPlural(newUnit: String) {
-        unitPlural = newUnit
-    }
+  fun onChangeOfUnitPlural(newUnit: String) {
+    unitPlural = newUnit
+  }
 
-    var originalUnit by mutableStateOf("mg")
+  var originalUnit by mutableStateOf("mg")
 
-    fun onChangeOfOriginalUnit(newUnit: String) {
-        originalUnit = newUnit
-    }
+  fun onChangeOfOriginalUnit(newUnit: String) {
+    originalUnit = newUnit
+  }
 
-    var doseText by mutableStateOf("")
-    fun onChangeOfDose(newDose: String) {
-        doseText = newDose
-    }
+  var doseText by mutableStateOf("")
 
-    val dose: Double? get() = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(doseText)
+  fun onChangeOfDose(newDose: String) {
+    doseText = newDose
+  }
 
-    var estimatedDoseDeviationText by mutableStateOf("")
-    fun onChangeOfEstimatedDoseDeviation(newEstimatedDoseDeviation: String) {
-        estimatedDoseDeviationText = newEstimatedDoseDeviation
-    }
+  val dose: Double?
+    get() = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(doseText)
 
-    private val estimatedDoseDeviation: Double? get() = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(estimatedDoseDeviationText)
+  var estimatedDoseDeviationText by mutableStateOf("")
 
-    var isEstimate by mutableStateOf(false)
-    fun onChangeOfIsEstimate(newIsEstimate: Boolean) {
-        isEstimate = newIsEstimate
-    }
+  fun onChangeOfEstimatedDoseDeviation(newEstimatedDoseDeviation: String) {
+    estimatedDoseDeviationText = newEstimatedDoseDeviation
+  }
 
-    var isArchived by mutableStateOf(false)
-    fun onChangeOfIsArchived(newIsArchived: Boolean) {
-        isArchived = newIsArchived
-    }
+  private val estimatedDoseDeviation: Double?
+    get() = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(estimatedDoseDeviationText)
 
-    var note by mutableStateOf("")
+  var isEstimate by mutableStateOf(false)
 
-    fun onChangeOfNote(newNote: String) {
-        note = newNote
-    }
+  fun onChangeOfIsEstimate(newIsEstimate: Boolean) {
+    isEstimate = newIsEstimate
+  }
 
-    init {
-        originalUnit = roaDose?.units ?: ""
-        viewModelScope.launch {
-            substanceName = finishAddCustomUnitRoute.substanceName
-            substance = substanceRepository.getSubstance(finishAddCustomUnitRoute.substanceName)
-            originalUnit = roaDose?.units ?: "mg"
-            isUnitsFieldShown = roaDose?.units?.isBlank() ?: true
-            if (substance == null || roaDose?.units == null) {
-                val customSubstance =
-                    experienceRepo.getCustomSubstance(finishAddCustomUnitRoute.substanceName)
-                if (customSubstance != null) {
-                    originalUnit = customSubstance.units
-                    isUnitsFieldShown = false
-                }
-            }
+  var isArchived by mutableStateOf(false)
+
+  fun onChangeOfIsArchived(newIsArchived: Boolean) {
+    isArchived = newIsArchived
+  }
+
+  var note by mutableStateOf("")
+
+  fun onChangeOfNote(newNote: String) {
+    note = newNote
+  }
+
+  init {
+    originalUnit = roaDose?.units ?: ""
+    viewModelScope.launch {
+      substanceName = finishAddCustomUnitRoute.substanceName
+      substance = substanceRepository.getSubstance(finishAddCustomUnitRoute.substanceName)
+      originalUnit = roaDose?.units ?: "mg"
+      isUnitsFieldShown = roaDose?.units?.isBlank() ?: true
+      if (substance == null || roaDose?.units == null) {
+        val customSubstance =
+            experienceRepo.getCustomSubstance(finishAddCustomUnitRoute.substanceName)
+        if (customSubstance != null) {
+          originalUnit = customSubstance.units
+          isUnitsFieldShown = false
         }
+      }
     }
+  }
 
-    fun createSaveAndDismissAfter(dismiss: (customUnitId: Int) -> Unit) {
-        viewModelScope.launch {
-            val customUnit = CustomUnit(
-                substanceName = substanceName,
-                name = name,
-                administrationRoute = administrationRoute,
-                dose = dose,
-                isEstimate = isEstimate,
-                estimatedDoseStandardDeviation = if (isEstimate) estimatedDoseDeviation else null,
-                isArchived = isArchived,
-                unit = unit,
-                unitPlural = unitPlural,
-                originalUnit = originalUnit,
-                note = note
-            )
-            val customUnitId = experienceRepo.insert(customUnit)
-            withContext(Dispatchers.Main) {
-                dismiss(customUnitId)
-            }
-        }
+  fun createSaveAndDismissAfter(dismiss: (customUnitId: Int) -> Unit) {
+    viewModelScope.launch {
+      val customUnit =
+          CustomUnit(
+              substanceName = substanceName,
+              name = name,
+              administrationRoute = administrationRoute,
+              dose = dose,
+              isEstimate = isEstimate,
+              estimatedDoseStandardDeviation = if (isEstimate) estimatedDoseDeviation else null,
+              isArchived = isArchived,
+              unit = unit,
+              unitPlural = unitPlural,
+              originalUnit = originalUnit,
+              note = note,
+          )
+      val customUnitId = experienceRepo.insert(customUnit)
+      withContext(Dispatchers.Main) {
+        dismiss(customUnitId)
+      }
     }
+  }
 }

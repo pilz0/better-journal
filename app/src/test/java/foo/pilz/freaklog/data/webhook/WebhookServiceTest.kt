@@ -23,216 +23,232 @@ import org.junit.Test
 
 class WebhookServiceTest {
 
-    private val webhookService = WebhookService()
+  private val webhookService = WebhookService()
 
-    @Test
-    fun testProcessTemplate_allValuesPresent() {
-        val template = "{user}: [{dose} {units} ]{substance} via {route}[ ({site})][\n> {note}]"
-        val values = mapOf(
+  @Test
+  fun testProcessTemplate_allValuesPresent() {
+    val template = "{user}: [{dose} {units} ]{substance} via {route}[ ({site})][\n> {note}]"
+    val values =
+        mapOf(
             "user" to "Alice",
             "dose" to "100",
             "units" to "mg",
             "substance" to "Caffeine",
             "route" to "oral",
             "site" to "arm",
-            "note" to "Feeling good"
+            "note" to "Feeling good",
         )
-        
-        val result = webhookService.processTemplate(template, values)
-        
-        assertEquals("Alice: 100 mg Caffeine via oral (arm)\n> Feeling good", result)
-    }
 
-    @Test
-    fun testProcessTemplate_emptyDose() {
-        val template = "{user}: [{dose} {units} ]{substance} via {route}[ ({site})][\n> {note}]"
-        val values = mapOf(
+    val result = webhookService.processTemplate(template, values)
+
+    assertEquals("Alice: 100 mg Caffeine via oral (arm)\n> Feeling good", result)
+  }
+
+  @Test
+  fun testProcessTemplate_emptyDose() {
+    val template = "{user}: [{dose} {units} ]{substance} via {route}[ ({site})][\n> {note}]"
+    val values =
+        mapOf(
             "user" to "Bob",
             "dose" to "",
             "units" to "",
             "substance" to "LSD",
             "route" to "sublingual",
             "site" to "",
-            "note" to "Trip report"
+            "note" to "Trip report",
         )
-        
-        val result = webhookService.processTemplate(template, values)
-        
-        assertEquals("Bob: LSD via sublingual\n> Trip report", result)
-    }
 
-    @Test
-    fun testProcessTemplate_emptySite() {
-        val template = "{user}: [{dose} {units} ]{substance} via {route}[ ({site})][\n> {note}]"
-        val values = mapOf(
+    val result = webhookService.processTemplate(template, values)
+
+    assertEquals("Bob: LSD via sublingual\n> Trip report", result)
+  }
+
+  @Test
+  fun testProcessTemplate_emptySite() {
+    val template = "{user}: [{dose} {units} ]{substance} via {route}[ ({site})][\n> {note}]"
+    val values =
+        mapOf(
             "user" to "Charlie",
             "dose" to "50",
             "units" to "μg",
             "substance" to "LSD",
             "route" to "oral",
             "site" to "",
-            "note" to "Starting"
+            "note" to "Starting",
         )
-        
-        val result = webhookService.processTemplate(template, values)
-        
-        assertEquals("Charlie: 50 μg LSD via oral\n> Starting", result)
-    }
 
-    @Test
-    fun testProcessTemplate_emptyNote() {
-        val template = "{user}: [{dose} {units} ]{substance} via {route}[ ({site})][\n> {note}]"
-        val values = mapOf(
+    val result = webhookService.processTemplate(template, values)
+
+    assertEquals("Charlie: 50 μg LSD via oral\n> Starting", result)
+  }
+
+  @Test
+  fun testProcessTemplate_emptyNote() {
+    val template = "{user}: [{dose} {units} ]{substance} via {route}[ ({site})][\n> {note}]"
+    val values =
+        mapOf(
             "user" to "Dave",
             "dose" to "200",
             "units" to "mg",
             "substance" to "MDMA",
             "route" to "oral",
             "site" to "stomach",
-            "note" to ""
+            "note" to "",
         )
-        
-        val result = webhookService.processTemplate(template, values)
-        
-        assertEquals("Dave: 200 mg MDMA via oral (stomach)", result)
-    }
 
-    @Test
-    fun testProcessTemplate_allOptionalEmpty() {
-        val template = "{user}: [{dose} {units} ]{substance} via {route}[ ({site})][\n> {note}]"
-        val values = mapOf(
+    val result = webhookService.processTemplate(template, values)
+
+    assertEquals("Dave: 200 mg MDMA via oral (stomach)", result)
+  }
+
+  @Test
+  fun testProcessTemplate_allOptionalEmpty() {
+    val template = "{user}: [{dose} {units} ]{substance} via {route}[ ({site})][\n> {note}]"
+    val values =
+        mapOf(
             "user" to "Eve",
             "dose" to "",
             "units" to "",
             "substance" to "Cannabis",
             "route" to "smoked",
             "site" to "",
-            "note" to ""
+            "note" to "",
         )
-        
-        val result = webhookService.processTemplate(template, values)
-        
-        assertEquals("Eve: Cannabis via smoked", result)
-    }
 
-    @Test
-    fun testProcessTemplate_simpleTemplate() {
-        val template = "{user} took {substance}"
-        val values = mapOf(
+    val result = webhookService.processTemplate(template, values)
+
+    assertEquals("Eve: Cannabis via smoked", result)
+  }
+
+  @Test
+  fun testProcessTemplate_simpleTemplate() {
+    val template = "{user} took {substance}"
+    val values =
+        mapOf(
             "user" to "Frank",
-            "substance" to "Aspirin"
+            "substance" to "Aspirin",
         )
-        
-        val result = webhookService.processTemplate(template, values)
-        
-        assertEquals("Frank took Aspirin", result)
-    }
 
-    @Test
-    fun testProcessTemplate_nestedBrackets() {
-        // Note: The current implementation doesn't support true nested brackets.
-        // It processes all bracket pairs at the same level independently.
-        // This test shows the actual behavior - nested brackets are processed as separate blocks.
-        val template = "{user}: {substance}[ {dose}][ {units}]"
-        val values = mapOf(
+    val result = webhookService.processTemplate(template, values)
+
+    assertEquals("Frank took Aspirin", result)
+  }
+
+  @Test
+  fun testProcessTemplate_nestedBrackets() {
+    // Note: The current implementation doesn't support true nested brackets.
+    // It processes all bracket pairs at the same level independently.
+    // This test shows the actual behavior - nested brackets are processed as separate blocks.
+    val template = "{user}: {substance}[ {dose}][ {units}]"
+    val values =
+        mapOf(
             "user" to "Grace",
             "substance" to "Ibuprofen",
             "dose" to "400",
-            "units" to "mg"
+            "units" to "mg",
         )
-        
-        val result = webhookService.processTemplate(template, values)
-        
-        assertEquals("Grace: Ibuprofen 400 mg", result)
-    }
 
-    @Test
-    fun testProcessTemplate_withHyperlink() {
-        val template = "{user}: [{dose} {units} ]{substance} via {route}"
-        val values = mapOf(
+    val result = webhookService.processTemplate(template, values)
+
+    assertEquals("Grace: Ibuprofen 400 mg", result)
+  }
+
+  @Test
+  fun testProcessTemplate_withHyperlink() {
+    val template = "{user}: [{dose} {units} ]{substance} via {route}"
+    val values =
+        mapOf(
             "user" to "Henry",
             "dose" to "100",
             "units" to "mg",
             "substance" to "[Caffeine](<https://anodyne.wiki/substance/Caffeine>)",
-            "route" to "oral"
+            "route" to "oral",
         )
-        
-        val result = webhookService.processTemplate(template, values)
-        
-        assertEquals("Henry: 100 mg [Caffeine](<https://anodyne.wiki/substance/Caffeine>) via oral", result)
-    }
 
-    @Test
-    fun testProcessTemplate_estimatedDose() {
-        val template = "{user}: [{dose} {units} ]{substance}"
-        val values = mapOf(
+    val result = webhookService.processTemplate(template, values)
+
+    assertEquals(
+        "Henry: 100 mg [Caffeine](<https://anodyne.wiki/substance/Caffeine>) via oral",
+        result,
+    )
+  }
+
+  @Test
+  fun testProcessTemplate_estimatedDose() {
+    val template = "{user}: [{dose} {units} ]{substance}"
+    val values =
+        mapOf(
             "user" to "Ivy",
             "dose" to "~25",
             "units" to "mg",
-            "substance" to "THC"
+            "substance" to "THC",
         )
-        
-        val result = webhookService.processTemplate(template, values)
-        
-        assertEquals("Ivy: ~25 mg THC", result)
-    }
 
-    @Test
-    fun testProcessTemplate_unicodeCharacters() {
-        val template = "{user}: [{dose} {units} ]{substance} via {route}"
-        val values = mapOf(
+    val result = webhookService.processTemplate(template, values)
+
+    assertEquals("Ivy: ~25 mg THC", result)
+  }
+
+  @Test
+  fun testProcessTemplate_unicodeCharacters() {
+    val template = "{user}: [{dose} {units} ]{substance} via {route}"
+    val values =
+        mapOf(
             "user" to "José",
             "dose" to "50",
             "units" to "μg",
             "substance" to "LSD",
-            "route" to "sublingual"
+            "route" to "sublingual",
         )
-        
-        val result = webhookService.processTemplate(template, values)
-        
-        assertEquals("José: 50 μg LSD via sublingual", result)
-    }
 
-    @Test
-    fun testProcessTemplate_withNostrilSite() {
-        val template = "{user}: [{dose} {units} ]{substance} via {route}[ ({site})][\n> {note}]"
-        val values = mapOf(
+    val result = webhookService.processTemplate(template, values)
+
+    assertEquals("José: 50 μg LSD via sublingual", result)
+  }
+
+  @Test
+  fun testProcessTemplate_withNostrilSite() {
+    val template = "{user}: [{dose} {units} ]{substance} via {route}[ ({site})][\n> {note}]"
+    val values =
+        mapOf(
             "user" to "Alice",
             "dose" to "30",
             "units" to "mg",
             "substance" to "Ketamine",
             "route" to "Insufflated",
             "site" to "Left nostril",
-            "note" to ""
+            "note" to "",
         )
-        
-        val result = webhookService.processTemplate(template, values)
-        
-        assertEquals("Alice: 30 mg Ketamine via Insufflated (Left nostril)", result)
-    }
 
-    @Test
-    fun testProcessTemplate_withVeinSite() {
-        val template = "{user}: [{dose} {units} ]{substance} via {route}[ ({site})][\n> {note}]"
-        val values = mapOf(
+    val result = webhookService.processTemplate(template, values)
+
+    assertEquals("Alice: 30 mg Ketamine via Insufflated (Left nostril)", result)
+  }
+
+  @Test
+  fun testProcessTemplate_withVeinSite() {
+    val template = "{user}: [{dose} {units} ]{substance} via {route}[ ({site})][\n> {note}]"
+    val values =
+        mapOf(
             "user" to "Bob",
             "dose" to "100",
             "units" to "mg",
             "substance" to "Morphine",
             "route" to "Intravenous",
             "site" to "Left arm",
-            "note" to "Medical setting"
+            "note" to "Medical setting",
         )
-        
-        val result = webhookService.processTemplate(template, values)
-        
-        assertEquals("Bob: 100 mg Morphine via Intravenous (Left arm)\n> Medical setting", result)
-    }
 
-    @Test
-    fun testProcessTemplate_defaultTemplateFormat() {
-        val template = WebhookService.DEFAULT_TEMPLATE
-        val values = mapOf(
+    val result = webhookService.processTemplate(template, values)
+
+    assertEquals("Bob: 100 mg Morphine via Intravenous (Left arm)\n> Medical setting", result)
+  }
+
+  @Test
+  fun testProcessTemplate_defaultTemplateFormat() {
+    val template = WebhookService.DEFAULT_TEMPLATE
+    val values =
+        mapOf(
             "user" to "Eve",
             "dose" to "200",
             "units" to "mg",
@@ -240,62 +256,74 @@ class WebhookServiceTest {
             "formulation" to "",
             "route" to "Oral",
             "site" to "",
-            "note" to "Festival"
+            "note" to "Festival",
         )
-        val result = webhookService.processTemplate(template, values)
-        assertEquals("Eve: 200 mg MDMA via Oral\n> Festival", result)
-    }
+    val result = webhookService.processTemplate(template, values)
+    assertEquals("Eve: 200 mg MDMA via Oral\n> Festival", result)
+  }
 
-    @Test
-    fun replacementValuesAreLiteralAndCannotCascade() {
-        val values = mapOf("substance" to "{note}[{user}]", "note" to "private", "user" to "Alice")
-        assertEquals("{note}[{user}] private", webhookService.processTemplate("{substance} {note}", values))
-    }
+  @Test
+  fun replacementValuesAreLiteralAndCannotCascade() {
+    val values = mapOf("substance" to "{note}[{user}]", "note" to "private", "user" to "Alice")
+    assertEquals(
+        "{note}[{user}] private",
+        webhookService.processTemplate("{substance} {note}", values),
+    )
+  }
 
-    @Test
-    fun templatesAndExpandedMessagesHaveAllocationLimits() {
-        org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
-            webhookService.processTemplate("x".repeat(16_385), emptyMap())
-        }
-        org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
-            webhookService.processTemplate("{note}".repeat(100), mapOf("note" to "x".repeat(1000)))
-        }
-        assertEquals("x".repeat(1000), webhookService.processTemplate("[{note}]".repeat(1000), mapOf("note" to "x")))
+  @Test
+  fun templatesAndExpandedMessagesHaveAllocationLimits() {
+    org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
+      webhookService.processTemplate("x".repeat(16_385), emptyMap())
     }
+    org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
+      webhookService.processTemplate("{note}".repeat(100), mapOf("note" to "x".repeat(1000)))
+    }
+    assertEquals(
+        "x".repeat(1000),
+        webhookService.processTemplate("[{note}]".repeat(1000), mapOf("note" to "x")),
+    )
+  }
 
-    @Test
-    fun secureDestinationsAllowOnlyHttpsAndExactLoopbackHttp() {
-        listOf("https://example.com/hook", "http://127.0.0.1/hook", "http://[::1]/hook").forEach {
-            org.junit.Assert.assertTrue(isSecureWebhookUrl(it))
-        }
-        listOf(
-            "http://192.168.1.2/hook", "http://example.com/hook",
-            "http://localhost.evil/hook", "https://user:secret@example.com"
-        ).forEach {
-            org.junit.Assert.assertFalse(isSecureWebhookUrl(it))
-        }
+  @Test
+  fun secureDestinationsAllowOnlyHttpsAndExactLoopbackHttp() {
+    listOf("https://example.com/hook", "http://127.0.0.1/hook", "http://[::1]/hook").forEach {
+      org.junit.Assert.assertTrue(isSecureWebhookUrl(it))
     }
+    listOf(
+            "http://192.168.1.2/hook",
+            "http://example.com/hook",
+            "http://localhost.evil/hook",
+            "https://user:secret@example.com",
+        )
+        .forEach {
+          org.junit.Assert.assertFalse(isSecureWebhookUrl(it))
+        }
+  }
 
-    @Test
-    fun extractFreakQueryTokens_tokenizesDoubleBracesAndLeavesOtherTextUntouched() {
-        val (tokenized, tokens) = webhookService.extractFreakQueryTokens("Hello {{ count }} world {{ last | field=substance }}")
-        assertEquals(2, tokens.size)
-        assertEquals("{{ count }}", tokens[0].rawTag)
-        assertEquals("{{ last | field=substance }}", tokens[1].rawTag)
-        assertEquals("Hello \u0000FQ_TOKEN_0\u0000 world \u0000FQ_TOKEN_1\u0000", tokenized)
-    }
+  @Test
+  fun extractFreakQueryTokens_tokenizesDoubleBracesAndLeavesOtherTextUntouched() {
+    val (tokenized, tokens) =
+        webhookService.extractFreakQueryTokens(
+            "Hello {{ count }} world {{ last | field=substance }}"
+        )
+    assertEquals(2, tokens.size)
+    assertEquals("{{ count }}", tokens[0].rawTag)
+    assertEquals("{{ last | field=substance }}", tokens[1].rawTag)
+    assertEquals("Hello \u0000FQ_TOKEN_0\u0000 world \u0000FQ_TOKEN_1\u0000", tokenized)
+  }
 
-    @Test
-    fun freakQueryResultsContainingNotePlaceholderAreNotExpanded() {
-        val template = "Took: {{ last | field=substance }}"
-        val values = mapOf("note" to "TOP_SECRET_MEDICAL_INFO")
-        val (tokenized, tokens) = webhookService.extractFreakQueryTokens(template)
-        val processed = webhookService.processTemplate(tokenized, values)
-        var result = processed
-        for ((token, _) in tokens) {
-            result = result.replace(token, "{note}")
-        }
-        assertEquals("Took: {note}", result)
-        org.junit.Assert.assertFalse(result.contains("TOP_SECRET_MEDICAL_INFO"))
+  @Test
+  fun freakQueryResultsContainingNotePlaceholderAreNotExpanded() {
+    val template = "Took: {{ last | field=substance }}"
+    val values = mapOf("note" to "TOP_SECRET_MEDICAL_INFO")
+    val (tokenized, tokens) = webhookService.extractFreakQueryTokens(template)
+    val processed = webhookService.processTemplate(tokenized, values)
+    var result = processed
+    for ((token, _) in tokens) {
+      result = result.replace(token, "{note}")
     }
+    assertEquals("Took: {note}", result)
+    org.junit.Assert.assertFalse(result.contains("TOP_SECRET_MEDICAL_INFO"))
+  }
 }

@@ -54,109 +54,111 @@ import foo.pilz.freaklog.ui.utils.getInteractionExplanationURLForSubstance
 
 @Preview
 @Composable
-fun InteractionsPreview(@PreviewParameter(InteractionsPreviewProvider::class) interactions: Interactions) {
-    InteractionsView(interactions, substanceURL = "")
+fun InteractionsPreview(
+    @PreviewParameter(InteractionsPreviewProvider::class) interactions: Interactions
+) {
+  InteractionsView(interactions, substanceURL = "")
 }
 
 @Composable
 fun InteractionsView(
     interactions: Interactions,
-    substanceURL: String
+    substanceURL: String,
 ) {
-    Column {
-        if (interactions.dangerous.isNotEmpty()) {
-            interactions.dangerous.forEach {
-                InteractionRowSubstanceScreen(
-                    text = it,
-                    interactionType = InteractionType.DANGEROUS
-                )
-            }
-        }
-        if (interactions.unsafe.isNotEmpty()) {
-            interactions.unsafe.forEach {
-                InteractionRowSubstanceScreen(text = it, interactionType = InteractionType.UNSAFE)
-            }
-        }
-        if (interactions.uncertain.isNotEmpty()) {
-            interactions.uncertain.forEach {
-                InteractionRowSubstanceScreen(
-                    text = it,
-                    interactionType = InteractionType.UNCERTAIN
-                )
-            }
-        }
-        InteractionExplanationButton(substanceURL = substanceURL)
+  Column {
+    if (interactions.dangerous.isNotEmpty()) {
+      interactions.dangerous.forEach {
+        InteractionRowSubstanceScreen(
+            text = it,
+            interactionType = InteractionType.DANGEROUS,
+        )
+      }
     }
+    if (interactions.unsafe.isNotEmpty()) {
+      interactions.unsafe.forEach {
+        InteractionRowSubstanceScreen(text = it, interactionType = InteractionType.UNSAFE)
+      }
+    }
+    if (interactions.uncertain.isNotEmpty()) {
+      interactions.uncertain.forEach {
+        InteractionRowSubstanceScreen(
+            text = it,
+            interactionType = InteractionType.UNCERTAIN,
+        )
+      }
+    }
+    InteractionExplanationButton(substanceURL = substanceURL)
+  }
 }
 
 @Composable
 fun InteractionExplanationButton(substanceURL: String) {
-    val uriHandler = LocalUriHandler.current
-    TextButton(onClick = {
+  val uriHandler = LocalUriHandler.current
+  TextButton(
+      onClick = {
         val interactionURL = getInteractionExplanationURLForSubstance(substanceURL)
         uriHandler.openUri(interactionURL)
-    }) {
-        Icon(
-            Icons.Outlined.OpenInBrowser,
-            contentDescription = "Open link"
-        )
-        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-        Text("Explanations")
-    }
+      }
+  ) {
+    Icon(
+        Icons.Outlined.OpenInBrowser,
+        contentDescription = "Open link",
+    )
+    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+    Text("Explanations")
+  }
 }
 
 @Composable
 fun InteractionRowSubstanceScreen(
     text: String,
     interactionType: InteractionType,
-    verticalPaddingInside: Dp = 2.dp
+    verticalPaddingInside: Dp = 2.dp,
 ) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth(),
-        shape = RectangleShape,
-        color = interactionType.color
-    ) {
-        Row(
-            modifier = Modifier.padding(
+  Surface(
+      modifier = Modifier.fillMaxWidth(),
+      shape = RectangleShape,
+      color = interactionType.color,
+  ) {
+    Row(
+        modifier =
+            Modifier.padding(
                 horizontal = horizontalPadding,
-                vertical = verticalPaddingInside
+                vertical = verticalPaddingInside,
             ),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = text,
-                textAlign = TextAlign.Center,
-                color = Color.Black
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                repeat(interactionType.dangerCount) {
-                    Icon(
-                        imageVector = Icons.Outlined.WarningAmber,
-                        contentDescription = "Warning",
-                        tint = Color.Black,
-                        modifier = Modifier.size(17.dp)
-                    )
-                }
-            }
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Text(
+          text = text,
+          textAlign = TextAlign.Center,
+          color = Color.Black,
+      )
+      Spacer(modifier = Modifier.weight(1f))
+      Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+        repeat(interactionType.dangerCount) {
+          Icon(
+              imageVector = Icons.Outlined.WarningAmber,
+              contentDescription = "Warning",
+              tint = Color.Black,
+              modifier = Modifier.size(17.dp),
+          )
         }
+      }
     }
+  }
 }
 
 @Composable
 fun InteractionsContent(rows: List<Pair<String, InteractionType>>) {
-    if (rows.isEmpty()) return
-    ElevatedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = LocalSpacing.current.screenHorizontal)
-    ) {
-        rows.forEachIndexed { index, (text, type) ->
-            InteractionRowSubstanceScreen(text = text, interactionType = type)
-            if (index < rows.lastIndex) {
-                HorizontalDivider()
-            }
-        }
+  if (rows.isEmpty()) return
+  ElevatedCard(
+      modifier = Modifier.fillMaxWidth().padding(horizontal = LocalSpacing.current.screenHorizontal)
+  ) {
+    rows.forEachIndexed { index, (text, type) ->
+      InteractionRowSubstanceScreen(text = text, interactionType = type)
+      if (index < rows.lastIndex) {
+        HorizontalDivider()
+      }
     }
+  }
 }

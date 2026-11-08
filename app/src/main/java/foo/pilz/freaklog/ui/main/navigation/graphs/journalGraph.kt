@@ -43,180 +43,166 @@ import foo.pilz.freaklog.ui.tabs.search.substance.SaferSniffingScreen
 import kotlinx.serialization.Serializable
 
 fun NavGraphBuilder.journalGraph(navController: NavHostController) {
-    navigation<JournalTopLevelRoute>(
-        startDestination = JournalScreenRoute,
-    ) {
-        composableWithTransitions<JournalScreenRoute> {
-            JournalScreen(
-                navigateToExperiencePopNothing = { experienceId ->
-                    navController.navigate(ExperienceRoute(experienceId))
-                },
-                navigateToAddIngestion = {
-                    navController.navigate(AddIngestionRoute)
-                },
-                navigateToCalendar = {
-                    navController.navigate(CalendarRoute)
-                },
-                navigateToAllIngestions = {
-                    navController.navigate(AllIngestionsRoute)
-                },
-                navigateToAiSettings = {
-                    navController.navigate(AiAssistantSettingsRoute)
-                }
-            )
-        }
-        composableWithTransitions<EditExperienceRoute> {
-            EditExperienceScreen(navigateBack = navController::popBackStack)
-        }
-        composableWithTransitions<RecordBloodPressureRoute> {
-            AddBloodPressureScreen(navigateBack = navController::popBackStack)
-        }
-        composableWithTransitions<EditBloodPressureRoute> {
-            EditBloodPressureScreen(navigateBack = navController::popBackStack)
-        }
-        composableWithTransitions<AddRatingRoute> {
-            AddRatingScreen(navigateBack = navController::popBackStack)
-        }
-        composableWithTransitions<AddTimedNoteRoute> {
-            AddTimedNoteScreen(navigateBack = navController::popBackStack)
-        }
-        composableWithTransitions<EditRatingRoute> {
-            EditRatingScreen(navigateBack = navController::popBackStack)
-        }
-        composableWithTransitions<EditTimedNoteRoute> {
-            EditTimedNoteScreen(navigateBack = navController::popBackStack)
-        }
-        composableWithTransitions<TimelineScreenRoute> {
-            TimelineScreen()
-        }
-        composableWithTransitions<VolumetricDosingOnJournalTabRoute> {
-            VolumetricDosingScreen()
-        }
-        composableWithTransitions<ExperienceRoute> { backStackEntry ->
-            val experienceRoute: ExperienceRoute = backStackEntry.toRoute()
-            val experienceId = experienceRoute.experienceId
-            ExperienceScreen(
-                navigateToAddIngestionSearch = {
-                    navController.navigate(AddIngestionRoute)
-                },
-                navigateToExplainTimeline = {
-                    navController.navigate(ExplainTimelineOnJournalTabRoute)
-                },
-                navigateToEditExperienceScreen = {
-                    navController.navigate(EditExperienceRoute(experienceId))
-                },
-                navigateToIngestionScreen = { ingestionId ->
-                    navController.navigate(EditIngestionRoute(ingestionId))
-                },
-                navigateBack = navController::popBackStack,
-                navigateToAiSettings = {
-                    navController.navigate(AiAssistantSettingsRoute)
-                },
-                navigateToAddRatingScreen = {
-                    navController.navigate(AddRatingRoute(experienceId))
-                },
-                navigateToAddTimedNoteScreen = {
-                    navController.navigate(AddTimedNoteRoute(experienceId))
-                },
-                navigateToEditRatingScreen = { ratingId ->
-                    navController.navigate(EditRatingRoute(ratingId))
-                },
-                navigateToRecordBloodPressureScreen = {
-                    navController.navigate(RecordBloodPressureRoute(experienceId))
-                },
-                navigateToEditBloodPressureScreen = { recordId ->
-                    navController.navigate(EditBloodPressureRoute(recordId = recordId, experienceId = experienceId))
-                },
-                navigateToTimelineScreen = { consumerName ->
-                    navController.navigate(
-                        TimelineScreenRoute(
-                            consumerName = consumerName,
-                            experienceId = experienceId
-                        )
-                    )
-                },
-                navigateToEditTimedNoteScreen = { timedNoteID ->
-                    navController.navigate(
-                        EditTimedNoteRoute(
-                            timedNoteId = timedNoteID,
-                            experienceId = experienceId
-                        )
-                    )
-                }
-            )
-        }
-        composableWithTransitions<EditIngestionRoute> {
-            EditIngestionScreen(
-                navigateBack = navController::popBackStack,
-                navigateToAddIngestion = {
-                    navController.navigate(AddIngestionRoute)
-                }
-            )
-        }
-        addIngestionGraph(navController)
-        composableWithTransitions<ExplainTimelineOnJournalTabRoute> { ExplainTimelineScreen() }
-        composableWithTransitions<SaferSniffingRouteOnJournalTab> { SaferSniffingScreen() }
-        composableWithTransitions<CalendarRoute> {
-            CalendarJournalScreen(
-                navigateToExperiencePopNothing = { experienceId ->
-                    navController.navigate(ExperienceRoute(experienceId))
-                },
-            )
-        }
-        composableWithTransitions<AllIngestionsRoute> {
-            AllIngestionsScreen(
-                navigateToEditIngestion = { ingestionId ->
-                    navController.navigate(EditIngestionRoute(ingestionId))
-                }
-            )
-        }
+  navigation<JournalTopLevelRoute>(
+      startDestination = JournalScreenRoute,
+  ) {
+    composableWithTransitions<JournalScreenRoute> {
+      JournalScreen(
+          navigateToExperiencePopNothing = { experienceId ->
+            navController.navigate(ExperienceRoute(experienceId))
+          },
+          navigateToAddIngestion = {
+            navController.navigate(AddIngestionRoute)
+          },
+          navigateToCalendar = {
+            navController.navigate(CalendarRoute)
+          },
+          navigateToAllIngestions = {
+            navController.navigate(AllIngestionsRoute)
+          },
+          navigateToAiSettings = {
+            navController.navigate(AiAssistantSettingsRoute)
+          },
+      )
     }
+    composableWithTransitions<EditExperienceRoute> {
+      EditExperienceScreen(navigateBack = navController::popBackStack)
+    }
+    composableWithTransitions<RecordBloodPressureRoute> {
+      AddBloodPressureScreen(navigateBack = navController::popBackStack)
+    }
+    composableWithTransitions<EditBloodPressureRoute> {
+      EditBloodPressureScreen(navigateBack = navController::popBackStack)
+    }
+    composableWithTransitions<AddRatingRoute> {
+      AddRatingScreen(navigateBack = navController::popBackStack)
+    }
+    composableWithTransitions<AddTimedNoteRoute> {
+      AddTimedNoteScreen(navigateBack = navController::popBackStack)
+    }
+    composableWithTransitions<EditRatingRoute> {
+      EditRatingScreen(navigateBack = navController::popBackStack)
+    }
+    composableWithTransitions<EditTimedNoteRoute> {
+      EditTimedNoteScreen(navigateBack = navController::popBackStack)
+    }
+    composableWithTransitions<TimelineScreenRoute> {
+      TimelineScreen()
+    }
+    composableWithTransitions<VolumetricDosingOnJournalTabRoute> {
+      VolumetricDosingScreen()
+    }
+    composableWithTransitions<ExperienceRoute> { backStackEntry ->
+      val experienceRoute: ExperienceRoute = backStackEntry.toRoute()
+      val experienceId = experienceRoute.experienceId
+      ExperienceScreen(
+          navigateToAddIngestionSearch = {
+            navController.navigate(AddIngestionRoute)
+          },
+          navigateToExplainTimeline = {
+            navController.navigate(ExplainTimelineOnJournalTabRoute)
+          },
+          navigateToEditExperienceScreen = {
+            navController.navigate(EditExperienceRoute(experienceId))
+          },
+          navigateToIngestionScreen = { ingestionId ->
+            navController.navigate(EditIngestionRoute(ingestionId))
+          },
+          navigateBack = navController::popBackStack,
+          navigateToAiSettings = {
+            navController.navigate(AiAssistantSettingsRoute)
+          },
+          navigateToAddRatingScreen = {
+            navController.navigate(AddRatingRoute(experienceId))
+          },
+          navigateToAddTimedNoteScreen = {
+            navController.navigate(AddTimedNoteRoute(experienceId))
+          },
+          navigateToEditRatingScreen = { ratingId ->
+            navController.navigate(EditRatingRoute(ratingId))
+          },
+          navigateToRecordBloodPressureScreen = {
+            navController.navigate(RecordBloodPressureRoute(experienceId))
+          },
+          navigateToEditBloodPressureScreen = { recordId ->
+            navController.navigate(
+                EditBloodPressureRoute(recordId = recordId, experienceId = experienceId)
+            )
+          },
+          navigateToTimelineScreen = { consumerName ->
+            navController.navigate(
+                TimelineScreenRoute(
+                    consumerName = consumerName,
+                    experienceId = experienceId,
+                )
+            )
+          },
+          navigateToEditTimedNoteScreen = { timedNoteID ->
+            navController.navigate(
+                EditTimedNoteRoute(
+                    timedNoteId = timedNoteID,
+                    experienceId = experienceId,
+                )
+            )
+          },
+      )
+    }
+    composableWithTransitions<EditIngestionRoute> {
+      EditIngestionScreen(
+          navigateBack = navController::popBackStack,
+          navigateToAddIngestion = {
+            navController.navigate(AddIngestionRoute)
+          },
+      )
+    }
+    addIngestionGraph(navController)
+    composableWithTransitions<ExplainTimelineOnJournalTabRoute> { ExplainTimelineScreen() }
+    composableWithTransitions<SaferSniffingRouteOnJournalTab> { SaferSniffingScreen() }
+    composableWithTransitions<CalendarRoute> {
+      CalendarJournalScreen(
+          navigateToExperiencePopNothing = { experienceId ->
+            navController.navigate(ExperienceRoute(experienceId))
+          },
+      )
+    }
+    composableWithTransitions<AllIngestionsRoute> {
+      AllIngestionsScreen(
+          navigateToEditIngestion = { ingestionId ->
+            navController.navigate(EditIngestionRoute(ingestionId))
+          }
+      )
+    }
+  }
 }
 
-@Serializable
-object JournalScreenRoute
+@Serializable object JournalScreenRoute
 
-@Serializable
-data class EditExperienceRoute(val experienceId: Int)
+@Serializable data class EditExperienceRoute(val experienceId: Int)
 
-@Serializable
-data class AddRatingRoute(val experienceId: Int)
+@Serializable data class AddRatingRoute(val experienceId: Int)
 
-@Serializable
-data class AddTimedNoteRoute(val experienceId: Int)
+@Serializable data class AddTimedNoteRoute(val experienceId: Int)
 
-@Serializable
-data class EditRatingRoute(val ratingId: Int)
+@Serializable data class EditRatingRoute(val ratingId: Int)
 
-@Serializable
-data class EditTimedNoteRoute(val timedNoteId: Int, val experienceId: Int)
+@Serializable data class EditTimedNoteRoute(val timedNoteId: Int, val experienceId: Int)
 
-@Serializable
-data class TimelineScreenRoute(val consumerName: String, val experienceId: Int)
+@Serializable data class TimelineScreenRoute(val consumerName: String, val experienceId: Int)
 
-@Serializable
-object VolumetricDosingOnJournalTabRoute
+@Serializable object VolumetricDosingOnJournalTabRoute
 
-@Serializable
-data class ExperienceRoute(val experienceId: Int)
+@Serializable data class ExperienceRoute(val experienceId: Int)
 
-@Serializable
-data class EditIngestionRoute(val ingestionId: Int)
+@Serializable data class EditIngestionRoute(val ingestionId: Int)
 
-@Serializable
-object ExplainTimelineOnJournalTabRoute
+@Serializable object ExplainTimelineOnJournalTabRoute
 
-@Serializable
-object SaferSniffingRouteOnJournalTab
+@Serializable object SaferSniffingRouteOnJournalTab
 
-@Serializable
-object CalendarRoute
+@Serializable object CalendarRoute
 
-@Serializable
-object AllIngestionsRoute
+@Serializable object AllIngestionsRoute
 
-@Serializable
-data class RecordBloodPressureRoute(val experienceId: Int)
+@Serializable data class RecordBloodPressureRoute(val experienceId: Int)
 
-@Serializable
-data class EditBloodPressureRoute(val recordId: String, val experienceId: Int)
+@Serializable data class EditBloodPressureRoute(val recordId: String, val experienceId: Int)

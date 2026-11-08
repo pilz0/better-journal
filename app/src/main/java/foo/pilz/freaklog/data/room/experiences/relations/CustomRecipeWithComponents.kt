@@ -24,12 +24,10 @@ import foo.pilz.freaklog.data.room.experiences.entities.CustomRecipe
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRecipeComponent
 
 data class CustomRecipeWithComponents(
-    @Embedded 
-    val recipe: CustomRecipe,
-    
+    @Embedded val recipe: CustomRecipe,
     @Relation(
         parentColumn = "id",
-        entityColumn = "customRecipeId"
+        entityColumn = "customRecipeId",
     )
-    val components: List<CustomRecipeComponent>
+    val components: List<CustomRecipeComponent>,
 )

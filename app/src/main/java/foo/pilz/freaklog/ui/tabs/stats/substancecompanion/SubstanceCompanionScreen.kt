@@ -66,54 +66,59 @@ import foo.pilz.freaklog.ui.utils.getShortTimeText
 fun SubstanceCompanionScreen(
     viewModel: SubstanceCompanionViewModel = hiltViewModel(),
 ) {
-    val companion = viewModel.thisCompanionFlow.collectAsState().value
-    val frequency by viewModel.frequencyFlow.collectAsStateWithLifecycle()
-    if (companion == null) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {}
-    } else {
-        SubstanceCompanionScreen(
-            substanceCompanion = companion,
-            ingestionBursts = viewModel.ingestionBurstsFlow.collectAsState().value,
-            tolerance = viewModel.tolerance,
-            crossTolerances = viewModel.crossTolerances,
-            consumerName = viewModel.consumerName,
-            dosageStats = viewModel.dosageStatsFlow.collectAsState().value,
-            selectedTimeRange = viewModel.selectedTimeRange.collectAsState().value,
-            onTimeRangeSelected = viewModel::setTimeRange,
-            showAverage = viewModel.showAverage.collectAsState().value,
-            onToggleShowAverage = viewModel::toggleShowAverage,
-            showTrendLine = viewModel.showTrendLine.collectAsState().value,
-            onToggleShowTrendLine = viewModel::toggleShowTrendLine,
-            selectedMetric = viewModel.selectedMetric.collectAsState().value,
-            onMetricSelected = viewModel::setMetric,
-            doseThresholds = viewModel.doseThresholds,
-            frequency = frequency,
-        )
-    }
+  val companion = viewModel.thisCompanionFlow.collectAsState().value
+  val frequency by viewModel.frequencyFlow.collectAsStateWithLifecycle()
+  if (companion == null) {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background,
+    ) {}
+  } else {
+    SubstanceCompanionScreen(
+        substanceCompanion = companion,
+        ingestionBursts = viewModel.ingestionBurstsFlow.collectAsState().value,
+        tolerance = viewModel.tolerance,
+        crossTolerances = viewModel.crossTolerances,
+        consumerName = viewModel.consumerName,
+        dosageStats = viewModel.dosageStatsFlow.collectAsState().value,
+        selectedTimeRange = viewModel.selectedTimeRange.collectAsState().value,
+        onTimeRangeSelected = viewModel::setTimeRange,
+        showAverage = viewModel.showAverage.collectAsState().value,
+        onToggleShowAverage = viewModel::toggleShowAverage,
+        showTrendLine = viewModel.showTrendLine.collectAsState().value,
+        onToggleShowTrendLine = viewModel::toggleShowTrendLine,
+        selectedMetric = viewModel.selectedMetric.collectAsState().value,
+        onMetricSelected = viewModel::setMetric,
+        doseThresholds = viewModel.doseThresholds,
+        frequency = frequency,
+    )
+  }
 }
 
 @Preview
 @Composable
-fun SubstanceCompanionPreview(@PreviewParameter(SubstanceCompanionScreenPreviewProvider::class) pair: Pair<SubstanceCompanion, List<IngestionsBurst>>) {
-    JournalTheme {
-        SubstanceCompanionScreen(
-            substanceCompanion = pair.first,
-            ingestionBursts = pair.second,
-            tolerance = Tolerance(
+fun SubstanceCompanionPreview(
+    @PreviewParameter(SubstanceCompanionScreenPreviewProvider::class)
+    pair: Pair<SubstanceCompanion, List<IngestionsBurst>>
+) {
+  JournalTheme {
+    SubstanceCompanionScreen(
+        substanceCompanion = pair.first,
+        ingestionBursts = pair.second,
+        tolerance =
+            Tolerance(
                 full = "with prolonged use",
                 half = "two weeks",
-                zero = "1 month"
+                zero = "1 month",
             ),
-            crossTolerances = listOf(
+        crossTolerances =
+            listOf(
                 "dopamine",
-                "stimulant"
+                "stimulant",
             ),
-            dosageStats = SubstanceCompanionScreenPreviewProvider.previewStats,
-        )
-    }
+        dosageStats = SubstanceCompanionScreenPreviewProvider.previewStats,
+    )
+  }
 }
 
 private data class DosageChartCallbacks(
@@ -131,20 +136,22 @@ fun SubstanceCompanionScreen(
     tolerance: Tolerance?,
     crossTolerances: List<String>,
     consumerName: String? = null,
-    dosageStats: SubstanceDosageStatsModel = SubstanceDosageStatsModel(
-        buckets = emptyList(),
-        summary = SubstanceDosageSummary(
-            totalSessions = 0,
-            totalKnownDose = null,
-            averageKnownDosePerSession = null,
-            peakKnownDose = null,
-            unknownDoseCount = 0,
-            unitsUsed = emptyList(),
-            longestGapDays = null,
-            currentStreakWeeks = 0,
+    dosageStats: SubstanceDosageStatsModel =
+        SubstanceDosageStatsModel(
+            buckets = emptyList(),
+            summary =
+                SubstanceDosageSummary(
+                    totalSessions = 0,
+                    totalKnownDose = null,
+                    averageKnownDosePerSession = null,
+                    peakKnownDose = null,
+                    unknownDoseCount = 0,
+                    unitsUsed = emptyList(),
+                    longestGapDays = null,
+                    currentStreakWeeks = 0,
+                ),
+            hasMixedUnits = false,
         ),
-        hasMixedUnits = false,
-    ),
     selectedTimeRange: DosageTimeRange = DosageTimeRange.WEEKS_26,
     onTimeRangeSelected: (DosageTimeRange) -> Unit = {},
     showAverage: Boolean = false,
@@ -154,171 +161,177 @@ fun SubstanceCompanionScreen(
     selectedMetric: DosageMetric = DosageMetric.TOTAL_DOSE,
     onMetricSelected: (DosageMetric) -> Unit = {},
     doseThresholds: DoseThresholds? = null,
-    frequency: SubstanceFrequency = SubstanceFrequency(last30Days = 0, last12Months = 0, allTime = 0),
+    frequency: SubstanceFrequency =
+        SubstanceFrequency(last30Days = 0, last12Months = 0, allTime = 0),
 ) {
-    Scaffold(
-        topBar = {
-            val title = if (consumerName == null) {
-                substanceCompanion.substanceName
+  Scaffold(
+      topBar = {
+        val title =
+            if (consumerName == null) {
+              substanceCompanion.substanceName
             } else {
-                "${substanceCompanion.substanceName} ($consumerName)"
+              "${substanceCompanion.substanceName} ($consumerName)"
             }
-            TopAppBar(title = { Text(title) })
-        }
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = horizontalPadding),
-            horizontalAlignment = Alignment.CenterHorizontally
+        TopAppBar(title = { Text(title) })
+      }
+  ) { padding ->
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = horizontalPadding),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+      item(key = "dosage_section") {
+        val unit = dosageStats.summary.unitsUsed.firstOrNull().orEmpty()
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth(),
         ) {
-            item(key = "dosage_section") {
-                val unit = dosageStats.summary.unitsUsed.firstOrNull().orEmpty()
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    SubstanceSummaryCards(summary = dosageStats.summary, unit = unit)
-                    DosageDiagnostics(stats = dosageStats)
-                    DosageChartCard(
-                        substanceCompanion = substanceCompanion,
-                        dosageStats = dosageStats,
-                        selectedTimeRange = selectedTimeRange,
-                        showAverage = showAverage,
-                        showTrendLine = showTrendLine,
-                        selectedMetric = selectedMetric,
-                        doseThresholds = doseThresholds,
-                        callbacks = DosageChartCallbacks(
-                            onTimeRangeSelected = onTimeRangeSelected,
-                            onToggleShowAverage = onToggleShowAverage,
-                            onToggleShowTrendLine = onToggleShowTrendLine,
-                            onMetricSelected = onMetricSelected,
-                        ),
-                    )
-                }
-            }
-
-            item(key = "frequency_section") {
-                SubstanceFrequencySection(frequency = frequency)
-            }
-
-            item(key = "tolerance_section") {
-                if (tolerance != null || crossTolerances.isNotEmpty()) {
-                    CardWithTitle(title = "Tolerance", modifier = Modifier.fillMaxWidth()) {
-                        ToleranceSection(
-                            tolerance = tolerance,
-                            crossTolerances = crossTolerances
-                        )
-                    }
-                }
-                Text(text = "Now")
-            }
-            items(ingestionBursts, key = { it.experience.id }) { burst ->
-                TimeArrowUp(timeText = burst.timeUntil)
-                ElevatedCard(modifier = Modifier.padding(vertical = 5.dp)) {
-                    Column(modifier = Modifier.padding(horizontal = horizontalPadding)) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 5.dp)
-                        ) {
-                            Text(
-                                text = burst.experience.title,
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                            Text(
-                                text = burst.experience.sortDate.getDateWithWeekdayText(),
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        }
-                        HorizontalDivider()
-                        burst.ingestions.forEachIndexed { index, ingestion ->
-                            key(ingestion.ingestion.id) {
-                                IngestionRowOnSubstanceCompanionScreen(ingestionAndCustomUnit = ingestion)
-                                if (index < burst.ingestions.size - 1) {
-                                    HorizontalDivider()
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+          SubstanceSummaryCards(summary = dosageStats.summary, unit = unit)
+          DosageDiagnostics(stats = dosageStats)
+          DosageChartCard(
+              substanceCompanion = substanceCompanion,
+              dosageStats = dosageStats,
+              selectedTimeRange = selectedTimeRange,
+              showAverage = showAverage,
+              showTrendLine = showTrendLine,
+              selectedMetric = selectedMetric,
+              doseThresholds = doseThresholds,
+              callbacks =
+                  DosageChartCallbacks(
+                      onTimeRangeSelected = onTimeRangeSelected,
+                      onToggleShowAverage = onToggleShowAverage,
+                      onToggleShowTrendLine = onToggleShowTrendLine,
+                      onMetricSelected = onMetricSelected,
+                  ),
+          )
         }
+      }
+
+      item(key = "frequency_section") {
+        SubstanceFrequencySection(frequency = frequency)
+      }
+
+      item(key = "tolerance_section") {
+        if (tolerance != null || crossTolerances.isNotEmpty()) {
+          CardWithTitle(title = "Tolerance", modifier = Modifier.fillMaxWidth()) {
+            ToleranceSection(
+                tolerance = tolerance,
+                crossTolerances = crossTolerances,
+            )
+          }
+        }
+        Text(text = "Now")
+      }
+      items(ingestionBursts, key = { it.experience.id }) { burst ->
+        TimeArrowUp(timeText = burst.timeUntil)
+        ElevatedCard(modifier = Modifier.padding(vertical = 5.dp)) {
+          Column(modifier = Modifier.padding(horizontal = horizontalPadding)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
+            ) {
+              Text(
+                  text = burst.experience.title,
+                  style = MaterialTheme.typography.titleMedium,
+              )
+              Text(
+                  text = burst.experience.sortDate.getDateWithWeekdayText(),
+                  style = MaterialTheme.typography.titleMedium,
+              )
+            }
+            HorizontalDivider()
+            burst.ingestions.forEachIndexed { index, ingestion ->
+              key(ingestion.ingestion.id) {
+                IngestionRowOnSubstanceCompanionScreen(ingestionAndCustomUnit = ingestion)
+                if (index < burst.ingestions.size - 1) {
+                  HorizontalDivider()
+                }
+              }
+            }
+          }
+        }
+      }
     }
+  }
 }
 
 @Composable
 private fun SubstanceSummaryCards(summary: SubstanceDosageSummary, unit: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        SummaryCard(
-            label = "Sessions",
-            value = summary.totalSessions.toString(),
-            modifier = Modifier.weight(1f),
-        )
-        SummaryCard(
-            label = "Known total",
-            value = summary.totalKnownDose?.takeIf { it > 0 }?.let {
-                "${formatSiValue(it)} $unit".trim()
-            } ?: "Mixed/unknown",
-            modifier = Modifier.weight(1f),
-        )
-        SummaryCard(
-            label = "Avg/session",
-            value = summary.averageKnownDosePerSession?.takeIf { it > 0 }?.let {
-                "${formatSiValue(it)} $unit".trim()
-            } ?: "Mixed/unknown",
-            modifier = Modifier.weight(1f),
-        )
-    }
+  Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+  ) {
+    SummaryCard(
+        label = "Sessions",
+        value = summary.totalSessions.toString(),
+        modifier = Modifier.weight(1f),
+    )
+    SummaryCard(
+        label = "Known total",
+        value =
+            summary.totalKnownDose
+                ?.takeIf { it > 0 }
+                ?.let {
+                  "${formatSiValue(it)} $unit".trim()
+                } ?: "Mixed/unknown",
+        modifier = Modifier.weight(1f),
+    )
+    SummaryCard(
+        label = "Avg/session",
+        value =
+            summary.averageKnownDosePerSession
+                ?.takeIf { it > 0 }
+                ?.let {
+                  "${formatSiValue(it)} $unit".trim()
+                } ?: "Mixed/unknown",
+        modifier = Modifier.weight(1f),
+    )
+  }
 }
 
 @Composable
 private fun SummaryCard(label: String, value: String, modifier: Modifier = Modifier) {
-    ElevatedCard(modifier = modifier) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+  ElevatedCard(modifier = modifier) {
+    Column(modifier = Modifier.padding(12.dp)) {
+      Text(
+          text = label,
+          style = MaterialTheme.typography.labelMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+      Text(
+          text = value,
+          style = MaterialTheme.typography.titleMedium,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+      )
     }
+  }
 }
 
 @Composable
 private fun DosageDiagnostics(stats: SubstanceDosageStatsModel) {
-    if (stats.hasMixedUnits) {
-        ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = "Mixed units: ${stats.summary.unitsUsed.joinToString(", ")}. Dose totals are shown as logged and should not be compared as one unit.",
-                modifier = Modifier.padding(12.dp),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error,
-            )
-        }
+  if (stats.hasMixedUnits) {
+    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+      Text(
+          text =
+              "Mixed units: ${stats.summary.unitsUsed.joinToString(", ")}. Dose totals are shown as logged and should not be compared as one unit.",
+          modifier = Modifier.padding(12.dp),
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.error,
+      )
     }
-    if (stats.summary.unknownDoseCount > 0) {
-        ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = "${stats.summary.unknownDoseCount} ingestion${if (stats.summary.unknownDoseCount == 1) "" else "s"} in this range have no dose. Known-dose totals exclude them.",
-                modifier = Modifier.padding(12.dp),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+  }
+  if (stats.summary.unknownDoseCount > 0) {
+    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+      Text(
+          text =
+              "${stats.summary.unknownDoseCount} ingestion${if (stats.summary.unknownDoseCount == 1) "" else "s"} in this range have no dose. Known-dose totals exclude them.",
+          modifier = Modifier.padding(12.dp),
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
     }
+  }
 }
 
 @Composable
@@ -332,93 +345,96 @@ private fun DosageChartCard(
     doseThresholds: DoseThresholds?,
     callbacks: DosageChartCallbacks,
 ) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Dosage over time", style = MaterialTheme.typography.titleMedium)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                DosageTimeRange.entries.forEach { range ->
-                    key(range) {
-                        FilterChip(
-                            selected = selectedTimeRange == range,
-                            onClick = { callbacks.onTimeRangeSelected(range) },
-                            label = { Text(range.displayText) },
-                        )
-                    }
-                }
-            }
-            val effectiveMetric = if (dosageStats.hasMixedUnits && selectedMetric != DosageMetric.SESSION_COUNT) {
-                DosageMetric.SESSION_COUNT
-            } else {
-                selectedMetric
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                DosageMetric.entries.forEach { metric ->
-                    key(metric) {
-                        val isLockedByMixedUnits = dosageStats.hasMixedUnits && metric != DosageMetric.SESSION_COUNT
-                        FilterChip(
-                            selected = effectiveMetric == metric,
-                            onClick = { callbacks.onMetricSelected(metric) },
-                            label = { Text(metric.displayText) },
-                            enabled = !isLockedByMixedUnits,
-                        )
-                    }
-                }
-            }
-            DosageBarChart(
-                buckets = dosageStats.buckets,
-                barColor = substanceCompanion.color.getComposeColor(isSystemInDarkTheme()),
-                showAverage = showAverage,
-                showTrendLine = showTrendLine,
-                metric = effectiveMetric,
-                doseThresholds = if (dosageStats.hasMixedUnits) null else doseThresholds,
-                height = 200.dp,
+  ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+      Text("Dosage over time", style = MaterialTheme.typography.titleMedium)
+      Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        DosageTimeRange.entries.forEach { range ->
+          key(range) {
+            FilterChip(
+                selected = selectedTimeRange == range,
+                onClick = { callbacks.onTimeRangeSelected(range) },
+                label = { Text(range.displayText) },
             )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text("Average", style = MaterialTheme.typography.bodyMedium)
-                Switch(checked = showAverage, onCheckedChange = callbacks.onToggleShowAverage)
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text("Trend line", style = MaterialTheme.typography.bodyMedium)
-                Switch(checked = showTrendLine, onCheckedChange = callbacks.onToggleShowTrendLine)
-            }
+          }
         }
+      }
+      val effectiveMetric =
+          if (dosageStats.hasMixedUnits && selectedMetric != DosageMetric.SESSION_COUNT) {
+            DosageMetric.SESSION_COUNT
+          } else {
+            selectedMetric
+          }
+      Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        DosageMetric.entries.forEach { metric ->
+          key(metric) {
+            val isLockedByMixedUnits =
+                dosageStats.hasMixedUnits && metric != DosageMetric.SESSION_COUNT
+            FilterChip(
+                selected = effectiveMetric == metric,
+                onClick = { callbacks.onMetricSelected(metric) },
+                label = { Text(metric.displayText) },
+                enabled = !isLockedByMixedUnits,
+            )
+          }
+        }
+      }
+      DosageBarChart(
+          buckets = dosageStats.buckets,
+          barColor = substanceCompanion.color.getComposeColor(isSystemInDarkTheme()),
+          showAverage = showAverage,
+          showTrendLine = showTrendLine,
+          metric = effectiveMetric,
+          doseThresholds = if (dosageStats.hasMixedUnits) null else doseThresholds,
+          height = 200.dp,
+      )
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Text("Average", style = MaterialTheme.typography.bodyMedium)
+        Switch(checked = showAverage, onCheckedChange = callbacks.onToggleShowAverage)
+      }
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Text("Trend line", style = MaterialTheme.typography.bodyMedium)
+        Switch(checked = showTrendLine, onCheckedChange = callbacks.onToggleShowTrendLine)
+      }
     }
+  }
 }
 
 @Composable
-fun IngestionRowOnSubstanceCompanionScreen(ingestionAndCustomUnit: IngestionsBurst.IngestionAndCustomUnit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        val text = buildAnnotatedString {
-            append(ingestionAndCustomUnit.doseDescription)
-            if (ingestionAndCustomUnit.customUnit != null) {
-                append(" " + ingestionAndCustomUnit.customUnit.name)
-            }
-            withStyle(style = SpanStyle(color = if (isSystemInDarkTheme()) Color.Gray else Color.LightGray )) {
-                val routeText =
-                    ingestionAndCustomUnit.ingestion.administrationRoute.displayText.lowercase()
-                if (ingestionAndCustomUnit.customUnit == null) {
-                    append(" $routeText")
-                }
-                ingestionAndCustomUnit.customUnitDose?.calculatedDoseDescription?.let {
-                    append(" = $it $routeText")
-                }
-            }
+fun IngestionRowOnSubstanceCompanionScreen(
+    ingestionAndCustomUnit: IngestionsBurst.IngestionAndCustomUnit
+) {
+  Row(
+      modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+      horizontalArrangement = Arrangement.SpaceBetween,
+  ) {
+    val text = buildAnnotatedString {
+      append(ingestionAndCustomUnit.doseDescription)
+      if (ingestionAndCustomUnit.customUnit != null) {
+        append(" " + ingestionAndCustomUnit.customUnit.name)
+      }
+      withStyle(
+          style = SpanStyle(color = if (isSystemInDarkTheme()) Color.Gray else Color.LightGray)
+      ) {
+        val routeText = ingestionAndCustomUnit.ingestion.administrationRoute.displayText.lowercase()
+        if (ingestionAndCustomUnit.customUnit == null) {
+          append(" $routeText")
         }
-        Text(text = text, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-        val dateString = ingestionAndCustomUnit.ingestion.time.getShortTimeText()
-        Text(text = dateString)
+        ingestionAndCustomUnit.customUnitDose?.calculatedDoseDescription?.let {
+          append(" = $it $routeText")
+        }
+      }
     }
+    Text(text = text, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+    val dateString = ingestionAndCustomUnit.ingestion.time.getShortTimeText()
+    Text(text = dateString)
+  }
 }

@@ -92,44 +92,44 @@ fun JournalScreen(
     navigateToCalendar: () -> Unit,
     navigateToAllIngestions: () -> Unit = {},
     navigateToAiSettings: () -> Unit = {},
-    viewModel: JournalViewModel = hiltViewModel()
+    viewModel: JournalViewModel = hiltViewModel(),
 ) {
-    val experiences = viewModel.experiences.collectAsState().value
-    LaunchedEffect(Unit) {
-        viewModel.maybeMigrate()
-        viewModel.onJournalOpened()
-    }
-    var showAssistant by rememberSaveable { mutableStateOf(false) }
-    val isAssistantEnabled = viewModel.isAiAssistantEnabledFlow.collectAsState().value
-    if (showAssistant && isAssistantEnabled) {
-        AiChatBottomSheet(
-            experienceId = null,
-            onDismiss = { showAssistant = false },
-            onOpenSettings = {
-                showAssistant = false
-                navigateToAiSettings()
-            }
-        )
-    }
-    JournalScreen(
-        onOpenAssistant = if (isAssistantEnabled) ({ showAssistant = true }) else null,
-        navigateToExperiencePopNothing = navigateToExperiencePopNothing,
-        navigateToAddIngestion = {
-            viewModel.resetAddIngestionTimes()
-            navigateToAddIngestion()
+  val experiences = viewModel.experiences.collectAsState().value
+  LaunchedEffect(Unit) {
+    viewModel.maybeMigrate()
+    viewModel.onJournalOpened()
+  }
+  var showAssistant by rememberSaveable { mutableStateOf(false) }
+  val isAssistantEnabled = viewModel.isAiAssistantEnabledFlow.collectAsState().value
+  if (showAssistant && isAssistantEnabled) {
+    AiChatBottomSheet(
+        experienceId = null,
+        onDismiss = { showAssistant = false },
+        onOpenSettings = {
+          showAssistant = false
+          navigateToAiSettings()
         },
-        navigateToCalendar = navigateToCalendar,
-        navigateToAllIngestions = navigateToAllIngestions,
-        isFavoriteEnabled = viewModel.isFavoriteEnabledFlow.collectAsState().value,
-        onChangeIsFavorite = viewModel::onChangeFavorite,
-        isTimeRelativeToNow = viewModel.isTimeRelativeToNow.value,
-        onChangeIsRelative = viewModel::onChangeRelative,
-        searchText = viewModel.searchTextFlow.collectAsState().value,
-        onChangeSearchText = viewModel::search,
-        isSearchEnabled = viewModel.isSearchEnabled.value,
-        onChangeIsSearchEnabled = viewModel::onChangeOfIsSearchEnabled,
-        experiences = experiences,
     )
+  }
+  JournalScreen(
+      onOpenAssistant = if (isAssistantEnabled) ({ showAssistant = true }) else null,
+      navigateToExperiencePopNothing = navigateToExperiencePopNothing,
+      navigateToAddIngestion = {
+        viewModel.resetAddIngestionTimes()
+        navigateToAddIngestion()
+      },
+      navigateToCalendar = navigateToCalendar,
+      navigateToAllIngestions = navigateToAllIngestions,
+      isFavoriteEnabled = viewModel.isFavoriteEnabledFlow.collectAsState().value,
+      onChangeIsFavorite = viewModel::onChangeFavorite,
+      isTimeRelativeToNow = viewModel.isTimeRelativeToNow.value,
+      onChangeIsRelative = viewModel::onChangeRelative,
+      searchText = viewModel.searchTextFlow.collectAsState().value,
+      onChangeSearchText = viewModel::search,
+      isSearchEnabled = viewModel.isSearchEnabled.value,
+      onChangeIsSearchEnabled = viewModel::onChangeOfIsSearchEnabled,
+      experiences = experiences,
+  )
 }
 
 @Preview
@@ -137,25 +137,26 @@ fun JournalScreen(
 fun ExperiencesScreenPreview(
     @PreviewParameter(
         JournalScreenPreviewProvider::class,
-    ) experiences: List<ExperienceWithIngestionsCompanionsAndRatings>,
+    )
+    experiences: List<ExperienceWithIngestionsCompanionsAndRatings>,
 ) {
-    JournalTheme {
-        JournalScreen(
-            navigateToExperiencePopNothing = {},
-            navigateToAddIngestion = {},
-            navigateToCalendar = {},
-            navigateToAllIngestions = {},
-            isFavoriteEnabled = false,
-            onChangeIsFavorite = {},
-            isTimeRelativeToNow = true,
-            onChangeIsRelative = {},
-            searchText = "",
-            onChangeSearchText = {},
-            isSearchEnabled = true,
-            onChangeIsSearchEnabled = {},
-            experiences = experiences,
-        )
-    }
+  JournalTheme {
+    JournalScreen(
+        navigateToExperiencePopNothing = {},
+        navigateToAddIngestion = {},
+        navigateToCalendar = {},
+        navigateToAllIngestions = {},
+        isFavoriteEnabled = false,
+        onChangeIsFavorite = {},
+        isTimeRelativeToNow = true,
+        onChangeIsRelative = {},
+        searchText = "",
+        onChangeSearchText = {},
+        isSearchEnabled = true,
+        onChangeIsSearchEnabled = {},
+        experiences = experiences,
+    )
+  }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -176,245 +177,255 @@ fun JournalScreen(
     experiences: List<ExperienceWithIngestionsCompanionsAndRatings>,
     onOpenAssistant: (() -> Unit)? = null,
 ) {
-    val performHaptic = rememberHaptic()
+  val performHaptic = rememberHaptic()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Journal") },
-                actions = {
-                    if (onOpenAssistant != null) {
-                        IconButton(onClick = {
-                            performHaptic(HapticType.CLICK)
-                            onOpenAssistant()
-                        }) {
-                            Icon(Icons.Outlined.SmartToy, contentDescription = "AI assistant")
-                        }
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Journal") },
+            actions = {
+              if (onOpenAssistant != null) {
+                IconButton(
+                    onClick = {
+                      performHaptic(HapticType.CLICK)
+                      onOpenAssistant()
                     }
-                    IconToggleButton(
-                        checked = isTimeRelativeToNow,
-                        onCheckedChange = { 
-                            performHaptic(HapticType.TOGGLE)
-                            onChangeIsRelative(it)
-                        }
-                    ) {
-                        if (isTimeRelativeToNow) {
-                            Icon(Icons.Filled.Timer, contentDescription = "Regular time")
-                        } else {
-                            Icon(Icons.Outlined.Timer, contentDescription = "Time relative to now")
-                        }
-                    }
-                    IconToggleButton(
-                        checked = isFavoriteEnabled,
-                        onCheckedChange = { 
-                            performHaptic(HapticType.TOGGLE)
-                            onChangeIsFavorite(it)
-                        }
-                    ) {
-                        if (isFavoriteEnabled) {
-                            Icon(Icons.Filled.Star, contentDescription = "Is favorite")
-                        } else {
-                            Icon(Icons.Outlined.StarOutline, contentDescription = "Is not favorite")
-                        }
-                    }
-                    IconToggleButton(
-                        checked = isSearchEnabled,
-                        onCheckedChange = { 
-                            performHaptic(HapticType.TOGGLE)
-                            onChangeIsSearchEnabled(it)
-                        }
-                    ) {
-                        if (isSearchEnabled) {
-                            Icon(Icons.Outlined.SearchOff, contentDescription = "Search off")
-                        } else {
-                            Icon(Icons.Filled.Search, contentDescription = "Search")
-                        }
-                    }
-                    IconButton(onClick = { 
-                        performHaptic(HapticType.CLICK)
-                        navigateToCalendar()
-                    }) {
-                        Icon(
-                            Icons.Default.CalendarMonth,
-                            contentDescription = "Navigate to calendar"
-                        )
-                    }
-                    IconButton(onClick = { 
-                        performHaptic(HapticType.CLICK)
-                        navigateToAllIngestions()
-                    }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.List,
-                            contentDescription = "All Ingestions"
-                        )
-                    }
+                ) {
+                  Icon(Icons.Outlined.SmartToy, contentDescription = "AI assistant")
                 }
-            )
-        },
-        floatingActionButton = {
-            if (!isSearchEnabled) {
-                val infiniteTransition = androidx.compose.animation.core.rememberInfiniteTransition(label = "fab-pulse")
-                val scale by infiniteTransition.animateFloat(
-                    initialValue = 1f,
-                    targetValue = 1.06f,
-                    animationSpec = androidx.compose.animation.core.infiniteRepeatable(
-                        animation = androidx.compose.animation.core.tween(
-                            durationMillis = 1600,
-                            easing = androidx.compose.animation.core.FastOutSlowInEasing
-                        ),
-                        repeatMode = androidx.compose.animation.core.RepeatMode.Reverse
-                    ),
-                    label = "fab-pulse-scale"
-                )
-                ExtendedFloatingActionButton(
-                    onClick = { 
-                        performHaptic(HapticType.HEAVY_CLICK)
-                        navigateToAddIngestion()
-                    },
-                    icon = {
-                        Icon(
-                            Icons.Filled.Add,
-                            contentDescription = "Add"
-                        )
-                    },
-                    text = { Text("Ingestion") },
-                    modifier = Modifier.graphicsLayer {
-                        scaleX = scale
-                        scaleY = scale
-                    }
-                )
-            }
-        },
-    ) { padding ->
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.Top
-            ) {
-                AnimatedVisibility(visible = isSearchEnabled) {
-                    Column {
-                        val focusManager = LocalFocusManager.current
-                        TextField(
-                            value = searchText,
-                            onValueChange = onChangeSearchText,
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Default.Search,
-                                    contentDescription = "Search",
-                                )
-                            },
-                            trailingIcon = {
-                                if (searchText != "") {
-                                    IconButton(
-                                        onClick = {
-                                            onChangeSearchText("")
-                                        }
-                                    ) {
-                                        Icon(
-                                            Icons.Default.Close,
-                                            contentDescription = "Close",
-                                        )
-                                    }
-                                }
-                            },
-                            label = { Text(text = "Search experiences") },
-                            modifier = Modifier.fillMaxWidth(),
-                            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Text,
-                                capitalization = KeyboardCapitalization.Sentences
-                            ),
-                            singleLine = true
-                        )
-                        if (experiences.isEmpty() && isSearchEnabled && searchText.isNotEmpty()) {
-                            if (isFavoriteEnabled) {
-                                Column(modifier = Modifier.padding(horizontalPadding)) {
-                                    Text(
-                                        text = "No results",
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-                                    Text(
-                                        text = "No favorite experience titles match your search.",
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                }
-                            } else {
-                                Column(modifier = Modifier.padding(horizontalPadding)) {
-                                    Text(
-                                        text = "No results",
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-                                    Text(
-                                        text = "No experience titles match your search.",
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-                val listState = rememberLazyListState()
-                val isScrollUpButtonShown by remember {
-                    derivedStateOf {
-                        listState.firstVisibleItemIndex > 0
-                    }
-                }
-                Box(contentAlignment = Alignment.TopEnd) {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        state = listState
-                    ) {
-                        if (experiences.isNotEmpty()) {
-                            item {
-                                HorizontalDivider()
-                            }
-                        }
-                        items(experiences, key = { it.experience.id }) { experienceWithIngestions ->
-                            ExperienceRow(
-                                experienceWithIngestions,
-                                navigateToExperienceScreen = {
-                                    performHaptic(HapticType.SELECTION)
-                                    navigateToExperiencePopNothing(experienceWithIngestions.experience.id)
-                                },
-                                isTimeRelativeToNow = isTimeRelativeToNow
-                            )
-                            HorizontalDivider()
-                        }
-                    }
-                    this@Column.AnimatedVisibility(visible = isScrollUpButtonShown) {
-                        val scope = rememberCoroutineScope()
-                        ElevatedButton(
-                            modifier = Modifier.padding(all = horizontalPadding),
-                            onClick = {
-                                performHaptic(HapticType.CLICK)
-                                scope.launch {
-                                    listState.scrollToItem(index = 0)
-                                }
-                            }) {
-                            Icon(Icons.Default.ArrowUpward, contentDescription = "Scroll to top")
-                        }
-                    }
-                }
-            }
-            if (experiences.isEmpty() && !isSearchEnabled) {
-                if (isFavoriteEnabled) {
-                    EmptyScreenDisclaimer(
-                        title = "No favorites",
-                        description = "Mark experiences as favorites to find them quickly."
-                    )
+              }
+              IconToggleButton(
+                  checked = isTimeRelativeToNow,
+                  onCheckedChange = {
+                    performHaptic(HapticType.TOGGLE)
+                    onChangeIsRelative(it)
+                  },
+              ) {
+                if (isTimeRelativeToNow) {
+                  Icon(Icons.Filled.Timer, contentDescription = "Regular time")
                 } else {
-                    EmptyScreenDisclaimer(
-                        title = "No experiences yet",
-                        description = "Add your first ingestion."
-                    )
+                  Icon(Icons.Outlined.Timer, contentDescription = "Time relative to now")
                 }
-            }
+              }
+              IconToggleButton(
+                  checked = isFavoriteEnabled,
+                  onCheckedChange = {
+                    performHaptic(HapticType.TOGGLE)
+                    onChangeIsFavorite(it)
+                  },
+              ) {
+                if (isFavoriteEnabled) {
+                  Icon(Icons.Filled.Star, contentDescription = "Is favorite")
+                } else {
+                  Icon(Icons.Outlined.StarOutline, contentDescription = "Is not favorite")
+                }
+              }
+              IconToggleButton(
+                  checked = isSearchEnabled,
+                  onCheckedChange = {
+                    performHaptic(HapticType.TOGGLE)
+                    onChangeIsSearchEnabled(it)
+                  },
+              ) {
+                if (isSearchEnabled) {
+                  Icon(Icons.Outlined.SearchOff, contentDescription = "Search off")
+                } else {
+                  Icon(Icons.Filled.Search, contentDescription = "Search")
+                }
+              }
+              IconButton(
+                  onClick = {
+                    performHaptic(HapticType.CLICK)
+                    navigateToCalendar()
+                  }
+              ) {
+                Icon(
+                    Icons.Default.CalendarMonth,
+                    contentDescription = "Navigate to calendar",
+                )
+              }
+              IconButton(
+                  onClick = {
+                    performHaptic(HapticType.CLICK)
+                    navigateToAllIngestions()
+                  }
+              ) {
+                Icon(
+                    Icons.AutoMirrored.Filled.List,
+                    contentDescription = "All Ingestions",
+                )
+              }
+            },
+        )
+      },
+      floatingActionButton = {
+        if (!isSearchEnabled) {
+          val infiniteTransition =
+              androidx.compose.animation.core.rememberInfiniteTransition(label = "fab-pulse")
+          val scale by
+              infiniteTransition.animateFloat(
+                  initialValue = 1f,
+                  targetValue = 1.06f,
+                  animationSpec =
+                      androidx.compose.animation.core.infiniteRepeatable(
+                          animation =
+                              androidx.compose.animation.core.tween(
+                                  durationMillis = 1600,
+                                  easing = androidx.compose.animation.core.FastOutSlowInEasing,
+                              ),
+                          repeatMode = androidx.compose.animation.core.RepeatMode.Reverse,
+                      ),
+                  label = "fab-pulse-scale",
+              )
+          ExtendedFloatingActionButton(
+              onClick = {
+                performHaptic(HapticType.HEAVY_CLICK)
+                navigateToAddIngestion()
+              },
+              icon = {
+                Icon(
+                    Icons.Filled.Add,
+                    contentDescription = "Add",
+                )
+              },
+              text = { Text("Ingestion") },
+              modifier =
+                  Modifier.graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                  },
+          )
         }
+      },
+  ) { padding ->
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxSize().padding(padding),
+    ) {
+      Column(
+          modifier = Modifier.fillMaxSize(),
+          verticalArrangement = Arrangement.Top,
+      ) {
+        AnimatedVisibility(visible = isSearchEnabled) {
+          Column {
+            val focusManager = LocalFocusManager.current
+            TextField(
+                value = searchText,
+                onValueChange = onChangeSearchText,
+                leadingIcon = {
+                  Icon(
+                      Icons.Default.Search,
+                      contentDescription = "Search",
+                  )
+                },
+                trailingIcon = {
+                  if (searchText != "") {
+                    IconButton(
+                        onClick = {
+                          onChangeSearchText("")
+                        }
+                    ) {
+                      Icon(
+                          Icons.Default.Close,
+                          contentDescription = "Close",
+                      )
+                    }
+                  }
+                },
+                label = { Text(text = "Search experiences") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+                keyboardOptions =
+                    KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        capitalization = KeyboardCapitalization.Sentences,
+                    ),
+                singleLine = true,
+            )
+            if (experiences.isEmpty() && isSearchEnabled && searchText.isNotEmpty()) {
+              if (isFavoriteEnabled) {
+                Column(modifier = Modifier.padding(horizontalPadding)) {
+                  Text(
+                      text = "No results",
+                      style = MaterialTheme.typography.titleMedium,
+                  )
+                  Text(
+                      text = "No favorite experience titles match your search.",
+                      style = MaterialTheme.typography.bodySmall,
+                  )
+                }
+              } else {
+                Column(modifier = Modifier.padding(horizontalPadding)) {
+                  Text(
+                      text = "No results",
+                      style = MaterialTheme.typography.titleMedium,
+                  )
+                  Text(
+                      text = "No experience titles match your search.",
+                      style = MaterialTheme.typography.bodySmall,
+                  )
+                }
+              }
+            }
+          }
+        }
+        val listState = rememberLazyListState()
+        val isScrollUpButtonShown by remember {
+          derivedStateOf {
+            listState.firstVisibleItemIndex > 0
+          }
+        }
+        Box(contentAlignment = Alignment.TopEnd) {
+          LazyColumn(
+              modifier = Modifier.fillMaxSize(),
+              state = listState,
+          ) {
+            if (experiences.isNotEmpty()) {
+              item {
+                HorizontalDivider()
+              }
+            }
+            items(experiences, key = { it.experience.id }) { experienceWithIngestions ->
+              ExperienceRow(
+                  experienceWithIngestions,
+                  navigateToExperienceScreen = {
+                    performHaptic(HapticType.SELECTION)
+                    navigateToExperiencePopNothing(experienceWithIngestions.experience.id)
+                  },
+                  isTimeRelativeToNow = isTimeRelativeToNow,
+              )
+              HorizontalDivider()
+            }
+          }
+          this@Column.AnimatedVisibility(visible = isScrollUpButtonShown) {
+            val scope = rememberCoroutineScope()
+            ElevatedButton(
+                modifier = Modifier.padding(all = horizontalPadding),
+                onClick = {
+                  performHaptic(HapticType.CLICK)
+                  scope.launch {
+                    listState.scrollToItem(index = 0)
+                  }
+                },
+            ) {
+              Icon(Icons.Default.ArrowUpward, contentDescription = "Scroll to top")
+            }
+          }
+        }
+      }
+      if (experiences.isEmpty() && !isSearchEnabled) {
+        if (isFavoriteEnabled) {
+          EmptyScreenDisclaimer(
+              title = "No favorites",
+              description = "Mark experiences as favorites to find them quickly.",
+          )
+        } else {
+          EmptyScreenDisclaimer(
+              title = "No experiences yet",
+              description = "Add your first ingestion.",
+          )
+        }
+      }
     }
+  }
 }

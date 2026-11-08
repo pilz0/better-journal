@@ -16,126 +16,138 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.components.DataForOneEffectL
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.AllTimelinesModel
 import foo.pilz.freaklog.ui.utils.getInstant
 import foo.pilz.freaklog.ui.utils.stateInVm
+import java.time.LocalDateTime
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import javax.inject.Inject
 
 @HiltViewModel
-class CustomDurationEditorViewModel @Inject constructor(
+class CustomDurationEditorViewModel
+@Inject
+constructor(
     val experienceRepository: ExperienceRepository,
     val state: SavedStateHandle,
 ) : ViewModel() {
-    private val navRoute = state.toRoute<CustomDurationEditorRoute>()
-    val substanceId = navRoute.substanceId
-    val substanceName = navRoute.substanceName
-    val route = navRoute.route
-    var roaDurationFlow = MutableStateFlow<CustomRoaDuration?>(null)
-    var roaDoseFlow = MutableStateFlow<CustomRoaDose?>(null)
-    var roaFlow = MutableStateFlow<CustomRoa?>(null)
-    var substanceUnitFlow = MutableStateFlow("")
-    val ingestionPreviewTimeFlow = MutableStateFlow(LocalDateTime.now())
+  private val navRoute = state.toRoute<CustomDurationEditorRoute>()
+  val substanceId = navRoute.substanceId
+  val substanceName = navRoute.substanceName
+  val route = navRoute.route
+  var roaDurationFlow = MutableStateFlow<CustomRoaDuration?>(null)
+  var roaDoseFlow = MutableStateFlow<CustomRoaDose?>(null)
+  var roaFlow = MutableStateFlow<CustomRoa?>(null)
+  var substanceUnitFlow = MutableStateFlow("")
+  val ingestionPreviewTimeFlow = MutableStateFlow(LocalDateTime.now())
 
-    val timelineDisplayOptionFlow = combine(
-        roaDurationFlow,
-        ingestionPreviewTimeFlow,
-    ) { roaDuration, ingestionTime ->
-        val substanceCompanion = experienceRepository.getSubstanceCompanion(substanceName)
+  val timelineDisplayOptionFlow =
+      combine(
+              roaDurationFlow,
+              ingestionPreviewTimeFlow,
+          ) { roaDuration, ingestionTime ->
+            val substanceCompanion = experienceRepository.getSubstanceCompanion(substanceName)
 
-        val dataForEffectLine = DataForOneEffectLine(
-            substanceName = substanceName,
-            route = route,
-            roaDuration = roaDuration?.toRoaDuration(),
-            height = 1f,
-            horizontalWeight = 0.5f,
-            color = route.color,
-            startTime = ingestionTime.getInstant(),
-            endTime = null,
-        )
-
-        val model = AllTimelinesModel(
-            dataForLines = listOf(dataForEffectLine),
-            dataForRatings = emptyList(),
-            timedNotes = emptyList(),
-            areSubstanceHeightsIndependent = false
-        )
-        return@combine TimelineDisplayOption.Shown(model)
-    }.flowOn(Dispatchers.Default)
-        .stateInVm(viewModelScope, TimelineDisplayOption.Loading)
-
-    init {
-        viewModelScope.launch {
-            val unit = experienceRepository.getCustomSubstance(substanceName)?.units ?: ""
-            substanceUnitFlow.value = unit
-
-            roaDurationFlow.value = experienceRepository.getCustomRoaDurations(substanceId)
-                .find { it.route == route }
-                ?: CustomRoaDuration(
+            val dataForEffectLine =
+                DataForOneEffectLine(
+                    substanceName = substanceName,
                     route = route,
-                    customSubstanceId = substanceId,
-                    onset = null,
-                    comeup = null,
-                    peak = null,
-                    offset = null,
-                    total = null,
+                    roaDuration = roaDuration?.toRoaDuration(),
+                    height = 1f,
+                    horizontalWeight = 0.5f,
+                    color = route.color,
+                    startTime = ingestionTime.getInstant(),
+                    endTime = null,
                 )
 
-            roaDoseFlow.value = experienceRepository.getCustomRoaDose(substanceId, route)
-                ?: CustomRoaDose(
-                    customSubstanceId = substanceId,
-                    route = route,
-                    units = unit,
+            val model =
+                AllTimelinesModel(
+                    dataForLines = listOf(dataForEffectLine),
+                    dataForRatings = emptyList(),
+                    timedNotes = emptyList(),
+                    areSubstanceHeightsIndependent = false,
                 )
+            return@combine TimelineDisplayOption.Shown(model)
+          }
+          .flowOn(Dispatchers.Default)
+          .stateInVm(viewModelScope, TimelineDisplayOption.Loading)
 
-            roaFlow.value = experienceRepository.getCustomRoa(substanceId, route)
-                ?: CustomRoa(
-                    customSubstanceId = substanceId,
-                    route = route,
-                    bioavailability = null,
-                )
-        }
+  init {
+    viewModelScope.launch {
+      val unit = experienceRepository.getCustomSubstance(substanceName)?.units ?: ""
+      substanceUnitFlow.value = unit
+
+      roaDurationFlow.value =
+          experienceRepository.getCustomRoaDurations(substanceId).find { it.route == route }
+              ?: CustomRoaDuration(
+                  route = route,
+                  customSubstanceId = substanceId,
+                  onset = null,
+                  comeup = null,
+                  peak = null,
+                  offset = null,
+                  total = null,
+              )
+
+      roaDoseFlow.value =
+          experienceRepository.getCustomRoaDose(substanceId, route)
+              ?: CustomRoaDose(
+                  customSubstanceId = substanceId,
+                  route = route,
+                  units = unit,
+              )
+
+      roaFlow.value =
+          experienceRepository.getCustomRoa(substanceId, route)
+              ?: CustomRoa(
+                  customSubstanceId = substanceId,
+                  route = route,
+                  bioavailability = null,
+              )
     }
+  }
 
-    fun updateBioavailability(min: Double?, max: Double?) {
-        val current = roaFlow.value ?: return
-        roaFlow.value = current.copy(
-            bioavailability = if (min == null && max == null) null
-            else Bioavailability(min = min, max = max),
+  fun updateBioavailability(min: Double?, max: Double?) {
+    val current = roaFlow.value ?: return
+    roaFlow.value =
+        current.copy(
+            bioavailability =
+                if (min == null && max == null) null else Bioavailability(min = min, max = max),
         )
-    }
+  }
 
-    fun onDone(onComplete: () -> Unit = {}) {
-        viewModelScope.launch {
-            roaDurationFlow.value?.let { experienceRepository.insert(it) }
-            roaDoseFlow.value?.let { dose ->
-                val hasDose = dose.lightMin != null || dose.commonMin != null ||
-                        dose.strongMin != null || dose.heavyMin != null
-                if (hasDose) {
-                    experienceRepository.upsertCustomRoaDose(substanceId, dose)
-                } else {
-                    experienceRepository.delete(dose)
-                }
-            }
-            roaFlow.value?.let { roa ->
-                if (roa.bioavailability != null) {
-                    experienceRepository.insert(roa)
-                } else {
-                    experienceRepository.delete(roa)
-                }
-            }
-            onComplete()
+  fun onDone(onComplete: () -> Unit = {}) {
+    viewModelScope.launch {
+      roaDurationFlow.value?.let { experienceRepository.insert(it) }
+      roaDoseFlow.value?.let { dose ->
+        val hasDose =
+            dose.lightMin != null ||
+                dose.commonMin != null ||
+                dose.strongMin != null ||
+                dose.heavyMin != null
+        if (hasDose) {
+          experienceRepository.upsertCustomRoaDose(substanceId, dose)
+        } else {
+          experienceRepository.delete(dose)
         }
+      }
+      roaFlow.value?.let { roa ->
+        if (roa.bioavailability != null) {
+          experienceRepository.insert(roa)
+        } else {
+          experienceRepository.delete(roa)
+        }
+      }
+      onComplete()
     }
+  }
 
-    fun onDelete(onComplete: () -> Unit = {}) {
-        viewModelScope.launch {
-            roaDurationFlow.value?.let { experienceRepository.delete(it) }
-            roaDoseFlow.value?.let { experienceRepository.delete(it) }
-            roaFlow.value?.let { experienceRepository.delete(it) }
-            onComplete()
-        }
+  fun onDelete(onComplete: () -> Unit = {}) {
+    viewModelScope.launch {
+      roaDurationFlow.value?.let { experienceRepository.delete(it) }
+      roaDoseFlow.value?.let { experienceRepository.delete(it) }
+      roaFlow.value?.let { experienceRepository.delete(it) }
+      onComplete()
     }
+  }
 }

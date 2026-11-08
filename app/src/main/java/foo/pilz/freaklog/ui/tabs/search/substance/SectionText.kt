@@ -28,18 +28,18 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun SectionText(text: AnnotatedString) {
-    Text(
-        text = text,
-        textAlign = TextAlign.Left,
-        modifier = Modifier.padding(vertical = 5.dp)
-    )
+  Text(
+      text = text,
+      textAlign = TextAlign.Left,
+      modifier = Modifier.padding(vertical = 5.dp),
+  )
 }
 
 @Composable
 fun SectionText(text: String) {
-    Text(
-        text = text,
-        textAlign = TextAlign.Left,
-        modifier = Modifier.padding(vertical = 5.dp)
-    )
+  Text(
+      text = text,
+      textAlign = TextAlign.Left,
+      modifier = Modifier.padding(vertical = 5.dp),
+  )
 }
