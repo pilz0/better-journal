@@ -23,6 +23,7 @@ class AiTools @Inject constructor(
     private val substanceTools: AiSubstanceTools,
     private val anodyneTools: AiAnodyneTools,
     private val auth: foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthManager,
+    private val healthTools: AiHealthTools,
 ) {
 
     companion object {
@@ -35,7 +36,9 @@ class AiTools @Inject constructor(
 
     /** Declarations of every available tool, in the provider-neutral JSON Schema form. */
     suspend fun specs(): List<AiToolSpec> =
-        journalSpecs + substanceTools.specs + (if (anodyneTools.isEnabled()) anodyneTools.specs else emptyList())
+        journalSpecs + substanceTools.specs +
+            (if (anodyneTools.isEnabled()) anodyneTools.specs else emptyList()) +
+            (if (healthTools.isEnabled()) healthTools.specs else emptyList())
 
     private val journalSpecs: List<AiToolSpec> = listOf(
         toolSpec(
@@ -114,6 +117,7 @@ class AiTools @Inject constructor(
                 )
                 else -> substanceTools.execute(name, args)
                     ?: anodyneTools.execute(name, args)
+                    ?: healthTools.execute(name, args)
                     ?: errorResult("Unknown tool '$name'.")
             }
         } catch (ce: CancellationException) {

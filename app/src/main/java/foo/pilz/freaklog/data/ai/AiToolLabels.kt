@@ -16,6 +16,7 @@ object AiToolLabels {
                 arg("substance")?.let { "($it)" },
             ).joinToString(" ")
             "get_substance_usage_stats" -> "Counted use per substance (${arg("days_back") ?: "90"} days)"
+            "get_health_connect_summary" -> "Read Health Connect vitals summary"
             "get_substance_info" -> "Looked up ${arg("name").orEmpty()}"
             "check_interactions" -> "Checked interactions: ${stringListArg(args["substances"]).joinToString(" + ")}"
             "get_tolerance" -> "Estimated tolerance to ${arg("substance").orEmpty()}"
@@ -27,11 +28,13 @@ object AiToolLabels {
     }
 
     fun progress(name: String): String = when (name) {
+        "get_health_connect_summary" -> "Reading Health Connect…"
         "search_anodyne_wiki", "lookup_anodyne_wiki" -> "Asking anodyne.wiki…"
         "get_substance_info", "check_interactions" -> "Checking substance data…"
         else -> "Looking through your journal…"
     }
 
+    @Suppress("CyclomaticComplexMethod")
     fun summarise(name: String, result: JSONObject): String {
         if (result.optString("status") == "error") {
             return result.optString("message", "tool failed")
@@ -40,6 +43,7 @@ object AiToolLabels {
             "list_recent_experiences" -> "${result.optJSONArray("experiences")?.length() ?: 0} experiences"
             "search_experiences", "search_experiences_by_substance" ->
                 "${result.optJSONArray("matches")?.length() ?: 0} matches"
+            "get_health_connect_summary" -> "Vitals summary loaded"
             "get_experience_details" -> result.optString("title", "experience loaded")
             "get_recent_ingestions" -> "${result.optInt("count")} ingestions"
             "get_substance_usage_stats" ->

@@ -105,6 +105,9 @@ class AiChatbotRepository @Inject constructor(
                 "  2. Help them research their own past experiences and ingestion patterns.\n" +
                 "  3. Suggest complementary activities or substances only when relevant and safe.\n\n" +
                 "You have access to function-calling tools that query the user's journal database. " +
+                "When available, get_health_connect_summary reads user-authorized vitals for the last 1–7 days. " +
+                "Use it when asked about sleep, heart rate or blood pressure. Missing data is not evidence of normal health, " +
+                "and correlations with medication logs do not establish causation. Never change prescribed treatment. " +
                 "Prefer calling a tool over guessing - the user's data is private to this device and you " +
                 "are the only way for them to query it conversationally. Always cite the dates and " +
                 "experience titles you found when summarising past sessions. Use Markdown for formatting " +

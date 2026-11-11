@@ -62,6 +62,7 @@ class AiChatbotRepositoryPreferenceTest {
             mockk<AiSubstanceTools>(relaxed = true),
             mockk<AiAnodyneTools>(relaxed = true),
             mockk<BiometricAuthManager> { every { shouldLock } returns MutableStateFlow(false) },
+            mockk<AiHealthTools>(relaxed = true),
         )
         val repository = AiChatbotRepository(db.experienceDao(), preferences, tools, store)
         return Triple(preferences, store, repository)

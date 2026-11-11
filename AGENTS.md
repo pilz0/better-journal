@@ -549,6 +549,25 @@ currently rearms reminders on its own ad-hoc
 `CoroutineScope(SupervisorJob() + Dispatchers.IO)` and `MainActivity` rearms
 on `lifecycleScope`; neither uses the injected `@ApplicationScope` today.
 
+## Health sharing
+
+Settings → Health Connect & Google Health is implemented by `ui/tabs/settings/health/`
+and `data/health/`. Sharing is manual and selection-based: preview your own last 30
+days of selected medications, then write self-reported FHIR R4 MedicationStatements
+to a dedicated Health Connect source. Feature availability and medical write
+permission are checked on every operation. Refresh reconciles stable IDs and removes
+obsolete records; Remove deletes only the dedicated source. FHIR file export and
+a copyable summary work without medical-record support. Never export named consumers,
+free-text journal notes, future doses or unselected substances. Selection and the
+separate AI-vitals consent live in local DataStore preferences, outside journal exports.
+
+`data/ai/AiHealthTools.kt` adds `get_health_connect_summary` only when the separate
+AI-vitals opt-in is enabled. It aggregates heart rate, sleep and blood pressure over
+1–7 days using the granted permissions; missing data is null, never zero or normal.
+Check consent and app lock before and after reads; suppress results after revocation.
+The provider receives the summary, so the UI must retain the explicit disclosure.
+See README for Google Health setup, release declarations and downstream-copy limits.
+
 ## Dependency injection (Hilt)
 
 `@HiltAndroidApp` is applied in `JournalApplication`.
