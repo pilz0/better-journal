@@ -154,7 +154,7 @@ fun SettingsPreview() {
         )
 }
 
-@Suppress("LongParameterList")
+@Suppress("LongParameterList", "LongMethod")
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
@@ -172,6 +172,7 @@ fun SettingsScreen(
     navigateToExportBackup: () -> Unit = {},
     navigateToFreakQueryShell: () -> Unit = {},
     navigateToAiAssistantSettings: () -> Unit,
+    navigateToHealthSharing: () -> Unit = {},
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val vitalsPermissions = remember {
@@ -207,6 +208,7 @@ fun SettingsScreen(
         navigateToExportBackup = navigateToExportBackup,
         navigateToFreakQueryShell = navigateToFreakQueryShell,
         navigateToAiAssistantSettings = navigateToAiAssistantSettings,
+        navigateToHealthSharing = navigateToHealthSharing,
         deleteEverything = viewModel::deleteEverything,
         importFile = viewModel::importFile,
         exportFile = viewModel::exportFile,
@@ -278,6 +280,7 @@ fun SettingsScreen(
     navigateToExportBackup: () -> Unit = {},
     navigateToFreakQueryShell: () -> Unit = {},
     navigateToAiAssistantSettings: () -> Unit,
+    navigateToHealthSharing: () -> Unit = {},
     deleteEverything: () -> Unit,
     importFile: (uri: Uri) -> Unit,
     exportFile: (uri: Uri) -> Unit,
@@ -426,6 +429,12 @@ fun SettingsScreen(
                 SettingsButton(imageVector = Icons.Outlined.Webhook, text = "Webhooks") {
                     performHaptic(HapticType.CLICK)
                     navigateToWebhook()
+                }
+            }
+
+            CardWithTitle(title = "Health sharing", innerPaddingHorizontal = 0.dp) {
+                SettingsButton(imageVector = Icons.Outlined.Medication, text = "Health Connect & Google Health") {
+                    navigateToHealthSharing()
                 }
             }
 

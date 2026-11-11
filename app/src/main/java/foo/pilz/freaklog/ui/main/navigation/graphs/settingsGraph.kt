@@ -92,10 +92,14 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
                 navigateToFreakQueryShell = {
                     navController.navigate(FreakQueryShellRoute)
                 },
+                navigateToHealthSharing = { navController.navigate(HealthSharingRoute) },
                 navigateToAiAssistantSettings = {
                     navController.navigate(AiAssistantSettingsRoute)
                 }
             )
+        }
+        composableWithTransitions<HealthSharingRoute> {
+            foo.pilz.freaklog.ui.tabs.settings.health.HealthSharingScreen(navigateBack = { navController.popBackStack() })
         }
         composableWithTransitions<CustomSubstancesRoute> {
             CustomSubstancesScreen(
@@ -260,6 +264,9 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
         }
     }
 }
+
+@Serializable
+object HealthSharingRoute
 
 @Serializable
 object SettingsScreenRoute
