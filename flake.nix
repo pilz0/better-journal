@@ -37,13 +37,21 @@
 
           buildToolsVersion = "36.0.0";
 
-          androidSdk = pkgs.androidenv.composeAndroidPackages {
+          androidSdkArgs = {
             cmdLineToolsVersion = "9.0"; # Matches your previous intent
             buildToolsVersions = [ buildToolsVersion ];
             platformVersions = [ "37" "36" ];
             abiVersions = [ "x86_64" ];
             includeEmulator = false;
           };
+          androidSdk = pkgs.androidenv.composeAndroidPackages androidSdkArgs;
+          androidTestSdk = pkgs.androidenv.composeAndroidPackages (androidSdkArgs // {
+            # The old command-line tools cannot recognize current system-image metadata.
+            cmdLineToolsVersion = "23.0";
+            includeEmulator = true;
+            includeSystemImages = true;
+            systemImageTypes = [ "google_apis" ];
+          });
 
           androidHome = "${androidSdk.androidsdk}/libexec/android-sdk";
 
@@ -135,9 +143,10 @@
           checks = {
             ai-instructions-in-sync = ai.check self;
 
-            workflow-lint = pkgs.runCommand "workflow-lint" {
-              nativeBuildInputs = [ pkgs.actionlint pkgs.shellcheck ];
-            } ''
+            workflow-lint = pkgs.runCommand "workflow-lint"
+              {
+                nativeBuildInputs = [ pkgs.actionlint pkgs.shellcheck ];
+              } ''
               actionlint -shellcheck=shellcheck -pyflakes= ${./.github/workflows}/*.yml
               touch $out
             '';
@@ -256,6 +265,12 @@
               fi
             '';
           };
+          # Optional native test environment; keep emulator/image downloads out of the default shell.
+          devShells.android-test = self.devShells.${system}.default.overrideAttrs (old: {
+            nativeBuildInputs = pkgs.lib.remove androidSdk.androidsdk old.nativeBuildInputs ++ [ androidTestSdk.androidsdk ];
+            ANDROID_HOME = "${androidTestSdk.androidsdk}/libexec/android-sdk";
+            ANDROID_SDK_ROOT = "${androidTestSdk.androidsdk}/libexec/android-sdk";
+          });
           formatter = pkgs.nixpkgs-fmt;
         }
       )

@@ -8,10 +8,7 @@ import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.HealthConnectFeatures
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.FhirVersion
-import androidx.health.connect.client.records.MedicalResource
 import androidx.health.connect.client.request.CreateMedicalDataSourceRequest
-import androidx.health.connect.client.request.ReadMedicalResourcesInitialRequest
-import androidx.health.connect.client.request.UpsertMedicalResourceRequest
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SdkSuppress
@@ -21,6 +18,7 @@ import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionA
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Test
@@ -65,29 +63,21 @@ class MedicationHealthConnectIntegrationTest {
                 listOf(IngestionWithCompanionAndCustomUnit(dose, null, null)),
                 setOf(dose.substanceName), now,
             )
-            val resources = listOf(report.patient) + report.statements
-            val requests = resources.map { UpsertMedicalResourceRequest(source.id, source.fhirVersion, it.toString()) }
-            val written = client.upsertMedicalResources(requests)
-            val rewritten = client.upsertMedicalResources(requests)
-            assertEquals(written.map { it.id }, rewritten.map { it.id })
-            val read = client.readMedicalResources(
-                ReadMedicalResourcesInitialRequest(
-                    MedicalResource.MEDICAL_RESOURCE_TYPE_MEDICATIONS,
-                    setOf(source.id),
-                )
-            ).medicalResources
+            val store = MedicationRecordStore(context)
+            assertTrue(store.isAvailable())
+            assertTrue(store.hasPermission())
+            assertFalse(source.id in store.ownSources())
+            val resources = (listOf(report.patient) + report.statements).map { it.toString() }
+            store.upsert(source.id, resources)
+            val written = store.readPage(source.id, null).records
+            store.upsert(source.id, resources)
+            val read = store.readPage(source.id, null).records
+            assertEquals(written.map { it.id }, read.map { it.id })
             assertEquals(1, read.size)
-            assertTrue(read.single().fhirResource.data.contains("Synthetic test medication"))
-            assertTrue(!read.single().fhirResource.data.contains("Must stay private"))
-            client.deleteMedicalResources(read.map { it.id })
-            assertTrue(
-                client.readMedicalResources(
-                    ReadMedicalResourcesInitialRequest(
-                        MedicalResource.MEDICAL_RESOURCE_TYPE_MEDICATIONS,
-                        setOf(source.id),
-                    )
-                ).medicalResources.isEmpty()
-            )
+            assertTrue(read.single().json.contains("Synthetic test medication"))
+            assertTrue(!read.single().json.contains("Must stay private"))
+            store.delete(source.id, read.map { it.id })
+            assertTrue(store.readPage(source.id, null).records.isEmpty())
         } finally {
             client.deleteMedicalDataSourceWithData(source.id)
         }

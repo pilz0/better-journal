@@ -92,6 +92,30 @@ nix run --inputs-from . gradle2nix -- -t assembleRelease -t bundleRelease
 
 ## Test and CI coverage
 
+Pull-request build, Android emulator, dependency review and CodeQL jobs use the
+explicit Ubuntu 24.04 runner label to avoid changes to the moving latest image.
+
+The GitHub repository must have its dependency graph enabled for the Dependency
+Review workflow. Enabling vulnerability alerts also enables the dependency graph;
+this does not require enabling automatic dependency-update PRs.
+
+An optional local emulator environment is available with `nix develop .#android-test`.
+It includes the locked SDK, emulator and available x86_64 Google APIs system images.
+The default shell keeps these larger downloads optional. On an x86_64 Linux host
+with KVM, create an API 36 AVD with `avdmanager`, start `emulator -avd <name>`,
+then run:
+
+```bash
+./gradlew connectedDebugAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=foo.pilz.freaklog.data.health.MedicationHealthConnectIntegrationTest \
+  --no-daemon
+```
+
+The medication acceptance test uses synthetic records in an isolated Health Connect
+source and deletes that source afterward. It requires API 36+ with the personal
+health record feature available; an unavailable feature produces a skipped test,
+which does not establish platform acceptance.
+
 Every push and pull request runs the three JVM test shards, Kover's coverage
 gate, Detekt, debug lint, release unit tests and lint, APK/AAB builds through
 both Gradle and Nix, Android test APK compilation, architecture checks, and
