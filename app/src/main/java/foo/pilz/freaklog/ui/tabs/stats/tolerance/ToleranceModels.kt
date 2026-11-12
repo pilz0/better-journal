@@ -22,8 +22,8 @@ import androidx.compose.ui.graphics.Color
 import java.time.Instant
 
 enum class ToleranceType {
-    FULL,
-    HALF
+  FULL,
+  HALF,
 }
 
 data class ToleranceWindow(
@@ -31,20 +31,21 @@ data class ToleranceWindow(
     val start: Instant,
     val end: Instant,
     val toleranceType: ToleranceType,
-    val substanceColor: Color
+    val substanceColor: Color,
 ) {
-    val barColor: Color
-        get() = when (toleranceType) {
-            ToleranceType.FULL -> substanceColor
-            ToleranceType.HALF -> substanceColor.copy(alpha = 0.5f)
+  val barColor: Color
+    get() =
+        when (toleranceType) {
+          ToleranceType.FULL -> substanceColor
+          ToleranceType.HALF -> substanceColor.copy(alpha = 0.5f)
         }
 
-    fun contains(date: Instant): Boolean {
-        return date >= start && date <= end
-    }
+  fun contains(date: Instant): Boolean {
+    return date >= start && date <= end
+  }
 }
 
 data class SubstanceAndDay(
     val substanceName: String,
-    val day: Instant
+    val day: Instant,
 )

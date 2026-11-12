@@ -27,42 +27,47 @@ import foo.pilz.freaklog.data.substances.classes.InteractionType
 import foo.pilz.freaklog.data.substances.classes.Tolerance
 import foo.pilz.freaklog.data.substances.classes.roa.Roa
 import foo.pilz.freaklog.di.ApplicationScope
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * In-memory view of every custom substance profile, keyed by substance name.
  *
- * Built-in substance data is available synchronously, and much of the app
- * (timelines, the interaction checker) relies on that. This keeps custom
- * profiles readable the same way instead of making those call sites suspend.
+ * Built-in substance data is available synchronously, and much of the app (timelines, the
+ * interaction checker) relies on that. This keeps custom profiles readable the same way instead of
+ * making those call sites suspend.
  */
 @Singleton
-class CustomSubstanceProfiles @Inject constructor(
+class CustomSubstanceProfiles
+@Inject
+constructor(
     dao: ExperienceDao,
     @ApplicationScope scope: CoroutineScope,
 ) {
-    val byNameFlow: StateFlow<Map<String, CustomSubstanceWithEverything>> =
-        dao.getAllCustomSubstancesWithEverythingFlow()
-            .map { all -> all.associateBy { it.substance.name } }
-            .stateIn(scope, SharingStarted.Eagerly, emptyMap())
+  val byNameFlow: StateFlow<Map<String, CustomSubstanceWithEverything>> =
+      dao.getAllCustomSubstancesWithEverythingFlow()
+          .map { all -> all.associateBy { it.substance.name } }
+          .stateIn(scope, SharingStarted.Eagerly, emptyMap())
 
-    fun getRoa(substanceName: String, route: AdministrationRoute): Roa? =
-        findRoa(byNameFlow.value, substanceName, route)
+  fun getRoa(substanceName: String, route: AdministrationRoute): Roa? =
+      findRoa(byNameFlow.value, substanceName, route)
 
-    fun getEffectiveRoa(
-        substanceName: String,
-        route: AdministrationRoute,
-        useIntranasalForRectal: Boolean = false,
-    ): Roa? = findEffectiveRoa(byNameFlow.value, substanceName, route, useIntranasalForRectal)
+  fun getEffectiveRoa(
+      substanceName: String,
+      route: AdministrationRoute,
+      useIntranasalForRectal: Boolean = false,
+  ): Roa? = findEffectiveRoa(byNameFlow.value, substanceName, route, useIntranasalForRectal)
 
-    fun getInteraction(aName: String, bName: String, categoriesOf: (String) -> List<String>): InteractionType? =
-        findCustomInteraction(byNameFlow.value, aName, bName, categoriesOf)
+  fun getInteraction(
+      aName: String,
+      bName: String,
+      categoriesOf: (String) -> List<String>,
+  ): InteractionType? = findCustomInteraction(byNameFlow.value, aName, bName, categoriesOf)
 }
 
 /** The profile named [substanceName], ignoring case and surrounding spaces. */
@@ -70,17 +75,19 @@ fun findProfile(
     profiles: Map<String, CustomSubstanceWithEverything>,
     substanceName: String,
 ): CustomSubstanceWithEverything? {
-    val cleanedName = substanceName.trim()
-    return profiles[cleanedName]
-        ?: profiles.values.firstOrNull { it.substance.name.trim().equals(cleanedName, ignoreCase = true) }
+  val cleanedName = substanceName.trim()
+  return profiles[cleanedName]
+      ?: profiles.values.firstOrNull {
+        it.substance.name.trim().equals(cleanedName, ignoreCase = true)
+      }
 }
 
 /** The custom substance's tolerance texts, or null if none is set. */
 fun CustomSubstance.toTolerance(): Tolerance? =
     if (toleranceFull == null && toleranceHalf == null && toleranceZero == null) {
-        null
+      null
     } else {
-        Tolerance(full = toleranceFull, half = toleranceHalf, zero = toleranceZero)
+      Tolerance(full = toleranceFull, half = toleranceHalf, zero = toleranceZero)
     }
 
 fun findRoa(
@@ -95,18 +102,18 @@ fun findEffectiveRoa(
     route: AdministrationRoute,
     useIntranasalForRectal: Boolean = false,
 ): Roa? {
-    return if (useIntranasalForRectal && route == AdministrationRoute.RECTAL) {
-        findRoa(profiles, substanceName, AdministrationRoute.INSUFFLATED)
-            ?: findRoa(profiles, substanceName, route)
-    } else {
-        findRoa(profiles, substanceName, route)
-    }
+  return if (useIntranasalForRectal && route == AdministrationRoute.RECTAL) {
+    findRoa(profiles, substanceName, AdministrationRoute.INSUFFLATED)
+        ?: findRoa(profiles, substanceName, route)
+  } else {
+    findRoa(profiles, substanceName, route)
+  }
 }
 
 /**
- * The most severe interaction either substance declares against the other.
- * A declared target matches by substance name, or by one of the other
- * substance's categories for category targets; both ignore case.
+ * The most severe interaction either substance declares against the other. A declared target
+ * matches by substance name, or by one of the other substance's categories for category targets;
+ * both ignore case.
  */
 fun findCustomInteraction(
     profiles: Map<String, CustomSubstanceWithEverything>,
@@ -114,21 +121,23 @@ fun findCustomInteraction(
     bName: String,
     categoriesOf: (String) -> List<String>,
 ): InteractionType? {
-    fun declaredBy(owner: String, other: String): List<InteractionType> =
-        findProfile(profiles, owner)?.interactions.orEmpty()
-            .filter { interaction ->
-                when (interaction.targetType) {
-                    CustomInteractionTargetType.CATEGORY ->
-                        categoriesOf(other).any { it.equals(interaction.targetName, ignoreCase = true) }
-                    else -> interaction.targetName.equals(other, ignoreCase = true)
-                }
+  fun declaredBy(owner: String, other: String): List<InteractionType> =
+      findProfile(profiles, owner)
+          ?.interactions
+          .orEmpty()
+          .filter { interaction ->
+            when (interaction.targetType) {
+              CustomInteractionTargetType.CATEGORY ->
+                  categoriesOf(other).any { it.equals(interaction.targetName, ignoreCase = true) }
+              else -> interaction.targetName.equals(other, ignoreCase = true)
             }
-            .map {
-                when (it.severity) {
-                    CustomInteractionSeverity.DANGEROUS -> InteractionType.DANGEROUS
-                    CustomInteractionSeverity.UNSAFE -> InteractionType.UNSAFE
-                    CustomInteractionSeverity.UNCERTAIN -> InteractionType.UNCERTAIN
-                }
+          }
+          .map {
+            when (it.severity) {
+              CustomInteractionSeverity.DANGEROUS -> InteractionType.DANGEROUS
+              CustomInteractionSeverity.UNSAFE -> InteractionType.UNSAFE
+              CustomInteractionSeverity.UNCERTAIN -> InteractionType.UNCERTAIN
             }
-    return (declaredBy(aName, bName) + declaredBy(bName, aName)).maxByOrNull { it.dangerCount }
+          }
+  return (declaredBy(aName, bName) + declaredBy(bName, aName)).maxByOrNull { it.dangerCount }
 }

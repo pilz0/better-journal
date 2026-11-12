@@ -84,128 +84,127 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.ui.YOU
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.StandardDeviationExplanation
+import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.IngestionCategoryPicker
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.IngestionTimePickerOption
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.TimePointOrRangePicker
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.AdministrationSitePicker
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.SaltFormPicker
-import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.IngestionCategoryPicker
 import foo.pilz.freaklog.ui.theme.JournalTheme
 import foo.pilz.freaklog.ui.theme.horizontalPadding
-import kotlinx.coroutines.launch
 import java.time.LocalDateTime
-
+import kotlinx.coroutines.launch
 
 @Composable
 fun EditIngestionScreen(
     viewModel: EditIngestionViewModel = hiltViewModel(),
     navigateToAddIngestion: () -> Unit,
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
 ) {
-    EditIngestionScreen(
-        note = viewModel.note,
-        onNoteChange = { viewModel.note = it },
-        isEstimate = viewModel.isEstimate,
-        onChangeIsEstimate = viewModel::onChangeIsEstimate,
-        isKnown = viewModel.isKnown,
-        toggleIsKnown = viewModel::toggleIsKnown,
-        dose = viewModel.dose,
-        onDoseChange = viewModel::onDoseChange,
-        estimatedDoseStandardDeviation = viewModel.estimatedDoseStandardDeviation,
-        onEstimatedDoseStandardDeviationChange = viewModel::onChangeEstimatedDoseStandardDeviation,
-        units = viewModel.units,
-        onUnitsChange = { viewModel.units = it },
-        experiences = viewModel.relevantExperiences.collectAsState().value,
-        selectedExperienceId = viewModel.experienceId,
-        onChangeId = { viewModel.experienceId = it },
-        navigateBack = navigateBack,
-        deleteIngestion = viewModel::deleteIngestion,
-        onDone = { viewModel.onDoneClicked(onSaved = navigateBack) },
-        ingestionTimePickerOption = viewModel.ingestionTimePickerOptionFlow.collectAsState().value,
-        onChangeTimePickerOption = viewModel::onChangeTimePickerOption,
-        onChangeStartDateOrTime = viewModel::onChangeStartTime,
-        localDateTimeStart = viewModel.localDateTimeStartFlow.collectAsState().value,
-        localDateTimeEnd = viewModel.localDateTimeEndFlow.collectAsState().value,
-        onChangeEndDateOrTime = viewModel::onChangeEndTime,
-        consumerName = viewModel.consumerName,
-        onChangeConsumerName = viewModel::onChangeConsumerName,
-        consumerNamesSorted = viewModel.sortedConsumerNamesFlow.collectAsState().value,
-        customUnit = viewModel.customUnit,
-        onCustomUnitChange = viewModel::onChangeCustomUnit,
-        otherCustomUnits = viewModel.otherCustomUnits.collectAsState().value,
-        addIngestionWithClonedTime = {
-            viewModel.saveClonedIngestionTime()
-            navigateBack()
-            navigateToAddIngestion()
-        },
-        showSiteSelection = viewModel.showSiteSelection,
-        siteOptions = viewModel.siteOptions,
-        administrationSite = viewModel.administrationSite,
-        onChangeOfAdministrationSite = viewModel::onChangeAdministrationSite,
-        saltForm = viewModel.saltForm,
-        onSaltFormChange = viewModel::onChangeSaltForm,
-        onResendWebhook = viewModel::resendWebhook,
-        hasEnabledWebhooks = viewModel.hasEnabledWebhooksFlow.collectAsState().value,
-        ingestionCategory = viewModel.ingestionCategory,
-        onIngestionCategoryChange = { viewModel.ingestionCategory = it }
+  EditIngestionScreen(
+      note = viewModel.note,
+      onNoteChange = { viewModel.note = it },
+      isEstimate = viewModel.isEstimate,
+      onChangeIsEstimate = viewModel::onChangeIsEstimate,
+      isKnown = viewModel.isKnown,
+      toggleIsKnown = viewModel::toggleIsKnown,
+      dose = viewModel.dose,
+      onDoseChange = viewModel::onDoseChange,
+      estimatedDoseStandardDeviation = viewModel.estimatedDoseStandardDeviation,
+      onEstimatedDoseStandardDeviationChange = viewModel::onChangeEstimatedDoseStandardDeviation,
+      units = viewModel.units,
+      onUnitsChange = { viewModel.units = it },
+      experiences = viewModel.relevantExperiences.collectAsState().value,
+      selectedExperienceId = viewModel.experienceId,
+      onChangeId = { viewModel.experienceId = it },
+      navigateBack = navigateBack,
+      deleteIngestion = viewModel::deleteIngestion,
+      onDone = { viewModel.onDoneClicked(onSaved = navigateBack) },
+      ingestionTimePickerOption = viewModel.ingestionTimePickerOptionFlow.collectAsState().value,
+      onChangeTimePickerOption = viewModel::onChangeTimePickerOption,
+      onChangeStartDateOrTime = viewModel::onChangeStartTime,
+      localDateTimeStart = viewModel.localDateTimeStartFlow.collectAsState().value,
+      localDateTimeEnd = viewModel.localDateTimeEndFlow.collectAsState().value,
+      onChangeEndDateOrTime = viewModel::onChangeEndTime,
+      consumerName = viewModel.consumerName,
+      onChangeConsumerName = viewModel::onChangeConsumerName,
+      consumerNamesSorted = viewModel.sortedConsumerNamesFlow.collectAsState().value,
+      customUnit = viewModel.customUnit,
+      onCustomUnitChange = viewModel::onChangeCustomUnit,
+      otherCustomUnits = viewModel.otherCustomUnits.collectAsState().value,
+      addIngestionWithClonedTime = {
+        viewModel.saveClonedIngestionTime()
+        navigateBack()
+        navigateToAddIngestion()
+      },
+      showSiteSelection = viewModel.showSiteSelection,
+      siteOptions = viewModel.siteOptions,
+      administrationSite = viewModel.administrationSite,
+      onChangeOfAdministrationSite = viewModel::onChangeAdministrationSite,
+      saltForm = viewModel.saltForm,
+      onSaltFormChange = viewModel::onChangeSaltForm,
+      onResendWebhook = viewModel::resendWebhook,
+      hasEnabledWebhooks = viewModel.hasEnabledWebhooksFlow.collectAsState().value,
+      ingestionCategory = viewModel.ingestionCategory,
+      onIngestionCategoryChange = { viewModel.ingestionCategory = it },
+  )
+  if (viewModel.isShowingLimitWarning) {
+    foo.pilz.freaklog.ui.tabs.settings.intakelimits.IntakeLimitWarningDialog(
+        statuses = viewModel.limitWarningStatuses,
+        onConfirm = viewModel::confirmLimitWarningAndSave,
+        onDismiss = viewModel::dismissLimitWarning,
     )
-    if (viewModel.isShowingLimitWarning) {
-        foo.pilz.freaklog.ui.tabs.settings.intakelimits.IntakeLimitWarningDialog(
-            statuses = viewModel.limitWarningStatuses,
-            onConfirm = viewModel::confirmLimitWarningAndSave,
-            onDismiss = viewModel::dismissLimitWarning,
-        )
-    }
+  }
 }
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun EditIngestionScreenPreview() {
-    JournalTheme {
-        EditIngestionScreen(
-            note = "This is my note",
-            onNoteChange = {},
-            isEstimate = false,
-            onChangeIsEstimate = {},
-            isKnown = true,
-            toggleIsKnown = {},
-            dose = "5",
-            onDoseChange = {},
-            estimatedDoseStandardDeviation = "",
-            onEstimatedDoseStandardDeviationChange = {},
-            units = "mg",
-            onUnitsChange = {},
-            experiences = emptyList(),
-            selectedExperienceId = 2,
-            onChangeId = {},
-            navigateBack = {},
-            deleteIngestion = {},
-            onDone = {},
-            ingestionTimePickerOption = IngestionTimePickerOption.POINT_IN_TIME,
-            onChangeTimePickerOption = {},
-            onChangeStartDateOrTime = {},
-            localDateTimeStart = LocalDateTime.now(),
-            localDateTimeEnd = LocalDateTime.now(),
-            onChangeEndDateOrTime = {},
-            consumerName = "",
-            onChangeConsumerName = {},
-            consumerNamesSorted = listOf("Dave", "Ali"),
-            customUnit = null,
-            onCustomUnitChange = {},
-            otherCustomUnits = emptyList(),
-            addIngestionWithClonedTime = {},
-            showSiteSelection = true,
-            siteOptions = listOf("Left nostril", "Right nostril", "Both nostrils"),
-            administrationSite = "Left nostril",
-            onChangeOfAdministrationSite = {},
-            saltForm = "",
-            onSaltFormChange = {},
-            onResendWebhook = {},
-            hasEnabledWebhooks = true,
-            ingestionCategory = null,
-            onIngestionCategoryChange = {}
-        )
-    }
+  JournalTheme {
+    EditIngestionScreen(
+        note = "This is my note",
+        onNoteChange = {},
+        isEstimate = false,
+        onChangeIsEstimate = {},
+        isKnown = true,
+        toggleIsKnown = {},
+        dose = "5",
+        onDoseChange = {},
+        estimatedDoseStandardDeviation = "",
+        onEstimatedDoseStandardDeviationChange = {},
+        units = "mg",
+        onUnitsChange = {},
+        experiences = emptyList(),
+        selectedExperienceId = 2,
+        onChangeId = {},
+        navigateBack = {},
+        deleteIngestion = {},
+        onDone = {},
+        ingestionTimePickerOption = IngestionTimePickerOption.POINT_IN_TIME,
+        onChangeTimePickerOption = {},
+        onChangeStartDateOrTime = {},
+        localDateTimeStart = LocalDateTime.now(),
+        localDateTimeEnd = LocalDateTime.now(),
+        onChangeEndDateOrTime = {},
+        consumerName = "",
+        onChangeConsumerName = {},
+        consumerNamesSorted = listOf("Dave", "Ali"),
+        customUnit = null,
+        onCustomUnitChange = {},
+        otherCustomUnits = emptyList(),
+        addIngestionWithClonedTime = {},
+        showSiteSelection = true,
+        siteOptions = listOf("Left nostril", "Right nostril", "Both nostrils"),
+        administrationSite = "Left nostril",
+        onChangeOfAdministrationSite = {},
+        saltForm = "",
+        onSaltFormChange = {},
+        onResendWebhook = {},
+        hasEnabledWebhooks = true,
+        ingestionCategory = null,
+        onIngestionCategoryChange = {},
+    )
+  }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -244,7 +243,6 @@ fun EditIngestionScreen(
     addIngestionWithClonedTime: () -> Unit,
     showSiteSelection: Boolean,
     siteOptions: List<String>,
-
     administrationSite: String,
     onChangeOfAdministrationSite: (String) -> Unit,
     saltForm: String,
@@ -252,431 +250,449 @@ fun EditIngestionScreen(
     onResendWebhook: () -> Unit,
     hasEnabledWebhooks: Boolean,
     ingestionCategory: foo.pilz.freaklog.data.substances.classes.IngestionCategory?,
-    onIngestionCategoryChange: (foo.pilz.freaklog.data.substances.classes.IngestionCategory?) -> Unit
+    onIngestionCategoryChange:
+        (foo.pilz.freaklog.data.substances.classes.IngestionCategory?) -> Unit,
 ) {
-    var isPresentingBottomSheet by rememberSaveable { mutableStateOf(false) }
-    val skipPartiallyExpanded by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    val bottomSheetState =
-        rememberModalBottomSheetState(skipPartiallyExpanded = skipPartiallyExpanded)
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Edit ingestion") },
-                actions = {
-                    var isShowingDeleteDialog by remember { mutableStateOf(false) }
-                    AnimatedVisibility(visible = isShowingDeleteDialog) {
-                        AlertDialog(
-                            onDismissRequest = { isShowingDeleteDialog = false },
-                            title = {
-                                Text(text = "Delete ingestion?")
-                            },
-                            confirmButton = {
-                                TextButton(
-                                    onClick = {
-                                        isShowingDeleteDialog = false
-                                        deleteIngestion()
-                                        navigateBack()
-                                    }
-                                ) {
-                                    Text("Delete")
-                                }
-                            },
-                            dismissButton = {
-                                TextButton(
-                                    onClick = { isShowingDeleteDialog = false }
-                                ) {
-                                    Text("Cancel")
-                                }
-                            }
-                        )
-                    }
-                    IconButton(
-                        onClick = { isShowingDeleteDialog = true },
-                    ) {
-                        Icon(
-                            Icons.Default.Delete,
-                            contentDescription = "Delete ingestion",
-                        )
-                    }
-                }
-            )
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                modifier = Modifier.imePadding(),
-                onClick = onDone,
-                icon = {
-                    Icon(
-                        Icons.Filled.Done,
-                        contentDescription = "Done icon"
-                    )
-                },
-                text = { Text("Done") }
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .verticalScroll(rememberScrollState())
+  var isPresentingBottomSheet by rememberSaveable { mutableStateOf(false) }
+  val skipPartiallyExpanded by remember { mutableStateOf(false) }
+  val scope = rememberCoroutineScope()
+  val bottomSheetState =
+      rememberModalBottomSheetState(skipPartiallyExpanded = skipPartiallyExpanded)
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Edit ingestion") },
+            actions = {
+              var isShowingDeleteDialog by remember { mutableStateOf(false) }
+              AnimatedVisibility(visible = isShowingDeleteDialog) {
+                AlertDialog(
+                    onDismissRequest = { isShowingDeleteDialog = false },
+                    title = {
+                      Text(text = "Delete ingestion?")
+                    },
+                    confirmButton = {
+                      TextButton(
+                          onClick = {
+                            isShowingDeleteDialog = false
+                            deleteIngestion()
+                            navigateBack()
+                          }
+                      ) {
+                        Text("Delete")
+                      }
+                    },
+                    dismissButton = {
+                      TextButton(onClick = { isShowingDeleteDialog = false }) {
+                        Text("Cancel")
+                      }
+                    },
+                )
+              }
+              IconButton(
+                  onClick = { isShowingDeleteDialog = true },
+              ) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Delete ingestion",
+                )
+              }
+            },
+        )
+      },
+      floatingActionButton = {
+        ExtendedFloatingActionButton(
+            modifier = Modifier.imePadding(),
+            onClick = onDone,
+            icon = {
+              Icon(
+                  Icons.Filled.Done,
+                  contentDescription = "Done icon",
+              )
+            },
+            text = { Text("Done") },
+        )
+      },
+  ) { padding ->
+    Column(
+        modifier =
+            Modifier.verticalScroll(rememberScrollState())
                 .padding(padding)
                 .padding(horizontal = horizontalPadding)
+    ) {
+      Spacer(modifier = Modifier.height(3.dp))
+      val focusManager = LocalFocusManager.current
+      val title =
+          customUnit?.let {
+            "Dose ${it.name}"
+          } ?: "Dose"
+      CardWithTitle(title = title) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.clickable(onClick = toggleIsKnown).fillMaxWidth(),
         ) {
-            Spacer(modifier = Modifier.height(3.dp))
-            val focusManager = LocalFocusManager.current
-            val title = customUnit?.let {
-                "Dose ${it.name}"
-            } ?: "Dose"
-            CardWithTitle(title = title) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .clickable(onClick = toggleIsKnown)
-                        .fillMaxWidth()
-                ) {
-                    Checkbox(checked = isKnown, onCheckedChange = { toggleIsKnown() })
-                    Text("Dose is known")
-                }
-                AnimatedVisibility(visible = isKnown) {
-                    Column {
-                        if (customUnit == null) {
-                            OutlinedTextField(
-                                value = units,
-                                onValueChange = onUnitsChange,
-                                label = { Text(text = "Units") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardActions = KeyboardActions(onDone = {
-                                    focusManager.clearFocus()
-                                }),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                                singleLine = true
-                            )
-                        }
-                        OutlinedTextField(
-                            value = dose,
-                            onValueChange = {
-                                onDoseChange(it.replace(oldChar = ',', newChar = '.'))
-                            },
-                            label = { Text(text = "Dose") },
-                            trailingIcon = { Text(text = units) },
-                            modifier = Modifier.fillMaxWidth(),
-                            keyboardActions = KeyboardActions(onDone = {
-                                focusManager.clearFocus()
-                            }),
-                            isError = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(dose) == null,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                            singleLine = true
-                        )
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        ) {
-                            Switch(checked = isEstimate, onCheckedChange = onChangeIsEstimate)
-                            Text("Estimate", style = MaterialTheme.typography.titleMedium)
-                        }
-                        AnimatedVisibility(visible = isEstimate) {
-                            Column {
-                                OutlinedTextField(
-                                    value = estimatedDoseStandardDeviation,
-                                    onValueChange = {
-                                        onEstimatedDoseStandardDeviationChange(
-                                            it.replace(
-                                                oldChar = ',',
-                                                newChar = '.'
-                                            )
-                                        )
-                                    },
-                                    label = { Text("Estimated standard deviation") },
-                                    trailingIcon = {
-                                        Text(
-                                            text = units,
-                                            modifier = Modifier.padding(horizontal = horizontalPadding)
-                                        )
-                                    },
-                                    keyboardActions = KeyboardActions(onDone = {
-                                        focusManager.clearFocus()
-                                    }),
-                                    isError = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(estimatedDoseStandardDeviation) == null,
-                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                                    singleLine = true,
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                                val mean = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(dose)
-                                val standardDeviation = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(estimatedDoseStandardDeviation)
-                                val isExplanationShown = mean != null && standardDeviation != null
-                                AnimatedVisibility(isExplanationShown) {
-                                    if (mean != null && standardDeviation != null) {
-                                        StandardDeviationExplanation(
-                                            mean = mean,
-                                            standardDeviation = standardDeviation,
-                                            unit = units
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        if (otherCustomUnits.isNotEmpty()) {
-                            var isShowingDropDownMenu by remember { mutableStateOf(false) }
-                            Box(
-                                modifier = Modifier
-                                    .wrapContentSize(Alignment.TopEnd)
-                            ) {
-                                OutlinedButton(
-                                    onClick = { isShowingDropDownMenu = true },
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Text(text = "Unit: ${customUnit?.name ?: "Default"}")
-                                }
-                                DropdownMenu(
-                                    expanded = isShowingDropDownMenu,
-                                    onDismissRequest = { isShowingDropDownMenu = false }
-                                ) {
-                                    otherCustomUnits.forEach { unit ->
-                                        DropdownMenuItem(
-                                            text = { Text(unit.name) },
-                                            onClick = {
-                                                onCustomUnitChange(unit)
-                                                isShowingDropDownMenu = false
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                customUnit?.let {
-                    if (it.note.isNotBlank()) {
-                        Text("${it.name}: ${it.note}")
-                    }
-                }
+          Checkbox(checked = isKnown, onCheckedChange = { toggleIsKnown() })
+          Text("Dose is known")
+        }
+        AnimatedVisibility(visible = isKnown) {
+          Column {
+            if (customUnit == null) {
+              OutlinedTextField(
+                  value = units,
+                  onValueChange = onUnitsChange,
+                  label = { Text(text = "Units") },
+                  modifier = Modifier.fillMaxWidth(),
+                  keyboardActions =
+                      KeyboardActions(
+                          onDone = {
+                            focusManager.clearFocus()
+                          }
+                      ),
+                  keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                  singleLine = true,
+              )
             }
-            CardWithTitle(title = "Ingestion notes") {
-                OutlinedTextField(
-                    value = note,
-                    onValueChange = onNoteChange,
-                    label = { Text(text = "Notes") },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardActions = KeyboardActions(onDone = {
-                        focusManager.clearFocus()
-                    }),
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
-                        capitalization = KeyboardCapitalization.Sentences
+            OutlinedTextField(
+                value = dose,
+                onValueChange = {
+                  onDoseChange(it.replace(oldChar = ',', newChar = '.'))
+                },
+                label = { Text(text = "Dose") },
+                trailingIcon = { Text(text = units) },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardActions =
+                    KeyboardActions(
+                        onDone = {
+                          focusManager.clearFocus()
+                        }
                     ),
-                    singleLine = true
-                )
+                isError = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(dose) == null,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                singleLine = true,
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+              Switch(checked = isEstimate, onCheckedChange = onChangeIsEstimate)
+              Text("Estimate", style = MaterialTheme.typography.titleMedium)
             }
-            CardWithTitle(title = "Time") {
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    TimePointOrRangePicker(
-                        onChangeTimePickerOption = onChangeTimePickerOption,
-                        ingestionTimePickerOption = ingestionTimePickerOption,
-                        localDateTimeStart = localDateTimeStart,
-                        onChangeStartDateOrTime = onChangeStartDateOrTime,
-                        localDateTimeEnd = localDateTimeEnd,
-                        onChangeEndDateOrTime = onChangeEndDateOrTime
-                    )
-                    var isShowingDropDownMenu by remember { mutableStateOf(false) }
-                    Box(
-                        modifier = Modifier
-                            .wrapContentSize(Alignment.TopEnd)
-                    ) {
-                        val selectedOption =
-                            experiences.firstOrNull { it.id == selectedExperienceId }
-                        OutlinedButton(
-                            onClick = { isShowingDropDownMenu = true },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(text = if (selectedOption?.title != null) "Part of " + selectedOption.title else "Part of unknown experience")
-                        }
-                        DropdownMenu(
-                            expanded = isShowingDropDownMenu,
-                            onDismissRequest = { isShowingDropDownMenu = false }
-                        ) {
-                            experiences.forEach { experience ->
-                                DropdownMenuItem(
-                                    text = { Text(experience.title) },
-                                    onClick = {
-                                        onChangeId(experience.id)
-                                        isShowingDropDownMenu = false
-                                    }
-                                )
+            AnimatedVisibility(visible = isEstimate) {
+              Column {
+                OutlinedTextField(
+                    value = estimatedDoseStandardDeviation,
+                    onValueChange = {
+                      onEstimatedDoseStandardDeviationChange(
+                          it.replace(
+                              oldChar = ',',
+                              newChar = '.',
+                          )
+                      )
+                    },
+                    label = { Text("Estimated standard deviation") },
+                    trailingIcon = {
+                      Text(
+                          text = units,
+                          modifier = Modifier.padding(horizontal = horizontalPadding),
+                      )
+                    },
+                    keyboardActions =
+                        KeyboardActions(
+                            onDone = {
+                              focusManager.clearFocus()
                             }
-                        }
-                    }
-                }
-            }
-            ElevatedCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(
-                        horizontal = horizontalPadding,
-                        vertical = 3.dp
-                    )
-                ) {
-                    Text(
-                        text = "Consumed by: ${consumerName.ifBlank { YOU }}",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    if (consumerNamesSorted.isNotEmpty() || consumerName.isNotBlank()) {
-                        TextButton(onClick = {
-                            isPresentingBottomSheet = !isPresentingBottomSheet
-                        }) {
-                            Text(text = "Choose other consumer")
-                        }
-                    }
-                    var showNewConsumerTextField by remember { mutableStateOf(false) }
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Switch(
-                            checked = showNewConsumerTextField,
-                            onCheckedChange = {
-                                showNewConsumerTextField = !showNewConsumerTextField
-                            })
-                        Text("Enter new consumer")
-                    }
-                    AnimatedVisibility(visible = showNewConsumerTextField) {
-                        OutlinedTextField(
-                            value = consumerName,
-                            onValueChange = onChangeConsumerName,
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = "Consumer"
-                                )
-                            },
-                            keyboardActions = KeyboardActions(onDone = {
-                                focusManager.clearFocus()
-                            }),
-                            keyboardOptions = KeyboardOptions.Default.copy(
-                                imeAction = ImeAction.Done,
-                                capitalization = KeyboardCapitalization.Words
-                            ),
-                            placeholder = { Text("New consumer name") },
-                            singleLine = true,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        )
-                    }
-                }
-            }
-            if (showSiteSelection) {
-                CardWithTitle(title = "Administration site") {
-                    AdministrationSitePicker(
-                        administrationSite = administrationSite,
-                        siteOptions = siteOptions,
-                        onSiteChange = onChangeOfAdministrationSite
-                    )
-                }
-            }
-            CardWithTitle(title = "Salt form") {
-                SaltFormPicker(
-                    saltForm = saltForm,
-                    previousSaltForms = emptyList(),
-                    onSaltFormChange = onSaltFormChange
+                        ),
+                    isError =
+                        foo.pilz.freaklog.ui.utils.evaluateNumericExpression(
+                            estimatedDoseStandardDeviation
+                        ) == null,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
                 )
-            }
-            CardWithTitle(title = "Category") {
-                IngestionCategoryPicker(
-                    ingestionCategory = ingestionCategory,
-                    inheritedCategory = null,
-                    onIngestionCategoryChange = onIngestionCategoryChange
-                )
-            }
-            ElevatedCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(
-                        horizontal = horizontalPadding,
-                        vertical = 3.dp
+                val mean = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(dose)
+                val standardDeviation =
+                    foo.pilz.freaklog.ui.utils.evaluateNumericExpression(
+                        estimatedDoseStandardDeviation
                     )
-                ) {
-                    TextButton(onClick = addIngestionWithClonedTime) {
-                        Icon(
-                            Icons.Outlined.Add, contentDescription = "Add"
-                        )
-                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text(text = "Add ingestion at same time")
-                    }
+                val isExplanationShown = mean != null && standardDeviation != null
+                AnimatedVisibility(isExplanationShown) {
+                  if (mean != null && standardDeviation != null) {
+                    StandardDeviationExplanation(
+                        mean = mean,
+                        standardDeviation = standardDeviation,
+                        unit = units,
+                    )
+                  }
                 }
+              }
             }
-            if (hasEnabledWebhooks) {
-                ElevatedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
+            if (otherCustomUnits.isNotEmpty()) {
+              var isShowingDropDownMenu by remember { mutableStateOf(false) }
+              Box(modifier = Modifier.wrapContentSize(Alignment.TopEnd)) {
+                OutlinedButton(
+                    onClick = { isShowingDropDownMenu = true },
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Column(
-                        modifier = Modifier.padding(
-                            horizontal = horizontalPadding,
-                            vertical = 3.dp
-                        )
-                    ) {
-                        TextButton(onClick = onResendWebhook) {
-                            Text(text = "Resend Webhook")
-                        }
-                    }
+                  Text(text = "Unit: ${customUnit?.name ?: "Default"}")
                 }
+                DropdownMenu(
+                    expanded = isShowingDropDownMenu,
+                    onDismissRequest = { isShowingDropDownMenu = false },
+                ) {
+                  otherCustomUnits.forEach { unit ->
+                    DropdownMenuItem(
+                        text = { Text(unit.name) },
+                        onClick = {
+                          onCustomUnitChange(unit)
+                          isShowingDropDownMenu = false
+                        },
+                    )
+                  }
+                }
+              }
             }
+          }
         }
-    }
-    if (isPresentingBottomSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { isPresentingBottomSheet = false },
-            sheetState = bottomSheetState,
+        customUnit?.let {
+          if (it.note.isNotBlank()) {
+            Text("${it.name}: ${it.note}")
+          }
+        }
+      }
+      CardWithTitle(title = "Ingestion notes") {
+        OutlinedTextField(
+            value = note,
+            onValueChange = onNoteChange,
+            label = { Text(text = "Notes") },
+            modifier = Modifier.fillMaxWidth(),
+            keyboardActions =
+                KeyboardActions(
+                    onDone = {
+                      focusManager.clearFocus()
+                    }
+                ),
+            keyboardOptions =
+                KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    capitalization = KeyboardCapitalization.Sentences,
+                ),
+            singleLine = true,
+        )
+      }
+      CardWithTitle(title = "Time") {
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            LazyColumn {
-                item {
-                    ListItem(
-                        headlineContent = { Text(YOU) },
-                        leadingContent = {
-                            Icon(
-                                Icons.Default.Person,
-                                contentDescription = "Consumer"
-                            )
-                        },
-                        modifier = Modifier.clickable {
-                            onChangeConsumerName("")
-                            scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
-                                if (!bottomSheetState.isVisible) {
-                                    isPresentingBottomSheet = false
-                                }
-                            }
-                        }
-                    )
-                }
-                items(consumerNamesSorted, key = { it }) { consumerName ->
-                    ListItem(
-                        headlineContent = { Text(consumerName) },
-                        leadingContent = {
-                            Icon(
-                                Icons.Default.Person,
-                                contentDescription = "Consumer"
-                            )
-                        },
-                        modifier = Modifier.clickable {
-                            onChangeConsumerName(consumerName)
-                            scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
-                                if (!bottomSheetState.isVisible) {
-                                    isPresentingBottomSheet = false
-                                }
-                            }
-                        }
-                    )
-                }
+          TimePointOrRangePicker(
+              onChangeTimePickerOption = onChangeTimePickerOption,
+              ingestionTimePickerOption = ingestionTimePickerOption,
+              localDateTimeStart = localDateTimeStart,
+              onChangeStartDateOrTime = onChangeStartDateOrTime,
+              localDateTimeEnd = localDateTimeEnd,
+              onChangeEndDateOrTime = onChangeEndDateOrTime,
+          )
+          var isShowingDropDownMenu by remember { mutableStateOf(false) }
+          Box(modifier = Modifier.wrapContentSize(Alignment.TopEnd)) {
+            val selectedOption = experiences.firstOrNull { it.id == selectedExperienceId }
+            OutlinedButton(
+                onClick = { isShowingDropDownMenu = true },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+              Text(
+                  text =
+                      if (selectedOption?.title != null) "Part of " + selectedOption.title
+                      else "Part of unknown experience"
+              )
             }
+            DropdownMenu(
+                expanded = isShowingDropDownMenu,
+                onDismissRequest = { isShowingDropDownMenu = false },
+            ) {
+              experiences.forEach { experience ->
+                DropdownMenuItem(
+                    text = { Text(experience.title) },
+                    onClick = {
+                      onChangeId(experience.id)
+                      isShowingDropDownMenu = false
+                    },
+                )
+              }
+            }
+          }
         }
+      }
+      ElevatedCard(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+        Column(
+            modifier =
+                Modifier.padding(
+                    horizontal = horizontalPadding,
+                    vertical = 3.dp,
+                )
+        ) {
+          Text(
+              text = "Consumed by: ${consumerName.ifBlank { YOU }}",
+              style = MaterialTheme.typography.titleMedium,
+          )
+          if (consumerNamesSorted.isNotEmpty() || consumerName.isNotBlank()) {
+            TextButton(
+                onClick = {
+                  isPresentingBottomSheet = !isPresentingBottomSheet
+                }
+            ) {
+              Text(text = "Choose other consumer")
+            }
+          }
+          var showNewConsumerTextField by remember { mutableStateOf(false) }
+          Row(
+              horizontalArrangement = Arrangement.spacedBy(8.dp),
+              verticalAlignment = Alignment.CenterVertically,
+          ) {
+            Switch(
+                checked = showNewConsumerTextField,
+                onCheckedChange = {
+                  showNewConsumerTextField = !showNewConsumerTextField
+                },
+            )
+            Text("Enter new consumer")
+          }
+          AnimatedVisibility(visible = showNewConsumerTextField) {
+            OutlinedTextField(
+                value = consumerName,
+                onValueChange = onChangeConsumerName,
+                leadingIcon = {
+                  Icon(
+                      imageVector = Icons.Default.Person,
+                      contentDescription = "Consumer",
+                  )
+                },
+                keyboardActions =
+                    KeyboardActions(
+                        onDone = {
+                          focusManager.clearFocus()
+                        }
+                    ),
+                keyboardOptions =
+                    KeyboardOptions.Default.copy(
+                        imeAction = ImeAction.Done,
+                        capitalization = KeyboardCapitalization.Words,
+                    ),
+                placeholder = { Text("New consumer name") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+          }
+        }
+      }
+      if (showSiteSelection) {
+        CardWithTitle(title = "Administration site") {
+          AdministrationSitePicker(
+              administrationSite = administrationSite,
+              siteOptions = siteOptions,
+              onSiteChange = onChangeOfAdministrationSite,
+          )
+        }
+      }
+      CardWithTitle(title = "Salt form") {
+        SaltFormPicker(
+            saltForm = saltForm,
+            previousSaltForms = emptyList(),
+            onSaltFormChange = onSaltFormChange,
+        )
+      }
+      CardWithTitle(title = "Category") {
+        IngestionCategoryPicker(
+            ingestionCategory = ingestionCategory,
+            inheritedCategory = null,
+            onIngestionCategoryChange = onIngestionCategoryChange,
+        )
+      }
+      ElevatedCard(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+        Column(
+            modifier =
+                Modifier.padding(
+                    horizontal = horizontalPadding,
+                    vertical = 3.dp,
+                )
+        ) {
+          TextButton(onClick = addIngestionWithClonedTime) {
+            Icon(
+                Icons.Outlined.Add,
+                contentDescription = "Add",
+            )
+            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+            Text(text = "Add ingestion at same time")
+          }
+        }
+      }
+      if (hasEnabledWebhooks) {
+        ElevatedCard(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+          Column(
+              modifier =
+                  Modifier.padding(
+                      horizontal = horizontalPadding,
+                      vertical = 3.dp,
+                  )
+          ) {
+            TextButton(onClick = onResendWebhook) {
+              Text(text = "Resend Webhook")
+            }
+          }
+        }
+      }
     }
+  }
+  if (isPresentingBottomSheet) {
+    ModalBottomSheet(
+        onDismissRequest = { isPresentingBottomSheet = false },
+        sheetState = bottomSheetState,
+    ) {
+      LazyColumn {
+        item {
+          ListItem(
+              headlineContent = { Text(YOU) },
+              leadingContent = {
+                Icon(
+                    Icons.Default.Person,
+                    contentDescription = "Consumer",
+                )
+              },
+              modifier =
+                  Modifier.clickable {
+                    onChangeConsumerName("")
+                    scope
+                        .launch { bottomSheetState.hide() }
+                        .invokeOnCompletion {
+                          if (!bottomSheetState.isVisible) {
+                            isPresentingBottomSheet = false
+                          }
+                        }
+                  },
+          )
+        }
+        items(consumerNamesSorted, key = { it }) { consumerName ->
+          ListItem(
+              headlineContent = { Text(consumerName) },
+              leadingContent = {
+                Icon(
+                    Icons.Default.Person,
+                    contentDescription = "Consumer",
+                )
+              },
+              modifier =
+                  Modifier.clickable {
+                    onChangeConsumerName(consumerName)
+                    scope
+                        .launch { bottomSheetState.hide() }
+                        .invokeOnCompletion {
+                          if (!bottomSheetState.isVisible) {
+                            isPresentingBottomSheet = false
+                          }
+                        }
+                  },
+          )
+        }
+      }
+    }
+  }
 }

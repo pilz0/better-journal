@@ -24,125 +24,135 @@ import foo.pilz.freaklog.data.substances.AdministrationRoute
 import java.time.Instant
 
 class StatsPreviewProvider : PreviewParameterProvider<StatsModel> {
-    override val values: Sequence<StatsModel> = sequenceOf(
-        StatsModel(
-            selectedOption = TimePickerOption.DAYS_7,
-            areThereAnyIngestions = true,
-            startDateText = "22. June 2022",
-            consumerName = null,
-            statItems = listOf(
-                StatItem(
-                    substanceName = "LSD",
-                    color = AdaptiveColor.BLUE,
-                    experienceCount = 3,
-                    ingestionCount = 3,
-                    routeCounts = listOf(
-                        RouteCount(
-                            administrationRoute = AdministrationRoute.SUBLINGUAL,
-                            count = 3
-                        )
-                    ),
-                    totalDose = TotalDose(
-                        dose = 500.0,
-                        units = "ug",
-                        isEstimate = false,
-                        estimatedDoseStandardDeviation = null
-                    ),
-                    lastUsed = Instant.parse("2026-04-29T12:00:00Z"),
-                    unknownDoseCount = 1,
-                    unitNames = listOf("ug"),
-                ),
-                StatItem(
-                    substanceName = "MDMA",
-                    color = AdaptiveColor.PINK,
-                    ingestionCount = 8,
-                    experienceCount = 2,
-                    routeCounts = listOf(
-                        RouteCount(
-                            administrationRoute = AdministrationRoute.ORAL,
-                            count = 6
-                        ),
-                        RouteCount(
-                            administrationRoute = AdministrationRoute.INSUFFLATED,
-                            count = 2
-                        )
-                    ),
-                    totalDose = TotalDose(
-                        dose = 950.0,
-                        units = "mg",
-                        isEstimate = true,
-                        estimatedDoseStandardDeviation = 50.0
-                    ),
-                    lastUsed = Instant.parse("2026-04-29T12:00:00Z"),
-                    unknownDoseCount = 1,
-                    unitNames = listOf("mg"),
-                ),
-                StatItem(
-                    substanceName = "Cocaine",
-                    color = AdaptiveColor.ORANGE,
-                    ingestionCount = 11,
-                    experienceCount = 1,
-                    routeCounts = listOf(
-                        RouteCount(
-                            administrationRoute = AdministrationRoute.INSUFFLATED,
-                            count = 11
-                        )
-                    ),
-                    totalDose = null,
-                    lastUsed = Instant.parse("2026-04-29T12:00:00Z"),
-                    unknownDoseCount = 1,
-                    unitNames = listOf("mg"),
-                ),
-                StatItem(
-                    substanceName = "Ketamine",
-                    color = AdaptiveColor.PURPLE,
-                    experienceCount = 1,
-                    ingestionCount = 1,
-                    routeCounts = listOf(
-                        RouteCount(
-                            administrationRoute = AdministrationRoute.INSUFFLATED,
-                            count = 1
-                        )
-                    ),
-                    totalDose = TotalDose(
-                        dose = 30.0,
-                        units = "mg",
-                        isEstimate = true,
-                        estimatedDoseStandardDeviation = 5.0
-                    ),
-                    lastUsed = Instant.parse("2026-04-29T12:00:00Z"),
-                    unknownDoseCount = 1,
-                    unitNames = listOf("mg"),
-                )
-            ),
-            chartBuckets = listOf(
-                listOf(
-                    ColorCount(
-                        color = AdaptiveColor.PINK,
-                        count = 2
-                    ),
-                    ColorCount(
-                        color = AdaptiveColor.BLUE,
-                        count = 3
-                    ),
-                ),
-                listOf(),
-                listOf(),
-                listOf(),
-                listOf(),
-                listOf(
-                    ColorCount(
-                        color = AdaptiveColor.ORANGE,
-                        count = 1
-                    ),
-                ),
-                listOf(
-                    ColorCount(
-                        color = AdaptiveColor.PURPLE,
-                        count = 1
-                    )
-                )
-            ),
-        )
-    )
+  override val values: Sequence<StatsModel> =
+      sequenceOf(
+          StatsModel(
+              selectedOption = TimePickerOption.DAYS_7,
+              areThereAnyIngestions = true,
+              startDateText = "22. June 2022",
+              consumerName = null,
+              statItems =
+                  listOf(
+                      StatItem(
+                          substanceName = "LSD",
+                          color = AdaptiveColor.BLUE,
+                          experienceCount = 3,
+                          ingestionCount = 3,
+                          routeCounts =
+                              listOf(
+                                  RouteCount(
+                                      administrationRoute = AdministrationRoute.SUBLINGUAL,
+                                      count = 3,
+                                  )
+                              ),
+                          totalDose =
+                              TotalDose(
+                                  dose = 500.0,
+                                  units = "ug",
+                                  isEstimate = false,
+                                  estimatedDoseStandardDeviation = null,
+                              ),
+                          lastUsed = Instant.parse("2026-04-29T12:00:00Z"),
+                          unknownDoseCount = 1,
+                          unitNames = listOf("ug"),
+                      ),
+                      StatItem(
+                          substanceName = "MDMA",
+                          color = AdaptiveColor.PINK,
+                          ingestionCount = 8,
+                          experienceCount = 2,
+                          routeCounts =
+                              listOf(
+                                  RouteCount(
+                                      administrationRoute = AdministrationRoute.ORAL,
+                                      count = 6,
+                                  ),
+                                  RouteCount(
+                                      administrationRoute = AdministrationRoute.INSUFFLATED,
+                                      count = 2,
+                                  ),
+                              ),
+                          totalDose =
+                              TotalDose(
+                                  dose = 950.0,
+                                  units = "mg",
+                                  isEstimate = true,
+                                  estimatedDoseStandardDeviation = 50.0,
+                              ),
+                          lastUsed = Instant.parse("2026-04-29T12:00:00Z"),
+                          unknownDoseCount = 1,
+                          unitNames = listOf("mg"),
+                      ),
+                      StatItem(
+                          substanceName = "Cocaine",
+                          color = AdaptiveColor.ORANGE,
+                          ingestionCount = 11,
+                          experienceCount = 1,
+                          routeCounts =
+                              listOf(
+                                  RouteCount(
+                                      administrationRoute = AdministrationRoute.INSUFFLATED,
+                                      count = 11,
+                                  )
+                              ),
+                          totalDose = null,
+                          lastUsed = Instant.parse("2026-04-29T12:00:00Z"),
+                          unknownDoseCount = 1,
+                          unitNames = listOf("mg"),
+                      ),
+                      StatItem(
+                          substanceName = "Ketamine",
+                          color = AdaptiveColor.PURPLE,
+                          experienceCount = 1,
+                          ingestionCount = 1,
+                          routeCounts =
+                              listOf(
+                                  RouteCount(
+                                      administrationRoute = AdministrationRoute.INSUFFLATED,
+                                      count = 1,
+                                  )
+                              ),
+                          totalDose =
+                              TotalDose(
+                                  dose = 30.0,
+                                  units = "mg",
+                                  isEstimate = true,
+                                  estimatedDoseStandardDeviation = 5.0,
+                              ),
+                          lastUsed = Instant.parse("2026-04-29T12:00:00Z"),
+                          unknownDoseCount = 1,
+                          unitNames = listOf("mg"),
+                      ),
+                  ),
+              chartBuckets =
+                  listOf(
+                      listOf(
+                          ColorCount(
+                              color = AdaptiveColor.PINK,
+                              count = 2,
+                          ),
+                          ColorCount(
+                              color = AdaptiveColor.BLUE,
+                              count = 3,
+                          ),
+                      ),
+                      listOf(),
+                      listOf(),
+                      listOf(),
+                      listOf(),
+                      listOf(
+                          ColorCount(
+                              color = AdaptiveColor.ORANGE,
+                              count = 1,
+                          ),
+                      ),
+                      listOf(
+                          ColorCount(
+                              color = AdaptiveColor.PURPLE,
+                              count = 1,
+                          )
+                      ),
+                  ),
+          )
+      )
 }

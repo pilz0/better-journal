@@ -50,37 +50,37 @@ import java.time.LocalDateTime
 @Preview
 @Composable
 fun EditRatingScreenPreview() {
-    EditRatingScreen(
-        onDone = {},
-        selectedTime = LocalDateTime.now(),
-        onTimeChange = {},
-        selectedRating = ShulginRatingOption.TWO_PLUS,
-        onRatingChange = {},
-        onDelete = {},
-        isOverallRating = false
-    )
+  EditRatingScreen(
+      onDone = {},
+      selectedTime = LocalDateTime.now(),
+      onTimeChange = {},
+      selectedRating = ShulginRatingOption.TWO_PLUS,
+      onRatingChange = {},
+      onDelete = {},
+      isOverallRating = false,
+  )
 }
 
 @Composable
 fun EditRatingScreen(
     viewModel: EditRatingViewModel = hiltViewModel(),
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
 ) {
-    EditRatingScreen(
-        onDone = {
-            viewModel.onDoneTap()
-            navigateBack()
-        },
-        selectedTime = viewModel.localDateTimeFlow.collectAsState().value,
-        onTimeChange = viewModel::onChangeTime,
-        selectedRating = viewModel.selectedRatingOption,
-        onRatingChange = viewModel::onChangeRating,
-        onDelete = {
-            viewModel.delete()
-            navigateBack()
-        },
-        isOverallRating = viewModel.isOverallRatingFlow.collectAsState().value
-    )
+  EditRatingScreen(
+      onDone = {
+        viewModel.onDoneTap()
+        navigateBack()
+      },
+      selectedTime = viewModel.localDateTimeFlow.collectAsState().value,
+      onTimeChange = viewModel::onChangeTime,
+      selectedRating = viewModel.selectedRatingOption,
+      onRatingChange = viewModel::onChangeRating,
+      onDelete = {
+        viewModel.delete()
+        navigateBack()
+      },
+      isOverallRating = viewModel.isOverallRatingFlow.collectAsState().value,
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -92,43 +92,43 @@ fun EditRatingScreen(
     selectedRating: ShulginRatingOption,
     onRatingChange: (ShulginRatingOption) -> Unit,
     onDelete: () -> Unit,
-    isOverallRating: Boolean
+    isOverallRating: Boolean,
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Edit Shulgin rating") },
-                actions = {
-                    IconButton(
-                        onClick = { onDelete() },
-                    ) {
-                        Icon(
-                            Icons.Default.Delete,
-                            contentDescription = "Delete rating",
-                        )
-                    }
-                }
-            )
-        },
-        floatingActionButton = {
-            FloatingDoneButton(
-                onDone = onDone,
-                modifier = Modifier.imePadding(),
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .verticalScroll(rememberScrollState())
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Edit Shulgin rating") },
+            actions = {
+              IconButton(
+                  onClick = { onDelete() },
+              ) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Delete rating",
+                )
+              }
+            },
+        )
+      },
+      floatingActionButton = {
+        FloatingDoneButton(
+            onDone = onDone,
+            modifier = Modifier.imePadding(),
+        )
+      },
+  ) { padding ->
+    Column(
+        modifier =
+            Modifier.verticalScroll(rememberScrollState())
                 .padding(padding)
                 .padding(horizontal = horizontalPadding)
-        ) {
-            Spacer(modifier = Modifier.height(3.dp))
-            if (!isOverallRating) {
-                TimePickerSection(selectedTime = selectedTime, onTimeChange = onTimeChange)
-            }
-            RatingPickerSection(selectedRating = selectedRating, onRatingChange = onRatingChange)
-            RatingsExplanationSection()
-        }
+    ) {
+      Spacer(modifier = Modifier.height(3.dp))
+      if (!isOverallRating) {
+        TimePickerSection(selectedTime = selectedTime, onTimeChange = onTimeChange)
+      }
+      RatingPickerSection(selectedRating = selectedRating, onRatingChange = onRatingChange)
+      RatingsExplanationSection()
     }
+  }
 }

@@ -21,5 +21,5 @@ package foo.pilz.freaklog.data.substances.classes.roa
 @kotlinx.serialization.Serializable
 data class Bioavailability(
     val min: Double?,
-    val max: Double?
+    val max: Double?,
 )

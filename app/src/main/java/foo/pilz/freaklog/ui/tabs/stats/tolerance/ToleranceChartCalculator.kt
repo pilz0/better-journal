@@ -31,232 +31,252 @@ import java.time.ZoneId
 
 object ToleranceChartCalculator {
 
-    private val weeksPattern = Regex("""(?<!\d)(\d+)(?:-(\d+))?\s*weeks?""", RegexOption.IGNORE_CASE)
-    private val daysPattern = Regex("""(?<!\d)(\d+)(?:-(\d+))?\s*days?""", RegexOption.IGNORE_CASE)
-    private const val MAX_TOLERANCE_HOURS = 876000.0
+  private val weeksPattern = Regex("""(?<!\d)(\d+)(?:-(\d+))?\s*weeks?""", RegexOption.IGNORE_CASE)
+  private val daysPattern = Regex("""(?<!\d)(\d+)(?:-(\d+))?\s*days?""", RegexOption.IGNORE_CASE)
+  private const val MAX_TOLERANCE_HOURS = 876000.0
 
-    fun getToleranceWindows(
-        substanceAndDays: List<SubstanceAndDay>,
-        substanceCompanions: List<SubstanceCompanion>,
-        substanceRepository: SubstanceRepository,
-        customProfiles: Map<String, CustomSubstanceWithEverything> = emptyMap()
-    ): List<ToleranceWindow> {
-        val cleanedSubstanceAndDays = removeMultipleSubstancesInADay(substanceAndDays)
-        val substanceIntervals = getSubstanceIntervals(cleanedSubstanceAndDays, substanceRepository, customProfiles)
-        val substanceIntervalsGroupedBySubstance = getSubstanceIntervalsGroupedBySubstance(substanceIntervals)
-        val mergedSubstanceIntervals = getMergedSubstanceIntervals(substanceIntervalsGroupedBySubstance)
-        return getToleranceWindows(mergedSubstanceIntervals, substanceCompanions)
-    }
+  fun getToleranceWindows(
+      substanceAndDays: List<SubstanceAndDay>,
+      substanceCompanions: List<SubstanceCompanion>,
+      substanceRepository: SubstanceRepository,
+      customProfiles: Map<String, CustomSubstanceWithEverything> = emptyMap(),
+  ): List<ToleranceWindow> {
+    val cleanedSubstanceAndDays = removeMultipleSubstancesInADay(substanceAndDays)
+    val substanceIntervals =
+        getSubstanceIntervals(cleanedSubstanceAndDays, substanceRepository, customProfiles)
+    val substanceIntervalsGroupedBySubstance =
+        getSubstanceIntervalsGroupedBySubstance(substanceIntervals)
+    val mergedSubstanceIntervals = getMergedSubstanceIntervals(substanceIntervalsGroupedBySubstance)
+    return getToleranceWindows(mergedSubstanceIntervals, substanceCompanions)
+  }
 
-    private fun removeMultipleSubstancesInADay(substanceAndDays: List<SubstanceAndDay>): List<SubstanceAndDay> {
-        val zoneId = ZoneId.systemDefault()
-        return substanceAndDays
-            .groupBy { it.day.atZone(zoneId).toLocalDate() }
-            .flatMap { (_, daySubstances) ->
-                daySubstances
-                    .groupBy { it.substanceName }
-                    .map { (_, sameSubstanceList) ->
-                        sameSubstanceList.minBy { it.day }
-                    }
-            }
-    }
+  private fun removeMultipleSubstancesInADay(
+      substanceAndDays: List<SubstanceAndDay>
+  ): List<SubstanceAndDay> {
+    val zoneId = ZoneId.systemDefault()
+    return substanceAndDays
+        .groupBy { it.day.atZone(zoneId).toLocalDate() }
+        .flatMap { (_, daySubstances) ->
+          daySubstances
+              .groupBy { it.substanceName }
+              .map { (_, sameSubstanceList) ->
+                sameSubstanceList.minBy { it.day }
+              }
+        }
+  }
 
-    private data class SubstanceInterval(
-        val substanceName: String,
-        val start: Instant,
-        val end: Instant,
-        val toleranceType: ToleranceType
-    )
+  private data class SubstanceInterval(
+      val substanceName: String,
+      val start: Instant,
+      val end: Instant,
+      val toleranceType: ToleranceType,
+  )
 
-    private fun getSubstanceIntervals(
-        substanceAndDayPairs: List<SubstanceAndDay>,
-        substanceRepository: SubstanceRepository,
-        customProfiles: Map<String, CustomSubstanceWithEverything>
-    ): List<SubstanceInterval> {
-        val toleranceHoursBySubstance = mutableMapOf<String, Pair<Double?, Double?>>()
-        return substanceAndDayPairs.flatMap { pair ->
-            val (halfToleranceHours, zeroToleranceHours) = toleranceHoursBySubstance.getOrPut(pair.substanceName) {
-                val substance = substanceRepository.getSubstance(pair.substanceName)
-                val tolerance = if (substance != null) {
-                    substance.tolerance
+  private fun getSubstanceIntervals(
+      substanceAndDayPairs: List<SubstanceAndDay>,
+      substanceRepository: SubstanceRepository,
+      customProfiles: Map<String, CustomSubstanceWithEverything>,
+  ): List<SubstanceInterval> {
+    val toleranceHoursBySubstance = mutableMapOf<String, Pair<Double?, Double?>>()
+    return substanceAndDayPairs.flatMap { pair ->
+      val (halfToleranceHours, zeroToleranceHours) =
+          toleranceHoursBySubstance.getOrPut(pair.substanceName) {
+            val substance = substanceRepository.getSubstance(pair.substanceName)
+            val tolerance =
+                if (substance != null) {
+                  substance.tolerance
                 } else {
-                    findProfile(customProfiles, pair.substanceName)?.substance?.toTolerance()
+                  findProfile(customProfiles, pair.substanceName)?.substance?.toTolerance()
                 }
-                parseToleranceToHours(tolerance?.half) to parseToleranceToHours(tolerance?.zero)
-            }
-            val result = mutableListOf<SubstanceInterval>()
-            var startOfHalfTolerance = pair.day
+            parseToleranceToHours(tolerance?.half) to parseToleranceToHours(tolerance?.zero)
+          }
+      val result = mutableListOf<SubstanceInterval>()
+      var startOfHalfTolerance = pair.day
 
-            val isHalfValid = halfToleranceHours != null &&
-                halfToleranceHours.isFinite() &&
-                halfToleranceHours > 24 &&
-                halfToleranceHours <= MAX_TOLERANCE_HOURS
-            if (isHalfValid) {
-                startOfHalfTolerance = pair.day.plus(Duration.ofHours(halfToleranceHours.toLong()))
-                result.add(
-                    SubstanceInterval(
-                        substanceName = pair.substanceName,
-                        start = pair.day,
-                        end = startOfHalfTolerance,
-                        toleranceType = ToleranceType.FULL
-                    )
-                )
-            }
+      val isHalfValid =
+          halfToleranceHours != null &&
+              halfToleranceHours.isFinite() &&
+              halfToleranceHours > 24 &&
+              halfToleranceHours <= MAX_TOLERANCE_HOURS
+      if (isHalfValid) {
+        startOfHalfTolerance = pair.day.plus(Duration.ofHours(halfToleranceHours.toLong()))
+        result.add(
+            SubstanceInterval(
+                substanceName = pair.substanceName,
+                start = pair.day,
+                end = startOfHalfTolerance,
+                toleranceType = ToleranceType.FULL,
+            )
+        )
+      }
 
-            val isZeroValid = zeroToleranceHours != null &&
-                zeroToleranceHours.isFinite() &&
-                zeroToleranceHours > 24 &&
-                zeroToleranceHours <= MAX_TOLERANCE_HOURS
-            if (isZeroValid) {
-                val startOfZeroTolerance = pair.day.plus(Duration.ofHours(zeroToleranceHours.toLong()))
-                if (startOfZeroTolerance > startOfHalfTolerance) {
-                    result.add(
-                        SubstanceInterval(
-                            substanceName = pair.substanceName,
-                            start = startOfHalfTolerance,
-                            end = startOfZeroTolerance,
-                            toleranceType = ToleranceType.HALF
-                        )
-                    )
-                }
-            }
-
-            result
+      val isZeroValid =
+          zeroToleranceHours != null &&
+              zeroToleranceHours.isFinite() &&
+              zeroToleranceHours > 24 &&
+              zeroToleranceHours <= MAX_TOLERANCE_HOURS
+      if (isZeroValid) {
+        val startOfZeroTolerance = pair.day.plus(Duration.ofHours(zeroToleranceHours.toLong()))
+        if (startOfZeroTolerance > startOfHalfTolerance) {
+          result.add(
+              SubstanceInterval(
+                  substanceName = pair.substanceName,
+                  start = startOfHalfTolerance,
+                  end = startOfZeroTolerance,
+                  toleranceType = ToleranceType.HALF,
+              )
+          )
         }
+      }
+
+      result
     }
+  }
 
-    private fun parseToleranceToHours(toleranceString: String?): Double? {
-        if (toleranceString == null || toleranceString.length > ToleranceTextParser.MAX_TEXT_LENGTH) return null
-        
-        // Try to parse patterns like "1-2 weeks", "3-4 days", "2 weeks", etc.
-        val weeksMatch = weeksPattern.find(toleranceString)
-        if (weeksMatch != null) {
-            val min = weeksMatch.groupValues[1].toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 } ?: return null
-            val max = weeksMatch.groupValues[2].toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 } ?: min
-            val hours = ((min + max) / 2) * 7 * 24
-            return hours.takeIf { it.isFinite() && it >= 0.0 }
-        }
-
-        val daysMatch = daysPattern.find(toleranceString)
-        if (daysMatch != null) {
-            val min = daysMatch.groupValues[1].toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 } ?: return null
-            val max = daysMatch.groupValues[2].toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 } ?: min
-            val hours = ((min + max) / 2) * 24
-            return hours.takeIf { it.isFinite() && it >= 0.0 }
-        }
-
+  private fun parseToleranceToHours(toleranceString: String?): Double? {
+    if (toleranceString == null || toleranceString.length > ToleranceTextParser.MAX_TEXT_LENGTH)
         return null
+
+    // Try to parse patterns like "1-2 weeks", "3-4 days", "2 weeks", etc.
+    val weeksMatch = weeksPattern.find(toleranceString)
+    if (weeksMatch != null) {
+      val min =
+          weeksMatch.groupValues[1].toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 }
+              ?: return null
+      val max =
+          weeksMatch.groupValues[2].toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 } ?: min
+      val hours = ((min + max) / 2) * 7 * 24
+      return hours.takeIf { it.isFinite() && it >= 0.0 }
     }
 
-    private fun getSubstanceIntervalsGroupedBySubstance(
-        substanceIntervals: List<SubstanceInterval>
-    ): Map<String, List<SubstanceInterval>> {
-        return substanceIntervals.groupBy { it.substanceName }
+    val daysMatch = daysPattern.find(toleranceString)
+    if (daysMatch != null) {
+      val min =
+          daysMatch.groupValues[1].toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 }
+              ?: return null
+      val max =
+          daysMatch.groupValues[2].toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 } ?: min
+      val hours = ((min + max) / 2) * 24
+      return hours.takeIf { it.isFinite() && it >= 0.0 }
     }
 
-    private fun getMergedSubstanceIntervals(
-        intervalsGroupedBySubstance: Map<String, List<SubstanceInterval>>
-    ): List<SubstanceInterval> {
-        return intervalsGroupedBySubstance.flatMap { (substanceName, intervals) ->
-            val fullToleranceIntervals = intervals.filter { it.toleranceType == ToleranceType.FULL }
-                .map { it.start to it.end }
-            val halfToleranceIntervals = intervals.filter { it.toleranceType == ToleranceType.HALF }
-                .map { it.start to it.end }
+    return null
+  }
 
-            val mergedFullIntervals = mergeIntervals(fullToleranceIntervals)
-            val halfWithoutFullIntervals = subtractIntervals(halfToleranceIntervals, mergedFullIntervals)
-            val mergedHalfIntervals = mergeIntervals(halfWithoutFullIntervals)
+  private fun getSubstanceIntervalsGroupedBySubstance(
+      substanceIntervals: List<SubstanceInterval>
+  ): Map<String, List<SubstanceInterval>> {
+    return substanceIntervals.groupBy { it.substanceName }
+  }
 
-            val resultFull = mergedFullIntervals.map { (start, end) ->
-                SubstanceInterval(
-                    substanceName = substanceName,
-                    start = start,
-                    end = end,
-                    toleranceType = ToleranceType.FULL
-                )
-            }
+  private fun getMergedSubstanceIntervals(
+      intervalsGroupedBySubstance: Map<String, List<SubstanceInterval>>
+  ): List<SubstanceInterval> {
+    return intervalsGroupedBySubstance.flatMap { (substanceName, intervals) ->
+      val fullToleranceIntervals =
+          intervals.filter { it.toleranceType == ToleranceType.FULL }.map { it.start to it.end }
+      val halfToleranceIntervals =
+          intervals.filter { it.toleranceType == ToleranceType.HALF }.map { it.start to it.end }
 
-            val resultHalf = mergedHalfIntervals.map { (start, end) ->
-                SubstanceInterval(
-                    substanceName = substanceName,
-                    start = start,
-                    end = end,
-                    toleranceType = ToleranceType.HALF
-                )
-            }
+      val mergedFullIntervals = mergeIntervals(fullToleranceIntervals)
+      val halfWithoutFullIntervals = subtractIntervals(halfToleranceIntervals, mergedFullIntervals)
+      val mergedHalfIntervals = mergeIntervals(halfWithoutFullIntervals)
 
-            resultFull + resultHalf
-        }
+      val resultFull = mergedFullIntervals.map { (start, end) ->
+        SubstanceInterval(
+            substanceName = substanceName,
+            start = start,
+            end = end,
+            toleranceType = ToleranceType.FULL,
+        )
+      }
+
+      val resultHalf = mergedHalfIntervals.map { (start, end) ->
+        SubstanceInterval(
+            substanceName = substanceName,
+            start = start,
+            end = end,
+            toleranceType = ToleranceType.HALF,
+        )
+      }
+
+      resultFull + resultHalf
     }
+  }
 
-    private fun mergeIntervals(intervals: List<Pair<Instant, Instant>>): List<Pair<Instant, Instant>> {
-        if (intervals.isEmpty()) return emptyList()
+  private fun mergeIntervals(
+      intervals: List<Pair<Instant, Instant>>
+  ): List<Pair<Instant, Instant>> {
+    if (intervals.isEmpty()) return emptyList()
 
-        val sorted = intervals.sortedBy { it.first }
-        val result = mutableListOf<Pair<Instant, Instant>>()
-        var current = sorted.first()
+    val sorted = intervals.sortedBy { it.first }
+    val result = mutableListOf<Pair<Instant, Instant>>()
+    var current = sorted.first()
 
-        for (i in 1 until sorted.size) {
-            val next = sorted[i]
-            if (next.first <= current.second) {
-                // Overlapping, extend current
-                current = current.first to maxOf(current.second, next.second)
-            } else {
-                result.add(current)
-                current = next
-            }
-        }
+    for (i in 1 until sorted.size) {
+      val next = sorted[i]
+      if (next.first <= current.second) {
+        // Overlapping, extend current
+        current = current.first to maxOf(current.second, next.second)
+      } else {
         result.add(current)
-
-        return result
+        current = next
+      }
     }
+    result.add(current)
 
-    private fun subtractIntervals(
-        intervals: List<Pair<Instant, Instant>>,
-        subtracting: List<Pair<Instant, Instant>>
-    ): List<Pair<Instant, Instant>> {
-        var result = intervals.toMutableList()
+    return result
+  }
 
-        for (sub in subtracting) {
-            result = result.flatMap { interval ->
+  private fun subtractIntervals(
+      intervals: List<Pair<Instant, Instant>>,
+      subtracting: List<Pair<Instant, Instant>>,
+  ): List<Pair<Instant, Instant>> {
+    var result = intervals.toMutableList()
+
+    for (sub in subtracting) {
+      result =
+          result
+              .flatMap { interval ->
                 val (start, end) = interval
                 val (subStart, subEnd) = sub
 
                 // No overlap
                 if (end <= subStart || start >= subEnd) {
-                    listOf(interval)
+                  listOf(interval)
                 } else {
-                    val parts = mutableListOf<Pair<Instant, Instant>>()
-                    if (start < subStart) {
-                        parts.add(start to subStart)
-                    }
-                    if (end > subEnd) {
-                        parts.add(subEnd to end)
-                    }
-                    parts
+                  val parts = mutableListOf<Pair<Instant, Instant>>()
+                  if (start < subStart) {
+                    parts.add(start to subStart)
+                  }
+                  if (end > subEnd) {
+                    parts.add(subEnd to end)
+                  }
+                  parts
                 }
-            }.toMutableList()
-        }
-
-        return result
+              }
+              .toMutableList()
     }
 
-    private fun getToleranceWindows(
-        substanceIntervals: List<SubstanceInterval>,
-        substanceCompanions: List<SubstanceCompanion>
-    ): List<ToleranceWindow> {
-        val companionsBySubstance = substanceCompanions.associateBy { it.substanceName }
-        return substanceIntervals.map { interval ->
-            val companion = companionsBySubstance[interval.substanceName]
-            val color = companion?.color?.getComposeColor(false) ?: Color.Red
+    return result
+  }
 
-            ToleranceWindow(
-                substanceName = interval.substanceName,
-                start = interval.start,
-                end = interval.end,
-                toleranceType = interval.toleranceType,
-                substanceColor = color
-            )
-        }
+  private fun getToleranceWindows(
+      substanceIntervals: List<SubstanceInterval>,
+      substanceCompanions: List<SubstanceCompanion>,
+  ): List<ToleranceWindow> {
+    val companionsBySubstance = substanceCompanions.associateBy { it.substanceName }
+    return substanceIntervals.map { interval ->
+      val companion = companionsBySubstance[interval.substanceName]
+      val color = companion?.color?.getComposeColor(false) ?: Color.Red
+
+      ToleranceWindow(
+          substanceName = interval.substanceName,
+          start = interval.start,
+          end = interval.end,
+          toleranceType = interval.toleranceType,
+          substanceColor = color,
+      )
     }
+  }
 }

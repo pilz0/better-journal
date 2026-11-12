@@ -60,52 +60,53 @@ import foo.pilz.freaklog.ui.theme.horizontalPadding
 fun SubstanceColorsScreen(
     viewModel: SubstanceColorsViewModel = hiltViewModel(),
 ) {
-    LaunchedEffect(Unit) {
-        viewModel.deleteUnusedSubstanceCompanions()
+  LaunchedEffect(Unit) {
+    viewModel.deleteUnusedSubstanceCompanions()
+  }
+  val context = LocalContext.current
+  val snackbarHostState = remember { SnackbarHostState() }
+  val snackbarText = viewModel.snackbar.collectAsState().value
+  LaunchedEffect(snackbarText) {
+    snackbarText?.let {
+      snackbarHostState.showSnackbar(it)
+      viewModel.consumeSnackbar()
     }
-    val context = LocalContext.current
-    val snackbarHostState = remember { SnackbarHostState() }
-    val snackbarText = viewModel.snackbar.collectAsState().value
-    LaunchedEffect(snackbarText) {
-        snackbarText?.let {
-            snackbarHostState.showSnackbar(it)
-            viewModel.consumeSnackbar()
-        }
-    }
-    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+  }
+  val importLauncher =
+      rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let { viewModel.importColors(context, it) }
-    }
-    SubstanceColorsScreenContent(
-        substanceCompanions = viewModel.substanceCompanionsFlow.collectAsState().value,
-        onShare = { shareSubstanceColors(context, viewModel.colorsForExport()) },
-        onImport = { importLauncher.launch(arrayOf("application/json", "*/*")) },
-        snackbarHostState = snackbarHostState,
-        updateColor = viewModel::updateColor,
-        alreadyUsedColors = viewModel.alreadyUsedColorsFlow.collectAsState().value,
-        otherColors = viewModel.otherColorsFlow.collectAsState().value
-    )
+      }
+  SubstanceColorsScreenContent(
+      substanceCompanions = viewModel.substanceCompanionsFlow.collectAsState().value,
+      onShare = { shareSubstanceColors(context, viewModel.colorsForExport()) },
+      onImport = { importLauncher.launch(arrayOf("application/json", "*/*")) },
+      snackbarHostState = snackbarHostState,
+      updateColor = viewModel::updateColor,
+      alreadyUsedColors = viewModel.alreadyUsedColorsFlow.collectAsState().value,
+      otherColors = viewModel.otherColorsFlow.collectAsState().value,
+  )
 }
 
 @Preview
 @Composable
 fun SubstanceColorsScreenPreview() {
-    val alreadyUsedColors = listOf(AdaptiveColor.OLIVE, AdaptiveColor.AUBURN)
-    val otherColors = AdaptiveColor.entries.filter { !alreadyUsedColors.contains(it) }
-    SubstanceColorsScreenContent(
-        substanceCompanions = listOf(
-            SubstanceCompanion(substanceName = "Substance 1", color = AdaptiveColor.AUBURN),
-            SubstanceCompanion(substanceName = "Substance 2", color = AdaptiveColor.BLUE),
-            SubstanceCompanion(
-                substanceName = "Substance with longer 3",
-                color = AdaptiveColor.YELLOW
-            ),
-            SubstanceCompanion(substanceName = "Substance 4", color = AdaptiveColor.OLIVE),
-        ),
-        updateColor = { _, _ -> },
-        alreadyUsedColors = alreadyUsedColors,
-        otherColors = otherColors
-
-    )
+  val alreadyUsedColors = listOf(AdaptiveColor.OLIVE, AdaptiveColor.AUBURN)
+  val otherColors = AdaptiveColor.entries.filter { !alreadyUsedColors.contains(it) }
+  SubstanceColorsScreenContent(
+      substanceCompanions =
+          listOf(
+              SubstanceCompanion(substanceName = "Substance 1", color = AdaptiveColor.AUBURN),
+              SubstanceCompanion(substanceName = "Substance 2", color = AdaptiveColor.BLUE),
+              SubstanceCompanion(
+                  substanceName = "Substance with longer 3",
+                  color = AdaptiveColor.YELLOW,
+              ),
+              SubstanceCompanion(substanceName = "Substance 4", color = AdaptiveColor.OLIVE),
+          ),
+      updateColor = { _, _ -> },
+      alreadyUsedColors = alreadyUsedColors,
+      otherColors = otherColors,
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -119,51 +120,46 @@ fun SubstanceColorsScreenContent(
     onImport: () -> Unit = {},
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Substance colors") },
-                actions = {
-                    IconButton(onClick = onImport) {
-                        Icon(Icons.Outlined.FileDownload, contentDescription = "Import colors")
-                    }
-                    IconButton(onClick = onShare) {
-                        Icon(Icons.Outlined.Share, contentDescription = "Share colors")
-                    }
-                }
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .padding(padding)
-                .padding(horizontal = horizontalPadding)
-                .fillMaxSize()
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Substance colors") },
+            actions = {
+              IconButton(onClick = onImport) {
+                Icon(Icons.Outlined.FileDownload, contentDescription = "Import colors")
+              }
+              IconButton(onClick = onShare) {
+                Icon(Icons.Outlined.Share, contentDescription = "Share colors")
+              }
+            },
+        )
+      },
+      snackbarHost = { SnackbarHost(snackbarHostState) },
+  ) { padding ->
+    LazyColumn(
+        modifier = Modifier.padding(padding).padding(horizontal = horizontalPadding).fillMaxSize()
+    ) {
+      items(substanceCompanions, key = { it.substanceName }) { substanceCompanion ->
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            items(substanceCompanions, key = { it.substanceName }) { substanceCompanion ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 5.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = substanceCompanion.substanceName,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    ColorPicker(
-                        selectedColor = substanceCompanion.color,
-                        onChangeOfColor = {
-                            updateColor(it, substanceCompanion.substanceName)
-                        },
-                        alreadyUsedColors = alreadyUsedColors,
-                        otherColors = otherColors
-                    )
-                }
-                HorizontalDivider()
-            }
+          Text(
+              text = substanceCompanion.substanceName,
+              style = MaterialTheme.typography.titleMedium,
+          )
+          ColorPicker(
+              selectedColor = substanceCompanion.color,
+              onChangeOfColor = {
+                updateColor(it, substanceCompanion.substanceName)
+              },
+              alreadyUsedColors = alreadyUsedColors,
+              otherColors = otherColors,
+          )
         }
+        HorizontalDivider()
+      }
     }
+  }
 }

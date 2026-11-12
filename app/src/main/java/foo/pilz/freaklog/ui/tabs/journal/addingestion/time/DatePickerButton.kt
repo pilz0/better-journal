@@ -41,29 +41,27 @@ fun DatePickerButton(
     localDateTime: LocalDateTime,
     onChange: (LocalDateTime) -> Unit,
     dateString: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
-    val dialogTheme =
-        if (isSystemInDarkTheme()) R.style.DialogThemeDark else R.style.DialogThemeLight
-    val datePickerDialog = DatePickerDialog(
-        context,
-        dialogTheme,
-        { _: DatePicker, newYear: Int, newMonth: Int, newDay: Int ->
-            onChange(
-                localDateTime
-                    .withYear(newYear)
-                    .withMonth(newMonth + 1)
-                    .withDayOfMonth(newDay)
-            )
-        }, localDateTime.year, localDateTime.monthValue - 1, localDateTime.dayOfMonth
+  val context = LocalContext.current
+  val dialogTheme = if (isSystemInDarkTheme()) R.style.DialogThemeDark else R.style.DialogThemeLight
+  val datePickerDialog =
+      DatePickerDialog(
+          context,
+          dialogTheme,
+          { _: DatePicker, newYear: Int, newMonth: Int, newDay: Int ->
+            onChange(localDateTime.withYear(newYear).withMonth(newMonth + 1).withDayOfMonth(newDay))
+          },
+          localDateTime.year,
+          localDateTime.monthValue - 1,
+          localDateTime.dayOfMonth,
+      )
+  OutlinedButton(onClick = datePickerDialog::show, modifier = modifier.clearAndSetSemantics {}) {
+    Icon(
+        Icons.Outlined.Event,
+        contentDescription = "Open calendar",
     )
-    OutlinedButton(onClick = datePickerDialog::show, modifier = modifier.clearAndSetSemantics {  }) {
-        Icon(
-            Icons.Outlined.Event,
-            contentDescription = "Open calendar"
-        )
-        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-        Text(dateString)
-    }
+    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+    Text(dateString)
+  }
 }

@@ -31,80 +31,87 @@ fun AddCustomSubstanceScreen(
     navigateToRisksEditor: (customSubstanceId: Int) -> Unit,
     viewModel: AddCustomSubstanceViewModel = hiltViewModel(),
 ) {
-    var isShowingDiscardDialog by remember { mutableStateOf(false) }
-    val substance = viewModel.substanceFlow.collectAsStateWithLifecycle().value
-    val id = viewModel.idFlow.collectAsStateWithLifecycle().value
+  var isShowingDiscardDialog by remember { mutableStateOf(false) }
+  val substance = viewModel.substanceFlow.collectAsStateWithLifecycle().value
+  val id = viewModel.idFlow.collectAsStateWithLifecycle().value
 
-    BackHandler { isShowingDiscardDialog = true }
+  BackHandler { isShowingDiscardDialog = true }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Add custom substance") },
-                navigationIcon = {
-                    IconButton(onClick = { isShowingDiscardDialog = true }) {
-                        Icon(Icons.Default.ChevronLeft, contentDescription = "Back")
-                    }
-                },
-            )
-        },
-    ) { padding ->
-        CustomSubstanceEditorContent(
-            padding = padding,
-            name = viewModel.nameFlow.collectAsStateWithLifecycle().value,
-            onNameChange = viewModel::onNameChange,
-            units = viewModel.unitsFlow.collectAsStateWithLifecycle().value,
-            onUnitsChange = viewModel::onUnitsChange,
-            summary = viewModel.summaryFlow.collectAsStateWithLifecycle().value,
-            onSummaryChange = viewModel::onSummaryChange,
-            category = viewModel.categoryFlow.collectAsStateWithLifecycle().value,
-            onCategoryChange = viewModel::onCategoryChange,
-            onNavigateToRoutes = id?.let {
-                { navigateToCustomDurationScreen(it, viewModel.nameFlow.value) }
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Add custom substance") },
+            navigationIcon = {
+              IconButton(onClick = { isShowingDiscardDialog = true }) {
+                Icon(Icons.Default.ChevronLeft, contentDescription = "Back")
+              }
             },
-            routesCount = substance?.roaInfos?.size ?: 0,
-            onNavigateToCategories = id?.let { { navigateToCategoriesPicker(it) } },
-            categoriesCount = substance?.categories?.size ?: 0,
-            onNavigateToInteractions = id?.let { { navigateToInteractionsList(it) } },
-            interactionsCount = substance?.interactions?.size ?: 0,
-            onNavigateToTolerance = id?.let { { navigateToToleranceEditor(it) } },
-            toleranceFilled = substance?.let { s ->
-                s.substance.toleranceFull != null ||
-                        s.substance.toleranceHalf != null ||
-                        s.substance.toleranceZero != null ||
-                        s.crossTolerances.isNotEmpty()
-            } ?: false,
-            onNavigateToRisks = id?.let { { navigateToRisksEditor(it) } },
-            risksFilled = substance?.let { s ->
-                s.substance.effectsText != null ||
-                        s.substance.generalRisks != null ||
-                        s.substance.longTermRisks != null
-            } ?: false,
         )
+      },
+  ) { padding ->
+    CustomSubstanceEditorContent(
+        padding = padding,
+        name = viewModel.nameFlow.collectAsStateWithLifecycle().value,
+        onNameChange = viewModel::onNameChange,
+        units = viewModel.unitsFlow.collectAsStateWithLifecycle().value,
+        onUnitsChange = viewModel::onUnitsChange,
+        summary = viewModel.summaryFlow.collectAsStateWithLifecycle().value,
+        onSummaryChange = viewModel::onSummaryChange,
+        category = viewModel.categoryFlow.collectAsStateWithLifecycle().value,
+        onCategoryChange = viewModel::onCategoryChange,
+        onNavigateToRoutes =
+            id?.let {
+              { navigateToCustomDurationScreen(it, viewModel.nameFlow.value) }
+            },
+        routesCount = substance?.roaInfos?.size ?: 0,
+        onNavigateToCategories = id?.let { { navigateToCategoriesPicker(it) } },
+        categoriesCount = substance?.categories?.size ?: 0,
+        onNavigateToInteractions = id?.let { { navigateToInteractionsList(it) } },
+        interactionsCount = substance?.interactions?.size ?: 0,
+        onNavigateToTolerance = id?.let { { navigateToToleranceEditor(it) } },
+        toleranceFilled =
+            substance?.let { s ->
+              s.substance.toleranceFull != null ||
+                  s.substance.toleranceHalf != null ||
+                  s.substance.toleranceZero != null ||
+                  s.crossTolerances.isNotEmpty()
+            } ?: false,
+        onNavigateToRisks = id?.let { { navigateToRisksEditor(it) } },
+        risksFilled =
+            substance?.let { s ->
+              s.substance.effectsText != null ||
+                  s.substance.generalRisks != null ||
+                  s.substance.longTermRisks != null
+            } ?: false,
+    )
 
-        AnimatedVisibility(visible = isShowingDiscardDialog) {
-            AlertDialog(
-                onDismissRequest = { isShowingDiscardDialog = false },
-                title = { Text("Discard substance?") },
-                text = { Text("Anything you have entered will be lost.") },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            isShowingDiscardDialog = false
-                            viewModel.deleteDraft()
-                            navigateBack()
-                        },
-                    ) { Text("Discard") }
+    AnimatedVisibility(visible = isShowingDiscardDialog) {
+      AlertDialog(
+          onDismissRequest = { isShowingDiscardDialog = false },
+          title = { Text("Discard substance?") },
+          text = { Text("Anything you have entered will be lost.") },
+          confirmButton = {
+            TextButton(
+                onClick = {
+                  isShowingDiscardDialog = false
+                  viewModel.deleteDraft()
+                  navigateBack()
                 },
-                dismissButton = {
-                    TextButton(onClick = {
-                        isShowingDiscardDialog = false
-                        navigateBack()
-                    }) {
-                        Text("Keep")
-                    }
-                },
-            )
-        }
+            ) {
+              Text("Discard")
+            }
+          },
+          dismissButton = {
+            TextButton(
+                onClick = {
+                  isShowingDiscardDialog = false
+                  navigateBack()
+                }
+            ) {
+              Text("Keep")
+            }
+          },
+      )
     }
+  }
 }

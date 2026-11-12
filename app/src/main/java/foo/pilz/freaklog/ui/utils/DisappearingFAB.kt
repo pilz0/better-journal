@@ -12,11 +12,11 @@ fun DisappearingFAB(
     visible: Boolean,
     content: @Composable () -> Unit,
 ) {
-    AnimatedVisibility(
-        visible,
-        enter = slideInVertically(initialOffsetY = { 80 }) + fadeIn(),
-        exit = slideOutVertically(targetOffsetY = { 80 }) + fadeOut(),
-    ) {
-        content()
-    }
+  AnimatedVisibility(
+      visible,
+      enter = slideInVertically(initialOffsetY = { 80 }) + fadeIn(),
+      exit = slideOutVertically(targetOffsetY = { 80 }) + fadeOut(),
+  ) {
+    content()
+  }
 }

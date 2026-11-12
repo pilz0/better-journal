@@ -11,12 +11,14 @@
 ---
 
 ### Task 1: Dose Math Expressions & Volumetric Utilities
+
 - Create `DoseExpression.kt` with recursive-descent math parser (`evaluateNumericExpression`).
 - Create `VolumetricInput.kt` with volume/concentration parser and formatters.
 - Integrate into dose viewmodels and validation logic.
 - Unit tests: `DoseExpressionTest.kt`, `VolumetricInputTest.kt`.
 
 ### Task 2: Ingestion Category (Medical vs Recreational Tagging)
+
 - Add `IngestionCategory` enum (`MEDICINAL`, `RECREATIONAL`).
 - Update `Ingestion`, `CustomUnit`, `SubstanceCompanion` entities.
 - Room migration and Dao updates.
@@ -24,12 +26,14 @@
 - Unit tests for category resolution and migration.
 
 ### Task 3: Intake Limits & Real-Time Harm-Reduction Banners
+
 - Add `IntakeLimit` entity, DAO, and repository.
 - Implement `IntakeLimitLogic` (sliding window calculations, unit conversions) and `IntakeLimitChecker`.
 - Add `IntakeLimitBanner` to dose logging and `IntakeLimitsScreen` in Settings.
 - Unit tests for intake limit evaluation and time window math.
 
 ### Task 4: Granular Export Filtering, Encryption & Automated Backups
+
 - Add `ExportFilter` to selectively filter exports.
 - Implement `ExportEncryption` (AES-GCM / PBKDF2).
 - Implement `BackupWorker` and `BackupPasswordStore`.
@@ -37,34 +41,40 @@
 - Unit tests for export encryption, decryption, and filtering.
 
 ### Task 5: Active Experience Live Notification Tracker
+
 - Implement `TimelineNotificationService`, notification channel, and `PhaseCalculator`.
 - Implement `TimelineBitmapRenderer` for live graph in status bar notification.
 - Register service in `AndroidManifest.xml` and wire start/stop lifecycle.
 - Unit tests for phase calculation and timeline notification model.
 
 ### Task 6: Experience Summary Card Image Sharing
+
 - Implement `ExperienceShareRenderer` (off-screen Compose view to PNG bitmap).
 - Create `ShareableExperienceContent` composable card.
 - Wire into experience options menu.
 
 ### Task 7: Comprehensive Custom Substance Schema & File Sharing
+
 - Add `CustomRoa`, `CustomRoaDose`, `CustomRoaDuration`, `CustomInteraction`, `CustomCrossTolerance` entities and DAOs.
 - Add `SharedSubstance` serialization models, exporter, and importer with collision handling.
 - Expand custom substance creation and editing screens.
 - Unit tests for substance serialization and import/collision flows.
 
 ### Task 8: Health Connect & Vitals Overlays
+
 - Implement Health Connect permissions and query wrappers (`healthConnect.kt`).
 - Query heart rate and sleep samples.
 - Render heart rate curve overlay in timeline.
 - Add blood pressure and pulse tracking screens.
 
 ### Task 9: NFC Transfer & Keychain
+
 - Implement `NfcCrypto`, `NdefHostApduService`, `NfcTransferController`.
 - Implement `NFCActivity`, popup dialogs, and Keychain management screen.
 - Register NFC intents in `AndroidManifest.xml`.
 
 ### Task 10: UI Extras: Excel Stats Skin & Condition AST Achievement Engine
+
 - Implement `ExcelStatsSkin` and skin switcher.
 - Implement `ConditionLexer`, `ConditionParser`, `ConditionAst`, `ConditionEvaluator`, and `AchievementEngine`.
 - Unit tests for AST parsing and achievement evaluation.

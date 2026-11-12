@@ -25,11 +25,10 @@ import java.time.Instant
 
 @Entity(indices = [Index(value = ["creationDate"]), Index(value = ["isPreferred"])])
 data class Spray(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
     val contentInMl: Double,
     val numSprays: Double,
     val creationDate: Instant = Instant.now(),
-    val isPreferred: Boolean = false
+    val isPreferred: Boolean = false,
 )

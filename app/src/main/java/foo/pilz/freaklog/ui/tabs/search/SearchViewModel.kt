@@ -26,106 +26,151 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.substances.repositories.SearchRepository
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
+import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
-class SearchViewModel @Inject constructor(
+class SearchViewModel(
     experienceRepo: ExperienceRepository,
     substanceRepo: SubstanceRepository,
-    searchRepository: SearchRepository
+    searchRepository: SearchRepository,
+    defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
-    private val _searchTextFlow = MutableStateFlow("")
-    val searchTextFlow = _searchTextFlow.asStateFlow()
+  @Inject
+  constructor(
+      experienceRepo: ExperienceRepository,
+      substanceRepo: SubstanceRepository,
+      searchRepository: SearchRepository,
+  ) : this(
+      experienceRepo = experienceRepo,
+      substanceRepo = substanceRepo,
+      searchRepository = searchRepository,
+      defaultDispatcher = Dispatchers.Default,
+  )
 
-    private val filtersFlow = MutableStateFlow(emptyList<String>())
+  private val _searchTextFlow = MutableStateFlow("")
+  val searchTextFlow = _searchTextFlow.asStateFlow()
 
-    private val customChipName = "custom"
+  private val filtersFlow = MutableStateFlow(emptyList<String>())
 
-    fun onFilterTapped(filterName: String) {
-        viewModelScope.launch {
-            if (filterName == customChipName) {
-                isShowingCustomSubstancesFlow.emit(isShowingCustomSubstancesFlow.value.not())
-            }
-            val filters = filtersFlow.value.toMutableList()
-            if (filters.contains(filterName)) {
-                filters.remove(filterName)
-            } else {
-                filters.add(filterName)
-            }
-            filtersFlow.emit(filters)
-        }
+  private val customChipName = "custom"
+
+  fun onFilterTapped(filterName: String) {
+    viewModelScope.launch {
+      if (filterName == customChipName) {
+        isShowingCustomSubstancesFlow.emit(isShowingCustomSubstancesFlow.value.not())
+      }
+      val filters = filtersFlow.value.toMutableList()
+      if (filters.contains(filterName)) {
+        filters.remove(filterName)
+      } else {
+        filters.add(filterName)
+      }
+      filtersFlow.emit(filters)
     }
+  }
 
-    private val isShowingCustomSubstancesFlow = MutableStateFlow(false)
+  private val isShowingCustomSubstancesFlow = MutableStateFlow(false)
 
-    val chipCategoriesFlow: StateFlow<List<CategoryChipModel>> = filtersFlow.map { filters ->
-        substanceRepo.getAllCategories().map { category ->
-            val isActive = filters.contains(category.name)
-            CategoryChipModel(
-                chipName = category.name, color = category.color, isActive = isActive
+  val chipCategoriesFlow: StateFlow<List<CategoryChipModel>> =
+      filtersFlow
+          .map { filters ->
+            substanceRepo.getAllCategories().map { category ->
+              val isActive = filters.contains(category.name)
+              CategoryChipModel(
+                  chipName = category.name,
+                  color = category.color,
+                  isActive = isActive,
+              )
+            }
+          }
+          .combine(isShowingCustomSubstancesFlow) { chips, isShowingCustom ->
+            val newChips = chips.toMutableList()
+            newChips.add(
+                0,
+                CategoryChipModel(
+                    chipName = customChipName,
+                    color = customColor,
+                    isActive = isShowingCustom,
+                ),
             )
-        }
-    }.combine(isShowingCustomSubstancesFlow) { chips, isShowingCustom ->
-        val newChips = chips.toMutableList()
-        newChips.add(
-            0, CategoryChipModel(
-                chipName = customChipName, color = customColor, isActive = isShowingCustom
-            )
-        )
-        return@combine newChips
-    }.stateIn(
-        initialValue = emptyList(),
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+            return@combine newChips
+          }
+          .stateIn(
+              initialValue = emptyList(),
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+          )
 
-    val filteredSubstancesFlow = combine(searchTextFlow, filtersFlow, experienceRepo.getSortedLastUsedSubstanceNamesFlow(limit = 200)) { searchText, filters, recents ->
-        return@combine searchRepository.getMatchingSubstances(searchText = searchText, filterCategories = filters, recentlyUsedSubstanceNamesSorted = recents).map { it.toSubstanceModel() }
-    }.stateIn(
-        initialValue = emptyList(),
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
-
-    fun filterSubstances(searchText: String) {
-        viewModelScope.launch {
-            _searchTextFlow.emit(searchText)
-        }
-    }
-
-    private val customSubstancesFlow = experienceRepo.getCustomSubstancesFlow()
-
-    val filteredCustomSubstancesFlow =
-        customSubstancesFlow.combine(searchTextFlow) { customSubstances, searchText ->
-            customSubstances.filter { custom ->
-                custom.name.contains(
-                    other = searchText, ignoreCase = true
+  val filteredSubstancesFlow =
+      combine(
+              searchTextFlow,
+              filtersFlow,
+              experienceRepo.getSortedLastUsedSubstanceNamesFlow(limit = 200),
+          ) { searchText, filters, recents ->
+            searchRepository
+                .getMatchingSubstances(
+                    searchText = searchText,
+                    filterCategories = filters,
+                    recentlyUsedSubstanceNamesSorted = recents,
                 )
+                .map { it.toSubstanceModel() }
+          }
+          .flowOn(defaultDispatcher)
+          .stateIn(
+              initialValue = emptyList(),
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+          )
+
+  fun filterSubstances(searchText: String) {
+    viewModelScope.launch {
+      _searchTextFlow.emit(searchText)
+    }
+  }
+
+  private val customSubstancesFlow = experienceRepo.getCustomSubstancesFlow()
+
+  val filteredCustomSubstancesFlow =
+      customSubstancesFlow
+          .combine(searchTextFlow) { customSubstances, searchText ->
+            customSubstances.filter { custom ->
+              custom.name.contains(
+                  other = searchText,
+                  ignoreCase = true,
+              )
             }
-        }.stateIn(
-            initialValue = emptyList(),
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000)
-        )
+          }
+          .flowOn(defaultDispatcher)
+          .stateIn(
+              initialValue = emptyList(),
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+          )
 }
 
 val customColor = Color.Cyan
 
 @Immutable
 data class CategoryChipModel(
-    val chipName: String, val color: Color, val isActive: Boolean
+    val chipName: String,
+    val color: Color,
+    val isActive: Boolean,
 )
 
 @Immutable
 data class CategoryModel(
-    val name: String, val color: Color
+    val name: String,
+    val color: Color,
 )

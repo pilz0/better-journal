@@ -1,6 +1,6 @@
 [versions]
 activityCompose = "1.13.0"
-agp = "9.5.0"
+agp = "9.5.1"
 assertk = "0.28.1"
 biometric = "1.1.0"
 compose = "2.10.1"
@@ -28,7 +28,7 @@ ksp = "2.3.12"
 lifecycleRuntimeKtx = "2.11.0"
 material3AdaptiveNavigationSuiteAndroid = "1.4.0"
 # --- Test infrastructure ---
-mockk = "1.14.11"
+mockk = "1.14.12"
 # The `mockwebserver` artifact keeps the `okhttp3.mockwebserver` package in 5.x;
 # `mockwebserver3` is the new API and would be a breaking migration.
 mockwebserver = "5.5.1"

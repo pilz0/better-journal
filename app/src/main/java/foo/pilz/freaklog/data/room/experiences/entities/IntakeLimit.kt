@@ -6,16 +6,19 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.time.Instant
 
-enum class IntakeLimitType { DOSE, COUNT }
+enum class IntakeLimitType {
+  DOSE,
+  COUNT,
+}
 
 @Entity(
-    indices = [
-        Index(value = ["substanceName"]),
-    ],
+    indices =
+        [
+            Index(value = ["substanceName"]),
+        ],
 )
 data class IntakeLimit(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val substanceName: String,
     val creationDate: Instant = Instant.now(),
     var limitType: IntakeLimitType,
@@ -24,13 +27,13 @@ data class IntakeLimit(
     var maxCount: Int?,
     var windowSeconds: Long,
     var warningPercent: Int,
-    @ColumnInfo(defaultValue = "1")
-    var isEnabled: Boolean = true,
+    @ColumnInfo(defaultValue = "1") var isEnabled: Boolean = true,
 ) {
-    companion object {
-        const val DEFAULT_WARNING_PERCENT = 80
+  companion object {
+    const val DEFAULT_WARNING_PERCENT = 80
 
-        val caffeineSample = IntakeLimit(
+    val caffeineSample =
+        IntakeLimit(
             substanceName = "Caffeine",
             limitType = IntakeLimitType.DOSE,
             maxDose = 400.0,
@@ -40,7 +43,8 @@ data class IntakeLimit(
             warningPercent = 80,
         )
 
-        val nicotineSample = IntakeLimit(
+    val nicotineSample =
+        IntakeLimit(
             substanceName = "Nicotine",
             limitType = IntakeLimitType.COUNT,
             maxDose = null,
@@ -49,5 +53,5 @@ data class IntakeLimit(
             windowSeconds = 2_592_000,
             warningPercent = 80,
         )
-    }
+  }
 }

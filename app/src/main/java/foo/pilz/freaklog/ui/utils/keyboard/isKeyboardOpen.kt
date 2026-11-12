@@ -17,4 +17,3 @@
  */
 
 package foo.pilz.freaklog.ui.utils.keyboard
-

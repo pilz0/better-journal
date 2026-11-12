@@ -53,109 +53,111 @@ import foo.pilz.freaklog.ui.theme.horizontalPadding
 @Composable
 fun AddSprayScreen(
     viewModel: SprayCalculatorViewModel = hiltViewModel(),
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
 ) {
-    AddSprayScreenContent(
-        onSave = { name, contentInMl, numSprays ->
-            viewModel.addSpray(name, contentInMl, numSprays)
-            navigateBack()
-        }
-    )
+  AddSprayScreenContent(
+      onSave = { name, contentInMl, numSprays ->
+        viewModel.addSpray(name, contentInMl, numSprays)
+        navigateBack()
+      }
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddSprayScreenContent(
-    onSave: (name: String, contentInMl: Double, numSprays: Double) -> Unit
-) {
-    var name by remember { mutableStateOf("") }
-    var sizeInMl by remember { mutableStateOf("") }
-    var numSprays by remember { mutableStateOf("") }
+fun AddSprayScreenContent(onSave: (name: String, contentInMl: Double, numSprays: Double) -> Unit) {
+  var name by remember { mutableStateOf("") }
+  var sizeInMl by remember { mutableStateOf("") }
+  var numSprays by remember { mutableStateOf("") }
 
-    val sizeInMlValue = sizeInMl.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it.isFinite() }
-    val numSpraysValue = numSprays.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it.isFinite() }
-    val canSave = name.isNotBlank() && 
-                  sizeInMlValue != null && sizeInMlValue > 0 && 
-                  numSpraysValue != null && numSpraysValue > 0
+  val sizeInMlValue = sizeInMl.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it.isFinite() }
+  val numSpraysValue = numSprays.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it.isFinite() }
+  val canSave =
+      name.isNotBlank() &&
+          sizeInMlValue != null &&
+          sizeInMlValue > 0 &&
+          numSpraysValue != null &&
+          numSpraysValue > 0
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Add Spray") },
-                actions = {
-                    if (canSave) {
-                        Button(
-                            onClick = { onSave(name.trim(), sizeInMlValue, numSpraysValue) },
-                            modifier = Modifier.padding(end = 8.dp)
-                        ) {
-                            Text("Save")
-                        }
-                    }
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Add Spray") },
+            actions = {
+              if (canSave) {
+                Button(
+                    onClick = { onSave(name.trim(), sizeInMlValue, numSpraysValue) },
+                    modifier = Modifier.padding(end = 8.dp),
+                ) {
+                  Text("Save")
                 }
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
+              }
+            },
+        )
+      }
+  ) { padding ->
+    Column(
+        modifier =
+            Modifier.fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = horizontalPadding)
                 .verticalScroll(rememberScrollState())
+    ) {
+      CardWithTitle(title = "Name") {
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Spray Name") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+        )
+      }
+
+      Spacer(modifier = Modifier.height(16.dp))
+
+      CardWithTitle(title = "Size") {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            CardWithTitle(title = "Name") {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Spray Name") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            CardWithTitle(title = "Size") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedTextField(
-                        value = sizeInMl,
-                        onValueChange = { sizeInMl = it },
-                        label = { Text("Volume") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.weight(1f)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("ml", style = MaterialTheme.typography.titleMedium)
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = numSprays,
-                    onValueChange = { numSprays = it },
-                    label = { Text("Number of sprays") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "Note: fill it into the spray bottle and count the number of sprays. To make sure the last couple of sprays still work properly use a small spray bottle (5ml) and fill it completely.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
+          OutlinedTextField(
+              value = sizeInMl,
+              onValueChange = { sizeInMl = it },
+              label = { Text("Volume") },
+              keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+              modifier = Modifier.weight(1f),
+          )
+          Spacer(modifier = Modifier.width(8.dp))
+          Text("ml", style = MaterialTheme.typography.titleMedium)
         }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = numSprays,
+            onValueChange = { numSprays = it },
+            label = { Text("Number of sprays") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text =
+                "Note: fill it into the spray bottle and count the number of sprays. To make sure the last couple of sprays still work properly use a small spray bottle (5ml) and fill it completely.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+
+      Spacer(modifier = Modifier.height(16.dp))
     }
+  }
 }
 
 @Preview
 @Composable
 fun AddSprayScreenPreview() {
-    AddSprayScreenContent(onSave = { _, _, _ -> })
+  AddSprayScreenContent(onSave = { _, _, _ -> })
 }

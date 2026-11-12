@@ -15,31 +15,36 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.room.webhooks.WebhookRepository
 import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
+import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
-class WebhooksListViewModel @Inject constructor(
+class WebhooksListViewModel
+@Inject
+constructor(
     private val webhookRepository: WebhookRepository,
 ) : ViewModel() {
 
-    val webhooks = webhookRepository.getAllFlow().stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
+  val webhooks =
+      webhookRepository
+          .getAllFlow()
+          .stateIn(
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+              initialValue = emptyList(),
+          )
 
-    fun toggleEnabled(webhook: Webhook) {
-        viewModelScope.launch {
-            webhookRepository.update(webhook.copy(isEnabled = !webhook.isEnabled))
-        }
+  fun toggleEnabled(webhook: Webhook) {
+    viewModelScope.launch {
+      webhookRepository.update(webhook.copy(isEnabled = !webhook.isEnabled))
     }
+  }
 
-    fun delete(webhook: Webhook) {
-        viewModelScope.launch {
-            webhookRepository.delete(webhook)
-        }
+  fun delete(webhook: Webhook) {
+    viewModelScope.launch {
+      webhookRepository.delete(webhook)
     }
+  }
 }

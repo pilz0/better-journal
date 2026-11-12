@@ -31,23 +31,24 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChooseDoseCustomUnitViewModelTest {
 
-    private val testDispatcher = StandardTestDispatcher()
-    private val experienceRepository = mockk<ExperienceRepository>()
-    private val substanceRepository = mockk<SubstanceRepository>()
+  private val testDispatcher = StandardTestDispatcher()
+  private val experienceRepository = mockk<ExperienceRepository>()
+  private val substanceRepository = mockk<SubstanceRepository>()
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(testDispatcher)
-    }
+  @Before
+  fun setUp() {
+    Dispatchers.setMain(testDispatcher)
+  }
 
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+  @After
+  fun tearDown() {
+    Dispatchers.resetMain()
+  }
 
-    @Test
-    fun `init loads custom unit and validates dose`() {
-        val customUnit = CustomUnit(
+  @Test
+  fun `init loads custom unit and validates dose`() {
+    val customUnit =
+        CustomUnit(
             id = 5,
             substanceName = "LSD",
             name = "Drop",
@@ -61,65 +62,67 @@ class ChooseDoseCustomUnitViewModelTest {
             originalUnit = "ug",
             note = "Dropper bottle",
         )
-        coEvery { experienceRepository.getCustomUnit(5) } returns customUnit
-        every { substanceRepository.getSubstance("LSD") } returns null
+    coEvery { experienceRepository.getCustomUnit(5) } returns customUnit
+    every { substanceRepository.getSubstance("LSD") } returns null
 
-        val viewModel = ChooseDoseCustomUnitViewModel(
+    val viewModel =
+        ChooseDoseCustomUnitViewModel(
             experienceRepo = experienceRepository,
             substanceRepo = substanceRepository,
             state = SavedStateHandle(mapOf("customUnitId" to 5)),
         )
-        testDispatcher.scheduler.advanceUntilIdle()
+    testDispatcher.scheduler.advanceUntilIdle()
 
-        assertEquals(customUnit, viewModel.customUnit)
+    assertEquals(customUnit, viewModel.customUnit)
 
-        // Invalid initial dose
-        assertFalse(viewModel.isValidDose)
+    // Invalid initial dose
+    assertFalse(viewModel.isValidDose)
 
-        // Negative dose is rejected
-        viewModel.onDoseTextChange("-1")
-        assertFalse(viewModel.isValidDose)
+    // Negative dose is rejected
+    viewModel.onDoseTextChange("-1")
+    assertFalse(viewModel.isValidDose)
 
-        // Zero dose is rejected
-        viewModel.onDoseTextChange("0")
-        assertFalse(viewModel.isValidDose)
+    // Zero dose is rejected
+    viewModel.onDoseTextChange("0")
+    assertFalse(viewModel.isValidDose)
 
-        // Valid positive dose is accepted
-        viewModel.onDoseTextChange("2")
-        assertTrue(viewModel.isValidDose)
-        assertEquals(2.0, viewModel.dose ?: 0.0, 0.001)
+    // Valid positive dose is accepted
+    viewModel.onDoseTextChange("2")
+    assertTrue(viewModel.isValidDose)
+    assertEquals(2.0, viewModel.dose ?: 0.0, 0.001)
 
-        // When estimate is off, invalid deviation does not invalidate the dose
-        viewModel.isEstimate = false
-        viewModel.onEstimatedDoseDeviationChange("-0.5")
-        assertTrue(viewModel.isValidDose)
+    // When estimate is off, invalid deviation does not invalidate the dose
+    viewModel.isEstimate = false
+    viewModel.onEstimatedDoseDeviationChange("-0.5")
+    assertTrue(viewModel.isValidDose)
 
-        // When estimate is on, negative deviation is rejected
-        viewModel.isEstimate = true
-        assertFalse(viewModel.isValidDose)
+    // When estimate is on, negative deviation is rejected
+    viewModel.isEstimate = true
+    assertFalse(viewModel.isValidDose)
 
-        // Valid deviation is accepted
-        viewModel.onEstimatedDoseDeviationChange("0.5")
-        assertTrue(viewModel.isValidDose)
-        assertEquals("2±0.5 drops x 100 ug = 200±50 ug", viewModel.customUnitCalculationText)
+    // Valid deviation is accepted
+    viewModel.onEstimatedDoseDeviationChange("0.5")
+    assertTrue(viewModel.isValidDose)
+    assertEquals("2±0.5 drops x 100 ug = 200±50 ug", viewModel.customUnitCalculationText)
 
-        // Reset estimate to false for standard calculation text
-        viewModel.isEstimate = false
-        assertEquals("2 drops x 100 ug = 200 ug", viewModel.customUnitCalculationText)
+    // Reset estimate to false for standard calculation text
+    viewModel.isEstimate = false
+    assertEquals("2 drops x 100 ug = 200 ug", viewModel.customUnitCalculationText)
 
-        // Unknown dose custom unit produces null calculation text instead of concatenating "= null"
-        val unknownDoseUnit = customUnit.copy(dose = null)
-        coEvery { experienceRepository.getCustomUnit(6) } returns unknownDoseUnit
-        val unknownDoseViewModel = ChooseDoseCustomUnitViewModel(
+    // Unknown dose custom unit produces null calculation text instead of concatenating "= null"
+    val unknownDoseUnit = customUnit.copy(dose = null)
+    coEvery { experienceRepository.getCustomUnit(6) } returns unknownDoseUnit
+    val unknownDoseViewModel =
+        ChooseDoseCustomUnitViewModel(
             experienceRepo = experienceRepository,
             substanceRepo = substanceRepository,
             state = SavedStateHandle(mapOf("customUnitId" to 6)),
         )
-        testDispatcher.scheduler.advanceUntilIdle()
-        unknownDoseViewModel.onDoseTextChange("2")
-        assertNull(unknownDoseViewModel.customUnitCalculationText)
+    testDispatcher.scheduler.advanceUntilIdle()
+    unknownDoseViewModel.onDoseTextChange("2")
+    assertNull(unknownDoseViewModel.customUnitCalculationText)
 
-        unknownDoseViewModel.viewModelScope.cancel()
-        viewModel.viewModelScope.cancel()
-    }
+    unknownDoseViewModel.viewModelScope.cancel()
+    viewModel.viewModelScope.cancel()
+  }
 }

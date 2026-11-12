@@ -31,18 +31,20 @@ import foo.pilz.freaklog.ui.theme.verticalPaddingCards
 
 @Composable
 fun SectionWithTitle(title: String, content: @Composable () -> Unit) {
-    ElevatedCard(
-        modifier = Modifier.padding(
-            horizontal = horizontalPadding,
-            vertical = verticalPaddingCards
-        ).fillMaxWidth()
-    ) {
-        Text(
-            color = MaterialTheme.colorScheme.onSurface,
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            modifier =  Modifier.padding(horizontal = horizontalPadding, vertical = 8.dp)
-        )
-        content()
-    }
+  ElevatedCard(
+      modifier =
+          Modifier.padding(
+                  horizontal = horizontalPadding,
+                  vertical = verticalPaddingCards,
+              )
+              .fillMaxWidth()
+  ) {
+    Text(
+        color = MaterialTheme.colorScheme.onSurface,
+        text = title,
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 8.dp),
+    )
+    content()
+  }
 }

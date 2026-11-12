@@ -102,56 +102,57 @@ import foo.pilz.freaklog.ui.theme.horizontalPadding
 import foo.pilz.freaklog.ui.utils.HapticType
 import foo.pilz.freaklog.ui.utils.getStringOfPattern
 import foo.pilz.freaklog.ui.utils.rememberHaptic
-import kotlinx.coroutines.launch
 import java.time.Instant
+import kotlinx.coroutines.launch
 
 @Preview
 @Composable
 fun SettingsPreview() {
-    SettingsScreen(
-        deleteEverything = {},
-        navigateToFAQ = {},
-        navigateToComboSettings = {},
-        navigateToSubstanceColors = {},
-        navigateToCustomUnits = {},
-        navigateToCustomFormulations = {},
-        navigateToReminders = {},
-        navigateToWebhook = {},
-        navigateToFreakQueryShell = {},
-        importFile = {},
-        exportFile = {},
-        snackbarHostState = remember { SnackbarHostState() },
-        areDosageDotsHidden = false,
-        saveDosageDotsAreHidden = {},
-        isTimelineHidden = false,
-        saveIsTimelineHidden = {},
-        areSubstanceHeightsIndependent = false,
-        saveAreSubstanceHeightsIndependent = {},
-        activateSafer = true,
-        saveActivateSafer = {},
-        isInventoryEnabled = false,
-        saveIsInventoryEnabled = {},
-        isRedoseShown = true,
-        saveRedoseShown = {},
-        redoseOnsetFraction = 1.0f,
-        redoseComeupFraction = 1.0f,
-        redosePeakFraction = 0.5f,
-        saveRedoseFractions = { _, _, _ -> },
-        isHapticFeedbackEnabled = true,
-        isStatsHidden = false,
-        saveIsStatsHidden = {},
-        isDrugsHidden = false,
-        saveIsDrugsHidden = {},
-        saveHapticFeedbackEnabled = {},
-        navigateToAiAssistantSettings = {},
-        aiAssistantEnabled = false,
-        saveAiAssistantEnabled = {},
-        isLockEnabled = false,
-        saveLockEnabled = {},
-        lockTimeOption = foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption.IMMEDIATELY,
-        saveLockTimeOption = {},
-        biometricAvailability = foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAvailability.AVAILABLE,
-        )
+  SettingsScreen(
+      deleteEverything = {},
+      navigateToFAQ = {},
+      navigateToComboSettings = {},
+      navigateToSubstanceColors = {},
+      navigateToCustomUnits = {},
+      navigateToCustomFormulations = {},
+      navigateToReminders = {},
+      navigateToWebhook = {},
+      navigateToFreakQueryShell = {},
+      importFile = {},
+      exportFile = {},
+      snackbarHostState = remember { SnackbarHostState() },
+      areDosageDotsHidden = false,
+      saveDosageDotsAreHidden = {},
+      isTimelineHidden = false,
+      saveIsTimelineHidden = {},
+      areSubstanceHeightsIndependent = false,
+      saveAreSubstanceHeightsIndependent = {},
+      activateSafer = true,
+      saveActivateSafer = {},
+      isInventoryEnabled = false,
+      saveIsInventoryEnabled = {},
+      isRedoseShown = true,
+      saveRedoseShown = {},
+      redoseOnsetFraction = 1.0f,
+      redoseComeupFraction = 1.0f,
+      redosePeakFraction = 0.5f,
+      saveRedoseFractions = { _, _, _ -> },
+      isHapticFeedbackEnabled = true,
+      isStatsHidden = false,
+      saveIsStatsHidden = {},
+      isDrugsHidden = false,
+      saveIsDrugsHidden = {},
+      saveHapticFeedbackEnabled = {},
+      navigateToAiAssistantSettings = {},
+      aiAssistantEnabled = false,
+      saveAiAssistantEnabled = {},
+      isLockEnabled = false,
+      saveLockEnabled = {},
+      lockTimeOption = foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption.IMMEDIATELY,
+      saveLockTimeOption = {},
+      biometricAvailability =
+          foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAvailability.AVAILABLE,
+  )
 }
 
 @Suppress("LongParameterList", "LongMethod")
@@ -174,92 +175,103 @@ fun SettingsScreen(
     navigateToAiAssistantSettings: () -> Unit,
     navigateToHealthSharing: () -> Unit = {},
 ) {
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val vitalsPermissions = remember {
-        HeartRateHealthConnect.permissions +
-            SleepHealthConnect.permissions +
-            BloodPressureHealthConnect.permissions
-    }
-    // The setting only turns on once Health Connect has granted at least one kind of read access.
-    val vitalsPermissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
-        androidx.health.connect.client.PermissionController.createRequestPermissionResultContract()
-    ) { granted ->
-        if (granted.containsAll(HeartRateHealthConnect.permissions) ||
-            granted.containsAll(SleepHealthConnect.permissions) ||
-            granted.containsAll(BloodPressureHealthConnect.permissions)
+  val context = androidx.compose.ui.platform.LocalContext.current
+  val vitalsPermissions = remember {
+    HeartRateHealthConnect.permissions +
+        SleepHealthConnect.permissions +
+        BloodPressureHealthConnect.permissions
+  }
+  // The setting only turns on once Health Connect has granted at least one kind of read access.
+  val vitalsPermissionLauncher =
+      androidx.activity.compose.rememberLauncherForActivityResult(
+          androidx.health.connect.client.PermissionController
+              .createRequestPermissionResultContract()
+      ) { granted ->
+        if (
+            granted.containsAll(HeartRateHealthConnect.permissions) ||
+                granted.containsAll(SleepHealthConnect.permissions) ||
+                granted.containsAll(BloodPressureHealthConnect.permissions)
         ) {
-            viewModel.saveIsVitalsEnabled(true)
+          viewModel.saveIsVitalsEnabled(true)
         } else {
-            viewModel.showMessage("Health Connect permission denied")
+          viewModel.showMessage("Health Connect permission denied")
         }
-    }
-    SettingsScreen(
-        navigateToFAQ = navigateToFAQ,
-        navigateToWebhook = navigateToWebhook,
-        navigateToComboSettings = navigateToComboSettings,
-        navigateToSubstanceColors = navigateToSubstanceColors,
-        navigateToCustomUnits = navigateToCustomUnits,
-        navigateToCustomSubstances = navigateToCustomSubstances,
-        navigateToSubstanceGroups = navigateToSubstanceGroups,
-        navigateToCustomFormulations = navigateToCustomFormulations,
-        navigateToReminders = navigateToReminders,
-        navigateToAchievements = navigateToAchievements,
-        navigateToIntakeLimits = navigateToIntakeLimits,
-        navigateToExportBackup = navigateToExportBackup,
-        navigateToFreakQueryShell = navigateToFreakQueryShell,
-        navigateToAiAssistantSettings = navigateToAiAssistantSettings,
-        navigateToHealthSharing = navigateToHealthSharing,
-        deleteEverything = viewModel::deleteEverything,
-        importFile = viewModel::importFile,
-        exportFile = viewModel::exportFile,
-        snackbarHostState = viewModel.snackbarHostState,
-        areDosageDotsHidden = viewModel.areDosageDotsHiddenFlow.collectAsState().value,
-        saveDosageDotsAreHidden = viewModel::saveDosageDotsAreHidden,
-        isTimelineHidden = viewModel.isTimelineHiddenFlow.collectAsState().value,
-        saveIsTimelineHidden = viewModel::saveIsTimelineHidden,
-        timelineNotificationAutoStart = viewModel.isTimelineNotificationAutoStartFlow.collectAsState().value,
-        saveTimelineNotificationAutoStart = viewModel::saveTimelineNotificationAutoStart,
-        isUltraFunModeEnabled = viewModel.funnyConfigFlow.collectAsState().value.let { it.enableFunny && it.teamsSkin },
-        saveUltraFunModeEnabled = { viewModel.saveFunnyConfig(FunnyConfig(enableFunny = it, teamsSkin = it)) },
-        isVitalsAvailable = remember {
-            HeartRateHealthConnect.isAvailable(context) || BloodPressureHealthConnect.isAvailable(context)
-        },
-        isVitalsEnabled = viewModel.isVitalsEnabledFlow.collectAsState().value,
-        saveIsVitalsEnabled = { enable ->
-            if (enable) vitalsPermissionLauncher.launch(vitalsPermissions) else viewModel.saveIsVitalsEnabled(false)
-        },
-        sleepStagesEnabled = viewModel.sleepStagesEnabledFlow.collectAsState().value,
-        saveSleepStagesEnabled = viewModel::saveSleepStagesEnabled,
-        bloodPressureDisplay = viewModel.bloodPressureDisplayFlow.collectAsState().value,
-        saveBloodPressureDisplay = viewModel::saveBloodPressureDisplay,
-        areSubstanceHeightsIndependent = viewModel.areSubstanceHeightsIndependentFlow.collectAsState().value,
-        saveAreSubstanceHeightsIndependent = viewModel::saveAreSubstanceHeightsIndependent,
-        isStatsHidden = viewModel.isStatsHiddenFlow.collectAsState().value,
-        saveIsStatsHidden = viewModel::saveIsStatsHidden,
-        isDrugsHidden = viewModel.isDrugsHiddenFlow.collectAsState().value,
-        saveIsDrugsHidden = viewModel::saveIsDrugsHidden,
-        activateSafer = viewModel.activateSaferFlow.collectAsState().value,
-        saveActivateSafer = viewModel::saveActivateSafer,
-        isInventoryEnabled = viewModel.isInventoryEnabledFlow.collectAsState().value,
-        saveIsInventoryEnabled = viewModel::saveIsInventoryEnabled,
-        isRedoseShown = viewModel.isRedoseShownFlow.collectAsState().value,
-        saveRedoseShown = viewModel::saveRedoseShown,
-        redoseOnsetFraction = viewModel.redoseOnsetFractionFlow.collectAsState().value,
-        redoseComeupFraction = viewModel.redoseComeupFractionFlow.collectAsState().value,
-        redosePeakFraction = viewModel.redosePeakFractionFlow.collectAsState().value,
-        saveRedoseFractions = viewModel::saveRedoseFractions,
-        isHapticFeedbackEnabled = viewModel.isHapticFeedbackEnabledFlow.collectAsState().value,
-        saveHapticFeedbackEnabled = viewModel::saveHapticFeedbackEnabled,
-        aiAssistantEnabled = viewModel.aiAssistantEnabledFlow.collectAsState().value,
-        saveAiAssistantEnabled = viewModel::saveAiAssistantEnabled,
-        useIntranasalForRectal = viewModel.useIntranasalForRectalFlow.collectAsState().value,
-        saveUseIntranasalForRectal = viewModel::saveUseIntranasalForRectal,
-        isLockEnabled = viewModel.isLockEnabledFlow.collectAsState().value,
-        saveLockEnabled = viewModel::saveLockEnabled,
-        lockTimeOption = viewModel.lockTimeOptionFlow.collectAsState().value,
-        saveLockTimeOption = viewModel::saveLockTimeOption,
-        biometricAvailability = viewModel.biometricAvailability(),
-    )
+      }
+  SettingsScreen(
+      navigateToFAQ = navigateToFAQ,
+      navigateToWebhook = navigateToWebhook,
+      navigateToComboSettings = navigateToComboSettings,
+      navigateToSubstanceColors = navigateToSubstanceColors,
+      navigateToCustomUnits = navigateToCustomUnits,
+      navigateToCustomSubstances = navigateToCustomSubstances,
+      navigateToSubstanceGroups = navigateToSubstanceGroups,
+      navigateToCustomFormulations = navigateToCustomFormulations,
+      navigateToReminders = navigateToReminders,
+      navigateToAchievements = navigateToAchievements,
+      navigateToIntakeLimits = navigateToIntakeLimits,
+      navigateToExportBackup = navigateToExportBackup,
+      navigateToFreakQueryShell = navigateToFreakQueryShell,
+      navigateToAiAssistantSettings = navigateToAiAssistantSettings,
+      navigateToHealthSharing = navigateToHealthSharing,
+      deleteEverything = viewModel::deleteEverything,
+      importFile = viewModel::importFile,
+      exportFile = viewModel::exportFile,
+      snackbarHostState = viewModel.snackbarHostState,
+      areDosageDotsHidden = viewModel.areDosageDotsHiddenFlow.collectAsState().value,
+      saveDosageDotsAreHidden = viewModel::saveDosageDotsAreHidden,
+      isTimelineHidden = viewModel.isTimelineHiddenFlow.collectAsState().value,
+      saveIsTimelineHidden = viewModel::saveIsTimelineHidden,
+      timelineNotificationAutoStart =
+          viewModel.isTimelineNotificationAutoStartFlow.collectAsState().value,
+      saveTimelineNotificationAutoStart = viewModel::saveTimelineNotificationAutoStart,
+      isUltraFunModeEnabled =
+          viewModel.funnyConfigFlow.collectAsState().value.let { it.enableFunny && it.teamsSkin },
+      saveUltraFunModeEnabled = {
+        viewModel.saveFunnyConfig(FunnyConfig(enableFunny = it, teamsSkin = it))
+      },
+      isVitalsAvailable =
+          remember {
+            HeartRateHealthConnect.isAvailable(context) ||
+                BloodPressureHealthConnect.isAvailable(context)
+          },
+      isVitalsEnabled = viewModel.isVitalsEnabledFlow.collectAsState().value,
+      saveIsVitalsEnabled = { enable ->
+        if (enable) vitalsPermissionLauncher.launch(vitalsPermissions)
+        else viewModel.saveIsVitalsEnabled(false)
+      },
+      sleepStagesEnabled = viewModel.sleepStagesEnabledFlow.collectAsState().value,
+      saveSleepStagesEnabled = viewModel::saveSleepStagesEnabled,
+      bloodPressureDisplay = viewModel.bloodPressureDisplayFlow.collectAsState().value,
+      saveBloodPressureDisplay = viewModel::saveBloodPressureDisplay,
+      areSubstanceHeightsIndependent =
+          viewModel.areSubstanceHeightsIndependentFlow.collectAsState().value,
+      saveAreSubstanceHeightsIndependent = viewModel::saveAreSubstanceHeightsIndependent,
+      isStatsHidden = viewModel.isStatsHiddenFlow.collectAsState().value,
+      saveIsStatsHidden = viewModel::saveIsStatsHidden,
+      isDrugsHidden = viewModel.isDrugsHiddenFlow.collectAsState().value,
+      saveIsDrugsHidden = viewModel::saveIsDrugsHidden,
+      activateSafer = viewModel.activateSaferFlow.collectAsState().value,
+      saveActivateSafer = viewModel::saveActivateSafer,
+      isInventoryEnabled = viewModel.isInventoryEnabledFlow.collectAsState().value,
+      saveIsInventoryEnabled = viewModel::saveIsInventoryEnabled,
+      isRedoseShown = viewModel.isRedoseShownFlow.collectAsState().value,
+      saveRedoseShown = viewModel::saveRedoseShown,
+      redoseOnsetFraction = viewModel.redoseOnsetFractionFlow.collectAsState().value,
+      redoseComeupFraction = viewModel.redoseComeupFractionFlow.collectAsState().value,
+      redosePeakFraction = viewModel.redosePeakFractionFlow.collectAsState().value,
+      saveRedoseFractions = viewModel::saveRedoseFractions,
+      isHapticFeedbackEnabled = viewModel.isHapticFeedbackEnabledFlow.collectAsState().value,
+      saveHapticFeedbackEnabled = viewModel::saveHapticFeedbackEnabled,
+      aiAssistantEnabled = viewModel.aiAssistantEnabledFlow.collectAsState().value,
+      saveAiAssistantEnabled = viewModel::saveAiAssistantEnabled,
+      useIntranasalForRectal = viewModel.useIntranasalForRectalFlow.collectAsState().value,
+      saveUseIntranasalForRectal = viewModel::saveUseIntranasalForRectal,
+      isLockEnabled = viewModel.isLockEnabledFlow.collectAsState().value,
+      saveLockEnabled = viewModel::saveLockEnabled,
+      lockTimeOption = viewModel.lockTimeOptionFlow.collectAsState().value,
+      saveLockTimeOption = viewModel::saveLockTimeOption,
+      biometricAvailability = viewModel.biometricAvailability(),
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -328,455 +340,459 @@ fun SettingsScreen(
     saveLockTimeOption: (foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption) -> Unit,
     biometricAvailability: foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAvailability,
 ) {
-    val performHaptic = rememberHaptic()
-    
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Settings") }
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
+  val performHaptic = rememberHaptic()
+
+  Scaffold(
+      topBar = {
+        TopAppBar(title = { Text("Settings") })
+      },
+      snackbarHost = { SnackbarHost(snackbarHostState) },
+  ) { padding ->
+    Column(
+        modifier =
+            Modifier.padding(padding)
                 .padding(horizontal = horizontalPadding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
+    ) {
+      var isShowingVisibleTabsDialog by remember { mutableStateOf(false) }
+      var isShowingExportDialog by remember { mutableStateOf(false) }
+      var isShowingImportDialog by remember { mutableStateOf(false) }
+      var isShowingDeleteDialog by remember { mutableStateOf(false) }
+      val jsonMIMEType = "application/json"
+      val scope = rememberCoroutineScope()
+      val uriHandler = LocalUriHandler.current
+      val launcherExport =
+          rememberLauncherForActivityResult(
+              contract = ActivityResultContracts.CreateDocument(mimeType = jsonMIMEType)
+          ) { uri ->
+            if (uri != null) {
+              exportFile(uri)
+            }
+          }
+      val launcherImport =
+          rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri
+            ->
+            if (uri != null) {
+              importFile(uri)
+            }
+          }
+
+      CardWithTitle(title = "Manage", innerPaddingHorizontal = 0.dp) {
+        SettingsButton(
+            imageVector = Icons.Outlined.Medication,
+            text = "Custom units",
         ) {
-            var isShowingVisibleTabsDialog by remember { mutableStateOf(false) }
-            var isShowingExportDialog by remember { mutableStateOf(false) }
-            var isShowingImportDialog by remember { mutableStateOf(false) }
-            var isShowingDeleteDialog by remember { mutableStateOf(false) }
-            val jsonMIMEType = "application/json"
-            val scope = rememberCoroutineScope()
-            val uriHandler = LocalUriHandler.current
-            val launcherExport =
-                rememberLauncherForActivityResult(
-                    contract = ActivityResultContracts.CreateDocument(
-                        mimeType = jsonMIMEType
-                    )
-                ) { uri ->
-                    if (uri != null) {
-                        exportFile(uri)
-                    }
-                }
-            val launcherImport =
-                rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri ->
-                    if (uri != null) {
-                        importFile(uri)
-                    }
-                }
-
-            CardWithTitle(title = "Manage", innerPaddingHorizontal = 0.dp) {
-                SettingsButton(
-                    imageVector = Icons.Outlined.Medication,
-                    text = "Custom units"
-                ) {
-                    performHaptic(HapticType.CLICK)
-                    navigateToCustomUnits()
-                }
-                HorizontalDivider()
-                SettingsButton(
-                    imageVector = Icons.Outlined.Science,
-                    text = "Custom substances"
-                ) {
-                    performHaptic(HapticType.CLICK)
-                    navigateToCustomSubstances()
-                }
-                HorizontalDivider()
-                SettingsButton(
-                    imageVector = Icons.Outlined.Workspaces,
-                    text = "Substance groups"
-                ) {
-                    performHaptic(HapticType.CLICK)
-                    navigateToSubstanceGroups()
-                }
-                HorizontalDivider()
-                SettingsButton(
-                    imageVector = Icons.Outlined.Speed,
-                    text = "Intake limits"
-                ) {
-                    performHaptic(HapticType.CLICK)
-                    navigateToIntakeLimits()
-                }
-                HorizontalDivider()
-                SettingsButton(
-                    imageVector = Icons.Outlined.Backup,
-                    text = "Export & backup"
-                ) {
-                    performHaptic(HapticType.CLICK)
-                    navigateToExportBackup()
-                }
-                HorizontalDivider()
-                SettingsButton(
-                    imageVector = Icons.Outlined.Medication,
-                    text = "Custom formulations"
-                ) {
-                    performHaptic(HapticType.CLICK)
-                    navigateToCustomFormulations()
-                }
-                HorizontalDivider()
-                SettingsButton(
-                    imageVector = Icons.Outlined.WarningAmber,
-                    text = "Interaction settings"
-                ) {
-                    performHaptic(HapticType.CLICK)
-                    navigateToComboSettings()
-                }
-                HorizontalDivider()
-                SettingsButton(imageVector = Icons.Outlined.Webhook, text = "Webhooks") {
-                    performHaptic(HapticType.CLICK)
-                    navigateToWebhook()
-                }
-            }
-
-            CardWithTitle(title = "Health sharing", innerPaddingHorizontal = 0.dp) {
-                SettingsButton(imageVector = Icons.Outlined.Medication, text = "Health Connect & Google Health") {
-                    navigateToHealthSharing()
-                }
-            }
-
-            CardWithTitle(title = "Automation", innerPaddingHorizontal = 0.dp) {
-                SettingsButton(
-                    imageVector = Icons.Outlined.Notifications,
-                    text = "Reminders"
-                ) {
-                    performHaptic(HapticType.CLICK)
-                    navigateToReminders()
-                }
-                HorizontalDivider()
-                SettingsButton(
-                    imageVector = Icons.Outlined.Code,
-                    text = "FreakQuery shell"
-                ) {
-                    performHaptic(HapticType.CLICK)
-                    navigateToFreakQueryShell()
-                }
-            }
-
-            CardWithTitle(title = "Appearance", innerPaddingHorizontal = 0.dp) {
-                SettingsButton(
-                    imageVector = Icons.Outlined.Palette,
-                    text = "Substance colors"
-                ) {
-                    performHaptic(HapticType.CLICK)
-                    navigateToSubstanceColors()
-                }
-                HorizontalDivider()
-                SettingsButton(
-                    imageVector = Icons.Outlined.Visibility,
-                    text = "Visible tabs"
-                ) {
-                    performHaptic(HapticType.CLICK)
-                    isShowingVisibleTabsDialog = true
-                }
-                HorizontalDivider()
-                SettingsSwitchRow(
-                    text = "Hide dosage dots",
-                    checked = areDosageDotsHidden,
-                    onCheckedChange = {
-                        performHaptic(HapticType.TOGGLE)
-                        saveDosageDotsAreHidden(it)
-                    }
-                )
-                HorizontalDivider()
-                SettingsSwitchRow(
-                    text = "Hide timeline",
-                    checked = isTimelineHidden,
-                    onCheckedChange = {
-                        performHaptic(HapticType.TOGGLE)
-                        saveIsTimelineHidden(it)
-                    }
-                )
-                HorizontalDivider()
-                SettingsSwitchRow(
-                    text = "Live notification on new ingestion",
-                    checked = timelineNotificationAutoStart,
-                    onCheckedChange = {
-                        performHaptic(HapticType.TOGGLE)
-                        saveTimelineNotificationAutoStart(it)
-                    }
-                )
-                HorizontalDivider()
-                SettingsSwitchRow(
-                    text = "Ultra fun mode",
-                    checked = isUltraFunModeEnabled,
-                    description = "Changes random elements of the UI during active psychedelic ingestions. " +
-                        "Tap anywhere or press back to return to the normal screen. It is purely cosmetic.",
-                    onCheckedChange = {
-                        performHaptic(HapticType.TOGGLE)
-                        saveUltraFunModeEnabled(it)
-                    }
-                )
-                HorizontalDivider()
-                SettingsSwitchRow(
-                    text = "Vitals on timeline",
-                    checked = isVitalsEnabled && isVitalsAvailable,
-                    description = if (isVitalsAvailable) {
-                        "Health Connect: heart rate, sleep, blood pressure"
-                    } else {
-                        "Health Connect is not available on this device"
-                    },
-                    onCheckedChange = {
-                        performHaptic(HapticType.TOGGLE)
-                        if (isVitalsAvailable) saveIsVitalsEnabled(it)
-                    }
-                )
-                if (isVitalsEnabled && isVitalsAvailable) {
-                    HorizontalDivider()
-                    SettingsSwitchRow(
-                        text = "Show detailed sleep stages",
-                        checked = sleepStagesEnabled,
-                        onCheckedChange = {
-                            performHaptic(HapticType.TOGGLE)
-                            saveSleepStagesEnabled(it)
-                        }
-                    )
-                    HorizontalDivider()
-                    BloodPressureDisplayRow(value = bloodPressureDisplay, onValueChange = saveBloodPressureDisplay)
-                }
-                HorizontalDivider()
-                SettingsSwitchRow(
-                    text = "Independent substance heights",
-                    checked = areSubstanceHeightsIndependent,
-                    description = "Scale each substance and route independently in timelines.",
-                    trailingInfo = {
-                        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-                        var showBottomSheet by remember { mutableStateOf(false) }
-                        Icon(
-                            Icons.Outlined.Info,
-                            contentDescription = "Show more info",
-                            modifier = Modifier
-                                .clickable {
-                                    performHaptic(HapticType.CLICK)
-                                    showBottomSheet = true
-                                }
-                                .padding(8.dp)
-                        )
-                        if (showBottomSheet) {
-                            ModalBottomSheet(
-                                onDismissRequest = { showBottomSheet = false },
-                                sheetState = sheetState
-                            ) {
-                                Text(
-                                    text = """
-                                        Enable this if you want timelines for different substances and
-                                        routes of administration to use their own height scale.
-
-                                        When disabled, timeline heights are relative across substances
-                                        and routes using average common doses.
-                                    """.trimIndent(),
-                                    modifier = Modifier
-                                        .padding(horizontal = horizontalPadding)
-                                        .padding(bottom = 15.dp)
-                                        .verticalScroll(state = rememberScrollState())
-                                )
-                            }
-                        }
-                    },
-                    onCheckedChange = {
-                        performHaptic(HapticType.TOGGLE)
-                        saveAreSubstanceHeightsIndependent(it)
-                    }
-                )
-                HorizontalDivider()
-                SettingsSwitchRow(
-                    text = "Haptic feedback",
-                    checked = isHapticFeedbackEnabled,
-                    onCheckedChange = {
-                        performHaptic(HapticType.TOGGLE)
-                        saveHapticFeedbackEnabled(it)
-                    }
-                )
-            }
-
-            CardWithTitle(title = "Recommendations", innerPaddingHorizontal = 0.dp) {
-                SettingsSwitchRow(
-                    text = "Show redose recommendation",
-                    checked = isRedoseShown,
-                    onCheckedChange = {
-                        performHaptic(HapticType.TOGGLE)
-                        saveRedoseShown(it)
-                    }
-                )
-                if (isRedoseShown) {
-                    HorizontalDivider()
-                    RedoseFractionsSection(
-                        onsetFraction = redoseOnsetFraction,
-                        comeupFraction = redoseComeupFraction,
-                        peakFraction = redosePeakFraction,
-                        onSave = saveRedoseFractions
-                    )
-                }
-                HorizontalDivider()
-                SettingsSwitchRow(
-                    text = "Use intranasal for rectal",
-                    description = "Uses intranasal dosing guidance, timeline effect curves, and duration for rectal administration.",
-                    checked = useIntranasalForRectal,
-                    onCheckedChange = {
-                        performHaptic(HapticType.TOGGLE)
-                        saveUseIntranasalForRectal(it)
-                    }
-                )
-            }
-
-            CardWithTitle(title = "Tools", innerPaddingHorizontal = 0.dp) {
-                SettingsButton(
-                    imageVector = Icons.Outlined.EmojiEvents,
-                    text = "Achievements"
-                ) {
-                    performHaptic(HapticType.CLICK)
-                    navigateToAchievements()
-                }
-            }
-
-            CardWithTitle(title = "AI assistant", innerPaddingHorizontal = 0.dp) {
-                SettingsSwitchRow(
-                    text = "Enable AI assistant",
-                    description = "Off by default. Works with hosted providers or your own " +
-                        "OpenAI/Anthropic-compatible server, set up in AI provider settings." +
-                        " Sends assistant prompts to the provider you choose.",
-                    checked = aiAssistantEnabled,
-                    onCheckedChange = {
-                        performHaptic(HapticType.TOGGLE)
-                        saveAiAssistantEnabled(it)
-                    }
-                )
-                HorizontalDivider()
-                SettingsButton(
-                    imageVector = Icons.Outlined.SmartToy,
-                    text = "AI provider settings"
-                ) {
-                    performHaptic(HapticType.CLICK)
-                    navigateToAiAssistantSettings()
-                }
-            }
-
-            CardWithTitle(title = "Privacy", innerPaddingHorizontal = horizontalPadding) {
-                JournalClientsSection()
-                LockSettingsSection(
-                    isLockEnabled = isLockEnabled,
-                    lockTimeOption = lockTimeOption,
-                    biometricAvailability = biometricAvailability,
-                    onLockEnabledChange = saveLockEnabled,
-                    onLockTimeOptionChange = saveLockTimeOption,
-                )
-            }
-
-            CardWithTitle(title = "App data", innerPaddingHorizontal = 0.dp) {
-                SettingsButton(imageVector = Icons.Outlined.FileUpload, text = "Export File") {
-                    performHaptic(HapticType.CLICK)
-                    isShowingExportDialog = true
-                }
-                HorizontalDivider()
-                SettingsButton(imageVector = Icons.Outlined.FileDownload, text = "Import file") {
-                    performHaptic(HapticType.CLICK)
-                    isShowingImportDialog = true
-                }
-                HorizontalDivider()
-                SettingsButton(
-                    imageVector = Icons.Outlined.DeleteForever,
-                    text = "Delete everything"
-                ) {
-                    performHaptic(HapticType.CLICK)
-                    isShowingDeleteDialog = true
-                }
-            }
-
-            CardWithTitle(title = "Help", innerPaddingHorizontal = 0.dp) {
-                SettingsButton(imageVector = Icons.Outlined.QuestionAnswer, text = "FAQ") {
-                    performHaptic(HapticType.CLICK)
-                    navigateToFAQ()
-                }
-            }
-
-            CardWithTitle(title = "App", innerPaddingHorizontal = 0.dp) {
-                SettingsButton(imageVector = Icons.Outlined.Code, text = "Source Code") {
-                    performHaptic(HapticType.CLICK)
-                    uriHandler.openUri("https://woof.rip/FreakLog/FreakLog-Android")
-                }
-                HorizontalDivider()
-                Text(
-                    text = "Version $VERSION_NAME",
-                    style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier
-                        .padding(horizontal = 15.dp)
-                        .padding(vertical = 10.dp)
-                )
-            }
-
-            CardWithTitle(title = "Attribution", innerPaddingHorizontal = 0.dp) {
-                SettingsButton(imageVector = Icons.Outlined.Code, text = "Original repository (archived)") {
-                    performHaptic(HapticType.CLICK)
-                    uriHandler.openUri("https://github.com/isaakhanimann/psychonautwiki-journal-android")
-                }
-                Text(
-                    text = "Some features and improvements (for example the whole achievement-code)" +
-                        " were built for the fork on codeberg (codeberg.org/psychonaut-journal)",
-                    style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier
-                        .padding(horizontal = 15.dp)
-                        .padding(vertical = 10.dp)
-                )
-            }
-            VisibleTabsDialog(
-                visible = isShowingVisibleTabsDialog,
-                onDismiss = { isShowingVisibleTabsDialog = false },
-                isStatsHidden = isStatsHidden,
-                saveIsStatsHidden = saveIsStatsHidden,
-                isDrugsHidden = isDrugsHidden,
-                saveIsDrugsHidden = saveIsDrugsHidden,
-                activateSafer = activateSafer,
-                saveActivateSafer = saveActivateSafer,
-                isInventoryEnabled = isInventoryEnabled,
-                saveIsInventoryEnabled = saveIsInventoryEnabled,
-                performHaptic = performHaptic
-            )
-            ConfirmActionDialog(
-                visible = isShowingExportDialog,
-                title = "Export file?",
-                text = "Export all app data into a JSON file.",
-                confirmText = "Export",
-                onDismiss = { isShowingExportDialog = false },
-                onConfirm = {
-                    isShowingExportDialog = false
-                    launcherExport.launch(
-                        "Journal ${Instant.now().getStringOfPattern("dd MMM yyyy")}.json"
-                    )
-                }
-            )
-            ConfirmActionDialog(
-                visible = isShowingImportDialog,
-                title = "Import file?",
-                text = "Importing replaces the data currently stored in the app.",
-                confirmText = "Import",
-                onDismiss = { isShowingImportDialog = false },
-                onConfirm = {
-                    isShowingImportDialog = false
-                    launcherImport.launch(jsonMIMEType)
-                }
-            )
-            ConfirmActionDialog(
-                visible = isShowingDeleteDialog,
-                title = "Delete everything?",
-                text = "This will delete all experiences, ingestions and custom substances.",
-                confirmText = "Delete",
-                onDismiss = { isShowingDeleteDialog = false },
-                onConfirm = {
-                    isShowingDeleteDialog = false
-                    deleteEverything()
-                    scope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = "Deleted everything",
-                            duration = SnackbarDuration.Short
-                        )
-                    }
-                }
-            )
+          performHaptic(HapticType.CLICK)
+          navigateToCustomUnits()
         }
+        HorizontalDivider()
+        SettingsButton(
+            imageVector = Icons.Outlined.Science,
+            text = "Custom substances",
+        ) {
+          performHaptic(HapticType.CLICK)
+          navigateToCustomSubstances()
+        }
+        HorizontalDivider()
+        SettingsButton(
+            imageVector = Icons.Outlined.Workspaces,
+            text = "Substance groups",
+        ) {
+          performHaptic(HapticType.CLICK)
+          navigateToSubstanceGroups()
+        }
+        HorizontalDivider()
+        SettingsButton(
+            imageVector = Icons.Outlined.Speed,
+            text = "Intake limits",
+        ) {
+          performHaptic(HapticType.CLICK)
+          navigateToIntakeLimits()
+        }
+        HorizontalDivider()
+        SettingsButton(
+            imageVector = Icons.Outlined.Backup,
+            text = "Export & backup",
+        ) {
+          performHaptic(HapticType.CLICK)
+          navigateToExportBackup()
+        }
+        HorizontalDivider()
+        SettingsButton(
+            imageVector = Icons.Outlined.Medication,
+            text = "Custom formulations",
+        ) {
+          performHaptic(HapticType.CLICK)
+          navigateToCustomFormulations()
+        }
+        HorizontalDivider()
+        SettingsButton(
+            imageVector = Icons.Outlined.WarningAmber,
+            text = "Interaction settings",
+        ) {
+          performHaptic(HapticType.CLICK)
+          navigateToComboSettings()
+        }
+        HorizontalDivider()
+        SettingsButton(imageVector = Icons.Outlined.Webhook, text = "Webhooks") {
+          performHaptic(HapticType.CLICK)
+          navigateToWebhook()
+        }
+      }
+
+      CardWithTitle(title = "Health sharing", innerPaddingHorizontal = 0.dp) {
+        SettingsButton(
+            imageVector = Icons.Outlined.Medication,
+            text = "Health Connect & Google Health",
+        ) {
+          navigateToHealthSharing()
+        }
+      }
+
+      CardWithTitle(title = "Automation", innerPaddingHorizontal = 0.dp) {
+        SettingsButton(
+            imageVector = Icons.Outlined.Notifications,
+            text = "Reminders",
+        ) {
+          performHaptic(HapticType.CLICK)
+          navigateToReminders()
+        }
+        HorizontalDivider()
+        SettingsButton(
+            imageVector = Icons.Outlined.Code,
+            text = "FreakQuery shell",
+        ) {
+          performHaptic(HapticType.CLICK)
+          navigateToFreakQueryShell()
+        }
+      }
+
+      CardWithTitle(title = "Appearance", innerPaddingHorizontal = 0.dp) {
+        SettingsButton(
+            imageVector = Icons.Outlined.Palette,
+            text = "Substance colors",
+        ) {
+          performHaptic(HapticType.CLICK)
+          navigateToSubstanceColors()
+        }
+        HorizontalDivider()
+        SettingsButton(
+            imageVector = Icons.Outlined.Visibility,
+            text = "Visible tabs",
+        ) {
+          performHaptic(HapticType.CLICK)
+          isShowingVisibleTabsDialog = true
+        }
+        HorizontalDivider()
+        SettingsSwitchRow(
+            text = "Hide dosage dots",
+            checked = areDosageDotsHidden,
+            onCheckedChange = {
+              performHaptic(HapticType.TOGGLE)
+              saveDosageDotsAreHidden(it)
+            },
+        )
+        HorizontalDivider()
+        SettingsSwitchRow(
+            text = "Hide timeline",
+            checked = isTimelineHidden,
+            onCheckedChange = {
+              performHaptic(HapticType.TOGGLE)
+              saveIsTimelineHidden(it)
+            },
+        )
+        HorizontalDivider()
+        SettingsSwitchRow(
+            text = "Live notification on new ingestion",
+            checked = timelineNotificationAutoStart,
+            onCheckedChange = {
+              performHaptic(HapticType.TOGGLE)
+              saveTimelineNotificationAutoStart(it)
+            },
+        )
+        HorizontalDivider()
+        SettingsSwitchRow(
+            text = "Ultra fun mode",
+            checked = isUltraFunModeEnabled,
+            description =
+                "Changes random elements of the UI during active psychedelic ingestions. " +
+                    "Tap anywhere or press back to return to the normal screen. It is purely cosmetic.",
+            onCheckedChange = {
+              performHaptic(HapticType.TOGGLE)
+              saveUltraFunModeEnabled(it)
+            },
+        )
+        HorizontalDivider()
+        SettingsSwitchRow(
+            text = "Vitals on timeline",
+            checked = isVitalsEnabled && isVitalsAvailable,
+            description =
+                if (isVitalsAvailable) {
+                  "Health Connect: heart rate, sleep, blood pressure"
+                } else {
+                  "Health Connect is not available on this device"
+                },
+            onCheckedChange = {
+              performHaptic(HapticType.TOGGLE)
+              if (isVitalsAvailable) saveIsVitalsEnabled(it)
+            },
+        )
+        if (isVitalsEnabled && isVitalsAvailable) {
+          HorizontalDivider()
+          SettingsSwitchRow(
+              text = "Show detailed sleep stages",
+              checked = sleepStagesEnabled,
+              onCheckedChange = {
+                performHaptic(HapticType.TOGGLE)
+                saveSleepStagesEnabled(it)
+              },
+          )
+          HorizontalDivider()
+          BloodPressureDisplayRow(
+              value = bloodPressureDisplay,
+              onValueChange = saveBloodPressureDisplay,
+          )
+        }
+        HorizontalDivider()
+        SettingsSwitchRow(
+            text = "Independent substance heights",
+            checked = areSubstanceHeightsIndependent,
+            description = "Scale each substance and route independently in timelines.",
+            trailingInfo = {
+              val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+              var showBottomSheet by remember { mutableStateOf(false) }
+              Icon(
+                  Icons.Outlined.Info,
+                  contentDescription = "Show more info",
+                  modifier =
+                      Modifier.clickable {
+                            performHaptic(HapticType.CLICK)
+                            showBottomSheet = true
+                          }
+                          .padding(8.dp),
+              )
+              if (showBottomSheet) {
+                ModalBottomSheet(
+                    onDismissRequest = { showBottomSheet = false },
+                    sheetState = sheetState,
+                ) {
+                  Text(
+                      text =
+                          """
+                          Enable this if you want timelines for different substances and
+                          routes of administration to use their own height scale.
+
+                          When disabled, timeline heights are relative across substances
+                          and routes using average common doses.
+                          """
+                              .trimIndent(),
+                      modifier =
+                          Modifier.padding(horizontal = horizontalPadding)
+                              .padding(bottom = 15.dp)
+                              .verticalScroll(state = rememberScrollState()),
+                  )
+                }
+              }
+            },
+            onCheckedChange = {
+              performHaptic(HapticType.TOGGLE)
+              saveAreSubstanceHeightsIndependent(it)
+            },
+        )
+        HorizontalDivider()
+        SettingsSwitchRow(
+            text = "Haptic feedback",
+            checked = isHapticFeedbackEnabled,
+            onCheckedChange = {
+              performHaptic(HapticType.TOGGLE)
+              saveHapticFeedbackEnabled(it)
+            },
+        )
+      }
+
+      CardWithTitle(title = "Recommendations", innerPaddingHorizontal = 0.dp) {
+        SettingsSwitchRow(
+            text = "Show redose recommendation",
+            checked = isRedoseShown,
+            onCheckedChange = {
+              performHaptic(HapticType.TOGGLE)
+              saveRedoseShown(it)
+            },
+        )
+        if (isRedoseShown) {
+          HorizontalDivider()
+          RedoseFractionsSection(
+              onsetFraction = redoseOnsetFraction,
+              comeupFraction = redoseComeupFraction,
+              peakFraction = redosePeakFraction,
+              onSave = saveRedoseFractions,
+          )
+        }
+        HorizontalDivider()
+        SettingsSwitchRow(
+            text = "Use intranasal for rectal",
+            description =
+                "Uses intranasal dosing guidance, timeline effect curves, and duration for rectal administration.",
+            checked = useIntranasalForRectal,
+            onCheckedChange = {
+              performHaptic(HapticType.TOGGLE)
+              saveUseIntranasalForRectal(it)
+            },
+        )
+      }
+
+      CardWithTitle(title = "Tools", innerPaddingHorizontal = 0.dp) {
+        SettingsButton(
+            imageVector = Icons.Outlined.EmojiEvents,
+            text = "Achievements",
+        ) {
+          performHaptic(HapticType.CLICK)
+          navigateToAchievements()
+        }
+      }
+
+      CardWithTitle(title = "AI assistant", innerPaddingHorizontal = 0.dp) {
+        SettingsSwitchRow(
+            text = "Enable AI assistant",
+            description =
+                "Off by default. Works with hosted providers or your own " +
+                    "OpenAI/Anthropic-compatible server, set up in AI provider settings." +
+                    " Sends assistant prompts to the provider you choose.",
+            checked = aiAssistantEnabled,
+            onCheckedChange = {
+              performHaptic(HapticType.TOGGLE)
+              saveAiAssistantEnabled(it)
+            },
+        )
+        HorizontalDivider()
+        SettingsButton(
+            imageVector = Icons.Outlined.SmartToy,
+            text = "AI provider settings",
+        ) {
+          performHaptic(HapticType.CLICK)
+          navigateToAiAssistantSettings()
+        }
+      }
+
+      CardWithTitle(title = "Privacy", innerPaddingHorizontal = horizontalPadding) {
+        JournalClientsSection()
+        LockSettingsSection(
+            isLockEnabled = isLockEnabled,
+            lockTimeOption = lockTimeOption,
+            biometricAvailability = biometricAvailability,
+            onLockEnabledChange = saveLockEnabled,
+            onLockTimeOptionChange = saveLockTimeOption,
+        )
+      }
+
+      CardWithTitle(title = "App data", innerPaddingHorizontal = 0.dp) {
+        SettingsButton(imageVector = Icons.Outlined.FileUpload, text = "Export File") {
+          performHaptic(HapticType.CLICK)
+          isShowingExportDialog = true
+        }
+        HorizontalDivider()
+        SettingsButton(imageVector = Icons.Outlined.FileDownload, text = "Import file") {
+          performHaptic(HapticType.CLICK)
+          isShowingImportDialog = true
+        }
+        HorizontalDivider()
+        SettingsButton(
+            imageVector = Icons.Outlined.DeleteForever,
+            text = "Delete everything",
+        ) {
+          performHaptic(HapticType.CLICK)
+          isShowingDeleteDialog = true
+        }
+      }
+
+      CardWithTitle(title = "Help", innerPaddingHorizontal = 0.dp) {
+        SettingsButton(imageVector = Icons.Outlined.QuestionAnswer, text = "FAQ") {
+          performHaptic(HapticType.CLICK)
+          navigateToFAQ()
+        }
+      }
+
+      CardWithTitle(title = "App", innerPaddingHorizontal = 0.dp) {
+        SettingsButton(imageVector = Icons.Outlined.Code, text = "Source Code") {
+          performHaptic(HapticType.CLICK)
+          uriHandler.openUri("https://woof.rip/FreakLog/FreakLog-Android")
+        }
+        HorizontalDivider()
+        Text(
+            text = "Version $VERSION_NAME",
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.padding(horizontal = 15.dp).padding(vertical = 10.dp),
+        )
+      }
+
+      CardWithTitle(title = "Attribution", innerPaddingHorizontal = 0.dp) {
+        SettingsButton(imageVector = Icons.Outlined.Code, text = "Original repository (archived)") {
+          performHaptic(HapticType.CLICK)
+          uriHandler.openUri("https://github.com/isaakhanimann/psychonautwiki-journal-android")
+        }
+        Text(
+            text =
+                "Some features and improvements (for example the whole achievement-code)" +
+                    " were built for the fork on codeberg (codeberg.org/psychonaut-journal)",
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.padding(horizontal = 15.dp).padding(vertical = 10.dp),
+        )
+      }
+      VisibleTabsDialog(
+          visible = isShowingVisibleTabsDialog,
+          onDismiss = { isShowingVisibleTabsDialog = false },
+          isStatsHidden = isStatsHidden,
+          saveIsStatsHidden = saveIsStatsHidden,
+          isDrugsHidden = isDrugsHidden,
+          saveIsDrugsHidden = saveIsDrugsHidden,
+          activateSafer = activateSafer,
+          saveActivateSafer = saveActivateSafer,
+          isInventoryEnabled = isInventoryEnabled,
+          saveIsInventoryEnabled = saveIsInventoryEnabled,
+          performHaptic = performHaptic,
+      )
+      ConfirmActionDialog(
+          visible = isShowingExportDialog,
+          title = "Export file?",
+          text = "Export all app data into a JSON file.",
+          confirmText = "Export",
+          onDismiss = { isShowingExportDialog = false },
+          onConfirm = {
+            isShowingExportDialog = false
+            launcherExport.launch("Journal ${Instant.now().getStringOfPattern("dd MMM yyyy")}.json")
+          },
+      )
+      ConfirmActionDialog(
+          visible = isShowingImportDialog,
+          title = "Import file?",
+          text = "Importing replaces the data currently stored in the app.",
+          confirmText = "Import",
+          onDismiss = { isShowingImportDialog = false },
+          onConfirm = {
+            isShowingImportDialog = false
+            launcherImport.launch(jsonMIMEType)
+          },
+      )
+      ConfirmActionDialog(
+          visible = isShowingDeleteDialog,
+          title = "Delete everything?",
+          text = "This will delete all experiences, ingestions and custom substances.",
+          confirmText = "Delete",
+          onDismiss = { isShowingDeleteDialog = false },
+          onConfirm = {
+            isShowingDeleteDialog = false
+            deleteEverything()
+            scope.launch {
+              snackbarHostState.showSnackbar(
+                  message = "Deleted everything",
+                  duration = SnackbarDuration.Short,
+              )
+            }
+          },
+      )
     }
+  }
 }
 
 const val SHARE_APP_URL = "https://psychonautwiki.org/wiki/PsychonautWiki_Journal"
@@ -786,36 +802,34 @@ private fun BloodPressureDisplayRow(
     value: BloodPressureDisplay,
     onValueChange: (BloodPressureDisplay) -> Unit,
 ) {
-    var menuOpen by remember { mutableStateOf(false) }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = horizontalPadding),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text("Blood pressure", style = MaterialTheme.typography.bodyLarge)
-        Box {
-            TextButton(onClick = { menuOpen = true }) {
-                Text(value.displayName)
-                Icon(if (menuOpen) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown, null)
-            }
-            DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                BloodPressureDisplay.entries.forEach { display ->
-                    DropdownMenuItem(
-                        text = { Text(display.displayName) },
-                        onClick = {
-                            onValueChange(display)
-                            menuOpen = false
-                        },
-                        leadingIcon = {
-                            if (display == value) Icon(Icons.Default.Check, "Selected")
-                        }
-                    )
-                }
-            }
+  var menuOpen by remember { mutableStateOf(false) }
+  Row(
+      modifier = Modifier.fillMaxWidth().padding(start = horizontalPadding),
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Text("Blood pressure", style = MaterialTheme.typography.bodyLarge)
+    Box {
+      TextButton(onClick = { menuOpen = true }) {
+        Text(value.displayName)
+        Icon(if (menuOpen) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown, null)
+      }
+      DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+        BloodPressureDisplay.entries.forEach { display ->
+          DropdownMenuItem(
+              text = { Text(display.displayName) },
+              onClick = {
+                onValueChange(display)
+                menuOpen = false
+              },
+              leadingIcon = {
+                if (display == value) Icon(Icons.Default.Check, "Selected")
+              },
+          )
         }
+      }
     }
+  }
 }
 
 @Composable
@@ -826,30 +840,30 @@ private fun SettingsSwitchRow(
     trailingInfo: @Composable (() -> Unit)? = null,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) }
-            .padding(horizontal = horizontalPadding, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = text, style = MaterialTheme.typography.bodyLarge)
-            if (description != null) {
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-        trailingInfo?.invoke()
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange
+  Row(
+      modifier =
+          Modifier.fillMaxWidth()
+              .clickable { onCheckedChange(!checked) }
+              .padding(horizontal = horizontalPadding, vertical = 8.dp),
+      horizontalArrangement = Arrangement.spacedBy(12.dp),
+      verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Column(modifier = Modifier.weight(1f)) {
+      Text(text = text, style = MaterialTheme.typography.bodyLarge)
+      if (description != null) {
+        Text(
+            text = description,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+      }
     }
+    trailingInfo?.invoke()
+    Switch(
+        checked = checked,
+        onCheckedChange = onCheckedChange,
+    )
+  }
 }
 
 @Suppress("LongParameterList")
@@ -867,53 +881,53 @@ private fun VisibleTabsDialog(
     saveIsInventoryEnabled: (Boolean) -> Unit,
     performHaptic: (HapticType) -> Unit,
 ) {
-    AnimatedVisibility(visible = visible) {
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            title = { Text("Visible tabs") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    TabVisibilityRow(
-                        text = "Stats",
-                        checked = !isStatsHidden,
-                        onCheckedChange = {
-                            performHaptic(HapticType.TOGGLE)
-                            saveIsStatsHidden(!it)
-                        }
-                    )
-                    TabVisibilityRow(
-                        text = "Drugs",
-                        checked = !isDrugsHidden,
-                        onCheckedChange = {
-                            performHaptic(HapticType.TOGGLE)
-                            saveIsDrugsHidden(!it)
-                        }
-                    )
-                    TabVisibilityRow(
-                        text = "Safer use",
-                        checked = !activateSafer,
-                        onCheckedChange = {
-                            performHaptic(HapticType.TOGGLE)
-                            saveActivateSafer(!it)
-                        }
-                    )
-                    TabVisibilityRow(
-                        text = "Inventory",
-                        checked = isInventoryEnabled,
-                        onCheckedChange = {
-                            performHaptic(HapticType.TOGGLE)
-                            saveIsInventoryEnabled(it)
-                        }
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = onDismiss) {
-                    Text("Done")
-                }
-            }
-        )
-    }
+  AnimatedVisibility(visible = visible) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Visible tabs") },
+        text = {
+          Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            TabVisibilityRow(
+                text = "Stats",
+                checked = !isStatsHidden,
+                onCheckedChange = {
+                  performHaptic(HapticType.TOGGLE)
+                  saveIsStatsHidden(!it)
+                },
+            )
+            TabVisibilityRow(
+                text = "Drugs",
+                checked = !isDrugsHidden,
+                onCheckedChange = {
+                  performHaptic(HapticType.TOGGLE)
+                  saveIsDrugsHidden(!it)
+                },
+            )
+            TabVisibilityRow(
+                text = "Safer use",
+                checked = !activateSafer,
+                onCheckedChange = {
+                  performHaptic(HapticType.TOGGLE)
+                  saveActivateSafer(!it)
+                },
+            )
+            TabVisibilityRow(
+                text = "Inventory",
+                checked = isInventoryEnabled,
+                onCheckedChange = {
+                  performHaptic(HapticType.TOGGLE)
+                  saveIsInventoryEnabled(it)
+                },
+            )
+          }
+        },
+        confirmButton = {
+          TextButton(onClick = onDismiss) {
+            Text("Done")
+          }
+        },
+    )
+  }
 }
 
 @Composable
@@ -922,18 +936,16 @@ private fun TabVisibilityRow(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) }
-    ) {
-        Checkbox(
-            checked = checked,
-            onCheckedChange = onCheckedChange
-        )
-        Text(text)
-    }
+  Row(
+      verticalAlignment = Alignment.CenterVertically,
+      modifier = Modifier.fillMaxWidth().clickable { onCheckedChange(!checked) },
+  ) {
+    Checkbox(
+        checked = checked,
+        onCheckedChange = onCheckedChange,
+    )
+    Text(text)
+  }
 }
 
 @Composable
@@ -945,42 +957,40 @@ private fun ConfirmActionDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
 ) {
-    AnimatedVisibility(visible = visible) {
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            title = { Text(title) },
-            text = { Text(text) },
-            confirmButton = {
-                TextButton(onClick = onConfirm) {
-                    Text(confirmText)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = onDismiss) {
-                    Text("Cancel")
-                }
-            }
-        )
-    }
+  AnimatedVisibility(visible = visible) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = { Text(text) },
+        confirmButton = {
+          TextButton(onClick = onConfirm) {
+            Text(confirmText)
+          }
+        },
+        dismissButton = {
+          TextButton(onClick = onDismiss) {
+            Text("Cancel")
+          }
+        },
+    )
+  }
 }
 
 @Composable
 fun SettingsButton(imageVector: ImageVector, text: String, onClick: () -> Unit) {
-    TextButton(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 2.dp)
-    ) {
-        Icon(
-            imageVector,
-            contentDescription = imageVector.name,
-            modifier = Modifier.size(ButtonDefaults.IconSize)
-        )
-        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-        Text(text)
-        Spacer(modifier = Modifier.weight(1f))
-    }
+  TextButton(
+      onClick = onClick,
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 2.dp),
+  ) {
+    Icon(
+        imageVector,
+        contentDescription = imageVector.name,
+        modifier = Modifier.size(ButtonDefaults.IconSize),
+    )
+    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+    Text(text)
+    Spacer(modifier = Modifier.weight(1f))
+  }
 }
 
 @Composable
@@ -988,49 +998,48 @@ private fun RedoseFractionsSection(
     onsetFraction: Float,
     comeupFraction: Float,
     peakFraction: Float,
-    onSave: (Float, Float, Float) -> Unit
+    onSave: (Float, Float, Float) -> Unit,
 ) {
-    // These are expressed as percentages in the UI (0–300%) for readability.
-    // Internally they are multipliers on the average duration of each phase.
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = horizontalPadding, vertical = 4.dp)
-    ) {
-        Text(
-            text = "Redose recommendation formula",
-            style = MaterialTheme.typography.titleSmall
-        )
-        Text(
-            text = "redoseAt = ingestionTime + onset×${"%.2f".format(onsetFraction)}" +
+  // These are expressed as percentages in the UI (0–300%) for readability.
+  // Internally they are multipliers on the average duration of each phase.
+  Column(
+      modifier = Modifier.fillMaxWidth().padding(horizontal = horizontalPadding, vertical = 4.dp)
+  ) {
+    Text(
+        text = "Redose recommendation formula",
+        style = MaterialTheme.typography.titleSmall,
+    )
+    Text(
+        text =
+            "redoseAt = ingestionTime + onset×${"%.2f".format(onsetFraction)}" +
                 " + comeup×${"%.2f".format(comeupFraction)} + peak×${"%.2f".format(peakFraction)}",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        RedoseFractionSlider("Onset", onsetFraction) { onSave(it, comeupFraction, peakFraction) }
-        RedoseFractionSlider("Comeup", comeupFraction) { onSave(onsetFraction, it, peakFraction) }
-        RedoseFractionSlider("Peak", peakFraction) { onSave(onsetFraction, comeupFraction, it) }
-        TextButton(onClick = { onSave(1.0f, 1.0f, 0.5f) }) {
-            Text("Reset to defaults")
-        }
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    RedoseFractionSlider("Onset", onsetFraction) { onSave(it, comeupFraction, peakFraction) }
+    RedoseFractionSlider("Comeup", comeupFraction) { onSave(onsetFraction, it, peakFraction) }
+    RedoseFractionSlider("Peak", peakFraction) { onSave(onsetFraction, comeupFraction, it) }
+    TextButton(onClick = { onSave(1.0f, 1.0f, 0.5f) }) {
+      Text("Reset to defaults")
     }
+  }
 }
 
 @Composable
 private fun RedoseFractionSlider(label: String, value: Float, onChange: (Float) -> Unit) {
-    // Sanitise the incoming value once so the label, slider, and onSave
-    // callback all operate on the same in-range float (guards against
-    // out-of-range or NaN values that may linger in preferences).
-    val safe = if (value.isFinite()) value.coerceIn(0f, 3f) else 0f
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(text = label, modifier = Modifier.width(70.dp))
-        Slider(
-            value = safe,
-            onValueChange = { onChange(it.coerceIn(0f, 3f)) },
-            valueRange = 0f..3f,
-            steps = 29,
-            modifier = Modifier.weight(1f)
-        )
-        Text(text = "%.2f".format(safe), modifier = Modifier.width(48.dp))
-    }
+  // Sanitise the incoming value once so the label, slider, and onSave
+  // callback all operate on the same in-range float (guards against
+  // out-of-range or NaN values that may linger in preferences).
+  val safe = if (value.isFinite()) value.coerceIn(0f, 3f) else 0f
+  Row(verticalAlignment = Alignment.CenterVertically) {
+    Text(text = label, modifier = Modifier.width(70.dp))
+    Slider(
+        value = safe,
+        onValueChange = { onChange(it.coerceIn(0f, 3f)) },
+        valueRange = 0f..3f,
+        steps = 29,
+        modifier = Modifier.weight(1f),
+    )
+    Text(text = "%.2f".format(safe), modifier = Modifier.width(48.dp))
+  }
 }

@@ -17,6 +17,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
@@ -31,101 +32,101 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 /**
  * Tests the HTTP send / delete behaviour of [WebhookService].
  *
  * The "persist generated ingestion id" fix in `Ingestion`/`ExperienceDao`/
- * `FinishIngestionScreenViewModel` only matters if [WebhookService] actually
- * extracts the message id from Discord's `wait=true` response and reuses it
- * verbatim for delete (and edit). These tests pin that behaviour:
+ * `FinishIngestionScreenViewModel` only matters if [WebhookService] actually extracts the message
+ * id from Discord's `wait=true` response and reuses it verbatim for delete (and edit). These tests
+ * pin that behaviour:
  *
- *  * [sendWebhook_returnsMessageIdFromWaitTrueResponse] — the value the fix
- *    now stores in `Ingestion.webhookMessageId`.
- *  * [editWebhook_issuesPatchOnMessagesIdEndpointWithRenderedContent] — what
- *    runs when an ingestion with a stored message id is edited.
- *  * [deleteWebhookMessage_issuesDeleteOnMessagesIdEndpointAndReturnsTrueOn204]
- *    — what runs once a message id is stored.
+ * * [sendWebhook_returnsMessageIdFromWaitTrueResponse] — the value the fix now stores in
+ *   `Ingestion.webhookMessageId`.
+ * * [editWebhook_issuesPatchOnMessagesIdEndpointWithRenderedContent] — what runs when an ingestion
+ *   with a stored message id is edited.
+ * * [deleteWebhookMessage_issuesDeleteOnMessagesIdEndpointAndReturnsTrueOn204] — what runs once a
+ *   message id is stored.
  *
- * `editWebhook` issues a `PATCH`, which the JDK's
- * `HttpURLConnection.setRequestMethod` rejects with a `ProtocolException`
- * (Android's okhttp-backed implementation accepts it). [WebhookService] then
- * sets the method reflectively, which works here because the Gradle test task
- * opens `java.base/java.net` to the unnamed module.
+ * `editWebhook` issues a `PATCH`, which the JDK's `HttpURLConnection.setRequestMethod` rejects with
+ * a `ProtocolException` (Android's okhttp-backed implementation accepts it). [WebhookService] then
+ * sets the method reflectively, which works here because the Gradle test task opens
+ * `java.base/java.net` to the unnamed module.
  */
 class WebhookServiceHttpTest {
 
-    private lateinit var server: MockWebServer
-    private lateinit var baseUrl: String
+  private lateinit var server: MockWebServer
+  private lateinit var baseUrl: String
 
-    /**
-     * Built with a no-op logger (so the real `android.util.Log` calls don't
-     * blow up under JVM tests without needing the global
-     * `unitTests.isReturnDefaultValues` Gradle flag) and a no-op delay (so the
-     * exponential-backoff retry tests don't sleep in real time).
-     */
-    private val service = WebhookService(
-        logger = WebhookLogger { _, _ -> },
-        delayMillis = { /* no-op: skip exponential backoff in tests */ },
-    )
+  /**
+   * Built with a no-op logger (so the real `android.util.Log` calls don't blow up under JVM tests
+   * without needing the global `unitTests.isReturnDefaultValues` Gradle flag) and a no-op delay (so
+   * the exponential-backoff retry tests don't sleep in real time).
+   */
+  private val service =
+      WebhookService(
+          logger = WebhookLogger { _, _ -> },
+          delayMillis = { /* no-op: skip exponential backoff in tests */ },
+      )
 
-    @Before
-    fun setUp() {
-        server = MockWebServer()
-        server.start()
-        // Use a Discord-shaped path so we can also assert the path the service
-        // POSTs to is preserved verbatim (e.g. trailing-slash handling).
-        baseUrl = server.url("/webhooks/abc/token").toString().trimEnd('/')
-    }
+  @Before
+  fun setUp() {
+    server = MockWebServer()
+    server.start()
+    // Use a Discord-shaped path so we can also assert the path the service
+    // POSTs to is preserved verbatim (e.g. trailing-slash handling).
+    baseUrl = server.url("/webhooks/abc/token").toString().trimEnd('/')
+  }
 
-    @After
-    fun tearDown() {
-        server.shutdown()
-    }
+  @After
+  fun tearDown() {
+    server.shutdown()
+  }
 
-    private fun enqueue(status: Int, body: String = "") {
-        server.enqueue(MockResponse().setResponseCode(status).setBody(body))
-    }
+  private fun enqueue(status: Int, body: String = "") {
+    server.enqueue(MockResponse().setResponseCode(status).setBody(body))
+  }
 
-    private fun serviceWithFreakQuery(
-        separator: String = ", ",
-        render: suspend (String, FreakQueryConfig) -> String
-    ): WebhookService {
-        val repo = mockk<FreakQueryRepository>()
-        val prefs = mockk<UserPreferences>()
-        every { prefs.webhookUseFreakQueryFlow } returns flowOf(true)
-        every { prefs.webhookFreakQuerySeparatorFlow } returns flowOf(separator)
-        coEvery { repo.render(any(), any()) } coAnswers {
-            render(firstArg(), secondArg())
+  private fun serviceWithFreakQuery(
+      separator: String = ", ",
+      render: suspend (String, FreakQueryConfig) -> String,
+  ): WebhookService {
+    val repo = mockk<FreakQueryRepository>()
+    val prefs = mockk<UserPreferences>()
+    every { prefs.webhookUseFreakQueryFlow } returns flowOf(true)
+    every { prefs.webhookFreakQuerySeparatorFlow } returns flowOf(separator)
+    coEvery { repo.render(any(), any()) } coAnswers
+        {
+          render(firstArg(), secondArg())
         }
-        return WebhookService(
-            freakQueryRepository = repo,
-            userPreferences = prefs,
-            logger = WebhookLogger { _, _ -> },
-            delayMillis = { },
-        )
-    }
+    return WebhookService(
+        freakQueryRepository = repo,
+        userPreferences = prefs,
+        logger = WebhookLogger { _, _ -> },
+        delayMillis = {},
+    )
+  }
 
-    /**
-     * Bounded `takeRequest` so a regression that prevents the HTTP request
-     * from being sent fails fast instead of hanging the whole test run.
-     */
-    private fun takeRequest(): RecordedRequest {
-        val req = server.takeRequest(5, TimeUnit.SECONDS)
-        assertNotNull("expected an HTTP request to MockWebServer within 5s", req)
-        return req!!
-    }
+  /**
+   * Bounded `takeRequest` so a regression that prevents the HTTP request from being sent fails fast
+   * instead of hanging the whole test run.
+   */
+  private fun takeRequest(): RecordedRequest {
+    val req = server.takeRequest(5, TimeUnit.SECONDS)
+    assertNotNull("expected an HTTP request to MockWebServer within 5s", req)
+    return req!!
+  }
 
-    // ---------------------------------------------------------------------
-    // sendWebhook
-    // ---------------------------------------------------------------------
+  // ---------------------------------------------------------------------
+  // sendWebhook
+  // ---------------------------------------------------------------------
 
-    @Test
-    fun sendWebhook_returnsMessageIdFromWaitTrueResponse() = runBlocking {
-        enqueue(200, """{"id":"1234567890","content":"hi"}""")
+  @Test
+  fun sendWebhook_returnsMessageIdFromWaitTrueResponse() = runBlocking {
+    enqueue(200, """{"id":"1234567890","content":"hi"}""")
 
-        val result = service.sendWebhook(
+    val result =
+        service.sendWebhook(
             url = baseUrl,
             user = "Alice",
             substance = "Caffeine",
@@ -139,305 +140,429 @@ class WebhookServiceHttpTest {
             isHyperlinked = false,
         )
 
-        assertTrue("expected success, got $result", result.success)
-        assertNull(result.error)
-        assertEquals("1234567890", result.messageId)
+    assertTrue("expected success, got $result", result.success)
+    assertNull(result.error)
+    assertEquals("1234567890", result.messageId)
 
-        val req = takeRequest()
-        assertEquals("POST", req.method)
-        // The path includes `wait=true` so Discord returns the created
-        // message body (which is where we get the id from).
-        assertEquals("/webhooks/abc/token?wait=true", req.path)
-        assertEquals("application/json", req.getHeader("Content-Type"))
-        val payload = JSONObject(req.body.readUtf8())
-        assertEquals("Alice: 100 mg Caffeine via oral", payload.getString("content"))
-    }
+    val req = takeRequest()
+    assertEquals("POST", req.method)
+    // The path includes `wait=true` so Discord returns the created
+    // message body (which is where we get the id from).
+    assertEquals("/webhooks/abc/token?wait=true", req.path)
+    assertEquals("application/json", req.getHeader("Content-Type"))
+    val payload = JSONObject(req.body.readUtf8())
+    assertEquals("Alice: 100 mg Caffeine via oral", payload.getString("content"))
+  }
 
-    @Test
-    fun sendWebhook_stripsSingleTrailingSlashBeforeAppendingWaitTrue() = runBlocking {
-        enqueue(200, """{"id":"42"}""")
+  @Test
+  fun sendWebhook_stripsSingleTrailingSlashBeforeAppendingWaitTrue() = runBlocking {
+    enqueue(200, """{"id":"42"}""")
 
-        val result = service.sendWebhook(
+    val result =
+        service.sendWebhook(
             url = "$baseUrl/",
-            user = "u", substance = "s", dose = null, units = null,
-            isEstimate = false, route = "r", site = null, note = null,
-            template = "{user}", isHyperlinked = false,
+            user = "u",
+            substance = "s",
+            dose = null,
+            units = null,
+            isEstimate = false,
+            route = "r",
+            site = null,
+            note = null,
+            template = "{user}",
+            isHyperlinked = false,
         )
 
-        assertTrue(result.success)
-        // Path must not contain a doubled slash; if the trailing slash had not
-        // been stripped, the separator-choice would also have been wrong.
-        assertEquals("/webhooks/abc/token?wait=true", takeRequest().path)
-    }
+    assertTrue(result.success)
+    // Path must not contain a doubled slash; if the trailing slash had not
+    // been stripped, the separator-choice would also have been wrong.
+    assertEquals("/webhooks/abc/token?wait=true", takeRequest().path)
+  }
 
-    @Test
-    fun sendWebhook_usesAmpersandSeparatorWhenUrlAlreadyHasQueryString() = runBlocking {
-        enqueue(200, """{"id":"1"}""")
+  @Test
+  fun sendWebhook_usesAmpersandSeparatorWhenUrlAlreadyHasQueryString() = runBlocking {
+    enqueue(200, """{"id":"1"}""")
 
-        val result = service.sendWebhook(
+    val result =
+        service.sendWebhook(
             url = "$baseUrl?thread_id=999",
-            user = "u", substance = "s", dose = null, units = null,
-            isEstimate = false, route = "r", site = null, note = null,
-            template = "{user}", isHyperlinked = false,
+            user = "u",
+            substance = "s",
+            dose = null,
+            units = null,
+            isEstimate = false,
+            route = "r",
+            site = null,
+            note = null,
+            template = "{user}",
+            isHyperlinked = false,
         )
 
-        assertTrue(result.success)
-        // Both the existing `thread_id` and the appended `wait=true` must be
-        // present; if `?` had been used a second time the request would have
-        // been malformed.
-        assertEquals(
-            "/webhooks/abc/token?thread_id=999&wait=true",
-            takeRequest().path,
+    assertTrue(result.success)
+    // Both the existing `thread_id` and the appended `wait=true` must be
+    // present; if `?` had been used a second time the request would have
+    // been malformed.
+    assertEquals(
+        "/webhooks/abc/token?thread_id=999&wait=true",
+        takeRequest().path,
+    )
+  }
+
+  @Test
+  fun sendWebhook_succeedsButReturnsNullMessageIdWhenResponseHasNoIdField() = runBlocking {
+    enqueue(200, """{"content":"hi"}""")
+
+    val result =
+        service.sendWebhook(
+            url = baseUrl,
+            user = "u",
+            substance = "s",
+            dose = null,
+            units = null,
+            isEstimate = false,
+            route = "r",
+            site = null,
+            note = null,
+            template = "{user}",
+            isHyperlinked = false,
         )
+
+    assertTrue(result.success)
+    assertNull(result.messageId)
+  }
+
+  @Test
+  fun sendWebhook_retriesOn500AndReturnsIdFromSuccessfulAttempt() = runBlocking {
+    enqueue(500, "boom")
+    enqueue(200, """{"id":"second-try"}""")
+
+    val result =
+        service.sendWebhook(
+            url = baseUrl,
+            user = "u",
+            substance = "s",
+            dose = null,
+            units = null,
+            isEstimate = false,
+            route = "r",
+            site = null,
+            note = null,
+            template = "{user}",
+            isHyperlinked = false,
+        )
+
+    assertTrue(result.success)
+    assertEquals("second-try", result.messageId)
+    assertEquals(2, server.requestCount)
+  }
+
+  @Test
+  fun sendWebhook_returnsFailureAfterAllRetriesExhausted() = runBlocking {
+    // WebhookService retries up to MAX_RETRIES = 3 attempts.
+    repeat(3) { enqueue(500, "still broken") }
+
+    val result =
+        service.sendWebhook(
+            url = baseUrl,
+            user = "u",
+            substance = "s",
+            dose = null,
+            units = null,
+            isEstimate = false,
+            route = "r",
+            site = null,
+            note = null,
+            template = "{user}",
+            isHyperlinked = false,
+        )
+
+    assertFalse(result.success)
+    assertNull(result.messageId)
+    assertNotNull(result.error)
+    assertEquals(3, server.requestCount)
+  }
+
+  @Test
+  fun sendWebhook_includesErrorResponseBodyInFailure() = runBlocking {
+    repeat(3) { enqueue(400, """{"message":"Cannot send an empty message"}""") }
+
+    val result =
+        service.sendWebhook(
+            url = baseUrl,
+            user = "u",
+            substance = "s",
+            dose = null,
+            units = null,
+            isEstimate = false,
+            route = "r",
+            site = null,
+            note = null,
+            template = "{user}",
+            isHyperlinked = false,
+        )
+
+    assertFalse(result.success)
+    assertEquals(
+        """HTTP error code 400: {"message":"Cannot send an empty message"}""",
+        result.error?.message,
+    )
+  }
+
+  @Test
+  fun sendWebhook_omitsDetailWhenErrorResponseBodyIsEmpty() = runBlocking {
+    repeat(3) { enqueue(500) }
+
+    val result =
+        service.sendWebhook(
+            url = baseUrl,
+            user = "u",
+            substance = "s",
+            dose = null,
+            units = null,
+            isEstimate = false,
+            route = "r",
+            site = null,
+            note = null,
+            template = "{user}",
+            isHyperlinked = false,
+        )
+
+    assertFalse(result.success)
+    assertEquals("HTTP error code 500", result.error?.message)
+  }
+
+  @Test
+  fun sendWebhook_withIsHyperlinkedTrue_wrapsSubstanceInMarkdownLink() = runBlocking {
+    enqueue(200, """{"id":"x"}""")
+
+    service.sendWebhook(
+        url = baseUrl,
+        user = "u",
+        substance = "Caffeine",
+        dose = null,
+        units = null,
+        isEstimate = false,
+        route = "oral",
+        site = null,
+        note = null,
+        template = "{substance}",
+        isHyperlinked = true,
+        substanceInfoUrl = "https://example.org/substance/",
+    )
+
+    val payload = JSONObject(takeRequest().body.readUtf8())
+    assertEquals(
+        "[Caffeine](<https://example.org/substance/Caffeine>)",
+        payload.getString("content"),
+    )
+  }
+
+  @Test
+  fun sendWebhook_urlEncodesSubstanceNamesContainingSpacesAndSpecialChars() = runBlocking {
+    enqueue(200, """{"id":"x"}""")
+
+    service.sendWebhook(
+        url = baseUrl,
+        user = "u",
+        substance = "5-MeO-DMT freebase",
+        dose = null,
+        units = null,
+        isEstimate = false,
+        route = "oral",
+        site = null,
+        note = null,
+        template = "{substance}",
+        isHyperlinked = true,
+        substanceInfoUrl = "https://example.org/s/",
+    )
+
+    val content = JSONObject(takeRequest().body.readUtf8()).getString("content")
+    // The display text keeps the original substance name.
+    assertTrue(
+        "expected display name preserved in: $content",
+        content.startsWith("[5-MeO-DMT freebase]"),
+    )
+    // The URL inside the link must be percent- or plus-encoded.
+    assertTrue(
+        "expected encoded URL in: $content",
+        content.contains("https://example.org/s/5-MeO-DMT+freebase") ||
+            content.contains("https://example.org/s/5-MeO-DMT%20freebase"),
+    )
+  }
+
+  @Test
+  fun sendWebhook_rendersFreakQueryTemplateBeforePosting() = runBlocking {
+    enqueue(200, """{"id":"x"}""")
+    val service = serviceWithFreakQuery { template, _ ->
+      template.replace("{{today|count}}", "2")
     }
 
-    @Test
-    fun sendWebhook_succeedsButReturnsNullMessageIdWhenResponseHasNoIdField() =
-        runBlocking {
-            enqueue(200, """{"content":"hi"}""")
+    service.sendWebhook(
+        url = baseUrl,
+        user = "u",
+        substance = "Caffeine",
+        dose = null,
+        units = null,
+        isEstimate = false,
+        route = "oral",
+        site = null,
+        note = null,
+        template = "Today: {{today|count}}",
+        isHyperlinked = false,
+    )
 
-            val result = service.sendWebhook(
-                url = baseUrl,
-                user = "u", substance = "s", dose = null, units = null,
-                isEstimate = false, route = "r", site = null, note = null,
-                template = "{user}", isHyperlinked = false,
-            )
+    val payload = JSONObject(takeRequest().body.readUtf8())
+    assertEquals("Today: 2", payload.getString("content"))
+  }
 
-            assertTrue(result.success)
-            assertNull(result.messageId)
+  @Test
+  fun sendWebhook_passesConfiguredFreakQueryCompactSeparator() = runBlocking {
+    enqueue(200, """{"id":"x"}""")
+    val service =
+        serviceWithFreakQuery(separator = " | ") { _, config ->
+          "separator=${config.renderSeparator}"
         }
 
-    @Test
-    fun sendWebhook_retriesOn500AndReturnsIdFromSuccessfulAttempt() = runBlocking {
-        enqueue(500, "boom")
-        enqueue(200, """{"id":"second-try"}""")
+    service.sendWebhook(
+        url = baseUrl,
+        user = "u",
+        substance = "Caffeine",
+        dose = null,
+        units = null,
+        isEstimate = false,
+        route = "oral",
+        site = null,
+        note = null,
+        template = "{{today|compact=true}}",
+        isHyperlinked = false,
+    )
 
-        val result = service.sendWebhook(
-            url = baseUrl,
-            user = "u", substance = "s", dose = null, units = null,
-            isEstimate = false, route = "r", site = null, note = null,
-            template = "{user}", isHyperlinked = false,
-        )
+    val payload = JSONObject(takeRequest().body.readUtf8())
+    assertEquals("separator= | ", payload.getString("content"))
+  }
 
-        assertTrue(result.success)
-        assertEquals("second-try", result.messageId)
-        assertEquals(2, server.requestCount)
-    }
+  @Test
+  fun sendWebhook_formatsIntegerDoseWithoutTrailingDecimals() = runBlocking {
+    enqueue(200, """{"id":"x"}""")
 
-    @Test
-    fun sendWebhook_returnsFailureAfterAllRetriesExhausted() = runBlocking {
-        // WebhookService retries up to MAX_RETRIES = 3 attempts.
-        repeat(3) { enqueue(500, "still broken") }
+    service.sendWebhook(
+        url = baseUrl,
+        user = "u",
+        substance = "s",
+        dose = 100.0,
+        units = "mg",
+        isEstimate = false,
+        route = "oral",
+        site = null,
+        note = null,
+        template = "[{dose} {units} ]done",
+        isHyperlinked = false,
+    )
 
-        val result = service.sendWebhook(
-            url = baseUrl,
-            user = "u", substance = "s", dose = null, units = null,
-            isEstimate = false, route = "r", site = null, note = null,
-            template = "{user}", isHyperlinked = false,
-        )
+    val payload = JSONObject(takeRequest().body.readUtf8())
+    assertEquals("100 mg done", payload.getString("content"))
+  }
 
-        assertFalse(result.success)
-        assertNull(result.messageId)
-        assertNotNull(result.error)
-        assertEquals(3, server.requestCount)
-    }
+  @Test
+  fun sendWebhook_preservesNonIntegerDoses() = runBlocking {
+    enqueue(200, """{"id":"x"}""")
 
-    @Test
-    fun sendWebhook_includesErrorResponseBodyInFailure() = runBlocking {
-        repeat(3) { enqueue(400, """{"message":"Cannot send an empty message"}""") }
+    service.sendWebhook(
+        url = baseUrl,
+        user = "u",
+        substance = "s",
+        dose = 12.5,
+        units = "mg",
+        isEstimate = false,
+        route = "oral",
+        site = null,
+        note = null,
+        template = "[{dose} {units} ]done",
+        isHyperlinked = false,
+    )
 
-        val result = service.sendWebhook(
-            url = baseUrl,
-            user = "u", substance = "s", dose = null, units = null,
-            isEstimate = false, route = "r", site = null, note = null,
-            template = "{user}", isHyperlinked = false,
-        )
+    val payload = JSONObject(takeRequest().body.readUtf8())
+    assertEquals("12.5 mg done", payload.getString("content"))
+  }
 
-        assertFalse(result.success)
-        assertEquals(
-            """HTTP error code 400: {"message":"Cannot send an empty message"}""",
-            result.error?.message,
-        )
-    }
+  @Test
+  fun sendWebhook_prefixesEstimatedDoseWithTilde() = runBlocking {
+    enqueue(200, """{"id":"x"}""")
 
-    @Test
-    fun sendWebhook_omitsDetailWhenErrorResponseBodyIsEmpty() = runBlocking {
-        repeat(3) { enqueue(500) }
+    service.sendWebhook(
+        url = baseUrl,
+        user = "u",
+        substance = "s",
+        dose = 25.0,
+        units = "mg",
+        isEstimate = true,
+        route = "oral",
+        site = null,
+        note = null,
+        template = "[{dose} {units} ]done",
+        isHyperlinked = false,
+    )
 
-        val result = service.sendWebhook(
-            url = baseUrl,
-            user = "u", substance = "s", dose = null, units = null,
-            isEstimate = false, route = "r", site = null, note = null,
-            template = "{user}", isHyperlinked = false,
-        )
+    val payload = JSONObject(takeRequest().body.readUtf8())
+    assertEquals("~25 mg done", payload.getString("content"))
+  }
 
-        assertFalse(result.success)
-        assertEquals("HTTP error code 500", result.error?.message)
-    }
+  @Test
+  fun sendWebhook_dropsDoseBlockWhenDoseIsNull() = runBlocking {
+    enqueue(200, """{"id":"x"}""")
 
-    @Test
-    fun sendWebhook_withIsHyperlinkedTrue_wrapsSubstanceInMarkdownLink() = runBlocking {
-        enqueue(200, """{"id":"x"}""")
+    service.sendWebhook(
+        url = baseUrl,
+        user = "u",
+        substance = "s",
+        dose = null,
+        units = "mg",
+        isEstimate = false,
+        route = "oral",
+        site = null,
+        note = null,
+        template = "[{dose} {units} ]done",
+        isHyperlinked = false,
+    )
 
-        service.sendWebhook(
-            url = baseUrl,
-            user = "u", substance = "Caffeine", dose = null, units = null,
-            isEstimate = false, route = "oral", site = null, note = null,
-            template = "{substance}", isHyperlinked = true,
-            substanceInfoUrl = "https://example.org/substance/",
-        )
+    val payload = JSONObject(takeRequest().body.readUtf8())
+    // The optional `[…]` block must be removed entirely because both
+    // `dose` and `units` resolve to empty strings.
+    assertEquals("done", payload.getString("content"))
+  }
 
-        val payload = JSONObject(takeRequest().body.readUtf8())
-        assertEquals(
-            "[Caffeine](<https://example.org/substance/Caffeine>)",
-            payload.getString("content"),
-        )
-    }
+  @Test
+  fun sendWebhook_dropsDoseBlockWhenDoseIsNegative() = runBlocking {
+    enqueue(200, """{"id":"x"}""")
 
-    @Test
-    fun sendWebhook_urlEncodesSubstanceNamesContainingSpacesAndSpecialChars() = runBlocking {
-        enqueue(200, """{"id":"x"}""")
+    service.sendWebhook(
+        url = baseUrl,
+        user = "u",
+        substance = "s",
+        dose = -1.0,
+        units = "mg",
+        isEstimate = false,
+        route = "oral",
+        site = null,
+        note = null,
+        template = "[{dose} {units} ]done",
+        isHyperlinked = false,
+    )
 
-        service.sendWebhook(
-            url = baseUrl,
-            user = "u", substance = "5-MeO-DMT freebase", dose = null, units = null,
-            isEstimate = false, route = "oral", site = null, note = null,
-            template = "{substance}", isHyperlinked = true,
-            substanceInfoUrl = "https://example.org/s/",
-        )
+    val payload = JSONObject(takeRequest().body.readUtf8())
+    assertEquals("done", payload.getString("content"))
+  }
 
-        val content = JSONObject(takeRequest().body.readUtf8()).getString("content")
-        // The display text keeps the original substance name.
-        assertTrue("expected display name preserved in: $content",
-            content.startsWith("[5-MeO-DMT freebase]"))
-        // The URL inside the link must be percent- or plus-encoded.
-        assertTrue("expected encoded URL in: $content",
-            content.contains("https://example.org/s/5-MeO-DMT+freebase") ||
-                content.contains("https://example.org/s/5-MeO-DMT%20freebase"))
-    }
+  // ---------------------------------------------------------------------
+  // editWebhook
+  // ---------------------------------------------------------------------
 
-    @Test
-    fun sendWebhook_rendersFreakQueryTemplateBeforePosting() = runBlocking {
-        enqueue(200, """{"id":"x"}""")
-        val service = serviceWithFreakQuery { template, _ ->
-            template.replace("{{today|count}}", "2")
-        }
+  @Test
+  fun editWebhook_issuesPatchOnMessagesIdEndpointWithRenderedContent() = runBlocking {
+    enqueue(200, """{"id":"777","content":"edited"}""")
 
-        service.sendWebhook(
-            url = baseUrl,
-            user = "u", substance = "Caffeine", dose = null, units = null,
-            isEstimate = false, route = "oral", site = null, note = null,
-            template = "Today: {{today|count}}", isHyperlinked = false,
-        )
-
-        val payload = JSONObject(takeRequest().body.readUtf8())
-        assertEquals("Today: 2", payload.getString("content"))
-    }
-
-    @Test
-    fun sendWebhook_passesConfiguredFreakQueryCompactSeparator() = runBlocking {
-        enqueue(200, """{"id":"x"}""")
-        val service = serviceWithFreakQuery(separator = " | ") { _, config ->
-            "separator=${config.renderSeparator}"
-        }
-
-        service.sendWebhook(
-            url = baseUrl,
-            user = "u", substance = "Caffeine", dose = null, units = null,
-            isEstimate = false, route = "oral", site = null, note = null,
-            template = "{{today|compact=true}}", isHyperlinked = false,
-        )
-
-        val payload = JSONObject(takeRequest().body.readUtf8())
-        assertEquals("separator= | ", payload.getString("content"))
-    }
-
-    @Test
-    fun sendWebhook_formatsIntegerDoseWithoutTrailingDecimals() = runBlocking {
-        enqueue(200, """{"id":"x"}""")
-
-        service.sendWebhook(
-            url = baseUrl,
-            user = "u", substance = "s", dose = 100.0, units = "mg",
-            isEstimate = false, route = "oral", site = null, note = null,
-            template = "[{dose} {units} ]done", isHyperlinked = false,
-        )
-
-        val payload = JSONObject(takeRequest().body.readUtf8())
-        assertEquals("100 mg done", payload.getString("content"))
-    }
-
-    @Test
-    fun sendWebhook_preservesNonIntegerDoses() = runBlocking {
-        enqueue(200, """{"id":"x"}""")
-
-        service.sendWebhook(
-            url = baseUrl,
-            user = "u", substance = "s", dose = 12.5, units = "mg",
-            isEstimate = false, route = "oral", site = null, note = null,
-            template = "[{dose} {units} ]done", isHyperlinked = false,
-        )
-
-        val payload = JSONObject(takeRequest().body.readUtf8())
-        assertEquals("12.5 mg done", payload.getString("content"))
-    }
-
-    @Test
-    fun sendWebhook_prefixesEstimatedDoseWithTilde() = runBlocking {
-        enqueue(200, """{"id":"x"}""")
-
-        service.sendWebhook(
-            url = baseUrl,
-            user = "u", substance = "s", dose = 25.0, units = "mg",
-            isEstimate = true, route = "oral", site = null, note = null,
-            template = "[{dose} {units} ]done", isHyperlinked = false,
-        )
-
-        val payload = JSONObject(takeRequest().body.readUtf8())
-        assertEquals("~25 mg done", payload.getString("content"))
-    }
-
-    @Test
-    fun sendWebhook_dropsDoseBlockWhenDoseIsNull() = runBlocking {
-        enqueue(200, """{"id":"x"}""")
-
-        service.sendWebhook(
-            url = baseUrl,
-            user = "u", substance = "s", dose = null, units = "mg",
-            isEstimate = false, route = "oral", site = null, note = null,
-            template = "[{dose} {units} ]done", isHyperlinked = false,
-        )
-
-        val payload = JSONObject(takeRequest().body.readUtf8())
-        // The optional `[…]` block must be removed entirely because both
-        // `dose` and `units` resolve to empty strings.
-        assertEquals("done", payload.getString("content"))
-    }
-
-    @Test
-    fun sendWebhook_dropsDoseBlockWhenDoseIsNegative() = runBlocking {
-        enqueue(200, """{"id":"x"}""")
-
-        service.sendWebhook(
-            url = baseUrl,
-            user = "u", substance = "s", dose = -1.0, units = "mg",
-            isEstimate = false, route = "oral", site = null, note = null,
-            template = "[{dose} {units} ]done", isHyperlinked = false,
-        )
-
-        val payload = JSONObject(takeRequest().body.readUtf8())
-        assertEquals("done", payload.getString("content"))
-    }
-
-    // ---------------------------------------------------------------------
-    // editWebhook
-    // ---------------------------------------------------------------------
-
-    @Test
-    fun editWebhook_issuesPatchOnMessagesIdEndpointWithRenderedContent() = runBlocking {
-        enqueue(200, """{"id":"777","content":"edited"}""")
-
-        val result = service.editWebhook(
+    val result =
+        service.editWebhook(
             url = baseUrl,
             messageId = "777",
             user = "Alice",
@@ -452,306 +577,446 @@ class WebhookServiceHttpTest {
             isHyperlinked = false,
         )
 
-        assertTrue("expected success, got $result", result.success)
-        assertNull(result.error)
-        // Edits don't parse the response: the caller keeps its stored id.
-        assertNull(result.messageId)
+    assertTrue("expected success, got $result", result.success)
+    assertNull(result.error)
+    // Edits don't parse the response: the caller keeps its stored id.
+    assertNull(result.messageId)
 
-        val req = takeRequest()
-        assertEquals("PATCH", req.method)
-        // No `wait=true` here: Discord always returns the edited message.
-        assertEquals("/webhooks/abc/token/messages/777", req.path)
-        assertNull(req.getHeader("X-HTTP-Method-Override"))
-        assertEquals("application/json", req.getHeader("Content-Type"))
-        val payload = JSONObject(req.body.readUtf8())
-        assertEquals("Alice: 50 mg Caffeine via oral", payload.getString("content"))
-    }
+    val req = takeRequest()
+    assertEquals("PATCH", req.method)
+    // No `wait=true` here: Discord always returns the edited message.
+    assertEquals("/webhooks/abc/token/messages/777", req.path)
+    assertNull(req.getHeader("X-HTTP-Method-Override"))
+    assertEquals("application/json", req.getHeader("Content-Type"))
+    val payload = JSONObject(req.body.readUtf8())
+    assertEquals("Alice: 50 mg Caffeine via oral", payload.getString("content"))
+  }
 
-    @Test
-    fun editWebhook_stripsSingleTrailingSlashBeforeAppendingPath() = runBlocking {
-        enqueue(200, """{"id":"777"}""")
+  @Test
+  fun editWebhook_stripsSingleTrailingSlashBeforeAppendingPath() = runBlocking {
+    enqueue(200, """{"id":"777"}""")
 
-        val result = service.editWebhook(
-            url = "$baseUrl/", messageId = "777",
-            user = "u", substance = "s", dose = null, units = null,
-            isEstimate = false, route = "r", site = null, note = null,
-            template = "{user}", isHyperlinked = false,
+    val result =
+        service.editWebhook(
+            url = "$baseUrl/",
+            messageId = "777",
+            user = "u",
+            substance = "s",
+            dose = null,
+            units = null,
+            isEstimate = false,
+            route = "r",
+            site = null,
+            note = null,
+            template = "{user}",
+            isHyperlinked = false,
         )
 
-        assertTrue(result.success)
-        assertEquals("/webhooks/abc/token/messages/777", takeRequest().path)
-    }
+    assertTrue(result.success)
+    assertEquals("/webhooks/abc/token/messages/777", takeRequest().path)
+  }
 
-    @Test
-    fun editWebhook_retriesOn500AndSucceedsOnLaterAttempt() = runBlocking {
-        enqueue(500, "boom")
-        enqueue(200, """{"id":"777"}""")
+  @Test
+  fun editWebhook_retriesOn500AndSucceedsOnLaterAttempt() = runBlocking {
+    enqueue(500, "boom")
+    enqueue(200, """{"id":"777"}""")
 
-        val result = service.editWebhook(
-            url = baseUrl, messageId = "777",
-            user = "u", substance = "s", dose = null, units = null,
-            isEstimate = false, route = "r", site = null, note = null,
-            template = "{user}", isHyperlinked = false,
+    val result =
+        service.editWebhook(
+            url = baseUrl,
+            messageId = "777",
+            user = "u",
+            substance = "s",
+            dose = null,
+            units = null,
+            isEstimate = false,
+            route = "r",
+            site = null,
+            note = null,
+            template = "{user}",
+            isHyperlinked = false,
         )
 
-        assertTrue(result.success)
-        assertEquals(2, server.requestCount)
-        assertEquals("PATCH", takeRequest().method)
-        assertEquals("PATCH", takeRequest().method)
-    }
+    assertTrue(result.success)
+    assertEquals(2, server.requestCount)
+    assertEquals("PATCH", takeRequest().method)
+    assertEquals("PATCH", takeRequest().method)
+  }
 
-    @Test
-    fun editWebhook_returnsFailureWithErrorBodyWhenMessageIsMissing() = runBlocking {
-        repeat(3) { enqueue(404, """{"message":"Unknown Message","code":10008}""") }
+  @Test
+  fun editWebhook_returnsFailureWithErrorBodyWhenMessageIsMissing() = runBlocking {
+    repeat(3) { enqueue(404, """{"message":"Unknown Message","code":10008}""") }
 
-        val result = service.editWebhook(
-            url = baseUrl, messageId = "missing",
-            user = "u", substance = "s", dose = null, units = null,
-            isEstimate = false, route = "r", site = null, note = null,
-            template = "{user}", isHyperlinked = false,
+    val result =
+        service.editWebhook(
+            url = baseUrl,
+            messageId = "missing",
+            user = "u",
+            substance = "s",
+            dose = null,
+            units = null,
+            isEstimate = false,
+            route = "r",
+            site = null,
+            note = null,
+            template = "{user}",
+            isHyperlinked = false,
         )
 
-        assertFalse(result.success)
-        assertNull(result.messageId)
-        assertEquals(
-            """HTTP error code 404: {"message":"Unknown Message","code":10008}""",
-            result.error?.message,
-        )
-        assertEquals(3, server.requestCount)
-    }
+    assertFalse(result.success)
+    assertNull(result.messageId)
+    assertEquals(
+        """HTTP error code 404: {"message":"Unknown Message","code":10008}""",
+        result.error?.message,
+    )
+    assertEquals(3, server.requestCount)
+  }
 
-    // ---------------------------------------------------------------------
-    // deleteWebhookMessage
-    // ---------------------------------------------------------------------
+  // ---------------------------------------------------------------------
+  // deleteWebhookMessage
+  // ---------------------------------------------------------------------
 
-    @Test
-    fun deleteWebhookMessage_issuesDeleteOnMessagesIdEndpointAndReturnsTrueOn204() =
-        runBlocking {
-            enqueue(204)
+  @Test
+  fun deleteWebhookMessage_issuesDeleteOnMessagesIdEndpointAndReturnsTrueOn204() = runBlocking {
+    enqueue(204)
 
-            val ok = service.deleteWebhookMessage(baseUrl, "777")
+    val ok = service.deleteWebhookMessage(baseUrl, "777")
 
-            assertTrue(ok)
-            val req = takeRequest()
-            assertEquals("DELETE", req.method)
-            assertEquals("/webhooks/abc/token/messages/777", req.path)
-        }
+    assertTrue(ok)
+    val req = takeRequest()
+    assertEquals("DELETE", req.method)
+    assertEquals("/webhooks/abc/token/messages/777", req.path)
+  }
 
-    @Test
-    fun deleteWebhookMessage_stripsSingleTrailingSlashBeforeAppendingPath() = runBlocking {
-        enqueue(200)
+  @Test
+  fun deleteWebhookMessage_stripsSingleTrailingSlashBeforeAppendingPath() = runBlocking {
+    enqueue(200)
 
-        val ok = service.deleteWebhookMessage("$baseUrl/", "777")
+    val ok = service.deleteWebhookMessage("$baseUrl/", "777")
 
-        assertTrue(ok)
-        // Path must not contain a doubled slash before `messages`.
-        assertEquals("/webhooks/abc/token/messages/777", takeRequest().path)
-    }
+    assertTrue(ok)
+    // Path must not contain a doubled slash before `messages`.
+    assertEquals("/webhooks/abc/token/messages/777", takeRequest().path)
+  }
 
-    @Test
-    fun deleteWebhookMessage_returnsFalseWhenServerResponds404() = runBlocking {
-        enqueue(404, "not found")
+  @Test
+  fun deleteWebhookMessage_returnsFalseWhenServerResponds404() = runBlocking {
+    enqueue(404, "not found")
 
-        val ok = service.deleteWebhookMessage(baseUrl, "missing")
+    val ok = service.deleteWebhookMessage(baseUrl, "missing")
 
-        assertFalse(ok)
-    }
+    assertFalse(ok)
+  }
 
-    @Test
-    fun deleteWebhookMessage_returnsFalseWhenConnectionCannotBeEstablished() = runBlocking {
-        // Port 1 on the loopback address has no listener: the kernel
-        // immediately replies with RST (connection refused) without any DNS
-        // lookup. This deterministically exercises the `catch` branch in
-        // `deleteWebhookMessage`, which must return `false` on any IO error.
-        val ok = service.deleteWebhookMessage(
+  @Test
+  fun deleteWebhookMessage_returnsFalseWhenConnectionCannotBeEstablished() = runBlocking {
+    // Port 1 on the loopback address has no listener: the kernel
+    // immediately replies with RST (connection refused) without any DNS
+    // lookup. This deterministically exercises the `catch` branch in
+    // `deleteWebhookMessage`, which must return `false` on any IO error.
+    val ok =
+        service.deleteWebhookMessage(
             "http://127.0.0.1:1/webhooks/abc/token",
             "anything",
         )
 
-        assertFalse(ok)
-    }
+    assertFalse(ok)
+  }
 
-    @Test
-    fun journalTextCannotIntroduceFreakQueryExpressions() = runBlocking {
-        enqueue(200, """{"id":"123"}""")
-        var evaluated = ""
-        val svc = serviceWithFreakQuery { template, _ ->
-            evaluated = template
-            template
+  @Test
+  fun journalTextCannotIntroduceFreakQueryExpressions() = runBlocking {
+    enqueue(200, """{"id":"123"}""")
+    var evaluated = ""
+    val svc = serviceWithFreakQuery { template, _ ->
+      evaluated = template
+      template
+    }
+    val result =
+        svc.sendWebhook(
+            url = baseUrl,
+            user = "Alice",
+            substance = "{{ private_journal }}",
+            dose = null,
+            units = null,
+            isEstimate = false,
+            route = "oral",
+            site = null,
+            note = null,
+            template = "{substance}",
+            isHyperlinked = false,
+        )
+    assertTrue(result.success)
+    assertEquals("{substance}", evaluated)
+    assertEquals(
+        "{{ private_journal }}",
+        JSONObject(takeRequest().body.readUtf8()).getString("content"),
+    )
+  }
+
+  @Test
+  fun oversizedSuccessResponseFailsWithBoundedReads() = runBlocking {
+    repeat(3) { enqueue(200, "x".repeat(70_000)) }
+    val result =
+        service.sendWebhook(
+            url = baseUrl,
+            user = "Alice",
+            substance = "Caffeine",
+            dose = null,
+            units = null,
+            isEstimate = false,
+            route = "oral",
+            site = null,
+            note = null,
+            template = "{substance}",
+            isHyperlinked = false,
+        )
+    assertFalse(result.success)
+    assertTrue(result.error.toString().contains("too large"))
+  }
+
+  @Test
+  fun compressedResponseLimitAppliesAfterDecompression() = runBlocking {
+    val bytes = java.io.ByteArrayOutputStream()
+    java.util.zip.GZIPOutputStream(bytes).use { it.write("x".repeat(1_000_000).toByteArray()) }
+    repeat(3) {
+      server.enqueue(
+          MockResponse()
+              .setHeader("Content-Encoding", "gzip")
+              .setBody(okio.Buffer().write(bytes.toByteArray()))
+      )
+    }
+    val result =
+        service.sendWebhook(
+            url = baseUrl,
+            user = "Alice",
+            substance = "Caffeine",
+            dose = null,
+            units = null,
+            isEstimate = false,
+            route = "oral",
+            site = null,
+            note = null,
+            template = "{substance}",
+            isHyperlinked = false,
+        )
+    assertFalse(result.success)
+    assertTrue(result.error.toString().contains("too large"))
+  }
+
+  // ---------------------------------------------------------------------
+  // destinations, retries and payload rendering
+  // ---------------------------------------------------------------------
+
+  @Test
+  fun insecureRemoteDestinationFailsWithoutRequestsOrBackoff() = runBlocking {
+    val delays = mutableListOf<Long>()
+    val svc = WebhookService(logger = WebhookLogger { _, _ -> }, delayMillis = { delays += it })
+    val insecure = "http://discord.example/api/webhooks/1/token"
+
+    val sent =
+        svc.sendWebhook(
+            url = insecure,
+            user = "u",
+            substance = "s",
+            dose = null,
+            units = null,
+            isEstimate = false,
+            route = "r",
+            site = null,
+            note = null,
+            template = "{user}",
+            isHyperlinked = false,
+        )
+    val edited =
+        svc.editWebhook(
+            url = insecure,
+            messageId = "1",
+            user = "u",
+            substance = "s",
+            dose = null,
+            units = null,
+            isEstimate = false,
+            route = "r",
+            site = null,
+            note = null,
+            template = "{user}",
+            isHyperlinked = false,
+        )
+
+    for (result in listOf(sent, edited)) {
+      assertFalse(result.success)
+      assertTrue(result.error is IllegalArgumentException)
+    }
+    assertFalse(svc.deleteWebhookMessage(insecure, "1"))
+    assertTrue("a rejected destination must not be retried, got $delays", delays.isEmpty())
+    assertEquals(0, server.requestCount)
+  }
+
+  @Test
+  fun malformedDestinationFailsWithoutRequests() = runBlocking {
+    val result =
+        service.sendWebhook(
+            url = "https://discord.com/api/webhooks/1/to ken",
+            user = "u",
+            substance = "s",
+            dose = null,
+            units = null,
+            isEstimate = false,
+            route = "r",
+            site = null,
+            note = null,
+            template = "{user}",
+            isHyperlinked = false,
+        )
+
+    assertFalse(result.success)
+    assertTrue(result.error is IllegalArgumentException)
+    assertEquals(0, server.requestCount)
+  }
+
+  @Test
+  fun retriesBackOffExponentially() = runBlocking {
+    val delays = mutableListOf<Long>()
+    val svc = WebhookService(logger = WebhookLogger { _, _ -> }, delayMillis = { delays += it })
+    repeat(3) { enqueue(503) }
+
+    val result =
+        svc.sendWebhook(
+            url = baseUrl,
+            user = "u",
+            substance = "s",
+            dose = null,
+            units = null,
+            isEstimate = false,
+            route = "r",
+            site = null,
+            note = null,
+            template = "{user}",
+            isHyperlinked = false,
+        )
+
+    assertFalse(result.success)
+    // No delay after the final attempt.
+    assertEquals(listOf(1_000L, 2_000L), delays)
+  }
+
+  @Test
+  fun surroundingWhitespaceInTheUrlIsIgnored() = runBlocking {
+    enqueue(200, """{"id":"1"}""")
+    enqueue(200)
+
+    val sent =
+        service.sendWebhook(
+            url = "  $baseUrl/\n",
+            user = "u",
+            substance = "s",
+            dose = null,
+            units = null,
+            isEstimate = false,
+            route = "r",
+            site = null,
+            note = null,
+            template = "{user}",
+            isHyperlinked = false,
+        )
+    val deleted = service.deleteWebhookMessage(" $baseUrl ", "1")
+
+    assertTrue(sent.success)
+    assertTrue(deleted)
+    assertEquals("/webhooks/abc/token?wait=true", takeRequest().path)
+    assertEquals("/webhooks/abc/token/messages/1", takeRequest().path)
+  }
+
+  @Test
+  fun freakQueryIsSkippedWhenDisabled() = runBlocking {
+    enqueue(200, """{"id":"1"}""")
+    val repo = mockk<FreakQueryRepository>()
+    val prefs =
+        mockk<UserPreferences> {
+          every { webhookUseFreakQueryFlow } returns flowOf(false)
         }
-        val result = svc.sendWebhook(
-            url = baseUrl, user = "Alice", substance = "{{ private_journal }}", dose = null,
-            units = null, isEstimate = false, route = "oral", site = null, note = null,
-            template = "{substance}", isHyperlinked = false,
-        )
-        assertTrue(result.success)
-        assertEquals("{substance}", evaluated)
-        assertEquals("{{ private_journal }}", JSONObject(takeRequest().body.readUtf8()).getString("content"))
-    }
-
-    @Test
-    fun oversizedSuccessResponseFailsWithBoundedReads() = runBlocking {
-        repeat(3) { enqueue(200, "x".repeat(70_000)) }
-        val result = service.sendWebhook(
-            url = baseUrl, user = "Alice", substance = "Caffeine", dose = null,
-            units = null, isEstimate = false, route = "oral", site = null, note = null,
-            template = "{substance}", isHyperlinked = false,
-        )
-        assertFalse(result.success)
-        assertTrue(result.error.toString().contains("too large"))
-    }
-
-    @Test
-    fun compressedResponseLimitAppliesAfterDecompression() = runBlocking {
-        val bytes = java.io.ByteArrayOutputStream()
-        java.util.zip.GZIPOutputStream(bytes).use { it.write("x".repeat(1_000_000).toByteArray()) }
-        repeat(3) {
-            server.enqueue(MockResponse().setHeader("Content-Encoding", "gzip").setBody(okio.Buffer().write(bytes.toByteArray())))
-        }
-        val result = service.sendWebhook(
-            url = baseUrl, user = "Alice", substance = "Caffeine", dose = null,
-            units = null, isEstimate = false, route = "oral", site = null, note = null,
-            template = "{substance}", isHyperlinked = false,
-        )
-        assertFalse(result.success)
-        assertTrue(result.error.toString().contains("too large"))
-    }
-
-    // ---------------------------------------------------------------------
-    // destinations, retries and payload rendering
-    // ---------------------------------------------------------------------
-
-    @Test
-    fun insecureRemoteDestinationFailsWithoutRequestsOrBackoff() = runBlocking {
-        val delays = mutableListOf<Long>()
-        val svc = WebhookService(logger = WebhookLogger { _, _ -> }, delayMillis = { delays += it })
-        val insecure = "http://discord.example/api/webhooks/1/token"
-
-        val sent = svc.sendWebhook(
-            url = insecure, user = "u", substance = "s", dose = null, units = null,
-            isEstimate = false, route = "r", site = null, note = null,
-            template = "{user}", isHyperlinked = false,
-        )
-        val edited = svc.editWebhook(
-            url = insecure, messageId = "1", user = "u", substance = "s", dose = null, units = null,
-            isEstimate = false, route = "r", site = null, note = null,
-            template = "{user}", isHyperlinked = false,
-        )
-
-        for (result in listOf(sent, edited)) {
-            assertFalse(result.success)
-            assertTrue(result.error is IllegalArgumentException)
-        }
-        assertFalse(svc.deleteWebhookMessage(insecure, "1"))
-        assertTrue("a rejected destination must not be retried, got $delays", delays.isEmpty())
-        assertEquals(0, server.requestCount)
-    }
-
-    @Test
-    fun malformedDestinationFailsWithoutRequests() = runBlocking {
-        val result = service.sendWebhook(
-            url = "https://discord.com/api/webhooks/1/to ken", user = "u", substance = "s", dose = null,
-            units = null, isEstimate = false, route = "r", site = null, note = null,
-            template = "{user}", isHyperlinked = false,
-        )
-
-        assertFalse(result.success)
-        assertTrue(result.error is IllegalArgumentException)
-        assertEquals(0, server.requestCount)
-    }
-
-    @Test
-    fun retriesBackOffExponentially() = runBlocking {
-        val delays = mutableListOf<Long>()
-        val svc = WebhookService(logger = WebhookLogger { _, _ -> }, delayMillis = { delays += it })
-        repeat(3) { enqueue(503) }
-
-        val result = svc.sendWebhook(
-            url = baseUrl, user = "u", substance = "s", dose = null, units = null,
-            isEstimate = false, route = "r", site = null, note = null,
-            template = "{user}", isHyperlinked = false,
-        )
-
-        assertFalse(result.success)
-        // No delay after the final attempt.
-        assertEquals(listOf(1_000L, 2_000L), delays)
-    }
-
-    @Test
-    fun surroundingWhitespaceInTheUrlIsIgnored() = runBlocking {
-        enqueue(200, """{"id":"1"}""")
-        enqueue(200)
-
-        val sent = service.sendWebhook(
-            url = "  $baseUrl/\n", user = "u", substance = "s", dose = null, units = null,
-            isEstimate = false, route = "r", site = null, note = null,
-            template = "{user}", isHyperlinked = false,
-        )
-        val deleted = service.deleteWebhookMessage(" $baseUrl ", "1")
-
-        assertTrue(sent.success)
-        assertTrue(deleted)
-        assertEquals("/webhooks/abc/token?wait=true", takeRequest().path)
-        assertEquals("/webhooks/abc/token/messages/1", takeRequest().path)
-    }
-
-    @Test
-    fun freakQueryIsSkippedWhenDisabled() = runBlocking {
-        enqueue(200, """{"id":"1"}""")
-        val repo = mockk<FreakQueryRepository>()
-        val prefs = mockk<UserPreferences> {
-            every { webhookUseFreakQueryFlow } returns flowOf(false)
-        }
-        val svc = WebhookService(
+    val svc =
+        WebhookService(
             freakQueryRepository = repo,
             userPreferences = prefs,
             logger = WebhookLogger { _, _ -> },
-            delayMillis = { },
+            delayMillis = {},
         )
 
-        val result = svc.sendWebhook(
-            url = baseUrl, user = "Alice", substance = "Caffeine", dose = null, units = null,
-            isEstimate = false, route = "oral", site = null, note = null,
-            template = "{user} {{ count }}", isHyperlinked = false,
+    val result =
+        svc.sendWebhook(
+            url = baseUrl,
+            user = "Alice",
+            substance = "Caffeine",
+            dose = null,
+            units = null,
+            isEstimate = false,
+            route = "oral",
+            site = null,
+            note = null,
+            template = "{user} {{ count }}",
+            isHyperlinked = false,
         )
 
-        assertTrue(result.success)
-        assertEquals("Alice {{ count }}", JSONObject(takeRequest().body.readUtf8()).getString("content"))
-        coVerify(exactly = 0) { repo.render(any(), any()) }
-    }
+    assertTrue(result.success)
+    assertEquals(
+        "Alice {{ count }}",
+        JSONObject(takeRequest().body.readUtf8()).getString("content"),
+    )
+    coVerify(exactly = 0) { repo.render(any(), any()) }
+  }
 
-    @Test
-    fun saltFormAndFormulationAreShownWithTheSubstance() = runBlocking {
-        enqueue(200, """{"id":"1"}""")
+  @Test
+  fun saltFormAndFormulationAreShownWithTheSubstance() = runBlocking {
+    enqueue(200, """{"id":"1"}""")
 
-        val result = service.sendWebhook(
-            url = baseUrl, user = "Alice", substance = "Amphetamine", dose = 10.0, units = "mg",
-            isEstimate = false, route = "oral", site = null, note = null,
-            template = WebhookService.DEFAULT_TEMPLATE, isHyperlinked = false,
-            formulation = "IR", saltForm = "sulfate",
+    val result =
+        service.sendWebhook(
+            url = baseUrl,
+            user = "Alice",
+            substance = "Amphetamine",
+            dose = 10.0,
+            units = "mg",
+            isEstimate = false,
+            route = "oral",
+            site = null,
+            note = null,
+            template = WebhookService.DEFAULT_TEMPLATE,
+            isHyperlinked = false,
+            formulation = "IR",
+            saltForm = "sulfate",
         )
 
-        assertTrue(result.success)
-        assertEquals(
-            "Alice: 10 mg Amphetamine[sulfate][IR] via oral",
-            JSONObject(takeRequest().body.readUtf8()).getString("content"),
+    assertTrue(result.success)
+    assertEquals(
+        "Alice: 10 mg Amphetamine[sulfate][IR] via oral",
+        JSONObject(takeRequest().body.readUtf8()).getString("content"),
+    )
+  }
+
+  @Test
+  fun journalTextIsJsonEscapedInThePayload() = runBlocking {
+    enqueue(200, """{"id":"1"}""")
+    val note = "felt \"fine\"\\ok\nline two\t\u2603"
+
+    val result =
+        service.sendWebhook(
+            url = baseUrl,
+            user = "Alice",
+            substance = "Caffeine",
+            dose = null,
+            units = null,
+            isEstimate = false,
+            route = "oral",
+            site = null,
+            note = note,
+            template = "{note}",
+            isHyperlinked = false,
         )
-    }
 
-    @Test
-    fun journalTextIsJsonEscapedInThePayload() = runBlocking {
-        enqueue(200, """{"id":"1"}""")
-        val note = "felt \"fine\"\\ok\nline two\t\u2603"
-
-        val result = service.sendWebhook(
-            url = baseUrl, user = "Alice", substance = "Caffeine", dose = null, units = null,
-            isEstimate = false, route = "oral", site = null, note = note,
-            template = "{note}", isHyperlinked = false,
-        )
-
-        assertTrue(result.success)
-        val request = takeRequest()
-        assertEquals("application/json", request.getHeader("Content-Type"))
-        assertEquals(note, JSONObject(request.body.readUtf8()).getString("content"))
-    }
+    assertTrue(result.success)
+    val request = takeRequest()
+    assertEquals("application/json", request.getHeader("Content-Type"))
+    assertEquals(note, JSONObject(request.body.readUtf8()).getString("content"))
+  }
 }

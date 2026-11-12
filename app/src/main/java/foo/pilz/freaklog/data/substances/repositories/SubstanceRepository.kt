@@ -19,63 +19,69 @@
 package foo.pilz.freaklog.data.substances.repositories
 
 import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import foo.pilz.freaklog.data.substances.classes.Category
 import foo.pilz.freaklog.data.substances.classes.Substance
 import foo.pilz.freaklog.data.substances.classes.SubstanceFile
 import foo.pilz.freaklog.data.substances.classes.SubstanceWithCategories
 import foo.pilz.freaklog.data.substances.parse.SubstanceParserInterface
-import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class SubstanceRepository @Inject constructor(
+class SubstanceRepository
+@Inject
+constructor(
     @ApplicationContext private val appContext: Context,
     substanceParser: SubstanceParserInterface,
 ) : SubstanceRepositoryInterface {
 
-    private val substanceFile: SubstanceFile
+  private val substanceFile: SubstanceFile
 
-    init {
-        val fileContent = getAssetsSubstanceFileContent()
-        substanceFile = substanceParser.parseSubstanceFile(string = fileContent)
-    }
+  init {
+    val fileContent = getAssetsSubstanceFileContent()
+    substanceFile = substanceParser.parseSubstanceFile(string = fileContent)
+  }
 
-    private val categoriesMap: Map<String, Category> = substanceFile.categories.associateBy { it.name }
-    private val substancesWithCategoriesList: List<SubstanceWithCategories> = substanceFile.substances.map { substance ->
+  private val categoriesMap: Map<String, Category> =
+      substanceFile.categories.associateBy { it.name }
+  private val substancesWithCategoriesList: List<SubstanceWithCategories> =
+      substanceFile.substances.map { substance ->
         SubstanceWithCategories(
             substance = substance,
-            categories = substance.categories.mapNotNull { categoriesMap[it] }
+            categories = substance.categories.mapNotNull { categoriesMap[it] },
         )
-    }
-    private val substancesWithCategoriesMap: Map<String, SubstanceWithCategories> =
-        substancesWithCategoriesList.associateBy { it.substance.name }
+      }
+  private val substancesWithCategoriesMap: Map<String, SubstanceWithCategories> =
+      substancesWithCategoriesList.associateBy {
+        it.substance.name
+      }
 
-    private fun getAssetsSubstanceFileContent(): String {
-        return appContext.assets.open("Substances.json").bufferedReader().use { it.readText() }
-    }
+  private fun getAssetsSubstanceFileContent(): String {
+    return appContext.assets.open("Substances.json").bufferedReader().use { it.readText() }
+  }
 
-    override fun getAllSubstances(): List<Substance> {
-        return substanceFile.substances
-    }
+  override fun getAllSubstances(): List<Substance> {
+    return substanceFile.substances
+  }
 
-    override fun getAllSubstancesWithCategories(): List<SubstanceWithCategories> {
-        return substancesWithCategoriesList
-    }
+  override fun getAllSubstancesWithCategories(): List<SubstanceWithCategories> {
+    return substancesWithCategoriesList
+  }
 
-    override fun getAllCategories(): List<Category> {
-        return substanceFile.categories
-    }
+  override fun getAllCategories(): List<Category> {
+    return substanceFile.categories
+  }
 
-    override fun getSubstance(substanceName: String): Substance? {
-        return substanceFile.substancesMap.getOrDefault(key = substanceName, defaultValue = null)
-    }
+  override fun getSubstance(substanceName: String): Substance? {
+    return substanceFile.substancesMap.getOrDefault(key = substanceName, defaultValue = null)
+  }
 
-    override fun getCategory(categoryName: String): Category? {
-        return categoriesMap[categoryName]
-    }
+  override fun getCategory(categoryName: String): Category? {
+    return categoriesMap[categoryName]
+  }
 
-    override fun getSubstanceWithCategories(substanceName: String): SubstanceWithCategories? {
-        return substancesWithCategoriesMap[substanceName]
-    }
+  override fun getSubstanceWithCategories(substanceName: String): SubstanceWithCategories? {
+    return substancesWithCategoriesMap[substanceName]
+  }
 }

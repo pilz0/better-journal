@@ -57,80 +57,85 @@ fun SearchField(
     onChange: (searchText: String) -> Unit,
     categories: List<CategoryChipModel>,
     onFilterTapped: (filterName: String) -> Unit,
-    isShowingFilter: Boolean
+    isShowingFilter: Boolean,
 ) {
-    val focusManager = LocalFocusManager.current
-    TextField(
-        value = searchText,
-        onValueChange = { value ->
-            onChange(value)
-        },
-        modifier = modifier,
-        placeholder = { Text(text = "Search substances") },
-        leadingIcon = {
-            Icon(
-                Icons.Default.Search,
-                contentDescription = "Search",
-            )
-        },
-        trailingIcon = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                // clear search button
-                if (searchText.isNotEmpty()) {
-                    IconButton(onClick = {
-                        onChange("")
-                    }) {
-                        Icon(
-                            Icons.Default.Close,
-                            contentDescription = "Close",
-                        )
-                    }
+  val focusManager = LocalFocusManager.current
+  TextField(
+      value = searchText,
+      onValueChange = { value ->
+        onChange(value)
+      },
+      modifier = modifier,
+      placeholder = { Text(text = "Search substances") },
+      leadingIcon = {
+        Icon(
+            Icons.Default.Search,
+            contentDescription = "Search",
+        )
+      },
+      trailingIcon = {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          // clear search button
+          if (searchText.isNotEmpty()) {
+            IconButton(
+                onClick = {
+                  onChange("")
                 }
-                // show filters button
-                if (isShowingFilter) {
-                    var isExpanded by remember { mutableStateOf(false) }
-                    val activeFilterCount = remember(categories) { categories.count { it.isActive } }
-                    BadgedBox(
-                        modifier = Modifier
-                            .clickable(onClick = { isExpanded = true })
-                            .padding(horizontal = 16.dp),
-                        badge = {
-                            if (activeFilterCount > 0) {
-                                Badge { Text(activeFilterCount.toString()) }
-                            }
-                        }
-                    ) {
-                        Icon(
-                            Icons.Default.FilterList, contentDescription = "Filter"
-                        )
-                    }
-                    DropdownMenu(
-                        expanded = isExpanded,
-                        onDismissRequest = { isExpanded = false },
-                    ) {
-                        categories.forEach { categoryChipModel ->
-                            DropdownMenuItem(text = { Text(categoryChipModel.chipName) },
-                                onClick = { onFilterTapped(categoryChipModel.chipName) },
-                                leadingIcon = {
-                                    if (categoryChipModel.isActive) {
-                                        Icon(
-                                            Icons.Filled.Check,
-                                            contentDescription = "Check",
-                                            modifier = Modifier.size(ButtonDefaults.IconSize)
-                                        )
-                                    }
-                                })
-                        }
-                    }
-                }
+            ) {
+              Icon(
+                  Icons.Default.Close,
+                  contentDescription = "Close",
+              )
             }
-        },
-        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-        keyboardOptions = KeyboardOptions.Default.copy(
-            autoCorrectEnabled = false,
-            imeAction = ImeAction.Done,
-            capitalization = KeyboardCapitalization.Words,
-        ),
-        singleLine = true
-    )
+          }
+          // show filters button
+          if (isShowingFilter) {
+            var isExpanded by remember { mutableStateOf(false) }
+            val activeFilterCount = remember(categories) { categories.count { it.isActive } }
+            BadgedBox(
+                modifier =
+                    Modifier.clickable(onClick = { isExpanded = true }).padding(horizontal = 16.dp),
+                badge = {
+                  if (activeFilterCount > 0) {
+                    Badge { Text(activeFilterCount.toString()) }
+                  }
+                },
+            ) {
+              Icon(
+                  Icons.Default.FilterList,
+                  contentDescription = "Filter",
+              )
+            }
+            DropdownMenu(
+                expanded = isExpanded,
+                onDismissRequest = { isExpanded = false },
+            ) {
+              categories.forEach { categoryChipModel ->
+                DropdownMenuItem(
+                    text = { Text(categoryChipModel.chipName) },
+                    onClick = { onFilterTapped(categoryChipModel.chipName) },
+                    leadingIcon = {
+                      if (categoryChipModel.isActive) {
+                        Icon(
+                            Icons.Filled.Check,
+                            contentDescription = "Check",
+                            modifier = Modifier.size(ButtonDefaults.IconSize),
+                        )
+                      }
+                    },
+                )
+              }
+            }
+          }
+        }
+      },
+      keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+      keyboardOptions =
+          KeyboardOptions.Default.copy(
+              autoCorrectEnabled = false,
+              imeAction = ImeAction.Done,
+              capitalization = KeyboardCapitalization.Words,
+          ),
+      singleLine = true,
+  )
 }

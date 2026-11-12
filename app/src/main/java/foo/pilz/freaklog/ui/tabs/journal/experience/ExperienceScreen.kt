@@ -127,10 +127,10 @@ import foo.pilz.freaklog.ui.theme.horizontalPadding
 import foo.pilz.freaklog.ui.utils.HapticType
 import foo.pilz.freaklog.ui.utils.getDateWithWeekdayText
 import foo.pilz.freaklog.ui.utils.rememberHaptic
-import kotlinx.coroutines.delay
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import kotlin.math.roundToInt
+import kotlinx.coroutines.delay
 
 @Composable
 fun ExperienceScreen(
@@ -149,155 +149,170 @@ fun ExperienceScreen(
     navigateToAiSettings: () -> Unit,
     navigateBack: () -> Unit,
 ) {
-    val ingestionsWithCompanions = viewModel.ingestionsWithCompanionsFlow.collectAsState().value
-    val experience = viewModel.experienceFlow.collectAsState().value
-    val isFavorite = viewModel.isFavoriteFlow.collectAsState().value
-    val isAiAssistantEnabled = viewModel.aiAssistantEnabledFlow.collectAsState().value
-    val oneExperienceScreenModel = OneExperienceScreenModel(
-        id = experience?.id ?: 0,
-        isFavorite = isFavorite,
-        title = experience?.title ?: "",
-        firstIngestionTime = ingestionsWithCompanions.minOfOrNull { it.ingestion.time }
-            ?: experience?.sortDate ?: Instant.now(),
-        notes = experience?.text ?: "",
-        locationName = experience?.location?.name ?: "",
-        isCurrentExperience = viewModel.isCurrentExperienceFlow.collectAsState().value,
-        ingestionElements = viewModel.ingestionElementsFlow.collectAsState().value,
-        cumulativeDoses = viewModel.cumulativeDosesFlow.collectAsState().value,
-        interactions = viewModel.interactionsFlow.collectAsState().value,
-        interactionExplanations = viewModel.interactionExplanationsFlow.collectAsState().value,
-        ratings = viewModel.ratingsFlow.collectAsState().value,
-        timedNotesSorted = viewModel.timedNotesSortedFlow.collectAsState().value,
-        consumersWithIngestions = viewModel.consumersWithIngestionsFlow.collectAsState().value,
-        dataForEffectLines = viewModel.dataForEffectTimelinesFlow.collectAsState().value
-    )
+  val ingestionsWithCompanions = viewModel.ingestionsWithCompanionsFlow.collectAsState().value
+  val experience = viewModel.experienceFlow.collectAsState().value
+  val isFavorite = viewModel.isFavoriteFlow.collectAsState().value
+  val isAiAssistantEnabled = viewModel.aiAssistantEnabledFlow.collectAsState().value
+  val oneExperienceScreenModel =
+      OneExperienceScreenModel(
+          id = experience?.id ?: 0,
+          isFavorite = isFavorite,
+          title = experience?.title ?: "",
+          firstIngestionTime =
+              ingestionsWithCompanions.minOfOrNull { it.ingestion.time }
+                  ?: experience?.sortDate
+                  ?: Instant.now(),
+          notes = experience?.text ?: "",
+          locationName = experience?.location?.name ?: "",
+          isCurrentExperience = viewModel.isCurrentExperienceFlow.collectAsState().value,
+          ingestionElements = viewModel.ingestionElementsFlow.collectAsState().value,
+          cumulativeDoses = viewModel.cumulativeDosesFlow.collectAsState().value,
+          interactions = viewModel.interactionsFlow.collectAsState().value,
+          interactionExplanations = viewModel.interactionExplanationsFlow.collectAsState().value,
+          ratings = viewModel.ratingsFlow.collectAsState().value,
+          timedNotesSorted = viewModel.timedNotesSortedFlow.collectAsState().value,
+          consumersWithIngestions = viewModel.consumersWithIngestionsFlow.collectAsState().value,
+          dataForEffectLines = viewModel.dataForEffectTimelinesFlow.collectAsState().value,
+      )
 
-    var showAiChat by remember { mutableStateOf(false) }
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val notificationPermissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
-        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
-    ) { granted -> if (granted) viewModel.toggleNotification(context) }
-    val isNotificationActive = viewModel.isNotificationActiveFlow.collectAsState().value
+  var showAiChat by remember { mutableStateOf(false) }
+  val context = androidx.compose.ui.platform.LocalContext.current
+  val notificationPermissionLauncher =
+      androidx.activity.compose.rememberLauncherForActivityResult(
+          androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+      ) { granted ->
+        if (granted) viewModel.toggleNotification(context)
+      }
+  val isNotificationActive = viewModel.isNotificationActiveFlow.collectAsState().value
 
-    val timelineDisplayOption = viewModel.timelineDisplayOptionFlow.collectAsState().value
-    val healthPermissionLauncher = rememberLauncherForActivityResult(
-        PermissionController.createRequestPermissionResultContract()
-    ) { granted ->
-        if (granted.containsAll(HeartRateHealthConnect.permissions) ||
-            granted.containsAll(SleepHealthConnect.permissions)
+  val timelineDisplayOption = viewModel.timelineDisplayOptionFlow.collectAsState().value
+  val healthPermissionLauncher =
+      rememberLauncherForActivityResult(
+          PermissionController.createRequestPermissionResultContract()
+      ) { granted ->
+        if (
+            granted.containsAll(HeartRateHealthConnect.permissions) ||
+                granted.containsAll(SleepHealthConnect.permissions)
         ) {
-            viewModel.toggleHeartRate(context)
+          viewModel.toggleHeartRate(context)
         } else {
-            Toast.makeText(context, "Health Connect permission denied", Toast.LENGTH_SHORT).show()
+          Toast.makeText(context, "Health Connect permission denied", Toast.LENGTH_SHORT).show()
         }
-    }
-    val isVitalsEnabled = viewModel.isVitalsEnabledFlow.collectAsState().value
-    val isHeartRateAvailable = remember { HeartRateHealthConnect.isAvailable(context) }
-    val bloodPressurePermissionLauncher = rememberLauncherForActivityResult(
-        PermissionController.createRequestPermissionResultContract()
-    ) { granted ->
+      }
+  val isVitalsEnabled = viewModel.isVitalsEnabledFlow.collectAsState().value
+  val isHeartRateAvailable = remember { HeartRateHealthConnect.isAvailable(context) }
+  val bloodPressurePermissionLauncher =
+      rememberLauncherForActivityResult(
+          PermissionController.createRequestPermissionResultContract()
+      ) { granted ->
         if (granted.containsAll(BloodPressureHealthConnect.permissions)) {
-            viewModel.loadBloodPressure(context)
+          viewModel.loadBloodPressure(context)
         } else {
-            Toast.makeText(context, "Health Connect permission denied", Toast.LENGTH_SHORT).show()
+          Toast.makeText(context, "Health Connect permission denied", Toast.LENGTH_SHORT).show()
         }
+      }
+  val bloodPressureDisplay = viewModel.bloodPressureDisplayFlow.collectAsState().value
+  val isBloodPressureAvailable = remember { BloodPressureHealthConnect.isAvailable(context) }
+  val isBloodPressureActive =
+      isVitalsEnabled &&
+          bloodPressureDisplay != BloodPressureDisplay.OFF &&
+          isBloodPressureAvailable
+  val isBloodPressureInSubstanceList = bloodPressureDisplay == BloodPressureDisplay.COMBINED
+  LaunchedEffect(isBloodPressureActive, timelineDisplayOption) {
+    if (isBloodPressureActive && timelineDisplayOption is TimelineDisplayOption.Shown) {
+      viewModel.loadBloodPressure(context) {
+        bloodPressurePermissionLauncher.launch(BloodPressureHealthConnect.permissions)
+      }
+    } else if (!isBloodPressureActive) {
+      viewModel.clearBloodPressure()
     }
-    val bloodPressureDisplay = viewModel.bloodPressureDisplayFlow.collectAsState().value
-    val isBloodPressureAvailable = remember { BloodPressureHealthConnect.isAvailable(context) }
-    val isBloodPressureActive =
-        isVitalsEnabled && bloodPressureDisplay != BloodPressureDisplay.OFF && isBloodPressureAvailable
-    val isBloodPressureInSubstanceList = bloodPressureDisplay == BloodPressureDisplay.COMBINED
-    LaunchedEffect(isBloodPressureActive, timelineDisplayOption) {
-        if (isBloodPressureActive && timelineDisplayOption is TimelineDisplayOption.Shown) {
-            viewModel.loadBloodPressure(context) {
-                bloodPressurePermissionLauncher.launch(BloodPressureHealthConnect.permissions)
-            }
-        } else if (!isBloodPressureActive) {
-            viewModel.clearBloodPressure()
-        }
+  }
+  LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+    if (isBloodPressureActive) {
+      viewModel.loadBloodPressure(context)
     }
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        if (isBloodPressureActive) {
-            viewModel.loadBloodPressure(context)
-        }
-    }
+  }
 
-    if (showAiChat && isAiAssistantEnabled) {
-        foo.pilz.freaklog.ui.tabs.journal.experience.recommendations.AiChatBottomSheet(
-            experienceId = experience?.id,
-            onDismiss = { showAiChat = false },
-            onOpenSettings = {
-                showAiChat = false
-                navigateToAiSettings()
-            }
+  if (showAiChat && isAiAssistantEnabled) {
+    foo.pilz.freaklog.ui.tabs.journal.experience.recommendations.AiChatBottomSheet(
+        experienceId = experience?.id,
+        onDismiss = { showAiChat = false },
+        onOpenSettings = {
+          showAiChat = false
+          navigateToAiSettings()
+        },
+    )
+  }
+
+  ExperienceScreen(
+      oneExperienceScreenModel = oneExperienceScreenModel,
+      timelineDisplayOption = timelineDisplayOption,
+      isOralDisclaimerHidden = viewModel.isOralTimelineDisclaimerHidden.collectAsState().value,
+      onChangeIsOralDisclaimerHidden = viewModel::saveOralDisclaimerIsHidden,
+      addIngestion = {
+        viewModel.saveLastIngestionTimeOfExperience()
+        navigateToAddIngestionSearch()
+      },
+      deleteExperience = { viewModel.deleteExperience(context) },
+      onShareExperience = {
+        (context as? androidx.activity.ComponentActivity)?.let(viewModel::shareExperience)
+      },
+      heartRateSamples = viewModel.heartRateSamplesFlow.collectAsState().value,
+      sleepSamples = viewModel.sleepSamplesFlow.collectAsState().value,
+      sleepStagesEnabled = viewModel.sleepStagesEnabledFlow.collectAsState().value,
+      isHeartRateButtonVisible = isVitalsEnabled && isHeartRateAvailable,
+      onToggleHeartRate = {
+        viewModel.toggleHeartRate(context) {
+          healthPermissionLauncher.launch(
+              HeartRateHealthConnect.permissions + SleepHealthConnect.permissions
+          )
+        }
+      },
+      bloodPressureReadings = viewModel.bloodPressureReadingsFlow.collectAsState().value,
+      isBloodPressureAvailable = isBloodPressureAvailable,
+      isBloodPressureInSubstanceList = isBloodPressureInSubstanceList,
+      onToggleBloodPressureInSubstanceList = {
+        viewModel.saveBloodPressureDisplay(
+            if (isBloodPressureInSubstanceList) BloodPressureDisplay.SEPARATE
+            else BloodPressureDisplay.COMBINED
         )
-    }
-
-    ExperienceScreen(
-        oneExperienceScreenModel = oneExperienceScreenModel,
-        timelineDisplayOption = timelineDisplayOption,
-        isOralDisclaimerHidden = viewModel.isOralTimelineDisclaimerHidden.collectAsState().value,
-        onChangeIsOralDisclaimerHidden = viewModel::saveOralDisclaimerIsHidden,
-        addIngestion = {
-            viewModel.saveLastIngestionTimeOfExperience()
-            navigateToAddIngestionSearch()
-        },
-        deleteExperience = { viewModel.deleteExperience(context) },
-        onShareExperience = {
-            (context as? androidx.activity.ComponentActivity)?.let(viewModel::shareExperience)
-        },
-        heartRateSamples = viewModel.heartRateSamplesFlow.collectAsState().value,
-        sleepSamples = viewModel.sleepSamplesFlow.collectAsState().value,
-        sleepStagesEnabled = viewModel.sleepStagesEnabledFlow.collectAsState().value,
-        isHeartRateButtonVisible = isVitalsEnabled && isHeartRateAvailable,
-        onToggleHeartRate = {
-            viewModel.toggleHeartRate(context) {
-                healthPermissionLauncher.launch(HeartRateHealthConnect.permissions + SleepHealthConnect.permissions)
-            }
-        },
-        bloodPressureReadings = viewModel.bloodPressureReadingsFlow.collectAsState().value,
-        isBloodPressureAvailable = isBloodPressureAvailable,
-        isBloodPressureInSubstanceList = isBloodPressureInSubstanceList,
-        onToggleBloodPressureInSubstanceList = {
-            viewModel.saveBloodPressureDisplay(
-                if (isBloodPressureInSubstanceList) BloodPressureDisplay.SEPARATE else BloodPressureDisplay.COMBINED
-            )
-        },
-        navigateToRecordBloodPressureScreen = navigateToRecordBloodPressureScreen,
-        navigateToEditBloodPressureScreen = navigateToEditBloodPressureScreen,
-        isNotificationActive = isNotificationActive,
-        onToggleNotification = {
-            val needsPermission = !isNotificationActive &&
+      },
+      navigateToRecordBloodPressureScreen = navigateToRecordBloodPressureScreen,
+      navigateToEditBloodPressureScreen = navigateToEditBloodPressureScreen,
+      isNotificationActive = isNotificationActive,
+      onToggleNotification = {
+        val needsPermission =
+            !isNotificationActive &&
                 android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU &&
                 androidx.core.content.ContextCompat.checkSelfPermission(
                     context,
-                    android.Manifest.permission.POST_NOTIFICATIONS
+                    android.Manifest.permission.POST_NOTIFICATIONS,
                 ) != android.content.pm.PackageManager.PERMISSION_GRANTED
-            if (needsPermission) {
-                notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-            } else {
-                viewModel.toggleNotification(context)
-            }
-        },
-        navigateToEditExperienceScreen = navigateToEditExperienceScreen,
-        navigateToExplainTimeline = navigateToExplainTimeline,
-        navigateToIngestionScreen = navigateToIngestionScreen,
-        navigateToAddRatingScreen = navigateToAddRatingScreen,
-        navigateToAddTimedNoteScreen = navigateToAddTimedNoteScreen,
-        navigateBack = navigateBack,
-        saveIsFavorite = viewModel::saveIsFavorite,
-        openAiChat = { showAiChat = true },
-        isAiAssistantEnabled = isAiAssistantEnabled,
-        navigateToEditRatingScreen = navigateToEditRatingScreen,
-        navigateToEditTimedNoteScreen = navigateToEditTimedNoteScreen,
-        savedTimeDisplayOption = viewModel.savedTimeDisplayOption.collectAsState().value,
-        timeDisplayOption = viewModel.timeDisplayOptionFlow.collectAsState().value,
-        onChangeTimeDisplayOption = viewModel::saveTimeDisplayOption,
-        navigateToTimelineScreen = navigateToTimelineScreen,
-        areDosageDotsHidden = viewModel.areDosageDotsHiddenFlow.collectAsState().value,
-        isTimelineHidden = viewModel.isTimelineHiddenFlow.collectAsState().value,
-        matchedAchievements = viewModel.matchedAchievementsFlow.collectAsState().value
-    )
+        if (needsPermission) {
+          notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+          viewModel.toggleNotification(context)
+        }
+      },
+      navigateToEditExperienceScreen = navigateToEditExperienceScreen,
+      navigateToExplainTimeline = navigateToExplainTimeline,
+      navigateToIngestionScreen = navigateToIngestionScreen,
+      navigateToAddRatingScreen = navigateToAddRatingScreen,
+      navigateToAddTimedNoteScreen = navigateToAddTimedNoteScreen,
+      navigateBack = navigateBack,
+      saveIsFavorite = viewModel::saveIsFavorite,
+      openAiChat = { showAiChat = true },
+      isAiAssistantEnabled = isAiAssistantEnabled,
+      navigateToEditRatingScreen = navigateToEditRatingScreen,
+      navigateToEditTimedNoteScreen = navigateToEditTimedNoteScreen,
+      savedTimeDisplayOption = viewModel.savedTimeDisplayOption.collectAsState().value,
+      timeDisplayOption = viewModel.timeDisplayOptionFlow.collectAsState().value,
+      onChangeTimeDisplayOption = viewModel::saveTimeDisplayOption,
+      navigateToTimelineScreen = navigateToTimelineScreen,
+      areDosageDotsHidden = viewModel.areDosageDotsHiddenFlow.collectAsState().value,
+      isTimelineHidden = viewModel.isTimelineHiddenFlow.collectAsState().value,
+      matchedAchievements = viewModel.matchedAchievementsFlow.collectAsState().value,
+  )
 }
 
 @Preview
@@ -305,35 +320,36 @@ fun ExperienceScreen(
 fun ExperienceScreenPreview(
     @PreviewParameter(
         OneExperienceScreenPreviewProvider::class,
-        limit = 1
-    ) oneExperienceScreenModel: OneExperienceScreenModel
+        limit = 1,
+    )
+    oneExperienceScreenModel: OneExperienceScreenModel
 ) {
-    JournalTheme {
-        ExperienceScreen(
-            oneExperienceScreenModel = oneExperienceScreenModel,
-            timelineDisplayOption = TimelineDisplayOption.Loading,
-            isOralDisclaimerHidden = false,
-            onChangeIsOralDisclaimerHidden = {},
-            addIngestion = {},
-            deleteExperience = {},
-            navigateToEditExperienceScreen = {},
-            navigateToExplainTimeline = {},
-            navigateToIngestionScreen = {},
-            navigateToAddRatingScreen = {},
-            navigateToAddTimedNoteScreen = {},
-            navigateBack = {},
-            saveIsFavorite = {},
-            openAiChat = {},
-            navigateToEditRatingScreen = {},
-            navigateToEditTimedNoteScreen = {},
-            savedTimeDisplayOption = SavedTimeDisplayOption.RELATIVE_TO_START,
-            timeDisplayOption = TimeDisplayOption.RELATIVE_TO_START,
-            onChangeTimeDisplayOption = {},
-            navigateToTimelineScreen = {},
-            areDosageDotsHidden = false,
-            isTimelineHidden = false
-        )
-    }
+  JournalTheme {
+    ExperienceScreen(
+        oneExperienceScreenModel = oneExperienceScreenModel,
+        timelineDisplayOption = TimelineDisplayOption.Loading,
+        isOralDisclaimerHidden = false,
+        onChangeIsOralDisclaimerHidden = {},
+        addIngestion = {},
+        deleteExperience = {},
+        navigateToEditExperienceScreen = {},
+        navigateToExplainTimeline = {},
+        navigateToIngestionScreen = {},
+        navigateToAddRatingScreen = {},
+        navigateToAddTimedNoteScreen = {},
+        navigateBack = {},
+        saveIsFavorite = {},
+        openAiChat = {},
+        navigateToEditRatingScreen = {},
+        navigateToEditTimedNoteScreen = {},
+        savedTimeDisplayOption = SavedTimeDisplayOption.RELATIVE_TO_START,
+        timeDisplayOption = TimeDisplayOption.RELATIVE_TO_START,
+        onChangeTimeDisplayOption = {},
+        navigateToTimelineScreen = {},
+        areDosageDotsHidden = false,
+        isTimelineHidden = false,
+    )
+  }
 }
 
 @Composable
@@ -377,140 +393,142 @@ fun ExperienceScreen(
     navigateToRecordBloodPressureScreen: () -> Unit = {},
     navigateToEditBloodPressureScreen: (recordId: String) -> Unit = {},
 ) {
-    Scaffold(
-        topBar = {
-            ExperienceTopBar(
-                oneExperienceScreenModel = oneExperienceScreenModel,
-                onChangeTimeDisplayOption = onChangeTimeDisplayOption,
-                savedTimeDisplayOption = savedTimeDisplayOption,
-                deleteExperience = deleteExperience,
-                navigateBack = navigateBack,
-                openAiChat = openAiChat,
-                isAiAssistantEnabled = isAiAssistantEnabled,
-                navigateToEditExperienceScreen = navigateToEditExperienceScreen,
-                saveIsFavorite = saveIsFavorite,
-                navigateToAddTimedNoteScreen = navigateToAddTimedNoteScreen,
-                navigateToAddRatingScreen = navigateToAddRatingScreen,
-                addIngestion = addIngestion,
-                isNotificationActive = isNotificationActive,
-                onToggleNotification = onToggleNotification,
-                onShareExperience = onShareExperience,
-                isBloodPressureAvailable = isBloodPressureAvailable,
-                navigateToRecordBloodPressureScreen = navigateToRecordBloodPressureScreen,
-            )
-        },
-        floatingActionButton = {
-            AddIngestionFAB(oneExperienceScreenModel, addIngestion)
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .verticalScroll(rememberScrollState())
+  Scaffold(
+      topBar = {
+        ExperienceTopBar(
+            oneExperienceScreenModel = oneExperienceScreenModel,
+            onChangeTimeDisplayOption = onChangeTimeDisplayOption,
+            savedTimeDisplayOption = savedTimeDisplayOption,
+            deleteExperience = deleteExperience,
+            navigateBack = navigateBack,
+            openAiChat = openAiChat,
+            isAiAssistantEnabled = isAiAssistantEnabled,
+            navigateToEditExperienceScreen = navigateToEditExperienceScreen,
+            saveIsFavorite = saveIsFavorite,
+            navigateToAddTimedNoteScreen = navigateToAddTimedNoteScreen,
+            navigateToAddRatingScreen = navigateToAddRatingScreen,
+            addIngestion = addIngestion,
+            isNotificationActive = isNotificationActive,
+            onToggleNotification = onToggleNotification,
+            onShareExperience = onShareExperience,
+            isBloodPressureAvailable = isBloodPressureAvailable,
+            navigateToRecordBloodPressureScreen = navigateToRecordBloodPressureScreen,
+        )
+      },
+      floatingActionButton = {
+        AddIngestionFAB(oneExperienceScreenModel, addIngestion)
+      },
+  ) { padding ->
+    Column(
+        modifier =
+            Modifier.verticalScroll(rememberScrollState())
                 .padding(padding)
                 .padding(horizontal = horizontalPadding)
-        ) {
-            val verticalCardPadding = 4.dp
-            MyTimelineSection(
-                timelineDisplayOption = timelineDisplayOption,
-                verticalCardPadding = verticalCardPadding,
-                navigateToExplainTimeline = navigateToExplainTimeline,
-                navigateToTimelineScreen = navigateToTimelineScreen,
-                oneExperienceScreenModel = oneExperienceScreenModel,
-                timeDisplayOption = timeDisplayOption,
-                isOralDisclaimerHidden = isOralDisclaimerHidden,
-                onChangeIsOralDisclaimerHidden = onChangeIsOralDisclaimerHidden,
-                heartRateSamples = heartRateSamples,
-                sleepSamples = sleepSamples,
-                sleepStagesEnabled = sleepStagesEnabled,
-                isHeartRateButtonVisible = isHeartRateButtonVisible,
-                onToggleHeartRate = onToggleHeartRate,
-                bloodPressureReadings = bloodPressureReadings,
-                isBloodPressureInSubstanceList = isBloodPressureInSubstanceList,
-                onToggleBloodPressureInSubstanceList = onToggleBloodPressureInSubstanceList,
-            )
-            val bloodPressureInSubstances = isBloodPressureInSubstanceList && bloodPressureReadings.isNotEmpty()
-            if (oneExperienceScreenModel.ingestionElements.isNotEmpty() || bloodPressureInSubstances) {
-                MyIngestionList(
-                    verticalCardPadding = verticalCardPadding,
-                    oneExperienceScreenModel = oneExperienceScreenModel,
-                    areDosageDotsHidden = areDosageDotsHidden,
-                    navigateToIngestionScreen = navigateToIngestionScreen,
-                    timeDisplayOption = timeDisplayOption,
-                    bloodPressureReadings = if (bloodPressureInSubstances) bloodPressureReadings else emptyList(),
-                    navigateToEditBloodPressureScreen = navigateToEditBloodPressureScreen,
-                )
-            }
-            val cumulativeDoses = oneExperienceScreenModel.cumulativeDoses
-            if (cumulativeDoses.isNotEmpty()) {
-                CumulativeDosesSection(
-                    verticalCardPadding = verticalCardPadding,
-                    cumulativeDoses = cumulativeDoses,
-                    areDosageDotsHidden = areDosageDotsHidden
-                )
-            }
-            val timedNotesSorted = oneExperienceScreenModel.timedNotesSorted
-            if (timedNotesSorted.isNotEmpty()) {
-                TimedNotesSection(
-                    verticalCardPadding = verticalCardPadding,
-                    timedNotesSorted = timedNotesSorted,
-                    navigateToEditTimedNoteScreen = navigateToEditTimedNoteScreen,
-                    timeDisplayOption = timeDisplayOption,
-                    firstIngestionTime = oneExperienceScreenModel.firstIngestionTime
-                )
-            }
-            if (oneExperienceScreenModel.ratings.isNotEmpty()) {
-                ShulginRatingsSection(
-                    verticalCardPadding = verticalCardPadding,
-                    oneExperienceScreenModel = oneExperienceScreenModel,
-                    navigateToEditRatingScreen = navigateToEditRatingScreen,
-                    timeDisplayOption = timeDisplayOption
-                )
-            }
-            if (bloodPressureReadings.isNotEmpty() && !isBloodPressureInSubstanceList) {
-                BloodPressureReadingsSection(
-                    verticalCardPadding = verticalCardPadding,
-                    readings = bloodPressureReadings,
-                    navigateToEditBloodPressureScreen = navigateToEditBloodPressureScreen,
-                    timeDisplayOption = timeDisplayOption,
-                    firstIngestionTime = oneExperienceScreenModel.firstIngestionTime
-                )
-            }
-            val notes = oneExperienceScreenModel.notes
-            if (notes.isNotBlank()) {
-                NotesSection(
-                    verticalCardPadding = verticalCardPadding,
-                    navigateToEditExperienceScreen = navigateToEditExperienceScreen,
-                    oneExperienceScreenModel = oneExperienceScreenModel
-                )
-            }
-            oneExperienceScreenModel.consumersWithIngestions.forEach { consumerWithIngestions ->
-                ConsumerSection(
-                    verticalCardPadding = verticalCardPadding,
-                    consumerWithIngestions = consumerWithIngestions,
-                    navigateToTimelineScreen = navigateToTimelineScreen,
-                    timeDisplayOption = timeDisplayOption,
-                    areDosageDotsHidden = areDosageDotsHidden,
-                    navigateToIngestionScreen = navigateToIngestionScreen,
-                    isTimelineHidden = isTimelineHidden
-                )
-            }
-            val interactions = oneExperienceScreenModel.interactions
-            AnimatedVisibility(visible = interactions.isNotEmpty()) {
-                ExperienceInteractionsSection(
-                    verticalCardPadding = verticalCardPadding,
-                    interactions = interactions,
-                    oneExperienceScreenModel = oneExperienceScreenModel
-                )
-            }
-            AnimatedVisibility(visible = matchedAchievements.isNotEmpty()) {
-                ExperienceAchievementsSection(
-                    verticalCardPadding = verticalCardPadding,
-                    matchedAchievements = matchedAchievements
-                )
-            }
-            Spacer(modifier = Modifier.height(60.dp))
-        }
+    ) {
+      val verticalCardPadding = 4.dp
+      MyTimelineSection(
+          timelineDisplayOption = timelineDisplayOption,
+          verticalCardPadding = verticalCardPadding,
+          navigateToExplainTimeline = navigateToExplainTimeline,
+          navigateToTimelineScreen = navigateToTimelineScreen,
+          oneExperienceScreenModel = oneExperienceScreenModel,
+          timeDisplayOption = timeDisplayOption,
+          isOralDisclaimerHidden = isOralDisclaimerHidden,
+          onChangeIsOralDisclaimerHidden = onChangeIsOralDisclaimerHidden,
+          heartRateSamples = heartRateSamples,
+          sleepSamples = sleepSamples,
+          sleepStagesEnabled = sleepStagesEnabled,
+          isHeartRateButtonVisible = isHeartRateButtonVisible,
+          onToggleHeartRate = onToggleHeartRate,
+          bloodPressureReadings = bloodPressureReadings,
+          isBloodPressureInSubstanceList = isBloodPressureInSubstanceList,
+          onToggleBloodPressureInSubstanceList = onToggleBloodPressureInSubstanceList,
+      )
+      val bloodPressureInSubstances =
+          isBloodPressureInSubstanceList && bloodPressureReadings.isNotEmpty()
+      if (oneExperienceScreenModel.ingestionElements.isNotEmpty() || bloodPressureInSubstances) {
+        MyIngestionList(
+            verticalCardPadding = verticalCardPadding,
+            oneExperienceScreenModel = oneExperienceScreenModel,
+            areDosageDotsHidden = areDosageDotsHidden,
+            navigateToIngestionScreen = navigateToIngestionScreen,
+            timeDisplayOption = timeDisplayOption,
+            bloodPressureReadings =
+                if (bloodPressureInSubstances) bloodPressureReadings else emptyList(),
+            navigateToEditBloodPressureScreen = navigateToEditBloodPressureScreen,
+        )
+      }
+      val cumulativeDoses = oneExperienceScreenModel.cumulativeDoses
+      if (cumulativeDoses.isNotEmpty()) {
+        CumulativeDosesSection(
+            verticalCardPadding = verticalCardPadding,
+            cumulativeDoses = cumulativeDoses,
+            areDosageDotsHidden = areDosageDotsHidden,
+        )
+      }
+      val timedNotesSorted = oneExperienceScreenModel.timedNotesSorted
+      if (timedNotesSorted.isNotEmpty()) {
+        TimedNotesSection(
+            verticalCardPadding = verticalCardPadding,
+            timedNotesSorted = timedNotesSorted,
+            navigateToEditTimedNoteScreen = navigateToEditTimedNoteScreen,
+            timeDisplayOption = timeDisplayOption,
+            firstIngestionTime = oneExperienceScreenModel.firstIngestionTime,
+        )
+      }
+      if (oneExperienceScreenModel.ratings.isNotEmpty()) {
+        ShulginRatingsSection(
+            verticalCardPadding = verticalCardPadding,
+            oneExperienceScreenModel = oneExperienceScreenModel,
+            navigateToEditRatingScreen = navigateToEditRatingScreen,
+            timeDisplayOption = timeDisplayOption,
+        )
+      }
+      if (bloodPressureReadings.isNotEmpty() && !isBloodPressureInSubstanceList) {
+        BloodPressureReadingsSection(
+            verticalCardPadding = verticalCardPadding,
+            readings = bloodPressureReadings,
+            navigateToEditBloodPressureScreen = navigateToEditBloodPressureScreen,
+            timeDisplayOption = timeDisplayOption,
+            firstIngestionTime = oneExperienceScreenModel.firstIngestionTime,
+        )
+      }
+      val notes = oneExperienceScreenModel.notes
+      if (notes.isNotBlank()) {
+        NotesSection(
+            verticalCardPadding = verticalCardPadding,
+            navigateToEditExperienceScreen = navigateToEditExperienceScreen,
+            oneExperienceScreenModel = oneExperienceScreenModel,
+        )
+      }
+      oneExperienceScreenModel.consumersWithIngestions.forEach { consumerWithIngestions ->
+        ConsumerSection(
+            verticalCardPadding = verticalCardPadding,
+            consumerWithIngestions = consumerWithIngestions,
+            navigateToTimelineScreen = navigateToTimelineScreen,
+            timeDisplayOption = timeDisplayOption,
+            areDosageDotsHidden = areDosageDotsHidden,
+            navigateToIngestionScreen = navigateToIngestionScreen,
+            isTimelineHidden = isTimelineHidden,
+        )
+      }
+      val interactions = oneExperienceScreenModel.interactions
+      AnimatedVisibility(visible = interactions.isNotEmpty()) {
+        ExperienceInteractionsSection(
+            verticalCardPadding = verticalCardPadding,
+            interactions = interactions,
+            oneExperienceScreenModel = oneExperienceScreenModel,
+        )
+      }
+      AnimatedVisibility(visible = matchedAchievements.isNotEmpty()) {
+        ExperienceAchievementsSection(
+            verticalCardPadding = verticalCardPadding,
+            matchedAchievements = matchedAchievements,
+        )
+      }
+      Spacer(modifier = Modifier.height(60.dp))
     }
+  }
 }
 
 @Composable
@@ -518,87 +536,79 @@ fun ExperienceScreen(
 private fun ExperienceInteractionsSection(
     verticalCardPadding: Dp,
     interactions: List<Interaction>,
-    oneExperienceScreenModel: OneExperienceScreenModel
+    oneExperienceScreenModel: OneExperienceScreenModel,
 ) {
-    ElevatedCard(
-        modifier = Modifier
-            .padding(vertical = verticalCardPadding)
-    ) {
-        CardTitle(title = "Interactions")
-        interactions.forEachIndexed { index, interaction ->
-            InteractionRow(interaction = interaction)
-            if (index < interactions.size - 1) {
-                HorizontalDivider()
-            }
-        }
-        Spacer(modifier = Modifier.height(5.dp))
-        Text(
-            text = "Explanations",
-            style = MaterialTheme.typography.labelMedium,
-            modifier = Modifier.padding(horizontal = horizontalPadding)
-        )
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
-            modifier = Modifier.padding(horizontal = horizontalPadding)
-        ) {
-            oneExperienceScreenModel.interactionExplanations.forEach {
-                val uriHandler = LocalUriHandler.current
-                SuggestionChip(
-                    onClick = {
-                        uriHandler.openUri(it.url)
-                    },
-                    label = { Text(it.name) }
-                )
-            }
-        }
+  ElevatedCard(modifier = Modifier.padding(vertical = verticalCardPadding)) {
+    CardTitle(title = "Interactions")
+    interactions.forEachIndexed { index, interaction ->
+      InteractionRow(interaction = interaction)
+      if (index < interactions.size - 1) {
+        HorizontalDivider()
+      }
     }
+    Spacer(modifier = Modifier.height(5.dp))
+    Text(
+        text = "Explanations",
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier.padding(horizontal = horizontalPadding),
+    )
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        modifier = Modifier.padding(horizontal = horizontalPadding),
+    ) {
+      oneExperienceScreenModel.interactionExplanations.forEach {
+        val uriHandler = LocalUriHandler.current
+        SuggestionChip(
+            onClick = {
+              uriHandler.openUri(it.url)
+            },
+            label = { Text(it.name) },
+        )
+      }
+    }
+  }
 }
 
 @Composable
 private fun ExperienceAchievementsSection(
     verticalCardPadding: Dp,
-    matchedAchievements: List<AchievementDef>
+    matchedAchievements: List<AchievementDef>,
 ) {
-    ElevatedCard(
-        modifier = Modifier
-            .padding(vertical = verticalCardPadding)
-            .fillMaxWidth()
-    ) {
-        CardTitle(title = "Achievements")
-        HorizontalDivider()
-        matchedAchievements.forEachIndexed { index, achievement ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = horizontalPadding, vertical = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
-                ) {
-                    Text(
-                        text = achievement.title,
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = achievement.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                val tier = achievement.tier
-                if (tier != null) {
-                    TierBadge(tier = tier)
-                }
-            }
-            if (index < matchedAchievements.size - 1) {
-                HorizontalDivider()
-            }
+  ElevatedCard(modifier = Modifier.padding(vertical = verticalCardPadding).fillMaxWidth()) {
+    CardTitle(title = "Achievements")
+    HorizontalDivider()
+    matchedAchievements.forEachIndexed { index, achievement ->
+      Row(
+          modifier =
+              Modifier.fillMaxWidth().padding(horizontal = horizontalPadding, vertical = 10.dp),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+          Text(
+              text = achievement.title,
+              style = MaterialTheme.typography.titleSmall,
+              color = MaterialTheme.colorScheme.primary,
+          )
+          Text(
+              text = achievement.description,
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
         }
+        val tier = achievement.tier
+        if (tier != null) {
+          TierBadge(tier = tier)
+        }
+      }
+      if (index < matchedAchievements.size - 1) {
+        HorizontalDivider()
+      }
     }
+  }
 }
 
 @Composable
@@ -609,107 +619,107 @@ private fun ConsumerSection(
     timeDisplayOption: TimeDisplayOption,
     areDosageDotsHidden: Boolean,
     navigateToIngestionScreen: (ingestionId: Int) -> Unit,
-    isTimelineHidden: Boolean
+    isTimelineHidden: Boolean,
 ) {
-    ElevatedCard(modifier = Modifier.padding(vertical = verticalCardPadding)) {
-        val redoseChipState by foo.pilz.freaklog.ui.tabs.journal.experience.redose.rememberRedoseChipState()
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            CardTitle(title = consumerWithIngestions.consumerName)
-            if (!isTimelineHidden) {
-                IconButton(onClick = { navigateToTimelineScreen(consumerWithIngestions.consumerName) }) {
-                    Icon(
-                        Icons.Default.OpenInFull,
-                        contentDescription = "Expand timeline"
-                    )
-                }
-            }
+  ElevatedCard(modifier = Modifier.padding(vertical = verticalCardPadding)) {
+    val redoseChipState by
+        foo.pilz.freaklog.ui.tabs.journal.experience.redose.rememberRedoseChipState()
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+      CardTitle(title = consumerWithIngestions.consumerName)
+      if (!isTimelineHidden) {
+        IconButton(onClick = { navigateToTimelineScreen(consumerWithIngestions.consumerName) }) {
+          Icon(
+              Icons.Default.OpenInFull,
+              contentDescription = "Expand timeline",
+          )
         }
-        when (val timelineDisplayOption = consumerWithIngestions.timelineDisplayOption) {
-            TimelineDisplayOption.Hidden -> {}
-            TimelineDisplayOption.Loading -> LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-            TimelineDisplayOption.NotWorthDrawing -> {}
-            is TimelineDisplayOption.Shown -> {
-                val timelineModel = timelineDisplayOption.allTimelinesModel
-                Column(
-                    modifier = Modifier
-                        .padding(horizontal = horizontalPadding)
-                        .padding(bottom = 10.dp),
-                    verticalArrangement = Arrangement.spacedBy(5.dp)
-                ) {
-                    AllTimelines(
-                        model = timelineModel,
-                        timeDisplayOption = timeDisplayOption,
-                        isShowingCurrentTime = true,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                    )
-                }
-            }
-        }
-        HorizontalDivider()
-        val allTimesSortedMap = remember(consumerWithIngestions.ingestionElements) {
-            consumerWithIngestions.ingestionElements.map { it.ingestionWithCompanionAndCustomUnit.ingestion.time }
-        }
-        consumerWithIngestions.ingestionElements.forEachIndexed { index, ingestionElement ->
-            IngestionRow(
-                ingestionElement = ingestionElement,
-                areDosageDotsHidden = areDosageDotsHidden,
-                modifier = Modifier
-                    .clickable {
-                        navigateToIngestionScreen(ingestionElement.ingestionWithCompanionAndCustomUnit.ingestion.id)
-                    }
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp, horizontal = horizontalPadding)
-            ) {
-                val ingestion = ingestionElement.ingestionWithCompanionAndCustomUnit.ingestion
-                IngestionTimeOrDurationText(
-                    time = ingestion.time,
-                    endTime = ingestion.endTime,
-                    index = index,
-                    timeDisplayOption = timeDisplayOption,
-                    allTimesSortedMap = allTimesSortedMap
-                )
-            }
-            foo.pilz.freaklog.ui.tabs.journal.experience.redose.RedoseChip(
-                ingestionTime = ingestionElement.ingestionWithCompanionAndCustomUnit.ingestion.time,
-                roaDuration = ingestionElement.roaDuration,
-                state = redoseChipState,
-                modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 2.dp)
-            )
-            if (index < consumerWithIngestions.ingestionElements.size - 1) {
-                HorizontalDivider()
-            }
-        }
+      }
     }
+    when (val timelineDisplayOption = consumerWithIngestions.timelineDisplayOption) {
+      TimelineDisplayOption.Hidden -> {}
+      TimelineDisplayOption.Loading -> LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+      TimelineDisplayOption.NotWorthDrawing -> {}
+      is TimelineDisplayOption.Shown -> {
+        val timelineModel = timelineDisplayOption.allTimelinesModel
+        Column(
+            modifier = Modifier.padding(horizontal = horizontalPadding).padding(bottom = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
+          AllTimelines(
+              model = timelineModel,
+              timeDisplayOption = timeDisplayOption,
+              isShowingCurrentTime = true,
+              modifier = Modifier.fillMaxWidth().height(200.dp),
+          )
+        }
+      }
+    }
+    HorizontalDivider()
+    val allTimesSortedMap =
+        remember(consumerWithIngestions.ingestionElements) {
+          consumerWithIngestions.ingestionElements.map {
+            it.ingestionWithCompanionAndCustomUnit.ingestion.time
+          }
+        }
+    consumerWithIngestions.ingestionElements.forEachIndexed { index, ingestionElement ->
+      IngestionRow(
+          ingestionElement = ingestionElement,
+          areDosageDotsHidden = areDosageDotsHidden,
+          modifier =
+              Modifier.clickable {
+                    navigateToIngestionScreen(
+                        ingestionElement.ingestionWithCompanionAndCustomUnit.ingestion.id
+                    )
+                  }
+                  .fillMaxWidth()
+                  .padding(vertical = 5.dp, horizontal = horizontalPadding),
+      ) {
+        val ingestion = ingestionElement.ingestionWithCompanionAndCustomUnit.ingestion
+        IngestionTimeOrDurationText(
+            time = ingestion.time,
+            endTime = ingestion.endTime,
+            index = index,
+            timeDisplayOption = timeDisplayOption,
+            allTimesSortedMap = allTimesSortedMap,
+        )
+      }
+      foo.pilz.freaklog.ui.tabs.journal.experience.redose.RedoseChip(
+          ingestionTime = ingestionElement.ingestionWithCompanionAndCustomUnit.ingestion.time,
+          roaDuration = ingestionElement.roaDuration,
+          state = redoseChipState,
+          modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 2.dp),
+      )
+      if (index < consumerWithIngestions.ingestionElements.size - 1) {
+        HorizontalDivider()
+      }
+    }
+  }
 }
 
 @Composable
 private fun NotesSection(
     verticalCardPadding: Dp,
     navigateToEditExperienceScreen: () -> Unit,
-    oneExperienceScreenModel: OneExperienceScreenModel
+    oneExperienceScreenModel: OneExperienceScreenModel,
 ) {
-    ElevatedCard(modifier = Modifier
-        .padding(vertical = verticalCardPadding)
-        .fillMaxWidth()
-        .clickable { navigateToEditExperienceScreen() }) {
-        CardTitle(title = "Notes")
-        Column(
-            modifier = Modifier
-                .padding(horizontal = horizontalPadding)
-                .padding(bottom = 10.dp)
-        ) {
-            Text(text = oneExperienceScreenModel.notes)
-            if (oneExperienceScreenModel.locationName.isNotBlank()) {
-                Spacer(modifier = Modifier.height(5.dp))
-                Text(text = "Location: ${oneExperienceScreenModel.locationName}")
-            }
-        }
+  ElevatedCard(
+      modifier =
+          Modifier.padding(vertical = verticalCardPadding).fillMaxWidth().clickable {
+            navigateToEditExperienceScreen()
+          }
+  ) {
+    CardTitle(title = "Notes")
+    Column(modifier = Modifier.padding(horizontal = horizontalPadding).padding(bottom = 10.dp)) {
+      Text(text = oneExperienceScreenModel.notes)
+      if (oneExperienceScreenModel.locationName.isNotBlank()) {
+        Spacer(modifier = Modifier.height(5.dp))
+        Text(text = "Location: ${oneExperienceScreenModel.locationName}")
+      }
     }
+  }
 }
 
 @Composable
@@ -717,57 +727,60 @@ private fun ShulginRatingsSection(
     verticalCardPadding: Dp,
     oneExperienceScreenModel: OneExperienceScreenModel,
     navigateToEditRatingScreen: (ratingId: Int) -> Unit,
-    timeDisplayOption: TimeDisplayOption
+    timeDisplayOption: TimeDisplayOption,
 ) {
-    ElevatedCard(modifier = Modifier.padding(vertical = verticalCardPadding)) {
-        CardTitle(title = "Shulgin ratings")
-        HorizontalDivider()
-        val ratingsWithTime = remember(oneExperienceScreenModel.ratings) {
-            oneExperienceScreenModel.ratings.mapNotNull { rating ->
+  ElevatedCard(modifier = Modifier.padding(vertical = verticalCardPadding)) {
+    CardTitle(title = "Shulgin ratings")
+    HorizontalDivider()
+    val ratingsWithTime =
+        remember(oneExperienceScreenModel.ratings) {
+          oneExperienceScreenModel.ratings
+              .mapNotNull { rating ->
                 val time = rating.time
                 if (time != null) {
-                    Pair(time, rating)
+                  Pair(time, rating)
                 } else {
-                    null
+                  null
                 }
-            }.sortedBy { it.first }
+              }
+              .sortedBy { it.first }
         }
-        ratingsWithTime.forEachIndexed { index, pair ->
-            TimedRatingRow(
-                modifier = Modifier
-                    .clickable {
-                        navigateToEditRatingScreen(pair.second.id)
-                    }
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp, horizontal = horizontalPadding),
-                ratingSign = pair.second.option.sign) {
-                NoteOrRatingTimeOrDurationText(
-                    time = pair.first,
-                    timeDisplayOption = timeDisplayOption,
-                    firstIngestionTime = oneExperienceScreenModel.firstIngestionTime
-                )
-            }
-            if (index < ratingsWithTime.size - 1) {
-                HorizontalDivider()
-            }
-        }
-        val overallRating =
-            oneExperienceScreenModel.ratings.firstOrNull { it.time == null }
-        if (overallRating != null) {
-            if (ratingsWithTime.isNotEmpty()) {
-                HorizontalDivider()
-            }
-            OverallRatingRow(
-                modifier = Modifier
-                    .clickable {
-                        navigateToEditRatingScreen(overallRating.id)
-                    }
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp, horizontal = horizontalPadding),
-                ratingSign = overallRating.option.sign
-            )
-        }
+    ratingsWithTime.forEachIndexed { index, pair ->
+      TimedRatingRow(
+          modifier =
+              Modifier.clickable {
+                    navigateToEditRatingScreen(pair.second.id)
+                  }
+                  .fillMaxWidth()
+                  .padding(vertical = 8.dp, horizontal = horizontalPadding),
+          ratingSign = pair.second.option.sign,
+      ) {
+        NoteOrRatingTimeOrDurationText(
+            time = pair.first,
+            timeDisplayOption = timeDisplayOption,
+            firstIngestionTime = oneExperienceScreenModel.firstIngestionTime,
+        )
+      }
+      if (index < ratingsWithTime.size - 1) {
+        HorizontalDivider()
+      }
     }
+    val overallRating = oneExperienceScreenModel.ratings.firstOrNull { it.time == null }
+    if (overallRating != null) {
+      if (ratingsWithTime.isNotEmpty()) {
+        HorizontalDivider()
+      }
+      OverallRatingRow(
+          modifier =
+              Modifier.clickable {
+                    navigateToEditRatingScreen(overallRating.id)
+                  }
+                  .fillMaxWidth()
+                  .padding(vertical = 8.dp, horizontal = horizontalPadding),
+          ratingSign = overallRating.option.sign,
+      )
+    }
+  }
 }
 
 @Composable
@@ -778,58 +791,57 @@ private fun TimedNotesSection(
     timeDisplayOption: TimeDisplayOption,
     firstIngestionTime: Instant,
 ) {
-    ElevatedCard(modifier = Modifier.padding(vertical = verticalCardPadding)) {
-        CardTitle(title = "Timed notes")
-        if (timedNotesSorted.isNotEmpty()) {
-            HorizontalDivider()
-        }
-        timedNotesSorted.forEachIndexed { index, timedNote ->
-            TimedNoteRow(
-                timedNote = timedNote,
-                modifier = Modifier
-                    .clickable {
-                        navigateToEditTimedNoteScreen(timedNote.id)
-                    }
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp, horizontal = horizontalPadding)
-            ) {
-                NoteOrRatingTimeOrDurationText(
-                    time = timedNote.time,
-                    timeDisplayOption = timeDisplayOption,
-                    firstIngestionTime = firstIngestionTime
-                )
-            }
-            if (index < timedNotesSorted.size - 1) {
-                HorizontalDivider()
-            }
-        }
+  ElevatedCard(modifier = Modifier.padding(vertical = verticalCardPadding)) {
+    CardTitle(title = "Timed notes")
+    if (timedNotesSorted.isNotEmpty()) {
+      HorizontalDivider()
     }
+    timedNotesSorted.forEachIndexed { index, timedNote ->
+      TimedNoteRow(
+          timedNote = timedNote,
+          modifier =
+              Modifier.clickable {
+                    navigateToEditTimedNoteScreen(timedNote.id)
+                  }
+                  .fillMaxWidth()
+                  .padding(vertical = 5.dp, horizontal = horizontalPadding),
+      ) {
+        NoteOrRatingTimeOrDurationText(
+            time = timedNote.time,
+            timeDisplayOption = timeDisplayOption,
+            firstIngestionTime = firstIngestionTime,
+        )
+      }
+      if (index < timedNotesSorted.size - 1) {
+        HorizontalDivider()
+      }
+    }
+  }
 }
 
 @Composable
 private fun CumulativeDosesSection(
     verticalCardPadding: Dp,
     cumulativeDoses: List<CumulativeDose>,
-    areDosageDotsHidden: Boolean
+    areDosageDotsHidden: Boolean,
 ) {
-    ElevatedCard(modifier = Modifier.padding(vertical = verticalCardPadding)) {
-        CardTitle(title = "Your cumulative doses")
-        if (cumulativeDoses.isNotEmpty()) {
-            HorizontalDivider()
-        }
-        cumulativeDoses.forEachIndexed { index, cumulativeDose ->
-            CumulativeDoseRow(
-                cumulativeDose = cumulativeDose,
-                areDosageDotsHidden = areDosageDotsHidden,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp, horizontal = horizontalPadding)
-            )
-            if (index < cumulativeDoses.size - 1) {
-                HorizontalDivider()
-            }
-        }
+  ElevatedCard(modifier = Modifier.padding(vertical = verticalCardPadding)) {
+    CardTitle(title = "Your cumulative doses")
+    if (cumulativeDoses.isNotEmpty()) {
+      HorizontalDivider()
     }
+    cumulativeDoses.forEachIndexed { index, cumulativeDose ->
+      CumulativeDoseRow(
+          cumulativeDose = cumulativeDose,
+          areDosageDotsHidden = areDosageDotsHidden,
+          modifier =
+              Modifier.fillMaxWidth().padding(vertical = 5.dp, horizontal = horizontalPadding),
+      )
+      if (index < cumulativeDoses.size - 1) {
+        HorizontalDivider()
+      }
+    }
+  }
 }
 
 @Composable
@@ -842,89 +854,103 @@ private fun MyIngestionList(
     bloodPressureReadings: List<BloodPressureReading> = emptyList(),
     navigateToEditBloodPressureScreen: (recordId: String) -> Unit = {},
 ) {
-    ElevatedCard(modifier = Modifier.padding(vertical = verticalCardPadding)) {
-        val redoseChipState by foo.pilz.freaklog.ui.tabs.journal.experience.redose.rememberRedoseChipState()
-        CardTitle(
-            title = oneExperienceScreenModel.firstIngestionTime.getDateWithWeekdayText()
-        )
-        if (oneExperienceScreenModel.ingestionElements.isNotEmpty() || bloodPressureReadings.isNotEmpty()) {
-            HorizontalDivider()
-        }
-        val ingestionElements = oneExperienceScreenModel.ingestionElements
-        val allTimesSortedMap = remember(ingestionElements) {
-            ingestionElements.map { it.ingestionWithCompanionAndCustomUnit.ingestion.time }
-        }
-        // Readings taken before the first ingestion come first, the rest follow the ingestion they came after.
-        val readingsBefore = bloodPressureReadings.filter { reading ->
-            ingestionElements.none { it.ingestionWithCompanionAndCustomUnit.ingestion.time <= reading.time }
-        }
-        readingsBefore.forEach { reading ->
-            BloodPressureReadingRow(
-                reading = reading,
-                timeDisplayOption = timeDisplayOption,
-                firstIngestionTime = oneExperienceScreenModel.firstIngestionTime,
-                onClick = { navigateToEditBloodPressureScreen(reading.id) }
-            )
-            HorizontalDivider()
-        }
-        ingestionElements.forEachIndexed { index, ingestionElement ->
-            val ingestionTime = ingestionElement.ingestionWithCompanionAndCustomUnit.ingestion.time
-            val nextIngestionTime =
-                ingestionElements.getOrNull(index + 1)?.ingestionWithCompanionAndCustomUnit?.ingestion?.time
-            val readingsAfter = bloodPressureReadings.filter {
-                it.time >= ingestionTime && (nextIngestionTime == null || it.time < nextIngestionTime)
-            }
-            IngestionRow(
-                ingestionElement = ingestionElement,
-                areDosageDotsHidden = areDosageDotsHidden,
-                modifier = Modifier
-                    .clickable {
-                        navigateToIngestionScreen(ingestionElement.ingestionWithCompanionAndCustomUnit.ingestion.id)
-                    }
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp, horizontal = horizontalPadding)
-            ) {
-                val ingestion = ingestionElement.ingestionWithCompanionAndCustomUnit.ingestion
-                IngestionTimeOrDurationText(
-                    time = ingestion.time,
-                    endTime = ingestion.endTime,
-                    index = index,
-                    timeDisplayOption = timeDisplayOption,
-                    allTimesSortedMap = allTimesSortedMap
-                )
-            }
-            foo.pilz.freaklog.ui.tabs.journal.experience.redose.RedoseChip(
-                ingestionTime = ingestionElement.ingestionWithCompanionAndCustomUnit.ingestion.time,
-                roaDuration = ingestionElement.roaDuration,
-                state = redoseChipState,
-                modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 2.dp)
-            )
-            readingsAfter.forEach { reading ->
-                HorizontalDivider()
-                BloodPressureReadingRow(
-                    reading = reading,
-                    timeDisplayOption = timeDisplayOption,
-                    firstIngestionTime = oneExperienceScreenModel.firstIngestionTime,
-                    onClick = { navigateToEditBloodPressureScreen(reading.id) }
-                )
-            }
-            val isLastIngestion =
-                index == oneExperienceScreenModel.ingestionElements.size - 1
-            if (isLastIngestion) {
-                if (oneExperienceScreenModel.isCurrentExperience) {
-                    if (timeDisplayOption == TimeDisplayOption.TIME_BETWEEN) {
-                        HorizontalDivider()
-                        LastIngestionRelativeToNowText(lastIngestionTime = ingestionElement.ingestionWithCompanionAndCustomUnit.ingestion.time)
-                    } else if (timeDisplayOption == TimeDisplayOption.RELATIVE_TO_START) {
-                        HorizontalDivider()
-                        NowRelativeToStartTimeText(startTime = oneExperienceScreenModel.firstIngestionTime)
-                    }
-                }
-            } else {
-                HorizontalDivider()
-            }
-        }
+  ElevatedCard(modifier = Modifier.padding(vertical = verticalCardPadding)) {
+    val redoseChipState by
+        foo.pilz.freaklog.ui.tabs.journal.experience.redose.rememberRedoseChipState()
+    CardTitle(title = oneExperienceScreenModel.firstIngestionTime.getDateWithWeekdayText())
+    if (
+        oneExperienceScreenModel.ingestionElements.isNotEmpty() ||
+            bloodPressureReadings.isNotEmpty()
+    ) {
+      HorizontalDivider()
     }
+    val ingestionElements = oneExperienceScreenModel.ingestionElements
+    val allTimesSortedMap =
+        remember(ingestionElements) {
+          ingestionElements.map { it.ingestionWithCompanionAndCustomUnit.ingestion.time }
+        }
+    // Readings taken before the first ingestion come first, the rest follow the ingestion they came
+    // after.
+    val readingsBefore = bloodPressureReadings.filter { reading ->
+      ingestionElements.none {
+        it.ingestionWithCompanionAndCustomUnit.ingestion.time <= reading.time
+      }
+    }
+    readingsBefore.forEach { reading ->
+      BloodPressureReadingRow(
+          reading = reading,
+          timeDisplayOption = timeDisplayOption,
+          firstIngestionTime = oneExperienceScreenModel.firstIngestionTime,
+          onClick = { navigateToEditBloodPressureScreen(reading.id) },
+      )
+      HorizontalDivider()
+    }
+    ingestionElements.forEachIndexed { index, ingestionElement ->
+      val ingestionTime = ingestionElement.ingestionWithCompanionAndCustomUnit.ingestion.time
+      val nextIngestionTime =
+          ingestionElements
+              .getOrNull(index + 1)
+              ?.ingestionWithCompanionAndCustomUnit
+              ?.ingestion
+              ?.time
+      val readingsAfter = bloodPressureReadings.filter {
+        it.time >= ingestionTime && (nextIngestionTime == null || it.time < nextIngestionTime)
+      }
+      IngestionRow(
+          ingestionElement = ingestionElement,
+          areDosageDotsHidden = areDosageDotsHidden,
+          modifier =
+              Modifier.clickable {
+                    navigateToIngestionScreen(
+                        ingestionElement.ingestionWithCompanionAndCustomUnit.ingestion.id
+                    )
+                  }
+                  .fillMaxWidth()
+                  .padding(vertical = 5.dp, horizontal = horizontalPadding),
+      ) {
+        val ingestion = ingestionElement.ingestionWithCompanionAndCustomUnit.ingestion
+        IngestionTimeOrDurationText(
+            time = ingestion.time,
+            endTime = ingestion.endTime,
+            index = index,
+            timeDisplayOption = timeDisplayOption,
+            allTimesSortedMap = allTimesSortedMap,
+        )
+      }
+      foo.pilz.freaklog.ui.tabs.journal.experience.redose.RedoseChip(
+          ingestionTime = ingestionElement.ingestionWithCompanionAndCustomUnit.ingestion.time,
+          roaDuration = ingestionElement.roaDuration,
+          state = redoseChipState,
+          modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 2.dp),
+      )
+      readingsAfter.forEach { reading ->
+        HorizontalDivider()
+        BloodPressureReadingRow(
+            reading = reading,
+            timeDisplayOption = timeDisplayOption,
+            firstIngestionTime = oneExperienceScreenModel.firstIngestionTime,
+            onClick = { navigateToEditBloodPressureScreen(reading.id) },
+        )
+      }
+      val isLastIngestion = index == oneExperienceScreenModel.ingestionElements.size - 1
+      if (isLastIngestion) {
+        if (oneExperienceScreenModel.isCurrentExperience) {
+          if (timeDisplayOption == TimeDisplayOption.TIME_BETWEEN) {
+            HorizontalDivider()
+            LastIngestionRelativeToNowText(
+                lastIngestionTime =
+                    ingestionElement.ingestionWithCompanionAndCustomUnit.ingestion.time
+            )
+          } else if (timeDisplayOption == TimeDisplayOption.RELATIVE_TO_START) {
+            HorizontalDivider()
+            NowRelativeToStartTimeText(startTime = oneExperienceScreenModel.firstIngestionTime)
+          }
+        }
+      } else {
+        HorizontalDivider()
+      }
+    }
+  }
 }
 
 @Composable
@@ -935,21 +961,21 @@ private fun BloodPressureReadingsSection(
     timeDisplayOption: TimeDisplayOption,
     firstIngestionTime: Instant,
 ) {
-    ElevatedCard(modifier = Modifier.padding(vertical = verticalCardPadding)) {
-        CardTitle(title = "Blood pressure")
+  ElevatedCard(modifier = Modifier.padding(vertical = verticalCardPadding)) {
+    CardTitle(title = "Blood pressure")
+    HorizontalDivider()
+    readings.forEachIndexed { index, reading ->
+      BloodPressureReadingRow(
+          reading = reading,
+          timeDisplayOption = timeDisplayOption,
+          firstIngestionTime = firstIngestionTime,
+          onClick = { navigateToEditBloodPressureScreen(reading.id) },
+      )
+      if (index < readings.size - 1) {
         HorizontalDivider()
-        readings.forEachIndexed { index, reading ->
-            BloodPressureReadingRow(
-                reading = reading,
-                timeDisplayOption = timeDisplayOption,
-                firstIngestionTime = firstIngestionTime,
-                onClick = { navigateToEditBloodPressureScreen(reading.id) }
-            )
-            if (index < readings.size - 1) {
-                HorizontalDivider()
-            }
-        }
+      }
     }
+  }
 }
 
 @Composable
@@ -959,24 +985,24 @@ private fun BloodPressureReadingRow(
     firstIngestionTime: Instant,
     onClick: () -> Unit,
 ) {
-    // Readings stored by older app versions live in the journal database and have no edit screen.
-    val isEditable = !reading.id.startsWith(LEGACY_BLOOD_PRESSURE_ID_PREFIX)
-    Column(
-        modifier = Modifier
-            .clickable(enabled = isEditable, onClick = onClick)
-            .fillMaxWidth()
-            .padding(vertical = 5.dp, horizontal = horizontalPadding),
-    ) {
-        Text(
-            text = "${reading.systolic.roundToInt()}/${reading.diastolic.roundToInt()} mmHg",
-            style = MaterialTheme.typography.bodyLarge
-        )
-        NoteOrRatingTimeOrDurationText(
-            time = reading.time,
-            timeDisplayOption = timeDisplayOption,
-            firstIngestionTime = firstIngestionTime
-        )
-    }
+  // Readings stored by older app versions live in the journal database and have no edit screen.
+  val isEditable = !reading.id.startsWith(LEGACY_BLOOD_PRESSURE_ID_PREFIX)
+  Column(
+      modifier =
+          Modifier.clickable(enabled = isEditable, onClick = onClick)
+              .fillMaxWidth()
+              .padding(vertical = 5.dp, horizontal = horizontalPadding),
+  ) {
+    Text(
+        text = "${reading.systolic.roundToInt()}/${reading.diastolic.roundToInt()} mmHg",
+        style = MaterialTheme.typography.bodyLarge,
+    )
+    NoteOrRatingTimeOrDurationText(
+        time = reading.time,
+        timeDisplayOption = timeDisplayOption,
+        firstIngestionTime = firstIngestionTime,
+    )
+  }
 }
 
 @Composable
@@ -998,124 +1024,125 @@ private fun MyTimelineSection(
     isBloodPressureInSubstanceList: Boolean = false,
     onToggleBloodPressureInSubstanceList: () -> Unit = {},
 ) {
-    when (timelineDisplayOption) {
-        TimelineDisplayOption.Hidden -> {}
-        TimelineDisplayOption.Loading -> LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-        TimelineDisplayOption.NotWorthDrawing -> {}
-        is TimelineDisplayOption.Shown -> {
-            val timelineModel = timelineDisplayOption.allTimelinesModel
-            ElevatedCard(modifier = Modifier.padding(vertical = verticalCardPadding)) {
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    CardTitle(title = "Effect timeline")
-                    Row {
-                        TextButton(onClick = navigateToExplainTimeline) {
-                            Text(text = "Info")
-                        }
-                        if (isHeartRateButtonVisible) {
-                            IconButton(onClick = onToggleHeartRate) {
-                                val isShown = heartRateSamples.isNotEmpty()
-                                Icon(
-                                    if (isShown) Icons.Filled.MonitorHeart else Icons.Outlined.MonitorHeart,
-                                    contentDescription = if (isShown) "Hide heart rate" else "Show heart rate"
-                                )
-                            }
-                        }
-                        if (bloodPressureReadings.isNotEmpty()) {
-                            IconButton(onClick = onToggleBloodPressureInSubstanceList) {
-                                val icon = if (isBloodPressureInSubstanceList) {
-                                    Icons.Filled.Bloodtype
-                                } else {
-                                    Icons.Outlined.Bloodtype
-                                }
-                                Icon(
-                                    icon,
-                                    contentDescription = if (isBloodPressureInSubstanceList) {
-                                        "Separate blood pressure list"
-                                    } else {
-                                        "Merge blood pressure into substances list"
-                                    }
-                                )
-                            }
-                        }
-                        IconButton(onClick = { navigateToTimelineScreen(YOU) }) {
-                            Icon(
-                                Icons.Default.OpenInFull,
-                                contentDescription = "Expand timeline"
-                            )
-                        }
-                    }
-                }
-                Column(
-                    modifier = Modifier
-                        .padding(horizontal = horizontalPadding)
-                        .padding(bottom = 10.dp),
-                    verticalArrangement = Arrangement.spacedBy(5.dp)
-                ) {
-                    AllTimelines(
-                        model = timelineModel,
-                        timeDisplayOption = timeDisplayOption,
-                        isShowingCurrentTime = true,
-                        heartRateSamples = heartRateSamples,
-                        sleepSamples = sleepSamples,
-                        showSleepStages = sleepStagesEnabled,
-                        bloodPressureReadings = bloodPressureReadings,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                    )
-                    val hasOralIngestion =
-                        oneExperienceScreenModel.ingestionElements.any { it.ingestionWithCompanionAndCustomUnit.ingestion.administrationRoute == AdministrationRoute.ORAL }
-                    if (hasOralIngestion && !isOralDisclaimerHidden) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = FULL_STOMACH_DISCLAIMER,
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.weight(1f)
-                            )
-                            IconButton(onClick = { onChangeIsOralDisclaimerHidden(true) }) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Close disclaimer"
-                                )
-                            }
-                        }
-                    }
-                }
+  when (timelineDisplayOption) {
+    TimelineDisplayOption.Hidden -> {}
+    TimelineDisplayOption.Loading -> LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+    TimelineDisplayOption.NotWorthDrawing -> {}
+    is TimelineDisplayOption.Shown -> {
+      val timelineModel = timelineDisplayOption.allTimelinesModel
+      ElevatedCard(modifier = Modifier.padding(vertical = verticalCardPadding)) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+          CardTitle(title = "Effect timeline")
+          Row {
+            TextButton(onClick = navigateToExplainTimeline) {
+              Text(text = "Info")
             }
+            if (isHeartRateButtonVisible) {
+              IconButton(onClick = onToggleHeartRate) {
+                val isShown = heartRateSamples.isNotEmpty()
+                Icon(
+                    if (isShown) Icons.Filled.MonitorHeart else Icons.Outlined.MonitorHeart,
+                    contentDescription = if (isShown) "Hide heart rate" else "Show heart rate",
+                )
+              }
+            }
+            if (bloodPressureReadings.isNotEmpty()) {
+              IconButton(onClick = onToggleBloodPressureInSubstanceList) {
+                val icon =
+                    if (isBloodPressureInSubstanceList) {
+                      Icons.Filled.Bloodtype
+                    } else {
+                      Icons.Outlined.Bloodtype
+                    }
+                Icon(
+                    icon,
+                    contentDescription =
+                        if (isBloodPressureInSubstanceList) {
+                          "Separate blood pressure list"
+                        } else {
+                          "Merge blood pressure into substances list"
+                        },
+                )
+              }
+            }
+            IconButton(onClick = { navigateToTimelineScreen(YOU) }) {
+              Icon(
+                  Icons.Default.OpenInFull,
+                  contentDescription = "Expand timeline",
+              )
+            }
+          }
         }
+        Column(
+            modifier = Modifier.padding(horizontal = horizontalPadding).padding(bottom = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
+          AllTimelines(
+              model = timelineModel,
+              timeDisplayOption = timeDisplayOption,
+              isShowingCurrentTime = true,
+              heartRateSamples = heartRateSamples,
+              sleepSamples = sleepSamples,
+              showSleepStages = sleepStagesEnabled,
+              bloodPressureReadings = bloodPressureReadings,
+              modifier = Modifier.fillMaxWidth().height(200.dp),
+          )
+          val hasOralIngestion =
+              oneExperienceScreenModel.ingestionElements.any {
+                it.ingestionWithCompanionAndCustomUnit.ingestion.administrationRoute ==
+                    AdministrationRoute.ORAL
+              }
+          if (hasOralIngestion && !isOralDisclaimerHidden) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              Text(
+                  text = FULL_STOMACH_DISCLAIMER,
+                  style = MaterialTheme.typography.bodySmall,
+                  modifier = Modifier.weight(1f),
+              )
+              IconButton(onClick = { onChangeIsOralDisclaimerHidden(true) }) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Close disclaimer",
+                )
+              }
+            }
+          }
+        }
+      }
     }
+  }
 }
-
 
 @Composable
 private fun AddIngestionFAB(
     oneExperienceScreenModel: OneExperienceScreenModel,
-    addIngestion: () -> Unit
+    addIngestion: () -> Unit,
 ) {
-    val wasAnyIngestionCreatedInLast4Hours =
-        oneExperienceScreenModel.ingestionElements.mapNotNull { it.ingestionWithCompanionAndCustomUnit.ingestion.creationDate }
-            .any {
-                it > Instant.now().minus(4, ChronoUnit.HOURS)
-            }
-    val performHaptic = rememberHaptic()
-    if (oneExperienceScreenModel.isCurrentExperience || wasAnyIngestionCreatedInLast4Hours) {
-        ExtendedFloatingActionButton(
-            onClick = { 
-                performHaptic(HapticType.HEAVY_CLICK)
-                addIngestion()
-            },
-            icon = {
-                Icon(
-                    Icons.Filled.Add,
-                    contentDescription = "Add"
-                )
-            },
-            text = { Text("Ingestion") }
-        )
-    }
+  val wasAnyIngestionCreatedInLast4Hours =
+      oneExperienceScreenModel.ingestionElements
+          .mapNotNull { it.ingestionWithCompanionAndCustomUnit.ingestion.creationDate }
+          .any {
+            it > Instant.now().minus(4, ChronoUnit.HOURS)
+          }
+  val performHaptic = rememberHaptic()
+  if (oneExperienceScreenModel.isCurrentExperience || wasAnyIngestionCreatedInLast4Hours) {
+    ExtendedFloatingActionButton(
+        onClick = {
+          performHaptic(HapticType.HEAVY_CLICK)
+          addIngestion()
+        },
+        icon = {
+          Icon(
+              Icons.Filled.Add,
+              contentDescription = "Add",
+          )
+        },
+        text = { Text("Ingestion") },
+    )
+  }
 }
 
 @Composable
@@ -1139,290 +1166,300 @@ private fun ExperienceTopBar(
     isBloodPressureAvailable: Boolean = false,
     navigateToRecordBloodPressureScreen: () -> Unit = {},
 ) {
-    TopAppBar(
-        title = { Text(oneExperienceScreenModel.title) },
-        actions = {
-            IconButton(onClick = onShareExperience) {
-                Icon(androidx.compose.material.icons.Icons.Outlined.Share, contentDescription = "Share as image")
-            }
-            IconButton(onClick = onToggleNotification) {
-                Icon(
-                    if (isNotificationActive) {
-                        androidx.compose.material.icons.Icons.Filled.Notifications
-                    } else {
-                        androidx.compose.material.icons.Icons.Outlined.Notifications
-                    },
-                    contentDescription = if (isNotificationActive) {
-                        "Stop live notification"
-                    } else {
-                        "Start live notification"
-                    }
-                )
-            }
-            if (isAiAssistantEnabled) {
-                IconButton(onClick = openAiChat) {
+  TopAppBar(
+      title = { Text(oneExperienceScreenModel.title) },
+      actions = {
+        IconButton(onClick = onShareExperience) {
+          Icon(
+              androidx.compose.material.icons.Icons.Outlined.Share,
+              contentDescription = "Share as image",
+          )
+        }
+        IconButton(onClick = onToggleNotification) {
+          Icon(
+              if (isNotificationActive) {
+                androidx.compose.material.icons.Icons.Filled.Notifications
+              } else {
+                androidx.compose.material.icons.Icons.Outlined.Notifications
+              },
+              contentDescription =
+                  if (isNotificationActive) {
+                    "Stop live notification"
+                  } else {
+                    "Start live notification"
+                  },
+          )
+        }
+        if (isAiAssistantEnabled) {
+          IconButton(onClick = openAiChat) {
+            Icon(
+                androidx.compose.material.icons.Icons.Outlined.SmartToy,
+                contentDescription = "AI Recommendations",
+            )
+          }
+        }
+        var areTimeOptionsExpanded by remember { mutableStateOf(false) }
+        IconButton(onClick = { areTimeOptionsExpanded = true }) {
+          Icon(Icons.Outlined.Timer, contentDescription = "Time display option")
+        }
+        DropdownMenu(
+            expanded = areTimeOptionsExpanded,
+            onDismissRequest = { areTimeOptionsExpanded = false },
+        ) {
+          SavedTimeDisplayOption.entries.forEach { option ->
+            DropdownMenuItem(
+                text = { Text(option.text) },
+                onClick = {
+                  onChangeTimeDisplayOption(option)
+                  areTimeOptionsExpanded = false
+                },
+                leadingIcon = {
+                  if (option == savedTimeDisplayOption) {
                     Icon(
-                        androidx.compose.material.icons.Icons.Outlined.SmartToy,
-                        contentDescription = "AI Recommendations"
+                        Icons.Filled.Check,
+                        contentDescription = "Check",
+                        modifier = Modifier.size(ButtonDefaults.IconSize),
                     )
+                  }
+                },
+            )
+          }
+        }
+        var areEditOptionsExpanded by remember { mutableStateOf(false) }
+        IconButton(onClick = { areEditOptionsExpanded = true }) {
+          Icon(
+              Icons.Default.Edit,
+              contentDescription = "Edit options",
+          )
+        }
+        var isShowingDeleteDialog by remember { mutableStateOf(false) }
+        AnimatedVisibility(visible = isShowingDeleteDialog) {
+          AlertDialog(
+              onDismissRequest = { isShowingDeleteDialog = false },
+              title = {
+                Text(text = "Delete experience?")
+              },
+              text = {
+                Text("This will also delete all its ingestions.")
+              },
+              confirmButton = {
+                TextButton(
+                    onClick = {
+                      isShowingDeleteDialog = false
+                      deleteExperience()
+                      navigateBack()
+                    }
+                ) {
+                  Text("Delete")
                 }
-            }
-            var areTimeOptionsExpanded by remember { mutableStateOf(false) }
-            IconButton(onClick = { areTimeOptionsExpanded = true }) {
-                Icon(Icons.Outlined.Timer, contentDescription = "Time display option")
-            }
-            DropdownMenu(
-                expanded = areTimeOptionsExpanded,
-                onDismissRequest = { areTimeOptionsExpanded = false }
-            ) {
-                SavedTimeDisplayOption.entries.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(option.text) },
-                        onClick = {
-                            onChangeTimeDisplayOption(option)
-                            areTimeOptionsExpanded = false
-                        },
-                        leadingIcon = {
-                            if (option == savedTimeDisplayOption) {
-                                Icon(
-                                    Icons.Filled.Check,
-                                    contentDescription = "Check",
-                                    modifier = Modifier.size(ButtonDefaults.IconSize)
-                                )
-                            }
-                        }
-                    )
+              },
+              dismissButton = {
+                TextButton(onClick = { isShowingDeleteDialog = false }) {
+                  Text("Cancel")
                 }
-            }
-            var areEditOptionsExpanded by remember { mutableStateOf(false) }
-            IconButton(onClick = { areEditOptionsExpanded = true }) {
+              },
+          )
+        }
+        DropdownMenu(
+            expanded = areEditOptionsExpanded,
+            onDismissRequest = { areEditOptionsExpanded = false },
+        ) {
+          DropdownMenuItem(
+              text = { Text("Edit title/notes/location") },
+              onClick = {
+                navigateToEditExperienceScreen()
+                areEditOptionsExpanded = false
+              },
+              leadingIcon = {
                 Icon(
-                    Icons.Default.Edit,
-                    contentDescription = "Edit options",
+                    Icons.Outlined.Edit,
+                    contentDescription = "Edit experience",
+                    modifier = Modifier.size(ButtonDefaults.IconSize),
                 )
-            }
-            var isShowingDeleteDialog by remember { mutableStateOf(false) }
-            AnimatedVisibility(visible = isShowingDeleteDialog) {
-                AlertDialog(
-                    onDismissRequest = { isShowingDeleteDialog = false },
-                    title = {
-                        Text(text = "Delete experience?")
-                    },
-                    text = {
-                        Text("This will also delete all its ingestions.")
-                    },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                isShowingDeleteDialog = false
-                                deleteExperience()
-                                navigateBack()
-                            }
-                        ) {
-                            Text("Delete")
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(
-                            onClick = { isShowingDeleteDialog = false }
-                        ) {
-                            Text("Cancel")
-                        }
-                    }
+              },
+          )
+          val isFavorite = oneExperienceScreenModel.isFavorite
+          if (isFavorite) {
+            DropdownMenuItem(
+                text = { Text("Unmark favorite") },
+                onClick = {
+                  saveIsFavorite(false)
+                  areEditOptionsExpanded = false
+                },
+                leadingIcon = {
+                  Icon(
+                      Icons.Filled.Star,
+                      contentDescription = "Unmark favorite",
+                      modifier = Modifier.size(ButtonDefaults.IconSize),
+                  )
+                },
+            )
+          } else {
+            DropdownMenuItem(
+                text = { Text("Mark favorite") },
+                onClick = {
+                  saveIsFavorite(true)
+                  areEditOptionsExpanded = false
+                },
+                leadingIcon = {
+                  Icon(
+                      Icons.Outlined.StarOutline,
+                      contentDescription = "Mark favorite",
+                      modifier = Modifier.size(ButtonDefaults.IconSize),
+                  )
+                },
+            )
+          }
+          DropdownMenuItem(
+              text = { Text("Delete experience") },
+              onClick = {
+                isShowingDeleteDialog = true
+                areEditOptionsExpanded = false
+              },
+              leadingIcon = {
+                Icon(
+                    Icons.Outlined.Delete,
+                    contentDescription = "Delete experience",
+                    modifier = Modifier.size(ButtonDefaults.IconSize),
                 )
-            }
-            DropdownMenu(
-                expanded = areEditOptionsExpanded,
-                onDismissRequest = { areEditOptionsExpanded = false }
-            ) {
-                DropdownMenuItem(
-                    text = { Text("Edit title/notes/location") },
-                    onClick = {
-                        navigateToEditExperienceScreen()
-                        areEditOptionsExpanded = false
-                    },
-                    leadingIcon = {
-                        Icon(
-                            Icons.Outlined.Edit,
-                            contentDescription = "Edit experience",
-                            modifier = Modifier.size(ButtonDefaults.IconSize)
-                        )
-                    }
-                )
-                val isFavorite = oneExperienceScreenModel.isFavorite
-                if (isFavorite) {
-                    DropdownMenuItem(
-                        text = { Text("Unmark favorite") },
-                        onClick = {
-                            saveIsFavorite(false)
-                            areEditOptionsExpanded = false
-                        },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Filled.Star,
-                                contentDescription = "Unmark favorite",
-                                modifier = Modifier.size(ButtonDefaults.IconSize)
-                            )
-                        }
-                    )
-                } else {
-                    DropdownMenuItem(
-                        text = { Text("Mark favorite") },
-                        onClick = {
-                            saveIsFavorite(true)
-                            areEditOptionsExpanded = false
-                        },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Outlined.StarOutline,
-                                contentDescription = "Mark favorite",
-                                modifier = Modifier.size(ButtonDefaults.IconSize)
-                            )
-                        }
-                    )
-                }
-                DropdownMenuItem(
-                    text = { Text("Delete experience") },
-                    onClick = {
-                        isShowingDeleteDialog = true
-                        areEditOptionsExpanded = false
-                    },
-                    leadingIcon = {
-                        Icon(
-                            Icons.Outlined.Delete,
-                            contentDescription = "Delete experience",
-                            modifier = Modifier.size(ButtonDefaults.IconSize)
-                        )
-                    }
-                )
-            }
+              },
+          )
+        }
 
-            var areAddOptionsExpanded by remember { mutableStateOf(false) }
-            IconButton(onClick = { areAddOptionsExpanded = true }) {
+        var areAddOptionsExpanded by remember { mutableStateOf(false) }
+        IconButton(onClick = { areAddOptionsExpanded = true }) {
+          Icon(
+              Icons.Outlined.Add,
+              contentDescription = "Add options",
+          )
+        }
+        DropdownMenu(
+            expanded = areAddOptionsExpanded,
+            onDismissRequest = { areAddOptionsExpanded = false },
+        ) {
+          DropdownMenuItem(
+              text = { Text("Add Ingestion") },
+              onClick = {
+                addIngestion()
+                areAddOptionsExpanded = false
+              },
+              leadingIcon = {
                 Icon(
                     Icons.Outlined.Add,
-                    contentDescription = "Add options",
+                    contentDescription = "Add Ingestion",
+                    modifier = Modifier.size(ButtonDefaults.IconSize),
                 )
-            }
-            DropdownMenu(
-                expanded = areAddOptionsExpanded,
-                onDismissRequest = { areAddOptionsExpanded = false }
-            ) {
-                DropdownMenuItem(
-                    text = { Text("Add Ingestion") },
-                    onClick = {
-                        addIngestion()
-                        areAddOptionsExpanded = false
-                    },
-                    leadingIcon = {
-                        Icon(
-                            Icons.Outlined.Add,
-                            contentDescription = "Add Ingestion",
-                            modifier = Modifier.size(ButtonDefaults.IconSize)
-                        )
-                    }
+              },
+          )
+          DropdownMenuItem(
+              text = { Text("Add timed note") },
+              onClick = {
+                navigateToAddTimedNoteScreen()
+                areAddOptionsExpanded = false
+              },
+              leadingIcon = {
+                Icon(
+                    Icons.AutoMirrored.Outlined.NoteAdd,
+                    contentDescription = "Add timed note",
+                    modifier = Modifier.size(ButtonDefaults.IconSize),
                 )
-                DropdownMenuItem(
-                    text = { Text("Add timed note") },
-                    onClick = {
-                        navigateToAddTimedNoteScreen()
-                        areAddOptionsExpanded = false
-                    },
-                    leadingIcon = {
-                        Icon(
-                            Icons.AutoMirrored.Outlined.NoteAdd,
-                            contentDescription = "Add timed note",
-                            modifier = Modifier.size(ButtonDefaults.IconSize)
-                        )
-                    }
+              },
+          )
+          DropdownMenuItem(
+              text = { Text("Add Shulgin rating") },
+              onClick = {
+                navigateToAddRatingScreen()
+                areAddOptionsExpanded = false
+              },
+              leadingIcon = {
+                Icon(
+                    Icons.Outlined.ExposurePlus2,
+                    contentDescription = "Add Shulgin rating",
+                    modifier = Modifier.size(ButtonDefaults.IconSize),
                 )
-                DropdownMenuItem(
-                    text = { Text("Add Shulgin rating") },
-                    onClick = {
-                        navigateToAddRatingScreen()
-                        areAddOptionsExpanded = false
-                    },
-                    leadingIcon = {
-                        Icon(
-                            Icons.Outlined.ExposurePlus2,
-                            contentDescription = "Add Shulgin rating",
-                            modifier = Modifier.size(ButtonDefaults.IconSize)
-                        )
-                    }
-                )
-                if (isBloodPressureAvailable) {
-                    DropdownMenuItem(
-                        text = { Text("Record Blood Pressure") },
-                        onClick = {
-                            navigateToRecordBloodPressureScreen()
-                            areAddOptionsExpanded = false
-                        },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Outlined.Bloodtype,
-                                contentDescription = "Record Blood Pressure",
-                                modifier = Modifier.size(ButtonDefaults.IconSize)
-                            )
-                        }
-                    )
-                }
-            }
+              },
+          )
+          if (isBloodPressureAvailable) {
+            DropdownMenuItem(
+                text = { Text("Record Blood Pressure") },
+                onClick = {
+                  navigateToRecordBloodPressureScreen()
+                  areAddOptionsExpanded = false
+                },
+                leadingIcon = {
+                  Icon(
+                      Icons.Outlined.Bloodtype,
+                      contentDescription = "Record Blood Pressure",
+                      modifier = Modifier.size(ButtonDefaults.IconSize),
+                  )
+                },
+            )
+          }
         }
-    )
+      },
+  )
 }
 
 @Composable
 private fun LastIngestionRelativeToNowText(lastIngestionTime: Instant) {
-    val now: MutableState<Instant> = remember { mutableStateOf(Instant.now()) }
-    LaunchedEffect(key1 = "updateTime") {
-        while (true) {
-            delay(10000L) // update every 10 seconds
-            now.value = Instant.now()
-        }
+  val now: MutableState<Instant> = remember { mutableStateOf(Instant.now()) }
+  LaunchedEffect(key1 = "updateTime") {
+    while (true) {
+      delay(10000L) // update every 10 seconds
+      now.value = Instant.now()
     }
-    val isInPast = lastIngestionTime < now.value
-    val relativeTime = if (isInPast) {
-        "Last ingestion was " + getDurationText(
-            fromInstant = lastIngestionTime,
-            toInstant = now.value
-        ) + " ago"
-    } else {
-        "Last ingestion in " + getDurationText(
-            fromInstant = lastIngestionTime,
-            toInstant = now.value
-        )
-    }
-    Text(
-        text = relativeTime,
-        style = MaterialTheme.typography.titleSmall,
-        modifier = Modifier.padding(vertical = 5.dp, horizontal = horizontalPadding)
-    )
+  }
+  val isInPast = lastIngestionTime < now.value
+  val relativeTime =
+      if (isInPast) {
+        "Last ingestion was " +
+            getDurationText(
+                fromInstant = lastIngestionTime,
+                toInstant = now.value,
+            ) +
+            " ago"
+      } else {
+        "Last ingestion in " +
+            getDurationText(
+                fromInstant = lastIngestionTime,
+                toInstant = now.value,
+            )
+      }
+  Text(
+      text = relativeTime,
+      style = MaterialTheme.typography.titleSmall,
+      modifier = Modifier.padding(vertical = 5.dp, horizontal = horizontalPadding),
+  )
 }
 
 @Composable
 private fun NowRelativeToStartTimeText(startTime: Instant) {
-    val now: MutableState<Instant> = remember { mutableStateOf(Instant.now()) }
-    LaunchedEffect(key1 = "updateTime") {
-        while (true) {
-            delay(10000L) // update every 10 seconds
-            now.value = Instant.now()
-        }
+  val now: MutableState<Instant> = remember { mutableStateOf(Instant.now()) }
+  LaunchedEffect(key1 = "updateTime") {
+    while (true) {
+      delay(10000L) // update every 10 seconds
+      now.value = Instant.now()
     }
-    val isStartInPast = startTime < now.value
-    val relativeTime = if (isStartInPast) {
-        "Now " + getDurationText(
-            fromInstant = startTime,
-            toInstant = now.value
-        ) + " in (since start)"
-    } else {
-        "Start is in " + getDurationText(
-            fromInstant = startTime,
-            toInstant = now.value
-        )
-    }
-    Text(
-        text = relativeTime,
-        style = MaterialTheme.typography.titleSmall,
-        modifier = Modifier.padding(vertical = 5.dp, horizontal = horizontalPadding)
-    )
+  }
+  val isStartInPast = startTime < now.value
+  val relativeTime =
+      if (isStartInPast) {
+        "Now " +
+            getDurationText(
+                fromInstant = startTime,
+                toInstant = now.value,
+            ) +
+            " in (since start)"
+      } else {
+        "Start is in " +
+            getDurationText(
+                fromInstant = startTime,
+                toInstant = now.value,
+            )
+      }
+  Text(
+      text = relativeTime,
+      style = MaterialTheme.typography.titleSmall,
+      modifier = Modifier.padding(vertical = 5.dp, horizontal = horizontalPadding),
+  )
 }

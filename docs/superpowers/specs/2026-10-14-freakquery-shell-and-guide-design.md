@@ -1,9 +1,11 @@
 # FreakQuery Shell Improvements & Documentation Specification
 
 ## Overview
+
 FreakQuery is the built-in domain-specific query engine in Freaklog that allows users to query, analyze, and template their local substance journal data (for webhooks, personal analytics, and command-line style queries).
 
 This project accomplishes three connected goals:
+
 1. **Improve the FreakQuery Shell in the Android app**:
    - History navigation (up/down arrow recall).
    - Clipboard copy actions for queries and results.
@@ -20,6 +22,7 @@ This project accomplishes three connected goals:
 ## Architecture & Changes
 
 ### 1. Android App: FreakQuery Shell Enhancements
+
 - **`foo.pilz.freaklog.ui.Constants.kt`**:
   - Add `const val FREAKQUERY_GUIDE_URL = "https://freaklog.as214958.net/freakquery.html"`.
 
@@ -53,6 +56,7 @@ This project accomplishes three connected goals:
   - Under the "Enable FreakQuery tags" switch, add a clickable link or button: "View FreakQuery syntax guide" that opens `FREAKQUERY_GUIDE_URL`.
 
 ### 2. Website: `../freaklog-website`
+
 - **`freakquery.html`**:
   - Dark-mode responsive styling matching `index.html`.
   - Sections:
@@ -73,10 +77,12 @@ This project accomplishes three connected goals:
 ## Verification Plan
 
 ### Automated Tests
+
 1. Run `./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.ui.tabs.settings.freakquery.*" --no-daemon` to verify ViewModel history navigation and template vs tag evaluation.
 2. Run `./gradlew detekt --no-daemon` to ensure code style conformance.
 3. Run `./gradlew :app:lintDebug --no-daemon` to verify Android Lint.
 
 ### Manual / Browser Verification
+
 1. Validate `freakquery.html` markup, styling, and navigation links across `../freaklog-website`.
 2. Verify git status and clean branch state in both repositories.

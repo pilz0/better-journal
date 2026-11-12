@@ -10,17 +10,15 @@ import androidx.room.PrimaryKey
 import java.time.Instant
 
 /**
- * A user-entered inventory item. Holds just enough to identify a substance
- * (either a PsychonautWiki substance by name, or a user's own "custom"
- * substance by name) plus a freeform note. Quantity tracking is explicitly
- * out of scope.
+ * A user-entered inventory item. Holds just enough to identify a substance (either a PsychonautWiki
+ * substance by name, or a user's own "custom" substance by name) plus a freeform note. Quantity
+ * tracking is explicitly out of scope.
  */
 @Entity(indices = [Index(value = ["addedAt"]), Index(value = ["substanceName"])])
 data class InventoryItem(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val substanceName: String,
     val isCustom: Boolean = false,
     val notes: String = "",
-    val addedAt: Instant = Instant.now()
+    val addedAt: Instant = Instant.now(),
 )

@@ -29,9 +29,11 @@ data class ExperienceWithIngestionsAndCompanions(
     @Relation(
         entity = Ingestion::class,
         parentColumn = "id",
-        entityColumn = "experienceId"
-    ) val ingestionsWithCompanionAndCustomUnit: List<IngestionWithCompanionAndCustomUnit>
+        entityColumn = "experienceId",
+    )
+    val ingestionsWithCompanionAndCustomUnit: List<IngestionWithCompanionAndCustomUnit>,
 ) {
-    val sortInstant: Instant
-        get() = ingestionsWithCompanionAndCustomUnit.firstOrNull()?.ingestion?.time ?: experience.sortDate
+  val sortInstant: Instant
+    get() =
+        ingestionsWithCompanionAndCustomUnit.firstOrNull()?.ingestion?.time ?: experience.sortDate
 }

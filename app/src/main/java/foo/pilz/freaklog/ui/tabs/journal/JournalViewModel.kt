@@ -36,6 +36,10 @@ import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OutlookSkinPayload
 import foo.pilz.freaklog.ui.tabs.journal.outlookskin.buildOutlookRows
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinEligibility
+import java.time.Instant
+import java.time.ZoneId
+import javax.inject.Inject
+import kotlin.random.Random
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
@@ -51,16 +55,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
-import java.time.Instant
-import java.time.ZoneId
-import javax.inject.Inject
-import kotlin.random.Random
 
 val IS_MIGRATED_0 = booleanPreferencesKey("is_migrated_0")
 val IS_MIGRATED_1 = booleanPreferencesKey("is_migrated_1")
 
 @HiltViewModel
-class JournalViewModel @Inject constructor(
+class JournalViewModel
+@Inject
+constructor(
     private val experienceRepo: ExperienceRepository,
     searchRepository: SearchRepository,
     private val dataStore: DataStore<Preferences>,
@@ -69,164 +71,176 @@ class JournalViewModel @Inject constructor(
     private val outlookSkinController: OutlookSkinController,
 ) : ViewModel() {
 
-    private var outlookJob: Job? = null
+  private var outlookJob: Job? = null
 
-    init {
-        viewModelScope.launch {
-            skinEligibility.eligibleFlow.collectLatest { eligible ->
-                if (!eligible) {
-                    outlookSkinController.dismiss()
-                    return@collectLatest
-                }
-                while (true) {
-                    delay(Random.nextLong(OUTLOOK_SKIN_MIN_DELAY_MS, OUTLOOK_SKIN_MAX_DELAY_MS))
-                    if (outlookSkinController.state.value == null) {
-                        showOutlookSkin()
-                    }
-                }
+  init {
+    viewModelScope.launch {
+      skinEligibility.eligibleFlow.collectLatest { eligible ->
+        if (!eligible) {
+          outlookSkinController.dismiss()
+          return@collectLatest
+        }
+        while (true) {
+          delay(Random.nextLong(OUTLOOK_SKIN_MIN_DELAY_MS, OUTLOOK_SKIN_MAX_DELAY_MS))
+          if (outlookSkinController.state.value == null) {
+            showOutlookSkin()
+          }
+        }
+      }
+    }
+  }
+
+  fun onJournalOpened() {
+    viewModelScope.launch {
+      if (
+          outlookSkinController.state.value == null &&
+              Random.nextDouble() < OUTLOOK_SKIN_OPEN_PROBABILITY &&
+              skinEligibility.eligibleFlow.first()
+      ) {
+        showOutlookSkin()
+      }
+    }
+  }
+
+  private fun showOutlookSkin() {
+    outlookJob?.cancel()
+    outlookJob = viewModelScope.launch {
+      var started = false
+      experienceRepo
+          .getSortedExperienceWithIngestionsCompanionsAndRatingsFlow()
+          .map { experiences ->
+            OutlookSkinPayload(buildOutlookRows(experiences, Instant.now(), ZoneId.systemDefault()))
+          }
+          .takeWhile { !started || outlookSkinController.state.value != null }
+          .collect { payload ->
+            outlookSkinController.show(payload)
+            started = true
+          }
+    }
+  }
+
+  val isTimeRelativeToNow = mutableStateOf(false)
+
+  fun onChangeRelative(isRelative: Boolean) {
+    isTimeRelativeToNow.value = isRelative
+  }
+
+  val isSearchEnabled = mutableStateOf(false)
+
+  fun resetAddIngestionTimes() = viewModelScope.launch {
+    userPreferences.saveLastIngestionTimeOfExperience(null)
+    userPreferences.saveClonedIngestionTime(null)
+  }
+
+  fun maybeMigrate() {
+    viewModelScope.launch {
+      dataStore.edit { settings ->
+        if (settings[IS_MIGRATED_0] == null) {
+          experienceRepo.migrateBenzydamine()
+          settings[IS_MIGRATED_0] = true
+        }
+        if (settings[IS_MIGRATED_1] == null) {
+          experienceRepo.migrateCannabisAndMushroomUnits()
+          settings[IS_MIGRATED_1] = true
+        }
+      }
+    }
+  }
+
+  fun onChangeOfIsSearchEnabled(newValue: Boolean) {
+    if (newValue) {
+      isSearchEnabled.value = true
+    } else {
+      isSearchEnabled.value = false
+      viewModelScope.launch {
+        searchTextFlow.emit("")
+      }
+    }
+  }
+
+  val isFavoriteEnabledFlow = MutableStateFlow(false)
+
+  val isAiAssistantEnabledFlow =
+      userPreferences.aiAssistantEnabledFlow.stateIn(
+          viewModelScope,
+          SharingStarted.WhileSubscribed(5000),
+          false,
+      )
+
+  fun onChangeFavorite(isFavorite: Boolean) {
+    viewModelScope.launch {
+      isFavoriteEnabledFlow.emit(isFavorite)
+    }
+  }
+
+  val searchTextFlow = MutableStateFlow("")
+
+  fun search(newSearchText: String) {
+    viewModelScope.launch {
+      searchTextFlow.emit(newSearchText)
+    }
+  }
+
+  @OptIn(FlowPreview::class)
+  val experiences =
+      combine(
+              experienceRepo.getSortedExperienceWithIngestionsCompanionsAndRatingsFlow(),
+              searchTextFlow.debounce(200),
+              experienceRepo.getCustomSubstancesFlow(),
+              isFavoriteEnabledFlow,
+          ) { experiencesWithIngestionsRaw, searchText, customSubstances, isFavoriteEnabled ->
+            var experiencesWithIngestions = experiencesWithIngestionsRaw
+
+            if (isFavoriteEnabled) {
+              // only favorites
+              experiencesWithIngestions = experiencesWithIngestions.filter {
+                it.experience.isFavorite
+              }
             }
-        }
-    }
-
-    fun onJournalOpened() {
-        viewModelScope.launch {
-            if (outlookSkinController.state.value == null &&
-                Random.nextDouble() < OUTLOOK_SKIN_OPEN_PROBABILITY &&
-                skinEligibility.eligibleFlow.first()
-            ) {
-                showOutlookSkin()
-            }
-        }
-    }
-
-    private fun showOutlookSkin() {
-        outlookJob?.cancel()
-        outlookJob = viewModelScope.launch {
-            var started = false
-            experienceRepo.getSortedExperienceWithIngestionsCompanionsAndRatingsFlow()
-                .map { experiences ->
-                    OutlookSkinPayload(buildOutlookRows(experiences, Instant.now(), ZoneId.systemDefault()))
-                }
-                .takeWhile { !started || outlookSkinController.state.value != null }
-                .collect { payload ->
-                    outlookSkinController.show(payload)
-                    started = true
-                }
-        }
-    }
-
-
-    val isTimeRelativeToNow = mutableStateOf(false)
-
-    fun onChangeRelative(isRelative: Boolean) {
-        isTimeRelativeToNow.value = isRelative
-    }
-
-    val isSearchEnabled = mutableStateOf(false)
-
-    fun resetAddIngestionTimes() = viewModelScope.launch {
-        userPreferences.saveLastIngestionTimeOfExperience(null)
-        userPreferences.saveClonedIngestionTime(null)
-    }
-
-    fun maybeMigrate() {
-        viewModelScope.launch {
-            dataStore.edit { settings ->
-                if (settings[IS_MIGRATED_0] == null) {
-                    experienceRepo.migrateBenzydamine()
-                    settings[IS_MIGRATED_0] = true
-                }
-                if (settings[IS_MIGRATED_1] == null) {
-                    experienceRepo.migrateCannabisAndMushroomUnits()
-                    settings[IS_MIGRATED_1] = true
-                }
-            }
-        }
-    }
-
-    fun onChangeOfIsSearchEnabled(newValue: Boolean) {
-        if (newValue) {
-            isSearchEnabled.value = true
-        } else {
-            isSearchEnabled.value = false
-            viewModelScope.launch {
-                searchTextFlow.emit("")
-            }
-        }
-    }
-
-    val isFavoriteEnabledFlow = MutableStateFlow(false)
-
-    val isAiAssistantEnabledFlow = userPreferences.aiAssistantEnabledFlow
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-
-    fun onChangeFavorite(isFavorite: Boolean) {
-        viewModelScope.launch {
-            isFavoriteEnabledFlow.emit(isFavorite)
-        }
-    }
-
-    val searchTextFlow = MutableStateFlow("")
-
-    fun search(newSearchText: String) {
-        viewModelScope.launch {
-            searchTextFlow.emit(newSearchText)
-        }
-    }
-
-    @OptIn(FlowPreview::class)
-    val experiences = combine(
-        experienceRepo.getSortedExperienceWithIngestionsCompanionsAndRatingsFlow(),
-        searchTextFlow.debounce(200),
-        experienceRepo.getCustomSubstancesFlow(),
-        isFavoriteEnabledFlow
-    ) { experiencesWithIngestionsRaw, searchText, customSubstances, isFavoriteEnabled ->
-        var experiencesWithIngestions = experiencesWithIngestionsRaw
-
-        if (isFavoriteEnabled) {
-            // only favorites
-            experiencesWithIngestions =
-                experiencesWithIngestions.filter { it.experience.isFavorite }
-        }
-        if (searchText.isNotEmpty()) {
-            // collect substances with matching names
-            val matchingSubstances = searchRepository.getMatchingSubstances(
-                searchText = searchText,
-                filterCategories = emptyList(),
-                recentlyUsedSubstanceNamesSorted = emptyList()
-            ).mapTo(HashSet()) { it.substance.name }
-            customSubstances.mapNotNullTo(matchingSubstances) { customSubstance ->
+            if (searchText.isNotEmpty()) {
+              // collect substances with matching names
+              val matchingSubstances =
+                  searchRepository
+                      .getMatchingSubstances(
+                          searchText = searchText,
+                          filterCategories = emptyList(),
+                          recentlyUsedSubstanceNamesSorted = emptyList(),
+                      )
+                      .mapTo(HashSet()) { it.substance.name }
+              customSubstances.mapNotNullTo(matchingSubstances) { customSubstance ->
                 customSubstance.name.takeIf { it.contains(other = searchText, ignoreCase = true) }
-            }
+              }
 
-            // experience title, text or some consumed substance must contain search string or the consumer needs to match
-            experiencesWithIngestions = experiencesWithIngestions.filter {
+              // experience title, text or some consumed substance must contain search string or the
+              // consumer needs to match
+              experiencesWithIngestions = experiencesWithIngestions.filter {
                 it.experience.title.contains(
                     other = searchText,
-                    ignoreCase = true
-                ) || it.ingestionsWithCompanions.any { ingestionWithCompanion ->
-                    // Use the ingestion's own name: the companion can be missing.
-                    val isSubstanceAMatch =
-                        ingestionWithCompanion.ingestion.substanceName in matchingSubstances
-                    val isConsumerAMatch =
-                        ingestionWithCompanion.ingestion.consumerName?.contains(
-                            searchText,
-                            ignoreCase = true
-                        )
-                            ?: false
-                    isSubstanceAMatch || isConsumerAMatch
-                } || it.experience.text.contains(
-                    other = searchText,
-                    ignoreCase = true
-                )
+                    ignoreCase = true,
+                ) ||
+                    it.ingestionsWithCompanions.any { ingestionWithCompanion ->
+                      // Use the ingestion's own name: the companion can be missing.
+                      val isSubstanceAMatch =
+                          ingestionWithCompanion.ingestion.substanceName in matchingSubstances
+                      val isConsumerAMatch =
+                          ingestionWithCompanion.ingestion.consumerName?.contains(
+                              searchText,
+                              ignoreCase = true,
+                          ) ?: false
+                      isSubstanceAMatch || isConsumerAMatch
+                    } ||
+                    it.experience.text.contains(
+                        other = searchText,
+                        ignoreCase = true,
+                    )
+              }
             }
-        }
-        return@combine experiencesWithIngestions
-    }
-        .flowOn(Dispatchers.Default)
-        .stateIn(
-            initialValue = emptyList(),
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000)
-        )
+            return@combine experiencesWithIngestions
+          }
+          .flowOn(Dispatchers.Default)
+          .stateIn(
+              initialValue = emptyList(),
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+          )
 }

@@ -4,17 +4,17 @@ Freaklog is an Android journal app (fork of [PsychonautWiki Journal](https://git
 
 ## Key technologies
 
-| Layer | Tech |
-|-------|------|
-| UI | Jetpack Compose + Material3 |
-| DI | Hilt (Dagger) |
-| DB | Room (SQLite) |
-| Nav | Navigation Compose |
-| Async | Kotlin Coroutines + Flow |
-| AI | Own streaming clients for the OpenAI, Anthropic and Gemini APIs — see [AI assistant](#ai-assistant-dataai) |
-| Serialization | kotlinx.serialization (JSON) |
-| Build | Gradle 9 (Kotlin DSL), AGP 9 |
-| CI | GitHub Actions |
+| Layer         | Tech                                                                                                       |
+| ------------- | ---------------------------------------------------------------------------------------------------------- |
+| UI            | Jetpack Compose + Material3                                                                                |
+| DI            | Hilt (Dagger)                                                                                              |
+| DB            | Room (SQLite)                                                                                              |
+| Nav           | Navigation Compose                                                                                         |
+| Async         | Kotlin Coroutines + Flow                                                                                   |
+| AI            | Own streaming clients for the OpenAI, Anthropic and Gemini APIs — see [AI assistant](#ai-assistant-dataai) |
+| Serialization | kotlinx.serialization (JSON)                                                                               |
+| Build         | Gradle 9 (Kotlin DSL), AGP 9                                                                               |
+| CI            | GitHub Actions                                                                                             |
 
 ## Project structure
 
@@ -60,7 +60,8 @@ app/src/main/java/foo/pilz/freaklog/
 │   │   ├── parse/              # SubstanceParser (JSON → Kotlin models)
 │   │   └── repositories/       # SubstanceRepository, SearchRepository
 │   └── webhook/
-│       └── WebhookService.kt   # Discord webhook integration
+│       ├── WebhookService.kt   # Discord webhook integration
+│       └── IngestionWebhookSender.kt # Posts new ingestions to the enabled webhooks
 ├── di/
 │   ├── AppModule.kt            # Provides DB, DAOs, DataStore, @ApplicationScope CoroutineScope
 │   ├── JournalApplication.kt   # @HiltAndroidApp Application class
@@ -157,13 +158,13 @@ app/src/main/java/foo/pilz/freaklog/
 
 Workflows live in `.github/workflows/`:
 
-| Workflow file | Purpose |
-|---------------|---------|
-| `build.yml` | Wrapper validation, unit tests (3 shards), six JDK/locale/time-zone compatibility jobs, release tests/lint, Detekt, debug lint, Kover, Gradle/Nix APK + AAB builds, architecture checks, test APK compilation, Nix checks (including actionlint/ShellCheck), and the API 31–37 emulator workflow. Runs on every push/PR; all jobs feed `ci-passed`. |
-| `release.yml` | **Secret-handling.** Sign + Cloudflare R2 + Google Play + GitHub release + SLSA build provenance. Triggered by `workflow_run` on a successful `Build and test` run on `main` / tags, or `workflow_dispatch`. Pull-request events never reach this workflow. |
-| `codeql.yml` | CodeQL analysis for `java-kotlin` and `actions` languages with the `security-extended` query pack. |
-| `instrumented-tests.yml` | Reusable connected Android tests on API 31–37, called by every build. Also runs weekly and via `workflow_dispatch` (one selected API). |
-| `dependency-review.yml` | Blocks PRs that introduce known-vulnerable or AGPL dependencies. |
+| Workflow file            | Purpose                                                                                                                                                                                                                                                                                                                                             |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `build.yml`              | Wrapper validation, unit tests (3 shards), six JDK/locale/time-zone compatibility jobs, release tests/lint, Detekt, debug lint, Kover, Gradle/Nix APK + AAB builds, architecture checks, test APK compilation, Nix checks (including actionlint/ShellCheck), and the API 31–37 emulator workflow. Runs on every push/PR; all jobs feed `ci-passed`. |
+| `release.yml`            | **Secret-handling.** Sign + Cloudflare R2 + Google Play + GitHub release + SLSA build provenance. Triggered by `workflow_run` on a successful `Build and test` run on `main` / tags, or `workflow_dispatch`. Pull-request events never reach this workflow.                                                                                         |
+| `codeql.yml`             | CodeQL analysis for `java-kotlin` and `actions` languages with the `security-extended` query pack.                                                                                                                                                                                                                                                  |
+| `instrumented-tests.yml` | Reusable connected Android tests on API 31–37, called by every build. Also runs weekly and via `workflow_dispatch` (one selected API).                                                                                                                                                                                                              |
+| `dependency-review.yml`  | Blocks PRs that introduce known-vulnerable or AGPL dependencies.                                                                                                                                                                                                                                                                                    |
 
 ```
 push/PR  ──► build.yml
@@ -203,18 +204,18 @@ main/tag ──► build.yml succeeds ──workflow_run──► release.yml
 
 ### Required secrets for CI
 
-| Secret | Purpose |
-|--------|---------|
-| `KEYSTORE` | Base64-encoded `.jks` keystore file |
-| `SIGNING_KEY_ALIAS` | Key alias inside the keystore |
-| `SIGNING_STORE_PASSWORD` | Keystore password |
-| `SIGNING_KEY_PASSWORD` | Key password |
-| `R2_ACCOUNT_ID` | Cloudflare R2 account ID |
-| `R2_ACCESS_KEY_ID` | Cloudflare R2 access key |
-| `R2_SECRET_ACCESS_KEY` | Cloudflare R2 secret key |
-| `R2_BUCKET` | Cloudflare R2 bucket name |
-| `SERVICE_ACCOUNT_JSON` | Google Play service account JSON (plain text) |
-| `GOOGLE_AI_API_KEY` | (optional) Google AI API key for the chatbot feature |
+| Secret                   | Purpose                                              |
+| ------------------------ | ---------------------------------------------------- |
+| `KEYSTORE`               | Base64-encoded `.jks` keystore file                  |
+| `SIGNING_KEY_ALIAS`      | Key alias inside the keystore                        |
+| `SIGNING_STORE_PASSWORD` | Keystore password                                    |
+| `SIGNING_KEY_PASSWORD`   | Key password                                         |
+| `R2_ACCOUNT_ID`          | Cloudflare R2 account ID                             |
+| `R2_ACCESS_KEY_ID`       | Cloudflare R2 access key                             |
+| `R2_SECRET_ACCESS_KEY`   | Cloudflare R2 secret key                             |
+| `R2_BUCKET`              | Cloudflare R2 bucket name                            |
+| `SERVICE_ACCOUNT_JSON`   | Google Play service account JSON (plain text)        |
+| `GOOGLE_AI_API_KEY`      | (optional) Google AI API key for the chatbot feature |
 
 ## Package naming
 
@@ -226,7 +227,7 @@ The upstream project uses `com.isaakhanimann.journal`. When porting upstream cod
 All library versions live in `gradle/libs.versions.toml` (Gradle Version Catalog).  
 Plugin versions live in the catalog too (`[plugins]`), including Hilt, KSP and the Room Gradle plugin.
 
-Toolchain: Gradle 9.8.2 (the Nix build reads the version and checksum from the wrapper), AGP 9.5.0, Kotlin 2.4.21, KSP 2.3.12, `compileSdk` 37, `targetSdk` 37, `minSdk` 31.
+Toolchain: Gradle 9.9.0 (the Nix build reads the version and checksum from the wrapper), AGP 9.5.1, Kotlin 2.4.21, KSP 2.3.12, `compileSdk` 37, `targetSdk` 37, `minSdk` 31.
 AGP 9 compiles Kotlin itself, so the `org.jetbrains.kotlin.android` plugin is **not** applied; Kotlin options go in the
 top-level `kotlin { compilerOptions { … } }` block, not `android { kotlinOptions { … } }`.
 
@@ -236,7 +237,7 @@ To upgrade: run `./gradlew versionCatalogUpdate --interactive --no-configuration
 
 ### Room database (`data/room/AppDatabase.kt`)
 
-Current schema version: **29**. All migrations from v1 to v29 are handled by `@AutoMigration`.
+Current schema version: **30**. All migrations from v1 to v30 are handled by `@AutoMigration`.
 The `16 → 17` step uses an `AutoMigrationSpec` (`AppDatabase.ReminderV16To17`) that
 back-fills `scheduleType = 'INTERVAL'` on legacy reminder rows so they don't silently
 disable when the new column default (`DAILY_AT_TIMES`) is applied without `timesOfDay`.
@@ -246,28 +247,28 @@ There is no schema version 13 — the migration jumps directly from 12 to 14
 
 **Entities:**
 
-| Entity | Description |
-|--------|-------------|
-| `Experience` | Top-level journal entry with title, date, notes |
-| `Ingestion` | A single substance dose within an experience |
-| `SubstanceCompanion` | Persisted colour assignment per substance name |
-| `CustomSubstance` | User-defined substance not in PsychonautWiki |
-| `CustomUnit` | Custom unit definition (e.g. "one tab = 100 µg") |
-| `ShulginRating` | Shulgin + / ++ / +++ scale rating entry |
-| `TimedNote` | Timestamped note within an experience |
-| `Spray` | Spray bottle definition for the spray calculator |
-| `Reminder` | Scheduled substance reminder |
-| `CustomRecipe` | A named recipe (mix of substances) |
-| `CustomRecipeComponent` | One ingredient line within a recipe |
-| `InventoryItem` | Stash / inventory entry tracked by the Inventory tab |
-| `Webhook` | One Discord webhook destination (added in v18) |
-| `IngestionWebhookMessage` | Link table mapping `Ingestion` ↔ `Webhook` with the Discord `messageId` returned for that destination (added in v18) |
-| `IntakeLimit` | Per-substance dose or count cap over a sliding window (v24) |
-| `CustomRoa`, `CustomRoaDose`, `CustomRoaDuration` | Per-route bioavailability, dose thresholds and duration phases of a `CustomSubstance` (v25) |
-| `CustomInteraction`, `CustomCrossTolerance` | Interactions and cross-tolerances declared for a `CustomSubstance` (v25) |
-| `BloodPressureReading` | Legacy blood pressure rows written by 11.26 (v26). Still shown read-only; new readings go to Health Connect |
-| `SubstanceGroup`, `SubstanceGroupItem` | A named set of substance/route/dose presets that is logged in one go (v27) |
-| `CustomCategoryAssignment` | Category assigned to a `CustomSubstance` (v27) |
+| Entity                                            | Description                                                                                                          |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `Experience`                                      | Top-level journal entry with title, date, notes                                                                      |
+| `Ingestion`                                       | A single substance dose within an experience                                                                         |
+| `SubstanceCompanion`                              | Persisted colour assignment per substance name                                                                       |
+| `CustomSubstance`                                 | User-defined substance not in PsychonautWiki                                                                         |
+| `CustomUnit`                                      | Custom unit definition (e.g. "one tab = 100 µg")                                                                     |
+| `ShulginRating`                                   | Shulgin + / ++ / +++ scale rating entry                                                                              |
+| `TimedNote`                                       | Timestamped note within an experience                                                                                |
+| `Spray`                                           | Spray bottle definition for the spray calculator                                                                     |
+| `Reminder`                                        | Scheduled substance reminder                                                                                         |
+| `CustomRecipe`                                    | A named recipe (mix of substances)                                                                                   |
+| `CustomRecipeComponent`                           | One ingredient line within a recipe                                                                                  |
+| `InventoryItem`                                   | Stash / inventory entry tracked by the Inventory tab                                                                 |
+| `Webhook`                                         | One Discord webhook destination (added in v18)                                                                       |
+| `IngestionWebhookMessage`                         | Link table mapping `Ingestion` ↔ `Webhook` with the Discord `messageId` returned for that destination (added in v18) |
+| `IntakeLimit`                                     | Per-substance dose or count cap over a sliding window (v24)                                                          |
+| `CustomRoa`, `CustomRoaDose`, `CustomRoaDuration` | Per-route bioavailability, dose thresholds and duration phases of a `CustomSubstance` (v25)                          |
+| `CustomInteraction`, `CustomCrossTolerance`       | Interactions and cross-tolerances declared for a `CustomSubstance` (v25)                                             |
+| `BloodPressureReading`                            | Legacy blood pressure rows written by 11.26 (v26). Still shown read-only; new readings go to Health Connect          |
+| `SubstanceGroup`, `SubstanceGroupItem`            | A named set of substance/route/dose presets that is logged in one go (v27)                                           |
+| `CustomCategoryAssignment`                        | Category assigned to a `CustomSubstance` (v27)                                                                       |
 
 **Relations** (in `experiences/relations/`):
 
@@ -304,11 +305,17 @@ SubstanceFile
 ### Webhook (`data/webhook/WebhookService.kt`, `data/room/webhooks/`)
 
 Sends Discord webhook messages on ingestion log. Supports:
+
 - Template-based message formatting: `{user}: [{dose} {units} ]{substance} via {route}[ at {site}][\n> {note}]`
 - Optional blocks in `[…]` are omitted when any enclosed placeholder is empty
 - Exponential-backoff retry (up to 3 attempts)
 - `sendWebhook` / `editWebhook` / `deleteWebhookMessage`
 - `sendWebhook` and `editWebhook` return `WebhookResult(success, messageId, error)`; `deleteWebhookMessage` returns `Boolean` and handles failures internally
+
+Every screen that logs new ingestions (single substance and substance group)
+sends them through `IngestionWebhookSender.send(ingestions, selection)` on the
+`@ApplicationScope` scope: one message per ingestion and selected webhook, with
+the returned message ids stored so edits and deletes reach the messages.
 
 **Multi-webhook model (schema v18):** Users can configure any number of
 `Webhook` rows from Settings → Webhooks. Each row has a name, URL, display
@@ -342,6 +349,7 @@ is hidden when no enabled webhooks exist. Selection state lives in
 `FinishIngestionScreenViewModel.selectedWebhookIds`.
 
 **Webhook operations:**
+
 - **Send** (`FinishIngestionScreenViewModel.sendWebhookForIngestion`): For
   each selected enabled webhook, posts a Discord message and persists the
   returned id as an `IngestionWebhookMessage` row. Failures only log; they
@@ -365,27 +373,27 @@ empty list. Imports use `webhookDao.insert` and let Room assign new ids.
 The assistant talks to any provider that speaks one of three API standards, over raw
 HTTP (`HttpURLConnection`, no SDKs):
 
-| Standard | Client | Endpoint |
-|----------|--------|----------|
-| OpenAI Chat Completions | `provider/OpenAiChatClient.kt` | `POST {base}/chat/completions` (`stream: true`), `GET {base}/models` |
-| Anthropic Messages | `provider/AnthropicMessagesClient.kt` | `POST {base}/messages` (`stream: true`, `anthropic-version: 2023-06-01`), `GET {base}/models` |
-| Google Gemini | `provider/GeminiClient.kt` | `POST {base}/models/{m}:streamGenerateContent?alt=sse`, `GET {base}/models` |
+| Standard                | Client                                | Endpoint                                                                                      |
+| ----------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------- |
+| OpenAI Chat Completions | `provider/OpenAiChatClient.kt`        | `POST {base}/chat/completions` (`stream: true`), `GET {base}/models`                          |
+| Anthropic Messages      | `provider/AnthropicMessagesClient.kt` | `POST {base}/messages` (`stream: true`, `anthropic-version: 2023-06-01`), `GET {base}/models` |
+| Google Gemini           | `provider/GeminiClient.kt`            | `POST {base}/models/{m}:streamGenerateContent?alt=sse`, `GET {base}/models`                   |
 
 Self-hosted servers (Ollama, LM Studio, llama.cpp, vLLM, LiteLLM, ...) work through the
 OpenAI or Anthropic standard. The archived `generative-ai-android` SDK is not used: it
 strips Gemini's `thoughtSignature`, and the next request then fails with HTTP 400.
 
-| File | Role |
-|------|------|
-| `provider/AiModels.kt` | Provider-neutral history (`AiMessage`), tool declarations (`AiToolSpec`), `AiChatClient`, `AiException`. An assistant message keeps the provider's raw content in `NativeContent` so Gemini `thoughtSignature`s and Anthropic signed `thinking` blocks are echoed back unchanged. |
-| `provider/AiConversation.kt` | The turn loop: stream a reply, run the requested tools, send the results back, at most 8 rounds. Repairs the history when a turn is stopped or fails (drops tool calls without results, keeps partial text, or rolls the turn back). |
-| `provider/AiHttp.kt`, `SseParser.kt` | Shared HTTP (JSON POST/GET, size caps, readable errors for 401/404/429/5xx and connection failures) and SSE parsing. Cancelling the collector disconnects the connection. |
-| `profiles/AiProfileStore.kt` | Saved provider profiles (`AiProfile`: preset, standard, base URL, model, max tokens) in DataStore. API keys are stored per profile, encrypted by `KeystoreAiKeyCipher` (AES-GCM, Android Keystore). Migrates the old plain-text `ai_api_key`/`ai_model_name` into a "Gemini" profile once. |
-| `profiles/AiProfile.kt` | `AiProviderPreset` (OpenAI, Anthropic, Gemini, OpenRouter, Mistral, Groq, DeepSeek, Ollama, LM Studio, custom) and `aiClientFor(standard, endpoint)`. |
-| `AiTools.kt`, `AiSubstanceTools.kt`, `anodyne/AiAnodyneTools.kt` | Tool declarations and implementations: journal search, bundled PsychonautWiki substance info, `InteractionChecker`, `ToleranceCalculator`, active ingestions, and AnodyneWiki lookups. |
-| `anodyne/AnodyneWikiClient.kt` | AnodyneWiki API (default `https://anodyne.wiki/api`, configurable). Substance pages can be megabytes, so they are streamed with `android.util.JsonReader` and only whitelisted fields are kept. |
-| `AiChatbotRepository.kt` | Builds the system instruction (current time, current experience or "whole journal") and a fresh `AiConversation` for the active profile on every call. |
-| `AiChatViewModel.kt` | Transcript state for `AiChatBottomSheet`: streamed text (UI updates batched to ~50 ms), Stop, Retry, tool chips, profile switching. |
+| File                                                             | Role                                                                                                                                                                                                                                                                                       |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `provider/AiModels.kt`                                           | Provider-neutral history (`AiMessage`), tool declarations (`AiToolSpec`), `AiChatClient`, `AiException`. An assistant message keeps the provider's raw content in `NativeContent` so Gemini `thoughtSignature`s and Anthropic signed `thinking` blocks are echoed back unchanged.          |
+| `provider/AiConversation.kt`                                     | The turn loop: stream a reply, run the requested tools, send the results back, at most 8 rounds. Repairs the history when a turn is stopped or fails (drops tool calls without results, keeps partial text, or rolls the turn back).                                                       |
+| `provider/AiHttp.kt`, `SseParser.kt`                             | Shared HTTP (JSON POST/GET, size caps, readable errors for 401/404/429/5xx and connection failures) and SSE parsing. Cancelling the collector disconnects the connection.                                                                                                                  |
+| `profiles/AiProfileStore.kt`                                     | Saved provider profiles (`AiProfile`: preset, standard, base URL, model, max tokens) in DataStore. API keys are stored per profile, encrypted by `KeystoreAiKeyCipher` (AES-GCM, Android Keystore). Migrates the old plain-text `ai_api_key`/`ai_model_name` into a "Gemini" profile once. |
+| `profiles/AiProfile.kt`                                          | `AiProviderPreset` (OpenAI, Anthropic, Gemini, OpenRouter, Mistral, Groq, DeepSeek, Ollama, LM Studio, custom) and `aiClientFor(standard, endpoint)`.                                                                                                                                      |
+| `AiTools.kt`, `AiSubstanceTools.kt`, `anodyne/AiAnodyneTools.kt` | Tool declarations and implementations: journal search, bundled PsychonautWiki substance info, `InteractionChecker`, `ToleranceCalculator`, active ingestions, and AnodyneWiki lookups.                                                                                                     |
+| `anodyne/AnodyneWikiClient.kt`                                   | AnodyneWiki API (default `https://anodyne.wiki/api`, configurable). Substance pages can be megabytes, so they are streamed with `android.util.JsonReader` and only whitelisted fields are kept.                                                                                            |
+| `AiChatbotRepository.kt`                                         | Builds the system instruction (current time, current experience or "whole journal") and a fresh `AiConversation` for the active profile on every call.                                                                                                                                     |
+| `AiChatViewModel.kt`                                             | Transcript state for `AiChatBottomSheet`: streamed text (UI updates batched to ~50 ms), Stop, Retry, tool chips, profile switching.                                                                                                                                                        |
 
 Settings → AI assistant (`ui/tabs/settings/ai/`) lists the profiles; the editor can fetch
 the provider's model list and send a test message. HTTPS is required for LAN and remote
@@ -408,14 +416,14 @@ Routes and the `NavHost` are defined in `MainActivity.kt`. The bottom navigation
 
 ### Bottom navigation tabs
 
-| Tab | Package | Description |
-|-----|---------|-------------|
-| Journal | `ui/tabs/journal/` | Experience list, calendar view, timeline, add/edit |
-| Search | `ui/tabs/search/` | Substance search and detail pages |
-| Safer Use | `ui/tabs/safer/` | Harm-reduction tools (tolerance, dosing, reagent tests) |
-| Stats | `ui/tabs/stats/` | Usage statistics and charts |
+| Tab       | Package              | Description                                                      |
+| --------- | -------------------- | ---------------------------------------------------------------- |
+| Journal   | `ui/tabs/journal/`   | Experience list, calendar view, timeline, add/edit               |
+| Search    | `ui/tabs/search/`    | Substance search and detail pages                                |
+| Safer Use | `ui/tabs/safer/`     | Harm-reduction tools (tolerance, dosing, reagent tests)          |
+| Stats     | `ui/tabs/stats/`     | Usage statistics and charts                                      |
 | Inventory | `ui/tabs/inventory/` | Stash tracking — **optional**, hidden unless enabled in Settings |
-| Settings | `ui/tabs/settings/` | Preferences, webhook, export/import, reminders, AI, lock |
+| Settings  | `ui/tabs/settings/`  | Preferences, webhook, export/import, reminders, AI, lock         |
 
 Tabs are conditionally shown by `MainScreen` based on `MainScreenViewModel` flags
 (`activateSaferFlow`, `isStatsHiddenFlow`, `isInventoryEnabledFlow`, `isDrugsHiddenFlow`).
@@ -445,6 +453,7 @@ Substances are looked up in the bundled data first, then in `CustomSubstanceProf
 ### Widgets (`ui/`)
 
 Two Glance AppWidgets:
+
 - `WidgetProvider` — shows the most recent ingestion
 - `HeatmapWidgetProvider` — shows an ingestion heatmap calendar
 
@@ -497,9 +506,9 @@ See README for Google Health setup, release declarations and downstream-copy lim
 
 `@HiltAndroidApp` is applied in `JournalApplication`.
 
-| Module | Location | Provides |
-|--------|----------|---------|
-| `AppModule` | `di/AppModule.kt` | `AppDatabase`, all DAOs, `DataStore<Preferences>`, `@ApplicationScope CoroutineScope` |
+| Module             | Location                 | Provides                                                                                      |
+| ------------------ | ------------------------ | --------------------------------------------------------------------------------------------- |
+| `AppModule`        | `di/AppModule.kt`        | `AppDatabase`, all DAOs, `DataStore<Preferences>`, `@ApplicationScope CoroutineScope`         |
 | `RepositoryModule` | `di/RepositoryModule.kt` | Binds `SubstanceParserInterface`, `SubstanceRepositoryInterface`, `SearchRepositoryInterface` |
 
 All ViewModels use `@HiltViewModel` + `@Inject constructor`. Repositories and DAOs are `@Singleton`.
@@ -548,23 +557,24 @@ All ViewModels use `@HiltViewModel` + `@Inject constructor`. Repositories and DA
   SARIF uploaded to code scanning. `abortOnError = false` while we're
   cleaning up legacy issues; flip to `true` once clean.
 - **Kover (coverage)**: `./gradlew :app:koverHtmlReportDebug
-  :app:koverXmlReportDebug :app:koverVerifyDebug`. CI fails if coverage
+:app:koverXmlReportDebug :app:koverVerifyDebug`. CI fails if coverage
   drops below the floor configured in `app/build.gradle.kts`. Ratchet
   upward as the suite grows.
 
 ### Test file locations
 
-| Source file | Test file |
-|-------------|-----------|
-| `data/substances/classes/roa/RoaDose.kt` | `data/substances/classes/roa/RoaDoseTest.kt` |
-| `data/substances/classes/roa/DurationRange.kt` | `data/substances/classes/roa/DurationRangeTest.kt` |
-| `data/substances/classes/Substance.kt` | `data/substances/classes/SubstanceClassTest.kt` |
-| `data/webhook/WebhookService.kt` | `data/webhook/WebhookServiceTest.kt` |
-| `data/export/InstantSerializer.kt` | `data/export/InstantSerializerTest.kt` |
-| `ui/utils/getTimeDifferenceText.kt` | `ui/utils/GetTimeDifferenceTextTest.kt` |
-| `ui/utils/getInteractionExplanationURLForSubstance.kt` | `ui/utils/InteractionUrlTest.kt` |
-| `ui/tabs/safer/tolerance/ToleranceCalculator.kt` | `ui/tabs/safer/tolerance/ToleranceCalculatorTest.kt` |
-| `ui/tabs/safer/tolerance/ToleranceTextParser.kt` | `ui/tabs/safer/tolerance/ToleranceTextParserTest.kt` |
+| Source file                                            | Test file                                            |
+| ------------------------------------------------------ | ---------------------------------------------------- |
+| `data/substances/classes/roa/RoaDose.kt`               | `data/substances/classes/roa/RoaDoseTest.kt`         |
+| `data/substances/classes/roa/DurationRange.kt`         | `data/substances/classes/roa/DurationRangeTest.kt`   |
+| `data/substances/classes/Substance.kt`                 | `data/substances/classes/SubstanceClassTest.kt`      |
+| `data/webhook/WebhookService.kt`                       | `data/webhook/WebhookServiceTest.kt`                 |
+| `data/webhook/IngestionWebhookSender.kt`               | `data/webhook/IngestionWebhookSenderTest.kt`         |
+| `data/export/InstantSerializer.kt`                     | `data/export/InstantSerializerTest.kt`               |
+| `ui/utils/getTimeDifferenceText.kt`                    | `ui/utils/GetTimeDifferenceTextTest.kt`              |
+| `ui/utils/getInteractionExplanationURLForSubstance.kt` | `ui/utils/InteractionUrlTest.kt`                     |
+| `ui/tabs/safer/tolerance/ToleranceCalculator.kt`       | `ui/tabs/safer/tolerance/ToleranceCalculatorTest.kt` |
+| `ui/tabs/safer/tolerance/ToleranceTextParser.kt`       | `ui/tabs/safer/tolerance/ToleranceTextParserTest.kt` |
 
 ## Features ported from the Codeberg fork
 
@@ -573,18 +583,18 @@ These came from `codeberg.org/psychonaut-journal/android` (package
 that app has a newer graph engine, different settings components and a Rust
 crypto library that this app does not use.
 
-| Feature | Where | Notes |
-|---------|-------|-------|
-| Ingestion category (medicinal / recreational) | `data/substances/classes/IngestionCategory.kt`, `Ingestion.computedCategory` | Falls back to the custom unit's, then the companion's default. |
-| Intake limits | `ui/tabs/settings/intakelimits/` | `IntakeLimitLogic` is pure; warnings hook into `FinishIngestionScreenViewModel.onDoneClicked` and `EditIngestionViewModel.onDoneClicked`. |
-| Export filter, encryption, backups | `data/export/`, `data/backup/`, `ui/tabs/settings/exportbackup/` | `buildJournalExportJson` is the single export path. Encryption is AES-256-GCM + PBKDF2 (the fork's "v1" layout); its Argon2/ChaCha20 "v2" format is **not** readable. `BackupWorker` gets dependencies through a Hilt `@EntryPoint` — there is no `HiltWorkerFactory`. |
-| Live timeline notification | `ui/tabs/journal/experience/notification/` | Foreground service of type `dataSync`; renders through `renderTimelineToBitmap`. |
-| Experience image sharing | `data/experienceshare/`, `ui/tabs/journal/experience/share/` | Shared through the `${applicationId}.fileprovider` `FileProvider`. |
-| Custom substances | `data/room/experiences/CustomSubstanceRepository.kt`, `data/substanceshare/`, `ui/tabs/search/custom/`, `ui/tabs/settings/customsubstances/` | Upstream's editors (routes/durations, interactions, categories, tolerance, risks), copied as-is. Their DAO methods live in `ExperienceDao`. `CustomSubstanceProfiles` is an in-memory cache so timelines, `InteractionChecker` and the tolerance calculators can read profiles synchronously. Edit custom substances with `update`, never a REPLACE insert (it cascades to the profile tables). |
-| Substance groups | `data/room/experiences/SubstanceGroupRepository.kt`, `ui/tabs/settings/substancegroups/`, `ui/tabs/journal/addingestion/group/` | Upstream lets group ingestions skip the experience; this app has no experience-less ingestions, so `SubstanceGroupFinishViewModel` keeps that toggle off. |
-| Vitals | `ui/tabs/journal/experience/timeline/{HeartRate,Sleep,BloodPressure}.kt`, `ui/tabs/journal/experience/bloodpressure/` | Heart rate, sleep and blood pressure are read from Health Connect after the user opts in (Settings → "Vitals on timeline") and drawn on the timeline. Blood pressure is written to Health Connect, as upstream does. |
-| Ultra fun mode | `ui/tabs/journal/experience/teamsskin/`, `ui/tabs/journal/outlookskin/`, `ui/tabs/stats/excelskin/`, `ui/tabs/settings/funny/UltraFunSkinEligibility.kt` | Opt-in. While a psychedelic is active the Teams/Outlook/Excel disguises appear at random; `MainScreen` hosts them through `*SkinController` singletons. |
-| Achievement condition language | `ui/tabs/settings/funny/condition/` | `evaluateAchievement` sends conditions that mention `ingestions`/`experiences` to upstream's engine; everything else uses this app's older predicate syntax. Upstream's first-unlock attribution (`AchievementUnlock` table) is not ported. |
+| Feature                                       | Where                                                                                                                                                    | Notes                                                                                                                                                                                                                                                                                                                                                                                           |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ingestion category (medicinal / recreational) | `data/substances/classes/IngestionCategory.kt`, `Ingestion.computedCategory`                                                                             | Falls back to the custom unit's, then the companion's default.                                                                                                                                                                                                                                                                                                                                  |
+| Intake limits                                 | `ui/tabs/settings/intakelimits/`                                                                                                                         | `IntakeLimitLogic` is pure; warnings hook into `FinishIngestionScreenViewModel.onDoneClicked` and `EditIngestionViewModel.onDoneClicked`.                                                                                                                                                                                                                                                       |
+| Export filter, encryption, backups            | `data/export/`, `data/backup/`, `ui/tabs/settings/exportbackup/`                                                                                         | `buildJournalExportJson` is the single export path. Encryption is AES-256-GCM + PBKDF2 (the fork's "v1" layout); its Argon2/ChaCha20 "v2" format is **not** readable. `BackupWorker` gets dependencies through a Hilt `@EntryPoint` — there is no `HiltWorkerFactory`.                                                                                                                          |
+| Live timeline notification                    | `ui/tabs/journal/experience/notification/`                                                                                                               | Foreground service of type `dataSync`; renders through `renderTimelineToBitmap`.                                                                                                                                                                                                                                                                                                                |
+| Experience image sharing                      | `data/experienceshare/`, `ui/tabs/journal/experience/share/`                                                                                             | Shared through the `${applicationId}.fileprovider` `FileProvider`.                                                                                                                                                                                                                                                                                                                              |
+| Custom substances                             | `data/room/experiences/CustomSubstanceRepository.kt`, `data/substanceshare/`, `ui/tabs/search/custom/`, `ui/tabs/settings/customsubstances/`             | Upstream's editors (routes/durations, interactions, categories, tolerance, risks), copied as-is. Their DAO methods live in `ExperienceDao`. `CustomSubstanceProfiles` is an in-memory cache so timelines, `InteractionChecker` and the tolerance calculators can read profiles synchronously. Edit custom substances with `update`, never a REPLACE insert (it cascades to the profile tables). |
+| Substance groups                              | `data/room/experiences/SubstanceGroupRepository.kt`, `ui/tabs/settings/substancegroups/`, `ui/tabs/journal/addingestion/group/`                          | Upstream lets group ingestions skip the experience; this app has no experience-less ingestions, so `SubstanceGroupFinishViewModel` keeps that toggle off.                                                                                                                                                                                                                                       |
+| Vitals                                        | `ui/tabs/journal/experience/timeline/{HeartRate,Sleep,BloodPressure}.kt`, `ui/tabs/journal/experience/bloodpressure/`                                    | Heart rate, sleep and blood pressure are read from Health Connect after the user opts in (Settings → "Vitals on timeline") and drawn on the timeline. Blood pressure is written to Health Connect, as upstream does.                                                                                                                                                                            |
+| Ultra fun mode                                | `ui/tabs/journal/experience/teamsskin/`, `ui/tabs/journal/outlookskin/`, `ui/tabs/stats/excelskin/`, `ui/tabs/settings/funny/UltraFunSkinEligibility.kt` | Opt-in. While a psychedelic is active the Teams/Outlook/Excel disguises appear at random; `MainScreen` hosts them through `*SkinController` singletons.                                                                                                                                                                                                                                         |
+| Achievement condition language                | `ui/tabs/settings/funny/condition/`                                                                                                                      | `evaluateAchievement` sends conditions that mention `ingestions`/`experiences` to upstream's engine; everything else uses this app's older predicate syntax. Upstream's first-unlock attribution (`AchievementUnlock` table) is not ported.                                                                                                                                                     |
 
 Share files (`.substance`, `.group`, `.colors`) keep upstream's `gay.cybercrime.journal.*`
 format ids so they stay interchangeable. When porting more upstream code, rename the

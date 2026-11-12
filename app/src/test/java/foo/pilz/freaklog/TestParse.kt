@@ -24,21 +24,22 @@ import org.junit.Test
 
 class TestParse {
 
-    @Test
-    fun noCrash() {
-        val substances = SubstanceParser().parseSubstanceFile(string = "error")
-        assertTrue(substances.substances.isEmpty())
-    }
+  @Test
+  fun noCrash() {
+    val substances = SubstanceParser().parseSubstanceFile(string = "error")
+    assertTrue(substances.substances.isEmpty())
+  }
 
-    @Test
-    fun noCrashExtract() {
-        val result = SubstanceParser().extractSubstanceString(string = "error")
-        assertTrue(result == null)
-    }
+  @Test
+  fun noCrashExtract() {
+    val result = SubstanceParser().extractSubstanceString(string = "error")
+    assertTrue(result == null)
+  }
 
-    @Test
-    fun testExtractSubstancesString() {
-        val text = """
+  @Test
+  fun testExtractSubstancesString() {
+    val text =
+        """
 {
   "data": {
     "substances": [
@@ -53,8 +54,8 @@ class TestParse {
     ]
   }
 }"""
-        val result = SubstanceParser().extractSubstanceString(string = text)
-        assertTrue(result!!.contains("Armodafinil"))
-        assertTrue(result.contains("oral"))
-    }
+    val result = SubstanceParser().extractSubstanceString(string = text)
+    assertTrue(result!!.contains("Armodafinil"))
+    assertTrue(result.contains("oral"))
+  }
 }

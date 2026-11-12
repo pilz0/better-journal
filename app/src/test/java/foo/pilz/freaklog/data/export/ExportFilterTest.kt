@@ -23,221 +23,302 @@ import org.junit.Test
 
 class ExportFilterTest {
 
-    private val now = EntityBuilders.FIXED_INSTANT
+  private val now = EntityBuilders.FIXED_INSTANT
 
-    private val tabUnit = CustomUnit(
-        id = 7,
-        substanceName = "LSD",
-        name = "Tab",
-        administrationRoute = AdministrationRoute.SUBLINGUAL,
-        dose = 100.0,
-        estimatedDoseStandardDeviation = null,
-        isEstimate = false,
-        isArchived = false,
-        unit = "tab",
-        unitPlural = "tabs",
-        originalUnit = "µg",
-        note = "from the blue sheet",
-    )
+  private val tabUnit =
+      CustomUnit(
+          id = 7,
+          substanceName = "LSD",
+          name = "Tab",
+          administrationRoute = AdministrationRoute.SUBLINGUAL,
+          dose = 100.0,
+          estimatedDoseStandardDeviation = null,
+          isEstimate = false,
+          isArchived = false,
+          unit = "tab",
+          unitPlural = "tabs",
+          originalUnit = "µg",
+          note = "from the blue sheet",
+      )
 
-    private val data = ExportData(
-        experiences = listOf(
-            ExperienceWithIngestionsTimedNotesAndRatings(
-                experience = EntityBuilders.experience(
-                    id = 1,
-                    title = "Trip",
-                    text = "private thoughts",
-                    location = Location(name = "Home", longitude = 1.0, latitude = 2.0),
-                ),
-                ingestions = listOf(
-                    EntityBuilders.ingestion(
-                        id = 1, substanceName = "LSD", experienceId = 1, customUnitId = 7, notes = "strong"
-                    ),
-                    EntityBuilders.ingestion(
-                        id = 2, substanceName = "Cannabis", experienceId = 1, consumerName = "Alex"
-                    ),
-                ),
-                timedNotes = listOf(
-                    TimedNote(
-                        experienceId = 1, time = now, creationDate = now, note = "peaking",
-                        color = AdaptiveColor.BLUE, isPartOfTimeline = true
-                    )
-                ),
-                ratings = listOf(
-                    ShulginRating(time = now, creationDate = now, option = ShulginRatingOption.TWO_PLUS, experienceId = 1)
-                ),
-            ),
-            ExperienceWithIngestionsTimedNotesAndRatings(
-                experience = EntityBuilders.experience(id = 2, title = "Morning"),
-                ingestions = listOf(
-                    EntityBuilders.ingestion(id = 3, substanceName = "Caffeine", experienceId = 2)
-                ),
-                timedNotes = emptyList(),
-                ratings = emptyList(),
-            ),
-        ),
-        customUnits = listOf(tabUnit),
-        substanceCompanions = listOf(
-            SubstanceCompanion("LSD", AdaptiveColor.BLUE),
-            SubstanceCompanion("Cannabis", AdaptiveColor.GREEN),
-            SubstanceCompanion("Caffeine", AdaptiveColor.BROWN, defaultCategory = IngestionCategory.MEDICINAL),
-        ),
-        customSubstances = listOf(CustomSubstance(name = "Mystery", units = "mg", description = "")),
-        intakeLimits = listOf(
-            IntakeLimit(
-                substanceName = "Caffeine", limitType = IntakeLimitType.DOSE, maxDose = 400.0, unit = "mg",
-                maxCount = null, windowSeconds = 86_400, warningPercent = 80
-            ),
-            IntakeLimit(
-                substanceName = "LSD", limitType = IntakeLimitType.COUNT, maxDose = null, unit = null,
-                maxCount = 1, windowSeconds = 604_800, warningPercent = 80
-            ),
-        ),
-    )
+  private val data =
+      ExportData(
+          experiences =
+              listOf(
+                  ExperienceWithIngestionsTimedNotesAndRatings(
+                      experience =
+                          EntityBuilders.experience(
+                              id = 1,
+                              title = "Trip",
+                              text = "private thoughts",
+                              location = Location(name = "Home", longitude = 1.0, latitude = 2.0),
+                          ),
+                      ingestions =
+                          listOf(
+                              EntityBuilders.ingestion(
+                                  id = 1,
+                                  substanceName = "LSD",
+                                  experienceId = 1,
+                                  customUnitId = 7,
+                                  notes = "strong",
+                              ),
+                              EntityBuilders.ingestion(
+                                  id = 2,
+                                  substanceName = "Cannabis",
+                                  experienceId = 1,
+                                  consumerName = "Alex",
+                              ),
+                          ),
+                      timedNotes =
+                          listOf(
+                              TimedNote(
+                                  experienceId = 1,
+                                  time = now,
+                                  creationDate = now,
+                                  note = "peaking",
+                                  color = AdaptiveColor.BLUE,
+                                  isPartOfTimeline = true,
+                              )
+                          ),
+                      ratings =
+                          listOf(
+                              ShulginRating(
+                                  time = now,
+                                  creationDate = now,
+                                  option = ShulginRatingOption.TWO_PLUS,
+                                  experienceId = 1,
+                              )
+                          ),
+                  ),
+                  ExperienceWithIngestionsTimedNotesAndRatings(
+                      experience = EntityBuilders.experience(id = 2, title = "Morning"),
+                      ingestions =
+                          listOf(
+                              EntityBuilders.ingestion(
+                                  id = 3,
+                                  substanceName = "Caffeine",
+                                  experienceId = 2,
+                              )
+                          ),
+                      timedNotes = emptyList(),
+                      ratings = emptyList(),
+                  ),
+              ),
+          customUnits = listOf(tabUnit),
+          substanceCompanions =
+              listOf(
+                  SubstanceCompanion("LSD", AdaptiveColor.BLUE),
+                  SubstanceCompanion("Cannabis", AdaptiveColor.GREEN),
+                  SubstanceCompanion(
+                      "Caffeine",
+                      AdaptiveColor.BROWN,
+                      defaultCategory = IngestionCategory.MEDICINAL,
+                  ),
+              ),
+          customSubstances =
+              listOf(CustomSubstance(name = "Mystery", units = "mg", description = "")),
+          intakeLimits =
+              listOf(
+                  IntakeLimit(
+                      substanceName = "Caffeine",
+                      limitType = IntakeLimitType.DOSE,
+                      maxDose = 400.0,
+                      unit = "mg",
+                      maxCount = null,
+                      windowSeconds = 86_400,
+                      warningPercent = 80,
+                  ),
+                  IntakeLimit(
+                      substanceName = "LSD",
+                      limitType = IntakeLimitType.COUNT,
+                      maxDose = null,
+                      unit = null,
+                      maxCount = 1,
+                      windowSeconds = 604_800,
+                      warningPercent = 80,
+                  ),
+              ),
+      )
 
-    @Test
-    fun `empty selection removes experiences and all dependent metadata`() {
-        val result = data.filtered(ExportFilter(substanceNames = emptySet()))
-        assertTrue(result.experiences.isEmpty())
-        assertTrue(result.customUnits.isEmpty())
-        assertTrue(result.customSubstances.isEmpty())
-        assertTrue(result.substanceCompanions.isEmpty())
-        assertTrue(result.intakeLimits.isEmpty())
-    }
+  @Test
+  fun `empty selection removes experiences and all dependent metadata`() {
+    val result = data.filtered(ExportFilter(substanceNames = emptySet()))
+    assertTrue(result.experiences.isEmpty())
+    assertTrue(result.customUnits.isEmpty())
+    assertTrue(result.customSubstances.isEmpty())
+    assertTrue(result.substanceCompanions.isEmpty())
+    assertTrue(result.intakeLimits.isEmpty())
+  }
 
-    @Test
-    fun `combined filters intersect instead of widening the selection`() {
-        val result = data.filtered(
+  @Test
+  fun `combined filters intersect instead of widening the selection`() {
+    val result =
+        data.filtered(
             ExportFilter(
                 substanceNames = setOf("LSD", "Cannabis"),
                 category = IngestionCategory.RECREATIONAL,
                 includeOtherConsumers = false,
             )
         )
-        assertEquals(listOf("LSD"), result.substances())
-        assertEquals(result, result.filtered(ExportFilter(substanceNames = setOf("LSD"))))
-        // Exporting must never scrub or prune the live journal data.
-        assertEquals(listOf("LSD", "Cannabis", "Caffeine"), data.substances())
-        assertEquals("private thoughts", data.experiences.first().experience.text)
-        assertEquals("strong", data.experiences.first().ingestions.first().notes)
-    }
+    assertEquals(listOf("LSD"), result.substances())
+    assertEquals(result, result.filtered(ExportFilter(substanceNames = setOf("LSD"))))
+    // Exporting must never scrub or prune the live journal data.
+    assertEquals(listOf("LSD", "Cannabis", "Caffeine"), data.substances())
+    assertEquals("private thoughts", data.experiences.first().experience.text)
+    assertEquals("strong", data.experiences.first().ingestions.first().notes)
+  }
 
-    @Test
-    fun `blood pressure readings follow their retained experience`() {
-        val readings = listOf(1, 2).map { id ->
-            foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading(
-                id = id, experienceId = id, time = now, systolic = 120, diastolic = 80,
-            )
+  @Test
+  fun `blood pressure readings follow their retained experience`() {
+    val readings =
+        listOf(1, 2).map { id ->
+          foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading(
+              id = id,
+              experienceId = id,
+              time = now,
+              systolic = 120,
+              diastolic = 80,
+          )
         }
-        val source = data.copy(bloodPressureReadings = readings)
-        val filtered = source.filtered(ExportFilter(substanceNames = setOf("LSD")))
-        assertEquals(listOf(readings.first()), filtered.bloodPressureReadings)
-        assertEquals(readings, source.bloodPressureReadings)
-        assertEquals(readings, source.filtered(ExportFilter(includeNotes = false)).bloodPressureReadings)
-    }
+    val source = data.copy(bloodPressureReadings = readings)
+    val filtered = source.filtered(ExportFilter(substanceNames = setOf("LSD")))
+    assertEquals(listOf(readings.first()), filtered.bloodPressureReadings)
+    assertEquals(readings, source.bloodPressureReadings)
+    assertEquals(
+        readings,
+        source.filtered(ExportFilter(includeNotes = false)).bloodPressureReadings,
+    )
+  }
 
-    @Test
-    fun `custom substance profiles follow the selected substance`() {
-        val profiles = listOf("LSD", "Cannabis").map { name ->
-            foo.pilz.freaklog.data.substanceshare.SharedSubstance(
-                name = name, units = "mg", description = "profile",
-            )
+  @Test
+  fun `custom substance profiles follow the selected substance`() {
+    val profiles =
+        listOf("LSD", "Cannabis").map { name ->
+          foo.pilz.freaklog.data.substanceshare.SharedSubstance(
+              name = name,
+              units = "mg",
+              description = "profile",
+          )
         }
-        val result = data.copy(customSubstanceDetails = profiles)
+    val result =
+        data
+            .copy(customSubstanceDetails = profiles)
             .filtered(ExportFilter(substanceNames = setOf("Cannabis")))
-        assertEquals(listOf(profiles.last()), result.customSubstanceDetails)
-    }
+    assertEquals(listOf(profiles.last()), result.customSubstanceDetails)
+  }
 
-    private fun ExportData.substances() = experiences.flatMap { it.ingestions }.map { it.substanceName }
+  private fun ExportData.substances() =
+      experiences.flatMap { it.ingestions }.map { it.substanceName }
 
-    @Test
-    fun `the default filter is inactive and returns the data untouched`() {
-        assertTrue(!ExportFilter().isActive)
-        assertSame(data, data.filtered(ExportFilter()))
-    }
+  @Test
+  fun `the default filter is inactive and returns the data untouched`() {
+    assertTrue(!ExportFilter().isActive)
+    assertSame(data, data.filtered(ExportFilter()))
+  }
 
-    @Test
-    fun `substance filter keeps only matching ingestions and their dependants`() {
-        val result = data.filtered(ExportFilter(substanceNames = setOf("LSD")))
+  @Test
+  fun `substance filter keeps only matching ingestions and their dependants`() {
+    val result = data.filtered(ExportFilter(substanceNames = setOf("LSD")))
 
-        assertEquals(listOf("LSD"), result.substances())
-        assertEquals(listOf("Trip"), result.experiences.map { it.experience.title })
-        assertEquals(listOf("LSD"), result.substanceCompanions.map { it.substanceName })
-        assertEquals(listOf(7), result.customUnits.map { it.id })
-        assertEquals(listOf("LSD"), result.intakeLimits.map { it.substanceName })
-        assertTrue(result.customSubstances.isEmpty())
-    }
+    assertEquals(listOf("LSD"), result.substances())
+    assertEquals(listOf("Trip"), result.experiences.map { it.experience.title })
+    assertEquals(listOf("LSD"), result.substanceCompanions.map { it.substanceName })
+    assertEquals(listOf(7), result.customUnits.map { it.id })
+    assertEquals(listOf("LSD"), result.intakeLimits.map { it.substanceName })
+    assertTrue(result.customSubstances.isEmpty())
+  }
 
-    @Test
-    fun `custom units no kept ingestion uses are pruned`() {
-        val result = data.filtered(ExportFilter(substanceNames = setOf("Caffeine")))
-        assertTrue(result.customUnits.isEmpty())
-    }
+  @Test
+  fun `custom units no kept ingestion uses are pruned`() {
+    val result = data.filtered(ExportFilter(substanceNames = setOf("Caffeine")))
+    assertTrue(result.customUnits.isEmpty())
+  }
 
-    @Test
-    fun `excluding other consumers drops their ingestions`() {
-        val result = data.filtered(ExportFilter(includeOtherConsumers = false))
-        assertEquals(listOf("LSD", "Caffeine"), result.substances())
-    }
+  @Test
+  fun `excluding other consumers drops their ingestions`() {
+    val result = data.filtered(ExportFilter(includeOtherConsumers = false))
+    assertEquals(listOf("LSD", "Caffeine"), result.substances())
+  }
 
-    @Test
-    fun `category filter uses the inherited category`() {
-        val medicinal = data.filtered(ExportFilter(category = IngestionCategory.MEDICINAL))
-        assertEquals(listOf("Caffeine"), medicinal.substances())
+  @Test
+  fun `category filter uses the inherited category`() {
+    val medicinal = data.filtered(ExportFilter(category = IngestionCategory.MEDICINAL))
+    assertEquals(listOf("Caffeine"), medicinal.substances())
 
-        val recreational = data.filtered(ExportFilter(category = IngestionCategory.RECREATIONAL))
-        assertEquals(listOf("LSD", "Cannabis"), recreational.substances())
-    }
+    val recreational = data.filtered(ExportFilter(category = IngestionCategory.RECREATIONAL))
+    assertEquals(listOf("LSD", "Cannabis"), recreational.substances())
+  }
 
-    @Test
-    fun `excluding notes scrubs every free-text field but keeps the rows`() {
-        val result = data.filtered(ExportFilter(includeNotes = false))
+  @Test
+  fun `excluding notes scrubs every free-text field but keeps the rows`() {
+    val result = data.filtered(ExportFilter(includeNotes = false))
 
-        assertEquals(3, result.substances().size)
-        assertEquals("", result.experiences.first().experience.text)
-        assertNull(result.experiences.first().ingestions.first().notes)
-        assertEquals("", result.customUnits.single().note)
-        assertEquals(2, result.intakeLimits.size)
-    }
+    assertEquals(3, result.substances().size)
+    assertEquals("", result.experiences.first().experience.text)
+    assertNull(result.experiences.first().ingestions.first().notes)
+    assertEquals("", result.customUnits.single().note)
+    assertEquals(2, result.intakeLimits.size)
+  }
 
-    @Test
-    fun `timed notes, ratings and locations can each be left out`() {
-        val result = data.filtered(
-            ExportFilter(includeTimedNotes = false, includeRatings = false, includeLocations = false)
+  @Test
+  fun `timed notes, ratings and locations can each be left out`() {
+    val result =
+        data.filtered(
+            ExportFilter(
+                includeTimedNotes = false,
+                includeRatings = false,
+                includeLocations = false,
+            )
         )
-        val trip = result.experiences.first()
-        assertTrue(trip.timedNotes.isEmpty())
-        assertTrue(trip.ratings.isEmpty())
-        assertNull(trip.experience.location)
-        assertEquals("private thoughts", trip.experience.text)
-    }
+    val trip = result.experiences.first()
+    assertTrue(trip.timedNotes.isEmpty())
+    assertTrue(trip.ratings.isEmpty())
+    assertNull(trip.experience.location)
+    assertEquals("private thoughts", trip.experience.text)
+  }
 
-    @Test
-    fun `a filtered export serializes and decodes back to the kept rows`() {
-        val export = data.filtered(ExportFilter(substanceNames = setOf("LSD"), includeNotes = false)).toJournalExport()
-        val decoded = Json.decodeFromString<JournalExport>(Json.encodeToString(export))
+  @Test
+  fun `a filtered export serializes and decodes back to the kept rows`() {
+    val export =
+        data
+            .filtered(ExportFilter(substanceNames = setOf("LSD"), includeNotes = false))
+            .toJournalExport()
+    val decoded = Json.decodeFromString<JournalExport>(Json.encodeToString(export))
 
-        assertEquals(listOf("LSD"), decoded.experiences.flatMap { it.ingestions }.map { it.substanceName })
-        assertNull(decoded.experiences.single().ingestions.single().notes)
-        assertEquals(1, decoded.intakeLimits.size)
-    }
+    assertEquals(
+        listOf("LSD"),
+        decoded.experiences.flatMap { it.ingestions }.map { it.substanceName },
+    )
+    assertNull(decoded.experiences.single().ingestions.single().notes)
+    assertEquals(1, decoded.intakeLimits.size)
+  }
 
-    @Test
-    fun `blood pressure readings are grouped and filtered by experience`() {
-        val bp1 = foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading(
-            experienceId = 1, time = now, systolic = 120, diastolic = 80, pulse = 65
+  @Test
+  fun `blood pressure readings are grouped and filtered by experience`() {
+    val bp1 =
+        foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading(
+            experienceId = 1,
+            time = now,
+            systolic = 120,
+            diastolic = 80,
+            pulse = 65,
         )
-        val bp2 = foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading(
-            experienceId = 2, time = now, systolic = 130, diastolic = 85, pulse = 70
+    val bp2 =
+        foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading(
+            experienceId = 2,
+            time = now,
+            systolic = 130,
+            diastolic = 85,
+            pulse = 70,
         )
-        val dataWithBp = data.copy(bloodPressureReadings = listOf(bp1, bp2))
+    val dataWithBp = data.copy(bloodPressureReadings = listOf(bp1, bp2))
 
-        val filtered = dataWithBp.filtered(ExportFilter(substanceNames = setOf("LSD")))
-        assertEquals(listOf(bp1), filtered.bloodPressureReadings)
+    val filtered = dataWithBp.filtered(ExportFilter(substanceNames = setOf("LSD")))
+    assertEquals(listOf(bp1), filtered.bloodPressureReadings)
 
-        val exported = filtered.toJournalExport()
-        assertEquals(1, exported.experiences.size)
-        assertEquals(1, exported.experiences.first().bloodPressure.size)
-        assertEquals(120, exported.experiences.first().bloodPressure.first().systolic)
-    }
+    val exported = filtered.toJournalExport()
+    assertEquals(1, exported.experiences.size)
+    assertEquals(1, exported.experiences.first().bloodPressure.size)
+    assertEquals(120, exported.experiences.first().bloodPressure.first().systolic)
+  }
 }

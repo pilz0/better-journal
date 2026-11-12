@@ -25,14 +25,14 @@ import androidx.compose.ui.unit.dp
 /**
  * Shapes for Freaklog.
  *
- * Slightly more rounded than M3 defaults so cards, dialogs and bottom sheets
- * read as friendly rather than utilitarian, while staying within
- * Material 3 expressiveness guidance.
+ * Slightly more rounded than M3 defaults so cards, dialogs and bottom sheets read as friendly
+ * rather than utilitarian, while staying within Material 3 expressiveness guidance.
  */
-val JournalShapes: Shapes = Shapes(
-    extraSmall = RoundedCornerShape(6.dp),
-    small = RoundedCornerShape(10.dp),
-    medium = RoundedCornerShape(14.dp),
-    large = RoundedCornerShape(20.dp),
-    extraLarge = RoundedCornerShape(28.dp),
-)
+val JournalShapes: Shapes =
+    Shapes(
+        extraSmall = RoundedCornerShape(6.dp),
+        small = RoundedCornerShape(10.dp),
+        medium = RoundedCornerShape(14.dp),
+        large = RoundedCornerShape(20.dp),
+        extraLarge = RoundedCornerShape(28.dp),
+    )

@@ -15,28 +15,28 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class IngestionWebhookMessageRepository @Inject constructor(
-    private val dao: IngestionWebhookMessageDao
-) {
-    suspend fun getByIngestion(ingestionId: Int): List<IngestionWebhookMessage> =
-        dao.getByIngestion(ingestionId)
+class IngestionWebhookMessageRepository
+@Inject
+constructor(private val dao: IngestionWebhookMessageDao) {
+  suspend fun getByIngestion(ingestionId: Int): List<IngestionWebhookMessage> =
+      dao.getByIngestion(ingestionId)
 
-    suspend fun getByIngestionAndWebhook(
-        ingestionId: Int,
-        webhookId: Int
-    ): IngestionWebhookMessage? = dao.getByIngestionAndWebhook(ingestionId, webhookId)
+  suspend fun getByIngestionAndWebhook(
+      ingestionId: Int,
+      webhookId: Int,
+  ): IngestionWebhookMessage? = dao.getByIngestionAndWebhook(ingestionId, webhookId)
 
-    suspend fun insert(message: IngestionWebhookMessage): Long = dao.insert(message)
+  suspend fun insert(message: IngestionWebhookMessage): Long = dao.insert(message)
 
-    suspend fun insertForDestination(message: IngestionWebhookMessage, url: String): Long? =
-        dao.insertForDestination(message, url)
+  suspend fun insertForDestination(message: IngestionWebhookMessage, url: String): Long? =
+      dao.insertForDestination(message, url)
 
-    suspend fun isCurrentDestination(message: IngestionWebhookMessage, url: String): Boolean =
-        dao.isCurrentDestination(message.id, message.messageId, url)
+  suspend fun isCurrentDestination(message: IngestionWebhookMessage, url: String): Boolean =
+      dao.isCurrentDestination(message.id, message.messageId, url)
 
-    suspend fun delete(message: IngestionWebhookMessage) = dao.delete(message)
+  suspend fun delete(message: IngestionWebhookMessage) = dao.delete(message)
 
-    suspend fun deleteByIngestion(ingestionId: Int) = dao.deleteByIngestion(ingestionId)
+  suspend fun deleteByIngestion(ingestionId: Int) = dao.deleteByIngestion(ingestionId)
 
-    suspend fun deleteAll() = dao.deleteAll()
+  suspend fun deleteAll() = dao.deleteAll()
 }

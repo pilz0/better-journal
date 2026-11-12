@@ -23,29 +23,30 @@ import org.junit.Test
 
 class InteractionUrlTest {
 
-    @Test
-    fun testGetInteractionExplanationURL_psychonautwiki() {
-        val url = getInteractionExplanationURLForSubstance("https://psychonautwiki.org/wiki/Kratom")
-        assertEquals("https://psychonautwiki.org/wiki/Kratom#Dangerous_interactions", url)
-    }
+  @Test
+  fun testGetInteractionExplanationURL_psychonautwiki() {
+    val url = getInteractionExplanationURLForSubstance("https://psychonautwiki.org/wiki/Kratom")
+    assertEquals("https://psychonautwiki.org/wiki/Kratom#Dangerous_interactions", url)
+  }
 
-    @Test
-    fun testGetInteractionExplanationURL_anodyne() {
-        val url = getInteractionExplanationURLForSubstance(
+  @Test
+  fun testGetInteractionExplanationURL_anodyne() {
+    val url =
+        getInteractionExplanationURLForSubstance(
             "https://anodyne.wiki/substance/Lysergic%20acid%20diethylamide"
         )
-        assertEquals("https://anodyne.wiki/substance/Lysergic%20acid%20diethylamide", url)
-    }
+    assertEquals("https://anodyne.wiki/substance/Lysergic%20acid%20diethylamide", url)
+  }
 
-    @Test
-    fun testGetInteractionExplanationURL_emptyString() {
-        val url = getInteractionExplanationURLForSubstance("")
-        assertEquals("", url)
-    }
+  @Test
+  fun testGetInteractionExplanationURL_emptyString() {
+    val url = getInteractionExplanationURLForSubstance("")
+    assertEquals("", url)
+  }
 
-    @Test
-    fun testGetInteractionExplanationURL_differentDomain() {
-        val url = getInteractionExplanationURLForSubstance("https://example.com/substance")
-        assertEquals("https://example.com/substance", url)
-    }
+  @Test
+  fun testGetInteractionExplanationURL_differentDomain() {
+    val url = getInteractionExplanationURLForSubstance("https://example.com/substance")
+    assertEquals("https://example.com/substance", url)
+  }
 }

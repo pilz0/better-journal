@@ -32,19 +32,19 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
 @Preview
 @Composable
 fun RatingsExplanationSection() {
-    CardWithTitle(title = "Longer explanations") {
-        val ratings = ShulginRatingOption.entries
-        ratings.forEach { oneRating ->
-            Column(modifier = Modifier.padding(vertical = 5.dp)) {
-                Text(
-                    text = oneRating.sign,
-                    style = MaterialTheme.typography.titleLarge
-                )
-                Text(
-                    text = oneRating.longDescription,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
+  CardWithTitle(title = "Longer explanations") {
+    val ratings = ShulginRatingOption.entries
+    ratings.forEach { oneRating ->
+      Column(modifier = Modifier.padding(vertical = 5.dp)) {
+        Text(
+            text = oneRating.sign,
+            style = MaterialTheme.typography.titleLarge,
+        )
+        Text(
+            text = oneRating.longDescription,
+            style = MaterialTheme.typography.bodyMedium,
+        )
+      }
     }
+  }
 }

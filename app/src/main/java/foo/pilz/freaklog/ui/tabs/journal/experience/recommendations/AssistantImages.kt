@@ -7,12 +7,17 @@ import coil3.request.ErrorResult
 import java.io.IOException
 
 /** Intercept every Markdown/HTML image before Coil can fetch it or follow a redirect. */
-internal fun assistantImageLoader(context: Context): ImageLoader = ImageLoader.Builder(context)
-    .components {
-        add(
-            Interceptor { chain ->
-                ErrorResult(null, chain.request, IOException("Images are disabled in assistant replies"))
-            }
-        )
-    }
-    .build()
+internal fun assistantImageLoader(context: Context): ImageLoader =
+    ImageLoader.Builder(context)
+        .components {
+          add(
+              Interceptor { chain ->
+                ErrorResult(
+                    null,
+                    chain.request,
+                    IOException("Images are disabled in assistant replies"),
+                )
+              }
+          )
+        }
+        .build()

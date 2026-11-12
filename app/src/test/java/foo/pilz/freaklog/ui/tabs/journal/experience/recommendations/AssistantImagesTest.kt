@@ -16,20 +16,25 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
 class AssistantImagesTest {
-    @Test
-    fun assistantImagesNeverReachNetworkOrLocalFiles() = runBlocking {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        val loader = assistantImageLoader(context)
-        val server = MockWebServer().apply { start() }
-        try {
-            listOf(server.url("/private?journal=secret").toString(), "file:///data/private", "content://private/notes").forEach {
-                val result = loader.execute(ImageRequest.Builder(context).data(it).build())
-                assertTrue(result is ErrorResult)
-            }
-            assertEquals(0, server.requestCount)
-        } finally {
-            loader.shutdown()
-            server.shutdown()
-        }
+  @Test
+  fun assistantImagesNeverReachNetworkOrLocalFiles() = runBlocking {
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    val loader = assistantImageLoader(context)
+    val server = MockWebServer().apply { start() }
+    try {
+      listOf(
+              server.url("/private?journal=secret").toString(),
+              "file:///data/private",
+              "content://private/notes",
+          )
+          .forEach {
+            val result = loader.execute(ImageRequest.Builder(context).data(it).build())
+            assertTrue(result is ErrorResult)
+          }
+      assertEquals(0, server.requestCount)
+    } finally {
+      loader.shutdown()
+      server.shutdown()
     }
+  }
 }

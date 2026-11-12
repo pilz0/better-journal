@@ -29,67 +29,63 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 /**
- * Compact horizontal-bar comparison of how often this substance was logged in three
- * time ranges. Mirrors the iOS app's "Usage frequency" section on the substance details screen.
+ * Compact horizontal-bar comparison of how often this substance was logged in three time ranges.
+ * Mirrors the iOS app's "Usage frequency" section on the substance details screen.
  */
 @Composable
 fun SubstanceFrequencySection(frequency: SubstanceFrequency) {
-    ElevatedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("Usage frequency", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = "Number of distinct experiences containing this substance.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(12.dp))
-            val maxValue = maxOf(frequency.last30Days, frequency.last12Months, frequency.allTime, 1)
-            FrequencyRow(label = "Last 30 days", value = frequency.last30Days, maxValue = maxValue)
-            FrequencyRow(label = "Last 12 months", value = frequency.last12Months, maxValue = maxValue)
-            FrequencyRow(label = "All time", value = frequency.allTime, maxValue = maxValue)
-        }
+  ElevatedCard(
+      modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+  ) {
+    Column(modifier = Modifier.padding(16.dp)) {
+      Text("Usage frequency", style = MaterialTheme.typography.titleMedium)
+      Spacer(Modifier.height(4.dp))
+      Text(
+          text = "Number of distinct experiences containing this substance.",
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+      Spacer(Modifier.height(12.dp))
+      val maxValue = maxOf(frequency.last30Days, frequency.last12Months, frequency.allTime, 1)
+      FrequencyRow(label = "Last 30 days", value = frequency.last30Days, maxValue = maxValue)
+      FrequencyRow(label = "Last 12 months", value = frequency.last12Months, maxValue = maxValue)
+      FrequencyRow(label = "All time", value = frequency.allTime, maxValue = maxValue)
     }
+  }
 }
 
 @Composable
 private fun FrequencyRow(label: String, value: Int, maxValue: Int) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text(
-            text = label,
-            modifier = Modifier.weight(0.35f),
-            style = MaterialTheme.typography.bodyMedium,
-        )
-        Box(
-            modifier = Modifier
-                .weight(1f)
+  Row(
+      verticalAlignment = Alignment.CenterVertically,
+      modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+  ) {
+    Text(
+        text = label,
+        modifier = Modifier.weight(0.35f),
+        style = MaterialTheme.typography.bodyMedium,
+    )
+    Box(
+        modifier =
+            Modifier.weight(1f)
                 .height(10.dp)
                 .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(4.dp)),
-        ) {
-            val safeMax = maxValue.coerceAtLeast(1)
-            val ratio = (value.toFloat() / safeMax).coerceIn(0f, 1f)
-            if (ratio > 0f) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(ratio)
-                        .height(10.dp)
-                        .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(4.dp)),
-                )
-            }
-        }
-        Text(
-            text = value.toString(),
-            style = MaterialTheme.typography.bodyMedium,
+    ) {
+      val safeMax = maxValue.coerceAtLeast(1)
+      val ratio = (value.toFloat() / safeMax).coerceIn(0f, 1f)
+      if (ratio > 0f) {
+        Box(
+            modifier =
+                Modifier.fillMaxWidth(ratio)
+                    .height(10.dp)
+                    .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(4.dp)),
         )
+      }
     }
+    Text(
+        text = value.toString(),
+        style = MaterialTheme.typography.bodyMedium,
+    )
+  }
 }

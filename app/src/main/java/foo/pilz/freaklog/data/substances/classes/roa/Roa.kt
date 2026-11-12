@@ -24,5 +24,5 @@ data class Roa(
     val route: AdministrationRoute,
     val roaDose: RoaDose?,
     val roaDuration: RoaDuration?,
-    val bioavailability: Bioavailability?
+    val bioavailability: Bioavailability?,
 )

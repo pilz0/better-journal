@@ -45,132 +45,133 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class MainActivity : FragmentActivity() {
 
-    @javax.inject.Inject lateinit var notificationScheduler: foo.pilz.freaklog.scheduled.NotificationScheduler
+  @javax.inject.Inject
+  lateinit var notificationScheduler: foo.pilz.freaklog.scheduled.NotificationScheduler
 
-    @javax.inject.Inject lateinit var biometricAuthManager: BiometricAuthManager
+  @javax.inject.Inject lateinit var biometricAuthManager: BiometricAuthManager
 
-    companion object {
-        const val ACTION_ADD_INGESTION = ".ADD_INGESTION"
-        const val ACTION_JOURNAL_SCREEN = ".JOURNAL_SCREEN"
-        const val ACTION_OPEN_EXPERIENCE = ".OPEN_EXPERIENCE"
+  companion object {
+    const val ACTION_ADD_INGESTION = ".ADD_INGESTION"
+    const val ACTION_JOURNAL_SCREEN = ".JOURNAL_SCREEN"
+    const val ACTION_OPEN_EXPERIENCE = ".OPEN_EXPERIENCE"
+  }
+
+  private var shouldNavigateToAddIngestion by mutableStateOf(false)
+  private var shouldNavigateToJournalScreen by mutableStateOf(false)
+  private var shouldNavigateToExperienceId by mutableStateOf<Int?>(null)
+
+  override fun onCreate(savedInstanceState: Bundle?) {
+    installSplashScreen()
+    super.onCreate(savedInstanceState)
+    enableEdgeToEdge()
+
+    handleIntent(intent)
+
+    // Update all widgets on launch
+    lifecycleScope.launch {
+      val manager = GlanceAppWidgetManager(this@MainActivity)
+      val glanceIds = manager.getGlanceIds(MyAppWidget::class.java)
+      glanceIds.forEach { glanceId ->
+        foo.pilz.freaklog.ui.enqueueRefresh(
+            context = this@MainActivity,
+            appWidgetId = manager.getAppWidgetId(glanceId),
+        )
+      }
     }
 
-    private var shouldNavigateToAddIngestion by mutableStateOf(false)
-    private var shouldNavigateToJournalScreen by mutableStateOf(false)
-    private var shouldNavigateToExperienceId by mutableStateOf<Int?>(null)
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-
-        handleIntent(intent)
-
-        // Update all widgets on launch
-        lifecycleScope.launch {
-            val manager = GlanceAppWidgetManager(this@MainActivity)
-            val glanceIds = manager.getGlanceIds(MyAppWidget::class.java)
-            glanceIds.forEach { glanceId ->
-                foo.pilz.freaklog.ui.enqueueRefresh(
-                    context = this@MainActivity,
-                    appWidgetId = manager.getAppWidgetId(glanceId)
-                )
-            }
+    // While app lock is on, keep journal content out of the Overview (recents) snapshot,
+    // which would otherwise outlive the authenticated session.
+    lifecycleScope.launch {
+      biometricAuthManager.isLockEnabledFlow.collect { lockEnabled ->
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+          setRecentsScreenshotEnabled(!lockEnabled)
+        } else if (lockEnabled) {
+          window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        } else {
+          window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
+      }
+    }
 
-        // While app lock is on, keep journal content out of the Overview (recents) snapshot,
-        // which would otherwise outlive the authenticated session.
-        lifecycleScope.launch {
-            biometricAuthManager.isLockEnabledFlow.collect { lockEnabled ->
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    setRecentsScreenshotEnabled(!lockEnabled)
-                } else if (lockEnabled) {
-                    window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-                } else {
-                    window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
-                }
-            }
+    // Re-arm all reminder alarms on each launch. AlarmManager forgets alarms across
+    // process death/reboot, and BootCompletedReceiver is the first line of defence;
+    // this catches the cases where the receiver was disabled (e.g. force-stopped app).
+    lifecycleScope.launch {
+      notificationScheduler.rescheduleAll()
+    }
+
+    setContent {
+      JournalTheme {
+        Surface(modifier = Modifier.fillMaxSize()) {
+          foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthWrapper(
+              manager = biometricAuthManager,
+              activity = this@MainActivity,
+          ) {
+            MainScreen(
+                shouldNavigateToAddIngestion = shouldNavigateToAddIngestion,
+                onAddIngestionNavigated = ::onAddIngestionNavigated,
+                shouldNavigateToJournalScreen = shouldNavigateToJournalScreen,
+                onJournalScreenNavigated = ::onJournalScreenNavigated,
+                shouldNavigateToExperienceId = shouldNavigateToExperienceId,
+                onExperienceNavigated = ::onExperienceNavigated,
+            )
+          }
         }
-
-        // Re-arm all reminder alarms on each launch. AlarmManager forgets alarms across
-        // process death/reboot, and BootCompletedReceiver is the first line of defence;
-        // this catches the cases where the receiver was disabled (e.g. force-stopped app).
-        lifecycleScope.launch {
-            notificationScheduler.rescheduleAll()
-        }
-
-        setContent {
-            JournalTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthWrapper(
-                        manager = biometricAuthManager,
-                        activity = this@MainActivity,
-                    ) {
-                        MainScreen(
-                            shouldNavigateToAddIngestion = shouldNavigateToAddIngestion,
-                            onAddIngestionNavigated = ::onAddIngestionNavigated,
-                            shouldNavigateToJournalScreen = shouldNavigateToJournalScreen,
-                            onJournalScreenNavigated = ::onJournalScreenNavigated,
-                            shouldNavigateToExperienceId = shouldNavigateToExperienceId,
-                            onExperienceNavigated = ::onExperienceNavigated
-                        )
-                    }
-                }
-            }
-        }
+      }
     }
+  }
 
-    override fun onPause() {
-        super.onPause()
-        biometricAuthManager.onAppPaused()
-    }
+  override fun onPause() {
+    super.onPause()
+    biometricAuthManager.onAppPaused()
+  }
 
-    override fun onResume() {
-        super.onResume()
-        biometricAuthManager.onAppResumed()
-    }
+  override fun onResume() {
+    super.onResume()
+    biometricAuthManager.onAppResumed()
+  }
 
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        setIntent(intent)
-        handleIntent(intent)
-    }
+  override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    setIntent(intent)
+    handleIntent(intent)
+  }
 
-    private fun handleIntent(intent: Intent?) {
-        when (intent?.action) {
-            "${packageName}$ACTION_ADD_INGESTION" -> {
-                shouldNavigateToJournalScreen = false
-                shouldNavigateToExperienceId = null
-                shouldNavigateToAddIngestion = true
-            }
-            "${packageName}$ACTION_JOURNAL_SCREEN" -> {
-                shouldNavigateToAddIngestion = false
-                shouldNavigateToExperienceId = null
-                shouldNavigateToJournalScreen = true
-            }
-            "${packageName}$ACTION_OPEN_EXPERIENCE" -> {
-                val experienceId = intent.getIntExtra("experienceId", -1)
-                shouldNavigateToAddIngestion = false
-                if (experienceId == GLOBAL_TIMELINE_ID) {
-                    shouldNavigateToExperienceId = null
-                    shouldNavigateToJournalScreen = true
-                } else if (experienceId > 0) {
-                    shouldNavigateToJournalScreen = false
-                    shouldNavigateToExperienceId = experienceId
-                }
-            }
-        }
-    }
-
-    private fun onAddIngestionNavigated() {
-        shouldNavigateToAddIngestion = false
-    }
-
-    private fun onJournalScreenNavigated() {
+  private fun handleIntent(intent: Intent?) {
+    when (intent?.action) {
+      "${packageName}$ACTION_ADD_INGESTION" -> {
         shouldNavigateToJournalScreen = false
-    }
-
-    private fun onExperienceNavigated() {
         shouldNavigateToExperienceId = null
+        shouldNavigateToAddIngestion = true
+      }
+      "${packageName}$ACTION_JOURNAL_SCREEN" -> {
+        shouldNavigateToAddIngestion = false
+        shouldNavigateToExperienceId = null
+        shouldNavigateToJournalScreen = true
+      }
+      "${packageName}$ACTION_OPEN_EXPERIENCE" -> {
+        val experienceId = intent.getIntExtra("experienceId", -1)
+        shouldNavigateToAddIngestion = false
+        if (experienceId == GLOBAL_TIMELINE_ID) {
+          shouldNavigateToExperienceId = null
+          shouldNavigateToJournalScreen = true
+        } else if (experienceId > 0) {
+          shouldNavigateToJournalScreen = false
+          shouldNavigateToExperienceId = experienceId
+        }
+      }
     }
+  }
+
+  private fun onAddIngestionNavigated() {
+    shouldNavigateToAddIngestion = false
+  }
+
+  private fun onJournalScreenNavigated() {
+    shouldNavigateToJournalScreen = false
+  }
+
+  private fun onExperienceNavigated() {
+    shouldNavigateToExperienceId = null
+  }
 }

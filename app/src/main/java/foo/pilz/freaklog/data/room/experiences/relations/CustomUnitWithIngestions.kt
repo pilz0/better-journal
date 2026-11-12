@@ -28,6 +28,7 @@ data class CustomUnitWithIngestions(
     @Relation(
         entity = Ingestion::class,
         parentColumn = "id",
-        entityColumn = "customUnitId"
-    ) val ingestions: List<Ingestion>
+        entityColumn = "customUnitId",
+    )
+    val ingestions: List<Ingestion>,
 )

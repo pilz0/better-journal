@@ -8,6 +8,7 @@
 
 Freaklog supports building reproducible Android release packages (APK and AAB) via Nix (`flake.nix` + `gradle2nix`).
 While local development allows developers to run:
+
 - `nix flake check`
 - `nix build .#apk`
 - `nix build .#aab`
@@ -32,7 +33,9 @@ The goal is to run both the Nix checks and the Nix package builds in GitHub Acti
 ### 3.1 `.github/workflows/build.yml`
 
 #### Add `nix-build` Job
+
 Add a dedicated matrix job:
+
 - **Identifier:** `nix-build`
 - **Name:** `Nix Build (${{ matrix.app-type }})`
 - **Runs-on:** `ubuntu-latest`
@@ -50,12 +53,27 @@ Add a dedicated matrix job:
      - `if-no-files-found: error`
 
 #### Update `ci-passed` Aggregator Job
+
 Add `nix-build` to the `needs` array:
+
 ```yaml
-needs: [ wrapper-validation, test, coverage, detekt, lint, build-app, architecture-and-hygiene, nix-checks, nix-build, build-test-fixtures ]
+needs:
+  [
+    wrapper-validation,
+    test,
+    coverage,
+    detekt,
+    lint,
+    build-app,
+    architecture-and-hygiene,
+    nix-checks,
+    nix-build,
+    build-test-fixtures,
+  ]
 ```
 
 ### 3.2 Documentation Updates
+
 - Update `AGENTS.md` CI/CD section to document the `nix-checks` and `nix-build` jobs in `build.yml`.
 
 ## 4. Verification Plan

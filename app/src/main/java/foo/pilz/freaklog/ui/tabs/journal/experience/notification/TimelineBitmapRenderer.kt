@@ -16,38 +16,47 @@ import java.time.Instant
 
 object TimelineBitmapRenderer {
 
-    fun render(
-        model: AllTimelinesModel,
-        widthPx: Int,
-        heightPx: Int,
-        currentTime: Instant,
-        density: Float,
-        isDarkTheme: Boolean,
-    ): Bitmap {
-        // createBitmap throws for non-positive sizes, which a broken display density can produce.
-        if (widthPx <= 0 || heightPx <= 0) return createBitmap(1, 1)
-        val bitmap = createBitmap(widthPx, heightPx)
-        val canvas = Canvas(bitmap)
-        val baseScene = buildTimelineScene(model.timelineGroups(isDarkTheme), model.widthInSeconds, DefaultGraphStyle)
-        val marker = currentTimeMarker(model, currentTime)
-        val scene = if (marker != null) {
-            baseScene.copy(primitives = baseScene.primitives + marker)
-        } else {
-            baseScene
-        }
-        canvas.paintScene(scene, DefaultGraphStyle, Density(density))
-        return bitmap
-    }
-
-    private fun currentTimeMarker(model: AllTimelinesModel, currentTime: Instant): GraphPrimitive.VerticalMarker? {
-        if (model.widthInSeconds <= 0f) return null
-        val endTime = model.startTime.plusSeconds(model.widthInSeconds.toLong())
-        if (currentTime.isBefore(model.startTime) || currentTime.isAfter(endTime)) return null
-        val seconds = Duration.between(model.startTime, currentTime).seconds.toFloat()
-        return GraphPrimitive.VerticalMarker(
-            xFraction = seconds / model.widthInSeconds,
-            color = DefaultGraphStyle.currentTimeColor.toArgb(),
-            role = MarkerRole.CurrentTime,
+  fun render(
+      model: AllTimelinesModel,
+      widthPx: Int,
+      heightPx: Int,
+      currentTime: Instant,
+      density: Float,
+      isDarkTheme: Boolean,
+  ): Bitmap {
+    // createBitmap throws for non-positive sizes, which a broken display density can produce.
+    if (widthPx <= 0 || heightPx <= 0) return createBitmap(1, 1)
+    val bitmap = createBitmap(widthPx, heightPx)
+    val canvas = Canvas(bitmap)
+    val baseScene =
+        buildTimelineScene(
+            model.timelineGroups(isDarkTheme),
+            model.widthInSeconds,
+            DefaultGraphStyle,
         )
-    }
+    val marker = currentTimeMarker(model, currentTime)
+    val scene =
+        if (marker != null) {
+          baseScene.copy(primitives = baseScene.primitives + marker)
+        } else {
+          baseScene
+        }
+    canvas.paintScene(scene, DefaultGraphStyle, Density(density))
+    return bitmap
+  }
+
+  private fun currentTimeMarker(
+      model: AllTimelinesModel,
+      currentTime: Instant,
+  ): GraphPrimitive.VerticalMarker? {
+    if (model.widthInSeconds <= 0f) return null
+    val endTime = model.startTime.plusSeconds(model.widthInSeconds.toLong())
+    if (currentTime.isBefore(model.startTime) || currentTime.isAfter(endTime)) return null
+    val seconds = Duration.between(model.startTime, currentTime).seconds.toFloat()
+    return GraphPrimitive.VerticalMarker(
+        xFraction = seconds / model.widthInSeconds,
+        color = DefaultGraphStyle.currentTimeColor.toArgb(),
+        role = MarkerRole.CurrentTime,
+    )
+  }
 }

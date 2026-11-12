@@ -63,65 +63,67 @@ import foo.pilz.freaklog.ui.tabs.search.substance.InteractionExplanationButton
 import foo.pilz.freaklog.ui.tabs.search.substance.SubstanceWithCategoriesPreviewProvider
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 
-
 @Composable
 fun CheckInteractionsScreen(
     navigateToNext: () -> Unit,
-    viewModel: CheckInteractionsViewModel = hiltViewModel()
+    viewModel: CheckInteractionsViewModel = hiltViewModel(),
 ) {
-    CheckInteractionsScreen(
-        substanceName = viewModel.substanceName,
-        substanceUrl = viewModel.substance.url,
-        isSearchingForInteractions = viewModel.isSearchingForInteractions,
-        dangerousInteractions = viewModel.dangerousInteractions,
-        unsafeInteractions = viewModel.unsafeInteractions,
-        uncertainInteractions = viewModel.uncertainInteractions,
-        navigateToNext = navigateToNext,
-        dismissAlert = {
-            viewModel.isShowingAlert = false
-        },
-        isShowingAlert = viewModel.isShowingAlert,
-        alertInteractionType = viewModel.alertInteractionType,
-        alertText = viewModel.alertText
-    )
+  CheckInteractionsScreen(
+      substanceName = viewModel.substanceName,
+      substanceUrl = viewModel.substance.url,
+      isSearchingForInteractions = viewModel.isSearchingForInteractions,
+      dangerousInteractions = viewModel.dangerousInteractions,
+      unsafeInteractions = viewModel.unsafeInteractions,
+      uncertainInteractions = viewModel.uncertainInteractions,
+      navigateToNext = navigateToNext,
+      dismissAlert = {
+        viewModel.isShowingAlert = false
+      },
+      isShowingAlert = viewModel.isShowingAlert,
+      alertInteractionType = viewModel.alertInteractionType,
+      alertText = viewModel.alertText,
+  )
 }
 
 @Preview
 @Composable
-fun CheckInteractionsScreenPreview(@PreviewParameter(SubstanceWithCategoriesPreviewProvider::class) substanceWithCategories: SubstanceWithCategories) {
-    CheckInteractionsScreen(
-        substanceName = "LSD",
-        substanceUrl = "",
-        isSearchingForInteractions = true,
-        dangerousInteractions = substanceWithCategories.substance.interactions?.dangerous
-            ?: emptyList(),
-        unsafeInteractions = substanceWithCategories.substance.interactions?.unsafe ?: emptyList(),
-        uncertainInteractions = substanceWithCategories.substance.interactions?.uncertain
-            ?: emptyList(),
-        navigateToNext = {},
-        dismissAlert = {},
-        isShowingAlert = false,
-        alertInteractionType = InteractionType.DANGEROUS,
-        alertText = "Dangerous interaction with Heroin taken 4h ago"
-    )
+fun CheckInteractionsScreenPreview(
+    @PreviewParameter(SubstanceWithCategoriesPreviewProvider::class)
+    substanceWithCategories: SubstanceWithCategories
+) {
+  CheckInteractionsScreen(
+      substanceName = "LSD",
+      substanceUrl = "",
+      isSearchingForInteractions = true,
+      dangerousInteractions =
+          substanceWithCategories.substance.interactions?.dangerous ?: emptyList(),
+      unsafeInteractions = substanceWithCategories.substance.interactions?.unsafe ?: emptyList(),
+      uncertainInteractions =
+          substanceWithCategories.substance.interactions?.uncertain ?: emptyList(),
+      navigateToNext = {},
+      dismissAlert = {},
+      isShowingAlert = false,
+      alertInteractionType = InteractionType.DANGEROUS,
+      alertText = "Dangerous interaction with Heroin taken 4h ago",
+  )
 }
 
 @Preview
 @Composable
 fun CheckInteractionsScreenPreview2() {
-    CheckInteractionsScreen(
-        substanceName = "MDMA",
-        substanceUrl = "",
-        isSearchingForInteractions = true,
-        dangerousInteractions = emptyList(),
-        unsafeInteractions = emptyList(),
-        uncertainInteractions = emptyList(),
-        navigateToNext = {},
-        dismissAlert = {},
-        isShowingAlert = true,
-        alertInteractionType = InteractionType.DANGEROUS,
-        alertText = "Dangerous interaction with Heroin taken 4h ago."
-    )
+  CheckInteractionsScreen(
+      substanceName = "MDMA",
+      substanceUrl = "",
+      isSearchingForInteractions = true,
+      dangerousInteractions = emptyList(),
+      unsafeInteractions = emptyList(),
+      uncertainInteractions = emptyList(),
+      navigateToNext = {},
+      dismissAlert = {},
+      isShowingAlert = true,
+      alertInteractionType = InteractionType.DANGEROUS,
+      alertText = "Dangerous interaction with Heroin taken 4h ago.",
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -137,142 +139,149 @@ fun CheckInteractionsScreen(
     dangerousInteractions: List<String>,
     unsafeInteractions: List<String>,
     uncertainInteractions: List<String>,
-    navigateToNext: () -> Unit
+    navigateToNext: () -> Unit,
 ) {
-    Scaffold(
-        topBar = { TopAppBar(title = { Text("$substanceName interactions") }) },
-        floatingActionButton = {
-            NextFAB(navigateToNext)
+  Scaffold(
+      topBar = { TopAppBar(title = { Text("$substanceName interactions") }) },
+      floatingActionButton = {
+        NextFAB(navigateToNext)
+      },
+  ) { padding ->
+    Column(modifier = Modifier.padding(padding)) {
+      if (isSearchingForInteractions) {
+        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+      } else {
+        LinearProgressIndicator(
+            progress = { 0.33f },
+            modifier = Modifier.fillMaxWidth(),
+        )
+      }
+      if (
+          dangerousInteractions.isEmpty() &&
+              unsafeInteractions.isEmpty() &&
+              uncertainInteractions.isEmpty()
+      ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+          Text(text = "No interactions found... check other sources.")
         }
-    ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
-            if (isSearchingForInteractions) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-            } else {
-                LinearProgressIndicator(
-                    progress = { 0.33f },
+      } else {
+        val verticalPaddingInside = 4.dp
+        val distinctDangerous = remember(dangerousInteractions) { dangerousInteractions.distinct() }
+        val distinctUnsafe = remember(unsafeInteractions) { unsafeInteractions.distinct() }
+        val distinctUncertain = remember(uncertainInteractions) { uncertainInteractions.distinct() }
+        LazyColumn {
+          if (distinctDangerous.isNotEmpty()) {
+            items(distinctDangerous, key = { "dangerous_$it" }) {
+              InteractionRow(
+                  text = it,
+                  interactionType = InteractionType.DANGEROUS,
+                  verticalPaddingInside = verticalPaddingInside,
+              )
+            }
+          }
+          if (distinctUnsafe.isNotEmpty()) {
+            items(distinctUnsafe, key = { "unsafe_$it" }) {
+              InteractionRow(
+                  text = it,
+                  interactionType = InteractionType.UNSAFE,
+                  verticalPaddingInside = verticalPaddingInside,
+              )
+            }
+          }
+          if (distinctUncertain.isNotEmpty()) {
+            items(distinctUncertain, key = { "uncertain_$it" }) {
+              InteractionRow(
+                  text = it,
+                  interactionType = InteractionType.UNCERTAIN,
+                  verticalPaddingInside = verticalPaddingInside,
+              )
+            }
+          }
+          item(key = "explanation_button") {
+            InteractionExplanationButton(substanceURL = substanceUrl)
+          }
+        }
+      }
+      AnimatedVisibility(visible = isShowingAlert) {
+        AlertDialog(
+            onDismissRequest = dismissAlert,
+            title = {
+              val title =
+                  when (alertInteractionType) {
+                    InteractionType.DANGEROUS -> "Dangerous interaction!"
+                    InteractionType.UNSAFE -> "Unsafe interaction"
+                    InteractionType.UNCERTAIN -> "Uncertain interaction"
+                    else -> "Interaction"
+                  }
+              Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = "Warning",
+                )
+                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                Text(text = title, style = MaterialTheme.typography.titleLarge)
+              }
+            },
+            text = {
+              Text(text = alertText)
+            },
+            confirmButton = {
+              Row(
+                  modifier = Modifier.padding(all = 8.dp),
+                  horizontalArrangement = Arrangement.Center,
+              ) {
+                TextButton(
                     modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            if (dangerousInteractions.isEmpty() && unsafeInteractions.isEmpty() && uncertainInteractions.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    onClick = dismissAlert,
                 ) {
-                    Text(text = "No interactions found... check other sources.")
+                  Text("Dismiss")
                 }
-            } else {
-                val verticalPaddingInside = 4.dp
-                val distinctDangerous = remember(dangerousInteractions) { dangerousInteractions.distinct() }
-                val distinctUnsafe = remember(unsafeInteractions) { unsafeInteractions.distinct() }
-                val distinctUncertain = remember(uncertainInteractions) { uncertainInteractions.distinct() }
-                LazyColumn {
-                    if (distinctDangerous.isNotEmpty()) {
-                        items(distinctDangerous, key = { "dangerous_$it" }) {
-                            InteractionRow(
-                                text = it,
-                                interactionType = InteractionType.DANGEROUS,
-                                verticalPaddingInside = verticalPaddingInside,
-                            )
-                        }
-                    }
-                    if (distinctUnsafe.isNotEmpty()) {
-                        items(distinctUnsafe, key = { "unsafe_$it" }) {
-                            InteractionRow(
-                                text = it, interactionType = InteractionType.UNSAFE,
-                                verticalPaddingInside = verticalPaddingInside,
-                            )
-                        }
-                    }
-                    if (distinctUncertain.isNotEmpty()) {
-                        items(distinctUncertain, key = { "uncertain_$it" }) {
-                            InteractionRow(
-                                text = it, interactionType = InteractionType.UNCERTAIN,
-                                verticalPaddingInside = verticalPaddingInside,
-                            )
-                        }
-                    }
-                    item(key = "explanation_button") {
-                        InteractionExplanationButton(substanceURL = substanceUrl)
-                    }
-                }
-            }
-            AnimatedVisibility(visible = isShowingAlert) {
-                AlertDialog(
-                    onDismissRequest = dismissAlert,
-                    title = {
-                        val title = when (alertInteractionType) {
-                            InteractionType.DANGEROUS -> "Dangerous interaction!"
-                            InteractionType.UNSAFE -> "Unsafe interaction"
-                            InteractionType.UNCERTAIN -> "Uncertain interaction"
-                            else -> "Interaction"
-                        }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Warning,
-                                contentDescription = "Warning",
-                            )
-                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                            Text(text = title, style = MaterialTheme.typography.titleLarge)
-                        }
-                    },
-                    text = {
-                        Text(text = alertText)
-                    },
-                    confirmButton = {
-                        Row(
-                            modifier = Modifier.padding(all = 8.dp),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            TextButton(
-                                modifier = Modifier.fillMaxWidth(),
-                                onClick = dismissAlert
-                            ) {
-                                Text("Dismiss")
-                            }
-                        }
-                    }
-                )
-            }
-        }
+              }
+            },
+        )
+      }
     }
+  }
 }
 
 @Composable
 fun InteractionRow(
     text: String,
     interactionType: InteractionType,
-    verticalPaddingInside: Dp = 2.dp
+    verticalPaddingInside: Dp = 2.dp,
 ) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth(),
-        shape = RectangleShape,
-        color = interactionType.color
-    ) {
-        Row(
-            modifier = Modifier.padding(
+  Surface(
+      modifier = Modifier.fillMaxWidth(),
+      shape = RectangleShape,
+      color = interactionType.color,
+  ) {
+    Row(
+        modifier =
+            Modifier.padding(
                 horizontal = horizontalPadding,
-                vertical = verticalPaddingInside
+                vertical = verticalPaddingInside,
             ),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = text,
-                textAlign = TextAlign.Center,
-                color = Color.Black,
-                style = MaterialTheme.typography.titleMedium,
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                repeat(interactionType.dangerCount) {
-                    Icon(
-                        imageVector = Icons.Outlined.WarningAmber,
-                        contentDescription = "Warning",
-                        tint = Color.Black,
-                    )
-                }
-            }
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Text(
+          text = text,
+          textAlign = TextAlign.Center,
+          color = Color.Black,
+          style = MaterialTheme.typography.titleMedium,
+      )
+      Spacer(modifier = Modifier.weight(1f))
+      Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+        repeat(interactionType.dangerCount) {
+          Icon(
+              imageVector = Icons.Outlined.WarningAmber,
+              contentDescription = "Warning",
+              tint = Color.Black,
+          )
         }
+      }
     }
+  }
 }

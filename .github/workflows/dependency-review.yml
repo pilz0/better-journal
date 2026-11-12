@@ -13,13 +13,13 @@ concurrency:
 jobs:
   review:
     name: Review new dependencies
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
         with:
           egress-policy: audit
 
@@ -36,7 +36,7 @@ jobs:
           fail-on-severity: moderate
           # Reject GPL-incompatible licenses being introduced; the project itself
           # is GPL-3.0.
-          deny-licenses: 'AGPL-1.0-only, AGPL-1.0-or-later, AGPL-3.0-only, AGPL-3.0-or-later'
+          deny-licenses: "AGPL-1.0-only, AGPL-1.0-or-later, AGPL-3.0-only, AGPL-3.0-or-later"
           # PR comments require a write-capable token, which fork PRs do not get.
           # Limit commenting to PRs from the same repository; rely on the job
           # status (and the workflow log) for fork PRs.

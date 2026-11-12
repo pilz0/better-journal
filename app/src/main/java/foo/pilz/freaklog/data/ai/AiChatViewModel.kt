@@ -10,6 +10,7 @@ import foo.pilz.freaklog.data.ai.profiles.AiProfileStore
 import foo.pilz.freaklog.data.ai.provider.AiConversation
 import foo.pilz.freaklog.data.ai.provider.AiException
 import foo.pilz.freaklog.data.ai.provider.AiTurnEvent
+import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
@@ -19,37 +20,40 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 /** A single bubble shown in the chat transcript. */
 sealed interface ChatItem {
-    val id: String
+  val id: String
 
-    data class Message(
-        override val id: String = java.util.UUID.randomUUID().toString(),
-        val text: String,
-        val isUser: Boolean,
-        /** Waiting for the first token. */
-        val isLoading: Boolean = false,
-        /** Tokens are still arriving. */
-        val isStreaming: Boolean = false,
-        val isError: Boolean = false,
-        /** The user pressed Stop before the reply finished. */
-        val isStopped: Boolean = false,
-    ) : ChatItem
+  data class Message(
+      override val id: String = java.util.UUID.randomUUID().toString(),
+      val text: String,
+      val isUser: Boolean,
+      /** Waiting for the first token. */
+      val isLoading: Boolean = false,
+      /** Tokens are still arriving. */
+      val isStreaming: Boolean = false,
+      val isError: Boolean = false,
+      /** The user pressed Stop before the reply finished. */
+      val isStopped: Boolean = false,
+  ) : ChatItem
 
-    /** Inline status chip describing a tool the assistant just executed. */
-    data class ToolEvent(
-        override val id: String = java.util.UUID.randomUUID().toString(),
-        val toolName: String,
-        val args: Map<String, Any?>,
-        /** What the tool does, in words, e.g. "Searched the journal for “mdma”". */
-        val label: String = toolName,
-        val status: Status = Status.Running,
-        val resultSummary: String? = null
-    ) : ChatItem {
-        enum class Status { Running, Success, Error }
+  /** Inline status chip describing a tool the assistant just executed. */
+  data class ToolEvent(
+      override val id: String = java.util.UUID.randomUUID().toString(),
+      val toolName: String,
+      val args: Map<String, Any?>,
+      /** What the tool does, in words, e.g. "Searched the journal for “mdma”". */
+      val label: String = toolName,
+      val status: Status = Status.Running,
+      val resultSummary: String? = null,
+  ) : ChatItem {
+    enum class Status {
+      Running,
+      Success,
+      Error,
     }
+  }
 }
 
 data class AiChatUiState(
@@ -67,368 +71,397 @@ data class AiChatUiState(
     val contextLabel: String? = null,
     /** The last turn can be sent again (it finished, failed or was stopped). */
     val canRetry: Boolean = false,
-    val suggestionPrompts: List<String> = DEFAULT_SUGGESTIONS
+    val suggestionPrompts: List<String> = DEFAULT_SUGGESTIONS,
 ) {
-    companion object {
-        val DEFAULT_SUGGESTIONS = listOf(
+  companion object {
+    val DEFAULT_SUGGESTIONS =
+        listOf(
             "Summarise my current session",
             "When did I last take this substance?",
             "What did I take in the past 30 days?",
-            "Find my favourite past experiences"
+            "Find my favourite past experiences",
         )
 
-        /** Suggestions when the assistant is opened from the journal, without an experience. */
-        val JOURNAL_SUGGESTIONS = listOf(
+    /** Suggestions when the assistant is opened from the journal, without an experience. */
+    val JOURNAL_SUGGESTIONS =
+        listOf(
             "What is still active from today?",
             "What did I take in the past 30 days?",
             "Is it safe to combine what I took today with alcohol?",
             "What have I been using most this year?",
-            "Find my favourite past experiences"
+            "Find my favourite past experiences",
         )
-    }
+  }
 }
 
 @HiltViewModel
-class AiChatViewModel @Inject constructor(
+class AiChatViewModel
+@Inject
+constructor(
     private val repository: AiChatbotRepository,
     private val profileStore: AiProfileStore,
     private val auth: foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthManager,
 ) : ViewModel() {
 
-    companion object {
-        private const val TAG = "AiChatViewModel"
+  companion object {
+    private const val TAG = "AiChatViewModel"
 
-        /** Minimum time between transcript updates while text streams in. */
-        private const val STREAM_UPDATE_INTERVAL_MS = 50L
-    }
+    /** Minimum time between transcript updates while text streams in. */
+    private const val STREAM_UPDATE_INTERVAL_MS = 50L
+  }
 
-    private val _uiState = MutableStateFlow(AiChatUiState())
-    val uiState: StateFlow<AiChatUiState> = _uiState.asStateFlow()
+  private val _uiState = MutableStateFlow(AiChatUiState())
+  val uiState: StateFlow<AiChatUiState> = _uiState.asStateFlow()
 
-    private var experienceId: Int? = null
-    private var initialized = false
-    private var conversation: AiConversation? = null
-    private var activeJob: Job? = null
-    private var contextJob: Job? = null
+  private var experienceId: Int? = null
+  private var initialized = false
+  private var conversation: AiConversation? = null
+  private var activeJob: Job? = null
+  private var contextJob: Job? = null
 
-    /**
-     * Monotonically increasing token incremented every time we start a new chat. UI updates from
-     * an in-flight turn are gated on this so a turn that's cancelled by [clearChat] cannot race
-     * with the fresh state set up by [startNewChat].
-     */
-    private var sessionToken: Int = 0
+  /**
+   * Monotonically increasing token incremented every time we start a new chat. UI updates from an
+   * in-flight turn are gated on this so a turn that's cancelled by [clearChat] cannot race with the
+   * fresh state set up by [startNewChat].
+   */
+  private var sessionToken: Int = 0
 
-    init {
-        viewModelScope.launch {
-            auth.shouldLock.collect { locked ->
-                if (locked) {
-                    activeJob?.cancel()
-                    contextJob?.cancel()
-                    sessionToken++
-                    conversation = null
-                    initialized = false
-                    _uiState.value = AiChatUiState()
-                }
-            }
+  init {
+    viewModelScope.launch {
+      auth.shouldLock.collect { locked ->
+        if (locked) {
+          activeJob?.cancel()
+          contextJob?.cancel()
+          sessionToken++
+          conversation = null
+          initialized = false
+          _uiState.value = AiChatUiState()
         }
-        viewModelScope.launch {
-            combine(profileStore.profilesFlow, profileStore.activeProfileIdFlow, ::Pair).collect { (profiles, active) ->
-                _uiState.update { it.copy(profiles = profiles, activeProfileId = active) }
-            }
-        }
+      }
     }
-
-    fun initialize(expId: Int?) {
-        if (initialized && experienceId == expId && conversation != null) return
-        initialized = true
-        experienceId = expId
-        startNewChat()
+    viewModelScope.launch {
+      combine(profileStore.profilesFlow, profileStore.activeProfileIdFlow, ::Pair).collect {
+          (profiles, active) ->
+        _uiState.update { it.copy(profiles = profiles, activeProfileId = active) }
+      }
     }
+  }
 
-    fun clearChat() {
-        activeJob?.cancel()
-        startNewChat()
+  fun initialize(expId: Int?) {
+    if (initialized && experienceId == expId && conversation != null) return
+    initialized = true
+    experienceId = expId
+    startNewChat()
+  }
+
+  fun clearChat() {
+    activeJob?.cancel()
+    startNewChat()
+  }
+
+  /** Makes [profileId] the active profile and starts a new chat with it. */
+  fun switchProfile(profileId: String) {
+    activeJob?.cancel()
+    viewModelScope.launch {
+      profileStore.setActive(profileId)
+      startNewChat()
     }
+  }
 
-    /** Makes [profileId] the active profile and starts a new chat with it. */
-    fun switchProfile(profileId: String) {
-        activeJob?.cancel()
-        viewModelScope.launch {
-            profileStore.setActive(profileId)
-            startNewChat()
-        }
-    }
-
-    private fun startNewChat() {
-        if (auth.shouldLock.value) return
-        contextJob?.cancel()
-        sessionToken++
-        val token = sessionToken
-        conversation = null
-        contextJob = viewModelScope.launch {
+  private fun startNewChat() {
+    if (auth.shouldLock.value) return
+    contextJob?.cancel()
+    sessionToken++
+    val token = sessionToken
+    conversation = null
+    contextJob = viewModelScope.launch {
+      _uiState.update {
+        it.copy(
+            items = emptyList(),
+            isContextLoading = true,
+            isAssistantBusy = false,
+            statusMessage = null,
+            canRetry = false,
+        )
+      }
+      val result = repository.createChatSession(experienceId)
+      if (token != sessionToken || auth.shouldLock.value) return@launch
+      when (result) {
+        is AiChatSessionResult.Disabled ->
             _uiState.update {
-                it.copy(
-                    items = emptyList(),
-                    isContextLoading = true,
-                    isAssistantBusy = false,
-                    statusMessage = null,
-                    canRetry = false,
-                )
+              it.copy(
+                  isContextLoading = false,
+                  isAssistantDisabled = true,
+                  setupMessage = null,
+                  modelName = null,
+              )
             }
-            val result = repository.createChatSession(experienceId)
-            if (token != sessionToken || auth.shouldLock.value) return@launch
-            when (result) {
-                is AiChatSessionResult.Disabled -> _uiState.update {
-                    it.copy(
-                        isContextLoading = false,
-                        isAssistantDisabled = true,
-                        setupMessage = null,
-                        modelName = null,
-                    )
-                }
-                is AiChatSessionResult.NeedsSetup -> _uiState.update {
-                    it.copy(
-                        isContextLoading = false,
-                        setupMessage = result.message,
-                        isAssistantDisabled = false,
-                        modelName = null
-                    )
-                }
-                is AiChatSessionResult.Failed -> _uiState.update {
-                    it.copy(
-                        isContextLoading = false,
-                        setupMessage = null,
-                        isAssistantDisabled = false,
-                        modelName = null,
-                        items = listOf(
-                            ChatItem.Message(
-                                text = "Failed to initialise assistant: ${result.message}",
-                                isUser = false,
-                                isError = true
-                            )
-                        )
-                    )
-                }
-                is AiChatSessionResult.Ready -> {
-                    conversation = result.conversation
-                    _uiState.update {
-                        it.copy(
-                            isContextLoading = false,
-                            setupMessage = null,
-                            isAssistantDisabled = false,
-                            modelName = result.profile.model,
-                            contextLabel = result.contextLabel,
-                            suggestionPrompts = if (experienceId == null) {
-                                AiChatUiState.JOURNAL_SUGGESTIONS
-                            } else {
-                                AiChatUiState.DEFAULT_SUGGESTIONS
-                            },
-                            items = listOf(
-                                ChatItem.Message(
-                                    text = "Hi! I'm your in-app journal assistant. I can search your past " +
-                                        "experiences, summarise patterns, and answer harm-reduction questions. " +
-                                        "Try a suggestion below or ask me anything.",
-                                    isUser = false
-                                )
-                            ),
-                        )
-                    }
-                }
+        is AiChatSessionResult.NeedsSetup ->
+            _uiState.update {
+              it.copy(
+                  isContextLoading = false,
+                  setupMessage = result.message,
+                  isAssistantDisabled = false,
+                  modelName = null,
+              )
             }
-        }
-    }
-
-    fun sendMessage(messageText: String) {
-        val text = messageText.trim()
-        if (auth.shouldLock.value || text.isBlank() || _uiState.value.isAssistantBusy) return
-        val chat = conversation ?: return
-        val token = sessionToken
-
-        val userMsg = ChatItem.Message(text = text, isUser = true)
-        val placeholder = ChatItem.Message(text = "", isUser = false, isLoading = true)
-        _uiState.update {
+        is AiChatSessionResult.Failed ->
+            _uiState.update {
+              it.copy(
+                  isContextLoading = false,
+                  setupMessage = null,
+                  isAssistantDisabled = false,
+                  modelName = null,
+                  items =
+                      listOf(
+                          ChatItem.Message(
+                              text = "Failed to initialise assistant: ${result.message}",
+                              isUser = false,
+                              isError = true,
+                          )
+                      ),
+              )
+            }
+        is AiChatSessionResult.Ready -> {
+          conversation = result.conversation
+          _uiState.update {
             it.copy(
-                items = it.items + userMsg + placeholder,
-                isAssistantBusy = true,
-                canRetry = false,
-                statusMessage = "Thinking…"
+                isContextLoading = false,
+                setupMessage = null,
+                isAssistantDisabled = false,
+                modelName = result.profile.model,
+                contextLabel = result.contextLabel,
+                suggestionPrompts =
+                    if (experienceId == null) {
+                      AiChatUiState.JOURNAL_SUGGESTIONS
+                    } else {
+                      AiChatUiState.DEFAULT_SUGGESTIONS
+                    },
+                items =
+                    listOf(
+                        ChatItem.Message(
+                            text =
+                                "Hi! I'm your in-app journal assistant. I can search your past " +
+                                    "experiences, summarise patterns, and answer harm-reduction questions. " +
+                                    "Try a suggestion below or ask me anything.",
+                            isUser = false,
+                        )
+                    ),
             )
+          }
         }
-        val turn = TurnRenderer(placeholder.id, token)
-        activeJob = viewModelScope.launch {
-            try {
-                chat.send(text).collect { event -> turn.handle(event) }
-            } catch (ce: CancellationException) {
-                throw ce
-            } catch (t: Throwable) {
-                Log.e(TAG, "Chat turn failed", t)
-                turn.fail(
-                    message = t.message ?: t::class.java.simpleName,
-                    discardText = (t as? AiException)?.discardPartial == true,
-                )
-            } finally {
-                activeJob = null
-            }
-        }
+      }
     }
+  }
 
-    /** Stops the reply that is streaming. Text received so far stays in the transcript. */
-    fun stop() {
-        val job = activeJob ?: return
+  fun sendMessage(messageText: String) {
+    val text = messageText.trim()
+    if (auth.shouldLock.value || text.isBlank() || _uiState.value.isAssistantBusy) return
+    val chat = conversation ?: return
+    val token = sessionToken
+
+    val userMsg = ChatItem.Message(text = text, isUser = true)
+    val placeholder = ChatItem.Message(text = "", isUser = false, isLoading = true)
+    _uiState.update {
+      it.copy(
+          items = it.items + userMsg + placeholder,
+          isAssistantBusy = true,
+          canRetry = false,
+          statusMessage = "Thinking…",
+      )
+    }
+    val turn = TurnRenderer(placeholder.id, token)
+    activeJob = viewModelScope.launch {
+      try {
+        chat.send(text).collect { event -> turn.handle(event) }
+      } catch (ce: CancellationException) {
+        throw ce
+      } catch (t: Throwable) {
+        Log.e(TAG, "Chat turn failed", t)
+        turn.fail(
+            message = t.message ?: t::class.java.simpleName,
+            discardText = (t as? AiException)?.discardPartial == true,
+        )
+      } finally {
         activeJob = null
-        val token = sessionToken
-        viewModelScope.launch {
-            // Wait until the conversation has repaired its history before allowing another send.
-            job.cancelAndJoin()
-            if (token != sessionToken) return@launch
-            _uiState.update { state ->
-                val items = state.items.mapNotNull { item ->
-                    when {
-                        item is ChatItem.Message && (item.isLoading || item.isStreaming) ->
-                            item.copy(isLoading = false, isStreaming = false, isStopped = true)
-                        item is ChatItem.ToolEvent && item.status == ChatItem.ToolEvent.Status.Running ->
-                            item.copy(status = ChatItem.ToolEvent.Status.Error, resultSummary = "stopped")
-                        else -> item
-                    }
-                }
-                state.copy(items = items, isAssistantBusy = false, statusMessage = null, canRetry = true)
-            }
-        }
+      }
     }
+  }
 
-    /** Sends the last user message again, replacing the reply it got. */
-    fun retryLastTurn() {
-        if (auth.shouldLock.value || _uiState.value.isAssistantBusy) return
-        val chat = conversation ?: return
-        val text = chat.rollbackLastTurn()
-            ?: (_uiState.value.items.lastOrNull { it is ChatItem.Message && it.isUser } as? ChatItem.Message)?.text
+  /** Stops the reply that is streaming. Text received so far stays in the transcript. */
+  fun stop() {
+    val job = activeJob ?: return
+    activeJob = null
+    val token = sessionToken
+    viewModelScope.launch {
+      // Wait until the conversation has repaired its history before allowing another send.
+      job.cancelAndJoin()
+      if (token != sessionToken) return@launch
+      _uiState.update { state ->
+        val items =
+            state.items.mapNotNull { item ->
+              when {
+                item is ChatItem.Message && (item.isLoading || item.isStreaming) ->
+                    item.copy(isLoading = false, isStreaming = false, isStopped = true)
+                item is ChatItem.ToolEvent && item.status == ChatItem.ToolEvent.Status.Running ->
+                    item.copy(status = ChatItem.ToolEvent.Status.Error, resultSummary = "stopped")
+                else -> item
+              }
+            }
+        state.copy(items = items, isAssistantBusy = false, statusMessage = null, canRetry = true)
+      }
+    }
+  }
+
+  /** Sends the last user message again, replacing the reply it got. */
+  fun retryLastTurn() {
+    if (auth.shouldLock.value || _uiState.value.isAssistantBusy) return
+    val chat = conversation ?: return
+    val text =
+        chat.rollbackLastTurn()
+            ?: (_uiState.value.items.lastOrNull { it is ChatItem.Message && it.isUser }
+                    as? ChatItem.Message)
+                ?.text
             ?: return
-        _uiState.update { state ->
-            val lastUser = state.items.indexOfLast { it is ChatItem.Message && it.isUser }
-            state.copy(items = if (lastUser < 0) state.items else state.items.take(lastUser))
-        }
-        sendMessage(text)
+    _uiState.update { state ->
+      val lastUser = state.items.indexOfLast { it is ChatItem.Message && it.isUser }
+      state.copy(items = if (lastUser < 0) state.items else state.items.take(lastUser))
     }
+    sendMessage(text)
+  }
 
-    /**
-     * Turns the [AiTurnEvent]s of one turn into transcript items. Text that arrives before a
-     * tool call stays in its own bubble; the answer after the tools streams into a new one.
-     */
-    private inner class TurnRenderer(private var bubbleId: String, private val token: Int) {
-        private val text = StringBuilder()
-        private var lastFlush = 0L
-        private val toolItemIds = mutableMapOf<String, String>()
+  /**
+   * Turns the [AiTurnEvent]s of one turn into transcript items. Text that arrives before a tool
+   * call stays in its own bubble; the answer after the tools streams into a new one.
+   */
+  private inner class TurnRenderer(private var bubbleId: String, private val token: Int) {
+    private val text = StringBuilder()
+    private var lastFlush = 0L
+    private val toolItemIds = mutableMapOf<String, String>()
 
-        fun handle(event: AiTurnEvent) {
-            if (token != sessionToken) return
-            when (event) {
-                is AiTurnEvent.TextDelta -> {
-                    text.append(event.text)
-                    val now = SystemClock.elapsedRealtime()
-                    if (now - lastFlush >= STREAM_UPDATE_INTERVAL_MS) {
-                        lastFlush = now
-                        flush(streaming = true)
-                        _uiState.update { it.copy(statusMessage = "Writing…") }
-                    }
-                }
-                is AiTurnEvent.ToolStarted -> {
-                    val chip = ChatItem.ToolEvent(
-                        toolName = event.call.name,
-                        args = event.call.args,
-                        label = AiToolLabels.describe(event.call.name, event.call.args),
-                    )
-                    toolItemIds[event.key] = chip.id
-                    if (text.isBlank()) {
-                        insertBefore(bubbleId, chip)
-                    } else {
-                        // Keep the text written before the tool call and open a fresh bubble.
-                        flush(streaming = false)
-                        val next = ChatItem.Message(text = "", isUser = false, isLoading = true)
-                        _uiState.update { it.copy(items = it.items + chip + next) }
-                        bubbleId = next.id
-                        text.setLength(0)
-                    }
-                    _uiState.update { it.copy(statusMessage = AiToolLabels.progress(event.call.name)) }
-                }
-                is AiTurnEvent.ToolFinished -> {
-                    val isError = event.result.optString("status") == "error"
-                    val status = if (isError) ChatItem.ToolEvent.Status.Error else ChatItem.ToolEvent.Status.Success
-                    toolItemIds[event.key]?.let { id ->
-                        updateToolEvent(id) {
-                            it.copy(
-                                status = status,
-                                resultSummary = AiToolLabels.summarise(event.call.name, event.result)
-                            )
-                        }
-                    }
-                    _uiState.update { it.copy(statusMessage = "Thinking…") }
-                }
-                is AiTurnEvent.Completed -> {
-                    if (text.isBlank() && event.text.isNotBlank()) text.append(event.text)
-                    if (text.isBlank()) {
-                        val hadEarlierText = _uiState.value.items
-                            .dropWhile { !(it is ChatItem.Message && it.isUser) }
-                            .any { it is ChatItem.Message && !it.isUser && it.text.isNotBlank() && it.id != bubbleId }
-                        if (hadEarlierText) {
-                            _uiState.update { s -> s.copy(items = s.items.filterNot { it.id == bubbleId }) }
-                        } else {
-                            text.append("The assistant returned an empty response.")
-                            flush(streaming = false)
-                        }
-                    } else {
-                        flush(streaming = false)
-                    }
-                    _uiState.update { it.copy(isAssistantBusy = false, statusMessage = null, canRetry = true) }
-                }
-            }
+    fun handle(event: AiTurnEvent) {
+      if (token != sessionToken) return
+      when (event) {
+        is AiTurnEvent.TextDelta -> {
+          text.append(event.text)
+          val now = SystemClock.elapsedRealtime()
+          if (now - lastFlush >= STREAM_UPDATE_INTERVAL_MS) {
+            lastFlush = now
+            flush(streaming = true)
+            _uiState.update { it.copy(statusMessage = "Writing…") }
+          }
         }
-
-        fun fail(message: String, discardText: Boolean) {
-            if (token != sessionToken) return
-            if (text.isBlank() || discardText) {
-                replaceMessage(bubbleId) {
-                    it.copy(text = "Error: $message", isLoading = false, isStreaming = false, isError = true)
-                }
+        is AiTurnEvent.ToolStarted -> {
+          val chip =
+              ChatItem.ToolEvent(
+                  toolName = event.call.name,
+                  args = event.call.args,
+                  label = AiToolLabels.describe(event.call.name, event.call.args),
+              )
+          toolItemIds[event.key] = chip.id
+          if (text.isBlank()) {
+            insertBefore(bubbleId, chip)
+          } else {
+            // Keep the text written before the tool call and open a fresh bubble.
+            flush(streaming = false)
+            val next = ChatItem.Message(text = "", isUser = false, isLoading = true)
+            _uiState.update { it.copy(items = it.items + chip + next) }
+            bubbleId = next.id
+            text.setLength(0)
+          }
+          _uiState.update { it.copy(statusMessage = AiToolLabels.progress(event.call.name)) }
+        }
+        is AiTurnEvent.ToolFinished -> {
+          val isError = event.result.optString("status") == "error"
+          val status =
+              if (isError) ChatItem.ToolEvent.Status.Error else ChatItem.ToolEvent.Status.Success
+          toolItemIds[event.key]?.let { id ->
+            updateToolEvent(id) {
+              it.copy(
+                  status = status,
+                  resultSummary = AiToolLabels.summarise(event.call.name, event.result),
+              )
+            }
+          }
+          _uiState.update { it.copy(statusMessage = "Thinking…") }
+        }
+        is AiTurnEvent.Completed -> {
+          if (text.isBlank() && event.text.isNotBlank()) text.append(event.text)
+          if (text.isBlank()) {
+            val hadEarlierText =
+                _uiState.value.items
+                    .dropWhile { !(it is ChatItem.Message && it.isUser) }
+                    .any {
+                      it is ChatItem.Message &&
+                          !it.isUser &&
+                          it.text.isNotBlank() &&
+                          it.id != bubbleId
+                    }
+            if (hadEarlierText) {
+              _uiState.update { s -> s.copy(items = s.items.filterNot { it.id == bubbleId }) }
             } else {
-                flush(streaming = false)
-                val error = ChatItem.Message(text = "Error: $message", isUser = false, isError = true)
-                _uiState.update { it.copy(items = it.items + error) }
+              text.append("The assistant returned an empty response.")
+              flush(streaming = false)
             }
-            _uiState.update { it.copy(isAssistantBusy = false, statusMessage = null, canRetry = true) }
+          } else {
+            flush(streaming = false)
+          }
+          _uiState.update {
+            it.copy(isAssistantBusy = false, statusMessage = null, canRetry = true)
+          }
         }
-
-        private fun flush(streaming: Boolean) {
-            val current = text.toString()
-            replaceMessage(bubbleId) {
-                it.copy(text = current, isLoading = false, isStreaming = streaming)
-            }
-        }
+      }
     }
 
-    private fun replaceMessage(id: String, transform: (ChatItem.Message) -> ChatItem.Message) {
-        _uiState.update { state ->
-            val newItems = state.items.map { item ->
-                if (item is ChatItem.Message && item.id == id) transform(item) else item
-            }
-            state.copy(items = newItems)
+    fun fail(message: String, discardText: Boolean) {
+      if (token != sessionToken) return
+      if (text.isBlank() || discardText) {
+        replaceMessage(bubbleId) {
+          it.copy(text = "Error: $message", isLoading = false, isStreaming = false, isError = true)
         }
+      } else {
+        flush(streaming = false)
+        val error = ChatItem.Message(text = "Error: $message", isUser = false, isError = true)
+        _uiState.update { it.copy(items = it.items + error) }
+      }
+      _uiState.update { it.copy(isAssistantBusy = false, statusMessage = null, canRetry = true) }
     }
 
-    private fun updateToolEvent(id: String, transform: (ChatItem.ToolEvent) -> ChatItem.ToolEvent) {
-        _uiState.update { state ->
-            val newItems = state.items.map { item ->
-                if (item is ChatItem.ToolEvent && item.id == id) transform(item) else item
-            }
-            state.copy(items = newItems)
-        }
+    private fun flush(streaming: Boolean) {
+      val current = text.toString()
+      replaceMessage(bubbleId) {
+        it.copy(text = current, isLoading = false, isStreaming = streaming)
+      }
     }
+  }
 
-    private fun insertBefore(targetId: String, item: ChatItem) {
-        _uiState.update { state ->
-            val idx = state.items.indexOfFirst { it.id == targetId }
-            val newItems = if (idx == -1) state.items + item
-            else state.items.toMutableList().apply { add(idx, item) }
-            state.copy(items = newItems)
-        }
+  private fun replaceMessage(id: String, transform: (ChatItem.Message) -> ChatItem.Message) {
+    _uiState.update { state ->
+      val newItems =
+          state.items.map { item ->
+            if (item is ChatItem.Message && item.id == id) transform(item) else item
+          }
+      state.copy(items = newItems)
     }
+  }
+
+  private fun updateToolEvent(id: String, transform: (ChatItem.ToolEvent) -> ChatItem.ToolEvent) {
+    _uiState.update { state ->
+      val newItems =
+          state.items.map { item ->
+            if (item is ChatItem.ToolEvent && item.id == id) transform(item) else item
+          }
+      state.copy(items = newItems)
+    }
+  }
+
+  private fun insertBefore(targetId: String, item: ChatItem) {
+    _uiState.update { state ->
+      val idx = state.items.indexOfFirst { it.id == targetId }
+      val newItems =
+          if (idx == -1) state.items + item
+          else state.items.toMutableList().apply { add(idx, item) }
+      state.copy(items = newItems)
+    }
+  }
 }

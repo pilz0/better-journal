@@ -8,5 +8,5 @@ data class Formulation(
     val name: String,
     val route: AdministrationRoute,
     val dose: RoaDose?,
-    val duration: RoaDuration?
+    val duration: RoaDuration?,
 )

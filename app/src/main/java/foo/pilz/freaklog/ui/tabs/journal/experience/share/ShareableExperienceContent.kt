@@ -59,78 +59,70 @@ data class ShareableExperienceModel(
     val bloodPressureReadings: List<BloodPressureReading> = emptyList(),
 )
 
-/** One line of the ingestion list: "14:30  100 µg LSD, sublingual". */
+/** One line of the ingestion list: "14:30 100 µg LSD, sublingual". */
 fun ingestionShareLine(element: IngestionElement): String {
-    val withUnit = element.ingestionWithCompanionAndCustomUnit
-    val ingestion = withUnit.ingestion
-    return "${ingestion.time.getShortTimeText()}  ${withUnit.doseDescription} ${ingestion.substanceName}, " +
-        ingestion.administrationRoute.displayText.lowercase()
+  val withUnit = element.ingestionWithCompanionAndCustomUnit
+  val ingestion = withUnit.ingestion
+  return "${ingestion.time.getShortTimeText()}  ${withUnit.doseDescription} ${ingestion.substanceName}, " +
+      ingestion.administrationRoute.displayText.lowercase()
 }
 
 /** Plain-text summary sent alongside the image, for apps that drop the picture. */
 fun buildShareText(model: ShareableExperienceModel): String = buildString {
-    appendLine(model.title)
-    append(model.firstIngestionTime.getDateWithWeekdayText())
-    if (model.locationName.isNotBlank()) append(" · ${model.locationName}")
-    model.ingestionElements.forEach {
-        appendLine()
-        append(ingestionShareLine(it))
-    }
+  appendLine(model.title)
+  append(model.firstIngestionTime.getDateWithWeekdayText())
+  if (model.locationName.isNotBlank()) append(" · ${model.locationName}")
+  model.ingestionElements.forEach {
+    appendLine()
+    append(ingestionShareLine(it))
+  }
 }
 
 @Composable
 fun ShareableExperienceContent(model: ShareableExperienceModel) {
-    val isDarkTheme = isSystemInDarkTheme()
-    Surface(color = MaterialTheme.colorScheme.background) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(model.title.take(1000), style = MaterialTheme.typography.headlineSmall, maxLines = 3)
-            Text(
-                listOf(model.firstIngestionTime.getDateWithWeekdayText(), model.locationName)
-                    .filter { it.isNotBlank() }
-                    .joinToString(" · "),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (model.timelineModel != null) {
-                AllTimelines(
-                    model = model.timelineModel,
-                    isShowingCurrentTime = false,
-                    timeDisplayOption = TimeDisplayOption.REGULAR,
-                    heartRateSamples = model.heartRateSamples,
-                    bloodPressureReadings = model.bloodPressureReadings,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp),
-                )
-            }
-            model.ingestionElements.forEach { element ->
-                val color = element.ingestionWithCompanionAndCustomUnit.substanceCompanion?.color
-                    ?: AdaptiveColor.RED
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        Modifier
-                            .size(10.dp)
-                            .clip(CircleShape)
-                            .background(color.getComposeColor(isDarkTheme))
-                    )
-                    Text(
-                        ingestionShareLine(element),
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(start = 10.dp),
-                    )
-                }
-            }
-            Text(
-                "Freaklog",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.align(Alignment.End),
-            )
+  val isDarkTheme = isSystemInDarkTheme()
+  Surface(color = MaterialTheme.colorScheme.background) {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+      Text(model.title.take(1000), style = MaterialTheme.typography.headlineSmall, maxLines = 3)
+      Text(
+          listOf(model.firstIngestionTime.getDateWithWeekdayText(), model.locationName)
+              .filter { it.isNotBlank() }
+              .joinToString(" · "),
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+      if (model.timelineModel != null) {
+        AllTimelines(
+            model = model.timelineModel,
+            isShowingCurrentTime = false,
+            timeDisplayOption = TimeDisplayOption.REGULAR,
+            heartRateSamples = model.heartRateSamples,
+            bloodPressureReadings = model.bloodPressureReadings,
+            modifier = Modifier.fillMaxWidth().height(200.dp),
+        )
+      }
+      model.ingestionElements.forEach { element ->
+        val color =
+            element.ingestionWithCompanionAndCustomUnit.substanceCompanion?.color
+                ?: AdaptiveColor.RED
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Box(Modifier.size(10.dp).clip(CircleShape).background(color.getComposeColor(isDarkTheme)))
+          Text(
+              ingestionShareLine(element),
+              style = MaterialTheme.typography.bodyLarge,
+              modifier = Modifier.padding(start = 10.dp),
+          )
         }
+      }
+      Text(
+          "Freaklog",
+          style = MaterialTheme.typography.labelSmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          modifier = Modifier.align(Alignment.End),
+      )
     }
+  }
 }

@@ -20,7 +20,7 @@ package foo.pilz.freaklog.data.substances.classes
 
 class SubstanceFile(
     val categories: List<Category>,
-    val substances: List<Substance>
+    val substances: List<Substance>,
 ) {
-    val substancesMap: Map<String, Substance> = substances.associateBy { it.name }
+  val substancesMap: Map<String, Substance> = substances.associateBy { it.name }
 }

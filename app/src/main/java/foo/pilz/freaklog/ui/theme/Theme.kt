@@ -18,7 +18,6 @@
 
 package foo.pilz.freaklog.ui.theme
 
-
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -33,7 +32,6 @@ import androidx.compose.ui.unit.dp
 import foo.pilz.freaklog.ui.graph.style.LocalGraphStyle
 import foo.pilz.freaklog.ui.graph.style.themedGraphStyle
 
-
 // Default screen-edge padding. Bumped from the upstream 10.dp to the
 // Material 3 standard 16.dp so list and card content no longer feels
 // pinched against the edge of the screen. Prefer `MaterialTheme.spacing.lg`
@@ -43,29 +41,29 @@ val verticalPaddingCards = 4.dp
 val minimumTouchTargetHeight = 48.dp
 
 @Composable
-fun JournalTheme(
-    content: @Composable () -> Unit
-) {
-    val isDarkTheme = isSystemInDarkTheme()
-    val context = LocalContext.current
-    val colorScheme = if (isDarkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-    CompositionLocalProvider(LocalSpacing provides DefaultSpacing) {
-        MaterialTheme(
-            colorScheme = colorScheme,
-            typography = JournalTypography,
-            shapes = JournalShapes,
-        ) {
-            SharedTransitionLayout {
-                CompositionLocalProvider(
-                    LocalGraphStyle provides themedGraphStyle(),
-                    LocalSharedTransitionScope provides this@SharedTransitionLayout,
-                    content = content,
-                )
-            }
-        }
+fun JournalTheme(content: @Composable () -> Unit) {
+  val isDarkTheme = isSystemInDarkTheme()
+  val context = LocalContext.current
+  val colorScheme =
+      if (isDarkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+  CompositionLocalProvider(LocalSpacing provides DefaultSpacing) {
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = JournalTypography,
+        shapes = JournalShapes,
+    ) {
+      SharedTransitionLayout {
+        CompositionLocalProvider(
+            LocalGraphStyle provides themedGraphStyle(),
+            LocalSharedTransitionScope provides this@SharedTransitionLayout,
+            content = content,
+        )
+      }
     }
+  }
 }
 
-val LocalSharedTransitionScope = compositionLocalOf<SharedTransitionScope> {
-    error("No SharedTransitionScope provided")
-}
+val LocalSharedTransitionScope =
+    compositionLocalOf<SharedTransitionScope> {
+      error("No SharedTransitionScope provided")
+    }

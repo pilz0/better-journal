@@ -11,38 +11,36 @@ import foo.pilz.freaklog.ui.tabs.stats.tolerance.ToleranceChartScreen
 import kotlinx.serialization.Serializable
 
 fun NavGraphBuilder.statsGraph(navController: NavHostController) {
-    navigation<StatsTopLevelRoute>(
-        startDestination = StatsScreenRoute,
-    ) {
-        composableWithTransitions<StatsScreenRoute> {
-            StatsScreen(
-                navigateToSubstanceCompanion = { substanceName, consumerName ->
-                    navController.navigate(
-                        SubstanceCompanionRoute(
-                            substanceName = substanceName,
-                            consumerName = consumerName
-                        )
-                    )
-                },
-                navigateToToleranceChart = {
-                    navController.navigate(ToleranceChartRoute)
-                }
+  navigation<StatsTopLevelRoute>(
+      startDestination = StatsScreenRoute,
+  ) {
+    composableWithTransitions<StatsScreenRoute> {
+      StatsScreen(
+          navigateToSubstanceCompanion = { substanceName, consumerName ->
+            navController.navigate(
+                SubstanceCompanionRoute(
+                    substanceName = substanceName,
+                    consumerName = consumerName,
+                )
             )
-        }
-        composableWithTransitions<SubstanceCompanionRoute> {
-            SubstanceCompanionScreen()
-        }
-        composableWithTransitions<ToleranceChartRoute> {
-            ToleranceChartScreen()
-        }
+          },
+          navigateToToleranceChart = {
+            navController.navigate(ToleranceChartRoute)
+          },
+      )
     }
+    composableWithTransitions<SubstanceCompanionRoute> {
+      SubstanceCompanionScreen()
+    }
+    composableWithTransitions<ToleranceChartRoute> {
+      ToleranceChartScreen()
+    }
+  }
 }
 
-@Serializable
-object StatsScreenRoute
+@Serializable object StatsScreenRoute
 
 @Serializable
 data class SubstanceCompanionRoute(val substanceName: String, val consumerName: String? = null)
 
-@Serializable
-object ToleranceChartRoute
+@Serializable object ToleranceChartRoute

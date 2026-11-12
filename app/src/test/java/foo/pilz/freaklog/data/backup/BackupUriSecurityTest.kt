@@ -11,21 +11,22 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
 class BackupUriSecurityTest {
-    @Test
-    fun documentMustBelongToTheSelectedProviderAndTree() {
-        val tree = Uri.parse("content://documents.example/tree/primary%3ABackups")
-        val document = DocumentsContract.buildDocumentUriUsingTree(tree, "primary:Backups/backup.enc")
-        BackupWorker.requireBackupDocumentUri(tree, document)
-        listOf(
+  @Test
+  fun documentMustBelongToTheSelectedProviderAndTree() {
+    val tree = Uri.parse("content://documents.example/tree/primary%3ABackups")
+    val document = DocumentsContract.buildDocumentUriUsingTree(tree, "primary:Backups/backup.enc")
+    BackupWorker.requireBackupDocumentUri(tree, document)
+    listOf(
             "file:///data/user/0/foo.pilz.freaklog/databases/journal",
             "content://other.provider/tree/primary%3ABackups/document/file",
             "content://documents.example/tree/other/document/file",
             "content://documents.example/document/file",
             "content://documents.example/tree/primary%3ABackups/document/file/extra",
-        ).forEach { invalid ->
-            assertThrows(IllegalArgumentException::class.java) {
-                BackupWorker.requireBackupDocumentUri(tree, Uri.parse(invalid))
-            }
+        )
+        .forEach { invalid ->
+          assertThrows(IllegalArgumentException::class.java) {
+            BackupWorker.requireBackupDocumentUri(tree, Uri.parse(invalid))
+          }
         }
-    }
+  }
 }

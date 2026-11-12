@@ -23,20 +23,15 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.platform.LocalContext
 
-/**
- * CompositionLocal to track whether haptic feedback is enabled.
- * Defaults to true (enabled).
- */
+/** CompositionLocal to track whether haptic feedback is enabled. Defaults to true (enabled). */
 val LocalHapticEnabled = compositionLocalOf { true }
 
-/**
- * CompositionLocal to provide access to HapticFeedbackManager throughout the app.
- */
+/** CompositionLocal to provide access to HapticFeedbackManager throughout the app. */
 val LocalHapticFeedbackManager = compositionLocalOf<HapticFeedbackManager?> { null }
 
 /**
- * Provides haptic feedback context to the content.
- * This should be placed at the root of the app's composition.
+ * Provides haptic feedback context to the content. This should be placed at the root of the app's
+ * composition.
  *
  * @param isEnabled Whether haptic feedback is enabled
  * @param content The composable content
@@ -44,31 +39,31 @@ val LocalHapticFeedbackManager = compositionLocalOf<HapticFeedbackManager?> { nu
 @Composable
 fun HapticFeedbackProvider(
     isEnabled: Boolean,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
-    val context = LocalContext.current
-    val hapticManager = HapticFeedbackManager(context)
+  val context = LocalContext.current
+  val hapticManager = HapticFeedbackManager(context)
 
-    CompositionLocalProvider(
-        LocalHapticEnabled provides isEnabled,
-        LocalHapticFeedbackManager provides hapticManager
-    ) {
-        content()
-    }
+  CompositionLocalProvider(
+      LocalHapticEnabled provides isEnabled,
+      LocalHapticFeedbackManager provides hapticManager,
+  ) {
+    content()
+  }
 }
 
 /**
- * Composable function to perform haptic feedback if enabled.
- * Returns a function that can be called to trigger haptic feedback.
+ * Composable function to perform haptic feedback if enabled. Returns a function that can be called
+ * to trigger haptic feedback.
  */
 @Composable
 fun rememberHaptic(): (HapticType) -> Unit {
-    val isEnabled = LocalHapticEnabled.current
-    val manager = LocalHapticFeedbackManager.current
+  val isEnabled = LocalHapticEnabled.current
+  val manager = LocalHapticFeedbackManager.current
 
-    return { type: HapticType ->
-        if (isEnabled) {
-            manager?.performHaptic(type)
-        }
+  return { type: HapticType ->
+    if (isEnabled) {
+      manager?.performHaptic(type)
     }
+  }
 }

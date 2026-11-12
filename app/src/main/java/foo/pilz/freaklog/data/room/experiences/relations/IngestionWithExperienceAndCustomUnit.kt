@@ -25,18 +25,15 @@ import foo.pilz.freaklog.data.room.experiences.entities.Experience
 import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
 
 data class IngestionWithExperienceAndCustomUnit(
-    @Embedded
-    var ingestion: Ingestion,
-
+    @Embedded var ingestion: Ingestion,
     @Relation(
         parentColumn = "experienceId",
-        entityColumn = "id"
+        entityColumn = "id",
     )
     var experience: Experience,
-
     @Relation(
         parentColumn = "customUnitId",
-        entityColumn = "id"
+        entityColumn = "id",
     )
-    var customUnit: CustomUnit?
+    var customUnit: CustomUnit?,
 )

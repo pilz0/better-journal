@@ -55,9 +55,9 @@ naming:
   FunctionNaming:
     # @Composable functions are PascalCase by convention.
     ignoreAnnotated:
-      - 'Composable'
+      - "Composable"
   TopLevelPropertyNaming:
-    constantPattern: '[A-Z][_A-Z0-9]*'
+    constantPattern: "[A-Z][_A-Z0-9]*"
 
 empty-blocks:
   active: true
@@ -75,9 +75,12 @@ formatting:
   autoCorrect: false
   MaximumLineLength:
     maxLineLength: 140
+  # treefmt enforces ktfmt indentation. KtLint cannot represent its continuation style.
   Indentation:
+    active: false
+  ImportOrdering:
     active: true
-    indentSize: 4
+    layout: "*"
   NoWildcardImports:
     active: true
   ArgumentListWrapping:

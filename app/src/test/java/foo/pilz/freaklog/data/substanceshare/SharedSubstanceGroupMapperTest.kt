@@ -13,9 +13,10 @@ import org.junit.Test
 
 class SharedSubstanceGroupMapperTest {
 
-    @Test
-    fun `maps substance group with items and custom unit references`() {
-        val customUnit = CustomUnit(
+  @Test
+  fun `maps substance group with items and custom unit references`() {
+    val customUnit =
+        CustomUnit(
             id = 42,
             substanceName = "LSD",
             name = "Voidrealm",
@@ -31,7 +32,8 @@ class SharedSubstanceGroupMapperTest {
             defaultCategory = IngestionCategory.DEFAULT_INGESTION_CATEGORY,
         )
 
-        val item1 = SubstanceGroupItem(
+    val item1 =
+        SubstanceGroupItem(
             id = 1,
             groupId = 10,
             sortOrder = 0,
@@ -42,7 +44,8 @@ class SharedSubstanceGroupMapperTest {
             customUnitId = 42,
         )
 
-        val item2 = SubstanceGroupItem(
+    val item2 =
+        SubstanceGroupItem(
             id = 2,
             groupId = 10,
             sortOrder = 1,
@@ -53,34 +56,37 @@ class SharedSubstanceGroupMapperTest {
             customUnitId = null,
         )
 
-        val groupWithItems = SubstanceGroupWithItems(
+    val groupWithItems =
+        SubstanceGroupWithItems(
             group = SubstanceGroup(id = 10, name = "Candyflip"),
             items = listOf(item2, item1), // out of order
         )
 
-        val shared = groupWithItems.toShared(
+    val shared =
+        groupWithItems.toShared(
             referencedCustomSubstances = emptyList(),
             referencedCustomUnits = listOf(customUnit),
         )
 
-        assertEquals("Candyflip", shared.name)
-        assertEquals(2, shared.items.size)
-        // sortedItems sorts by sortOrder
-        assertEquals("LSD", shared.items[0].substanceName)
-        assertNotNull(shared.items[0].customUnitRef)
-        assertEquals("Voidrealm", shared.items[0].customUnitRef?.name)
-        assertEquals("MDMA", shared.items[1].substanceName)
-        assertNull(shared.items[1].customUnitRef)
+    assertEquals("Candyflip", shared.name)
+    assertEquals(2, shared.items.size)
+    // sortedItems sorts by sortOrder
+    assertEquals("LSD", shared.items[0].substanceName)
+    assertNotNull(shared.items[0].customUnitRef)
+    assertEquals("Voidrealm", shared.items[0].customUnitRef?.name)
+    assertEquals("MDMA", shared.items[1].substanceName)
+    assertNull(shared.items[1].customUnitRef)
 
-        val entityUnit = shared.customUnits.first().toEntity()
-        assertEquals(customUnit.name, entityUnit.name)
-        assertEquals(customUnit.substanceName, entityUnit.substanceName)
-        assertEquals(customUnit.dose, entityUnit.dose)
-    }
+    val entityUnit = shared.customUnits.first().toEntity()
+    assertEquals(customUnit.name, entityUnit.name)
+    assertEquals(customUnit.substanceName, entityUnit.substanceName)
+    assertEquals(customUnit.dose, entityUnit.dose)
+  }
 
-    @Test
-    fun `shared custom unit with unknown category falls back to null`() {
-        val sharedUnit = SharedCustomUnit(
+  @Test
+  fun `shared custom unit with unknown category falls back to null`() {
+    val sharedUnit =
+        SharedCustomUnit(
             substanceName = "Test",
             name = "One",
             administrationRoute = AdministrationRoute.ORAL,
@@ -90,7 +96,7 @@ class SharedSubstanceGroupMapperTest {
             defaultCategory = "UNKNOWN_NONEXISTENT_CATEGORY",
         )
 
-        val entity = sharedUnit.toEntity()
-        assertNull(entity.defaultCategory)
-    }
+    val entity = sharedUnit.toEntity()
+    assertNull(entity.defaultCategory)
+  }
 }

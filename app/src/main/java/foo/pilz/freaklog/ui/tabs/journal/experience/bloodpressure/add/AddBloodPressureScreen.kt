@@ -29,63 +29,67 @@ import foo.pilz.freaklog.ui.theme.LocalSpacing
 @Composable
 fun AddBloodPressureScreen(
     viewModel: AddBloodPressureViewModel = hiltViewModel(),
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
 ) {
-    val spacing = LocalSpacing.current
-    val context = LocalContext.current
-    val writePermissionLauncher = rememberLauncherForActivityResult(
-        PermissionController.createRequestPermissionResultContract()
-    ) { granted ->
+  val spacing = LocalSpacing.current
+  val context = LocalContext.current
+  val writePermissionLauncher =
+      rememberLauncherForActivityResult(
+          PermissionController.createRequestPermissionResultContract()
+      ) { granted ->
         if (granted.containsAll(BloodPressureHealthConnect.writePermissions)) {
-            viewModel.onDoneTap()
-            navigateBack()
+          viewModel.onDoneTap()
+          navigateBack()
         } else {
-            Toast.makeText(context, "Health Connect permission denied", Toast.LENGTH_SHORT).show()
+          Toast.makeText(context, "Health Connect permission denied", Toast.LENGTH_SHORT).show()
         }
-    }
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Add blood pressure measurement") },
-                actions = {
-                    IconButton(onClick = {
-                        if (viewModel.isInputValid) {
-                            writePermissionLauncher.launch(BloodPressureHealthConnect.writePermissions)
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "Enter valid systolic and diastolic values",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }) {
-                        Icon(
-                            Icons.Filled.Done,
-                            contentDescription = "Done icon"
-                        )
+      }
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Add blood pressure measurement") },
+            actions = {
+              IconButton(
+                  onClick = {
+                    if (viewModel.isInputValid) {
+                      writePermissionLauncher.launch(BloodPressureHealthConnect.writePermissions)
+                    } else {
+                      Toast.makeText(
+                              context,
+                              "Enter valid systolic and diastolic values",
+                              Toast.LENGTH_SHORT,
+                          )
+                          .show()
                     }
-                }
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
+                  }
+              ) {
+                Icon(
+                    Icons.Filled.Done,
+                    contentDescription = "Done icon",
+                )
+              }
+            },
+        )
+      }
+  ) { padding ->
+    Column(
+        modifier =
+            Modifier.padding(padding)
                 .padding(horizontal = spacing.screenHorizontal, vertical = spacing.md),
-            verticalArrangement = Arrangement.spacedBy(spacing.sm)
-        ) {
-            BloodPressureScreenContent(
-                selectedTime = viewModel.localDateTimeFlow.collectAsStateWithLifecycle().value,
-                onTimeChange = viewModel::onChangeTime,
-                diastolic = viewModel.diastolic,
-                systolic = viewModel.systolic,
-                onDiastolicChange = viewModel::onChangeDiastolic,
-                onSystolicChange = viewModel::onChangeSystolic,
-                shouldFocusTextFieldOnAppear = true,
-                systolicError = viewModel.fieldErrors.systolic,
-                diastolicError = viewModel.fieldErrors.diastolic,
-            )
-            Spacer(modifier = Modifier.height(spacing.fabBottomPad))
-        }
+        verticalArrangement = Arrangement.spacedBy(spacing.sm),
+    ) {
+      BloodPressureScreenContent(
+          selectedTime = viewModel.localDateTimeFlow.collectAsStateWithLifecycle().value,
+          onTimeChange = viewModel::onChangeTime,
+          diastolic = viewModel.diastolic,
+          systolic = viewModel.systolic,
+          onDiastolicChange = viewModel::onChangeDiastolic,
+          onSystolicChange = viewModel::onChangeSystolic,
+          shouldFocusTextFieldOnAppear = true,
+          systolicError = viewModel.fieldErrors.systolic,
+          diastolicError = viewModel.fieldErrors.diastolic,
+      )
+      Spacer(modifier = Modifier.height(spacing.fabBottomPad))
     }
+  }
 }

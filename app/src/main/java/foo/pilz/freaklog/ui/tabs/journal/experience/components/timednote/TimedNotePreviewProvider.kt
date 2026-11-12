@@ -24,20 +24,21 @@ import foo.pilz.freaklog.data.room.experiences.entities.TimedNote
 import java.time.Instant
 
 class TimedNotePreviewProvider : PreviewParameterProvider<TimedNote> {
-    override val values: Sequence<TimedNote> = sequenceOf(
-        TimedNote(
-            time = Instant.now(),
-            note = "Hello my name is",
-            color = AdaptiveColor.PURPLE,
-            experienceId = 0,
-            isPartOfTimeline = true
-        ),
-        TimedNote(
-            time = Instant.now(),
-            note = "Hello my name is",
-            color = AdaptiveColor.PURPLE,
-            experienceId = 0,
-            isPartOfTimeline = false
-        )
-    )
+  override val values: Sequence<TimedNote> =
+      sequenceOf(
+          TimedNote(
+              time = Instant.now(),
+              note = "Hello my name is",
+              color = AdaptiveColor.PURPLE,
+              experienceId = 0,
+              isPartOfTimeline = true,
+          ),
+          TimedNote(
+              time = Instant.now(),
+              note = "Hello my name is",
+              color = AdaptiveColor.PURPLE,
+              experienceId = 0,
+              isPartOfTimeline = false,
+          ),
+      )
 }

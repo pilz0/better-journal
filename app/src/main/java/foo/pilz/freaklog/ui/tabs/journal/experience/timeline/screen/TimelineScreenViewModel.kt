@@ -49,6 +49,9 @@ import foo.pilz.freaklog.ui.tabs.settings.combinations.BloodPressureDisplay
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import foo.pilz.freaklog.ui.utils.isHealthConnectAvailable
 import foo.pilz.freaklog.ui.utils.stateInVm
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -59,242 +62,269 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import java.time.Instant
-import java.time.temporal.ChronoUnit
-import javax.inject.Inject
 
 @HiltViewModel
-class TimelineScreenViewModel @Inject constructor(
+class TimelineScreenViewModel
+@Inject
+constructor(
     experienceRepo: ExperienceRepository,
     private val substanceRepo: SubstanceRepository,
     private val userPreferences: UserPreferences,
     private val customProfiles: CustomSubstanceProfiles,
     @ApplicationContext private val context: Context,
-    state: SavedStateHandle
+    state: SavedStateHandle,
 ) : ViewModel() {
 
-    private val areSubstanceHeightsIndependentFlow =
-        userPreferences.areSubstanceHeightsIndependentFlow.stateIn(
-            initialValue = false,
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000)
-        )
+  private val areSubstanceHeightsIndependentFlow =
+      userPreferences.areSubstanceHeightsIndependentFlow.stateIn(
+          initialValue = false,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    private val timelineRoute = state.toRoute<TimelineScreenRoute>()
-    private val experienceID = timelineRoute.experienceId
-    val consumerName = timelineRoute.consumerName
+  private val timelineRoute = state.toRoute<TimelineScreenRoute>()
+  private val experienceID = timelineRoute.experienceId
+  val consumerName = timelineRoute.consumerName
 
-    private val ingestionsWithCompanionsFlow =
-        experienceRepo.getIngestionsWithCompanionsFlow(experienceID)
-            .map { ingestions ->
-                ingestions.filter {
-                    if (consumerName == YOU) {
-                        it.ingestion.consumerName == null
-                    } else {
-                        it.ingestion.consumerName == consumerName
-                    }
-                }
-            }
-
-    private val ratingsFlow = experienceRepo.getRatingsFlow(experienceID)
-
-    private val timedNotesFlow = experienceRepo.getTimedNotesFlowSorted(experienceID)
-
-    private val currentTimeFlow: Flow<Instant> = flow {
-        while (true) {
-            emit(Instant.now())
-            delay(timeMillis = 1000 * 10)
+  private val ingestionsWithCompanionsFlow =
+      experienceRepo.getIngestionsWithCompanionsFlow(experienceID).map { ingestions ->
+        ingestions.filter {
+          if (consumerName == YOU) {
+            it.ingestion.consumerName == null
+          } else {
+            it.ingestion.consumerName == consumerName
+          }
         }
+      }
+
+  private val ratingsFlow = experienceRepo.getRatingsFlow(experienceID)
+
+  private val timedNotesFlow = experienceRepo.getTimedNotesFlowSorted(experienceID)
+
+  private val currentTimeFlow: Flow<Instant> = flow {
+    while (true) {
+      emit(Instant.now())
+      delay(timeMillis = 1000 * 10)
     }
+  }
 
-    private val isCurrentExperienceFlow =
-        ingestionsWithCompanionsFlow.combine(currentTimeFlow) { ingestionsWithCompanions, currentTime ->
-            val ingestionTimes =
-                ingestionsWithCompanions.map { it.ingestion.time }
-            val lastIngestionTime = ingestionTimes.maxOrNull() ?: return@combine false
-            val limitAgo = currentTime.minus(hourLimitToSeparateIngestions, ChronoUnit.HOURS)
-            return@combine limitAgo < lastIngestionTime
-        }
+  private val isCurrentExperienceFlow =
+      ingestionsWithCompanionsFlow.combine(currentTimeFlow) { ingestionsWithCompanions, currentTime
+        ->
+        val ingestionTimes = ingestionsWithCompanions.map { it.ingestion.time }
+        val lastIngestionTime = ingestionTimes.maxOrNull() ?: return@combine false
+        val limitAgo = currentTime.minus(hourLimitToSeparateIngestions, ChronoUnit.HOURS)
+        return@combine limitAgo < lastIngestionTime
+      }
 
-    val timeDisplayOptionFlow =
-        userPreferences.savedTimeDisplayOptionFlow.combine(isCurrentExperienceFlow) { savedOption: SavedTimeDisplayOption, isCurrentExperience: Boolean ->
+  val timeDisplayOptionFlow =
+      userPreferences.savedTimeDisplayOptionFlow
+          .combine(isCurrentExperienceFlow) {
+              savedOption: SavedTimeDisplayOption,
+              isCurrentExperience: Boolean ->
             when (savedOption) {
-                SavedTimeDisplayOption.AUTO -> if (isCurrentExperience) TimeDisplayOption.RELATIVE_TO_NOW else TimeDisplayOption.REGULAR
-                SavedTimeDisplayOption.RELATIVE_TO_NOW -> TimeDisplayOption.RELATIVE_TO_NOW
-                SavedTimeDisplayOption.RELATIVE_TO_START -> TimeDisplayOption.RELATIVE_TO_START
-                SavedTimeDisplayOption.TIME_BETWEEN -> TimeDisplayOption.TIME_BETWEEN
-                SavedTimeDisplayOption.REGULAR -> TimeDisplayOption.REGULAR
+              SavedTimeDisplayOption.AUTO ->
+                  if (isCurrentExperience) TimeDisplayOption.RELATIVE_TO_NOW
+                  else TimeDisplayOption.REGULAR
+              SavedTimeDisplayOption.RELATIVE_TO_NOW -> TimeDisplayOption.RELATIVE_TO_NOW
+              SavedTimeDisplayOption.RELATIVE_TO_START -> TimeDisplayOption.RELATIVE_TO_START
+              SavedTimeDisplayOption.TIME_BETWEEN -> TimeDisplayOption.TIME_BETWEEN
+              SavedTimeDisplayOption.REGULAR -> TimeDisplayOption.REGULAR
             }
-        }.stateIn(
-            initialValue = TimeDisplayOption.REGULAR,
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000)
+          }
+          .stateIn(
+              initialValue = TimeDisplayOption.REGULAR,
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+          )
+
+  private val sortedIngestionsWithCompanionsFlow =
+      ingestionsWithCompanionsFlow.map { ingestionsWithCompanions ->
+        ingestionsWithCompanions.sortedBy { it.ingestion.time }
+      }
+
+  private data class IngestionWithAssociatedData(
+      val ingestionWithCompanionAndCustomUnit: IngestionWithCompanionAndCustomUnit,
+      val roaDuration: RoaDuration?,
+      val roaDose: RoaDose?,
+  )
+
+  private val ingestionsWithAssociatedDataFlow: Flow<List<IngestionWithAssociatedData>> =
+      combine(
+          sortedIngestionsWithCompanionsFlow,
+          customProfiles.byNameFlow,
+          userPreferences.useIntranasalForRectalFlow,
+      ) { ingestionsWithComps, profiles, useIntranasalForRectal ->
+        ingestionsWithComps.map { oneIngestionWithComp ->
+          val ingestion = oneIngestionWithComp.ingestion
+          val roa =
+              substanceRepo
+                  .getSubstance(oneIngestionWithComp.ingestion.substanceName)
+                  ?.getEffectiveRoa(ingestion.administrationRoute, useIntranasalForRectal)
+                  ?: foo.pilz.freaklog.data.room.experiences.findEffectiveRoa(
+                      profiles,
+                      ingestion.substanceName,
+                      ingestion.administrationRoute,
+                      useIntranasalForRectal,
+                  )
+          val roaDuration = roa?.roaDuration
+          IngestionWithAssociatedData(
+              ingestionWithCompanionAndCustomUnit = oneIngestionWithComp,
+              roaDuration = roaDuration,
+              roaDose = roa?.roaDose,
+          )
+        }
+      }
+
+  private val dataForEffectLinesFlow =
+      ingestionsWithAssociatedDataFlow.map { ingestionWithAssociatedData ->
+        val ingestionElements = getIngestionElements(ingestionWithAssociatedData)
+        val substances = ingestionElements.mapNotNull {
+          substanceRepo.getSubstance(it.ingestionWithCompanionAndCustomUnit.ingestion.substanceName)
+        }
+        ExperienceViewModel.getDataForEffectTimelines(
+            ingestionElements = ingestionElements,
+            substances = substances,
         )
+      }
 
+  val timelineDisplayOptionFlow =
+      combine(
+              dataForEffectLinesFlow,
+              ratingsFlow,
+              timedNotesFlow,
+              areSubstanceHeightsIndependentFlow,
+          ) { dataForEffectLines, ratings, timedNotesSorted, areSubstanceHeightsIndependent ->
+            val newRatings = if (consumerName == YOU) ratings else emptyList()
+            val newTimedNotes = if (consumerName == YOU) timedNotesSorted else emptyList()
 
-    private val sortedIngestionsWithCompanionsFlow =
-        ingestionsWithCompanionsFlow.map { ingestionsWithCompanions ->
-            ingestionsWithCompanions.sortedBy { it.ingestion.time }
-        }
-
-    private data class IngestionWithAssociatedData(
-        val ingestionWithCompanionAndCustomUnit: IngestionWithCompanionAndCustomUnit,
-        val roaDuration: RoaDuration?,
-        val roaDose: RoaDose?
-    )
-
-    private val ingestionsWithAssociatedDataFlow: Flow<List<IngestionWithAssociatedData>> =
-        combine(
-            sortedIngestionsWithCompanionsFlow,
-            customProfiles.byNameFlow,
-            userPreferences.useIntranasalForRectalFlow
-        ) { ingestionsWithComps, profiles, useIntranasalForRectal ->
-            ingestionsWithComps.map { oneIngestionWithComp ->
-                val ingestion = oneIngestionWithComp.ingestion
-                val roa = substanceRepo.getSubstance(oneIngestionWithComp.ingestion.substanceName)
-                    ?.getEffectiveRoa(ingestion.administrationRoute, useIntranasalForRectal)
-                    ?: foo.pilz.freaklog.data.room.experiences.findEffectiveRoa(
-                        profiles,
-                        ingestion.substanceName,
-                        ingestion.administrationRoute,
-                        useIntranasalForRectal
-                    )
-                val roaDuration = roa?.roaDuration
-                IngestionWithAssociatedData(
-                    ingestionWithCompanionAndCustomUnit = oneIngestionWithComp,
-                    roaDuration = roaDuration,
-                    roaDose = roa?.roaDose
-                )
-            }
-        }
-
-    private val dataForEffectLinesFlow =
-        ingestionsWithAssociatedDataFlow.map { ingestionWithAssociatedData ->
-            val ingestionElements = getIngestionElements(ingestionWithAssociatedData)
-            val substances =
-                ingestionElements.mapNotNull { substanceRepo.getSubstance(it.ingestionWithCompanionAndCustomUnit.ingestion.substanceName) }
-            ExperienceViewModel.getDataForEffectTimelines(
-                ingestionElements = ingestionElements,
-                substances = substances
-            )
-        }
-
-    val timelineDisplayOptionFlow = combine(
-        dataForEffectLinesFlow,
-        ratingsFlow,
-        timedNotesFlow,
-        areSubstanceHeightsIndependentFlow
-    ) { dataForEffectLines, ratings, timedNotesSorted, areSubstanceHeightsIndependent ->
-
-        val newRatings = if (consumerName == YOU) ratings else emptyList()
-        val newTimedNotes = if (consumerName == YOU) timedNotesSorted else emptyList()
-
-        if (dataForEffectLines.isEmpty()) {
-            return@combine TimelineDisplayOption.NotWorthDrawing
-        } else {
-            val dataForRatings = newRatings.mapNotNull {
+            if (dataForEffectLines.isEmpty()) {
+              return@combine TimelineDisplayOption.NotWorthDrawing
+            } else {
+              val dataForRatings = newRatings.mapNotNull {
                 val ratingTime = it.time
                 return@mapNotNull if (ratingTime == null) {
-                    null
+                  null
                 } else {
-                    DataForOneRating(
-                        time = ratingTime,
-                        option = it.option
-                    )
+                  DataForOneRating(
+                      time = ratingTime,
+                      option = it.option,
+                  )
                 }
-            }
-            val dataForTimedNotes =
-                newTimedNotes.filter { it.isPartOfTimeline }
-                    .map {
+              }
+              val dataForTimedNotes =
+                  newTimedNotes
+                      .filter { it.isPartOfTimeline }
+                      .map {
                         DataForOneTimedNote(time = it.time, color = it.color)
-                    }
-            val isWorthDrawing =
-                dataForEffectLines.isNotEmpty() && !(dataForEffectLines.all { it.roaDuration == null } && newRatings.isEmpty() && newTimedNotes.isEmpty())
-            if (isWorthDrawing) {
-                val model = AllTimelinesModel(
-                    dataForLines = dataForEffectLines,
-                    dataForRatings = dataForRatings,
-                    timedNotes = dataForTimedNotes,
-                    areSubstanceHeightsIndependent = areSubstanceHeightsIndependent
-                )
+                      }
+              val isWorthDrawing =
+                  dataForEffectLines.isNotEmpty() &&
+                      !(dataForEffectLines.all { it.roaDuration == null } &&
+                          newRatings.isEmpty() &&
+                          newTimedNotes.isEmpty())
+              if (isWorthDrawing) {
+                val model =
+                    AllTimelinesModel(
+                        dataForLines = dataForEffectLines,
+                        dataForRatings = dataForRatings,
+                        timedNotes = dataForTimedNotes,
+                        areSubstanceHeightsIndependent = areSubstanceHeightsIndependent,
+                    )
                 return@combine TimelineDisplayOption.Shown(model)
-            } else {
+              } else {
                 return@combine TimelineDisplayOption.NotWorthDrawing
+              }
             }
-        }
-    }.flowOn(Dispatchers.Default)
-        .stateIn(
-        initialValue = TimelineDisplayOption.Loading,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+          }
+          .flowOn(Dispatchers.Default)
+          .stateIn(
+              initialValue = TimelineDisplayOption.Loading,
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+          )
 
-    private fun getIngestionElements(sortedIngestionsWith: List<IngestionWithAssociatedData>): List<IngestionElement> {
-        return sortedIngestionsWith.map { ingestionWith ->
-            val customUnit = ingestionWith.ingestionWithCompanionAndCustomUnit.customUnit
-            val numDots = if (customUnit != null) {
-                ingestionWith.roaDose?.getNumDots(
-                    ingestionDose = ingestionWith.ingestionWithCompanionAndCustomUnit.customUnitDose?.calculatedDose,
-                    ingestionUnits = customUnit.originalUnit
-                )
-            } else {
-                ingestionWith.roaDose?.getNumDots(
-                    ingestionDose = ingestionWith.ingestionWithCompanionAndCustomUnit.ingestion.dose,
-                    ingestionUnits = ingestionWith.ingestionWithCompanionAndCustomUnit.ingestion.units
-                )
-            }
-            IngestionElement(
-                ingestionWithCompanionAndCustomUnit = ingestionWith.ingestionWithCompanionAndCustomUnit,
-                roaDuration = ingestionWith.roaDuration,
-                numDots = numDots,
-                roaDose = ingestionWith.roaDose
+  private fun getIngestionElements(
+      sortedIngestionsWith: List<IngestionWithAssociatedData>
+  ): List<IngestionElement> {
+    return sortedIngestionsWith.map { ingestionWith ->
+      val customUnit = ingestionWith.ingestionWithCompanionAndCustomUnit.customUnit
+      val numDots =
+          if (customUnit != null) {
+            ingestionWith.roaDose?.getNumDots(
+                ingestionDose =
+                    ingestionWith.ingestionWithCompanionAndCustomUnit.customUnitDose
+                        ?.calculatedDose,
+                ingestionUnits = customUnit.originalUnit,
             )
-        }
+          } else {
+            ingestionWith.roaDose?.getNumDots(
+                ingestionDose = ingestionWith.ingestionWithCompanionAndCustomUnit.ingestion.dose,
+                ingestionUnits = ingestionWith.ingestionWithCompanionAndCustomUnit.ingestion.units,
+            )
+          }
+      IngestionElement(
+          ingestionWithCompanionAndCustomUnit = ingestionWith.ingestionWithCompanionAndCustomUnit,
+          roaDuration = ingestionWith.roaDuration,
+          numDots = numDots,
+          roaDose = ingestionWith.roaDose,
+      )
     }
+  }
 
-    @Suppress("TooGenericExceptionCaught")
-    private fun <T> healthConnectFlow(
-        enabledFlow: Flow<Boolean>,
-        isAvailable: () -> Boolean,
-        isPermissionGranted: suspend () -> Boolean,
-        read: suspend (start: Instant, end: Instant) -> List<T>,
-    ) = combine(timelineDisplayOptionFlow, enabledFlow) { option, isEnabled ->
-        (option as? TimelineDisplayOption.Shown)?.allTimelinesModel?.takeIf { isEnabled }
-    }.map { model ->
-        if (model == null || consumerName != YOU || !isAvailable()) return@map emptyList()
-        try {
-            if (!isPermissionGranted()) return@map emptyList()
-            read(model.startTime, model.startTime.plusSeconds(model.widthInSeconds.toLong()))
-        } catch (e: CancellationException) {
-            throw e
-        } catch (_: Exception) {
-            emptyList()
-        }
-    }.stateInVm(viewModelScope, emptyList<T>())
+  @Suppress("TooGenericExceptionCaught")
+  private fun <T> healthConnectFlow(
+      enabledFlow: Flow<Boolean>,
+      isAvailable: () -> Boolean,
+      isPermissionGranted: suspend () -> Boolean,
+      read: suspend (start: Instant, end: Instant) -> List<T>,
+  ) =
+      combine(timelineDisplayOptionFlow, enabledFlow) { option, isEnabled ->
+            (option as? TimelineDisplayOption.Shown)?.allTimelinesModel?.takeIf { isEnabled }
+          }
+          .map { model ->
+            if (model == null || consumerName != YOU || !isAvailable()) return@map emptyList()
+            try {
+              if (!isPermissionGranted()) return@map emptyList()
+              read(model.startTime, model.startTime.plusSeconds(model.widthInSeconds.toLong()))
+            } catch (e: CancellationException) {
+              throw e
+            } catch (_: Exception) {
+              emptyList()
+            }
+          }
+          .stateInVm(viewModelScope, emptyList<T>())
 
-    val heartRateSamplesFlow = healthConnectFlow(
-        enabledFlow = userPreferences.isVitalsEnabledFlow,
-        isAvailable = { HeartRateHealthConnect.isAvailable(context) },
-        isPermissionGranted = { HeartRateHealthConnect.isPermissionGranted(context) },
-        read = { start, end -> HeartRateHealthConnect.read(context, start, end) },
-    )
+  val heartRateSamplesFlow =
+      healthConnectFlow(
+          enabledFlow = userPreferences.isVitalsEnabledFlow,
+          isAvailable = { HeartRateHealthConnect.isAvailable(context) },
+          isPermissionGranted = { HeartRateHealthConnect.isPermissionGranted(context) },
+          read = { start, end -> HeartRateHealthConnect.read(context, start, end) },
+      )
 
-    val sleepSamplesFlow = healthConnectFlow(
-        enabledFlow = userPreferences.isVitalsEnabledFlow,
-        isAvailable = { isHealthConnectAvailable(context) },
-        isPermissionGranted = { SleepHealthConnect.isPermissionGranted(context) },
-        read = { start, end -> SleepHealthConnect.read(context, start, end) },
-    )
+  val sleepSamplesFlow =
+      healthConnectFlow(
+          enabledFlow = userPreferences.isVitalsEnabledFlow,
+          isAvailable = { isHealthConnectAvailable(context) },
+          isPermissionGranted = { SleepHealthConnect.isPermissionGranted(context) },
+          read = { start, end -> SleepHealthConnect.read(context, start, end) },
+      )
 
-    val showSleepStagesFlow = userPreferences.areSleepStagesEnabledFlow.stateInVm(viewModelScope, false)
+  val showSleepStagesFlow =
+      userPreferences.areSleepStagesEnabledFlow.stateInVm(viewModelScope, false)
 
-    val bloodPressureReadingsFlow = healthConnectFlow(
-        enabledFlow = combine(
-            userPreferences.isVitalsEnabledFlow,
-            userPreferences.bloodPressureDisplayFlow,
-        ) { vitals, display -> vitals && display != BloodPressureDisplay.OFF },
-        isAvailable = { BloodPressureHealthConnect.isAvailable(context) },
-        isPermissionGranted = { BloodPressureHealthConnect.isPermissionGranted(context) },
-        read = { start, end -> BloodPressureHealthConnect.read(context, start, end) },
-    )
+  val bloodPressureReadingsFlow =
+      healthConnectFlow(
+          enabledFlow =
+              combine(
+                  userPreferences.isVitalsEnabledFlow,
+                  userPreferences.bloodPressureDisplayFlow,
+              ) { vitals, display ->
+                vitals && display != BloodPressureDisplay.OFF
+              },
+          isAvailable = { BloodPressureHealthConnect.isAvailable(context) },
+          isPermissionGranted = { BloodPressureHealthConnect.isPermissionGranted(context) },
+          read = { start, end -> BloodPressureHealthConnect.read(context, start, end) },
+      )
 }

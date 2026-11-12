@@ -13,155 +13,155 @@ import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
 import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithEverything
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.substanceshare.SharedSubstanceExpansion
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.flowOn
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Singleton
-class CustomSubstanceRepository @Inject constructor(
+class CustomSubstanceRepository
+@Inject
+constructor(
     private val db: AppDatabase,
     private val dao: ExperienceDao,
 ) {
 
-    fun getWithEverythingFlow(id: Int): Flow<CustomSubstanceWithEverything?> =
-        dao.getCustomSubstanceWithEverythingFlow(id)
-            .flowOn(Dispatchers.IO)
-            .conflate()
+  fun getWithEverythingFlow(id: Int): Flow<CustomSubstanceWithEverything?> =
+      dao.getCustomSubstanceWithEverythingFlow(id).flowOn(Dispatchers.IO).conflate()
 
-    suspend fun getWithEverything(id: Int): CustomSubstanceWithEverything? =
-        dao.getCustomSubstanceWithEverything(id)
+  suspend fun getWithEverything(id: Int): CustomSubstanceWithEverything? =
+      dao.getCustomSubstanceWithEverything(id)
 
-    suspend fun getWithEverythingByName(name: String): CustomSubstanceWithEverything? =
-        dao.getCustomSubstanceWithEverythingByName(name)
+  suspend fun getWithEverythingByName(name: String): CustomSubstanceWithEverything? =
+      dao.getCustomSubstanceWithEverythingByName(name)
 
-    suspend fun getWithEverythingByNames(names: List<String>): List<CustomSubstanceWithEverything> =
-        if (names.isEmpty()) emptyList() else dao.getCustomSubstancesWithEverythingByNames(names)
+  suspend fun getWithEverythingByNames(names: List<String>): List<CustomSubstanceWithEverything> =
+      if (names.isEmpty()) emptyList() else dao.getCustomSubstancesWithEverythingByNames(names)
 
-    suspend fun getExistingNames(names: List<String>): Set<String> =
-        if (names.isEmpty()) emptySet() else dao.getExistingCustomSubstanceNames(names).toSet()
+  suspend fun getExistingNames(names: List<String>): Set<String> =
+      if (names.isEmpty()) emptySet() else dao.getExistingCustomSubstanceNames(names).toSet()
 
-    suspend fun update(substance: CustomSubstance) = dao.update(substance)
+  suspend fun update(substance: CustomSubstance) = dao.update(substance)
 
-    suspend fun delete(substance: CustomSubstance) = dao.delete(substance)
+  suspend fun delete(substance: CustomSubstance) = dao.delete(substance)
 
-    suspend fun renameCustom(oldName: String, newName: String) =
-        dao.renameCustomSubstance(oldName, newName)
+  suspend fun renameCustom(oldName: String, newName: String) =
+      dao.renameCustomSubstance(oldName, newName)
 
-    suspend fun setAllRoaDoseUnits(substanceId: Int, units: String) =
-        dao.setAllCustomRoaDoseUnits(substanceId, units)
+  suspend fun setAllRoaDoseUnits(substanceId: Int, units: String) =
+      dao.setAllCustomRoaDoseUnits(substanceId, units)
 
-    suspend fun upsertRoa(substanceId: Int, roa: CustomRoa) {
-        roa.customSubstanceId = substanceId
-        dao.insert(roa)
+  suspend fun upsertRoa(substanceId: Int, roa: CustomRoa) {
+    roa.customSubstanceId = substanceId
+    dao.insert(roa)
+  }
+
+  suspend fun deleteRoa(roa: CustomRoa) = dao.delete(roa)
+
+  suspend fun upsertDose(substanceId: Int, dose: CustomRoaDose) =
+      dao.upsertCustomRoaDose(substanceId, dose)
+
+  suspend fun deleteDose(dose: CustomRoaDose) = dao.delete(dose)
+
+  suspend fun upsertDuration(substanceId: Int, duration: CustomRoaDuration) {
+    duration.customSubstanceId = substanceId
+    dao.insert(duration)
+  }
+
+  suspend fun deleteDuration(duration: CustomRoaDuration) = dao.delete(duration)
+
+  suspend fun deleteRouteEverywhere(substanceId: Int, route: AdministrationRoute) {
+    db.withTransaction {
+      dao.getCustomRoa(substanceId, route)?.let { dao.delete(it) }
+      dao.getCustomRoaDose(substanceId, route)?.let { dao.delete(it) }
+      dao.getCustomRoaDurations(substanceId).find { it.route == route }?.let { dao.delete(it) }
     }
+  }
 
-    suspend fun deleteRoa(roa: CustomRoa) = dao.delete(roa)
+  suspend fun upsertInteraction(substanceId: Int, interaction: CustomInteraction) {
+    interaction.customSubstanceId = substanceId
+    dao.insert(interaction)
+  }
 
-    suspend fun upsertDose(substanceId: Int, dose: CustomRoaDose) =
-        dao.upsertCustomRoaDose(substanceId, dose)
+  suspend fun deleteInteraction(interaction: CustomInteraction) = dao.delete(interaction)
 
-    suspend fun deleteDose(dose: CustomRoaDose) = dao.delete(dose)
+  suspend fun deleteInteraction(id: Int) = dao.deleteCustomInteraction(id)
 
-    suspend fun upsertDuration(substanceId: Int, duration: CustomRoaDuration) {
-        duration.customSubstanceId = substanceId
-        dao.insert(duration)
-    }
+  fun getInteractionsFlow(substanceId: Int): Flow<List<CustomInteraction>> =
+      dao.getCustomInteractionsFlow(substanceId).flowOn(Dispatchers.IO).conflate()
 
-    suspend fun deleteDuration(duration: CustomRoaDuration) = dao.delete(duration)
+  suspend fun getInteractions(substanceId: Int): List<CustomInteraction> =
+      dao.getCustomInteractions(substanceId)
 
-    suspend fun deleteRouteEverywhere(substanceId: Int, route: AdministrationRoute) {
-        db.withTransaction {
-            dao.getCustomRoa(substanceId, route)?.let { dao.delete(it) }
-            dao.getCustomRoaDose(substanceId, route)?.let { dao.delete(it) }
-            dao.getCustomRoaDurations(substanceId)
-                .find { it.route == route }
-                ?.let { dao.delete(it) }
-        }
-    }
+  suspend fun getInteractions(substanceName: String): List<CustomInteraction> =
+      dao.getCustomInteractions(substanceName)
 
-    suspend fun upsertInteraction(substanceId: Int, interaction: CustomInteraction) {
-        interaction.customSubstanceId = substanceId
-        dao.insert(interaction)
-    }
+  suspend fun getInteractions(
+      substanceId: Int,
+      severity: CustomInteractionSeverity,
+  ): List<CustomInteraction> = dao.getCustomInteractions(substanceId, severity)
 
-    suspend fun deleteInteraction(interaction: CustomInteraction) = dao.delete(interaction)
-
-    suspend fun deleteInteraction(id: Int) = dao.deleteCustomInteraction(id)
-
-    fun getInteractionsFlow(substanceId: Int): Flow<List<CustomInteraction>> =
-        dao.getCustomInteractionsFlow(substanceId).flowOn(Dispatchers.IO).conflate()
-
-    suspend fun getInteractions(substanceId: Int): List<CustomInteraction> =
-        dao.getCustomInteractions(substanceId)
-
-    suspend fun getInteractions(substanceName: String): List<CustomInteraction> =
-        dao.getCustomInteractions(substanceName)
-
-    suspend fun getInteractions(
-        substanceId: Int,
-        severity: CustomInteractionSeverity
-    ): List<CustomInteraction> =
-        dao.getCustomInteractions(substanceId, severity)
-
-    suspend fun assignCategory(substanceId: Int, categoryName: String) {
-        dao.insert(
-            CustomCategoryAssignment(
-                customSubstanceId = substanceId,
-                categoryName = categoryName
-            )
+  suspend fun assignCategory(substanceId: Int, categoryName: String) {
+    dao.insert(
+        CustomCategoryAssignment(
+            customSubstanceId = substanceId,
+            categoryName = categoryName,
         )
-    }
+    )
+  }
 
-    suspend fun unassignCategory(substanceId: Int, categoryName: String) =
-        dao.deleteCustomCategory(substanceId, categoryName)
+  suspend fun unassignCategory(substanceId: Int, categoryName: String) =
+      dao.deleteCustomCategory(substanceId, categoryName)
 
-    fun getCategoriesFlow(substanceId: Int): Flow<List<CustomCategoryAssignment>> =
-        dao.getCustomCategoriesFlow(substanceId).flowOn(Dispatchers.IO).conflate()
+  fun getCategoriesFlow(substanceId: Int): Flow<List<CustomCategoryAssignment>> =
+      dao.getCustomCategoriesFlow(substanceId).flowOn(Dispatchers.IO).conflate()
 
-    suspend fun getCategories(substanceId: Int): List<CustomCategoryAssignment> =
-        dao.getCustomCategories(substanceId)
+  suspend fun getCategories(substanceId: Int): List<CustomCategoryAssignment> =
+      dao.getCustomCategories(substanceId)
 
-    suspend fun assignCrossTolerance(substanceId: Int, categoryName: String) {
-        dao.insert(
-            CustomCrossTolerance(
-                customSubstanceId = substanceId,
-                categoryName = categoryName
-            )
+  suspend fun assignCrossTolerance(substanceId: Int, categoryName: String) {
+    dao.insert(
+        CustomCrossTolerance(
+            customSubstanceId = substanceId,
+            categoryName = categoryName,
         )
-    }
+    )
+  }
 
-    suspend fun unassignCrossTolerance(substanceId: Int, categoryName: String) =
-        dao.deleteCustomCrossTolerance(substanceId, categoryName)
+  suspend fun unassignCrossTolerance(substanceId: Int, categoryName: String) =
+      dao.deleteCustomCrossTolerance(substanceId, categoryName)
 
-    fun getCrossTolerancesFlow(substanceId: Int): Flow<List<CustomCrossTolerance>> =
-        dao.getCustomCrossTolerancesFlow(substanceId).flowOn(Dispatchers.IO).conflate()
+  fun getCrossTolerancesFlow(substanceId: Int): Flow<List<CustomCrossTolerance>> =
+      dao.getCustomCrossTolerancesFlow(substanceId).flowOn(Dispatchers.IO).conflate()
 
-    suspend fun getCrossTolerances(substanceId: Int): List<CustomCrossTolerance> =
-        dao.getCustomCrossTolerances(substanceId)
+  suspend fun getCrossTolerances(substanceId: Int): List<CustomCrossTolerance> =
+      dao.getCustomCrossTolerances(substanceId)
 
-    suspend fun insertFromShared(expansion: SharedSubstanceExpansion): Int =
-        dao.insertCustomSubstanceWithFullRoaInfo(
-            substance = expansion.substance,
-            durations = expansion.durations,
-            doses = expansion.doses,
-            roas = expansion.roas,
-            interactions = expansion.interactions,
-            categories = expansion.categories,
-            crossTolerances = expansion.crossTolerances,
-        )
+  suspend fun insertFromShared(expansion: SharedSubstanceExpansion): Int =
+      dao.insertCustomSubstanceWithFullRoaInfo(
+          substance = expansion.substance,
+          durations = expansion.durations,
+          doses = expansion.doses,
+          roas = expansion.roas,
+          interactions = expansion.interactions,
+          categories = expansion.categories,
+          crossTolerances = expansion.crossTolerances,
+      )
 
-    suspend fun replaceFromShared(existing: CustomSubstance, expansion: SharedSubstanceExpansion): Int =
-        dao.replaceCustomSubstanceWithFullRoaInfo(
-            existing = existing,
-            substance = expansion.substance,
-            durations = expansion.durations,
-            doses = expansion.doses,
-            roas = expansion.roas,
-            interactions = expansion.interactions,
-            categories = expansion.categories,
-            crossTolerances = expansion.crossTolerances,
-        )
+  suspend fun replaceFromShared(
+      existing: CustomSubstance,
+      expansion: SharedSubstanceExpansion,
+  ): Int =
+      dao.replaceCustomSubstanceWithFullRoaInfo(
+          existing = existing,
+          substance = expansion.substance,
+          durations = expansion.durations,
+          doses = expansion.doses,
+          roas = expansion.roas,
+          interactions = expansion.interactions,
+          categories = expansion.categories,
+          crossTolerances = expansion.crossTolerances,
+      )
 }

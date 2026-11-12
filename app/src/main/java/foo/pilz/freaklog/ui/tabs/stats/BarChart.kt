@@ -42,169 +42,167 @@ import kotlin.math.roundToInt
 
 @Composable
 fun BarChart(buckets: List<List<ColorCount>>, startDateText: String) {
-    Column {
-        val isDarkTheme = isSystemInDarkTheme()
-        val tickColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)
-        val gridLineColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
-        val averageLineColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
-        val labelStyle = MaterialTheme.typography.labelSmall.fontSize
-        val labelHeight = with(LocalDensity.current) { labelStyle.toPx() }
-        val yAxisLabelPaint = remember(labelHeight) {
-            Paint().apply {
-                textSize = labelHeight
-                color = Color.GRAY
-                textAlign = Paint.Align.RIGHT
-            }
+  Column {
+    val isDarkTheme = isSystemInDarkTheme()
+    val tickColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)
+    val gridLineColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+    val averageLineColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+    val labelStyle = MaterialTheme.typography.labelSmall.fontSize
+    val labelHeight = with(LocalDensity.current) { labelStyle.toPx() }
+    val yAxisLabelPaint =
+        remember(labelHeight) {
+          Paint().apply {
+            textSize = labelHeight
+            color = Color.GRAY
+            textAlign = Paint.Align.RIGHT
+          }
         }
-        val dashPathEffect = remember {
-            PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
-        }
-        Canvas(
-            modifier = Modifier
-                .padding(horizontal = 10.dp)
-                .fillMaxWidth()
-                .height(200.dp)
-        ) {
-            if (buckets.isEmpty()) return@Canvas
-            val canvasHeightOuter = size.height
-            if (canvasHeightOuter > 0) { // for unknown reason canvasHeight can be 0 and then the app crashes
-                val maxCount = buckets.maxOfOrNull { it.sumOf { c -> c.count } }?.coerceAtLeast(1) ?: 1
-
-                // Middle grid line; rounded so small counts (< 4) don't truncate to 0
-                val half = (maxCount / 2.0).roundToInt().coerceAtLeast(1)
-                val halfLineHeight = half.toFloat() * canvasHeightOuter / maxCount
-                val halfLabelHeight = labelHeight / 2
-                val numLettersInLabel = maxCount.toString().length
-                val labelWidth = (numLettersInLabel + 1) * labelHeight * 0.6f
-                val spaceBetweenLabelAndChart = labelHeight * 0.5f
-
-                // Draw Y-axis labels
-                drawContext.canvas.nativeCanvas.apply {
-                    drawText(
-                        half.toString(),
-                        labelWidth - spaceBetweenLabelAndChart,
-                        canvasHeightOuter - halfLineHeight + halfLabelHeight,
-                        yAxisLabelPaint
-                    )
-                    drawText(
-                        maxCount.toString(),
-                        labelWidth - spaceBetweenLabelAndChart,
-                        halfLabelHeight,
-                        yAxisLabelPaint
-                    )
-                }
-
-                inset(left = labelWidth, right = 0f, top = 0f, bottom = 0f) {
-                    val horizontalLinesWidth = 3f
-                    val canvasWidthWithoutLabel = size.width
-
-                    // top grid line
-                    drawLine(
-                        color = gridLineColor,
-                        start = Offset(x = 0f, y = 0f),
-                        end = Offset(x = canvasWidthWithoutLabel, y = 0f),
-                        strokeWidth = horizontalLinesWidth / 2,
-                        cap = StrokeCap.Round
-                    )
-                    // middle grid line
-                    drawLine(
-                        color = gridLineColor,
-                        start = Offset(x = 0f, y = canvasHeightOuter - halfLineHeight),
-                        end = Offset(
-                            x = canvasWidthWithoutLabel,
-                            y = canvasHeightOuter - halfLineHeight
-                        ),
-                        strokeWidth = horizontalLinesWidth / 2,
-                        cap = StrokeCap.Round
-                    )
-                    // bottom line (X-axis)
-                    val tickHeight = 6f
-                    val numBuckets = buckets.size
-                    val spaceBetweenTicks = canvasWidthWithoutLabel / numBuckets
-                    val numSpacers = numBuckets + 1
-                    drawLine(
-                        color = tickColor,
-                        start = Offset(x = 0f, y = canvasHeightOuter - tickHeight),
-                        end = Offset(
-                            x = canvasWidthWithoutLabel,
-                            y = canvasHeightOuter - tickHeight
-                        ),
-                        strokeWidth = horizontalLinesWidth,
-                        cap = StrokeCap.Round
-                    )
-                    // ticks on X-axis
-                    for (index in 0 until numSpacers) {
-                        val xSpacer = index * spaceBetweenTicks
-                        drawLine(
-                            color = tickColor,
-                            start = Offset(x = xSpacer, y = canvasHeightOuter),
-                            end = Offset(x = xSpacer, y = canvasHeightOuter - tickHeight),
-                            strokeWidth = horizontalLinesWidth,
-                            cap = StrokeCap.Round
-                        )
-                    }
-                    val percentageOfBucketWidthToSpaceBetweenTicks = 0.75f
-                    val bucketWidth =
-                        spaceBetweenTicks * percentageOfBucketWidthToSpaceBetweenTicks
-                    val spaceWidth = spaceBetweenTicks - bucketWidth
-                    inset(left = 0f, top = 0f, right = 0f, bottom = tickHeight) {
-                        val canvasHeightInner = size.height
-                        buckets.forEachIndexed { index, colorCounts ->
-                            val xBucket = (((index * 2f) + 1) / 2) * (spaceWidth + bucketWidth)
-                            var yStart = canvasHeightInner
-                            colorCounts.forEach { colorCount ->
-                                val yLength = colorCount.count * canvasHeightInner / maxCount
-                                val yEnd = yStart - yLength
-                                val cornerRadius = bucketWidth / 8
-                                drawRoundRect(
-                                    color = colorCount.color.getComposeColor(isDarkTheme),
-                                    topLeft = Offset(x = xBucket - (bucketWidth / 2), y = yEnd),
-                                    size = Size(width = bucketWidth, height = yLength),
-                                    cornerRadius = CornerRadius(
-                                        x = cornerRadius,
-                                        y = cornerRadius
-                                    )
-                                )
-                                yStart = yEnd
-                            }
-                        }
-
-                        // Draw average line
-                        val totalCount = buckets.sumOf { bucket -> bucket.sumOf { it.count } }
-                        val nonEmptyBuckets = buckets.count { it.isNotEmpty() }
-                        if (nonEmptyBuckets > 0) {
-                            val average = totalCount.toFloat() / buckets.size
-                            if (average > 0 && average <= maxCount) {
-                                val avgY = canvasHeightInner - ((average / maxCount) * canvasHeightInner)
-                                drawLine(
-                                    color = averageLineColor,
-                                    start = Offset(0f, avgY),
-                                    end = Offset(canvasWidthWithoutLabel, avgY),
-                                    strokeWidth = 2f,
-                                    pathEffect = dashPathEffect
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        Row(
-            modifier = Modifier
-                .padding(horizontal = 5.dp, vertical = 5.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            val style = MaterialTheme.typography.bodySmall
-            Text(
-                text = startDateText,
-                style = style,
-            )
-            Text(
-                text = "Now",
-                style = style,
-            )
-        }
+    val dashPathEffect = remember {
+      PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
     }
+    Canvas(modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth().height(200.dp)) {
+      if (buckets.isEmpty()) return@Canvas
+      val canvasHeightOuter = size.height
+      if (
+          canvasHeightOuter > 0
+      ) { // for unknown reason canvasHeight can be 0 and then the app crashes
+        val maxCount = buckets.maxOfOrNull { it.sumOf { c -> c.count } }?.coerceAtLeast(1) ?: 1
+
+        // Middle grid line; rounded so small counts (< 4) don't truncate to 0
+        val half = (maxCount / 2.0).roundToInt().coerceAtLeast(1)
+        val halfLineHeight = half.toFloat() * canvasHeightOuter / maxCount
+        val halfLabelHeight = labelHeight / 2
+        val numLettersInLabel = maxCount.toString().length
+        val labelWidth = (numLettersInLabel + 1) * labelHeight * 0.6f
+        val spaceBetweenLabelAndChart = labelHeight * 0.5f
+
+        // Draw Y-axis labels
+        drawContext.canvas.nativeCanvas.apply {
+          drawText(
+              half.toString(),
+              labelWidth - spaceBetweenLabelAndChart,
+              canvasHeightOuter - halfLineHeight + halfLabelHeight,
+              yAxisLabelPaint,
+          )
+          drawText(
+              maxCount.toString(),
+              labelWidth - spaceBetweenLabelAndChart,
+              halfLabelHeight,
+              yAxisLabelPaint,
+          )
+        }
+
+        inset(left = labelWidth, right = 0f, top = 0f, bottom = 0f) {
+          val horizontalLinesWidth = 3f
+          val canvasWidthWithoutLabel = size.width
+
+          // top grid line
+          drawLine(
+              color = gridLineColor,
+              start = Offset(x = 0f, y = 0f),
+              end = Offset(x = canvasWidthWithoutLabel, y = 0f),
+              strokeWidth = horizontalLinesWidth / 2,
+              cap = StrokeCap.Round,
+          )
+          // middle grid line
+          drawLine(
+              color = gridLineColor,
+              start = Offset(x = 0f, y = canvasHeightOuter - halfLineHeight),
+              end =
+                  Offset(
+                      x = canvasWidthWithoutLabel,
+                      y = canvasHeightOuter - halfLineHeight,
+                  ),
+              strokeWidth = horizontalLinesWidth / 2,
+              cap = StrokeCap.Round,
+          )
+          // bottom line (X-axis)
+          val tickHeight = 6f
+          val numBuckets = buckets.size
+          val spaceBetweenTicks = canvasWidthWithoutLabel / numBuckets
+          val numSpacers = numBuckets + 1
+          drawLine(
+              color = tickColor,
+              start = Offset(x = 0f, y = canvasHeightOuter - tickHeight),
+              end =
+                  Offset(
+                      x = canvasWidthWithoutLabel,
+                      y = canvasHeightOuter - tickHeight,
+                  ),
+              strokeWidth = horizontalLinesWidth,
+              cap = StrokeCap.Round,
+          )
+          // ticks on X-axis
+          for (index in 0 until numSpacers) {
+            val xSpacer = index * spaceBetweenTicks
+            drawLine(
+                color = tickColor,
+                start = Offset(x = xSpacer, y = canvasHeightOuter),
+                end = Offset(x = xSpacer, y = canvasHeightOuter - tickHeight),
+                strokeWidth = horizontalLinesWidth,
+                cap = StrokeCap.Round,
+            )
+          }
+          val percentageOfBucketWidthToSpaceBetweenTicks = 0.75f
+          val bucketWidth = spaceBetweenTicks * percentageOfBucketWidthToSpaceBetweenTicks
+          val spaceWidth = spaceBetweenTicks - bucketWidth
+          inset(left = 0f, top = 0f, right = 0f, bottom = tickHeight) {
+            val canvasHeightInner = size.height
+            buckets.forEachIndexed { index, colorCounts ->
+              val xBucket = (((index * 2f) + 1) / 2) * (spaceWidth + bucketWidth)
+              var yStart = canvasHeightInner
+              colorCounts.forEach { colorCount ->
+                val yLength = colorCount.count * canvasHeightInner / maxCount
+                val yEnd = yStart - yLength
+                val cornerRadius = bucketWidth / 8
+                drawRoundRect(
+                    color = colorCount.color.getComposeColor(isDarkTheme),
+                    topLeft = Offset(x = xBucket - (bucketWidth / 2), y = yEnd),
+                    size = Size(width = bucketWidth, height = yLength),
+                    cornerRadius =
+                        CornerRadius(
+                            x = cornerRadius,
+                            y = cornerRadius,
+                        ),
+                )
+                yStart = yEnd
+              }
+            }
+
+            // Draw average line
+            val totalCount = buckets.sumOf { bucket -> bucket.sumOf { it.count } }
+            val nonEmptyBuckets = buckets.count { it.isNotEmpty() }
+            if (nonEmptyBuckets > 0) {
+              val average = totalCount.toFloat() / buckets.size
+              if (average > 0 && average <= maxCount) {
+                val avgY = canvasHeightInner - ((average / maxCount) * canvasHeightInner)
+                drawLine(
+                    color = averageLineColor,
+                    start = Offset(0f, avgY),
+                    end = Offset(canvasWidthWithoutLabel, avgY),
+                    strokeWidth = 2f,
+                    pathEffect = dashPathEffect,
+                )
+              }
+            }
+          }
+        }
+      }
+    }
+    Row(
+        modifier = Modifier.padding(horizontal = 5.dp, vertical = 5.dp).fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+      val style = MaterialTheme.typography.bodySmall
+      Text(
+          text = startDateText,
+          style = style,
+      )
+      Text(
+          text = "Now",
+          style = style,
+      )
+    }
+  }
 }

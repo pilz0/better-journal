@@ -52,248 +52,252 @@ import kotlinx.serialization.Serializable
 
 @Suppress("LongMethod")
 fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
-    navigation<SettingsTopLevelRoute>(
-        startDestination = SettingsScreenRoute,
-    ) {
-        composableWithTransitions<SettingsScreenRoute> {
-            SettingsScreen(
-                navigateToFAQ = {
-                    navController.navigate(FAQRoute)
-                },
-                navigateToComboSettings = {
-                    navController.navigate(CombinationSettingsRoute)
-                },
-                navigateToSubstanceColors = {
-                    navController.navigate(SubstanceColorsRoute)
-                },
-                navigateToCustomUnits = {
-                    navController.navigate(CustomUnitsRoute)
-                },
-                navigateToCustomSubstances = { navController.navigate(CustomSubstancesRoute) },
-                navigateToSubstanceGroups = { navController.navigate(SubstanceGroupsRoute) },
-                navigateToCustomFormulations = {
-                    navController.navigate(CustomFormulationsRoute)
-                },
-                navigateToWebhook = {
-                  navController.navigate(WebhooksListRoute)
-                },
-                navigateToReminders = {
-                    navController.navigate(RemindersScreenRoute)
-                },
-                navigateToAchievements = {
-                    navController.navigate(AchievementsRoute)
-                },
-                navigateToIntakeLimits = {
-                    navController.navigate(IntakeLimitsRoute)
-                },
-                navigateToExportBackup = {
-                    navController.navigate(ExportBackupRoute)
-                },
-                navigateToFreakQueryShell = {
-                    navController.navigate(FreakQueryShellRoute)
-                },
-                navigateToHealthSharing = { navController.navigate(HealthSharingRoute) },
-                navigateToAiAssistantSettings = {
-                    navController.navigate(AiAssistantSettingsRoute)
-                }
-            )
-        }
-        composableWithTransitions<HealthSharingRoute> {
-            foo.pilz.freaklog.ui.tabs.settings.health.HealthSharingScreen(navigateBack = { navController.popBackStack() })
-        }
-        composableWithTransitions<CustomSubstancesRoute> {
-            CustomSubstancesScreen(
-                navigateToAddCustomSubstance = { navController.navigate(AddCustomSubstanceRouteOnSettingsGraph) },
-                navigateToEditCustomSubstance = { id -> navController.navigate(EditCustomSubstanceRoute(id)) },
-            )
-        }
-        composableWithTransitions<AddCustomSubstanceRouteOnSettingsGraph> {
-            AddCustomSubstanceScreen(
-                navigateBack = navController::popBackStack,
-                navigateToCustomDurationScreen = { substanceId, substanceName ->
-                    navController.navigate(CustomDurationRoute(substanceId, substanceName))
-                },
-                navigateToCategoriesPicker = { id ->
-                    navController.navigate(CustomCategoriesPickerRoute(id))
-                },
-                navigateToInteractionsList = { id ->
-                    navController.navigate(CustomInteractionsListRoute(id))
-                },
-                navigateToToleranceEditor = { id ->
-                    navController.navigate(CustomToleranceEditorRoute(id))
-                },
-                navigateToRisksEditor = { id ->
-                    navController.navigate(CustomRisksEditorRoute(id))
-                },
-            )
-        }
-        composableWithTransitions<SubstanceGroupsRoute> {
-            SubstanceGroupsScreen(
-                navigateToAddSubstanceGroup = { navController.navigate(AddSubstanceGroupRoute) },
-                navigateToEditSubstanceGroup = { id -> navController.navigate(EditSubstanceGroupRoute(id)) },
-            )
-        }
-        composableWithTransitions<AddSubstanceGroupRoute> {
-            AddSubstanceGroupScreen(
-                navigateBack = navController::popBackStack,
-                navigateToAddItem = { groupId -> navController.navigate(AddGroupItemPickerRoute(groupId)) },
-            )
-        }
-        composableWithTransitions<EditSubstanceGroupRoute> {
-            EditSubstanceGroupScreen(
-                navigateBack = navController::popBackStack,
-                navigateToAddItem = { groupId -> navController.navigate(AddGroupItemPickerRoute(groupId)) },
-            )
-        }
-        composableWithTransitions<AddGroupItemPickerRoute> { backStackEntry ->
-            val pickerRoute = backStackEntry.toRoute<AddGroupItemPickerRoute>()
-            AddGroupItemPickerScreen(
-                navigateBack = navController::popBackStack,
-                navigateToConfig = { substanceName, isCustom ->
-                    navController.navigate(
-                        AddGroupItemConfigRoute(
-                            groupId = pickerRoute.groupId,
-                            substanceName = substanceName,
-                            isCustomSubstance = isCustom,
-                        )
-                    )
-                },
-            )
-        }
-        composableWithTransitions<AddGroupItemConfigRoute> { backStackEntry ->
-            val configRoute = backStackEntry.toRoute<AddGroupItemConfigRoute>()
-            AddGroupItemConfigScreen(
-                navigateBack = navController::popBackStack,
-                onSaved = {
-                    navController.popBackStack(
-                        route = AddGroupItemPickerRoute(configRoute.groupId),
-                        inclusive = true,
-                    )
-                },
-            )
-        }
-        composableWithTransitions<AiAssistantSettingsRoute> {
-            AiAssistantSettingsScreen(
-                navigateBack = navController::popBackStack,
-                navigateToProfileEditor = { profileId ->
-                    navController.navigate(AiProfileEditorRoute(profileId.orEmpty()))
-                }
-            )
-        }
-        composableWithTransitions<AiProfileEditorRoute> {
-            AiProfileEditorScreen(navigateBack = navController::popBackStack)
-        }
-        composableWithTransitions<RemindersScreenRoute> {
-            RemindersScreen(
-                navigateBack = navController::popBackStack,
-                navigateToEdit = { reminderId ->
-                    navController.navigate(EditReminderRoute(reminderId))
-                }
-            )
-        }
-        composableWithTransitions<EditReminderRoute> {
-            EditReminderScreen(navigateBack = navController::popBackStack)
-        }
-        composableWithTransitions<FAQRoute> { FAQScreen() }
-        composableWithTransitions<FreakQueryShellRoute> {
-            FreakQueryShellScreen(navigateBack = navController::popBackStack)
-        }
-        composableWithTransitions<AchievementsRoute> { AchievementsScreen() }
-        composableWithTransitions<CombinationSettingsRoute> { CombinationSettingsScreen() }
-        composableWithTransitions<SubstanceColorsRoute> { SubstanceColorsScreen() }
-        composableWithTransitions<WebhooksListRoute> {
-            WebhooksListScreen(
-                navigateBack = navController::popBackStack,
-                navigateToEditor = { id ->
-                    navController.navigate(WebhookEditorRoute(id ?: -1))
-                }
-            )
-        }
-        composableWithTransitions<WebhookEditorRoute> {
-            WebhookEditorScreen(navigateBack = navController::popBackStack)
-        }
-        composableWithTransitions<ExportBackupRoute> {
-            foo.pilz.freaklog.ui.tabs.settings.exportbackup.ExportBackupScreen()
-        }
-        addIntakeLimitGraph(navController)
-        composableWithTransitions<IntakeLimitsRoute> {
-            foo.pilz.freaklog.ui.tabs.settings.intakelimits.IntakeLimitsScreen(
-                navigateToAddIntakeLimit = { navController.navigate(AddIntakeLimitParentRoute) },
-                navigateToEditIntakeLimit = { limitId ->
-                    navController.navigate(EditIntakeLimitRoute(limitId = limitId))
-                }
-            )
-        }
-        composableWithTransitions<EditIntakeLimitRoute> {
-            foo.pilz.freaklog.ui.tabs.settings.intakelimits.EditIntakeLimitScreen(
-                navigateBack = {
-                    navController.popBackStack(route = IntakeLimitsRoute, inclusive = false)
-                }
-            )
-        }
-        composableWithTransitions<CustomUnitArchiveRoute> {
-            CustomUnitArchiveScreen(navigateToEditCustomUnit = { customUnitId ->
-                navController.navigate(EditCustomUnitRoute(customUnitId))
-            })
-        }
-        addCustomUnitGraph(navController)
-        composableWithTransitions<CustomUnitsRoute> {
-            CustomUnitsScreen(
-                navigateToAddCustomUnit = {
-                    navController.navigate(AddCustomUnitsParentRoute)
-                },
-                navigateToEditCustomUnit = { customUnitId ->
-                    navController.navigate(EditCustomUnitRoute(customUnitId))
-                },
-                navigateToCustomUnitArchive = {
-                    navController.navigate(CustomUnitArchiveRoute)
-                }
-            )
-        }
-        composableWithTransitions<EditCustomUnitRoute> {
-            EditCustomUnitScreen(navigateBack = navController::popBackStack)
-        }
-        composableWithTransitions<CustomFormulationsRoute> {
-            CustomFormulationsScreen(
-                navigateBack = navController::popBackStack,
-                navigateToAdd = { navController.navigate(AddCustomFormulationRoute) }
-            )
-        }
-        composableWithTransitions<AddCustomFormulationRoute> {
-            AddCustomFormulationScreen(navigateBack = navController::popBackStack)
-        }
+  navigation<SettingsTopLevelRoute>(
+      startDestination = SettingsScreenRoute,
+  ) {
+    composableWithTransitions<SettingsScreenRoute> {
+      SettingsScreen(
+          navigateToFAQ = {
+            navController.navigate(FAQRoute)
+          },
+          navigateToComboSettings = {
+            navController.navigate(CombinationSettingsRoute)
+          },
+          navigateToSubstanceColors = {
+            navController.navigate(SubstanceColorsRoute)
+          },
+          navigateToCustomUnits = {
+            navController.navigate(CustomUnitsRoute)
+          },
+          navigateToCustomSubstances = { navController.navigate(CustomSubstancesRoute) },
+          navigateToSubstanceGroups = { navController.navigate(SubstanceGroupsRoute) },
+          navigateToCustomFormulations = {
+            navController.navigate(CustomFormulationsRoute)
+          },
+          navigateToWebhook = {
+            navController.navigate(WebhooksListRoute)
+          },
+          navigateToReminders = {
+            navController.navigate(RemindersScreenRoute)
+          },
+          navigateToAchievements = {
+            navController.navigate(AchievementsRoute)
+          },
+          navigateToIntakeLimits = {
+            navController.navigate(IntakeLimitsRoute)
+          },
+          navigateToExportBackup = {
+            navController.navigate(ExportBackupRoute)
+          },
+          navigateToFreakQueryShell = {
+            navController.navigate(FreakQueryShellRoute)
+          },
+          navigateToHealthSharing = { navController.navigate(HealthSharingRoute) },
+          navigateToAiAssistantSettings = {
+            navController.navigate(AiAssistantSettingsRoute)
+          },
+      )
     }
+    composableWithTransitions<HealthSharingRoute> {
+      foo.pilz.freaklog.ui.tabs.settings.health.HealthSharingScreen(
+          navigateBack = { navController.popBackStack() }
+      )
+    }
+    composableWithTransitions<CustomSubstancesRoute> {
+      CustomSubstancesScreen(
+          navigateToAddCustomSubstance = {
+            navController.navigate(AddCustomSubstanceRouteOnSettingsGraph)
+          },
+          navigateToEditCustomSubstance = { id ->
+            navController.navigate(EditCustomSubstanceRoute(id))
+          },
+      )
+    }
+    composableWithTransitions<AddCustomSubstanceRouteOnSettingsGraph> {
+      AddCustomSubstanceScreen(
+          navigateBack = navController::popBackStack,
+          navigateToCustomDurationScreen = { substanceId, substanceName ->
+            navController.navigate(CustomDurationRoute(substanceId, substanceName))
+          },
+          navigateToCategoriesPicker = { id ->
+            navController.navigate(CustomCategoriesPickerRoute(id))
+          },
+          navigateToInteractionsList = { id ->
+            navController.navigate(CustomInteractionsListRoute(id))
+          },
+          navigateToToleranceEditor = { id ->
+            navController.navigate(CustomToleranceEditorRoute(id))
+          },
+          navigateToRisksEditor = { id ->
+            navController.navigate(CustomRisksEditorRoute(id))
+          },
+      )
+    }
+    composableWithTransitions<SubstanceGroupsRoute> {
+      SubstanceGroupsScreen(
+          navigateToAddSubstanceGroup = { navController.navigate(AddSubstanceGroupRoute) },
+          navigateToEditSubstanceGroup = { id ->
+            navController.navigate(EditSubstanceGroupRoute(id))
+          },
+      )
+    }
+    composableWithTransitions<AddSubstanceGroupRoute> {
+      AddSubstanceGroupScreen(
+          navigateBack = navController::popBackStack,
+          navigateToAddItem = { groupId ->
+            navController.navigate(AddGroupItemPickerRoute(groupId))
+          },
+      )
+    }
+    composableWithTransitions<EditSubstanceGroupRoute> {
+      EditSubstanceGroupScreen(
+          navigateBack = navController::popBackStack,
+          navigateToAddItem = { groupId ->
+            navController.navigate(AddGroupItemPickerRoute(groupId))
+          },
+      )
+    }
+    composableWithTransitions<AddGroupItemPickerRoute> { backStackEntry ->
+      val pickerRoute = backStackEntry.toRoute<AddGroupItemPickerRoute>()
+      AddGroupItemPickerScreen(
+          navigateBack = navController::popBackStack,
+          navigateToConfig = { substanceName, isCustom ->
+            navController.navigate(
+                AddGroupItemConfigRoute(
+                    groupId = pickerRoute.groupId,
+                    substanceName = substanceName,
+                    isCustomSubstance = isCustom,
+                )
+            )
+          },
+      )
+    }
+    composableWithTransitions<AddGroupItemConfigRoute> { backStackEntry ->
+      val configRoute = backStackEntry.toRoute<AddGroupItemConfigRoute>()
+      AddGroupItemConfigScreen(
+          navigateBack = navController::popBackStack,
+          onSaved = {
+            navController.popBackStack(
+                route = AddGroupItemPickerRoute(configRoute.groupId),
+                inclusive = true,
+            )
+          },
+      )
+    }
+    composableWithTransitions<AiAssistantSettingsRoute> {
+      AiAssistantSettingsScreen(
+          navigateBack = navController::popBackStack,
+          navigateToProfileEditor = { profileId ->
+            navController.navigate(AiProfileEditorRoute(profileId.orEmpty()))
+          },
+      )
+    }
+    composableWithTransitions<AiProfileEditorRoute> {
+      AiProfileEditorScreen(navigateBack = navController::popBackStack)
+    }
+    composableWithTransitions<RemindersScreenRoute> {
+      RemindersScreen(
+          navigateBack = navController::popBackStack,
+          navigateToEdit = { reminderId ->
+            navController.navigate(EditReminderRoute(reminderId))
+          },
+      )
+    }
+    composableWithTransitions<EditReminderRoute> {
+      EditReminderScreen(navigateBack = navController::popBackStack)
+    }
+    composableWithTransitions<FAQRoute> { FAQScreen() }
+    composableWithTransitions<FreakQueryShellRoute> {
+      FreakQueryShellScreen(navigateBack = navController::popBackStack)
+    }
+    composableWithTransitions<AchievementsRoute> { AchievementsScreen() }
+    composableWithTransitions<CombinationSettingsRoute> { CombinationSettingsScreen() }
+    composableWithTransitions<SubstanceColorsRoute> { SubstanceColorsScreen() }
+    composableWithTransitions<WebhooksListRoute> {
+      WebhooksListScreen(
+          navigateBack = navController::popBackStack,
+          navigateToEditor = { id ->
+            navController.navigate(WebhookEditorRoute(id ?: -1))
+          },
+      )
+    }
+    composableWithTransitions<WebhookEditorRoute> {
+      WebhookEditorScreen(navigateBack = navController::popBackStack)
+    }
+    composableWithTransitions<ExportBackupRoute> {
+      foo.pilz.freaklog.ui.tabs.settings.exportbackup.ExportBackupScreen()
+    }
+    addIntakeLimitGraph(navController)
+    composableWithTransitions<IntakeLimitsRoute> {
+      foo.pilz.freaklog.ui.tabs.settings.intakelimits.IntakeLimitsScreen(
+          navigateToAddIntakeLimit = { navController.navigate(AddIntakeLimitParentRoute) },
+          navigateToEditIntakeLimit = { limitId ->
+            navController.navigate(EditIntakeLimitRoute(limitId = limitId))
+          },
+      )
+    }
+    composableWithTransitions<EditIntakeLimitRoute> {
+      foo.pilz.freaklog.ui.tabs.settings.intakelimits.EditIntakeLimitScreen(
+          navigateBack = {
+            navController.popBackStack(route = IntakeLimitsRoute, inclusive = false)
+          }
+      )
+    }
+    composableWithTransitions<CustomUnitArchiveRoute> {
+      CustomUnitArchiveScreen(
+          navigateToEditCustomUnit = { customUnitId ->
+            navController.navigate(EditCustomUnitRoute(customUnitId))
+          }
+      )
+    }
+    addCustomUnitGraph(navController)
+    composableWithTransitions<CustomUnitsRoute> {
+      CustomUnitsScreen(
+          navigateToAddCustomUnit = {
+            navController.navigate(AddCustomUnitsParentRoute)
+          },
+          navigateToEditCustomUnit = { customUnitId ->
+            navController.navigate(EditCustomUnitRoute(customUnitId))
+          },
+          navigateToCustomUnitArchive = {
+            navController.navigate(CustomUnitArchiveRoute)
+          },
+      )
+    }
+    composableWithTransitions<EditCustomUnitRoute> {
+      EditCustomUnitScreen(navigateBack = navController::popBackStack)
+    }
+    composableWithTransitions<CustomFormulationsRoute> {
+      CustomFormulationsScreen(
+          navigateBack = navController::popBackStack,
+          navigateToAdd = { navController.navigate(AddCustomFormulationRoute) },
+      )
+    }
+    composableWithTransitions<AddCustomFormulationRoute> {
+      AddCustomFormulationScreen(navigateBack = navController::popBackStack)
+    }
+  }
 }
 
-@Serializable
-object HealthSharingRoute
+@Serializable object HealthSharingRoute
 
-@Serializable
-object SettingsScreenRoute
+@Serializable object SettingsScreenRoute
 
-@Serializable
-object FAQRoute
+@Serializable object FAQRoute
 
-@Serializable
-object FreakQueryShellRoute
+@Serializable object FreakQueryShellRoute
 
-@Serializable
-object CombinationSettingsRoute
+@Serializable object CombinationSettingsRoute
 
-@Serializable
-object SubstanceColorsRoute
+@Serializable object SubstanceColorsRoute
 
-@Serializable
-object CustomUnitArchiveRoute
+@Serializable object CustomUnitArchiveRoute
 
-@Serializable
-object CustomUnitsRoute
+@Serializable object CustomUnitsRoute
 
-@Serializable
-object ExportBackupRoute
+@Serializable object ExportBackupRoute
 
-@Serializable
-object IntakeLimitsRoute
+@Serializable object IntakeLimitsRoute
 
 @Serializable
 data class EditIntakeLimitRoute(
@@ -301,59 +305,43 @@ data class EditIntakeLimitRoute(
     val substanceName: String = "",
 )
 
-@Serializable
-object WebhooksListRoute
+@Serializable object WebhooksListRoute
 
 /**
- * Editor route for a single webhook. [webhookId] is `-1` when creating a new
- * webhook (Compose Navigation cannot serialize nullable primitives, so we use
- * a sentinel rather than a nullable Int).
+ * Editor route for a single webhook. [webhookId] is `-1` when creating a new webhook (Compose
+ * Navigation cannot serialize nullable primitives, so we use a sentinel rather than a nullable
+ * Int).
  */
-@Serializable
-data class WebhookEditorRoute(val webhookId: Int)
+@Serializable data class WebhookEditorRoute(val webhookId: Int)
 
-@Serializable
-object RemindersScreenRoute
+@Serializable object RemindersScreenRoute
 
-@Serializable
-data class EditReminderRoute(val reminderId: Int)
+@Serializable data class EditReminderRoute(val reminderId: Int)
 
-@Serializable
-object AchievementsRoute
+@Serializable object AchievementsRoute
 
-@Serializable
-data class EditCustomUnitRoute(val customUnitId: Int)
+@Serializable data class EditCustomUnitRoute(val customUnitId: Int)
 
-@Serializable
-object AiAssistantSettingsRoute
+@Serializable object AiAssistantSettingsRoute
 
 /** [profileId] is empty when adding a new provider profile. */
-@Serializable
-data class AiProfileEditorRoute(val profileId: String)
+@Serializable data class AiProfileEditorRoute(val profileId: String)
 
-@Serializable
-object CustomFormulationsRoute
+@Serializable object CustomFormulationsRoute
 
-@Serializable
-object AddCustomFormulationRoute
+@Serializable object AddCustomFormulationRoute
 
-@Serializable
-object CustomSubstancesRoute
+@Serializable object CustomSubstancesRoute
 
-@Serializable
-object AddCustomSubstanceRouteOnSettingsGraph
+@Serializable object AddCustomSubstanceRouteOnSettingsGraph
 
-@Serializable
-object SubstanceGroupsRoute
+@Serializable object SubstanceGroupsRoute
 
-@Serializable
-object AddSubstanceGroupRoute
+@Serializable object AddSubstanceGroupRoute
 
-@Serializable
-data class EditSubstanceGroupRoute(val groupId: Int)
+@Serializable data class EditSubstanceGroupRoute(val groupId: Int)
 
-@Serializable
-data class AddGroupItemPickerRoute(val groupId: Int)
+@Serializable data class AddGroupItemPickerRoute(val groupId: Int)
 
 @Serializable
 data class AddGroupItemConfigRoute(

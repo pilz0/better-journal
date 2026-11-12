@@ -13,45 +13,39 @@ import kotlinx.serialization.Transient
 
 @Entity(
     primaryKeys = ["route", "customSubstanceId"],
-    indices = [
-        Index(value = ["customSubstanceId"]),
-    ],
-    foreignKeys = [
-        ForeignKey(
-            entity = CustomSubstance::class,
-            parentColumns = ["id"],
-            childColumns = ["customSubstanceId"],
-            onDelete = ForeignKey.CASCADE,
-        )
-    ]
+    indices =
+        [
+            Index(value = ["customSubstanceId"]),
+        ],
+    foreignKeys =
+        [
+            ForeignKey(
+                entity = CustomSubstance::class,
+                parentColumns = ["id"],
+                childColumns = ["customSubstanceId"],
+                onDelete = ForeignKey.CASCADE,
+            )
+        ],
 )
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
 data class CustomRoaDuration(
     val route: AdministrationRoute,
-
-    @Transient
-    var customSubstanceId: Int = 0,
-
-    @Embedded(prefix = "onset_")
-    val onset: DurationRange?,
-    @Embedded(prefix = "comeup_")
-    val comeup: DurationRange?,
-    @Embedded(prefix = "peak_")
-    val peak: DurationRange?,
-    @Embedded(prefix = "offset_")
-    val offset: DurationRange?,
-    @Embedded(prefix = "total_")
-    val total: DurationRange?,
+    @Transient var customSubstanceId: Int = 0,
+    @Embedded(prefix = "onset_") val onset: DurationRange?,
+    @Embedded(prefix = "comeup_") val comeup: DurationRange?,
+    @Embedded(prefix = "peak_") val peak: DurationRange?,
+    @Embedded(prefix = "offset_") val offset: DurationRange?,
+    @Embedded(prefix = "total_") val total: DurationRange?,
 ) {
-    fun toRoaDuration(): RoaDuration {
-        return RoaDuration(
-            onset = onset,
-            comeup = comeup,
-            peak = peak,
-            offset = offset,
-            total = total,
-            afterglow = null,
-        )
-    }
+  fun toRoaDuration(): RoaDuration {
+    return RoaDuration(
+        onset = onset,
+        comeup = comeup,
+        peak = peak,
+        offset = offset,
+        total = total,
+        afterglow = null,
+    )
+  }
 }

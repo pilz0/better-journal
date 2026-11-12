@@ -24,28 +24,31 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.navigation.toRoute
+import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.main.navigation.graphs.ChooseRouteOfAddIngestionRoute
-import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class ChooseRouteViewModel @Inject constructor(
+class ChooseRouteViewModel
+@Inject
+constructor(
     substanceRepo: SubstanceRepository,
-    state: SavedStateHandle
+    state: SavedStateHandle,
 ) : ViewModel() {
-    val route = state.toRoute<ChooseRouteOfAddIngestionRoute>()
-    val substanceName = route.substanceName
-    val substance = substanceRepo.getSubstance(substanceName)
+  val route = state.toRoute<ChooseRouteOfAddIngestionRoute>()
+  val substanceName = route.substanceName
+  val substance = substanceRepo.getSubstance(substanceName)
 
-    var showOtherRoutes by mutableStateOf(false)
-    val pwRoutes = substance?.roas?.map { it.route } ?: emptyList()
-    private val otherRoutes = AdministrationRoute.entries.filter { route ->
+  var showOtherRoutes by mutableStateOf(false)
+  val pwRoutes = substance?.roas?.map { it.route } ?: emptyList()
+  private val otherRoutes =
+      AdministrationRoute.entries.filter { route ->
         !pwRoutes.contains(route)
-    }
-    val otherRoutesChunked = otherRoutes.chunked(2)
+      }
+  val otherRoutesChunked = otherRoutes.chunked(2)
 
-    var isShowingInjectionDialog by mutableStateOf(false)
-    var currentRoute by mutableStateOf(AdministrationRoute.INTRAVENOUS)
+  var isShowingInjectionDialog by mutableStateOf(false)
+  var currentRoute by mutableStateOf(AdministrationRoute.INTRAVENOUS)
 }

@@ -28,90 +28,88 @@ import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 
 @Composable
-fun AlcoholCalculator(
-    onApplyDose: (String) -> Unit
-) {
-    var volumeText by remember { mutableStateOf("") }
-    var percentageText by remember { mutableStateOf("") }
-    val density = 0.789
+fun AlcoholCalculator(onApplyDose: (String) -> Unit) {
+  var volumeText by remember { mutableStateOf("") }
+  var percentageText by remember { mutableStateOf("") }
+  val density = 0.789
 
-    val calculatedGrams by remember {
-        derivedStateOf {
-            // toDoubleOrNull() also accepts "NaN" and "Infinity"; only show real, positive amounts.
-            val volume = volumeText.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 }
-            val percentage = percentageText.toDoubleOrNull()?.takeIf { it > 0.0 && it <= 100.0 }
-            if (volume != null && percentage != null) {
-                (volume * (percentage / 100.0) * density).takeIf { it.isFinite() }
-            } else {
-                null
-            }
-        }
+  val calculatedGrams by remember {
+    derivedStateOf {
+      // toDoubleOrNull() also accepts "NaN" and "Infinity"; only show real, positive amounts.
+      val volume = volumeText.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 }
+      val percentage = percentageText.toDoubleOrNull()?.takeIf { it > 0.0 && it <= 100.0 }
+      if (volume != null && percentage != null) {
+        (volume * (percentage / 100.0) * density).takeIf { it.isFinite() }
+      } else {
+        null
+      }
     }
-    val grams = calculatedGrams
+  }
+  val grams = calculatedGrams
 
-    ElevatedCard(
-        modifier = Modifier.padding(
-            horizontal = horizontalPadding,
-            vertical = 4.dp
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(
+  ElevatedCard(
+      modifier =
+          Modifier.padding(
+              horizontal = horizontalPadding,
+              vertical = 4.dp,
+          )
+  ) {
+    Column(
+        modifier =
+            Modifier.padding(
                 horizontal = horizontalPadding,
-                vertical = 10.dp
+                vertical = 10.dp,
             )
+    ) {
+      Text(
+          text = "Alcohol Calculator",
+          style = MaterialTheme.typography.titleMedium,
+          modifier = Modifier.padding(bottom = 8.dp),
+      )
+
+      val focusManager = LocalFocusManager.current
+
+      Row(modifier = Modifier.fillMaxWidth()) {
+        OutlinedTextField(
+            value = volumeText,
+            onValueChange = { volumeText = it.replace(',', '.') },
+            label = { Text("Volume") },
+            trailingIcon = { Text("mL") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            keyboardActions = KeyboardActions(onNext = { /* Handle next focus if needed */ }),
+            singleLine = true,
+            modifier = Modifier.weight(1f).padding(end = 8.dp),
+        )
+
+        OutlinedTextField(
+            value = percentageText,
+            onValueChange = { percentageText = it.replace(',', '.') },
+            label = { Text("Strength") },
+            trailingIcon = { Text("%") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+            singleLine = true,
+            modifier = Modifier.weight(1f),
+        )
+      }
+
+      Spacer(modifier = Modifier.height(16.dp))
+
+      if (grams != null) {
+        Text(
+            text = "= ${grams.toReadableString()} g Ethanol",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(bottom = 8.dp),
+        )
+
+        Button(
+            onClick = { onApplyDose(grams.toReadableString()) },
+            modifier = Modifier.align(Alignment.End),
         ) {
-            Text(
-                text = "Alcohol Calculator",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            val focusManager = LocalFocusManager.current
-
-            Row(modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
-                    value = volumeText,
-                    onValueChange = { volumeText = it.replace(',', '.') },
-                    label = { Text("Volume") },
-                    trailingIcon = { Text("mL") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    keyboardActions = KeyboardActions(onNext = { /* Handle next focus if needed */ }),
-                    singleLine = true,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 8.dp)
-                )
-
-                OutlinedTextField(
-                    value = percentageText,
-                    onValueChange = { percentageText = it.replace(',', '.') },
-                    label = { Text("Strength") },
-                    trailingIcon = { Text("%") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                    singleLine = true,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            if (grams != null) {
-                Text(
-                    text = "= ${grams.toReadableString()} g Ethanol",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                
-                Button(
-                    onClick = { onApplyDose(grams.toReadableString()) },
-                    modifier = Modifier.align(Alignment.End)
-                ) {
-                    Text("Use this dose")
-                }
-            }
+          Text("Use this dose")
         }
+      }
     }
+  }
 }

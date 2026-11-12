@@ -26,17 +26,18 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
 object ShulginRatingOptionSerializer : KSerializer<ShulginRatingOption> {
-    override val descriptor = PrimitiveSerialDescriptor("ShulginRatingOption", PrimitiveKind.STRING)
+  override val descriptor = PrimitiveSerialDescriptor("ShulginRatingOption", PrimitiveKind.STRING)
 
-    override fun serialize(encoder: Encoder, value: ShulginRatingOption) {
-        encoder.encodeString(value.rawValue)
-    }
+  override fun serialize(encoder: Encoder, value: ShulginRatingOption) {
+    encoder.encodeString(value.rawValue)
+  }
 
-    override fun deserialize(decoder: Decoder): ShulginRatingOption {
-        val ratingRawValue = decoder.decodeString()
-        val foundRating = ShulginRatingOption.entries.firstOrNull {
-            it.rawValue == ratingRawValue
+  override fun deserialize(decoder: Decoder): ShulginRatingOption {
+    val ratingRawValue = decoder.decodeString()
+    val foundRating =
+        ShulginRatingOption.entries.firstOrNull {
+          it.rawValue == ratingRawValue
         }
-        return foundRating ?: ShulginRatingOption.FOUR_PLUS
-    }
+    return foundRating ?: ShulginRatingOption.FOUR_PLUS
+  }
 }

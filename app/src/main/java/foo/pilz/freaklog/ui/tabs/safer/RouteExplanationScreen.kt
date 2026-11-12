@@ -53,78 +53,81 @@ import foo.pilz.freaklog.ui.theme.horizontalPadding
 @Preview
 @Composable
 fun RouteExplanationScreen() {
-    val uriHandler = LocalUriHandler.current
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Routes of administration") },
-                actions = {
-                    TextButton(
-                        onClick = { uriHandler.openUri(AdministrationRoute.PSYCHONAUT_WIKI_ARTICLE_URL) },
-                    ) {
-                        Text("Article")
-                    }
-                }
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(padding)
-        ) {
-            ElevatedCard(
-                modifier = Modifier.padding(
-                    horizontal = horizontalPadding,
-                    vertical = 3.dp
-                )
-            ) {
-                Column(modifier = Modifier.padding(horizontal = horizontalPadding)) {
-                    SectionText(
-                        text = """A route of administration is the method in which a psychoactive substance is delivered into the body.
+  val uriHandler = LocalUriHandler.current
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Routes of administration") },
+            actions = {
+              TextButton(
+                  onClick = { uriHandler.openUri(AdministrationRoute.PSYCHONAUT_WIKI_ARTICLE_URL) },
+              ) {
+                Text("Article")
+              }
+            },
+        )
+      }
+  ) { padding ->
+    Column(
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(padding)
+    ) {
+      ElevatedCard(
+          modifier =
+              Modifier.padding(
+                  horizontal = horizontalPadding,
+                  vertical = 3.dp,
+              )
+      ) {
+        Column(modifier = Modifier.padding(horizontal = horizontalPadding)) {
+          SectionText(
+              text =
+                  """A route of administration is the method in which a psychoactive substance is delivered into the body.
 The route through which a substance is administered can greatly impact its potency, duration, and subjective effects. For example, many substances are more effective when consumed using particular routes of administration, while some substances are completely inactive with certain routes.
 Determining an optimal route of administration is highly dependent on the substance consumed, its desired duration and potency and side effects, and one's personal comfort level."""
-                    )
-                    VerticalSpace()
-                }
-            }
-            AdministrationRoute.entries.filter { !it.isInjectionMethod }.forEach {
-                SectionWithTitle(title = it.displayText) {
-                    Text(
-                        text = it.articleText,
-                        textAlign = TextAlign.Left,
-                        modifier = Modifier
-                            .padding(horizontal = horizontalPadding)
-                            .padding(bottom = 10.dp)
-                    )
-                    if (it == AdministrationRoute.RECTAL) {
-                        Button(
-                            onClick = { uriHandler.openUri(AdministrationRoute.SAFER_PLUGGING_ARTICLE_URL) },
-                            modifier = Modifier.padding(horizontal = 5.dp)
-                        ) {
-                            Icon(
-                                Icons.Outlined.OpenInBrowser,
-                                contentDescription = "Open PW article",
-                            )
-                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                            Text("Safer plugging")
-                        }
-                    }
-                }
-            }
-            AdministrationRoute.entries.filter { it.isInjectionMethod }.forEach {
-                SectionWithTitle(title = it.displayText) {
-                    Text(
-                        text = it.articleText,
-                        textAlign = TextAlign.Left,
-                        modifier = Modifier
-                            .padding(horizontal = horizontalPadding)
-                            .padding(bottom = 10.dp)
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(10.dp))
+          )
+          VerticalSpace()
         }
+      }
+      AdministrationRoute.entries
+          .filter { !it.isInjectionMethod }
+          .forEach {
+            SectionWithTitle(title = it.displayText) {
+              Text(
+                  text = it.articleText,
+                  textAlign = TextAlign.Left,
+                  modifier =
+                      Modifier.padding(horizontal = horizontalPadding).padding(bottom = 10.dp),
+              )
+              if (it == AdministrationRoute.RECTAL) {
+                Button(
+                    onClick = {
+                      uriHandler.openUri(AdministrationRoute.SAFER_PLUGGING_ARTICLE_URL)
+                    },
+                    modifier = Modifier.padding(horizontal = 5.dp),
+                ) {
+                  Icon(
+                      Icons.Outlined.OpenInBrowser,
+                      contentDescription = "Open PW article",
+                  )
+                  Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                  Text("Safer plugging")
+                }
+              }
+            }
+          }
+      AdministrationRoute.entries
+          .filter { it.isInjectionMethod }
+          .forEach {
+            SectionWithTitle(title = it.displayText) {
+              Text(
+                  text = it.articleText,
+                  textAlign = TextAlign.Left,
+                  modifier =
+                      Modifier.padding(horizontal = horizontalPadding).padding(bottom = 10.dp),
+              )
+            }
+          }
+      Spacer(modifier = Modifier.height(10.dp))
     }
+  }
 }

@@ -32,15 +32,16 @@ import foo.pilz.freaklog.ui.tabs.settings.funny.FunnyConfig
 import foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthManager
 import foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAvailability
 import foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption
+import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import javax.inject.Inject
-
 
 @HiltViewModel
-class SettingsViewModel @Inject constructor(
+class SettingsViewModel
+@Inject
+constructor(
     private val experienceRepository: ExperienceRepository,
     private val fileSystemConnection: FileSystemConnection,
     private val userPreferences: UserPreferences,
@@ -48,278 +49,298 @@ class SettingsViewModel @Inject constructor(
     private val webhookRepository: foo.pilz.freaklog.data.room.webhooks.WebhookRepository,
 ) : ViewModel() {
 
-    fun saveDosageDotsAreHidden(value: Boolean) = viewModelScope.launch {
-        userPreferences.saveDosageDotsAreHidden(value)
-    }
+  fun saveDosageDotsAreHidden(value: Boolean) = viewModelScope.launch {
+    userPreferences.saveDosageDotsAreHidden(value)
+  }
 
-    fun saveAreSubstanceHeightsIndependent(value: Boolean) = viewModelScope.launch {
-        userPreferences.saveAreSubstanceHeightsIndependent(value)
-    }
+  fun saveAreSubstanceHeightsIndependent(value: Boolean) = viewModelScope.launch {
+    userPreferences.saveAreSubstanceHeightsIndependent(value)
+  }
 
-    fun saveFunnyConfig(funnyConfig: FunnyConfig) = viewModelScope.launch {
-        userPreferences.saveFunnyConfig(funnyConfig)
-    }
+  fun saveFunnyConfig(funnyConfig: FunnyConfig) = viewModelScope.launch {
+    userPreferences.saveFunnyConfig(funnyConfig)
+  }
 
-    val funnyConfigFlow = userPreferences.funnyConfigFlow.stateIn(
-        initialValue = FunnyConfig(),
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+  val funnyConfigFlow =
+      userPreferences.funnyConfigFlow.stateIn(
+          initialValue = FunnyConfig(),
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    fun saveIsVitalsEnabled(value: Boolean) = viewModelScope.launch {
-        userPreferences.saveIsVitalsEnabled(value)
-    }
+  fun saveIsVitalsEnabled(value: Boolean) = viewModelScope.launch {
+    userPreferences.saveIsVitalsEnabled(value)
+  }
 
-    fun saveSleepStagesEnabled(value: Boolean) = viewModelScope.launch {
-        userPreferences.saveAreSleepStagesEnabled(value)
-    }
+  fun saveSleepStagesEnabled(value: Boolean) = viewModelScope.launch {
+    userPreferences.saveAreSleepStagesEnabled(value)
+  }
 
-    fun saveBloodPressureDisplay(value: BloodPressureDisplay) = viewModelScope.launch {
-        userPreferences.saveBloodPressureDisplay(value)
-    }
+  fun saveBloodPressureDisplay(value: BloodPressureDisplay) = viewModelScope.launch {
+    userPreferences.saveBloodPressureDisplay(value)
+  }
 
-    val isVitalsEnabledFlow = userPreferences.isVitalsEnabledFlow.stateIn(
-        initialValue = false,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+  val isVitalsEnabledFlow =
+      userPreferences.isVitalsEnabledFlow.stateIn(
+          initialValue = false,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    val sleepStagesEnabledFlow = userPreferences.areSleepStagesEnabledFlow.stateIn(
-        initialValue = false,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+  val sleepStagesEnabledFlow =
+      userPreferences.areSleepStagesEnabledFlow.stateIn(
+          initialValue = false,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    val bloodPressureDisplayFlow = userPreferences.bloodPressureDisplayFlow.stateIn(
-        initialValue = BloodPressureDisplay.COMBINED,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+  val bloodPressureDisplayFlow =
+      userPreferences.bloodPressureDisplayFlow.stateIn(
+          initialValue = BloodPressureDisplay.COMBINED,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    fun showMessage(message: String) = viewModelScope.launch {
-        snackbarHostState.showSnackbar(message)
-    }
+  fun showMessage(message: String) = viewModelScope.launch {
+    snackbarHostState.showSnackbar(message)
+  }
 
-    fun saveTimelineNotificationAutoStart(value: Boolean) = viewModelScope.launch {
-        userPreferences.saveTimelineNotificationAutoStartEnabled(value)
-    }
+  fun saveTimelineNotificationAutoStart(value: Boolean) = viewModelScope.launch {
+    userPreferences.saveTimelineNotificationAutoStartEnabled(value)
+  }
 
-    val isTimelineNotificationAutoStartFlow = userPreferences.isTimelineNotificationAutoStartEnabledFlow.stateIn(
-        initialValue = false,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+  val isTimelineNotificationAutoStartFlow =
+      userPreferences.isTimelineNotificationAutoStartEnabledFlow.stateIn(
+          initialValue = false,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    fun saveIsTimelineHidden(value: Boolean) = viewModelScope.launch {
-        userPreferences.saveIsTimelineHidden(value)
-    }
+  fun saveIsTimelineHidden(value: Boolean) = viewModelScope.launch {
+    userPreferences.saveIsTimelineHidden(value)
+  }
 
-    val isTimelineHiddenFlow = userPreferences.isTimelineHiddenFlow.stateIn(
-        initialValue = false,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+  val isTimelineHiddenFlow =
+      userPreferences.isTimelineHiddenFlow.stateIn(
+          initialValue = false,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    fun saveIsStatsHidden(value: Boolean) = viewModelScope.launch {
-        userPreferences.saveIsStatsHidden(value)
-    }
+  fun saveIsStatsHidden(value: Boolean) = viewModelScope.launch {
+    userPreferences.saveIsStatsHidden(value)
+  }
 
-    val isStatsHiddenFlow = userPreferences.isStatsHiddenFlow.stateIn(
-        initialValue = false,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+  val isStatsHiddenFlow =
+      userPreferences.isStatsHiddenFlow.stateIn(
+          initialValue = false,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    fun saveIsDrugsHidden(value: Boolean) = viewModelScope.launch {
-        userPreferences.saveIsDrugsHidden(value)
-    }
+  fun saveIsDrugsHidden(value: Boolean) = viewModelScope.launch {
+    userPreferences.saveIsDrugsHidden(value)
+  }
 
-    val isDrugsHiddenFlow = userPreferences.isDrugsHiddenFlow.stateIn(
-        initialValue = false,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+  val isDrugsHiddenFlow =
+      userPreferences.isDrugsHiddenFlow.stateIn(
+          initialValue = false,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    val areSubstanceHeightsIndependentFlow =
-        userPreferences.areSubstanceHeightsIndependentFlow.stateIn(
-            initialValue = false,
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000)
-    )
+  val areSubstanceHeightsIndependentFlow =
+      userPreferences.areSubstanceHeightsIndependentFlow.stateIn(
+          initialValue = false,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    val areDosageDotsHiddenFlow = userPreferences.areDosageDotsHiddenFlow.stateIn(
-        initialValue = false,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+  val areDosageDotsHiddenFlow =
+      userPreferences.areDosageDotsHiddenFlow.stateIn(
+          initialValue = false,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
+  fun saveActivateSafer(value: Boolean) = viewModelScope.launch {
+    userPreferences.saveActivateSafer(value)
+  }
 
-    fun saveActivateSafer(value: Boolean) = viewModelScope.launch {
-        userPreferences.saveActivateSafer(value)
-    }
+  val activateSaferFlow =
+      userPreferences.activateSaferFlow.stateIn(
+          initialValue = false,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    val activateSaferFlow = userPreferences.activateSaferFlow.stateIn(
-        initialValue = false,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+  val isInventoryEnabledFlow =
+      userPreferences.isInventoryEnabledFlow.stateIn(
+          initialValue = false,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    val isInventoryEnabledFlow = userPreferences.isInventoryEnabledFlow.stateIn(
-        initialValue = false,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+  fun saveIsInventoryEnabled(value: Boolean) = viewModelScope.launch {
+    userPreferences.saveInventoryEnabled(value)
+  }
 
-    fun saveIsInventoryEnabled(value: Boolean) = viewModelScope.launch {
-        userPreferences.saveInventoryEnabled(value)
-    }
+  val isRedoseShownFlow =
+      userPreferences.isRedoseShownFlow.stateIn(
+          initialValue = false,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    val isRedoseShownFlow = userPreferences.isRedoseShownFlow.stateIn(
-        initialValue = false,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+  fun saveRedoseShown(value: Boolean) = viewModelScope.launch {
+    userPreferences.saveRedoseShown(value)
+  }
 
-    fun saveRedoseShown(value: Boolean) = viewModelScope.launch {
-        userPreferences.saveRedoseShown(value)
-    }
+  val redoseOnsetFractionFlow =
+      userPreferences.redoseOnsetFractionFlow.stateIn(
+          initialValue = 1.0f,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    val redoseOnsetFractionFlow = userPreferences.redoseOnsetFractionFlow.stateIn(
-        initialValue = 1.0f,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+  val redoseComeupFractionFlow =
+      userPreferences.redoseComeupFractionFlow.stateIn(
+          initialValue = 1.0f,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    val redoseComeupFractionFlow = userPreferences.redoseComeupFractionFlow.stateIn(
-        initialValue = 1.0f,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+  val redosePeakFractionFlow =
+      userPreferences.redosePeakFractionFlow.stateIn(
+          initialValue = 0.5f,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    val redosePeakFractionFlow = userPreferences.redosePeakFractionFlow.stateIn(
-        initialValue = 0.5f,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+  fun saveRedoseFractions(onset: Float, comeup: Float, peak: Float) = viewModelScope.launch {
+    userPreferences.saveRedoseFractions(onset, comeup, peak)
+  }
 
-    fun saveRedoseFractions(onset: Float, comeup: Float, peak: Float) = viewModelScope.launch {
-        userPreferences.saveRedoseFractions(onset, comeup, peak)
-    }
+  fun saveHapticFeedbackEnabled(value: Boolean) = viewModelScope.launch {
+    userPreferences.saveHapticFeedbackEnabled(value)
+  }
 
-    fun saveHapticFeedbackEnabled(value: Boolean) = viewModelScope.launch {
-        userPreferences.saveHapticFeedbackEnabled(value)
-    }
+  val isHapticFeedbackEnabledFlow =
+      userPreferences.isHapticFeedbackEnabledFlow.stateIn(
+          initialValue = true,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    val isHapticFeedbackEnabledFlow = userPreferences.isHapticFeedbackEnabledFlow.stateIn(
-        initialValue = true,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+  val aiAssistantEnabledFlow =
+      userPreferences.aiAssistantEnabledFlow.stateIn(
+          initialValue = false,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    val aiAssistantEnabledFlow = userPreferences.aiAssistantEnabledFlow.stateIn(
-        initialValue = false,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+  fun saveAiAssistantEnabled(value: Boolean) = viewModelScope.launch {
+    userPreferences.saveAiAssistantEnabled(value)
+  }
 
-    fun saveAiAssistantEnabled(value: Boolean) = viewModelScope.launch {
-        userPreferences.saveAiAssistantEnabled(value)
-    }
+  val useIntranasalForRectalFlow =
+      userPreferences.useIntranasalForRectalFlow.stateIn(
+          initialValue = false,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    val useIntranasalForRectalFlow = userPreferences.useIntranasalForRectalFlow.stateIn(
-        initialValue = false,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-    )
+  fun saveUseIntranasalForRectal(value: Boolean) = viewModelScope.launch {
+    userPreferences.saveUseIntranasalForRectal(value)
+  }
 
-    fun saveUseIntranasalForRectal(value: Boolean) = viewModelScope.launch {
-        userPreferences.saveUseIntranasalForRectal(value)
-    }
+  // ---- App lock ----
 
-    // ---- App lock ----
+  val isLockEnabledFlow =
+      userPreferences.isLockEnabledFlow.stateIn(
+          initialValue = false,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    val isLockEnabledFlow = userPreferences.isLockEnabledFlow.stateIn(
-        initialValue = false,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-    )
+  val lockTimeOptionFlow =
+      userPreferences.lockTimeOptionFlow.stateIn(
+          initialValue = LockTimeOption.DEFAULT,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
 
-    val lockTimeOptionFlow = userPreferences.lockTimeOptionFlow.stateIn(
-        initialValue = LockTimeOption.DEFAULT,
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-    )
+  fun biometricAvailability(): BiometricAvailability = biometricAuthManager.availability()
 
-    fun biometricAvailability(): BiometricAvailability = biometricAuthManager.availability()
+  fun saveLockEnabled(value: Boolean) {
+    biometricAuthManager.setLockEnabled(value)
+  }
 
-    fun saveLockEnabled(value: Boolean) {
-        biometricAuthManager.setLockEnabled(value)
-    }
+  fun saveLockTimeOption(value: LockTimeOption) {
+    biometricAuthManager.setLockTimeOption(value)
+  }
 
-    fun saveLockTimeOption(value: LockTimeOption) {
-        biometricAuthManager.setLockTimeOption(value)
-    }
+  val snackbarHostState = SnackbarHostState()
 
-    val snackbarHostState = SnackbarHostState()
-
-    fun importFile(uri: Uri) {
-        viewModelScope.launch {
-            val text = fileSystemConnection.getTextFromUri(uri)
-            if (text == null) {
-                snackbarHostState.showSnackbar(
-                    message = "File not found",
-                    duration = SnackbarDuration.Short
-                )
-            } else {
-                try {
-                    val json = Json { ignoreUnknownKeys = true }
-                    val journalExport = json.decodeFromString<JournalExport>(text)
-                    // One transaction: a document that fails to insert leaves the journal as it was.
-                    experienceRepository.replaceEverything(journalExport)
-                    snackbarHostState.showSnackbar(
-                        message = "Import successful",
-                        duration = SnackbarDuration.Short
-                    )
-                } catch (e: Exception) {
-                    println("Error when decoding: ${e.message}")
-                    snackbarHostState.showSnackbar(
-                        message = "Decoding file failed",
-                        duration = SnackbarDuration.Short
-                    )
-                }
-            }
+  fun importFile(uri: Uri) {
+    viewModelScope.launch {
+      val text = fileSystemConnection.getTextFromUri(uri)
+      if (text == null) {
+        snackbarHostState.showSnackbar(
+            message = "File not found",
+            duration = SnackbarDuration.Short,
+        )
+      } else {
+        try {
+          val json = Json { ignoreUnknownKeys = true }
+          val journalExport = json.decodeFromString<JournalExport>(text)
+          // One transaction: a document that fails to insert leaves the journal as it was.
+          experienceRepository.replaceEverything(journalExport)
+          snackbarHostState.showSnackbar(
+              message = "Import successful",
+              duration = SnackbarDuration.Short,
+          )
+        } catch (e: Exception) {
+          println("Error when decoding: ${e.message}")
+          snackbarHostState.showSnackbar(
+              message = "Decoding file failed",
+              duration = SnackbarDuration.Short,
+          )
         }
+      }
     }
+  }
 
-    fun exportFile(uri: Uri) {
-        if (biometricAuthManager.shouldLock.value) return
-        viewModelScope.launch {
-            if (biometricAuthManager.shouldLock.value) return@launch
-            try {
-                val jsonList = foo.pilz.freaklog.data.export.buildJournalExportJson(
-                    experienceRepository,
-                    webhookRepository
-                )
-                if (biometricAuthManager.shouldLock.value) return@launch
-                fileSystemConnection.saveTextInUri(uri, text = jsonList)
-                snackbarHostState.showSnackbar(
-                    message = "Export successful",
-                    duration = SnackbarDuration.Short
-                )
-            } catch (_: Exception) {
-                snackbarHostState.showSnackbar(
-                    message = "Export failed",
-                    duration = SnackbarDuration.Short
-                )
-            }
-        }
+  fun exportFile(uri: Uri) {
+    if (biometricAuthManager.shouldLock.value) return
+    viewModelScope.launch {
+      if (biometricAuthManager.shouldLock.value) return@launch
+      try {
+        val jsonList =
+            foo.pilz.freaklog.data.export.buildJournalExportJson(
+                experienceRepository,
+                webhookRepository,
+            )
+        if (biometricAuthManager.shouldLock.value) return@launch
+        fileSystemConnection.saveTextInUri(uri, text = jsonList)
+        snackbarHostState.showSnackbar(
+            message = "Export successful",
+            duration = SnackbarDuration.Short,
+        )
+      } catch (_: Exception) {
+        snackbarHostState.showSnackbar(
+            message = "Export failed",
+            duration = SnackbarDuration.Short,
+        )
+      }
     }
+  }
 
-    fun deleteEverything() {
-        if (biometricAuthManager.shouldLock.value) return
-        viewModelScope.launch {
-            if (biometricAuthManager.shouldLock.value) return@launch
-            experienceRepository.deleteEverything()
-        }
+  fun deleteEverything() {
+    if (biometricAuthManager.shouldLock.value) return
+    viewModelScope.launch {
+      if (biometricAuthManager.shouldLock.value) return@launch
+      experienceRepository.deleteEverything()
     }
+  }
 }

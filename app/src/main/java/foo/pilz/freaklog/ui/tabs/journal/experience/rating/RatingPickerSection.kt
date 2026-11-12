@@ -40,50 +40,49 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
 @Composable
 @Preview
 fun RatingPickerSectionPreview() {
-    RatingPickerSection(
-        selectedRating = ShulginRatingOption.TWO_PLUS,
-        onRatingChange = {}
-    )
+  RatingPickerSection(
+      selectedRating = ShulginRatingOption.TWO_PLUS,
+      onRatingChange = {},
+  )
 }
 
 @Composable
 fun RatingPickerSection(
     selectedRating: ShulginRatingOption,
-    onRatingChange: (ShulginRatingOption) -> Unit
+    onRatingChange: (ShulginRatingOption) -> Unit,
 ) {
-    CardWithTitle(title = "Shulgin rating") {
-        val ratings = ShulginRatingOption.entries
-        // Modifier.selectableGroup() is essential to ensure correct accessibility behavior
-        Column(Modifier.selectableGroup()) {
-            ratings.forEach { oneRating ->
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .selectable(
-                            selected = (oneRating == selectedRating),
-                            onClick = { onRatingChange(oneRating) },
-                            role = Role.RadioButton
-                        )
-                        .padding(horizontal = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    RadioButton(
-                        selected = (oneRating == selectedRating),
-                        onClick = null // null recommended for accessibility with screen readers
-                    )
-                    Text(
-                        text = oneRating.sign,
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                    Text(
-                        text = oneRating.shortDescription,
-                        style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                }
-            }
+  CardWithTitle(title = "Shulgin rating") {
+    val ratings = ShulginRatingOption.entries
+    // Modifier.selectableGroup() is essential to ensure correct accessibility behavior
+    Column(Modifier.selectableGroup()) {
+      ratings.forEach { oneRating ->
+        Row(
+            Modifier.fillMaxWidth()
+                .height(56.dp)
+                .selectable(
+                    selected = (oneRating == selectedRating),
+                    onClick = { onRatingChange(oneRating) },
+                    role = Role.RadioButton,
+                )
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+          RadioButton(
+              selected = (oneRating == selectedRating),
+              onClick = null, // null recommended for accessibility with screen readers
+          )
+          Text(
+              text = oneRating.sign,
+              style = MaterialTheme.typography.titleLarge,
+              modifier = Modifier.padding(start = 16.dp),
+          )
+          Text(
+              text = oneRating.shortDescription,
+              style = MaterialTheme.typography.labelSmall,
+              modifier = Modifier.padding(start = 16.dp),
+          )
         }
+      }
     }
+  }
 }

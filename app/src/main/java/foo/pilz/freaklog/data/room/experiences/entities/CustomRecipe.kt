@@ -19,16 +19,21 @@
 package foo.pilz.freaklog.data.room.experiences.entities
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.time.Instant
 
-@Entity
+@Entity(
+    indices =
+        [
+            Index(value = ["isArchived", "lastUsedDate", "creationDate"]),
+        ]
+)
 data class CustomRecipe(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
     val creationDate: Instant = Instant.now(),
     val lastUsedDate: Instant? = null,
     val isArchived: Boolean = false,
-    val note: String = ""
+    val note: String = "",
 )

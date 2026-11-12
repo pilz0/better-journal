@@ -16,58 +16,65 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import foo.pilz.freaklog.ui.tabs.journal.experience.bloodpressure.bloodPressureFieldErrors
 import foo.pilz.freaklog.ui.tabs.journal.experience.bloodpressure.isBloodPressureInputValid
 import foo.pilz.freaklog.ui.utils.getInstant
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 @HiltViewModel
-class AddBloodPressureViewModel @Inject constructor(
+class AddBloodPressureViewModel
+@Inject
+constructor(
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
-    var systolic by mutableStateOf("")
-    var diastolic by mutableStateOf("")
-    var localDateTimeFlow = MutableStateFlow(LocalDateTime.now())
+  var systolic by mutableStateOf("")
+  var diastolic by mutableStateOf("")
+  var localDateTimeFlow = MutableStateFlow(LocalDateTime.now())
 
-    val fieldErrors get() = bloodPressureFieldErrors(systolic, diastolic)
-    val isInputValid get() = isBloodPressureInputValid(systolic, diastolic)
+  val fieldErrors
+    get() = bloodPressureFieldErrors(systolic, diastolic)
 
-    fun onChangeTime(newLocalDateTime: LocalDateTime) {
-        viewModelScope.launch {
-            localDateTimeFlow.emit(newLocalDateTime)
-        }
+  val isInputValid
+    get() = isBloodPressureInputValid(systolic, diastolic)
+
+  fun onChangeTime(newLocalDateTime: LocalDateTime) {
+    viewModelScope.launch {
+      localDateTimeFlow.emit(newLocalDateTime)
     }
+  }
 
-    fun onChangeSystolic(newSystolic: String) {
-        systolic = newSystolic
-    }
+  fun onChangeSystolic(newSystolic: String) {
+    systolic = newSystolic
+  }
 
-    fun onChangeDiastolic(newDiastolic: String) {
-        diastolic = newDiastolic
-    }
+  fun onChangeDiastolic(newDiastolic: String) {
+    diastolic = newDiastolic
+  }
 
-    fun onDoneTap() {
-        if (!isInputValid) return
-        val systolic = systolic.trim().replace(',', '.').toDoubleOrNull() ?: return
-        val diastolic = diastolic.trim().replace(',', '.').toDoubleOrNull() ?: return
-        val record = BloodPressureRecord(
+  fun onDoneTap() {
+    if (!isInputValid) return
+    val systolic = systolic.trim().replace(',', '.').toDoubleOrNull() ?: return
+    val diastolic = diastolic.trim().replace(',', '.').toDoubleOrNull() ?: return
+    val record =
+        BloodPressureRecord(
             time = localDateTimeFlow.value.getInstant(),
             zoneOffset = null,
             metadata = Metadata.manualEntry(),
             systolic = Pressure.millimetersOfMercury(systolic),
             diastolic = Pressure.millimetersOfMercury(diastolic),
         )
-        viewModelScope.launch {
-            try {
-                val client = HealthConnectClient.getOrCreate(context)
-                client.insertRecords(listOf(record))
-            } catch (e: Exception) {
-                Toast.makeText(
-                    context,
-                    "Couldn't save blood pressure measurement: ${e.message ?: "unknown error"}",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
+    viewModelScope.launch {
+      try {
+        val client = HealthConnectClient.getOrCreate(context)
+        client.insertRecords(listOf(record))
+      } catch (e: Exception) {
+        Toast.makeText(
+                context,
+                "Couldn't save blood pressure measurement: ${e.message ?: "unknown error"}",
+                Toast.LENGTH_LONG,
+            )
+            .show()
+      }
     }
+  }
 }

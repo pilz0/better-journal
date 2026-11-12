@@ -27,8 +27,8 @@ import foo.pilz.freaklog.data.room.reminders.entities.Reminder
 import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.ui.tabs.settings.ShulginRatingOptionSerializer
-import kotlinx.serialization.Serializable
 import java.time.Instant
+import kotlinx.serialization.Serializable
 
 @Serializable
 data class JournalExport(
@@ -39,23 +39,25 @@ data class JournalExport(
     val customRecipes: List<CustomRecipeSerializable> = emptyList(),
     val reminders: List<Reminder> = emptyList(),
     /**
-     * Multi-webhook configuration. Backwards-compatible default ensures older
-     * exports (which lacked this field) still decode cleanly.
+     * Multi-webhook configuration. Backwards-compatible default ensures older exports (which lacked
+     * this field) still decode cleanly.
      */
     val webhooks: List<WebhookSerializable> = emptyList(),
     val intakeLimits: List<IntakeLimitSerializable> = emptyList(),
     /**
-     * Routes, doses, durations, interactions and cross-tolerances of the
-     * [customSubstances], matched to them by name on import.
+     * Routes, doses, durations, interactions and cross-tolerances of the [customSubstances],
+     * matched to them by name on import.
      */
-    val customSubstanceDetails: List<foo.pilz.freaklog.data.substanceshare.SharedSubstance> = emptyList(),
+    val customSubstanceDetails: List<foo.pilz.freaklog.data.substanceshare.SharedSubstance> =
+        emptyList(),
     val substanceGroups: List<SubstanceGroupSerializable> = emptyList(),
 )
 
 @Serializable
 data class SubstanceGroupSerializable(
     val name: String,
-    val items: List<foo.pilz.freaklog.data.room.experiences.entities.SubstanceGroupItem> = emptyList(),
+    val items: List<foo.pilz.freaklog.data.room.experiences.entities.SubstanceGroupItem> =
+        emptyList(),
 )
 
 @Serializable
@@ -72,9 +74,8 @@ data class IntakeLimitSerializable(
 )
 
 /**
- * Serializable representation of [Webhook] for journal export/import. Older
- * exports lack the `webhooks` field; default values keep deserialization
- * backwards-compatible.
+ * Serializable representation of [Webhook] for journal export/import. Older exports lack the
+ * `webhooks` field; default values keep deserialization backwards-compatible.
  */
 @Serializable
 data class WebhookSerializable(
@@ -84,79 +85,90 @@ data class WebhookSerializable(
     val template: String = "",
     val isHyperlinked: Boolean = true,
     val isEnabled: Boolean = true,
-    val sortOrder: Int = 0
+    val sortOrder: Int = 0,
 ) {
-    companion object {
-        /**
-         * Marker substituted for the Discord webhook secret token during
-         * export. The leading slash is preserved so URI parsers still work.
-         */
-        const val REDACTED_TOKEN = "REDACTED"
+  companion object {
+    /**
+     * Marker substituted for the Discord webhook secret token during export. The leading slash is
+     * preserved so URI parsers still work.
+     */
+    const val REDACTED_TOKEN = "REDACTED"
 
-        /**
-         * Returns true if [url] has its secret token redacted via
-         * [redactUrl]. Imported webhooks with a redacted URL should be
-         * disabled until the user re-supplies the real URL.
-         */
-        fun isRedacted(url: String): Boolean = url.endsWith("/$REDACTED_TOKEN")
+    /**
+     * Returns true if [url] has its secret token redacted via [redactUrl]. Imported webhooks with a
+     * redacted URL should be disabled until the user re-supplies the real URL.
+     */
+    fun isRedacted(url: String): Boolean = url.endsWith("/$REDACTED_TOKEN")
 
-        /**
-         * Discord webhook URLs have the form
-         * `https://discord.com/api/webhooks/{id}/{token}` where `{token}`
-         * is a secret. Replace the trailing token segment with
-         * [REDACTED_TOKEN] so exported journals don't leak credentials.
-         */
-        fun redactUrl(url: String): String {
-            val uri = runCatching { java.net.URI(url) }.getOrNull() ?: return ""
-            val parts = uri.path.orEmpty().trimEnd('/').split('/')
-            val marker = parts.indexOf("webhooks")
-            if (uri.scheme !in listOf("http", "https") || uri.host == null ||
-                marker < 0 || parts.size != marker + 3 || parts[marker + 1].isBlank()
-            ) {
-                return ""
-            }
-            return java.net.URI(
-                uri.scheme, null, uri.host, uri.port,
-                parts.take(marker + 2).joinToString("/") + "/$REDACTED_TOKEN", null, null
-            ).toString()
-        }
+    /**
+     * Discord webhook URLs have the form `https://discord.com/api/webhooks/{id}/{token}` where
+     * `{token}` is a secret. Replace the trailing token segment with [REDACTED_TOKEN] so exported
+     * journals don't leak credentials.
+     */
+    fun redactUrl(url: String): String {
+      val uri = runCatching { java.net.URI(url) }.getOrNull() ?: return ""
+      val parts = uri.path.orEmpty().trimEnd('/').split('/')
+      val marker = parts.indexOf("webhooks")
+      if (
+          uri.scheme !in listOf("http", "https") ||
+              uri.host == null ||
+              marker < 0 ||
+              parts.size != marker + 3 ||
+              parts[marker + 1].isBlank()
+      ) {
+        return ""
+      }
+      return java.net
+          .URI(
+              uri.scheme,
+              null,
+              uri.host,
+              uri.port,
+              parts.take(marker + 2).joinToString("/") + "/$REDACTED_TOKEN",
+              null,
+              null,
+          )
+          .toString()
+    }
 
-        fun fromEntity(webhook: Webhook): WebhookSerializable = WebhookSerializable(
+    fun fromEntity(webhook: Webhook): WebhookSerializable =
+        WebhookSerializable(
             name = webhook.name,
             url = redactUrl(webhook.url),
             displayName = webhook.displayName,
             template = webhook.template,
             isHyperlinked = webhook.isHyperlinked,
             isEnabled = webhook.isEnabled,
-            sortOrder = webhook.sortOrder
+            sortOrder = webhook.sortOrder,
         )
-    }
+  }
 
-    fun toEntity(): Webhook = Webhook(
-        name = name,
-        url = url,
-        displayName = displayName,
-        template = template,
-        isHyperlinked = isHyperlinked,
-        // Imported webhooks whose URL was redacted on export must be
-        // re-enabled by the user after they restore the secret token.
-        isEnabled = isEnabled && !isRedacted(url) && foo.pilz.freaklog.data.webhook.isSecureWebhookUrl(url),
-        sortOrder = sortOrder
-    )
+  fun toEntity(): Webhook =
+      Webhook(
+          name = name,
+          url = url,
+          displayName = displayName,
+          template = template,
+          isHyperlinked = isHyperlinked,
+          // Imported webhooks must always be restored as disabled so the user
+          // reviews the destination endpoint and template before activating sends.
+          isEnabled = false,
+          sortOrder = sortOrder,
+      )
 }
 
 @Serializable
 data class ExperienceSerializable(
     val title: String,
     val text: String,
-    @Serializable(with= InstantSerializer::class) val creationDate: Instant = Instant.now(),
-    @Serializable(with= InstantSerializer::class) val sortDate: Instant,
+    @Serializable(with = InstantSerializer::class) val creationDate: Instant = Instant.now(),
+    @Serializable(with = InstantSerializer::class) val sortDate: Instant,
     val isFavorite: Boolean = false,
     val ingestions: List<IngestionSerializable> = emptyList(),
     val location: LocationSerializable? = null,
     val ratings: List<RatingSerializable> = emptyList(),
     val timedNotes: List<TimedNoteSerializable> = emptyList(),
-    val bloodPressure: List<BloodPressureSerializable> = emptyList()
+    val bloodPressure: List<BloodPressureSerializable> = emptyList(),
 )
 
 @Serializable
@@ -168,11 +180,11 @@ data class BloodPressureSerializable(
 )
 
 @Serializable
-data class CustomUnitSerializable (
+data class CustomUnitSerializable(
     val id: Int = 0,
     val substanceName: String,
     val name: String,
-    @Serializable(with= InstantSerializer::class) val creationDate: Instant = Instant.now(),
+    @Serializable(with = InstantSerializer::class) val creationDate: Instant = Instant.now(),
     val administrationRoute: AdministrationRoute,
     var dose: Double? = null,
     var estimatedDoseStandardDeviation: Double? = null,
@@ -182,22 +194,22 @@ data class CustomUnitSerializable (
     var unitPlural: String?,
     val originalUnit: String,
     var note: String,
-    var defaultCategory: foo.pilz.freaklog.data.substances.classes.IngestionCategory? = null
+    var defaultCategory: foo.pilz.freaklog.data.substances.classes.IngestionCategory? = null,
 )
 
 @Serializable
 data class RatingSerializable(
-    @Serializable(with= ShulginRatingOptionSerializer::class) val option: ShulginRatingOption,
-    @Serializable(with= InstantSerializer::class) var time: Instant? = null,
-    @Serializable(with= InstantSerializer::class) var creationDate: Instant? = Instant.now()
+    @Serializable(with = ShulginRatingOptionSerializer::class) val option: ShulginRatingOption,
+    @Serializable(with = InstantSerializer::class) var time: Instant? = null,
+    @Serializable(with = InstantSerializer::class) var creationDate: Instant? = Instant.now(),
 )
 
 @Serializable
 data class IngestionSerializable(
     val substanceName: String,
-    @Serializable(with= InstantSerializer::class) var time: Instant,
-    @Serializable(with= InstantSerializer::class) var endTime: Instant?,
-    @Serializable(with= InstantSerializer::class) var creationDate: Instant? = Instant.now(),
+    @Serializable(with = InstantSerializer::class) var time: Instant,
+    @Serializable(with = InstantSerializer::class) var endTime: Instant?,
+    @Serializable(with = InstantSerializer::class) var creationDate: Instant? = Instant.now(),
     val administrationRoute: AdministrationRoute,
     var dose: Double? = null,
     var isDoseAnEstimate: Boolean,
@@ -209,34 +221,34 @@ data class IngestionSerializable(
     var customUnitId: Int? = null,
     var administrationSite: String? = null,
     var saltForm: String? = null,
-    var category: foo.pilz.freaklog.data.substances.classes.IngestionCategory? = null
+    var category: foo.pilz.freaklog.data.substances.classes.IngestionCategory? = null,
 )
 
 @Serializable
 data class LocationSerializable(
     val name: String,
     val latitude: Double? = null,
-    val longitude: Double? = null
+    val longitude: Double? = null,
 )
 
 @Serializable
 data class TimedNoteSerializable(
-    @Serializable(with= InstantSerializer::class) var creationDate: Instant,
-    @Serializable(with= InstantSerializer::class) var time: Instant,
+    @Serializable(with = InstantSerializer::class) var creationDate: Instant,
+    @Serializable(with = InstantSerializer::class) var time: Instant,
     var note: String,
     var color: AdaptiveColor,
-    var isPartOfTimeline: Boolean
+    var isPartOfTimeline: Boolean,
 )
 
 @Serializable
 data class CustomRecipeSerializable(
     val id: Int,
     val name: String,
-    @Serializable(with= InstantSerializer::class) val creationDate: Instant,
-    @Serializable(with= InstantSerializer::class) val lastUsedDate: Instant? = null,
+    @Serializable(with = InstantSerializer::class) val creationDate: Instant,
+    @Serializable(with = InstantSerializer::class) val lastUsedDate: Instant? = null,
     val isArchived: Boolean,
     val note: String,
-    val components: List<CustomRecipeComponentSerializable> = emptyList()
+    val components: List<CustomRecipeComponentSerializable> = emptyList(),
 )
 
 @Serializable
@@ -248,5 +260,5 @@ data class CustomRecipeComponentSerializable(
     val units: String?,
     val administrationRoute: AdministrationRoute,
     val customUnitId: Int? = null,
-    val componentOrder: Int
+    val componentOrder: Int,
 )

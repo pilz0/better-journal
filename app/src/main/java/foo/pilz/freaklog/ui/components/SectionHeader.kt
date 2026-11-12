@@ -15,23 +15,23 @@ import foo.pilz.freaklog.ui.theme.LocalSpacing
 @Composable
 fun SectionHeader(
     text: String,
-    trailing: @Composable RowScope.() -> Unit = {}
+    trailing: @Composable RowScope.() -> Unit = {},
 ) {
-    val spacing = LocalSpacing.current
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = spacing.screenHorizontal, end = spacing.xs)
-            .padding(top = spacing.xs, bottom = spacing.sm),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.weight(1f)
-        )
-        trailing()
-    }
+  val spacing = LocalSpacing.current
+  Row(
+      modifier =
+          Modifier.fillMaxWidth()
+              .padding(start = spacing.screenHorizontal, end = spacing.xs)
+              .padding(top = spacing.xs, bottom = spacing.sm),
+      verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.primary,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier.weight(1f),
+    )
+    trailing()
+  }
 }

@@ -65,17 +65,13 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [
           {
             "name": "index_Experience_sortDate",
             "unique": false,
-            "columnNames": [
-              "sortDate"
-            ],
+            "columnNames": ["sortDate"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_Experience_sortDate` ON `${TABLE_NAME}` (`sortDate`)"
           }
@@ -203,9 +199,7 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [],
         "foreignKeys": []
@@ -229,9 +223,7 @@
         ],
         "primaryKey": {
           "autoGenerate": false,
-          "columnNames": [
-            "substanceName"
-          ]
+          "columnNames": ["substanceName"]
         },
         "indices": [],
         "foreignKeys": []
@@ -267,9 +259,7 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [],
         "foreignKeys": []
@@ -311,9 +301,7 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [],
         "foreignKeys": []
@@ -367,9 +355,7 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [],
         "foreignKeys": []
@@ -459,9 +445,7 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [],
         "foreignKeys": []
@@ -509,9 +493,7 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [],
         "foreignKeys": []
@@ -637,9 +619,7 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [],
         "foreignKeys": []
@@ -687,9 +667,7 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [],
         "foreignKeys": []
@@ -761,17 +739,13 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [
           {
             "name": "index_CustomRecipeComponent_customRecipeId",
             "unique": false,
-            "columnNames": [
-              "customRecipeId"
-            ],
+            "columnNames": ["customRecipeId"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_CustomRecipeComponent_customRecipeId` ON `${TABLE_NAME}` (`customRecipeId`)"
           }
@@ -781,12 +755,8 @@
             "table": "CustomRecipe",
             "onDelete": "CASCADE",
             "onUpdate": "NO ACTION",
-            "columns": [
-              "customRecipeId"
-            ],
-            "referencedColumns": [
-              "id"
-            ]
+            "columns": ["customRecipeId"],
+            "referencedColumns": ["id"]
           }
         ]
       },
@@ -827,9 +797,7 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [],
         "foreignKeys": []
@@ -889,9 +857,7 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [],
         "foreignKeys": []
@@ -933,27 +899,20 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [
           {
             "name": "index_ingestion_webhook_message_ingestionId_webhookId",
             "unique": true,
-            "columnNames": [
-              "ingestionId",
-              "webhookId"
-            ],
+            "columnNames": ["ingestionId", "webhookId"],
             "orders": [],
             "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_ingestion_webhook_message_ingestionId_webhookId` ON `${TABLE_NAME}` (`ingestionId`, `webhookId`)"
           },
           {
             "name": "index_ingestion_webhook_message_webhookId",
             "unique": false,
-            "columnNames": [
-              "webhookId"
-            ],
+            "columnNames": ["webhookId"],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_ingestion_webhook_message_webhookId` ON `${TABLE_NAME}` (`webhookId`)"
           }
@@ -963,23 +922,15 @@
             "table": "Ingestion",
             "onDelete": "CASCADE",
             "onUpdate": "NO ACTION",
-            "columns": [
-              "ingestionId"
-            ],
-            "referencedColumns": [
-              "id"
-            ]
+            "columns": ["ingestionId"],
+            "referencedColumns": ["id"]
           },
           {
             "table": "webhook",
             "onDelete": "CASCADE",
             "onUpdate": "NO ACTION",
-            "columns": [
-              "webhookId"
-            ],
-            "referencedColumns": [
-              "id"
-            ]
+            "columns": ["webhookId"],
+            "referencedColumns": ["id"]
           }
         ]
       },
@@ -1086,9 +1037,7 @@
         ],
         "primaryKey": {
           "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
+          "columnNames": ["id"]
         },
         "indices": [],
         "foreignKeys": []

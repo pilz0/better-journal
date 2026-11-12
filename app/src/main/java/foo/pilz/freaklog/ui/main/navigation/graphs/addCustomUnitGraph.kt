@@ -25,72 +25,69 @@ import androidx.navigation.toRoute
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.ui.main.navigation.composableWithTransitions
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.route.CustomSubstanceChooseRouteScreen
-import foo.pilz.freaklog.ui.tabs.settings.customunits.add.ChooseRouteDuringAddCustomUnitScreen
 import foo.pilz.freaklog.ui.tabs.settings.customunits.add.AddIngestionSearchScreen
+import foo.pilz.freaklog.ui.tabs.settings.customunits.add.ChooseRouteDuringAddCustomUnitScreen
 import foo.pilz.freaklog.ui.tabs.settings.customunits.add.FinishAddCustomUnitScreen
 import kotlinx.serialization.Serializable
 
 fun NavGraphBuilder.addCustomUnitGraph(navController: NavController) {
-    navigation<AddCustomUnitsParentRoute>(
-        startDestination = AddCustomUnitsChooseSubstanceScreenRoute,
-    ) {
-        composableWithTransitions<AddCustomUnitsChooseSubstanceScreenRoute> {
-            AddIngestionSearchScreen(
-                navigateToChooseRoute = { substanceName ->
-                    navController.navigate(ChooseRouteOfAddCustomUnitRoute(substanceName))
-                },
-                navigateToCustomSubstanceChooseRoute = { customSubstanceName ->
-                    navController.navigate(CustomSubstanceChooseRouteRoute(customSubstanceName))
-                }
-            )
-        }
-        composableWithTransitions<CustomSubstanceChooseRouteRoute> { backStackEntry ->
-            val route = backStackEntry.toRoute<CustomSubstanceChooseRouteRoute>()
-            CustomSubstanceChooseRouteScreen(
-                onRouteTap = { administrationRoute ->
-                    navController.navigate(
-                        FinishAddCustomUnitRoute(
-                            administrationRoute = administrationRoute,
-                            substanceName = route.customSubstanceName,
-                        )
-                    )
-                }
-            )
-        }
-        composableWithTransitions<ChooseRouteOfAddCustomUnitRoute> { backStackEntry ->
-            val route = backStackEntry.toRoute<ChooseRouteOfAddCustomUnitRoute>()
-            ChooseRouteDuringAddCustomUnitScreen(
-                onRouteChosen = { administrationRoute ->
-                    navController.navigate(
-                        FinishAddCustomUnitRoute(
-                            administrationRoute = administrationRoute,
-                            substanceName = route.substanceName,
-                        )
-                    )
-                }
-            )
-        }
-        composableWithTransitions<FinishAddCustomUnitRoute> {
-            FinishAddCustomUnitScreen(
-                dismissAddCustomUnit = {
-                    navController.popBackStack(
-                        route = AddCustomUnitsChooseSubstanceScreenRoute,
-                        inclusive = true
-                    )
-                },
-            )
-        }
+  navigation<AddCustomUnitsParentRoute>(
+      startDestination = AddCustomUnitsChooseSubstanceScreenRoute,
+  ) {
+    composableWithTransitions<AddCustomUnitsChooseSubstanceScreenRoute> {
+      AddIngestionSearchScreen(
+          navigateToChooseRoute = { substanceName ->
+            navController.navigate(ChooseRouteOfAddCustomUnitRoute(substanceName))
+          },
+          navigateToCustomSubstanceChooseRoute = { customSubstanceName ->
+            navController.navigate(CustomSubstanceChooseRouteRoute(customSubstanceName))
+          },
+      )
     }
+    composableWithTransitions<CustomSubstanceChooseRouteRoute> { backStackEntry ->
+      val route = backStackEntry.toRoute<CustomSubstanceChooseRouteRoute>()
+      CustomSubstanceChooseRouteScreen(
+          onRouteTap = { administrationRoute ->
+            navController.navigate(
+                FinishAddCustomUnitRoute(
+                    administrationRoute = administrationRoute,
+                    substanceName = route.customSubstanceName,
+                )
+            )
+          }
+      )
+    }
+    composableWithTransitions<ChooseRouteOfAddCustomUnitRoute> { backStackEntry ->
+      val route = backStackEntry.toRoute<ChooseRouteOfAddCustomUnitRoute>()
+      ChooseRouteDuringAddCustomUnitScreen(
+          onRouteChosen = { administrationRoute ->
+            navController.navigate(
+                FinishAddCustomUnitRoute(
+                    administrationRoute = administrationRoute,
+                    substanceName = route.substanceName,
+                )
+            )
+          }
+      )
+    }
+    composableWithTransitions<FinishAddCustomUnitRoute> {
+      FinishAddCustomUnitScreen(
+          dismissAddCustomUnit = {
+            navController.popBackStack(
+                route = AddCustomUnitsChooseSubstanceScreenRoute,
+                inclusive = true,
+            )
+          },
+      )
+    }
+  }
 }
 
-@Serializable
-object AddCustomUnitsParentRoute
+@Serializable object AddCustomUnitsParentRoute
 
-@Serializable
-object AddCustomUnitsChooseSubstanceScreenRoute
+@Serializable object AddCustomUnitsChooseSubstanceScreenRoute
 
-@Serializable
-data class ChooseRouteOfAddCustomUnitRoute(val substanceName: String)
+@Serializable data class ChooseRouteOfAddCustomUnitRoute(val substanceName: String)
 
 @Serializable
 data class FinishAddCustomUnitRoute(

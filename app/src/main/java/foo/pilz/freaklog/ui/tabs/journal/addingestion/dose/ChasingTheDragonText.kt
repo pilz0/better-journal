@@ -32,14 +32,15 @@ fun ChasingTheDragonText(
     modifier: Modifier = Modifier,
     titleStyle: TextStyle = MaterialTheme.typography.titleMedium,
 ) {
-    Column(
-        modifier = modifier
-    ) {
-        Text(text = "Chasing the dragon (foiling)", style = titleStyle)
-        Text(text = """
+  Column(modifier = modifier) {
+    Text(text = "Chasing the dragon (foiling)", style = titleStyle)
+    Text(
+        text =
+            """
             This is likely the least clinically delivered route of administration. An overdose caused by chasing the dragon is hard to predict because this technique doesn't deliver a standardized dosage. It's virtually impossible even for skilled users to know how much of the substance that has been evaporated, burned, and inhaled.
             These combined factors may create a false sense of security when a given dose seems safe to repeat, but may cause an overdose when all the factors are randomly excluded.
-                    """.trimIndent())
-    }
+            """
+                .trimIndent()
+    )
+  }
 }
-

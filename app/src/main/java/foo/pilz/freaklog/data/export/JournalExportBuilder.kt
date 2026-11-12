@@ -26,143 +26,169 @@ import kotlinx.serialization.json.Json
 /**
  * Reads the whole journal and serializes it, applying [filter] first.
  *
- * Reminders and webhooks are settings rather than journal content, so a
- * filtered (partial) export leaves them out; a full export keeps them.
+ * Reminders and webhooks are settings rather than journal content, so a filtered (partial) export
+ * leaves them out; a full export keeps them.
  */
 suspend fun buildJournalExportJson(
     experienceRepository: ExperienceRepository,
     webhookRepository: WebhookRepository,
     filter: ExportFilter = ExportFilter(),
 ): String {
-    val data = ExportData(
-        experiences = experienceRepository.getAllExperiencesWithIngestionsTimedNotesAndRatingsSorted(),
-        customUnits = experienceRepository.getAllCustomUnitsSorted(),
-        substanceCompanions = experienceRepository.getAllSubstanceCompanions(),
-        customSubstances = experienceRepository.getAllCustomSubstances(),
-        intakeLimits = experienceRepository.getAllIntakeLimits(),
-        customSubstanceDetails = experienceRepository.getAllCustomSubstanceDetails(),
-        bloodPressureReadings = experienceRepository.getAllBloodPressureReadings(),
-    ).filtered(filter)
-    val journalExport = data.toJournalExport(
-        reminders = if (filter.isActive) emptyList() else experienceRepository.getAllReminders(),
-        webhooks = if (filter.isActive) {
-            emptyList()
-        } else {
-            webhookRepository.getAll().map { WebhookSerializable.fromEntity(it) }
-        },
-        substanceGroups = if (filter.isActive) {
-            emptyList()
-        } else {
-            experienceRepository.getAllSubstanceGroupsWithItems().map {
-                SubstanceGroupSerializable(name = it.group.name, items = it.sortedItems)
-            }
-        },
-    )
-    return Json.encodeToString(journalExport)
+  val data =
+      ExportData(
+              experiences =
+                  experienceRepository.getAllExperiencesWithIngestionsTimedNotesAndRatingsSorted(),
+              customUnits = experienceRepository.getAllCustomUnitsSorted(),
+              substanceCompanions = experienceRepository.getAllSubstanceCompanions(),
+              customSubstances = experienceRepository.getAllCustomSubstances(),
+              intakeLimits = experienceRepository.getAllIntakeLimits(),
+              customSubstanceDetails = experienceRepository.getAllCustomSubstanceDetails(),
+              bloodPressureReadings = experienceRepository.getAllBloodPressureReadings(),
+          )
+          .filtered(filter)
+  val journalExport =
+      data.toJournalExport(
+          reminders = if (filter.isActive) emptyList() else experienceRepository.getAllReminders(),
+          webhooks =
+              if (filter.isActive) {
+                emptyList()
+              } else {
+                webhookRepository.getAll().map { WebhookSerializable.fromEntity(it) }
+              },
+          substanceGroups =
+              if (filter.isActive) {
+                emptyList()
+              } else {
+                experienceRepository.getAllSubstanceGroupsWithItems().map {
+                  SubstanceGroupSerializable(name = it.group.name, items = it.sortedItems)
+                }
+              },
+      )
+  return Json.encodeToString(journalExport)
 }
 
 fun ExportData.toJournalExport(
     reminders: List<Reminder> = emptyList(),
     webhooks: List<WebhookSerializable> = emptyList(),
     substanceGroups: List<SubstanceGroupSerializable> = emptyList(),
-): JournalExport = toJournalExport(
-    reminders = reminders,
-    webhooks = webhooks,
-    substanceGroups = substanceGroups,
-    bpByExperienceId = bloodPressureReadings.groupBy { it.experienceId },
-)
+): JournalExport =
+    toJournalExport(
+        reminders = reminders,
+        webhooks = webhooks,
+        substanceGroups = substanceGroups,
+        bpByExperienceId = bloodPressureReadings.groupBy { it.experienceId },
+    )
 
 private fun ExportData.toJournalExport(
     reminders: List<Reminder>,
     webhooks: List<WebhookSerializable>,
     substanceGroups: List<SubstanceGroupSerializable>,
-    bpByExperienceId: Map<Int, List<foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading>>,
-): JournalExport = JournalExport(
-    substanceGroups = substanceGroups,
-    experiences = experiences.map { experience ->
-        val readings = bpByExperienceId[experience.experience.id].orEmpty()
-        experience.toSerializable().copy(
-            bloodPressure = readings.map { BloodPressureSerializable(it.time, it.systolic, it.diastolic, it.pulse) }
-        )
-    },
-    substanceCompanions = substanceCompanions,
-    customSubstances = customSubstances,
-    customUnits = customUnits.map {
-        CustomUnitSerializable(
-            id = it.id,
-            substanceName = it.substanceName,
-            name = it.name,
-            creationDate = it.creationDate,
-            administrationRoute = it.administrationRoute,
-            dose = it.dose,
-            estimatedDoseStandardDeviation = it.estimatedDoseStandardDeviation,
-            isEstimate = it.isEstimate,
-            isArchived = it.isArchived,
-            unit = it.unit,
-            unitPlural = it.unitPlural,
-            originalUnit = it.originalUnit,
-            note = it.note,
-            defaultCategory = it.defaultCategory,
-        )
-    },
-    reminders = reminders,
-    webhooks = webhooks,
-    customSubstanceDetails = customSubstanceDetails,
-    intakeLimits = intakeLimits.map {
-        IntakeLimitSerializable(
-            substanceName = it.substanceName,
-            creationDate = it.creationDate,
-            limitType = it.limitType,
-            maxDose = it.maxDose,
-            unit = it.unit,
-            maxCount = it.maxCount,
-            windowSeconds = it.windowSeconds,
-            warningPercent = it.warningPercent,
-            isEnabled = it.isEnabled,
-        )
-    },
-)
+    bpByExperienceId:
+        Map<Int, List<foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading>>,
+): JournalExport =
+    JournalExport(
+        substanceGroups = substanceGroups,
+        experiences =
+            experiences.map { experience ->
+              val readings = bpByExperienceId[experience.experience.id].orEmpty()
+              experience
+                  .toSerializable()
+                  .copy(
+                      bloodPressure =
+                          readings.map {
+                            BloodPressureSerializable(it.time, it.systolic, it.diastolic, it.pulse)
+                          }
+                  )
+            },
+        substanceCompanions = substanceCompanions,
+        customSubstances = customSubstances,
+        customUnits =
+            customUnits.map {
+              CustomUnitSerializable(
+                  id = it.id,
+                  substanceName = it.substanceName,
+                  name = it.name,
+                  creationDate = it.creationDate,
+                  administrationRoute = it.administrationRoute,
+                  dose = it.dose,
+                  estimatedDoseStandardDeviation = it.estimatedDoseStandardDeviation,
+                  isEstimate = it.isEstimate,
+                  isArchived = it.isArchived,
+                  unit = it.unit,
+                  unitPlural = it.unitPlural,
+                  originalUnit = it.originalUnit,
+                  note = it.note,
+                  defaultCategory = it.defaultCategory,
+              )
+            },
+        reminders = reminders,
+        webhooks = webhooks,
+        customSubstanceDetails = customSubstanceDetails,
+        intakeLimits =
+            intakeLimits.map {
+              IntakeLimitSerializable(
+                  substanceName = it.substanceName,
+                  creationDate = it.creationDate,
+                  limitType = it.limitType,
+                  maxDose = it.maxDose,
+                  unit = it.unit,
+                  maxCount = it.maxCount,
+                  windowSeconds = it.windowSeconds,
+                  warningPercent = it.warningPercent,
+                  isEnabled = it.isEnabled,
+              )
+            },
+    )
 
-private fun foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsTimedNotesAndRatings.toSerializable() =
+private fun foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsTimedNotesAndRatings
+    .toSerializable() =
     ExperienceSerializable(
         title = experience.title,
         text = experience.text,
         creationDate = experience.creationDate,
         sortDate = experience.sortDate,
         isFavorite = experience.isFavorite,
-        ingestions = ingestions.map { ingestion ->
-            IngestionSerializable(
-                substanceName = ingestion.substanceName,
-                time = ingestion.time,
-                endTime = ingestion.endTime,
-                creationDate = ingestion.creationDate,
-                administrationRoute = ingestion.administrationRoute,
-                dose = ingestion.dose,
-                estimatedDoseStandardDeviation = ingestion.estimatedDoseStandardDeviation,
-                isDoseAnEstimate = ingestion.isDoseAnEstimate,
-                units = ingestion.units,
-                notes = ingestion.notes,
-                stomachFullness = ingestion.stomachFullness,
-                consumerName = ingestion.consumerName,
-                customUnitId = ingestion.customUnitId,
-                administrationSite = ingestion.administrationSite,
-                saltForm = ingestion.saltForm,
-                category = ingestion.category,
-            )
-        },
-        location = experience.location?.let {
-            LocationSerializable(name = it.name, latitude = it.latitude, longitude = it.longitude)
-        },
-        ratings = ratings.map { rating ->
-            RatingSerializable(option = rating.option, time = rating.time, creationDate = rating.creationDate)
-        },
-        timedNotes = timedNotes.map { timedNote ->
-            TimedNoteSerializable(
-                creationDate = timedNote.creationDate,
-                time = timedNote.time,
-                note = timedNote.note,
-                color = timedNote.color,
-                isPartOfTimeline = timedNote.isPartOfTimeline,
-            )
-        },
+        ingestions =
+            ingestions.map { ingestion ->
+              IngestionSerializable(
+                  substanceName = ingestion.substanceName,
+                  time = ingestion.time,
+                  endTime = ingestion.endTime,
+                  creationDate = ingestion.creationDate,
+                  administrationRoute = ingestion.administrationRoute,
+                  dose = ingestion.dose,
+                  estimatedDoseStandardDeviation = ingestion.estimatedDoseStandardDeviation,
+                  isDoseAnEstimate = ingestion.isDoseAnEstimate,
+                  units = ingestion.units,
+                  notes = ingestion.notes,
+                  stomachFullness = ingestion.stomachFullness,
+                  consumerName = ingestion.consumerName,
+                  customUnitId = ingestion.customUnitId,
+                  administrationSite = ingestion.administrationSite,
+                  saltForm = ingestion.saltForm,
+                  category = ingestion.category,
+              )
+            },
+        location =
+            experience.location?.let {
+              LocationSerializable(name = it.name, latitude = it.latitude, longitude = it.longitude)
+            },
+        ratings =
+            ratings.map { rating ->
+              RatingSerializable(
+                  option = rating.option,
+                  time = rating.time,
+                  creationDate = rating.creationDate,
+              )
+            },
+        timedNotes =
+            timedNotes.map { timedNote ->
+              TimedNoteSerializable(
+                  creationDate = timedNote.creationDate,
+                  time = timedNote.time,
+                  note = timedNote.note,
+                  color = timedNote.color,
+                  isPartOfTimeline = timedNote.isPartOfTimeline,
+              )
+            },
     )

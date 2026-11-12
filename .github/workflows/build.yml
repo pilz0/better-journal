@@ -12,20 +12,61 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/') }}
 
 env:
-  main_project_module: 'app'
+  main_project_module: "app"
   # Deterministic JVM defaults for tests.
-  TZ: 'UTC'
-  LANG: 'en_US.UTF-8'
+  TZ: "UTC"
+  LANG: "en_US.UTF-8"
 
 jobs:
+  # =========================================================================
+  # STAGE 1: APEX & ENVIRONMENT RESOLUTION
+  # =========================================================================
+  resolve-env:
+    name: Resolve build environment & toolchain
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      head-sha: ${{ steps.env.outputs.head-sha }}
+      short-sha: ${{ steps.env.outputs.short-sha }}
+      is-pr: ${{ steps.env.outputs.is-pr }}
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - id: env
+        name: Inspect repository & git tree
+        run: |
+          sha="$(git rev-parse HEAD)"
+          short_sha="$(git rev-parse --short HEAD)"
+          {
+            echo "head-sha=$sha"
+            echo "short-sha=$short_sha"
+            echo "is-pr=${{ github.event_name == 'pull_request' }}"
+          } >> "$GITHUB_OUTPUT"
+          echo "Resolved HEAD: $sha ($short_sha)"
+          echo "Runner: $(uname -a)"
+          echo "Java: $(java -version 2>&1 | head -n 1)"
+          echo "Python: $(python3 --version)"
+
+  # =========================================================================
+  # STAGE 2: PREFLIGHT, VALIDATION & REPOSITORY INVARIANTS
+  # =========================================================================
   wrapper-validation:
     name: Validate Gradle wrapper
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
+    needs: [resolve-env]
     permissions:
       contents: read
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
         with:
           egress-policy: audit
 
@@ -33,413 +74,24 @@ jobs:
         with:
           persist-credentials: false
 
-      # The wrapper validation lives inside the gradle/actions monorepo since v3.
       - name: Validate Gradle wrapper
-        uses: gradle/actions/wrapper-validation@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        uses: gradle/actions/wrapper-validation@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
 
-  test:
-    name: Run Unit Tests (${{ matrix.test-suite }})
-    runs-on: ubuntu-24.04
-    needs: [ wrapper-validation ]
+  schema-verification:
+    name: Validate Room schemas & dataset invariants
+    runs-on: ubuntu-latest
+    needs: [resolve-env]
     permissions:
       contents: read
-      checks: write
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - test-suite: data
-            test-args: '--tests "foo.pilz.freaklog.data.*"'
-          - test-suite: ui
-            test-args: '--tests "foo.pilz.freaklog.ui.*"'
-          - test-suite: misc
-            # Run everything that is NOT in the data.* or ui.* packages so that
-            # newly-added top-level (or other-package) tests are not silently
-            # skipped by an overly narrow filter such as `Test*`.
-            test-args: '-PtestExclude=foo.pilz.freaklog.data.*,foo.pilz.freaklog.ui.*'
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
         with:
           egress-policy: audit
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
-        with:
-          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-
-      - name: Run Unit Tests
-        run: bash .github/scripts/gradle-ci.sh testDebugUnitTest ${{ matrix.test-args }} --no-daemon
-
-      - name: Publish JUnit results
-        # action-junit-report requires `checks: write`, but PRs from forks always get a
-        # read-only GITHUB_TOKEN. Skip the check publication on fork PRs to avoid 403s;
-        # the raw XML is still uploaded as an artifact in the next step.
-        if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
-        uses: mikepenz/action-junit-report@6ef3fdcfcd5f0b5d14df3e659ef19b8c6820f93d # v6.6.1
-        with:
-          report_paths: 'app/build/test-results/testDebugUnitTest/*.xml'
-          check_name: Unit Test Results (${{ matrix.test-suite }})
-          require_tests: true
-
-      - name: Upload Test Results
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: test-results-${{ matrix.test-suite }}
-          path: |
-            app/build/reports/tests/
-            app/build/test-results/
-
-  compatibility:
-    name: JVM compatibility (JDK ${{ matrix.java }}, ${{ matrix.environment.name }})
-    runs-on: ubuntu-24.04
-    needs: [ wrapper-validation ]
-    timeout-minutes: 45
-    permissions:
-      contents: read
-    strategy:
-      fail-fast: false
-      matrix:
-        java: [ '17', '21' ]
-        environment:
-          - name: berlin
-            timezone: Europe/Berlin
-            language: de
-            country: DE
-          - name: new-york
-            timezone: America/New_York
-            language: en
-            country: US
-          - name: tokyo
-            timezone: Asia/Tokyo
-            language: ja
-            country: JP
-    steps:
-      - name: Harden the runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
-        with:
-          egress-policy: audit
-
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Set up test runtime JDK
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
-        with:
-          java-version: ${{ matrix.java }}
-          distribution: 'temurin'
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
-        with:
-          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-
-      # Compilation still targets the project's JDK 17 toolchain.
-      - name: Install compile toolchain
-        if: matrix.java != '17'
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          update-java-home: false
-
-      - name: Exercise scheduling, export, and parsing in regional JVM defaults
-        env:
-          TEST_JAVA_VERSION: ${{ matrix.java }}
-          TEST_TIMEZONE: ${{ matrix.environment.timezone }}
-          TEST_LANGUAGE: ${{ matrix.environment.language }}
-          TEST_COUNTRY: ${{ matrix.environment.country }}
-        run: |
-          bash .github/scripts/gradle-ci.sh :app:testDebugUnitTest --no-daemon \
-            "-PtestJavaVersion=$TEST_JAVA_VERSION" "-PtestTimezone=$TEST_TIMEZONE" "-PtestLanguage=$TEST_LANGUAGE" "-PtestCountry=$TEST_COUNTRY" \
-            --tests 'foo.pilz.freaklog.scheduled.ReminderSchedule*' \
-            --tests 'foo.pilz.freaklog.data.export.*' \
-            --tests 'foo.pilz.freaklog.data.substances.parse.*'
-
-      - name: Upload compatibility results
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: compatibility-jdk${{ matrix.java }}-${{ matrix.environment.name }}
-          path: |
-            app/build/reports/tests/
-            app/build/test-results/
-          if-no-files-found: warn
-
-  release-verification:
-    name: Release unit tests and lint
-    runs-on: ubuntu-24.04
-    needs: [ wrapper-validation ]
-    timeout-minutes: 60
-    permissions:
-      contents: read
-    steps:
-      - name: Harden the runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
-        with:
-          egress-policy: audit
-
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
-        with:
-          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-
-      - name: Test and analyze the release variant
-        run: bash .github/scripts/gradle-ci.sh :app:testReleaseUnitTest :app:lintRelease --no-daemon
-
-      - name: Upload release verification reports
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: release-verification
-          path: |
-            app/build/reports/tests/testReleaseUnitTest/
-            app/build/test-results/testReleaseUnitTest/
-            app/build/reports/lint-results-release.*
-          if-no-files-found: error
-
-  connected-tests:
-    name: Android runtime matrix
-    needs: [ wrapper-validation ]
-    permissions:
-      contents: read
-    uses: ./.github/workflows/instrumented-tests.yml
-
-  coverage:
-    name: Coverage report
-    runs-on: ubuntu-24.04
-    needs: [ wrapper-validation ]
-    permissions:
-      contents: read
-    steps:
-      - name: Harden the runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
-        with:
-          egress-policy: audit
-
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
-        with:
-          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-
-      - name: Generate Kover XML + HTML reports
-        run: bash .github/scripts/gradle-ci.sh :app:koverXmlReportDebug :app:koverHtmlReportDebug --no-daemon
-
-      # Fail the job if coverage falls below the threshold defined in app/build.gradle.kts.
-      - name: Verify coverage thresholds
-        run: bash .github/scripts/gradle-ci.sh :app:koverVerifyDebug --no-daemon
-
-      - name: Upload coverage report
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: coverage-report
-          path: |
-            app/build/reports/kover/
-            app/build/reports/kover/htmlDebug/
-
-  detekt:
-    name: Detekt
-    runs-on: ubuntu-24.04
-    needs: [ wrapper-validation ]
-    permissions:
-      contents: read
-      security-events: write
-    steps:
-      - name: Harden the runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
-        with:
-          egress-policy: audit
-
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
-        with:
-          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-
-      - name: Run Detekt
-        run: bash .github/scripts/gradle-ci.sh detekt --no-daemon
-
-      - name: Upload Detekt SARIF to code scanning
-        if: always()
-        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
-        with:
-          sarif_file: app/build/reports/detekt/detekt.sarif
-          category: detekt
-        # SARIF upload requires `security-events: write`, which is read-only on fork PRs;
-        # tolerate that failure so fork PRs don't go red on the upload step alone.
-        continue-on-error: true
-
-      - name: Upload Detekt reports
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: detekt-reports
-          path: app/build/reports/detekt/
-
-  lint:
-    name: Android Lint
-    runs-on: ubuntu-24.04
-    needs: [ wrapper-validation ]
-    permissions:
-      contents: read
-      security-events: write
-    steps:
-      - name: Harden the runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
-        with:
-          egress-policy: audit
-
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
-        with:
-          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-
-      - name: Run Android Lint
-        run: bash .github/scripts/gradle-ci.sh :app:lintDebug --no-daemon
-
-      - name: Upload Lint SARIF to code scanning
-        if: always()
-        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
-        with:
-          sarif_file: app/build/reports/lint-results-debug.sarif
-          category: android-lint
-        continue-on-error: true
-
-      - name: Upload Lint reports
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: lint-reports
-          path: app/build/reports/lint-results-*.*
-
-  build-app:
-    name: Build (${{ matrix.app-type }})
-    runs-on: ubuntu-24.04
-    needs: [ wrapper-validation ]
-    permissions:
-      contents: read
-    strategy:
-      matrix:
-        app-type: [ apk, aab ]
-    steps:
-      - name: Harden the runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
-        with:
-          egress-policy: audit
-
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
-        with:
-          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-
-      - name: Build APK
-        if: matrix.app-type == 'apk'
-        run: bash .github/scripts/gradle-ci.sh assembleRelease --no-daemon
-
-      - name: Build AAB
-        if: matrix.app-type == 'aab'
-        run: bash .github/scripts/gradle-ci.sh bundleRelease --no-daemon
-
-      - name: Upload unsigned APK
-        if: matrix.app-type == 'apk'
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: freaklog-unsigned-apk
-          path: app/build/outputs/apk/release/*.apk
-          if-no-files-found: error
-
-      - name: Upload unsigned AAB
-        if: matrix.app-type == 'aab'
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: freaklog-unsigned-aab
-          path: app/build/outputs/bundle/release/*.aab
-          if-no-files-found: error
-
-  architecture-and-hygiene:
-    name: Architecture & Hygiene
-    runs-on: ubuntu-24.04
-    needs: [ wrapper-validation ]
-    permissions:
-      contents: read
-    steps:
-      - name: Harden the runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
-        with:
-          egress-policy: audit
-
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Check for upstream namespace leaks
-        run: |
-          if grep -rn "com\.isaakhanimann\.journal" app/src/main ; then
-            echo "Error: Found legacy package references to com.isaakhanimann.journal in app/src/main"
-            exit 1
-          fi
 
       - name: Validate Room database schemas
         run: |
@@ -472,29 +124,15 @@ jobs:
           print(f'Validated Substances.json: {len(substances)} substances across {len(categories)} categories.')
           "
 
-      - name: Verify workflow security invariants
-        run: |
-          for wf in .github/workflows/*.yml; do
-            grep -q 'permissions: {}' "$wf" || {
-              echo "Error: $wf missing deny-all permissions: {}"
-              exit 1
-            }
-            grep -q 'step-security/harden-runner' "$wf" || {
-              echo "Error: $wf missing step-security/harden-runner"
-              exit 1
-            }
-          done
-          echo "All workflows passed security invariants."
-
-  nix-checks:
+  flake-invariants:
     name: Nix Flake Invariant Checks
-    runs-on: ubuntu-24.04
-    needs: [ wrapper-validation ]
+    runs-on: ubuntu-latest
+    needs: [resolve-env]
     permissions:
       contents: read
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
         with:
           egress-policy: audit
 
@@ -503,7 +141,7 @@ jobs:
           persist-credentials: false
 
       - name: Install Nix
-        uses: cachix/install-nix-action@448cde739abec1eaf0646249e3d25bb8d9bc7702 # v31.11.2
+        uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31.11.3
         with:
           extra_nix_config: |
             extra-allowed-uris = http:// https://
@@ -511,19 +149,15 @@ jobs:
       - name: Run Nix flake checks
         run: nix flake check
 
-  nix-build:
-    name: Nix Build (${{ matrix.app-type }})
-    runs-on: ubuntu-24.04
-    needs: [ wrapper-validation ]
+  format-check:
+    name: Formatting (treefmt)
+    runs-on: ubuntu-latest
+    needs: [resolve-env]
     permissions:
       contents: read
-    strategy:
-      fail-fast: false
-      matrix:
-        app-type: [ apk, aab ]
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
         with:
           egress-policy: audit
 
@@ -532,7 +166,612 @@ jobs:
           persist-credentials: false
 
       - name: Install Nix
-        uses: cachix/install-nix-action@448cde739abec1eaf0646249e3d25bb8d9bc7702 # v31.11.2
+        uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31.11.3
+        with:
+          extra_nix_config: |
+            extra-allowed-uris = http:// https://
+
+      - name: Check formatting with treefmt
+        run: nix fmt -- --fail-on-change
+
+  # =========================================================================
+  # STAGE 3: STATIC ANALYSIS & ARCHITECTURAL HYGIENE
+  # =========================================================================
+  architecture-hygiene:
+    name: Architecture & Hygiene
+    runs-on: ubuntu-latest
+    needs: [wrapper-validation, schema-verification]
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check for upstream namespace leaks
+        run: |
+          if grep -rn "com\.isaakhanimann\.journal" app/src/main ; then
+            echo "Error: Found legacy package references to com.isaakhanimann.journal in app/src/main"
+            exit 1
+          fi
+
+      - name: Verify workflow security invariants
+        run: |
+          python3 -c "
+          import glob, sys
+          try:
+              import yaml
+              has_yaml = True
+          except ImportError:
+              has_yaml = False
+
+          for wf in sorted(glob.glob('.github/workflows/*.yml')):
+              with open(wf) as f:
+                  content = f.read()
+
+              if 'permissions: {}' not in content:
+                  print(f'Error: {wf} missing deny-all permissions: {{}}')
+                  sys.exit(1)
+
+              if has_yaml:
+                  doc = yaml.safe_load(content)
+                  if isinstance(doc, dict):
+                      for job_id, job in doc.get('jobs', {}).items():
+                          if not isinstance(job, dict):
+                              continue
+                          if 'uses' in job and 'steps' not in job:
+                              continue
+                          steps = job.get('steps', [])
+                          if not steps:
+                              print(f'Error: {wf} job {job_id} has no steps')
+                              sys.exit(1)
+                          first_step = steps[0]
+                          uses = first_step.get('uses', '')
+                          if 'step-security/harden-runner' not in uses:
+                              print(f'Error: {wf} job {job_id} first step must use harden-runner, found: {uses}')
+                              sys.exit(1)
+              else:
+                  lines = content.splitlines()
+                  in_jobs = False
+                  job_indent = 0
+                  current_job = None
+                  in_steps = False
+                  steps_indent = 0
+                  first_step_found = False
+
+                  for i, line in enumerate(lines):
+                      stripped = line.strip()
+                      indent = len(line) - len(line.lstrip())
+                      if not stripped or stripped.startswith('#'):
+                          continue
+                      if stripped == 'jobs:':
+                          in_jobs = True
+                          job_indent = indent
+                          continue
+                      if in_jobs:
+                          if indent <= job_indent and stripped != 'jobs:':
+                              in_jobs = False
+                              continue
+                          if indent == job_indent + 2 and stripped.endswith(':'):
+                              current_job = stripped[:-1]
+                              in_steps = False
+                              first_step_found = False
+                              continue
+                          if current_job and stripped.startswith('uses:') and not in_steps:
+                              continue
+                          if stripped == 'steps:':
+                              in_steps = True
+                              steps_indent = indent
+                              continue
+                          if in_steps and not first_step_found:
+                              if indent > steps_indent and stripped.startswith('- '):
+                                  first_step_found = True
+                                  step_block = ' '.join(l.strip() for l in lines[i:i+10])
+                                  if 'step-security/harden-runner' not in step_block:
+                                      print(f'Error: {wf} job {current_job} first step must use harden-runner')
+                                      sys.exit(1)
+
+          print('All workflows passed security invariants across all jobs.')
+          "
+
+  detekt:
+    name: Detekt
+    runs-on: ubuntu-latest
+    needs: [wrapper-validation]
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Run Detekt
+        run: bash .github/scripts/gradle-ci.sh detekt --no-daemon
+
+      - name: Upload Detekt SARIF to code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          sarif_file: app/build/reports/detekt/detekt.sarif
+          category: detekt
+        continue-on-error: true
+
+      - name: Upload Detekt reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: detekt-reports
+          path: app/build/reports/detekt/
+
+  lint:
+    name: Android Lint
+    runs-on: ubuntu-latest
+    needs: [wrapper-validation, schema-verification]
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Run Android Lint
+        run: bash .github/scripts/gradle-ci.sh :app:lintDebug --no-daemon
+
+      - name: Upload Lint SARIF to code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          sarif_file: app/build/reports/lint-results-debug.sarif
+          category: android-lint
+        continue-on-error: true
+
+      - name: Upload Lint reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: lint-reports
+          path: app/build/reports/lint-results-*.*
+
+  # =========================================================================
+  # STAGE 4: UNIT TESTS & RUNTIME MATRICES
+  # =========================================================================
+  test-freakquery:
+    name: FreakQuery Engine Unit Tests
+    runs-on: ubuntu-latest
+    needs: [detekt]
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Run FreakQuery Unit Tests
+        run: bash .github/scripts/gradle-ci.sh :freakquery-android:testDebugUnitTest --no-daemon
+
+      - name: Upload FreakQuery Test Results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-results-freakquery
+          path: |
+            freakquery-android/build/reports/tests/
+            freakquery-android/build/test-results/
+
+  test:
+    name: Run Unit Tests (${{ matrix.test-suite }})
+    runs-on: ubuntu-latest
+    needs: [detekt, architecture-hygiene]
+    permissions:
+      contents: read
+      checks: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - test-suite: data
+            test-args: '--tests "foo.pilz.freaklog.data.*"'
+          - test-suite: ui
+            test-args: '--tests "foo.pilz.freaklog.ui.*"'
+          - test-suite: misc
+            test-args: "-PtestExclude=foo.pilz.freaklog.data.*,foo.pilz.freaklog.ui.*"
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Run Unit Tests
+        run: bash .github/scripts/gradle-ci.sh :app:testDebugUnitTest ${{ matrix.test-args }} --no-daemon
+
+      - name: Publish JUnit results
+        if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: mikepenz/action-junit-report@a16be3a69023e9bd7e748ede768b3282ea7b30ce # v6.7.1
+        with:
+          report_paths: "app/build/test-results/testDebugUnitTest/*.xml"
+          check_name: Unit Test Results (${{ matrix.test-suite }})
+          require_tests: true
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-results-${{ matrix.test-suite }}
+          path: |
+            app/build/reports/tests/
+            app/build/test-results/
+
+  compatibility:
+    name: JVM compatibility (JDK ${{ matrix.java }}, ${{ matrix.environment.name }})
+    runs-on: ubuntu-latest
+    needs: [wrapper-validation, schema-verification]
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        java: ["17", "21"]
+        environment:
+          - name: berlin
+            timezone: Europe/Berlin
+            language: de
+            country: DE
+          - name: new-york
+            timezone: America/New_York
+            language: en
+            country: US
+          - name: tokyo
+            timezone: Asia/Tokyo
+            language: ja
+            country: JP
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up test runtime JDK
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: "temurin"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Install compile toolchain
+        if: matrix.java != '17'
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          update-java-home: false
+
+      - name: Exercise scheduling, export, and parsing in regional JVM defaults
+        env:
+          TEST_JAVA_VERSION: ${{ matrix.java }}
+          TEST_TIMEZONE: ${{ matrix.environment.timezone }}
+          TEST_LANGUAGE: ${{ matrix.environment.language }}
+          TEST_COUNTRY: ${{ matrix.environment.country }}
+        run: |
+          bash .github/scripts/gradle-ci.sh :app:testDebugUnitTest --no-daemon \
+            "-PtestJavaVersion=$TEST_JAVA_VERSION" "-PtestTimezone=$TEST_TIMEZONE" "-PtestLanguage=$TEST_LANGUAGE" "-PtestCountry=$TEST_COUNTRY" \
+            --tests 'foo.pilz.freaklog.scheduled.ReminderSchedule*' \
+            --tests 'foo.pilz.freaklog.data.export.*' \
+            --tests 'foo.pilz.freaklog.data.substances.parse.*'
+
+      - name: Upload compatibility results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: compatibility-jdk${{ matrix.java }}-${{ matrix.environment.name }}
+          path: |
+            app/build/reports/tests/
+            app/build/test-results/
+          if-no-files-found: warn
+
+  # =========================================================================
+  # STAGE 5: TARGET ASSEMBLY & VERIFICATION PIPELINES (Build -> Verify pairs)
+  # =========================================================================
+  build-apk-debug:
+    name: Assemble Debug APK
+    runs-on: ubuntu-latest
+    needs: [test, test-freakquery]
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Build Debug APK
+        run: bash .github/scripts/gradle-ci.sh assembleDebug --no-daemon
+
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: freaklog-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+  verify-apk-debug:
+    name: Verify Debug APK
+    runs-on: ubuntu-latest
+    needs: [build-apk-debug]
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      - name: Download Debug APK
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: freaklog-debug-apk
+          path: debug-apk
+
+      - name: Verify Debug APK structure & zip integrity
+        run: |
+          apk_file="$(find debug-apk -name '*.apk' | head -n 1)"
+          [ -f "$apk_file" ] || { echo "Debug APK not found"; exit 1; }
+          unzip -t "$apk_file"
+          size=$(stat -c%s "$apk_file")
+          echo "Debug APK size: $size bytes"
+          [ "$size" -gt 1000000 ] || { echo "Debug APK too small"; exit 1; }
+
+  build-apk-release:
+    name: Assemble Release APK
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Build Release APK
+        run: bash .github/scripts/gradle-ci.sh assembleRelease --no-daemon
+
+      - name: Upload unsigned Release APK
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: freaklog-unsigned-apk
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+
+      - name: Upload Proguard mapping
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: freaklog-release-mapping
+          path: app/build/outputs/mapping/release/mapping.txt
+          if-no-files-found: warn
+
+  verify-apk-release:
+    name: Verify Release APK
+    runs-on: ubuntu-latest
+    needs: [build-apk-release]
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      - name: Download Release APK
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: freaklog-unsigned-apk
+          path: release-apk
+
+      - name: Verify Release APK integrity
+        run: |
+          apk_file="$(find release-apk -name '*.apk' | head -n 1)"
+          [ -f "$apk_file" ] || { echo "Release APK not found"; exit 1; }
+          unzip -t "$apk_file"
+          size=$(stat -c%s "$apk_file")
+          echo "Release APK size: $size bytes"
+          [ "$size" -gt 1000000 ] || { echo "Release APK too small"; exit 1; }
+
+  build-aab-release:
+    name: Assemble Release Bundle (AAB)
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Build AAB Bundle
+        run: bash .github/scripts/gradle-ci.sh bundleRelease --no-daemon
+
+      - name: Upload unsigned Release AAB
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: freaklog-unsigned-aab
+          path: app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
+
+  verify-aab-release:
+    name: Verify Release Bundle
+    runs-on: ubuntu-latest
+    needs: [build-aab-release]
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      - name: Download Release AAB
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: freaklog-unsigned-aab
+          path: release-aab
+
+      - name: Verify Release AAB archive
+        run: |
+          aab_file="$(find release-aab -name '*.aab' | head -n 1)"
+          [ -f "$aab_file" ] || { echo "Release AAB not found"; exit 1; }
+          unzip -t "$aab_file"
+          size=$(stat -c%s "$aab_file")
+          echo "Release AAB size: $size bytes"
+          [ "$size" -gt 1000000 ] || { echo "Release AAB too small"; exit 1; }
+
+  nix-build:
+    name: Nix Build (${{ matrix.app-type }})
+    runs-on: ubuntu-latest
+    needs: [flake-invariants, test-freakquery]
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        app-type: [apk, aab]
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31.11.3
         with:
           extra_nix_config: |
             extra-allowed-uris = http:// https://
@@ -547,15 +786,39 @@ jobs:
           path: result/bin/*
           if-no-files-found: error
 
-  build-test-fixtures:
-    name: Build Test Fixtures (androidTest APK)
-    runs-on: ubuntu-24.04
-    needs: [ wrapper-validation ]
+  verify-nix-build:
+    name: Verify Nix APK presence
+    runs-on: ubuntu-latest
+    needs: [nix-build]
     permissions:
       contents: read
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      - name: Download Nix APK artifact
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: freaklog-nix-apk
+          path: nix-apk
+
+      - name: Verify Nix APK binary presence
+        run: |
+          bin_file="$(find nix-apk -type f | head -n 1)"
+          [ -f "$bin_file" ] || { echo "Nix binary not found"; exit 1; }
+          echo "Verified Nix artifact: $bin_file ($(stat -c%s "$bin_file") bytes)"
+
+  build-test-fixtures:
+    name: Build Test Fixtures (androidTest APK)
+    runs-on: ubuntu-latest
+    needs: [test, wrapper-validation]
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
         with:
           egress-policy: audit
 
@@ -564,30 +827,199 @@ jobs:
           persist-credentials: false
 
       - name: Set up JDK 17
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Assemble Debug AndroidTest APK
         run: bash .github/scripts/gradle-ci.sh assembleDebugAndroidTest --no-daemon
 
-  # Aggregator job whose status can be used as a single required check in
-  # branch protection.
+      - name: Upload Test Fixtures APK
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: freaklog-test-fixtures-apk
+          path: app/build/outputs/apk/androidTest/debug/*.apk
+          if-no-files-found: error
+
+  verify-test-fixtures:
+    name: Verify Test Fixtures
+    runs-on: ubuntu-latest
+    needs: [build-test-fixtures]
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      - name: Download Test Fixtures APK
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: freaklog-test-fixtures-apk
+          path: test-fixtures
+
+      - name: Verify Test Fixture APK archive
+        run: |
+          apk_file="$(find test-fixtures -name '*.apk' | head -n 1)"
+          [ -f "$apk_file" ] || { echo "Test fixture APK not found"; exit 1; }
+          unzip -t "$apk_file"
+          echo "Verified test fixture APK: $apk_file"
+
+  # =========================================================================
+  # STAGE 6: AGGREGATIONS, COVERAGE & RELEASE VERIFICATION
+  # =========================================================================
+  coverage:
+    name: Coverage report
+    runs-on: ubuntu-latest
+    needs: [test, test-freakquery]
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Generate Kover XML + HTML reports
+        run: bash .github/scripts/gradle-ci.sh :app:koverXmlReportDebug :app:koverHtmlReportDebug --no-daemon
+
+      - name: Verify coverage thresholds
+        run: bash .github/scripts/gradle-ci.sh :app:koverVerifyDebug --no-daemon
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-report
+          path: |
+            app/build/reports/kover/
+            app/build/reports/kover/htmlDebug/
+
+  release-verification:
+    name: Release unit tests and lint
+    runs-on: ubuntu-latest
+    needs: [verify-apk-release, verify-aab-release]
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Test and analyze the release variant
+        run: bash .github/scripts/gradle-ci.sh :app:testReleaseUnitTest :app:lintRelease --no-daemon
+
+      - name: Upload release verification reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-verification
+          path: |
+            app/build/reports/tests/testReleaseUnitTest/
+            app/build/test-results/testReleaseUnitTest/
+            app/build/reports/lint-results-release.*
+          if-no-files-found: error
+
+  connected-tests:
+    name: Android runtime matrix
+    needs: [verify-test-fixtures]
+    permissions:
+      contents: read
+    uses: ./.github/workflows/instrumented-tests.yml
+
+  # =========================================================================
+  # STAGE 7: QUALITY & ARTIFACT ATTESTATION GATE
+  # =========================================================================
+  quality-gate:
+    name: Quality & artifact attestation gate
+    runs-on: ubuntu-latest
+    needs:
+      [
+        verify-apk-debug,
+        verify-apk-release,
+        verify-aab-release,
+        verify-nix-build,
+        verify-test-fixtures,
+        coverage,
+        release-verification,
+        compatibility,
+        format-check,
+      ]
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      - name: Evaluate pipeline quality gate metrics
+        run: |
+          echo "========================================================="
+          echo "           FREAKLOG CI PIPELINE QUALITY GATE             "
+          echo "========================================================="
+          echo " ✓ Static Analysis (Detekt, Lint, Architecture Hygiene)  "
+          echo " ✓ Formatting (treefmt: Nix, Kotlin, YAML, JSON, Markdown)"
+          echo " ✓ Unit Test Matrix (Data, UI, Misc, FreakQuery Engine)  "
+          echo " ✓ JVM & Regional Environment Compatibility (JDK 17, 21) "
+          echo " ✓ Build Artifact Verification (APK Debug, Release, AAB) "
+          echo " ✓ Hermetic Nix Sandboxed Builds                         "
+          echo " ✓ Android Test Fixtures Assembly & Smoke Verification   "
+          echo " ✓ Code Coverage & Release Lint Invariants               "
+          echo "========================================================="
+          echo "All pipeline quality gates cleared successfully."
+
+  # =========================================================================
+  # STAGE 8: PIPELINE ROLLUP & BRANCH PROTECTION SINK
+  # =========================================================================
   ci-passed:
     name: CI passed
-    runs-on: ubuntu-24.04
-    needs: [ wrapper-validation, test, compatibility, release-verification, connected-tests, coverage, detekt, lint, build-app, architecture-and-hygiene, nix-checks, nix-build, build-test-fixtures ]
+    runs-on: ubuntu-latest
+    needs: [quality-gate, connected-tests]
     if: always()
     permissions: {}
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
         with:
           egress-policy: audit
 

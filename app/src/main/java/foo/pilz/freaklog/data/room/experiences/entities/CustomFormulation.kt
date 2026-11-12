@@ -17,15 +17,14 @@ data class FormulationDurationOverrides(
     val totalMinMinutes: Int? = null,
     val totalMaxMinutes: Int? = null,
     val afterglowMinMinutes: Int? = null,
-    val afterglowMaxMinutes: Int? = null
+    val afterglowMaxMinutes: Int? = null,
 )
 
 @Entity(tableName = "custom_formulation")
 data class CustomFormulation(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val substanceName: String,
     val baseRoa: AdministrationRoute,
     val name: String,
-    @Embedded val durationOverrides: FormulationDurationOverrides? = null
+    @Embedded val durationOverrides: FormulationDurationOverrides? = null,
 )

@@ -42,56 +42,54 @@ import foo.pilz.freaklog.data.substances.AdministrationRoute
 @Preview
 @Composable
 fun CustomChooseRouteScreenPreview() {
-    CustomSubstanceChooseRouteScreen(onRouteTap = {})
+  CustomSubstanceChooseRouteScreen(onRouteTap = {})
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomSubstanceChooseRouteScreen(onRouteTap: (AdministrationRoute) -> Unit) {
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Route") })
-        }
-    ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
-            LinearProgressIndicator(
-                progress = { 0.5f },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            val spacing = 6
-            Column(
-                modifier = Modifier.padding(10.dp),
-                verticalArrangement = Arrangement.spacedBy(spacing.dp)
-            ) {
-                val routesChunked = AdministrationRoute.entries.toList().chunked(2)
-                routesChunked.forEach { chunk ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        horizontalArrangement = Arrangement.spacedBy(spacing.dp)
-                    ) {
-                        chunk.forEach { route ->
-                            ElevatedCard(
-                                modifier = Modifier
-                                    .clickable {
-                                        onRouteTap(route)
-                                    }
-                                    .fillMaxHeight()
-                                    .weight(1f)
-                            ) {
-                                RouteBox(
-                                    route = route,
-                                    titleStyle = MaterialTheme.typography.titleMedium
-                                )
-                            }
-                        }
-                        if (chunk.size == 1) {
-                            Box(modifier = Modifier.weight(1f))
-                        }
-                    }
-                }
+  Scaffold(
+      topBar = {
+        TopAppBar(title = { Text("Route") })
+      }
+  ) { padding ->
+    Column(modifier = Modifier.padding(padding)) {
+      LinearProgressIndicator(
+          progress = { 0.5f },
+          modifier = Modifier.fillMaxWidth(),
+      )
+      val spacing = 6
+      Column(
+          modifier = Modifier.padding(10.dp),
+          verticalArrangement = Arrangement.spacedBy(spacing.dp),
+      ) {
+        val routesChunked = AdministrationRoute.entries.toList().chunked(2)
+        routesChunked.forEach { chunk ->
+          Row(
+              modifier = Modifier.fillMaxWidth().weight(1f),
+              horizontalArrangement = Arrangement.spacedBy(spacing.dp),
+          ) {
+            chunk.forEach { route ->
+              ElevatedCard(
+                  modifier =
+                      Modifier.clickable {
+                            onRouteTap(route)
+                          }
+                          .fillMaxHeight()
+                          .weight(1f)
+              ) {
+                RouteBox(
+                    route = route,
+                    titleStyle = MaterialTheme.typography.titleMedium,
+                )
+              }
             }
+            if (chunk.size == 1) {
+              Box(modifier = Modifier.weight(1f))
+            }
+          }
         }
+      }
     }
+  }
 }

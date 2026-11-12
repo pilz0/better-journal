@@ -36,29 +36,24 @@ import foo.pilz.freaklog.ui.tabs.journal.addingestion.NextFAB
 import foo.pilz.freaklog.ui.tabs.search.substance.BulletPoints
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CheckSaferUseScreen(
     navigateToNext: () -> Unit,
-    viewModel: SaferUseViewModel = hiltViewModel()
+    viewModel: SaferUseViewModel = hiltViewModel(),
 ) {
-    Scaffold(
-        topBar = { TopAppBar(title = { Text("${viewModel.substanceName} safer use") }) },
-        floatingActionButton = {
-            NextFAB(navigateToNext)
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .verticalScroll(rememberScrollState())
-                .padding(padding)
-        ) {
-            BulletPoints(
-                points = viewModel.substance.saferUse,
-                modifier = Modifier.padding(horizontal = horizontalPadding)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-        }
+  Scaffold(
+      topBar = { TopAppBar(title = { Text("${viewModel.substanceName} safer use") }) },
+      floatingActionButton = {
+        NextFAB(navigateToNext)
+      },
+  ) { padding ->
+    Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(padding)) {
+      BulletPoints(
+          points = viewModel.substance.saferUse,
+          modifier = Modifier.padding(horizontal = horizontalPadding),
+      )
+      Spacer(modifier = Modifier.height(8.dp))
     }
+  }
 }

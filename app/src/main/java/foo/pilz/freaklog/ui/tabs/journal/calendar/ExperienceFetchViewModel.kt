@@ -19,18 +19,19 @@
 package foo.pilz.freaklog.ui.tabs.journal.calendar
 
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsCompanionsAndRatings
-import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
-
 @HiltViewModel
-class ExperienceFetchViewModel @Inject constructor(
+class ExperienceFetchViewModel
+@Inject
+constructor(
     val experienceRepo: ExperienceRepository,
 ) : ViewModel() {
 
-    suspend fun getExperience(experienceId: Int): ExperienceWithIngestionsCompanionsAndRatings? {
-        return experienceRepo.getExperienceWithIngestionsCompanionsAndRatings(experienceId)
-    }
+  suspend fun getExperience(experienceId: Int): ExperienceWithIngestionsCompanionsAndRatings? {
+    return experienceRepo.getExperienceWithIngestionsCompanionsAndRatings(experienceId)
+  }
 }

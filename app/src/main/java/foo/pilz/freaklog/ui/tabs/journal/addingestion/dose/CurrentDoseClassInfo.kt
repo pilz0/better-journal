@@ -44,64 +44,68 @@ import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.dose.RoaDosePreviewProvider
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
 
-
 @Preview
 @Composable
 fun CurrentDoseClassInfoPreview(@PreviewParameter(RoaDosePreviewProvider::class) roaDose: RoaDose) {
-    CurrentDoseClassInfo(currentDoseClass = DoseClass.LIGHT, roaDose = roaDose)
+  CurrentDoseClassInfo(currentDoseClass = DoseClass.LIGHT, roaDose = roaDose)
 }
 
 @Composable
 fun CurrentDoseClassInfo(currentDoseClass: DoseClass, roaDose: RoaDose) {
-    val doseColor = currentDoseClass.getComposeColor(isSystemInDarkTheme())
-    var isShowingDoseClassDialog by remember { mutableStateOf(false) }
-    TextButton(
-        onClick = {
-            isShowingDoseClassDialog = true
-        },
-    ) {
-        Icon(
-            Icons.Outlined.Info,
-            contentDescription = "Info",
-            tint = doseColor
-        )
-        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-        val text = when (currentDoseClass) {
-            DoseClass.THRESHOLD -> "threshold ${roaDose.lightMin?.toReadableString()} ${roaDose.units}"
-            DoseClass.LIGHT -> "light ${roaDose.lightMin?.toReadableString()}-${roaDose.commonMin?.toReadableString()} ${roaDose.units}"
-            DoseClass.COMMON -> "common ${roaDose.commonMin?.toReadableString()}-${roaDose.strongMin?.toReadableString()} ${roaDose.units}"
-            DoseClass.STRONG -> "strong ${roaDose.strongMin?.toReadableString()}-${roaDose.heavyMin?.toReadableString()} ${roaDose.units}"
-            DoseClass.HEAVY -> "heavy ${roaDose.heavyMin?.toReadableString()} ${roaDose.units}-.."
+  val doseColor = currentDoseClass.getComposeColor(isSystemInDarkTheme())
+  var isShowingDoseClassDialog by remember { mutableStateOf(false) }
+  TextButton(
+      onClick = {
+        isShowingDoseClassDialog = true
+      },
+  ) {
+    Icon(
+        Icons.Outlined.Info,
+        contentDescription = "Info",
+        tint = doseColor,
+    )
+    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+    val text =
+        when (currentDoseClass) {
+          DoseClass.THRESHOLD ->
+              "threshold ${roaDose.lightMin?.toReadableString()} ${roaDose.units}"
+          DoseClass.LIGHT ->
+              "light ${roaDose.lightMin?.toReadableString()}-${roaDose.commonMin?.toReadableString()} ${roaDose.units}"
+          DoseClass.COMMON ->
+              "common ${roaDose.commonMin?.toReadableString()}-${roaDose.strongMin?.toReadableString()} ${roaDose.units}"
+          DoseClass.STRONG ->
+              "strong ${roaDose.strongMin?.toReadableString()}-${roaDose.heavyMin?.toReadableString()} ${roaDose.units}"
+          DoseClass.HEAVY -> "heavy ${roaDose.heavyMin?.toReadableString()} ${roaDose.units}-.."
         }
-        Text(
-            text = text,
-            color = doseColor,
-            style = MaterialTheme.typography.labelLarge
-        )
-    }
-    AnimatedVisibility(visible = isShowingDoseClassDialog) {
-        AlertDialog(
-            onDismissRequest = { isShowingDoseClassDialog = false },
-            title = {
-                Text(
-                    text = "${currentDoseClass.name} DOSAGE",
-                    style = MaterialTheme.typography.titleLarge,
-                )
-            },
-            text = {
-                Text(
-                    text = currentDoseClass.description,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = { isShowingDoseClassDialog = false }
-                ) {
-                    Text("Dismiss")
-                }
-            },
-        )
-    }
+    Text(
+        text = text,
+        color = doseColor,
+        style = MaterialTheme.typography.labelLarge,
+    )
+  }
+  AnimatedVisibility(visible = isShowingDoseClassDialog) {
+    AlertDialog(
+        onDismissRequest = { isShowingDoseClassDialog = false },
+        title = {
+          Text(
+              text = "${currentDoseClass.name} DOSAGE",
+              style = MaterialTheme.typography.titleLarge,
+          )
+        },
+        text = {
+          Text(
+              text = currentDoseClass.description,
+              style = MaterialTheme.typography.bodySmall,
+          )
+        },
+        confirmButton = {
+          TextButton(
+              modifier = Modifier.fillMaxWidth(),
+              onClick = { isShowingDoseClassDialog = false },
+          ) {
+            Text("Dismiss")
+          }
+        },
+    )
+  }
 }

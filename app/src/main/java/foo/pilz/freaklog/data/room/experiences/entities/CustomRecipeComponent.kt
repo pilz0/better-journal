@@ -25,19 +25,23 @@ import androidx.room.PrimaryKey
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 
 @Entity(
-    foreignKeys = [
-        ForeignKey(
-            entity = CustomRecipe::class,
-            parentColumns = ["id"],
-            childColumns = ["customRecipeId"],
-            onDelete = ForeignKey.CASCADE
-        )
-    ],
-    indices = [Index("customRecipeId")]
+    foreignKeys =
+        [
+            ForeignKey(
+                entity = CustomRecipe::class,
+                parentColumns = ["id"],
+                childColumns = ["customRecipeId"],
+                onDelete = ForeignKey.CASCADE,
+            )
+        ],
+    indices =
+        [
+            Index("customRecipeId"),
+            Index("customUnitId"),
+        ],
 )
 data class CustomRecipeComponent(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val customRecipeId: Int,
     val substanceName: String,
     val dose: Double?,
@@ -46,5 +50,5 @@ data class CustomRecipeComponent(
     val units: String?,
     val administrationRoute: AdministrationRoute,
     val customUnitId: Int? = null,
-    val componentOrder: Int = 0
+    val componentOrder: Int = 0,
 )

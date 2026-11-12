@@ -32,80 +32,84 @@ fun EditCustomSubstanceScreen(
     navigateToRisksEditor: (customSubstanceId: Int) -> Unit,
     viewModel: EditCustomSubstanceViewModel = hiltViewModel(),
 ) {
-    var isShowingDeleteDialog by remember { mutableStateOf(false) }
-    val substance = viewModel.substanceFlow.collectAsStateWithLifecycle().value
+  var isShowingDeleteDialog by remember { mutableStateOf(false) }
+  val substance = viewModel.substanceFlow.collectAsStateWithLifecycle().value
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Edit custom substance") },
-                navigationIcon = {
-                    IconButton(onClick = navigateBack) {
-                        Icon(Icons.Default.ChevronLeft, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    val context = LocalContext.current
-                    IconButton(onClick = { viewModel.share(context) }) {
-                        Icon(Icons.Outlined.IosShare, contentDescription = "Share")
-                    }
-                },
-            )
-        },
-    ) { padding ->
-        CustomSubstanceEditorContent(
-            padding = padding,
-            name = viewModel.nameFlow.collectAsStateWithLifecycle().value,
-            onNameChange = viewModel::onNameChange,
-            units = viewModel.unitsFlow.collectAsStateWithLifecycle().value,
-            onUnitsChange = viewModel::onUnitsChange,
-            summary = viewModel.summaryFlow.collectAsStateWithLifecycle().value,
-            onSummaryChange = viewModel::onSummaryChange,
-            category = viewModel.categoryFlow.collectAsStateWithLifecycle().value,
-            onCategoryChange = viewModel::onCategoryChange,
-            onNavigateToRoutes = {
-                navigateToCustomDurationScreen(viewModel.id, viewModel.nameFlow.value)
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Edit custom substance") },
+            navigationIcon = {
+              IconButton(onClick = navigateBack) {
+                Icon(Icons.Default.ChevronLeft, contentDescription = "Back")
+              }
             },
-            routesCount = substance?.roaInfos?.size ?: 0,
-            onNavigateToCategories = { navigateToCategoriesPicker(viewModel.id) },
-            categoriesCount = substance?.categories?.size ?: 0,
-            onNavigateToInteractions = { navigateToInteractionsList(viewModel.id) },
-            interactionsCount = substance?.interactions?.size ?: 0,
-            onNavigateToTolerance = { navigateToToleranceEditor(viewModel.id) },
-            toleranceFilled = substance?.let { s ->
-                s.substance.toleranceFull != null ||
-                        s.substance.toleranceHalf != null ||
-                        s.substance.toleranceZero != null ||
-                        s.crossTolerances.isNotEmpty()
-            } ?: false,
-            onNavigateToRisks = { navigateToRisksEditor(viewModel.id) },
-            risksFilled = substance?.let { s ->
-                s.substance.effectsText != null ||
-                        s.substance.generalRisks != null ||
-                        s.substance.longTermRisks != null
-            } ?: false,
-            onDelete = { isShowingDeleteDialog = true },
+            actions = {
+              val context = LocalContext.current
+              IconButton(onClick = { viewModel.share(context) }) {
+                Icon(Icons.Outlined.IosShare, contentDescription = "Share")
+              }
+            },
         )
+      },
+  ) { padding ->
+    CustomSubstanceEditorContent(
+        padding = padding,
+        name = viewModel.nameFlow.collectAsStateWithLifecycle().value,
+        onNameChange = viewModel::onNameChange,
+        units = viewModel.unitsFlow.collectAsStateWithLifecycle().value,
+        onUnitsChange = viewModel::onUnitsChange,
+        summary = viewModel.summaryFlow.collectAsStateWithLifecycle().value,
+        onSummaryChange = viewModel::onSummaryChange,
+        category = viewModel.categoryFlow.collectAsStateWithLifecycle().value,
+        onCategoryChange = viewModel::onCategoryChange,
+        onNavigateToRoutes = {
+          navigateToCustomDurationScreen(viewModel.id, viewModel.nameFlow.value)
+        },
+        routesCount = substance?.roaInfos?.size ?: 0,
+        onNavigateToCategories = { navigateToCategoriesPicker(viewModel.id) },
+        categoriesCount = substance?.categories?.size ?: 0,
+        onNavigateToInteractions = { navigateToInteractionsList(viewModel.id) },
+        interactionsCount = substance?.interactions?.size ?: 0,
+        onNavigateToTolerance = { navigateToToleranceEditor(viewModel.id) },
+        toleranceFilled =
+            substance?.let { s ->
+              s.substance.toleranceFull != null ||
+                  s.substance.toleranceHalf != null ||
+                  s.substance.toleranceZero != null ||
+                  s.crossTolerances.isNotEmpty()
+            } ?: false,
+        onNavigateToRisks = { navigateToRisksEditor(viewModel.id) },
+        risksFilled =
+            substance?.let { s ->
+              s.substance.effectsText != null ||
+                  s.substance.generalRisks != null ||
+                  s.substance.longTermRisks != null
+            } ?: false,
+        onDelete = { isShowingDeleteDialog = true },
+    )
 
-        AnimatedVisibility(visible = isShowingDeleteDialog) {
-            AlertDialog(
-                onDismissRequest = { isShowingDeleteDialog = false },
-                title = { Text("Delete substance?") },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            isShowingDeleteDialog = false
-                            viewModel.deleteCustomSubstance()
-                            navigateBack()
-                        },
-                    ) { Text("Delete") }
+    AnimatedVisibility(visible = isShowingDeleteDialog) {
+      AlertDialog(
+          onDismissRequest = { isShowingDeleteDialog = false },
+          title = { Text("Delete substance?") },
+          confirmButton = {
+            TextButton(
+                onClick = {
+                  isShowingDeleteDialog = false
+                  viewModel.deleteCustomSubstance()
+                  navigateBack()
                 },
-                dismissButton = {
-                    TextButton(onClick = { isShowingDeleteDialog = false }) {
-                        Text("Cancel")
-                    }
-                },
-            )
-        }
+            ) {
+              Text("Delete")
+            }
+          },
+          dismissButton = {
+            TextButton(onClick = { isShowingDeleteDialog = false }) {
+              Text("Cancel")
+            }
+          },
+      )
     }
+  }
 }

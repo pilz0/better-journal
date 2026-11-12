@@ -42,38 +42,33 @@ import foo.pilz.freaklog.ui.theme.horizontalPadding
 @Preview
 @Composable
 fun DoseExplanationScreen() {
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Dosage classification") })
+  Scaffold(
+      topBar = {
+        TopAppBar(title = { Text("Dosage classification") })
+      }
+  ) { padding ->
+    Column(
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(padding)
+    ) {
+      VerticalSpace()
+      ElevatedCard(modifier = Modifier.padding(vertical = 5.dp, horizontal = horizontalPadding)) {
+        Text(
+            text =
+                "The range and intensity of the effects of a substance depends on upon a number of factors. These include route of administration, dosage, set and setting, and personal and environmental factors.\n" +
+                    "Effective doses can be divided into five categories: threshold, light, common, strong, and heavy.",
+            textAlign = TextAlign.Left,
+            modifier = Modifier.padding(vertical = 10.dp, horizontal = horizontalPadding),
+        )
+      }
+      DoseClass.entries.forEach {
+        SectionWithTitle(title = it.name) {
+          Text(
+              text = it.description,
+              textAlign = TextAlign.Left,
+              modifier = Modifier.padding(bottom = 10.dp).padding(horizontal = horizontalPadding),
+          )
         }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(padding)
-        ) {
-            VerticalSpace()
-            ElevatedCard(modifier = Modifier.padding(vertical = 5.dp, horizontal = horizontalPadding)) {
-                Text(
-                    text = "The range and intensity of the effects of a substance depends on upon a number of factors. These include route of administration, dosage, set and setting, and personal and environmental factors.\n" +
-                            "Effective doses can be divided into five categories: threshold, light, common, strong, and heavy.",
-                    textAlign = TextAlign.Left,
-                    modifier = Modifier
-                        .padding(vertical = 10.dp, horizontal = horizontalPadding)
-                )
-            }
-            DoseClass.entries.forEach {
-                SectionWithTitle(title = it.name) {
-                    Text(
-                        text = it.description,
-                        textAlign = TextAlign.Left,
-                        modifier = Modifier
-                            .padding(bottom = 10.dp)
-                            .padding(horizontal = horizontalPadding)
-                    )
-                }
-            }
-        }
+      }
     }
+  }
 }

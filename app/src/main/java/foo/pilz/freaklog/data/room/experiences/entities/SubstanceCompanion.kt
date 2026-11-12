@@ -26,15 +26,15 @@ import kotlinx.serialization.Serializable
 @Entity
 @Serializable
 data class SubstanceCompanion(
-    @PrimaryKey(autoGenerate = false)
-    val substanceName: String,
+    @PrimaryKey(autoGenerate = false) val substanceName: String,
     var color: AdaptiveColor = AdaptiveColor.BLUE,
     var defaultCategory: foo.pilz.freaklog.data.substances.classes.IngestionCategory? = null,
 ) {
-    /** The ARGB value when the user picked a colour outside the presets. */
-    val customColorInt: Int? get() = (color as? AdaptiveColor.Custom)?.argb
+  /** The ARGB value when the user picked a colour outside the presets. */
+  val customColorInt: Int?
+    get() = (color as? AdaptiveColor.Custom)?.argb
 
-    fun getDisplayColor(isDarkTheme: Boolean = false): Color = color.getComposeColor(isDarkTheme)
+  fun getDisplayColor(isDarkTheme: Boolean = false): Color = color.getComposeColor(isDarkTheme)
 
-    fun hasCustomColor(): Boolean = color is AdaptiveColor.Custom
+  fun hasCustomColor(): Boolean = color is AdaptiveColor.Custom
 }

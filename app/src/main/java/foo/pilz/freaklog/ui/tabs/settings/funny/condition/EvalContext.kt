@@ -6,16 +6,22 @@ import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.substances.classes.roa.DoseClass
 import java.time.ZoneId
 
-enum class InteractionFilter { DANGEROUS, UNSAFE, UNCERTAIN, ANY }
+enum class InteractionFilter {
+  DANGEROUS,
+  UNSAFE,
+  UNCERTAIN,
+  ANY,
+}
 
 interface SubstanceInfo {
-    fun categories(substanceName: String): Set<String>
-    fun doseClass(
-        substanceName: String,
-        route: AdministrationRoute,
-        dose: Double?,
-        units: String?,
-    ): DoseClass?
+  fun categories(substanceName: String): Set<String>
+
+  fun doseClass(
+      substanceName: String,
+      route: AdministrationRoute,
+      dose: Double?,
+      units: String?,
+  ): DoseClass?
 }
 
 class EvalContext(

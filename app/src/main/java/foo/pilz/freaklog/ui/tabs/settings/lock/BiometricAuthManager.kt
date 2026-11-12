@@ -21,14 +21,6 @@ import androidx.fragment.app.FragmentActivity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import foo.pilz.freaklog.di.ApplicationScope
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import java.io.IOException
 import java.security.GeneralSecurityException
 import java.security.InvalidKeyException
@@ -39,246 +31,274 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 /**
  * Possible states of biometric availability on the device.
  *
- * Maps the integer codes returned by [BiometricManager.canAuthenticate] to a
- * Kotlin enum so callers don't need to depend on the AndroidX constants.
+ * Maps the integer codes returned by [BiometricManager.canAuthenticate] to a Kotlin enum so callers
+ * don't need to depend on the AndroidX constants.
  */
 enum class BiometricAvailability(val message: String) {
-    AVAILABLE("Strong biometric authentication is available."),
-    NO_HARDWARE("This device has no biometric hardware."),
-    HARDWARE_UNAVAILABLE("Biometric hardware is currently unavailable."),
-    NONE_ENROLLED("No strong biometrics are enrolled. Set one up in system settings to enable the lock."),
-    UNSUPPORTED("Strong biometric authentication is not supported on this device."),
+  AVAILABLE("Strong biometric authentication is available."),
+  NO_HARDWARE("This device has no biometric hardware."),
+  HARDWARE_UNAVAILABLE("Biometric hardware is currently unavailable."),
+  NONE_ENROLLED(
+      "No strong biometrics are enrolled. Set one up in system settings to enable the lock."
+  ),
+  UNSUPPORTED("Strong biometric authentication is not supported on this device."),
 }
 
 /**
  * Singleton that owns the journal's app-lock state.
  *
  * It exposes:
- *  - flows for the user-facing settings (`isLockEnabled`, `lockTimeOption`)
- *  - a [shouldLock] state-flow telling the UI whether the lock screen must be shown
- *  - lifecycle hooks ([onAppPaused] / [onAppResumed]) used by the activity to
- *    record the last active timestamp and re-evaluate the lock
- *  - [authenticate] which displays the system biometric prompt and unlocks on success
+ * - flows for the user-facing settings (`isLockEnabled`, `lockTimeOption`)
+ * - a [shouldLock] state-flow telling the UI whether the lock screen must be shown
+ * - lifecycle hooks ([onAppPaused] / [onAppResumed]) used by the activity to record the last active
+ *   timestamp and re-evaluate the lock
+ * - [authenticate] which displays the system biometric prompt and unlocks on success
  *
- * The math behind "did enough time pass to lock again?" lives in the pure
- * [shouldLockNow] helper, which is unit-tested separately.
+ * The math behind "did enough time pass to lock again?" lives in the pure [shouldLockNow] helper,
+ * which is unit-tested separately.
  */
 @Singleton
-class BiometricAuthManager @Inject constructor(
+class BiometricAuthManager
+@Inject
+constructor(
     @ApplicationContext private val appContext: Context,
     private val userPreferences: UserPreferences,
     @ApplicationScope private val applicationScope: CoroutineScope,
 ) {
 
-    private companion object {
-        const val TAG = "BiometricAuthManager"
-        const val ANDROID_KEYSTORE = "AndroidKeyStore"
-        const val AUTH_KEY_ALIAS = "freaklog_app_lock_auth"
-        const val KEY_ALGORITHM = KeyProperties.KEY_ALGORITHM_AES
+  private companion object {
+    const val TAG = "BiometricAuthManager"
+    const val ANDROID_KEYSTORE = "AndroidKeyStore"
+    const val AUTH_KEY_ALIAS = "freaklog_app_lock_auth"
+    const val KEY_ALGORITHM = KeyProperties.KEY_ALGORITHM_AES
 
-        // Use authenticated encryption (AES-GCM). CBC mode without a MAC is considered a
-        // risky / broken cryptographic construction by CodeQL because it offers no
-        // integrity protection.
-        const val CIPHER_TRANSFORMATION = "AES/GCM/NoPadding"
-        const val AUTH_CHALLENGE_SIZE_BYTES = 32
+    // Use authenticated encryption (AES-GCM). CBC mode without a MAC is considered a
+    // risky / broken cryptographic construction by CodeQL because it offers no
+    // integrity protection.
+    const val CIPHER_TRANSFORMATION = "AES/GCM/NoPadding"
+    const val AUTH_CHALLENGE_SIZE_BYTES = 32
 
-        /** Size of the GCM authentication tag in bytes (128 bits, the JCA default). */
-        const val GCM_TAG_LENGTH_BYTES = 16
-        const val STRONG_BIOMETRIC_AUTHENTICATOR = BiometricManager.Authenticators.BIOMETRIC_STRONG
-        const val ERROR_AUTH_NOT_VERIFIED = "Biometric authentication could not be verified."
+    /** Size of the GCM authentication tag in bytes (128 bits, the JCA default). */
+    const val GCM_TAG_LENGTH_BYTES = 16
+    const val STRONG_BIOMETRIC_AUTHENTICATOR = BiometricManager.Authenticators.BIOMETRIC_STRONG
+    const val ERROR_AUTH_NOT_VERIFIED = "Biometric authentication could not be verified."
+  }
+
+  private val secureRandom: SecureRandom by lazy { SecureRandom() }
+
+  val isLockEnabledFlow: Flow<Boolean> = userPreferences.isLockEnabledFlow
+  val lockTimeOptionFlow: StateFlow<LockTimeOption> =
+      userPreferences.lockTimeOptionFlow.stateIn(
+          applicationScope,
+          SharingStarted.Eagerly,
+          LockTimeOption.IMMEDIATELY,
+      )
+
+  private val _isUnlocked = kotlinx.coroutines.flow.MutableStateFlow(false)
+  /** True when the user has authenticated for the current foreground session. */
+  val isUnlocked: StateFlow<Boolean> = _isUnlocked
+
+  /**
+   * True when the lock screen must be shown over the rest of the UI.
+   *
+   * Combines the persisted lock settings with the in-memory [isUnlocked] flag.
+   */
+  val shouldLock: StateFlow<Boolean> =
+      combine(
+              userPreferences.isLockEnabledFlow,
+              _isUnlocked,
+          ) { enabled, unlocked ->
+            enabled && !unlocked
+          }
+          // Default to "locked" on cold start / process death so that we don't briefly
+          // render the journal contents before DataStore emits the persisted setting.
+          // The combine flips this to false within a frame once prefs report the lock
+          // is disabled.
+          .stateIn(applicationScope, SharingStarted.Eagerly, initialValue = true)
+
+  fun setLockEnabled(enabled: Boolean) {
+    applicationScope.launch {
+      userPreferences.saveLockEnabled(enabled)
+      // Newly enabling the lock should immediately require auth on next foreground.
+      if (enabled) {
+        _isUnlocked.value = false
+        appContext.stopService(
+            android.content.Intent(
+                appContext,
+                foo.pilz.freaklog.ui.tabs.journal.experience.notification
+                        .TimelineNotificationService::class
+                    .java,
+            )
+        )
+        appContext.getSystemService(android.app.NotificationManager::class.java).cancelAll()
+        foo.pilz.freaklog.ui.refreshPrivateJournalPreviews(appContext)
+      } else {
+        _isUnlocked.value = true
+      }
     }
+  }
 
-    private val secureRandom: SecureRandom by lazy { SecureRandom() }
+  fun setLockTimeOption(option: LockTimeOption) {
+    applicationScope.launch { userPreferences.saveLockTimeOption(option) }
+  }
 
-    val isLockEnabledFlow: Flow<Boolean> = userPreferences.isLockEnabledFlow
-    val lockTimeOptionFlow: StateFlow<LockTimeOption> = userPreferences.lockTimeOptionFlow
-        .stateIn(applicationScope, SharingStarted.Eagerly, LockTimeOption.IMMEDIATELY)
+  private var lastPausedElapsedSeconds = 0L
 
-    private val _isUnlocked = kotlinx.coroutines.flow.MutableStateFlow(false)
-    /** True when the user has authenticated for the current foreground session. */
-    val isUnlocked: StateFlow<Boolean> = _isUnlocked
+  /** Should be called from the activity's `ON_PAUSE` lifecycle event. */
+  fun onAppPaused() {
+    lastPausedElapsedSeconds = SystemClock.elapsedRealtime() / 1000
+  }
 
-    /**
-     * True when the lock screen must be shown over the rest of the UI.
-     *
-     * Combines the persisted lock settings with the in-memory [isUnlocked] flag.
-     */
-    val shouldLock: StateFlow<Boolean> = combine(
-        userPreferences.isLockEnabledFlow,
-        _isUnlocked,
-    ) { enabled, unlocked -> enabled && !unlocked }
-        // Default to "locked" on cold start / process death so that we don't briefly
-        // render the journal contents before DataStore emits the persisted setting.
-        // The combine flips this to false within a frame once prefs report the lock
-        // is disabled.
-        .stateIn(applicationScope, SharingStarted.Eagerly, initialValue = true)
-
-    fun setLockEnabled(enabled: Boolean) {
-        applicationScope.launch {
-            userPreferences.saveLockEnabled(enabled)
-            // Newly enabling the lock should immediately require auth on next foreground.
-            if (enabled) {
-                _isUnlocked.value = false
-                appContext.stopService(
-                    android.content.Intent(
-                        appContext,
-                        foo.pilz.freaklog.ui.tabs.journal.experience.notification.TimelineNotificationService::class.java
-                    )
-                )
-                appContext.getSystemService(android.app.NotificationManager::class.java).cancel(
-                    foo.pilz.freaklog.ui.tabs.journal.experience.notification.TimelineNotificationChannel.NOTIFICATION_ID
-                )
-                foo.pilz.freaklog.ui.refreshPrivateJournalPreviews(appContext)
-            } else {
-                _isUnlocked.value = true
-            }
-        }
+  /** Should be called from the activity's `ON_RESUME` lifecycle event. */
+  fun onAppResumed() {
+    val lastActive = lastPausedElapsedSeconds
+    val now = SystemClock.elapsedRealtime() / 1000
+    if (shouldLockNow(true, lockTimeOptionFlow.value, lastActive, now)) _isUnlocked.value = false
+    applicationScope.launch {
+      val enabled = userPreferences.isLockEnabledFlow.first()
+      if (!enabled) {
+        _isUnlocked.value = true
+        return@launch
+      }
+      val option = userPreferences.lockTimeOptionFlow.first()
+      if (shouldLockNow(true, option, lastActive, now)) {
+        _isUnlocked.value = false
+      }
     }
+  }
 
-    fun setLockTimeOption(option: LockTimeOption) {
-        applicationScope.launch { userPreferences.saveLockTimeOption(option) }
-    }
-
-    private var lastPausedElapsedSeconds = 0L
-
-    /** Should be called from the activity's `ON_PAUSE` lifecycle event. */
-    fun onAppPaused() {
-        lastPausedElapsedSeconds = SystemClock.elapsedRealtime() / 1000
-    }
-
-    /** Should be called from the activity's `ON_RESUME` lifecycle event. */
-    fun onAppResumed() {
-        val lastActive = lastPausedElapsedSeconds
-        val now = SystemClock.elapsedRealtime() / 1000
-        if (shouldLockNow(true, lockTimeOptionFlow.value, lastActive, now)) _isUnlocked.value = false
-        applicationScope.launch {
-            val enabled = userPreferences.isLockEnabledFlow.first()
-            if (!enabled) {
-                _isUnlocked.value = true
-                return@launch
-            }
-            val option = userPreferences.lockTimeOptionFlow.first()
-            if (shouldLockNow(true, option, lastActive, now)) {
-                _isUnlocked.value = false
-            }
-        }
-    }
-
-    fun availability(): BiometricAvailability {
-        return when (BiometricManager.from(appContext).canAuthenticate(STRONG_BIOMETRIC_AUTHENTICATOR)) {
-            BiometricManager.BIOMETRIC_SUCCESS -> BiometricAvailability.AVAILABLE
-            BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> BiometricAvailability.NO_HARDWARE
-            BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> BiometricAvailability.HARDWARE_UNAVAILABLE
-            BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> BiometricAvailability.NONE_ENROLLED
-            else -> BiometricAvailability.UNSUPPORTED
-        }
-    }
-
-    /**
-     * Display the system biometric prompt.
-     *
-     * On success [onUnlocked] is invoked and the in-memory unlock flag flips to true,
-     * allowing the lock screen to be removed by the UI layer.
-     */
-    fun authenticate(
-        activity: FragmentActivity,
-        onUnlocked: () -> Unit = {},
-        onError: (String) -> Unit = {},
+  fun availability(): BiometricAvailability {
+    return when (
+        BiometricManager.from(appContext).canAuthenticate(STRONG_BIOMETRIC_AUTHENTICATOR)
     ) {
-        val cryptoObject = try {
-            createCryptoObject()
-        } catch (e: Exception) {
-            onError(preparationErrorMessage(e))
-            return
-        }
-        // Ephemeral challenge: the ciphertext is intentionally discarded. The purpose is
-        // to prove that this prompt returned an authenticated Keystore cipher operation
-        // before unlocking the in-memory app-lock overlay.
-        val challenge = ByteArray(AUTH_CHALLENGE_SIZE_BYTES).also { secureRandom.nextBytes(it) }
-        val executor = androidx.core.content.ContextCompat.getMainExecutor(activity)
-        val callback = object : BiometricPrompt.AuthenticationCallback() {
-            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                val cipher = result.cryptoObject?.cipher
-                if (cipher == null) {
-                    onError(ERROR_AUTH_NOT_VERIFIED)
-                    return
-                }
-                try {
-                    val proof = cipher.doFinal(challenge)
-                    // AES-GCM output is `plaintext.size + 16-byte authentication tag`.
-                    // A successful doFinal on a Keystore-bound cipher already proves the
-                    // user authenticated; verify the result is at least as large as the
-                    // input plus the tag as a defence-in-depth sanity check.
-                    if (proof.size < challenge.size + GCM_TAG_LENGTH_BYTES) {
-                        onError(ERROR_AUTH_NOT_VERIFIED)
-                        return
-                    }
-                    _isUnlocked.value = true
-                    onUnlocked()
-                } catch (e: GeneralSecurityException) {
-                    onError(ERROR_AUTH_NOT_VERIFIED)
-                }
-            }
+      BiometricManager.BIOMETRIC_SUCCESS -> BiometricAvailability.AVAILABLE
+      BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> BiometricAvailability.NO_HARDWARE
+      BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> BiometricAvailability.HARDWARE_UNAVAILABLE
+      BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> BiometricAvailability.NONE_ENROLLED
+      else -> BiometricAvailability.UNSUPPORTED
+    }
+  }
 
-            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                onError(errString.toString())
-            }
+  /**
+   * Display the system biometric prompt.
+   *
+   * On success [onUnlocked] is invoked and the in-memory unlock flag flips to true, allowing the
+   * lock screen to be removed by the UI layer.
+   */
+  fun authenticate(
+      activity: FragmentActivity,
+      onUnlocked: () -> Unit = {},
+      onError: (String) -> Unit = {},
+  ) {
+    val cryptoObject =
+        try {
+          createCryptoObject()
+        } catch (e: Exception) {
+          onError(preparationErrorMessage(e))
+          return
         }
-        val prompt = BiometricPrompt(activity, executor, callback)
-        val info = BiometricPrompt.PromptInfo.Builder()
+    // Ephemeral challenge: the ciphertext is intentionally discarded. The purpose is
+    // to prove that this prompt returned an authenticated Keystore cipher operation
+    // before unlocking the in-memory app-lock overlay.
+    val challenge = ByteArray(AUTH_CHALLENGE_SIZE_BYTES).also { secureRandom.nextBytes(it) }
+    val executor = androidx.core.content.ContextCompat.getMainExecutor(activity)
+    val callback =
+        object : BiometricPrompt.AuthenticationCallback() {
+          override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+            val cipher = result.cryptoObject?.cipher
+            if (cipher == null) {
+              onError(ERROR_AUTH_NOT_VERIFIED)
+              return
+            }
+            try {
+              val proof = cipher.doFinal(challenge)
+              // AES-GCM output is `plaintext.size + 16-byte authentication tag`.
+              // A successful doFinal on a Keystore-bound cipher already proves the
+              // user authenticated; verify the result is at least as large as the
+              // input plus the tag as a defence-in-depth sanity check.
+              if (proof.size < challenge.size + GCM_TAG_LENGTH_BYTES) {
+                onError(ERROR_AUTH_NOT_VERIFIED)
+                return
+              }
+              _isUnlocked.value = true
+              onUnlocked()
+            } catch (e: GeneralSecurityException) {
+              onError(ERROR_AUTH_NOT_VERIFIED)
+            }
+          }
+
+          override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+            onError(errString.toString())
+          }
+        }
+    val prompt = BiometricPrompt(activity, executor, callback)
+    val info =
+        BiometricPrompt.PromptInfo.Builder()
             .setTitle("Unlock Journal")
             .setSubtitle("Authenticate to view your journal")
             .setAllowedAuthenticators(STRONG_BIOMETRIC_AUTHENTICATOR)
             .setNegativeButtonText("Cancel")
             .build()
-        prompt.authenticate(info, cryptoObject)
-    }
+    prompt.authenticate(info, cryptoObject)
+  }
 
-    /** Forces a re-lock — used when toggling the setting on. */
-    fun lockNow() {
-        _isUnlocked.value = false
-    }
+  /** Forces a re-lock — used when toggling the setting on. */
+  fun lockNow() {
+    _isUnlocked.value = false
+  }
 
-    private fun createCryptoObject(): BiometricPrompt.CryptoObject {
-        val cipher = Cipher.getInstance(CIPHER_TRANSFORMATION)
-        try {
-            cipher.init(Cipher.ENCRYPT_MODE, getOrCreateSecretKey())
-        } catch (e: InvalidKeyException) {
-            // The auth key can be invalidated when the enrolled biometrics change.
-            // Regenerate it once so the user can authenticate with the new enrollment.
-            deleteSecretKey()
-            try {
-                cipher.init(Cipher.ENCRYPT_MODE, getOrCreateSecretKey())
-            } catch (retry: InvalidKeyException) {
-                throw GeneralSecurityException(
-                    "Failed to initialize biometric authentication after key regeneration.",
-                    retry,
-                )
-            }
-        }
-        return BiometricPrompt.CryptoObject(cipher)
-    }
-
-    private fun getOrCreateSecretKey(): SecretKey {
-        val keyStore = loadKeyStore()
-        val existingKey = try {
-            keyStore.getKey(AUTH_KEY_ALIAS, null) as? SecretKey
-        } catch (e: GeneralSecurityException) {
-            Log.d(TAG, "Failed to read biometric authentication key; regenerating it.", e)
-            deleteSecretKey()
-            null
-        }
-        existingKey?.let { return it }
-
-        val keyGenerator = KeyGenerator.getInstance(KEY_ALGORITHM, ANDROID_KEYSTORE)
-        val keySpec = KeyGenParameterSpec.Builder(
-            AUTH_KEY_ALIAS,
-            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
+  private fun createCryptoObject(): BiometricPrompt.CryptoObject {
+    val cipher = Cipher.getInstance(CIPHER_TRANSFORMATION)
+    try {
+      cipher.init(Cipher.ENCRYPT_MODE, getOrCreateSecretKey())
+    } catch (e: InvalidKeyException) {
+      // The auth key can be invalidated when the enrolled biometrics change.
+      // Regenerate it once so the user can authenticate with the new enrollment.
+      deleteSecretKey()
+      try {
+        cipher.init(Cipher.ENCRYPT_MODE, getOrCreateSecretKey())
+      } catch (retry: InvalidKeyException) {
+        throw GeneralSecurityException(
+            "Failed to initialize biometric authentication after key regeneration.",
+            retry,
         )
+      }
+    }
+    return BiometricPrompt.CryptoObject(cipher)
+  }
+
+  private fun getOrCreateSecretKey(): SecretKey {
+    val keyStore = loadKeyStore()
+    val existingKey =
+        try {
+          keyStore.getKey(AUTH_KEY_ALIAS, null) as? SecretKey
+        } catch (e: GeneralSecurityException) {
+          Log.d(TAG, "Failed to read biometric authentication key; regenerating it.", e)
+          deleteSecretKey()
+          null
+        }
+    existingKey?.let {
+      return it
+    }
+
+    val keyGenerator = KeyGenerator.getInstance(KEY_ALGORITHM, ANDROID_KEYSTORE)
+    val keySpec =
+        KeyGenParameterSpec.Builder(
+                AUTH_KEY_ALIAS,
+                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
+            )
             .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
             .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
             .setUserAuthenticationRequired(true)
@@ -288,25 +308,26 @@ class BiometricAuthManager @Inject constructor(
             .setUserAuthenticationParameters(0, KeyProperties.AUTH_BIOMETRIC_STRONG)
             .setInvalidatedByBiometricEnrollment(true)
             .build()
-        keyGenerator.init(keySpec)
-        return keyGenerator.generateKey()
+    keyGenerator.init(keySpec)
+    return keyGenerator.generateKey()
+  }
+
+  private fun deleteSecretKey() {
+    try {
+      loadKeyStore().deleteEntry(AUTH_KEY_ALIAS)
+    } catch (e: GeneralSecurityException) {
+      throw GeneralSecurityException("Failed to delete biometric authentication key.", e)
+    } catch (e: IOException) {
+      throw GeneralSecurityException("Failed to delete biometric authentication key.", e)
     }
+  }
 
-    private fun deleteSecretKey() {
-        try {
-            loadKeyStore().deleteEntry(AUTH_KEY_ALIAS)
-        } catch (e: GeneralSecurityException) {
-            throw GeneralSecurityException("Failed to delete biometric authentication key.", e)
-        } catch (e: IOException) {
-            throw GeneralSecurityException("Failed to delete biometric authentication key.", e)
-        }
-    }
+  private fun loadKeyStore(): KeyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
 
-    private fun loadKeyStore(): KeyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
-
-    private fun preparationErrorMessage(error: Exception): String = when (error) {
+  private fun preparationErrorMessage(error: Exception): String =
+      when (error) {
         is IOException -> "Biometric keystore is unavailable."
         is GeneralSecurityException -> "Biometric cryptographic verification could not be prepared."
         else -> "Biometric authentication could not be prepared."
-    }
+      }
 }

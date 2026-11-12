@@ -16,6 +16,7 @@ import androidx.test.core.app.ApplicationProvider
 import assertk.assertThat
 import assertk.assertions.containsExactlyInAnyOrder
 import assertk.assertions.hasSize
+import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
 import foo.pilz.freaklog.data.room.AppDatabase
@@ -23,6 +24,8 @@ import foo.pilz.freaklog.data.room.experiences.ExperienceDao
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.reminders.entities.Reminder
 import foo.pilz.freaklog.testing.EntityBuilders
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -31,98 +34,113 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import java.time.Instant
-import java.time.temporal.ChronoUnit
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
 class ReminderActionReceiverTest {
 
-    private lateinit var db: AppDatabase
-    private lateinit var dao: ExperienceDao
-    private lateinit var receiver: ReminderActionReceiver
+  private lateinit var db: AppDatabase
+  private lateinit var dao: ExperienceDao
+  private lateinit var receiver: ReminderActionReceiver
 
-    private val reminder = Reminder(
-        title = "Morning meds",
-        hour = 8,
-        minute = 0,
-        isEnabled = true,
-        substanceName = "Caffeine",
-        administrationRoute = "ORAL",
-        dose = 100.0,
-        units = "mg",
-    )
+  private val reminder =
+      Reminder(
+          title = "Morning meds",
+          hour = 8,
+          minute = 0,
+          isEnabled = true,
+          substanceName = "Caffeine",
+          administrationRoute = "ORAL",
+          dose = 100.0,
+          units = "mg",
+      )
 
-    @Before
-    fun setUp() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        db = Room
-            .inMemoryDatabaseBuilder(context, AppDatabase::class.java)
+  @Before
+  fun setUp() {
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    db =
+        Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-        dao = db.experienceDao()
-        receiver = ReminderActionReceiver().apply {
-            experienceRepository = ExperienceRepository(
-                db = db,
-                experienceDao = dao,
-                reminderDao = db.reminderDao(),
-                webhookDao = db.webhookDao(),
-                ingestionWebhookMessageDao = db.ingestionWebhookMessageDao(),
-                context = context,
-            )
+    dao = db.experienceDao()
+    receiver =
+        ReminderActionReceiver().apply {
+          experienceRepository =
+              ExperienceRepository(
+                  db = db,
+                  experienceDao = dao,
+                  reminderDao = db.reminderDao(),
+                  webhookDao = db.webhookDao(),
+                  ingestionWebhookMessageDao = db.ingestionWebhookMessageDao(),
+                  context = context,
+              )
+          userPreferences =
+              io.mockk.mockk {
+                io.mockk.every { isLockEnabledFlow } returns kotlinx.coroutines.flow.flowOf(false)
+              }
         }
-    }
+  }
 
-    @After
-    fun tearDown() {
-        db.close()
-    }
+  @After
+  fun tearDown() {
+    db.close()
+  }
 
-    private suspend fun insertExperience(id: Int, title: String, at: Instant) {
-        dao.insert(EntityBuilders.experience(id = id, title = title, creationDate = at, sortDate = at))
-        dao.insert(EntityBuilders.ingestion(experienceId = id, time = at, creationDate = at))
-    }
+  private suspend fun insertExperience(id: Int, title: String, at: Instant) {
+    dao.insert(EntityBuilders.experience(id = id, title = title, creationDate = at, sortDate = at))
+    dao.insert(EntityBuilders.ingestion(experienceId = id, time = at, creationDate = at))
+  }
 
-    @Test
-    fun `take without recent experience does not overwrite the first experience`() = runTest {
-        val longAgo = Instant.now().minus(10, ChronoUnit.DAYS)
-        insertExperience(id = 1, title = "First trip", at = longAgo)
+  @Test
+  fun `take without recent experience does not overwrite the first experience`() = runTest {
+    val longAgo = Instant.now().minus(10, ChronoUnit.DAYS)
+    insertExperience(id = 1, title = "First trip", at = longAgo)
 
-        receiver.handleTake(reminder)
+    receiver.handleTake(reminder)
 
-        assertThat(dao.getExperience(1)?.title).isEqualTo("First trip")
-        assertThat(dao.getIngestionsWithCompanionsFlow(1).first()).hasSize(1)
-        val created = dao.getExperience(2)
-        assertThat(created).isNotNull()
-        assertThat(created?.title).isEqualTo("Morning meds")
-        assertThat(dao.getIngestionsWithCompanionsFlow(2).first()).hasSize(1)
-    }
+    assertThat(dao.getExperience(1)?.title).isEqualTo("First trip")
+    assertThat(dao.getIngestionsWithCompanionsFlow(1).first()).hasSize(1)
+    val created = dao.getExperience(2)
+    assertThat(created).isNotNull()
+    assertThat(created?.title).isEqualTo("Morning meds")
+    assertThat(dao.getIngestionsWithCompanionsFlow(2).first()).hasSize(1)
+  }
 
-    @Test
-    fun `new experience id is above the global maximum, not just recent ones`() = runTest {
-        val now = Instant.now()
-        // Higher id but older sort date, so it is outside the two-day lookup window.
-        insertExperience(id = 4, title = "Backdated", at = now.minus(30, ChronoUnit.DAYS))
-        // Inside the window but too long ago to attach the new ingestion to.
-        insertExperience(id = 3, title = "Yesterday", at = now.minus(20, ChronoUnit.HOURS))
+  @Test
+  fun `new experience id is above the global maximum, not just recent ones`() = runTest {
+    val now = Instant.now()
+    // Higher id but older sort date, so it is outside the two-day lookup window.
+    insertExperience(id = 4, title = "Backdated", at = now.minus(30, ChronoUnit.DAYS))
+    // Inside the window but too long ago to attach the new ingestion to.
+    insertExperience(id = 3, title = "Yesterday", at = now.minus(20, ChronoUnit.HOURS))
 
-        receiver.handleTake(reminder)
+    receiver.handleTake(reminder)
 
-        assertThat(dao.getExperience(4)?.title).isEqualTo("Backdated")
-        assertThat(dao.getExperience(3)?.title).isEqualTo("Yesterday")
-        assertThat(dao.getExperience(5)?.title).isEqualTo("Morning meds")
-    }
+    assertThat(dao.getExperience(4)?.title).isEqualTo("Backdated")
+    assertThat(dao.getExperience(3)?.title).isEqualTo("Yesterday")
+    assertThat(dao.getExperience(5)?.title).isEqualTo("Morning meds")
+  }
 
-    @Test
-    fun `take attaches to an experience that started recently`() = runTest {
-        val now = Instant.now()
-        insertExperience(id = 7, title = "Ongoing", at = now.minus(1, ChronoUnit.HOURS))
+  @Test
+  fun `take attaches to an experience that started recently`() = runTest {
+    val now = Instant.now()
+    insertExperience(id = 7, title = "Ongoing", at = now.minus(1, ChronoUnit.HOURS))
 
-        receiver.handleTake(reminder)
+    receiver.handleTake(reminder)
 
-        val ingestions = dao.getIngestionsWithCompanionsFlow(7).first()
-        assertThat(ingestions.map { it.ingestion.notes })
-            .containsExactlyInAnyOrder(null, "Logged from reminder")
-        assertThat(dao.getExperience(8)).isEqualTo(null)
-    }
+    val ingestions = dao.getIngestionsWithCompanionsFlow(7).first()
+    assertThat(ingestions.map { it.ingestion.notes })
+        .containsExactlyInAnyOrder(null, "Logged from reminder")
+    assertThat(dao.getExperience(8)).isEqualTo(null)
+  }
+
+  @Test
+  fun `take when locked does not insert ingestion`() = runTest {
+    receiver.userPreferences =
+        io.mockk.mockk {
+          io.mockk.every { isLockEnabledFlow } returns kotlinx.coroutines.flow.flowOf(true)
+        }
+    receiver.handleTake(reminder)
+    assertThat(dao.getSortedIngestionsFlow().first()).isEmpty()
+  }
 }

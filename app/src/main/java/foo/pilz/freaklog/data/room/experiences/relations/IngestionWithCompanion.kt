@@ -24,12 +24,10 @@ import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
 
 data class IngestionWithCompanion(
-    @Embedded
-    var ingestion: Ingestion,
-
+    @Embedded var ingestion: Ingestion,
     @Relation(
         parentColumn = "substanceName",
-        entityColumn = "substanceName"
+        entityColumn = "substanceName",
     )
     var substanceCompanion: SubstanceCompanion?,
 )

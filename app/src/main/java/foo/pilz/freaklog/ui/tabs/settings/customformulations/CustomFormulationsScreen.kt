@@ -36,81 +36,75 @@ import foo.pilz.freaklog.data.room.experiences.entities.CustomFormulation
 fun CustomFormulationsScreen(
     navigateBack: () -> Unit,
     navigateToAdd: () -> Unit,
-    viewModel: CustomFormulationsViewModel = hiltViewModel()
+    viewModel: CustomFormulationsViewModel = hiltViewModel(),
 ) {
-    val formulations by viewModel.formulations.collectAsState()
+  val formulations by viewModel.formulations.collectAsState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Custom Formulations") },
-                navigationIcon = {
-                    IconButton(onClick = navigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                }
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = navigateToAdd) {
-                Icon(Icons.Default.Add, contentDescription = "Add Formulation")
-            }
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Custom Formulations") },
+            navigationIcon = {
+              IconButton(onClick = navigateBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+              }
+            },
+        )
+      },
+      floatingActionButton = {
+        FloatingActionButton(onClick = navigateToAdd) {
+          Icon(Icons.Default.Add, contentDescription = "Add Formulation")
         }
-    ) { padding ->
-        if (formulations.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("No custom formulations yet.", style = MaterialTheme.typography.bodyLarge)
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-            ) {
-                items(formulations, key = { it.id }) { formulation ->
-                    CustomFormulationItem(
-                        formulation = formulation,
-                        onDelete = { viewModel.delete(formulation) }
-                    )
-                }
-            }
+      },
+  ) { padding ->
+    if (formulations.isEmpty()) {
+      Box(
+          modifier = Modifier.fillMaxSize().padding(padding),
+          contentAlignment = Alignment.Center,
+      ) {
+        Text("No custom formulations yet.", style = MaterialTheme.typography.bodyLarge)
+      }
+    } else {
+      LazyColumn(modifier = Modifier.fillMaxSize().padding(padding)) {
+        items(formulations, key = { it.id }) { formulation ->
+          CustomFormulationItem(
+              formulation = formulation,
+              onDelete = { viewModel.delete(formulation) },
+          )
         }
+      }
     }
+  }
 }
 
 @Composable
 fun CustomFormulationItem(
     formulation: CustomFormulation,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+  Card(
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+      elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+  ) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = formulation.name, style = MaterialTheme.typography.titleMedium)
-                Text(
-                    text = "${formulation.substanceName} (${formulation.baseRoa.name})",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Outlined.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
-            }
-        }
+      Column(modifier = Modifier.weight(1f)) {
+        Text(text = formulation.name, style = MaterialTheme.typography.titleMedium)
+        Text(
+            text = "${formulation.substanceName} (${formulation.baseRoa.name})",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+      IconButton(onClick = onDelete) {
+        Icon(
+            Icons.Outlined.Delete,
+            contentDescription = "Delete",
+            tint = MaterialTheme.colorScheme.error,
+        )
+      }
     }
+  }
 }

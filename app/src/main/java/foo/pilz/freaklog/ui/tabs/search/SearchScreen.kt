@@ -65,148 +65,164 @@ fun SearchScreen(
     onCustomSubstanceTap: (customSubstanceId: Int) -> Unit,
     navigateToAddCustomSubstanceScreen: () -> Unit,
 ) {
-    val focusRequester = remember { FocusRequester() }
-    var isFocused by remember { mutableStateOf(false) }
-    val performHaptic = rememberHaptic()
-    
-    Scaffold(
-        floatingActionButton = {
-            if (!isFocused) {
-                FloatingActionButton(
-                    onClick = { 
-                        performHaptic(HapticType.CLICK)
-                        focusRequester.requestFocus() 
-                    }) {
-                    Icon(Icons.Default.Keyboard, contentDescription = "Keyboard")
-                }
-            }
-        },
-    ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
-            SearchField(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester)
-                    .onFocusChanged { focusState ->
-                        isFocused = focusState.isFocused
-                    }
-                    .clearAndSetSemantics { },
-                searchText = searchViewModel.searchTextFlow.collectAsState().value,
-                onChange = {
-                    searchViewModel.filterSubstances(searchText = it)
-                },
-                categories = searchViewModel.chipCategoriesFlow.collectAsState().value,
-                onFilterTapped = { 
-                    performHaptic(HapticType.SELECTION)
-                    searchViewModel.onFilterTapped(it)
-                },
-                isShowingFilter = true
-            )
-            val chipCategories = searchViewModel.chipCategoriesFlow.collectAsState().value
-            val activeFilters = remember(chipCategories) { chipCategories.filter { it.isActive } }
-            val onFilterTapped = { chipName: String ->
-                performHaptic(HapticType.SELECTION)
-                searchViewModel.onFilterTapped(chipName)
-            }
-            val filteredSubstances = searchViewModel.filteredSubstancesFlow.collectAsState().value
-            val filteredCustomSubstances =
-                searchViewModel.filteredCustomSubstancesFlow.collectAsState().value
-            if (activeFilters.isNotEmpty()) {
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(2.dp),
-                    modifier = Modifier.padding(vertical = 6.dp)
-                ) {
-                    item(key = "start_spacer") {
-                        Spacer(modifier = Modifier.width(4.dp))
-                    }
-                    items(activeFilters, key = { it.chipName }) { categoryChipModel ->
-                        CategoryChipDelete(categoryChipModel = categoryChipModel) {
-                            onFilterTapped(categoryChipModel.chipName)
-                        }
-                    }
-                    item(key = "end_spacer") {
-                        Spacer(modifier = Modifier.width(4.dp))
-                    }
-                }
-            }
-            if (filteredSubstances.isEmpty() && filteredCustomSubstances.isEmpty()) {
-                Column {
-                    val activeCategoryNames = remember(activeFilters) { activeFilters.map { it.chipName } }
-                    if (activeCategoryNames.isEmpty()) {
-                        Text("No matching substance found", modifier = Modifier.padding(10.dp))
-                    } else if (activeCategoryNames.size == 1) {
-                        Text(
-                            "No matching substance with the tag '${activeCategoryNames[0]}' found",
-                            modifier = Modifier.padding(10.dp)
-                        )
-                    } else {
-                        val names = activeCategoryNames.joinToString(separator = "', '")
-                        Text(
-                            "No matching substance with tags '$names' found",
-                            modifier = Modifier.padding(10.dp)
-                        )
-                    }
-                    TextButton(
-                        onClick = { 
-                            performHaptic(HapticType.CLICK)
-                            navigateToAddCustomSubstanceScreen()
-                        },
-                        modifier = Modifier.padding(horizontal = horizontalPadding)
-                    ) {
-                        Icon(
-                            Icons.Outlined.Add, contentDescription = "Add"
-                        )
-                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text(text = "Add custom substance")
-                    }
-                }
-            } else {
-                LazyColumn {
-                    items(filteredCustomSubstances, key = { "custom_${it.id}" }) { customSubstance ->
-                        SubstanceRow(substanceModel = SubstanceModel(
-                            name = customSubstance.name,
-                            commonNames = emptyList(),
-                            categories = listOf(
-                                CategoryModel(
-                                    name = "custom", color = customColor
-                                )
-                            ),
-                            hasSaferUse = false,
-                            hasInteractions = false
-                        ), onTap = {
-                            performHaptic(HapticType.SELECTION)
-                            onCustomSubstanceTap(customSubstance.id)
-                        })
-                        HorizontalDivider()
-                    }
-                    items(filteredSubstances, key = { it.name }) { substance ->
-                        SubstanceRow(substanceModel = substance, onTap = {
-                            performHaptic(HapticType.SELECTION)
-                            onSubstanceTap(substance)
-                        })
-                        HorizontalDivider()
-                    }
+  val focusRequester = remember { FocusRequester() }
+  var isFocused by remember { mutableStateOf(false) }
+  val performHaptic = rememberHaptic()
 
-                    item(key = "add_custom_substance") {
-                        val addCustomSubstanceText = "Add custom substance"
-                        TextButton(
-                            onClick = { 
-                                performHaptic(HapticType.CLICK)
-                                navigateToAddCustomSubstanceScreen()
-                            },
-                            modifier = Modifier
-                                .padding(horizontal = horizontalPadding)
-                                .semantics { contentDescription = addCustomSubstanceText }
-                        ) {
-                            Icon(
-                                Icons.Outlined.Add, contentDescription = "Add"
-                            )
-                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                            Text(text = addCustomSubstanceText)
-                        }
-                    }
-                }
-            }
+  Scaffold(
+      floatingActionButton = {
+        if (!isFocused) {
+          FloatingActionButton(
+              onClick = {
+                performHaptic(HapticType.CLICK)
+                focusRequester.requestFocus()
+              }
+          ) {
+            Icon(Icons.Default.Keyboard, contentDescription = "Keyboard")
+          }
         }
+      },
+  ) { padding ->
+    Column(modifier = Modifier.padding(padding)) {
+      SearchField(
+          modifier =
+              Modifier.fillMaxWidth()
+                  .focusRequester(focusRequester)
+                  .onFocusChanged { focusState ->
+                    isFocused = focusState.isFocused
+                  }
+                  .clearAndSetSemantics {},
+          searchText = searchViewModel.searchTextFlow.collectAsState().value,
+          onChange = {
+            searchViewModel.filterSubstances(searchText = it)
+          },
+          categories = searchViewModel.chipCategoriesFlow.collectAsState().value,
+          onFilterTapped = {
+            performHaptic(HapticType.SELECTION)
+            searchViewModel.onFilterTapped(it)
+          },
+          isShowingFilter = true,
+      )
+      val chipCategories = searchViewModel.chipCategoriesFlow.collectAsState().value
+      val activeFilters = remember(chipCategories) { chipCategories.filter { it.isActive } }
+      val onFilterTapped = { chipName: String ->
+        performHaptic(HapticType.SELECTION)
+        searchViewModel.onFilterTapped(chipName)
+      }
+      val filteredSubstances = searchViewModel.filteredSubstancesFlow.collectAsState().value
+      val filteredCustomSubstances =
+          searchViewModel.filteredCustomSubstancesFlow.collectAsState().value
+      if (activeFilters.isNotEmpty()) {
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+            modifier = Modifier.padding(vertical = 6.dp),
+        ) {
+          item(key = "start_spacer") {
+            Spacer(modifier = Modifier.width(4.dp))
+          }
+          items(activeFilters, key = { it.chipName }) { categoryChipModel ->
+            CategoryChipDelete(categoryChipModel = categoryChipModel) {
+              onFilterTapped(categoryChipModel.chipName)
+            }
+          }
+          item(key = "end_spacer") {
+            Spacer(modifier = Modifier.width(4.dp))
+          }
+        }
+      }
+      if (filteredSubstances.isEmpty() && filteredCustomSubstances.isEmpty()) {
+        Column {
+          val activeCategoryNames = remember(activeFilters) { activeFilters.map { it.chipName } }
+          if (activeCategoryNames.isEmpty()) {
+            Text("No matching substance found", modifier = Modifier.padding(10.dp))
+          } else if (activeCategoryNames.size == 1) {
+            Text(
+                "No matching substance with the tag '${activeCategoryNames[0]}' found",
+                modifier = Modifier.padding(10.dp),
+            )
+          } else {
+            val names = activeCategoryNames.joinToString(separator = "', '")
+            Text(
+                "No matching substance with tags '$names' found",
+                modifier = Modifier.padding(10.dp),
+            )
+          }
+          TextButton(
+              onClick = {
+                performHaptic(HapticType.CLICK)
+                navigateToAddCustomSubstanceScreen()
+              },
+              modifier = Modifier.padding(horizontal = horizontalPadding),
+          ) {
+            Icon(
+                Icons.Outlined.Add,
+                contentDescription = "Add",
+            )
+            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+            Text(text = "Add custom substance")
+          }
+        }
+      } else {
+        LazyColumn {
+          items(filteredCustomSubstances, key = { "custom_${it.id}" }) { customSubstance ->
+            val substanceModel =
+                remember(customSubstance.id, customSubstance.name) {
+                  SubstanceModel(
+                      name = customSubstance.name,
+                      commonNames = emptyList(),
+                      categories =
+                          listOf(
+                              CategoryModel(
+                                  name = "custom",
+                                  color = customColor,
+                              )
+                          ),
+                      hasSaferUse = false,
+                      hasInteractions = false,
+                  )
+                }
+            SubstanceRow(
+                substanceModel = substanceModel,
+                onTap = {
+                  performHaptic(HapticType.SELECTION)
+                  onCustomSubstanceTap(customSubstance.id)
+                },
+            )
+            HorizontalDivider()
+          }
+          items(filteredSubstances, key = { it.name }) { substance ->
+            SubstanceRow(
+                substanceModel = substance,
+                onTap = {
+                  performHaptic(HapticType.SELECTION)
+                  onSubstanceTap(substance)
+                },
+            )
+            HorizontalDivider()
+          }
+
+          item(key = "add_custom_substance") {
+            val addCustomSubstanceText = "Add custom substance"
+            TextButton(
+                onClick = {
+                  performHaptic(HapticType.CLICK)
+                  navigateToAddCustomSubstanceScreen()
+                },
+                modifier =
+                    Modifier.padding(horizontal = horizontalPadding).semantics {
+                      contentDescription = addCustomSubstanceText
+                    },
+            ) {
+              Icon(
+                  Icons.Outlined.Add,
+                  contentDescription = "Add",
+              )
+              Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+              Text(text = addCustomSubstanceText)
+            }
+          }
+        }
+      }
     }
+  }
 }

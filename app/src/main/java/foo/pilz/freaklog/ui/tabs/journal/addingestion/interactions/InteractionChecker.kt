@@ -26,271 +26,299 @@ import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
-
 @Singleton
-class InteractionChecker @Inject constructor(
+class InteractionChecker
+@Inject
+constructor(
     private val substanceRepo: SubstanceRepository,
     private val customProfiles: foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles,
 ) {
-    private val wildcardRegexCache = ConcurrentHashMap<String, Regex>()
+  private val wildcardRegexCache = ConcurrentHashMap<String, Regex>()
 
-    fun getInteractionBetween(aName: String, bName: String): Interaction? {
-        if (aName == bName) {
-            return null
-        }
-        // What the user declared for a custom substance wins over built-in data.
-        customProfiles.getInteraction(aName, bName) { substanceRepo.getSubstance(it)?.categories.orEmpty() }
-            ?.let { return Interaction(aName = aName, bName = bName, interactionType = it) }
-
-        val substanceA = substanceRepo.getSubstance(aName)
-        val substanceB = substanceRepo.getSubstance(bName)
-
-        val interactionFromAToB = getInteractionFromAToB(substanceA, substanceB, bName)
-        val interactionFromBToA = getInteractionFromAToB(substanceB, substanceA, aName)
-        if (interactionFromAToB != null && interactionFromBToA != null) {
-            val isAtoB = interactionFromAToB.dangerCount >= interactionFromBToA.dangerCount
-            val interactionType = if (isAtoB) interactionFromAToB else interactionFromBToA
-            return Interaction(
-                aName = aName,
-                bName = bName,
-                interactionType = interactionType,
-            )
-        } else if (interactionFromAToB != null) {
-            return Interaction(
-                aName = aName,
-                bName = bName,
-                interactionType = interactionFromAToB,
-            )
-        } else if (interactionFromBToA != null) {
-            return Interaction(
-                aName = aName,
-                bName = bName,
-                interactionType = interactionFromBToA,
-            )
-        } else {
-            return null
-        }
+  fun getInteractionBetween(aName: String, bName: String): Interaction? {
+    if (aName == bName) {
+      return null
     }
-
-    /**
-     * Every interaction between two of [names], in pair order. Only a substance with built-in or
-     * custom data can declare an interaction, so pairs of two unknown names are skipped: the work
-     * grows with known × all names instead of all × all.
-     */
-    fun getInteractionsAmong(names: List<String>): List<Interaction> {
-        val distinct = names.distinct()
-        val profiles = customProfiles.byNameFlow.value
-        val hasData = distinct.map { substanceRepo.getSubstance(it) != null || profiles.containsKey(it) }
-        val pairs = mutableListOf<Pair<Int, Int>>()
-        for (i in distinct.indices) {
-            if (!hasData[i]) continue
-            for (j in distinct.indices) {
-                // A pair of two known names is visited from both sides; keep it once.
-                if (j == i || (hasData[j] && j < i)) continue
-                pairs += if (i < j) i to j else j to i
-            }
+    // What the user declared for a custom substance wins over built-in data.
+    customProfiles
+        .getInteraction(aName, bName) { substanceRepo.getSubstance(it)?.categories.orEmpty() }
+        ?.let {
+          return Interaction(aName = aName, bName = bName, interactionType = it)
         }
-        return pairs.sortedWith(compareBy({ it.first }, { it.second })).mapNotNull { (a, b) ->
-            getInteractionBetween(distinct[a], distinct[b])
+
+    val substanceA = substanceRepo.getSubstance(aName)
+    val substanceB = substanceRepo.getSubstance(bName)
+
+    val interactionFromAToB = getInteractionFromAToB(substanceA, substanceB, bName)
+    val interactionFromBToA = getInteractionFromAToB(substanceB, substanceA, aName)
+    if (interactionFromAToB != null && interactionFromBToA != null) {
+      val isAtoB = interactionFromAToB.dangerCount >= interactionFromBToA.dangerCount
+      val interactionType = if (isAtoB) interactionFromAToB else interactionFromBToA
+      return Interaction(
+          aName = aName,
+          bName = bName,
+          interactionType = interactionType,
+      )
+    } else if (interactionFromAToB != null) {
+      return Interaction(
+          aName = aName,
+          bName = bName,
+          interactionType = interactionFromAToB,
+      )
+    } else if (interactionFromBToA != null) {
+      return Interaction(
+          aName = aName,
+          bName = bName,
+          interactionType = interactionFromBToA,
+      )
+    } else {
+      return null
+    }
+  }
+
+  /**
+   * Every interaction between two of [names], in pair order. Only a substance with built-in or
+   * custom data can declare an interaction, so pairs of two unknown names are skipped: the work
+   * grows with known × all names instead of all × all.
+   */
+  fun getInteractionsAmong(names: List<String>): List<Interaction> {
+    val distinct = names.distinct().take(MAX_SUBSTANCE_NAMES)
+    val profiles = customProfiles.byNameFlow.value
+    val hasData = distinct.map {
+      substanceRepo.getSubstance(it) != null || profiles.containsKey(it)
+    }
+    val results = mutableListOf<Interaction>()
+    var pairsEvaluated = 0
+    for (i in 0 until distinct.size) {
+      for (j in (i + 1) until distinct.size) {
+        // If neither substance has data, skip
+        if (!hasData[i] && !hasData[j]) continue
+        if (++pairsEvaluated > MAX_INTERACTION_PAIRS) return results
+        val interaction = getInteractionBetween(distinct[i], distinct[j])
+        if (interaction != null) {
+          results.add(interaction)
         }
+      }
     }
+    return results
+  }
 
-    private val cleanedCache = ConcurrentHashMap<Interactions, CleanedInteractions>()
+  private val cleanedCache = ConcurrentHashMap<Interactions, CleanedInteractions>()
 
-    private fun getInteractionFromAToB(
-        fromSubstance: Substance?,
-        toSubstance: Substance?,
-        toName: String,
-    ): InteractionType? {
-        val interactions = fromSubstance?.interactions ?: return null
-        val cleaned = cleanedCache.getOrPut(interactions) { cleanInteractions(interactions) }
+  private fun getInteractionFromAToB(
+      fromSubstance: Substance?,
+      toSubstance: Substance?,
+      toName: String,
+  ): InteractionType? {
+    val interactions = fromSubstance?.interactions ?: return null
+    val cleaned = cleanedCache.getOrPut(interactions) { cleanInteractions(interactions) }
 
-        val directInteraction = getDirectInteraction(cleaned = cleaned, substanceName = toName)
-        if (directInteraction != null) {
-            return directInteraction
-        }
-        val wildcardInteraction = getWildcardInteraction(cleaned = cleaned, substanceName = toName)
-        if (wildcardInteraction != null) {
-            return wildcardInteraction
-        }
-        if (toSubstance != null && toSubstance.categories.isNotEmpty()) {
-            val classInteraction = getClassInteraction(cleaned = cleaned, categories = toSubstance.categories)
-            if (classInteraction != null) {
-                return classInteraction
-            }
-        }
-        return null
+    val directInteraction = getDirectInteraction(cleaned = cleaned, substanceName = toName)
+    if (directInteraction != null) {
+      return directInteraction
     }
-
-    private fun getDirectInteraction(cleaned: CleanedInteractions, substanceName: String): InteractionType? {
-        return if (cleaned.dangerous.directSet.contains(substanceName)) {
-            InteractionType.DANGEROUS
-        } else if (cleaned.unsafe.directSet.contains(substanceName)) {
-            InteractionType.UNSAFE
-        } else if (cleaned.uncertain.directSet.contains(substanceName)) {
-            InteractionType.UNCERTAIN
-        } else {
-            null
-        }
+    val wildcardInteraction = getWildcardInteraction(cleaned = cleaned, substanceName = toName)
+    if (wildcardInteraction != null) {
+      return wildcardInteraction
     }
-
-    private fun getWildcardInteraction(cleaned: CleanedInteractions, substanceName: String): InteractionType? {
-        return if (isWildcardMatch(cleaned.dangerous.wildcards, substanceName)) {
-            InteractionType.DANGEROUS
-        } else if (isWildcardMatch(cleaned.unsafe.wildcards, substanceName)) {
-            InteractionType.UNSAFE
-        } else if (isWildcardMatch(cleaned.uncertain.wildcards, substanceName)) {
-            InteractionType.UNCERTAIN
-        } else {
-            null
-        }
+    if (toSubstance != null && toSubstance.categories.isNotEmpty()) {
+      val classInteraction =
+          getClassInteraction(cleaned = cleaned, categories = toSubstance.categories)
+      if (classInteraction != null) {
+        return classInteraction
+      }
     }
+    return null
+  }
 
-    private fun getClassInteraction(cleaned: CleanedInteractions, categories: List<String>): InteractionType? {
-        return if (isClassMatch(cleaned.dangerous.all, categories)) {
-            InteractionType.DANGEROUS
-        } else if (isClassMatch(cleaned.unsafe.all, categories)) {
-            InteractionType.UNSAFE
-        } else if (isClassMatch(cleaned.uncertain.all, categories)) {
-            InteractionType.UNCERTAIN
-        } else {
-            null
-        }
+  private fun getDirectInteraction(
+      cleaned: CleanedInteractions,
+      substanceName: String,
+  ): InteractionType? {
+    return if (cleaned.dangerous.directSet.contains(substanceName)) {
+      InteractionType.DANGEROUS
+    } else if (cleaned.unsafe.directSet.contains(substanceName)) {
+      InteractionType.UNSAFE
+    } else if (cleaned.uncertain.directSet.contains(substanceName)) {
+      InteractionType.UNCERTAIN
+    } else {
+      null
     }
+  }
 
-    private fun isClassMatch(interactions: List<String>, categories: List<String>): Boolean {
-        if (interactions.isEmpty() || categories.isEmpty()) return false
-        return categories.any { categoryName ->
-            interactions.any { interactionName ->
-                interactionName.contains(categoryName, ignoreCase = true)
-            }
-        }
+  private fun getWildcardInteraction(
+      cleaned: CleanedInteractions,
+      substanceName: String,
+  ): InteractionType? {
+    return if (isWildcardMatch(cleaned.dangerous.wildcards, substanceName)) {
+      InteractionType.DANGEROUS
+    } else if (isWildcardMatch(cleaned.unsafe.wildcards, substanceName)) {
+      InteractionType.UNSAFE
+    } else if (isWildcardMatch(cleaned.uncertain.wildcards, substanceName)) {
+      InteractionType.UNCERTAIN
+    } else {
+      null
     }
+  }
 
-    private fun isWildcardMatch(wildcards: List<String>, substanceName: String): Boolean {
-        if (wildcards.isEmpty()) return false
-        return wildcards.any { interaction ->
-            val regex = wildcardRegexCache.getOrPut(interaction) {
-                buildWildcardRegex(interaction)
-            }
-            regex.matches(substanceName)
-        }
+  private fun getClassInteraction(
+      cleaned: CleanedInteractions,
+      categories: List<String>,
+  ): InteractionType? {
+    return if (isClassMatch(cleaned.dangerous.all, categories)) {
+      InteractionType.DANGEROUS
+    } else if (isClassMatch(cleaned.unsafe.all, categories)) {
+      InteractionType.UNSAFE
+    } else if (isClassMatch(cleaned.uncertain.all, categories)) {
+      InteractionType.UNCERTAIN
+    } else {
+      null
     }
+  }
 
-    private fun buildWildcardRegex(interaction: String): Regex {
-        val parts = interaction.split(Regex("(?i)x"))
-        val pattern = parts.joinToString(separator = "[\\S]{2}") { Regex.escape(it) }
-        return Regex(pattern = pattern, option = RegexOption.IGNORE_CASE)
+  private fun isClassMatch(interactions: List<String>, categories: List<String>): Boolean {
+    if (interactions.isEmpty() || categories.isEmpty()) return false
+    return categories.any { categoryName ->
+      interactions.any { interactionName ->
+        interactionName.contains(categoryName, ignoreCase = true)
+      }
     }
+  }
 
-    private fun cleanCategory(interactions: List<String>): CleanedCategory {
-        val extended = extendAndCleanInteractions(interactions)
-        return CleanedCategory(
-            directSet = extended.toSet(),
-            wildcards = extended.filter { it.contains('x', ignoreCase = true) },
-            all = extended,
-        )
+  private fun isWildcardMatch(wildcards: List<String>, substanceName: String): Boolean {
+    if (wildcards.isEmpty()) return false
+    return wildcards.any { interaction ->
+      val regex =
+          wildcardRegexCache.getOrPut(interaction) {
+            buildWildcardRegex(interaction)
+          }
+      regex.matches(substanceName)
     }
+  }
 
-    private fun cleanInteractions(interactions: Interactions): CleanedInteractions {
-        return CleanedInteractions(
-            dangerous = cleanCategory(interactions.dangerous),
-            unsafe = cleanCategory(interactions.unsafe),
-            uncertain = cleanCategory(interactions.uncertain),
-        )
-    }
+  private fun buildWildcardRegex(interaction: String): Regex {
+    val parts = interaction.split(Regex("(?i)x"))
+    val pattern = parts.joinToString(separator = "[\\S]{2}") { Regex.escape(it) }
+    return Regex(pattern = pattern, option = RegexOption.IGNORE_CASE)
+  }
 
-    private class CleanedCategory(
-        val directSet: Set<String>,
-        val wildcards: List<String>,
-        val all: List<String>,
+  private fun cleanCategory(interactions: List<String>): CleanedCategory {
+    val extended = extendAndCleanInteractions(interactions)
+    return CleanedCategory(
+        directSet = extended.toSet(),
+        wildcards = extended.filter { it.contains('x', ignoreCase = true) },
+        all = extended,
     )
+  }
 
-    private class CleanedInteractions(
-        val dangerous: CleanedCategory,
-        val unsafe: CleanedCategory,
-        val uncertain: CleanedCategory,
+  private fun cleanInteractions(interactions: Interactions): CleanedInteractions {
+    return CleanedInteractions(
+        dangerous = cleanCategory(interactions.dangerous),
+        unsafe = cleanCategory(interactions.unsafe),
+        uncertain = cleanCategory(interactions.uncertain),
     )
+  }
 
-    private fun extendAndCleanInteractions(interactions: List<String>): List<String> {
-        return interactions.flatMap { name ->
-            when (name) {
-                "Substituted amphetamines" -> {
-                    return@flatMap substitutedAmphetamines
-                }
-                "Serotonin releasers" -> {
-                    return@flatMap serotoninReleasers
-                }
-                "Tricyclic antidepressants" -> {
-                    return@flatMap emptyList() // remove because we don't want to match "depressant" with it and there is no substance that belongs to that class
-                }
-                else -> {
-                    return@flatMap listOf(name)
-                }
+  private class CleanedCategory(
+      val directSet: Set<String>,
+      val wildcards: List<String>,
+      val all: List<String>,
+  )
+
+  private class CleanedInteractions(
+      val dangerous: CleanedCategory,
+      val unsafe: CleanedCategory,
+      val uncertain: CleanedCategory,
+  )
+
+  private fun extendAndCleanInteractions(interactions: List<String>): List<String> {
+    return interactions
+        .flatMap { name ->
+          when (name) {
+            "Substituted amphetamines" -> {
+              return@flatMap substitutedAmphetamines
             }
-        }.distinct()
-    }
+            "Serotonin releasers" -> {
+              return@flatMap serotoninReleasers
+            }
+            "Tricyclic antidepressants" -> {
+              return@flatMap emptyList() // remove because we don't want to match "depressant" with
+              // it and there is no substance that belongs to that class
+            }
+            else -> {
+              return@flatMap listOf(name)
+            }
+          }
+        }
+        .distinct()
+  }
 
-    private val serotoninReleasers = listOf(
-        "MDMA",
-        "MDA",
-        "Mephedrone"
-    )
+  private val serotoninReleasers =
+      listOf(
+          "MDMA",
+          "MDA",
+          "Mephedrone",
+      )
 
-    private val substitutedAmphetamines = listOf(
-        "Amphetamine",
-        "Methamphetamine",
-        "Ethylamphetamine",
-        "Propylamphetamine",
-        "Isopropylamphetamine",
-        "Bromo-DragonFLY",
-        "Lisdexamfetamine",
-        "Clobenzorex",
-        "Dimethylamphetamine",
-        "Selegiline",
-        "Benzphetamine",
-        "Ortetamine",
-        "3-Methylamphetamine",
-        "4-Methylamphetamine",
-        "4-MMA",
-        "Xylopropamine",
-        "ß-methylamphetamine",
-        "3-phenylmethamphetamine",
-        "2-FA",
-        "2-FMA",
-        "2-FEA",
-        "3-FA",
-        "3-FMA",
-        "3-FEA",
-        "Fenfluramine",
-        "Norfenfluramine",
-        "4-FA",
-        "4-FMA",
-        "4-CA",
-        "4-BA",
-        "4-IA",
-        "DCA",
-        "4-HA",
-        "4-HMA",
-        "3,4-DHA",
-        "OMA",
-        "3-MA",
-        "MMMA",
-        "MMA",
-        "PMA",
-        "PMMA",
-        "PMEA",
-        "4-ETA",
-        "TMA-2",
-        "TMA-6",
-        "4-MTA",
-        "5-API",
-        "Cathine",
-        "Phenmetrazine",
-        "3-FPM",
-        "Prolintane"
-    )
+  private val substitutedAmphetamines =
+      listOf(
+          "Amphetamine",
+          "Methamphetamine",
+          "Ethylamphetamine",
+          "Propylamphetamine",
+          "Isopropylamphetamine",
+          "Bromo-DragonFLY",
+          "Lisdexamfetamine",
+          "Clobenzorex",
+          "Dimethylamphetamine",
+          "Selegiline",
+          "Benzphetamine",
+          "Ortetamine",
+          "3-Methylamphetamine",
+          "4-Methylamphetamine",
+          "4-MMA",
+          "Xylopropamine",
+          "ß-methylamphetamine",
+          "3-phenylmethamphetamine",
+          "2-FA",
+          "2-FMA",
+          "2-FEA",
+          "3-FA",
+          "3-FMA",
+          "3-FEA",
+          "Fenfluramine",
+          "Norfenfluramine",
+          "4-FA",
+          "4-FMA",
+          "4-CA",
+          "4-BA",
+          "4-IA",
+          "DCA",
+          "4-HA",
+          "4-HMA",
+          "3,4-DHA",
+          "OMA",
+          "3-MA",
+          "MMMA",
+          "MMA",
+          "PMA",
+          "PMMA",
+          "PMEA",
+          "4-ETA",
+          "TMA-2",
+          "TMA-6",
+          "4-MTA",
+          "5-API",
+          "Cathine",
+          "Phenmetrazine",
+          "3-FPM",
+          "Prolintane",
+      )
 
+  companion object {
+    private const val MAX_SUBSTANCE_NAMES = 64
+    private const val MAX_INTERACTION_PAIRS = 500
+  }
 }
 
 data class Interaction(

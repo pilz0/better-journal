@@ -28,15 +28,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 
-
 @Composable
 fun VerticalLine(color: AdaptiveColor) {
-    val isDarkTheme = isSystemInDarkTheme()
-    Surface(
-        shape = RoundedCornerShape(size = 2.dp),
-        color = color.getComposeColor(isDarkTheme),
-        modifier = Modifier
-            .fillMaxHeight()
-            .width(5.dp)
-    ) {}
+  val isDarkTheme = isSystemInDarkTheme()
+  Surface(
+      shape = RoundedCornerShape(size = 2.dp),
+      color = color.getComposeColor(isDarkTheme),
+      modifier = Modifier.fillMaxHeight().width(5.dp),
+  ) {}
 }

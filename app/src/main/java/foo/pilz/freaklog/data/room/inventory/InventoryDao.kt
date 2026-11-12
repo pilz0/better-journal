@@ -14,21 +14,17 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface InventoryDao {
 
-    @Query("SELECT * FROM InventoryItem ORDER BY addedAt DESC")
-    fun getAllFlow(): Flow<List<InventoryItem>>
+  @Query("SELECT * FROM InventoryItem ORDER BY addedAt DESC")
+  fun getAllFlow(): Flow<List<InventoryItem>>
 
-    @Query("SELECT * FROM InventoryItem ORDER BY addedAt DESC")
-    suspend fun getAll(): List<InventoryItem>
+  @Query("SELECT * FROM InventoryItem ORDER BY addedAt DESC")
+  suspend fun getAll(): List<InventoryItem>
 
-    @Insert
-    suspend fun insert(item: InventoryItem): Long
+  @Insert suspend fun insert(item: InventoryItem): Long
 
-    @Update
-    suspend fun update(item: InventoryItem)
+  @Update suspend fun update(item: InventoryItem)
 
-    @Delete
-    suspend fun delete(item: InventoryItem)
+  @Delete suspend fun delete(item: InventoryItem)
 
-    @Query("DELETE FROM InventoryItem")
-    suspend fun deleteAll()
+  @Query("DELETE FROM InventoryItem") suspend fun deleteAll()
 }

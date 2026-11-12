@@ -1,30 +1,29 @@
 plugins {
-    alias(libs.plugins.android.library)
+  alias(libs.plugins.android.library)
 }
 
 android {
-    namespace = "com.ndm4.freakquery"
-    compileSdk = 37
+  namespace = "com.ndm4.freakquery"
+  compileSdk = 37
 
-    defaultConfig {
-        minSdk = 23
-    }
+  defaultConfig {
+    minSdk = 23
+  }
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
+  compileOptions {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+  }
 }
 
 kotlin {
-    jvmToolchain(17)
+  jvmToolchain(17)
 }
 
 dependencies {
-    testImplementation(libs.junit)
+  testImplementation(libs.junit)
 }
 
 tasks.withType<Test>().configureEach {
-    filter.isFailOnNoMatchingTests = false
+  filter.isFailOnNoMatchingTests = false
 }

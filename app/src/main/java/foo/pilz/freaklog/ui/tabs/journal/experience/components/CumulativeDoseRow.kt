@@ -40,65 +40,67 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.models.CumulativeRouteAndDos
 fun CumulativeDoseRow(
     cumulativeDose: CumulativeDose,
     areDosageDotsHidden: Boolean,
-    modifier: Modifier
+    modifier: Modifier,
 ) {
-    Column(
-        modifier = modifier,
-    ) {
-        Text(
-            text = cumulativeDose.substanceName,
-            style = MaterialTheme.typography.titleMedium
-        )
-        cumulativeDose.cumulativeRouteAndDose.forEach { cumulativeRouteAndDose ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                val text = buildAnnotatedString {
-                    append(cumulativeRouteAndDose.doseDescription)
-                    withStyle(style = SpanStyle(color = Color.Gray)) {
-                        append(" " + cumulativeRouteAndDose.route.displayText.lowercase())
-                    }
-                }
-                Text(text = text, style = MaterialTheme.typography.titleSmall)
-                val numDots = cumulativeRouteAndDose.numDots
-                if (numDots != null && !areDosageDotsHidden) {
-                    DotRows(numDots = numDots)
-                }
-            }
+  Column(
+      modifier = modifier,
+  ) {
+    Text(
+        text = cumulativeDose.substanceName,
+        style = MaterialTheme.typography.titleMedium,
+    )
+    cumulativeDose.cumulativeRouteAndDose.forEach { cumulativeRouteAndDose ->
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.SpaceBetween,
+      ) {
+        val text = buildAnnotatedString {
+          append(cumulativeRouteAndDose.doseDescription)
+          withStyle(style = SpanStyle(color = Color.Gray)) {
+            append(" " + cumulativeRouteAndDose.route.displayText.lowercase())
+          }
         }
+        Text(text = text, style = MaterialTheme.typography.titleSmall)
+        val numDots = cumulativeRouteAndDose.numDots
+        if (numDots != null && !areDosageDotsHidden) {
+          DotRows(numDots = numDots)
+        }
+      }
     }
+  }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun CumulativeDoseRowPreview() {
-    CumulativeDoseRow(
-        cumulativeDose = CumulativeDose(
-            substanceName = "Amphetamine",
-            cumulativeRouteAndDose = listOf(
-                CumulativeRouteAndDose(
-                    cumulativeDose = 30.0,
-                    units = "mg",
-                    isEstimate = false,
-                    cumulativeDoseStandardDeviation = 12.0,
-                    numDots = 6,
-                    route = AdministrationRoute.INSUFFLATED,
-                    hasMoreThanOneIngestion = true
-                ),
-                CumulativeRouteAndDose(
-                    cumulativeDose = 25.0,
-                    units = "mg",
-                    isEstimate = false,
-                    cumulativeDoseStandardDeviation = 12.0,
-                    numDots = 5,
-                    route = AdministrationRoute.ORAL,
-                    hasMoreThanOneIngestion = true
-                )
-            )
-        ),
-        areDosageDotsHidden = false,
-        modifier = Modifier.fillMaxWidth()
-    )
+  CumulativeDoseRow(
+      cumulativeDose =
+          CumulativeDose(
+              substanceName = "Amphetamine",
+              cumulativeRouteAndDose =
+                  listOf(
+                      CumulativeRouteAndDose(
+                          cumulativeDose = 30.0,
+                          units = "mg",
+                          isEstimate = false,
+                          cumulativeDoseStandardDeviation = 12.0,
+                          numDots = 6,
+                          route = AdministrationRoute.INSUFFLATED,
+                          hasMoreThanOneIngestion = true,
+                      ),
+                      CumulativeRouteAndDose(
+                          cumulativeDose = 25.0,
+                          units = "mg",
+                          isEstimate = false,
+                          cumulativeDoseStandardDeviation = 12.0,
+                          numDots = 5,
+                          route = AdministrationRoute.ORAL,
+                          hasMoreThanOneIngestion = true,
+                      ),
+                  ),
+          ),
+      areDosageDotsHidden = false,
+      modifier = Modifier.fillMaxWidth(),
+  )
 }

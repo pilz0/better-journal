@@ -31,45 +31,36 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface SprayDao {
 
-    @Query("SELECT * FROM spray ORDER BY creationDate DESC")
-    fun getAllSpraysFlow(): Flow<List<Spray>>
+  @Query("SELECT * FROM spray ORDER BY creationDate DESC") fun getAllSpraysFlow(): Flow<List<Spray>>
 
-    @Query("SELECT * FROM spray ORDER BY creationDate DESC")
-    suspend fun getAllSprays(): List<Spray>
+  @Query("SELECT * FROM spray ORDER BY creationDate DESC") suspend fun getAllSprays(): List<Spray>
 
-    @Query("SELECT * FROM spray WHERE isPreferred = 1 LIMIT 1")
-    suspend fun getPreferredSpray(): Spray?
+  @Query("SELECT * FROM spray WHERE isPreferred = 1 LIMIT 1")
+  suspend fun getPreferredSpray(): Spray?
 
-    @Query("SELECT * FROM spray WHERE id = :id")
-    suspend fun getSprayById(id: Int): Spray?
+  @Query("SELECT * FROM spray WHERE id = :id") suspend fun getSprayById(id: Int): Spray?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(spray: Spray): Long
+  @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(spray: Spray): Long
 
-    @Transaction
-    suspend fun insertWithPreferred(spray: Spray): Long {
-        if (spray.isPreferred) clearAllPreferred()
-        return insert(spray)
-    }
+  @Transaction
+  suspend fun insertWithPreferred(spray: Spray): Long {
+    if (spray.isPreferred) clearAllPreferred()
+    return insert(spray)
+  }
 
-    @Update
-    suspend fun update(spray: Spray)
+  @Update suspend fun update(spray: Spray)
 
-    @Delete
-    suspend fun delete(spray: Spray)
+  @Delete suspend fun delete(spray: Spray)
 
-    @Query("UPDATE spray SET isPreferred = 0")
-    suspend fun clearAllPreferred()
+  @Query("UPDATE spray SET isPreferred = 0") suspend fun clearAllPreferred()
 
-    @Query("UPDATE spray SET isPreferred = 1 WHERE id = :id")
-    suspend fun setPreferred(id: Int)
+  @Query("UPDATE spray SET isPreferred = 1 WHERE id = :id") suspend fun setPreferred(id: Int)
 
-    @Transaction
-    suspend fun setPreferredAtomic(id: Int) {
-        clearAllPreferred()
-        setPreferred(id)
-    }
+  @Transaction
+  suspend fun setPreferredAtomic(id: Int) {
+    clearAllPreferred()
+    setPreferred(id)
+  }
 
-    @Query("DELETE FROM spray")
-    suspend fun deleteAll()
+  @Query("DELETE FROM spray") suspend fun deleteAll()
 }

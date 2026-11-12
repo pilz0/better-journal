@@ -28,6 +28,7 @@ data class ExperienceWithIngestions(
     @Relation(
         entity = Ingestion::class,
         parentColumn = "id",
-        entityColumn = "experienceId"
-    ) val ingestions: List<Ingestion>
+        entityColumn = "experienceId",
+    )
+    val ingestions: List<Ingestion>,
 )

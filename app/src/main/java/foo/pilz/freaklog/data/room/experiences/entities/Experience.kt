@@ -25,17 +25,18 @@ import androidx.room.PrimaryKey
 import java.time.Instant
 
 @Entity(
-    indices = [
-        Index(value = ["sortDate"]),
-    ],
+    indices =
+        [
+            Index(value = ["sortDate"]),
+            Index(value = ["creationDate"]),
+        ],
 )
 data class Experience(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int,
+    @PrimaryKey(autoGenerate = true) val id: Int,
     var title: String,
     var text: String,
     val creationDate: Instant = Instant.now(),
     val sortDate: Instant,
     var isFavorite: Boolean = false,
-    @Embedded var location: Location?
+    @Embedded var location: Location?,
 )

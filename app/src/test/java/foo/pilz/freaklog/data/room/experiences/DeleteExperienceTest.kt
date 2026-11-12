@@ -39,74 +39,75 @@ import org.robolectric.annotation.Config
 @Config(sdk = [33])
 class DeleteExperienceTest {
 
-    private lateinit var db: AppDatabase
-    private lateinit var dao: ExperienceDao
+  private lateinit var db: AppDatabase
+  private lateinit var dao: ExperienceDao
 
-    @Before
-    fun setUp() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        db = Room
-            .inMemoryDatabaseBuilder(context, AppDatabase::class.java)
+  @Before
+  fun setUp() {
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    db =
+        Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-        dao = db.experienceDao()
-    }
+    dao = db.experienceDao()
+  }
 
-    @After
-    fun tearDown() {
-        db.close()
-    }
+  @After
+  fun tearDown() {
+    db.close()
+  }
 
-    private suspend fun insertExperienceWithChildren(title: String): Int {
-        val id = dao.insert(EntityBuilders.experience(title = title)).toInt()
-        dao.insert(EntityBuilders.ingestion(experienceId = id))
-        dao.insert(
-            BloodPressureReading(
-                experienceId = id,
-                time = EntityBuilders.FIXED_INSTANT,
-                systolic = 120,
-                diastolic = 80,
-            )
+  private suspend fun insertExperienceWithChildren(title: String): Int {
+    val id = dao.insert(EntityBuilders.experience(title = title)).toInt()
+    dao.insert(EntityBuilders.ingestion(experienceId = id))
+    dao.insert(
+        BloodPressureReading(
+            experienceId = id,
+            time = EntityBuilders.FIXED_INSTANT,
+            systolic = 120,
+            diastolic = 80,
         )
-        dao.insert(
-            ShulginRating(
-                time = EntityBuilders.FIXED_INSTANT,
-                option = ShulginRatingOption.PLUS,
-                experienceId = id,
-            )
+    )
+    dao.insert(
+        ShulginRating(
+            time = EntityBuilders.FIXED_INSTANT,
+            option = ShulginRatingOption.PLUS,
+            experienceId = id,
         )
-        dao.insert(
-            TimedNote(
-                time = EntityBuilders.FIXED_INSTANT,
-                note = "note of $title",
-                color = AdaptiveColor.BLUE,
-                experienceId = id,
-                isPartOfTimeline = true,
-            )
+    )
+    dao.insert(
+        TimedNote(
+            time = EntityBuilders.FIXED_INSTANT,
+            note = "note of $title",
+            color = AdaptiveColor.BLUE,
+            experienceId = id,
+            isPartOfTimeline = true,
         )
-        return id
-    }
+    )
+    return id
+  }
 
-    @Test
-    fun `deleteEverythingOfExperience removes timed notes with the experience`() = runTest {
-        val deletedId = insertExperienceWithChildren("deleted")
-        val keptId = insertExperienceWithChildren("kept")
+  @Test
+  fun `deleteEverythingOfExperience removes timed notes with the experience`() = runTest {
+    val deletedId = insertExperienceWithChildren("deleted")
+    val keptId = insertExperienceWithChildren("kept")
 
-        dao.deleteEverythingOfExperience(deletedId)
+    dao.deleteEverythingOfExperience(deletedId)
 
-        assertThat(dao.getExperience(deletedId)).isNull()
-        assertThat(dao.getIngestionsWithCompanionsFlow(deletedId).first()).isEmpty()
-        assertThat(dao.getRatingsFlow(deletedId).first()).isEmpty()
-        assertThat(dao.getTimedNotes(deletedId)).isEmpty()
+    assertThat(dao.getExperience(deletedId)).isNull()
+    assertThat(dao.getIngestionsWithCompanionsFlow(deletedId).first()).isEmpty()
+    assertThat(dao.getRatingsFlow(deletedId).first()).isEmpty()
+    assertThat(dao.getTimedNotes(deletedId)).isEmpty()
 
-        assertThat(dao.getExperience(keptId)).isNotNull()
-        assertThat(dao.getIngestionsWithCompanionsFlow(keptId).first()).hasSize(1)
-        assertThat(dao.getRatingsFlow(keptId).first()).hasSize(1)
-        assertThat(dao.getTimedNotes(keptId)).hasSize(1)
-    }
+    assertThat(dao.getExperience(keptId)).isNotNull()
+    assertThat(dao.getIngestionsWithCompanionsFlow(keptId).first()).hasSize(1)
+    assertThat(dao.getRatingsFlow(keptId).first()).hasSize(1)
+    assertThat(dao.getTimedNotes(keptId)).hasSize(1)
+  }
 
-    @Test
-    fun `deleteEverythingOfExperience removes only its blood pressure readings without cascades`() = runTest {
+  @Test
+  fun `deleteEverythingOfExperience removes only its blood pressure readings without cascades`() =
+      runTest {
         db.openHelper.writableDatabase.setForeignKeyConstraintsEnabled(false)
         val deletedId = insertExperienceWithChildren("deleted")
         val keptId = insertExperienceWithChildren("kept")
@@ -116,20 +117,21 @@ class DeleteExperienceTest {
 
         assertThat(dao.getExperience(deletedId)).isNull()
         assertThat(dao.getExperience(keptId)).isNotNull()
-        assertThat(dao.getAllBloodPressureReadings().map { it.experienceId }).containsExactly(keptId)
-    }
+        assertThat(dao.getAllBloodPressureReadings().map { it.experienceId })
+            .containsExactly(keptId)
+      }
 
-    @Test
-    fun `deleteEverything removes all blood pressure readings without cascades`() = runTest {
-        db.openHelper.writableDatabase.setForeignKeyConstraintsEnabled(false)
-        val firstId = insertExperienceWithChildren("first")
-        val secondId = insertExperienceWithChildren("second")
-        assertThat(dao.getAllBloodPressureReadings()).hasSize(2)
+  @Test
+  fun `deleteEverything removes all blood pressure readings without cascades`() = runTest {
+    db.openHelper.writableDatabase.setForeignKeyConstraintsEnabled(false)
+    val firstId = insertExperienceWithChildren("first")
+    val secondId = insertExperienceWithChildren("second")
+    assertThat(dao.getAllBloodPressureReadings()).hasSize(2)
 
-        dao.deleteEverything()
+    dao.deleteEverything()
 
-        assertThat(dao.getExperience(firstId)).isNull()
-        assertThat(dao.getExperience(secondId)).isNull()
-        assertThat(dao.getAllBloodPressureReadings()).isEmpty()
-    }
+    assertThat(dao.getExperience(firstId)).isNull()
+    assertThat(dao.getExperience(secondId)).isNull()
+    assertThat(dao.getAllBloodPressureReadings()).isEmpty()
+  }
 }

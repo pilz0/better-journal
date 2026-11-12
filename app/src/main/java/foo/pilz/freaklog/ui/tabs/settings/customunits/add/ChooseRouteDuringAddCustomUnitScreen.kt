@@ -39,37 +39,37 @@ import foo.pilz.freaklog.ui.tabs.journal.addingestion.route.ChooseRouteViewModel
 @Composable
 fun ChooseRouteDuringAddCustomUnitScreen(
     onRouteChosen: (administrationRoute: AdministrationRoute) -> Unit,
-    viewModel: ChooseRouteViewModel = hiltViewModel()
+    viewModel: ChooseRouteViewModel = hiltViewModel(),
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("${viewModel.substanceName} route") },
-                navigationIcon = {
-                    if (viewModel.showOtherRoutes && viewModel.pwRoutes.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.showOtherRoutes = false }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back"
-                            )
-                        }
-                    }
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("${viewModel.substanceName} route") },
+            navigationIcon = {
+              if (viewModel.showOtherRoutes && viewModel.pwRoutes.isNotEmpty()) {
+                IconButton(onClick = { viewModel.showOtherRoutes = false }) {
+                  Icon(
+                      imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                      contentDescription = "Back",
+                  )
                 }
-            )
-        }
-    ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
-            AdministrationRoutePicker(
-                showOtherRoutes = viewModel.showOtherRoutes,
-                onChangeOfShowOtherRoutes = {
-                    viewModel.showOtherRoutes = it
-                },
-                pwRoutes = viewModel.pwRoutes,
-                otherRoutesChunked = viewModel.otherRoutesChunked,
-                onRouteTapped = {
-                    onRouteChosen(it)
-                }
-            )
-        }
+              }
+            },
+        )
+      }
+  ) { padding ->
+    Column(modifier = Modifier.padding(padding)) {
+      AdministrationRoutePicker(
+          showOtherRoutes = viewModel.showOtherRoutes,
+          onChangeOfShowOtherRoutes = {
+            viewModel.showOtherRoutes = it
+          },
+          pwRoutes = viewModel.pwRoutes,
+          otherRoutesChunked = viewModel.otherRoutesChunked,
+          onRouteTapped = {
+            onRouteChosen(it)
+          },
+      )
     }
+  }
 }

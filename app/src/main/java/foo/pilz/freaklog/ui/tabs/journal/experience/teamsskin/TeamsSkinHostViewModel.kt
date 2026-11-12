@@ -5,6 +5,4 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class TeamsSkinHostViewModel @Inject constructor(
-    val controller: TeamsSkinController
-) : ViewModel()
+class TeamsSkinHostViewModel @Inject constructor(val controller: TeamsSkinController) : ViewModel()

@@ -8,23 +8,34 @@ let
   reference = builtins.readFile ./reference.md;
 
   files = {
-    "AGENTS.md" = banner + ''
-      # AI Agent Guide — Freaklog Android
+    "AGENTS.md" =
+      banner
+      + ''
+        # AI Agent Guide — Freaklog Android
 
-      The first sections are the quickstart. Everything from "Repository overview" on is the deep reference.
+        The first sections are the quickstart. Everything from "Repository overview" on is the deep reference.
 
-    '' + quickstart + "\n" + reference;
+      ''
+      + quickstart
+      + "\n"
+      + reference;
 
-    ".github/copilot-instructions.md" = banner + ''
-      # Copilot instructions for `pilz0/better-journal`
+    ".github/copilot-instructions.md" =
+      banner
+      + ''
+        # Copilot instructions for `pilz0/better-journal`
 
-      Read this, then use `AGENTS.md` as the deep reference.
+        Read this, then use `AGENTS.md` as the deep reference.
 
-    '' + quickstart;
+      ''
+      + quickstart;
   };
 
   tree = pkgs.linkFarm "ai-instructions" (
-    pkgs.lib.mapAttrsToList (path: text: { name = path; path = pkgs.writeText (baseNameOf path) text; }) files
+    pkgs.lib.mapAttrsToList (path: text: {
+      name = path;
+      path = pkgs.writeText (baseNameOf path) text;
+    }) files
   );
 
   paths = builtins.attrNames files;
@@ -35,7 +46,10 @@ in
   # Writes the generated files into the repository it is run from.
   sync = pkgs.writeShellApplication {
     name = "ai-sync";
-    runtimeInputs = [ pkgs.git pkgs.coreutils ];
+    runtimeInputs = [
+      pkgs.git
+      pkgs.coreutils
+    ];
     text = ''
       root="$(git rev-parse --show-toplevel)"
       for p in ${pkgs.lib.escapeShellArgs paths}; do
@@ -46,14 +60,16 @@ in
   };
 
   # Fails when a committed file differs from what the sources render to.
-  check = src: pkgs.runCommand "ai-instructions-in-sync" { } ''
-    set -eu
-    for p in ${pkgs.lib.escapeShellArgs paths}; do
-      ${pkgs.diffutils}/bin/diff -u "${src}/$p" "${tree}/$p" || {
-        echo "$p is out of date. Run: nix run .#ai-sync"
-        exit 1
-      }
-    done
-    touch $out
-  '';
+  check =
+    src:
+    pkgs.runCommand "ai-instructions-in-sync" { } ''
+      set -eu
+      for p in ${pkgs.lib.escapeShellArgs paths}; do
+        ${pkgs.diffutils}/bin/diff -u "${src}/$p" "${tree}/$p" || {
+          echo "$p is out of date. Run: nix run .#ai-sync"
+          exit 1
+        }
+      done
+      touch $out
+    '';
 }

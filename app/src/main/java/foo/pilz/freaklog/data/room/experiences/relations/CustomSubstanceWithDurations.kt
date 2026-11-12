@@ -17,95 +17,90 @@ import kotlinx.serialization.Transient
 
 data class CustomSubstanceWithDurations(
     @Embedded val substance: CustomSubstance,
-
     @Relation(
         entity = CustomRoaDuration::class,
         parentColumn = "id",
-        entityColumn = "customSubstanceId"
+        entityColumn = "customSubstanceId",
     )
     var durations: List<CustomRoaDuration> = listOf<CustomRoaDuration>(),
-
     @Relation(
         entity = CustomRoaDose::class,
         parentColumn = "id",
-        entityColumn = "customSubstanceId"
+        entityColumn = "customSubstanceId",
     )
     var doses: List<CustomRoaDose> = listOf<CustomRoaDose>(),
-
     @Relation(
         entity = CustomRoa::class,
         parentColumn = "id",
-        entityColumn = "customSubstanceId"
+        entityColumn = "customSubstanceId",
     )
     var roas: List<CustomRoa> = listOf<CustomRoa>(),
-
     @Relation(
         entity = CustomInteraction::class,
         parentColumn = "id",
-        entityColumn = "customSubstanceId"
+        entityColumn = "customSubstanceId",
     )
     var interactions: List<CustomInteraction> = listOf<CustomInteraction>(),
-
     @Relation(
         entity = CustomCategoryAssignment::class,
         parentColumn = "id",
-        entityColumn = "customSubstanceId"
+        entityColumn = "customSubstanceId",
     )
     var categories: List<CustomCategoryAssignment> = listOf<CustomCategoryAssignment>(),
-
     @Relation(
         entity = CustomCrossTolerance::class,
         parentColumn = "id",
-        entityColumn = "customSubstanceId"
+        entityColumn = "customSubstanceId",
     )
     var crossTolerances: List<CustomCrossTolerance> = listOf<CustomCrossTolerance>(),
 ) {
-    fun toSerializable(): CustomSubstanceWithDurationsSerializable {
-        return CustomSubstanceWithDurationsSerializable(
-            id = substance.id,
-            name = substance.name,
-            units = substance.units,
-            description = substance.description,
-            summary = substance.summary,
-            toleranceFull = substance.toleranceFull,
-            toleranceHalf = substance.toleranceHalf,
-            toleranceZero = substance.toleranceZero,
-            effectsText = substance.effectsText,
-            generalRisks = substance.generalRisks,
-            longTermRisks = substance.longTermRisks,
-            durations = durations.map { d ->
-                val matchingDose = doses.find { it.route == d.route }
-                CustomRoaDurationSerializable(
-                    route = d.route,
-                    onset = d.onset,
-                    comeup = d.comeup,
-                    peak = d.peak,
-                    offset = d.offset,
-                    total = d.total,
-                    lightDoseMin = matchingDose?.lightMin,
-                    commonDoseMin = matchingDose?.commonMin,
-                    strongDoseMin = matchingDose?.strongMin,
-                    heavyDoseMin = matchingDose?.heavyMin,
-                    bioavailability = roas.find { it.route == d.route }?.bioavailability,
-                )
+  fun toSerializable(): CustomSubstanceWithDurationsSerializable {
+    return CustomSubstanceWithDurationsSerializable(
+        id = substance.id,
+        name = substance.name,
+        units = substance.units,
+        description = substance.description,
+        summary = substance.summary,
+        toleranceFull = substance.toleranceFull,
+        toleranceHalf = substance.toleranceHalf,
+        toleranceZero = substance.toleranceZero,
+        effectsText = substance.effectsText,
+        generalRisks = substance.generalRisks,
+        longTermRisks = substance.longTermRisks,
+        durations =
+            durations.map { d ->
+              val matchingDose = doses.find { it.route == d.route }
+              CustomRoaDurationSerializable(
+                  route = d.route,
+                  onset = d.onset,
+                  comeup = d.comeup,
+                  peak = d.peak,
+                  offset = d.offset,
+                  total = d.total,
+                  lightDoseMin = matchingDose?.lightMin,
+                  commonDoseMin = matchingDose?.commonMin,
+                  strongDoseMin = matchingDose?.strongMin,
+                  heavyDoseMin = matchingDose?.heavyMin,
+                  bioavailability = roas.find { it.route == d.route }?.bioavailability,
+              )
             },
-            categories = categories.map { it.categoryName },
-            crossTolerances = crossTolerances.map { it.categoryName },
-            interactions = interactions.map {
-                CustomInteractionSerializable(
-                    severity = it.severity,
-                    targetType = it.targetType,
-                    targetName = it.targetName,
-                )
+        categories = categories.map { it.categoryName },
+        crossTolerances = crossTolerances.map { it.categoryName },
+        interactions =
+            interactions.map {
+              CustomInteractionSerializable(
+                  severity = it.severity,
+                  targetType = it.targetType,
+                  targetName = it.targetName,
+              )
             },
-        )
-    }
+    )
+  }
 }
 
 @Serializable
 data class CustomSubstanceWithDurationsSerializable(
-    @Transient
-    val id: Int = 0,
+    @Transient val id: Int = 0,
     val name: String,
     var units: String,
     var description: String,
@@ -122,10 +117,11 @@ data class CustomSubstanceWithDurationsSerializable(
     val interactions: List<CustomInteractionSerializable> = emptyList(),
 
     // To keep compatibility with exports from before this was migrated to SubstanceCompanion
-    val defaultCategory: IngestionCategory? = null
+    val defaultCategory: IngestionCategory? = null,
 ) {
-    fun toEntity(): CustomSubstanceWithDurations {
-        val substance = CustomSubstance(
+  fun toEntity(): CustomSubstanceWithDurations {
+    val substance =
+        CustomSubstance(
             id = id,
             name = name,
             units = units,
@@ -138,53 +134,62 @@ data class CustomSubstanceWithDurationsSerializable(
             generalRisks = generalRisks,
             longTermRisks = longTermRisks,
         )
-        return CustomSubstanceWithDurations(
-            substance = substance,
-            durations = durations.map { d ->
-                CustomRoaDuration(
-                    route = d.route,
+    return CustomSubstanceWithDurations(
+        substance = substance,
+        durations =
+            durations.map { d ->
+              CustomRoaDuration(
+                  route = d.route,
+                  customSubstanceId = id,
+                  onset = d.onset,
+                  comeup = d.comeup,
+                  peak = d.peak,
+                  offset = d.offset,
+                  total = d.total,
+              )
+            },
+        doses =
+            durations.mapNotNull { d ->
+              if (
+                  d.lightDoseMin == null &&
+                      d.commonDoseMin == null &&
+                      d.strongDoseMin == null &&
+                      d.heavyDoseMin == null
+              )
+                  null
+              else
+                  CustomRoaDose(
+                      customSubstanceId = id,
+                      route = d.route,
+                      units = units,
+                      lightMin = d.lightDoseMin,
+                      commonMin = d.commonDoseMin,
+                      strongMin = d.strongDoseMin,
+                      heavyMin = d.heavyDoseMin,
+                  )
+            },
+        roas =
+            durations.mapNotNull { d ->
+              d.bioavailability?.let {
+                CustomRoa(
                     customSubstanceId = id,
-                    onset = d.onset,
-                    comeup = d.comeup,
-                    peak = d.peak,
-                    offset = d.offset,
-                    total = d.total,
-                )
-            },
-            doses = durations.mapNotNull { d ->
-                if (d.lightDoseMin == null && d.commonDoseMin == null &&
-                    d.strongDoseMin == null && d.heavyDoseMin == null
-                ) null
-                else CustomRoaDose(
-                    customSubstanceId = id,
                     route = d.route,
-                    units = units,
-                    lightMin = d.lightDoseMin,
-                    commonMin = d.commonDoseMin,
-                    strongMin = d.strongDoseMin,
-                    heavyMin = d.heavyDoseMin,
+                    bioavailability = it,
                 )
+              }
             },
-            roas = durations.mapNotNull { d ->
-                d.bioavailability?.let {
-                    CustomRoa(
-                        customSubstanceId = id,
-                        route = d.route,
-                        bioavailability = it,
-                    )
-                }
+        interactions =
+            interactions.map {
+              CustomInteraction(
+                  severity = it.severity,
+                  targetType = it.targetType,
+                  targetName = it.targetName,
+              )
             },
-            interactions = interactions.map {
-                CustomInteraction(
-                    severity = it.severity,
-                    targetType = it.targetType,
-                    targetName = it.targetName,
-                )
-            },
-            categories = categories.map { CustomCategoryAssignment(categoryName = it) },
-            crossTolerances = crossTolerances.map { CustomCrossTolerance(categoryName = it) },
-        )
-    }
+        categories = categories.map { CustomCategoryAssignment(categoryName = it) },
+        crossTolerances = crossTolerances.map { CustomCrossTolerance(categoryName = it) },
+    )
+  }
 }
 
 @Serializable

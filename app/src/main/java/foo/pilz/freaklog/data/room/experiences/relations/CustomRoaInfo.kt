@@ -12,10 +12,11 @@ data class CustomRoaInfo(
     val dose: CustomRoaDose? = null,
     val duration: CustomRoaDuration? = null,
 ) {
-    fun toRoa(): Roa = Roa(
-        route = route,
-        roaDose = dose?.toRoaDose(),
-        roaDuration = duration?.toRoaDuration(),
-        bioavailability = roa?.bioavailability,
-    )
+  fun toRoa(): Roa =
+      Roa(
+          route = route,
+          roaDose = dose?.toRoaDose(),
+          roaDuration = duration?.toRoaDuration(),
+          bioavailability = roa?.bioavailability,
+      )
 }

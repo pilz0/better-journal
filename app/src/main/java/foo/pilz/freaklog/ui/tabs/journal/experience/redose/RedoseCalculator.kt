@@ -10,90 +10,89 @@ import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
 import java.time.Instant
 
 /**
- * User-configurable multipliers on the average onset/comeup/peak durations
- * that together define when the app suggests a redose is OK.
+ * User-configurable multipliers on the average onset/comeup/peak durations that together define
+ * when the app suggests a redose is OK.
  *
- * Default: redoseAt = ingestionTime + onsetAvg + comeupAvg + 0.5 * peakAvg.
- * This corresponds to "shortly after the peak begins to decline" — a
- * reasonable heuristic in the absence of published data. Users can tune
- * this in Settings → Redose.
+ * Default: redoseAt = ingestionTime + onsetAvg + comeupAvg + 0.5 * peakAvg. This corresponds to
+ * "shortly after the peak begins to decline" — a reasonable heuristic in the absence of published
+ * data. Users can tune this in Settings → Redose.
  */
 data class RedoseParameters(
     val onsetFraction: Float,
     val comeupFraction: Float,
     val peakFraction: Float,
 ) {
-    companion object {
-        val Default = RedoseParameters(
+  companion object {
+    val Default =
+        RedoseParameters(
             onsetFraction = 1.0f,
             comeupFraction = 1.0f,
-            peakFraction = 0.5f
+            peakFraction = 0.5f,
         )
 
-        /**
-         * Clamp a single fraction into the UI-supported range (0..3). Any
-         * non-finite input (NaN, ±Inf — which `toFloatOrNull()` happily
-         * produces from stored string prefs) falls back to the default.
-         */
-        private fun sanitizeFraction(value: Float, fallback: Float): Float {
-            if (!value.isFinite()) return fallback
-            return value.coerceIn(0f, 3f)
-        }
+    /**
+     * Clamp a single fraction into the UI-supported range (0..3). Any non-finite input (NaN, ±Inf —
+     * which `toFloatOrNull()` happily produces from stored string prefs) falls back to the default.
+     */
+    private fun sanitizeFraction(value: Float, fallback: Float): Float {
+      if (!value.isFinite()) return fallback
+      return value.coerceIn(0f, 3f)
+    }
 
-        /** Clamp parameters into a sensible range to avoid NaN/weird UI. */
-        fun sanitize(onset: Float, comeup: Float, peak: Float) = RedoseParameters(
+    /** Clamp parameters into a sensible range to avoid NaN/weird UI. */
+    fun sanitize(onset: Float, comeup: Float, peak: Float) =
+        RedoseParameters(
             onsetFraction = sanitizeFraction(onset, Default.onsetFraction),
             comeupFraction = sanitizeFraction(comeup, Default.comeupFraction),
-            peakFraction = sanitizeFraction(peak, Default.peakFraction)
+            peakFraction = sanitizeFraction(peak, Default.peakFraction),
         )
-    }
+  }
 }
 
 /**
- * Returns the recommended time for a next redose of the same substance/route,
- * or null if the substance's duration data is insufficient to compute one.
+ * Returns the recommended time for a next redose of the same substance/route, or null if the
+ * substance's duration data is insufficient to compute one.
  */
 fun computeRedoseTime(
     ingestionTime: Instant,
     duration: RoaDuration?,
-    params: RedoseParameters
+    params: RedoseParameters,
 ): Instant? {
-    if (duration == null) return null
-    val onset = avgSeconds(duration.onset)
-    val comeup = avgSeconds(duration.comeup)
-    val peak = avgSeconds(duration.peak)
-    // Need at least some data for a meaningful suggestion.
-    if (onset == null && comeup == null && peak == null) return null
-    val offsetSec =
-        (onset ?: 0f) * params.onsetFraction +
-            (comeup ?: 0f) * params.comeupFraction +
-            (peak ?: 0f) * params.peakFraction
-    if (offsetSec <= 0f) return null
-    return ingestionTime.plusSeconds(offsetSec.toLong())
+  if (duration == null) return null
+  val onset = avgSeconds(duration.onset)
+  val comeup = avgSeconds(duration.comeup)
+  val peak = avgSeconds(duration.peak)
+  // Need at least some data for a meaningful suggestion.
+  if (onset == null && comeup == null && peak == null) return null
+  val offsetSec =
+      (onset ?: 0f) * params.onsetFraction +
+          (comeup ?: 0f) * params.comeupFraction +
+          (peak ?: 0f) * params.peakFraction
+  if (offsetSec <= 0f) return null
+  return ingestionTime.plusSeconds(offsetSec.toLong())
 }
 
 /**
- * For a given substance (identified by name and route) find the latest
- * ingestion of that pair and return its redose time. Used by the experience
- * view to show a single chip per (substance, route).
+ * For a given substance (identified by name and route) find the latest ingestion of that pair and
+ * return its redose time. Used by the experience view to show a single chip per (substance, route).
  */
 fun computeRedoseForLatest(
     ingestions: List<Ingestion>,
     duration: RoaDuration?,
-    params: RedoseParameters
+    params: RedoseParameters,
 ): Instant? {
-    val latest = ingestions.maxByOrNull { it.time } ?: return null
-    return computeRedoseTime(latest.time, duration, params)
+  val latest = ingestions.maxByOrNull { it.time } ?: return null
+  return computeRedoseTime(latest.time, duration, params)
 }
 
 private fun avgSeconds(range: DurationRange?): Float? {
-    if (range == null) return null
-    val min = range.minInSec
-    val max = range.maxInSec
-    return when {
-        min != null && max != null -> (min + max) / 2f
-        min != null -> min
-        max != null -> max
-        else -> null
-    }
+  if (range == null) return null
+  val min = range.minInSec
+  val max = range.maxInSec
+  return when {
+    min != null && max != null -> (min + max) / 2f
+    min != null -> min
+    max != null -> max
+    else -> null
+  }
 }
