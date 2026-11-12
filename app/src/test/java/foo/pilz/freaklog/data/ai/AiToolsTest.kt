@@ -35,7 +35,11 @@ class AiToolsTest {
       }
   private val locked = MutableStateFlow(false)
   private val auth = mockk<BiometricAuthManager> { every { shouldLock } returns locked }
-  private val aiTools = AiTools(experienceDao, substanceTools, anodyneTools, auth)
+  private val healthTools =
+      mockk<AiHealthTools> {
+        coEvery { execute(any(), any()) } returns null
+      }
+  private val aiTools = AiTools(experienceDao, substanceTools, anodyneTools, auth, healthTools)
 
   @Test
   fun executeUnknownToolReturnsErrorStatus() = runTest {

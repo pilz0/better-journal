@@ -31,6 +31,7 @@
     <uses-permission android:name="android.permission.health.READ_SLEEP" />
     <uses-permission android:name="android.permission.health.READ_BLOOD_PRESSURE" />
     <uses-permission android:name="android.permission.health.WRITE_BLOOD_PRESSURE" />
+    <uses-permission android:name="android.permission.health.WRITE_MEDICAL_DATA" />
     <uses-permission android:name="android.permission.health.READ_HEALTH_DATA_HISTORY" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
@@ -40,6 +41,10 @@
     <permission
         android:name="foo.pilz.freaklog.permission.READ_JOURNAL"
         android:protectionLevel="normal" />
+
+    <queries>
+        <package android:name="com.google.android.apps.healthdata" />
+    </queries>
 
     <application
         android:name=".di.JournalApplication"
@@ -76,12 +81,19 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <!-- Health Connect opens this to explain why the app reads health data (heart rate, sleep and blood pressure on timelines). -->
+        <activity
+            android:name=".HealthPermissionsActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+            </intent-filter>
+        </activity>
+        <!-- Health Connect permission rationale; never displays journal data. -->
         <activity-alias
             android:name="ViewPermissionUsageActivity"
             android:exported="true"
             android:permission="android.permission.START_VIEW_PERMISSION_USAGE"
-            android:targetActivity=".MainActivity">
+            android:targetActivity=".HealthPermissionsActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
                 <category android:name="android.intent.category.HEALTH_PERMISSIONS" />

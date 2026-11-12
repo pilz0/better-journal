@@ -2,7 +2,9 @@
 
 The toolchain (JDK 17, Android SDK, ripgrep, jq) comes from the flake's devShell. Enter it with
 `direnv allow` (see `.envrc`) or `nix develop`, or run single commands as `nix develop -c <cmd>`.
-Don't install JDKs or SDKs by hand. If a tool is missing, add it to `devShells.default` in `flake.nix`.
+Don't install JDKs or SDKs by hand. If a general development tool is missing, add it to `devShells.default` in `flake.nix`.
+For native Android tests, `nix develop .#android-test` adds the emulator and Google APIs system images;
+these larger downloads stay optional. See README for the Health Connect acceptance test.
 
 ## Agent instructions are generated
 
