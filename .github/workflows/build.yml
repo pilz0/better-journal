@@ -101,14 +101,21 @@ jobs:
           if not schemas:
               print('No Room schema files found!')
               sys.exit(1)
-          if 'app/schemas/foo.pilz.freaklog.data.room.AppDatabase/27.json' not in schemas:
-              print('Room schema v27 is missing!')
+          # Find the latest schema version (highest numbered file)
+          def get_version_num(path):
+              import re
+              m = re.search(r'/(\d+)\\.json$', path)
+              return int(m.group(1)) if m else 0
+          latest_schema = max(schemas, key=get_version_num)
+          latest_num = get_version_num(latest_schema)
+          if '27.json' not in schemas:
+              print('Room schema v27 is missing (oldest required version)!')
               sys.exit(1)
           for s in schemas:
               with open(s) as f:
                   data = json.load(f)
                   assert data.get('formatVersion') == 1, f'Invalid formatVersion in {s}'
-          print(f'Successfully validated {len(schemas)} Room schema files.')
+          print(f'Successfully validated {len(schemas)} Room schema files, latest is v{latest_num}.')
           "
 
       - name: Validate Substances dataset JSON
