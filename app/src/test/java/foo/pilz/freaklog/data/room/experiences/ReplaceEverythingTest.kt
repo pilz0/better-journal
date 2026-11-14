@@ -14,10 +14,14 @@ import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import foo.pilz.freaklog.data.export.ExperienceSerializable
+import foo.pilz.freaklog.data.export.IngestionSerializable
 import foo.pilz.freaklog.data.export.JournalExport
+import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
+import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.room.AppDatabase
 import foo.pilz.freaklog.testing.EntityBuilders
 import java.time.Instant
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -88,4 +92,70 @@ class ReplaceEverythingTest {
         assertNotNull(imported)
         assertEquals("Imported experience", imported!!.title)
       }
+
+  @Test
+  fun `replaceEverything preserves administrationSite on imported ingestions`() = runTest {
+    val export =
+        JournalExport(
+            experiences =
+                listOf(
+                    ExperienceSerializable(
+                        title = "Test",
+                        text = "",
+                        creationDate = FIXED_INSTANT,
+                        sortDate = FIXED_INSTANT,
+                        isFavorite = false,
+                        location = null,
+                        ingestions =
+                            listOf(
+                                IngestionSerializable(
+                                    substanceName = "Test Substance",
+                                    time = FIXED_INSTANT,
+                                    endTime = null,
+                                    creationDate = FIXED_INSTANT,
+                                    administrationRoute = AdministrationRoute.ORAL,
+                                    dose = 100.0,
+                                    isDoseAnEstimate = false,
+                                    estimatedDoseStandardDeviation = null,
+                                    units = "mg",
+                                    notes = null,
+                                    stomachFullness = null,
+                                    consumerName = null,
+                                    customUnitId = null,
+                                    administrationSite = "left arm",
+                                    webhookMessageId = "legacy-msg-123",
+                                    formulationName = "Ritalin LA",
+                                    customFormulationId = 42,
+                                    saltForm = "HCl",
+                                    category = null,
+                                )
+                            ),
+                        ratings = emptyList(),
+                        timedNotes = emptyList(),
+                        bloodPressure = emptyList(),
+                    )
+                ),
+            customUnits = emptyList(),
+            reminders = emptyList(),
+            webhooks = emptyList(),
+            substanceGroups = emptyList(),
+            customSubstances = emptyList(),
+            customSubstanceDetails = emptyList(),
+            intakeLimits = emptyList(),
+        )
+
+    dao.replaceEverything(export)
+
+    val importedIngestion = dao.getIngestionsSortedDescendingFlow().first().first()
+    assertNotNull(importedIngestion)
+    assertEquals("left arm", importedIngestion.administrationSite)
+    assertEquals("HCl", importedIngestion.saltForm)
+    assertEquals("legacy-msg-123", importedIngestion.webhookMessageId)
+    assertEquals("Ritalin LA", importedIngestion.formulationName)
+    assertEquals(42, importedIngestion.customFormulationId)
+  }
+
+  companion object {
+    private val FIXED_INSTANT = Instant.parse("2026-02-01T12:00:00Z")
+  }
 }

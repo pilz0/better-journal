@@ -226,16 +226,22 @@
             ${pkgs.coreutils}/bin/touch $out
           '';
 
-          nix-room-schema-v27-present = pkgs.runCommand "nix-room-schema-v27-present" { } ''
+          nix-room-schema-current-present = pkgs.runCommand "nix-room-schema-current-present" { } ''
             set -eu
-            schema_file="${./app/schemas/foo.pilz.freaklog.data.room.AppDatabase/27.json}"
+            schema_file="${./app/schemas/foo.pilz.freaklog.data.room.AppDatabase/30.json}"
             if [ ! -s "$schema_file" ]; then
-              echo "Room schema version 27 is missing or empty"
+              echo "Room schema version 30 (current) is missing or empty"
               exit 1
             fi
             version="$(${pkgs.jq}/bin/jq '.formatVersion' "$schema_file")"
             if [ "$version" != "1" ]; then
               echo "Unexpected Room schema formatVersion: $version"
+              exit 1
+            fi
+            # Verify the latest schema file covers all expected tables.
+            table_count="$(${pkgs.jq}/bin/jq '.tableHashes | keys | length' "$schema_file")"
+            if [ "$table_count" -lt 25 ]; then
+              echo "Room schema v30 has only $table_count tables, expected at least 25"
               exit 1
             fi
             ${pkgs.coreutils}/bin/touch $out
@@ -311,7 +317,7 @@
         nix-gradle-lock-present.x86_64-linux = self.checks.x86_64-linux.nix-gradle-lock-present;
         nix-release-artifact-paths.x86_64-linux = self.checks.x86_64-linux.nix-release-artifact-paths;
         nix-substances-json-valid.x86_64-linux = self.checks.x86_64-linux.nix-substances-json-valid;
-        nix-room-schema-v27-present.x86_64-linux = self.checks.x86_64-linux.nix-room-schema-v27-present;
+        nix-room-schema-current-present.x86_64-linux = self.checks.x86_64-linux.nix-room-schema-current-present;
         nix-no-legacy-package-leaks.x86_64-linux = self.checks.x86_64-linux.nix-no-legacy-package-leaks;
         nix-workflow-security-invariants.x86_64-linux =
           self.checks.x86_64-linux.nix-workflow-security-invariants;

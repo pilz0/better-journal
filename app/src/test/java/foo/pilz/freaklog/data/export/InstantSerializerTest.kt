@@ -57,14 +57,14 @@ class InstantSerializerTest {
 
   @Test
   fun testDeserialize_knownValue() {
-    val jsonElement = JsonPrimitive(1672531200000.0)
+    val jsonElement = JsonPrimitive(1672531200000L)
     val deserialized = json.decodeFromJsonElement(InstantSerializer, jsonElement)
     assertEquals(1672531200000L, deserialized.toEpochMilli())
   }
 
   @Test
   fun testDeserialize_epochStart() {
-    val jsonElement = JsonPrimitive(0.0)
+    val jsonElement = JsonPrimitive(0L)
     val deserialized = json.decodeFromJsonElement(InstantSerializer, jsonElement)
     assertEquals(Instant.EPOCH, deserialized)
   }
@@ -73,8 +73,7 @@ class InstantSerializerTest {
   fun testRoundtrip_now() {
     val original = Instant.now()
     val serialized = json.encodeToJsonElement(InstantSerializer, original)
-    val jsonWithDouble = JsonPrimitive((serialized as JsonPrimitive).long.toDouble())
-    val deserialized = json.decodeFromJsonElement(InstantSerializer, jsonWithDouble)
+    val deserialized = json.decodeFromJsonElement(InstantSerializer, serialized)
     assertEquals(original.toEpochMilli(), deserialized.toEpochMilli())
   }
 
@@ -82,15 +81,14 @@ class InstantSerializerTest {
   fun testRoundtrip_specificDate() {
     val original = Instant.ofEpochMilli(1700000000000L)
     val serialized = json.encodeToJsonElement(InstantSerializer, original)
-    val jsonWithDouble = JsonPrimitive((serialized as JsonPrimitive).long.toDouble())
-    val deserialized = json.decodeFromJsonElement(InstantSerializer, jsonWithDouble)
+    val deserialized = json.decodeFromJsonElement(InstantSerializer, serialized)
     assertEquals(original, deserialized)
   }
 
   @Test
   fun testDeserialize_preservesMilliseconds() {
     val millis = 1672531200123L
-    val jsonElement = JsonPrimitive(millis.toDouble())
+    val jsonElement = JsonPrimitive(millis)
     val deserialized = json.decodeFromJsonElement(InstantSerializer, jsonElement)
     assertEquals(millis, deserialized.toEpochMilli())
   }
@@ -108,8 +106,7 @@ class InstantSerializerTest {
 
     instants.forEach { original ->
       val serialized = json.encodeToJsonElement(InstantSerializer, original)
-      val jsonWithDouble = JsonPrimitive((serialized as JsonPrimitive).long.toDouble())
-      val deserialized = json.decodeFromJsonElement(InstantSerializer, jsonWithDouble)
+      val deserialized = json.decodeFromJsonElement(InstantSerializer, serialized)
       assertEquals(original.toEpochMilli(), deserialized.toEpochMilli())
     }
   }

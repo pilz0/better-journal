@@ -540,6 +540,10 @@ interface ExperienceDao {
                 notes = ingestionSerializable.notes,
                 stomachFullness = ingestionSerializable.stomachFullness,
                 consumerName = ingestionSerializable.consumerName,
+                administrationSite = ingestionSerializable.administrationSite,
+                webhookMessageId = ingestionSerializable.webhookMessageId,
+                formulationName = ingestionSerializable.formulationName,
+                customFormulationId = ingestionSerializable.customFormulationId,
                 // Room assigns a new id to a unit exported without one (id 0), so nothing can refer
                 // to it.
                 customUnitId = ingestionSerializable.customUnitId?.takeIf { it > 0 },
