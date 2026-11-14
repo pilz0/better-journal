@@ -123,6 +123,9 @@ class ReplaceEverythingTest {
                                     consumerName = null,
                                     customUnitId = null,
                                     administrationSite = "left arm",
+                                    webhookMessageId = "legacy-msg-123",
+                                    formulationName = "Ritalin LA",
+                                    customFormulationId = 42,
                                     saltForm = "HCl",
                                     category = null,
                                 )
@@ -147,6 +150,9 @@ class ReplaceEverythingTest {
     assertNotNull(importedIngestion)
     assertEquals("left arm", importedIngestion.administrationSite)
     assertEquals("HCl", importedIngestion.saltForm)
+    assertEquals("legacy-msg-123", importedIngestion.webhookMessageId)
+    assertEquals("Ritalin LA", importedIngestion.formulationName)
+    assertEquals(42, importedIngestion.customFormulationId)
   }
 
   companion object {

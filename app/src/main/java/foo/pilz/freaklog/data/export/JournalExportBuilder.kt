@@ -165,6 +165,9 @@ private fun foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithInge
                   consumerName = ingestion.consumerName,
                   customUnitId = ingestion.customUnitId,
                   administrationSite = ingestion.administrationSite,
+                  webhookMessageId = ingestion.webhookMessageId,
+                  formulationName = ingestion.formulationName,
+                  customFormulationId = ingestion.customFormulationId,
                   saltForm = ingestion.saltForm,
                   category = ingestion.category,
               )

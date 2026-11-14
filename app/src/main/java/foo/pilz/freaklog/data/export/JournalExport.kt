@@ -220,6 +220,9 @@ data class IngestionSerializable(
     var consumerName: String? = null,
     var customUnitId: Int? = null,
     var administrationSite: String? = null,
+    var webhookMessageId: String? = null,
+    var formulationName: String? = null,
+    var customFormulationId: Int? = null,
     var saltForm: String? = null,
     var category: foo.pilz.freaklog.data.substances.classes.IngestionCategory? = null,
 )
