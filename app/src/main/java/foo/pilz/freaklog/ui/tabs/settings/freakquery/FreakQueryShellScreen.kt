@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -125,7 +126,9 @@ fun FreakQueryShellScreenContent(
         )
       }
   ) { padding ->
-    Column(modifier = Modifier.padding(padding).fillMaxSize().imePadding()) {
+    Column(
+        modifier = Modifier.padding(padding).consumeWindowInsets(padding).fillMaxSize().imePadding()
+    ) {
       Row(
           modifier =
               Modifier.fillMaxWidth().padding(horizontal = horizontalPadding, vertical = 8.dp),
@@ -137,7 +140,7 @@ fun FreakQueryShellScreenContent(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         if (state.isRunning) {
-          CircularProgressIndicator(modifier = Modifier.height(18.dp), strokeWidth = 2.dp)
+          CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
         }
       }
 
@@ -199,7 +202,9 @@ fun FreakQueryShellScreenContent(
             value = state.input,
             onValueChange = onInputChange,
             modifier = Modifier.weight(1f),
-            enabled = !state.isRunning,
+            // readOnly instead of disabled: disabling drops focus and closes the keyboard per
+            // query.
+            readOnly = state.isRunning,
             singleLine = true,
             leadingIcon = {
               Text("fq>", fontFamily = FontFamily.Monospace)

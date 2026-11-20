@@ -6,6 +6,7 @@ import com.ndm4.freakquery.FreakQuery
 import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.freakquery.FreakQueryRepository
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -185,6 +186,7 @@ constructor(private val freakQueryRepository: FreakQueryRepository) : ViewModel(
                   }
                 }
                 .getOrElse { throwable ->
+                  if (throwable is CancellationException) throw throwable
                   throwable.message ?: throwable::class.java.simpleName
                 }
 

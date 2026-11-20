@@ -8,37 +8,29 @@ import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestions
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 
 @Singleton
 class FreakQueryRepository
 @Inject
 constructor(private val experienceRepository: ExperienceRepository) {
+  // Mapping every ingestion and evaluating the query is CPU work; keep it off the main thread.
   suspend fun getLogs(): List<Map<String, Any?>> =
-      experienceRepository.getSortedExperiencesWithIngestionsFlow().first().toFreakQueryRows()
-
-  fun getLogsFlow(): Flow<List<Map<String, Any?>>> =
-      experienceRepository.getSortedExperiencesWithIngestionsFlow().map { experiences ->
-        experiences.toFreakQueryRows()
+      experienceRepository.getSortedExperiencesWithIngestionsFlow().first().let { experiences ->
+        withContext(Dispatchers.Default) { experiences.toFreakQueryRows() }
       }
 
-  suspend fun query(tag: String, config: FreakQueryConfig = FreakQueryConfig()): String =
-      FreakQuery.query(tag, getLogs(), config)
+  suspend fun query(tag: String, config: FreakQueryConfig = FreakQueryConfig()): String {
+    val logs = getLogs()
+    return withContext(Dispatchers.Default) { FreakQuery.query(tag, logs, config) }
+  }
 
-  fun queryFlow(tag: String, config: FreakQueryConfig = FreakQueryConfig()): Flow<String> =
-      getLogsFlow().map { logs ->
-        FreakQuery.query(tag, logs, config)
-      }
-
-  suspend fun render(template: String, config: FreakQueryConfig = FreakQueryConfig()): String =
-      FreakQuery.render(template, getLogs(), config)
-
-  fun renderFlow(template: String, config: FreakQueryConfig = FreakQueryConfig()): Flow<String> =
-      getLogsFlow().map { logs ->
-        FreakQuery.render(template, logs, config)
-      }
+  suspend fun render(template: String, config: FreakQueryConfig = FreakQueryConfig()): String {
+    val logs = getLogs()
+    return withContext(Dispatchers.Default) { FreakQuery.render(template, logs, config) }
+  }
 }
 
 private fun List<ExperienceWithIngestions>.toFreakQueryRows(): List<Map<String, Any?>> =
