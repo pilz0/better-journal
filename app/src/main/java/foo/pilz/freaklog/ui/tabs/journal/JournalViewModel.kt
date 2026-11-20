@@ -31,10 +31,10 @@ import foo.pilz.freaklog.data.substances.repositories.SearchRepository
 import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OUTLOOK_SKIN_MAX_DELAY_MS
 import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OUTLOOK_SKIN_MIN_DELAY_MS
 import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OUTLOOK_SKIN_OPEN_PROBABILITY
-import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OutlookSkinController
 import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OutlookSkinPayload
 import foo.pilz.freaklog.ui.tabs.journal.outlookskin.buildOutlookRows
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
+import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinController
 import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinEligibility
 import java.time.Instant
 import java.time.ZoneId
@@ -42,18 +42,15 @@ import javax.inject.Inject
 import kotlin.random.Random
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 
 val IS_MIGRATED_0 = booleanPreferencesKey("is_migrated_0")
@@ -68,55 +65,39 @@ constructor(
     private val dataStore: DataStore<Preferences>,
     private val userPreferences: UserPreferences,
     private val skinEligibility: UltraFunSkinEligibility,
-    private val outlookSkinController: OutlookSkinController,
+    private val skinController: UltraFunSkinController,
 ) : ViewModel() {
 
-  private var outlookJob: Job? = null
-
-  init {
-    viewModelScope.launch {
-      skinEligibility.eligibleFlow.collectLatest { eligible ->
-        if (!eligible) {
-          outlookSkinController.dismiss()
-          return@collectLatest
-        }
-        while (true) {
-          delay(Random.nextLong(OUTLOOK_SKIN_MIN_DELAY_MS, OUTLOOK_SKIN_MAX_DELAY_MS))
-          if (outlookSkinController.state.value == null) {
-            showOutlookSkin()
-          }
-        }
+  /**
+   * Runs while the journal is on screen: while ultra fun mode is eligible, maybe shows the Outlook
+   * skin right away, then again every 30–90 minutes.
+   */
+  suspend fun runOutlookSkin() {
+    skinEligibility.eligibleFlow.collectLatest { eligible ->
+      if (!eligible) {
+        skinController.dismissIfShowing<OutlookSkinPayload>()
+        return@collectLatest
       }
-    }
-  }
-
-  fun onJournalOpened() {
-    viewModelScope.launch {
       if (
-          outlookSkinController.state.value == null &&
-              Random.nextDouble() < OUTLOOK_SKIN_OPEN_PROBABILITY &&
-              skinEligibility.eligibleFlow.first()
+          skinController.state.value == null && Random.nextDouble() < OUTLOOK_SKIN_OPEN_PROBABILITY
       ) {
         showOutlookSkin()
+      }
+      while (true) {
+        delay(Random.nextLong(OUTLOOK_SKIN_MIN_DELAY_MS, OUTLOOK_SKIN_MAX_DELAY_MS))
+        if (skinController.state.value == null) showOutlookSkin()
       }
     }
   }
 
   private fun showOutlookSkin() {
-    outlookJob?.cancel()
-    outlookJob = viewModelScope.launch {
-      var started = false
-      experienceRepo
-          .getSortedExperienceWithIngestionsCompanionsAndRatingsFlow()
-          .map { experiences ->
-            OutlookSkinPayload(buildOutlookRows(experiences, Instant.now(), ZoneId.systemDefault()))
-          }
-          .takeWhile { !started || outlookSkinController.state.value != null }
-          .collect { payload ->
-            outlookSkinController.show(payload)
-            started = true
-          }
-    }
+    skinController.show(
+        viewModelScope,
+        experienceRepo.getSortedExperienceWithIngestionsCompanionsAndRatingsFlow().map { experiences
+          ->
+          OutlookSkinPayload(buildOutlookRows(experiences, Instant.now(), ZoneId.systemDefault()))
+        },
+    )
   }
 
   val isTimeRelativeToNow = mutableStateOf(false)

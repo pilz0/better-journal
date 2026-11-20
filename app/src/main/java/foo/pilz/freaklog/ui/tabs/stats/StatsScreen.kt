@@ -85,7 +85,7 @@ fun StatsScreen(
 ) {
   val statsModel by viewModel.statsModelFlow.collectAsStateWithLifecycle()
   val consumerNamesSorted by viewModel.sortedConsumerNamesFlow.collectAsStateWithLifecycle()
-  androidx.compose.runtime.LaunchedEffect(Unit) { viewModel.onStatsOpened() }
+  androidx.compose.runtime.LaunchedEffect(Unit) { viewModel.runExcelSkin() }
   StatsScreen(
       navigateToSubstanceCompanion = navigateToSubstanceCompanion,
       navigateToToleranceChart = navigateToToleranceChart,

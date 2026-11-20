@@ -11,8 +11,8 @@ import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestion
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit
 import foo.pilz.freaklog.data.substances.repositories.SearchRepository
 import foo.pilz.freaklog.testing.EntityBuilders
-import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OutlookSkinController
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
+import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinController
 import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinEligibility
 import io.mockk.every
 import io.mockk.mockk
@@ -43,7 +43,7 @@ class JournalViewModelTest {
   private val dataStore = mockk<DataStore<Preferences>>()
   private val userPreferences = mockk<UserPreferences>()
   private val skinEligibility = mockk<UltraFunSkinEligibility>()
-  private val outlookSkinController = mockk<OutlookSkinController>(relaxed = true)
+  private val skinController = UltraFunSkinController()
 
   @Before
   fun setUp() {
@@ -96,7 +96,7 @@ class JournalViewModelTest {
             dataStore = dataStore,
             userPreferences = userPreferences,
             skinEligibility = skinEligibility,
-            outlookSkinController = outlookSkinController,
+            skinController = skinController,
         )
 
     val collectJob =

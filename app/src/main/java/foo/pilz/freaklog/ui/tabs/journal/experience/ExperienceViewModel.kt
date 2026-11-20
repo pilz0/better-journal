@@ -54,7 +54,6 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.SkinEligibilityEnt
 import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.TEAMS_SKIN_MAX_DELAY_MS
 import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.TEAMS_SKIN_MIN_DELAY_MS
 import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.TEAMS_SKIN_OPEN_PROBABILITY
-import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.TeamsSkinController
 import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.TeamsSkinPayload
 import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.hasActivePsychedelic
 import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.randomGermanName
@@ -72,6 +71,7 @@ import foo.pilz.freaklog.ui.tabs.settings.combinations.CombinationSettingsStorag
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import foo.pilz.freaklog.ui.tabs.settings.funny.AchievementContext
 import foo.pilz.freaklog.ui.tabs.settings.funny.AchievementDef
+import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinController
 import foo.pilz.freaklog.ui.tabs.settings.funny.evaluateAchievement
 import foo.pilz.freaklog.ui.tabs.settings.funny.loadAchievements
 import foo.pilz.freaklog.ui.utils.stateInVm
@@ -95,7 +95,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 
 @Suppress("LargeClass")
@@ -108,7 +107,7 @@ constructor(
     private val interactionChecker: InteractionChecker,
     private val userPreferences: UserPreferences,
     private val customProfiles: foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles,
-    private val teamsSkinController: TeamsSkinController,
+    private val skinController: UltraFunSkinController,
     combinationSettingsStorage: CombinationSettingsStorage,
     state: SavedStateHandle,
     @ApplicationContext context: Context,
@@ -954,7 +953,6 @@ constructor(
     }
   }
 
-  // Declared last: these read flows defined above, which must exist before the coroutine starts.
   private val isPsychedelicActiveFlow: Flow<Boolean> =
       dataForEffectTimelinesFlow
           .combine(currentTimeFlow) { lines, _ ->
@@ -977,56 +975,49 @@ constructor(
           .flowOn(Dispatchers.Default)
           .distinctUntilChanged()
 
-  init {
-    viewModelScope.launch {
-      userPreferences.funnyConfigFlow
-          .combine(isPsychedelicActiveFlow) { fc, active ->
-            fc.enableFunny && fc.teamsSkin && active
+  /**
+   * Runs while this experience is on screen: while ultra fun mode is on and one of its psychedelics
+   * is active, maybe shows the Teams skin right away, then again every 30–90 minutes.
+   */
+  suspend fun runTeamsSkin() {
+    userPreferences.funnyConfigFlow
+        .combine(isPsychedelicActiveFlow) { fc, active -> fc.enableFunny && fc.teamsSkin && active }
+        .distinctUntilChanged()
+        .collectLatest { eligible ->
+          if (!eligible) {
+            skinController.dismissIfShowing<TeamsSkinPayload>()
+            return@collectLatest
           }
-          .distinctUntilChanged()
-          .collectLatest { eligible ->
-            if (!eligible) {
-              teamsSkinController.dismiss()
-              return@collectLatest
-            }
-            if (
-                teamsSkinController.state.value == null &&
-                    Random.nextDouble() < TEAMS_SKIN_OPEN_PROBABILITY
-            ) {
-              showTeamsSkin()
-            }
-            while (true) {
-              delay(Random.nextLong(TEAMS_SKIN_MIN_DELAY_MS, TEAMS_SKIN_MAX_DELAY_MS))
-              if (teamsSkinController.state.value == null) {
-                showTeamsSkin()
-              }
-            }
+          if (
+              skinController.state.value == null &&
+                  Random.nextDouble() < TEAMS_SKIN_OPEN_PROBABILITY
+          ) {
+            showTeamsSkin()
           }
-    }
+          while (true) {
+            delay(Random.nextLong(TEAMS_SKIN_MIN_DELAY_MS, TEAMS_SKIN_MAX_DELAY_MS))
+            if (skinController.state.value == null) showTeamsSkin()
+          }
+        }
   }
 
   private fun showTeamsSkin() {
     val contactName = randomGermanName()
-    viewModelScope.launch {
-      var started = false
-      combine(
-              ingestionsWithCompanionsFlow,
-              timelineDisplayOptionFlow,
-              timeDisplayOptionFlow,
-          ) { ingestions, displayOption, timeDisplay ->
-            TeamsSkinPayload(
-                ingestions = ingestions,
-                timelineModel = (displayOption as? TimelineDisplayOption.Shown)?.allTimelinesModel,
-                timeDisplayOption = timeDisplay,
-                contactName = contactName,
-            )
-          }
-          .takeWhile { !started || teamsSkinController.state.value != null }
-          .collect { payload ->
-            teamsSkinController.show(payload)
-            started = true
-          }
-    }
+    skinController.show(
+        viewModelScope,
+        combine(
+            ingestionsWithCompanionsFlow,
+            timelineDisplayOptionFlow,
+            timeDisplayOptionFlow,
+        ) { ingestions, displayOption, timeDisplay ->
+          TeamsSkinPayload(
+              ingestions = ingestions,
+              timelineModel = (displayOption as? TimelineDisplayOption.Shown)?.allTimelinesModel,
+              timeDisplayOption = timeDisplay,
+              contactName = contactName,
+          )
+        },
+    )
   }
 }
 

@@ -97,8 +97,8 @@ fun JournalScreen(
   val experiences = viewModel.experiences.collectAsState().value
   LaunchedEffect(Unit) {
     viewModel.maybeMigrate()
-    viewModel.onJournalOpened()
   }
+  LaunchedEffect(Unit) { viewModel.runOutlookSkin() }
   var showAssistant by rememberSaveable { mutableStateOf(false) }
   val isAssistantEnabled = viewModel.isAiAssistantEnabledFlow.collectAsState().value
   if (showAssistant && isAssistantEnabled) {

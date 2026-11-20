@@ -149,6 +149,7 @@ fun ExperienceScreen(
     navigateToAiSettings: () -> Unit,
     navigateBack: () -> Unit,
 ) {
+  LaunchedEffect(Unit) { viewModel.runTeamsSkin() }
   val ingestionsWithCompanions = viewModel.ingestionsWithCompanionsFlow.collectAsState().value
   val experience = viewModel.experienceFlow.collectAsState().value
   val isFavorite = viewModel.isFavoriteFlow.collectAsState().value

@@ -16,8 +16,8 @@ import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit
 import foo.pilz.freaklog.data.substances.AdministrationRoute
+import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinController
 import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinEligibility
-import foo.pilz.freaklog.ui.tabs.stats.excelskin.ExcelSkinController
 import io.mockk.every
 import io.mockk.mockk
 import java.time.Instant
@@ -44,11 +44,11 @@ class StatsViewModelTest {
   private val testDispatcher = StandardTestDispatcher()
   private val experienceRepo = mockk<ExperienceRepository>()
   private val skinEligibility = mockk<UltraFunSkinEligibility>(relaxed = true)
-  private val excelSkinController = mockk<ExcelSkinController>(relaxed = true)
+  private val skinController = UltraFunSkinController()
   private val viewModels = mutableListOf<StatsViewModel>()
 
   private fun createViewModel() =
-      StatsViewModel(experienceRepo, skinEligibility, excelSkinController).also {
+      StatsViewModel(experienceRepo, skinEligibility, skinController).also {
         viewModels.add(it)
       }
 

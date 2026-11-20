@@ -46,10 +46,11 @@ import foo.pilz.freaklog.ui.main.navigation.graphs.settingsGraph
 import foo.pilz.freaklog.ui.main.navigation.graphs.statsGraph
 import foo.pilz.freaklog.ui.main.navigation.topLevelRoutes
 import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.TeamsChatSkin
-import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.TeamsSkinHostViewModel
+import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.TeamsSkinPayload
 import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OutlookInboxSkin
-import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OutlookSkinHostViewModel
-import foo.pilz.freaklog.ui.tabs.stats.excelskin.ExcelSkinHostViewModel
+import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OutlookSkinPayload
+import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinHostViewModel
+import foo.pilz.freaklog.ui.tabs.stats.excelskin.ExcelSkinPayload
 import foo.pilz.freaklog.ui.tabs.stats.excelskin.ExcelStatsSkin
 import foo.pilz.freaklog.ui.utils.HapticFeedbackProvider
 import foo.pilz.freaklog.ui.utils.HapticType
@@ -180,41 +181,32 @@ fun MainScreen(
             settingsGraph(navController)
           }
         }
-        val teamsSkinHostViewModel: TeamsSkinHostViewModel = hiltViewModel()
-        val teamsSkinPayload by teamsSkinHostViewModel.controller.state.collectAsState()
-        val excelSkinHostViewModel: ExcelSkinHostViewModel = hiltViewModel()
-        val excelSkinPayload by excelSkinHostViewModel.controller.state.collectAsState()
-        val outlookSkinHostViewModel: OutlookSkinHostViewModel = hiltViewModel()
-        val outlookSkinPayload by outlookSkinHostViewModel.controller.state.collectAsState()
-        teamsSkinPayload?.let { payload ->
-          TeamsChatSkin(
-              ingestions = payload.ingestions,
-              timelineModel = payload.timelineModel,
-              timeDisplayOption = payload.timeDisplayOption,
-              contactName = payload.contactName,
-              onDismiss = { teamsSkinHostViewModel.controller.dismiss() },
-          )
-        }
-        if (teamsSkinPayload == null) {
-          excelSkinPayload?.let { payload ->
-            ExcelStatsSkin(
-                statItems = payload.statItems,
-                fileName = payload.fileName,
-                onDismiss = { excelSkinHostViewModel.controller.dismiss() },
-            )
-          }
-        }
-        if (teamsSkinPayload == null && excelSkinPayload == null) {
-          outlookSkinPayload?.let { payload ->
-            OutlookInboxSkin(
-                rows = payload.rows,
-                onOpenExperience = { experienceId ->
-                  outlookSkinHostViewModel.controller.dismiss()
-                  navController.navigate(ExperienceRoute(experienceId))
-                },
-                onDismiss = { outlookSkinHostViewModel.controller.dismiss() },
-            )
-          }
+        val skinHostViewModel: UltraFunSkinHostViewModel = hiltViewModel()
+        val skinController = skinHostViewModel.controller
+        when (val skin = skinController.state.collectAsState().value) {
+          is TeamsSkinPayload ->
+              TeamsChatSkin(
+                  ingestions = skin.ingestions,
+                  timelineModel = skin.timelineModel,
+                  timeDisplayOption = skin.timeDisplayOption,
+                  contactName = skin.contactName,
+                  onDismiss = skinController::dismiss,
+              )
+          is ExcelSkinPayload ->
+              ExcelStatsSkin(
+                  statItems = skin.statItems,
+                  fileName = skin.fileName,
+                  onDismiss = skinController::dismiss,
+              )
+          is OutlookSkinPayload ->
+              OutlookInboxSkin(
+                  rows = skin.rows,
+                  onOpenExperience = { experienceId ->
+                    skinController.dismiss()
+                    navController.navigate(ExperienceRoute(experienceId))
+                  },
+                  onDismiss = skinController::dismiss,
+              )
         }
       }
     }

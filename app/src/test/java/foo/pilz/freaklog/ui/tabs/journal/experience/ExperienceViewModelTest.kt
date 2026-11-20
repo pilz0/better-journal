@@ -25,11 +25,11 @@ import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.interactions.InteractionChecker
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.SavedTimeDisplayOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.models.IngestionElement
-import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.TeamsSkinController
 import foo.pilz.freaklog.ui.tabs.settings.combinations.BloodPressureDisplay
 import foo.pilz.freaklog.ui.tabs.settings.combinations.CombinationSettingsStorage
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import foo.pilz.freaklog.ui.tabs.settings.funny.FunnyConfig
+import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinController
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -69,7 +69,7 @@ class ExperienceViewModelTest {
   private val interactionChecker = mockk<InteractionChecker>()
   private val userPreferences = mockk<UserPreferences>()
   private val customProfiles = mockk<CustomSubstanceProfiles>()
-  private val teamsSkinController = mockk<TeamsSkinController>(relaxed = true)
+  private val skinController = UltraFunSkinController()
   private val combinationSettingsStorage = mockk<CombinationSettingsStorage>()
   private val context = mockk<Context>(relaxed = true)
 
@@ -462,7 +462,7 @@ class ExperienceViewModelTest {
                 interactionChecker = interactionChecker,
                 userPreferences = userPreferences,
                 customProfiles = customProfiles,
-                teamsSkinController = teamsSkinController,
+                skinController = skinController,
                 combinationSettingsStorage = combinationSettingsStorage,
                 state = SavedStateHandle(mapOf("experienceId" to 42)),
                 context = context,
@@ -561,7 +561,7 @@ class ExperienceViewModelTest {
                 interactionChecker = interactionChecker,
                 userPreferences = userPreferences,
                 customProfiles = customProfiles,
-                teamsSkinController = teamsSkinController,
+                skinController = skinController,
                 combinationSettingsStorage = combinationSettingsStorage,
                 state = SavedStateHandle(mapOf("experienceId" to 42)),
                 context = context,
@@ -654,7 +654,7 @@ class ExperienceViewModelTest {
                 interactionChecker = interactionChecker,
                 userPreferences = userPreferences,
                 customProfiles = customProfiles,
-                teamsSkinController = teamsSkinController,
+                skinController = skinController,
                 combinationSettingsStorage = combinationSettingsStorage,
                 state = SavedStateHandle(mapOf("experienceId" to 42)),
                 context = context,
@@ -743,7 +743,7 @@ class ExperienceViewModelTest {
                 interactionChecker = interactionChecker,
                 userPreferences = userPreferences,
                 customProfiles = customProfiles,
-                teamsSkinController = teamsSkinController,
+                skinController = skinController,
                 combinationSettingsStorage = combinationSettingsStorage,
                 state = SavedStateHandle(mapOf("experienceId" to 42)),
                 context = context,

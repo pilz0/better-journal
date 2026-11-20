@@ -29,11 +29,11 @@ import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestion
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
+import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinController
 import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinEligibility
 import foo.pilz.freaklog.ui.tabs.stats.excelskin.EXCEL_SKIN_MAX_DELAY_MS
 import foo.pilz.freaklog.ui.tabs.stats.excelskin.EXCEL_SKIN_MIN_DELAY_MS
 import foo.pilz.freaklog.ui.tabs.stats.excelskin.EXCEL_SKIN_OPEN_PROBABILITY
-import foo.pilz.freaklog.ui.tabs.stats.excelskin.ExcelSkinController
 import foo.pilz.freaklog.ui.tabs.stats.excelskin.ExcelSkinPayload
 import foo.pilz.freaklog.ui.tabs.stats.excelskin.randomExcelFileName
 import java.time.Instant
@@ -69,7 +69,7 @@ class StatsViewModel
 constructor(
     experienceRepo: ExperienceRepository,
     private val skinEligibility: UltraFunSkinEligibility,
-    private val excelSkinController: ExcelSkinController,
+    private val skinController: UltraFunSkinController,
 ) : ViewModel() {
 
   private val _optionFlow = MutableStateFlow(TimePickerOption.WEEKS_26)
@@ -344,31 +344,22 @@ constructor(
               started = SharingStarted.WhileSubscribed(5000),
           )
 
-  init {
-    viewModelScope.launch {
-      skinEligibility.eligibleFlow.collectLatest { eligible ->
-        if (!eligible) {
-          excelSkinController.dismiss()
-          return@collectLatest
-        }
-        while (true) {
-          delay(Random.nextLong(EXCEL_SKIN_MIN_DELAY_MS, EXCEL_SKIN_MAX_DELAY_MS))
-          if (excelSkinController.state.value == null) {
-            showExcelSkin()
-          }
-        }
+  /**
+   * Runs while statistics are on screen: while ultra fun mode is eligible, maybe shows the Excel
+   * skin right away, then again every 30–90 minutes.
+   */
+  suspend fun runExcelSkin() {
+    skinEligibility.eligibleFlow.collectLatest { eligible ->
+      if (!eligible) {
+        skinController.dismissIfShowing<ExcelSkinPayload>()
+        return@collectLatest
       }
-    }
-  }
-
-  fun onStatsOpened() {
-    viewModelScope.launch {
-      if (
-          excelSkinController.state.value == null &&
-              Random.nextDouble() < EXCEL_SKIN_OPEN_PROBABILITY &&
-              skinEligibility.eligibleFlow.first()
-      ) {
+      if (skinController.state.value == null && Random.nextDouble() < EXCEL_SKIN_OPEN_PROBABILITY) {
         showExcelSkin()
+      }
+      while (true) {
+        delay(Random.nextLong(EXCEL_SKIN_MIN_DELAY_MS, EXCEL_SKIN_MAX_DELAY_MS))
+        if (skinController.state.value == null) showExcelSkin()
       }
     }
   }
@@ -376,16 +367,10 @@ constructor(
   /** Also opened by hand from the statistics top bar, independent of ultra fun mode. */
   fun showExcelSkin() {
     val fileName = randomExcelFileName()
-    viewModelScope.launch {
-      var started = false
-      statsModelFlow
-          .map { ExcelSkinPayload(statItems = it.statItems, fileName = fileName) }
-          .takeWhile { !started || excelSkinController.state.value != null }
-          .collect { payload ->
-            excelSkinController.show(payload)
-            started = true
-          }
-    }
+    skinController.show(
+        viewModelScope,
+        statsModelFlow.map { ExcelSkinPayload(statItems = it.statItems, fileName = fileName) },
+    )
   }
 }
 
