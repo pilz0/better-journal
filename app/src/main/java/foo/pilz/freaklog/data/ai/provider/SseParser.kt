@@ -8,9 +8,17 @@ data class SseEvent(val event: String?, val data: String)
  * it returns an event whenever a blank line completes one.
  */
 class SseParser {
+  // ponytail: readLine buffers one line whole before these checks; a bounded line reader is the
+  // upgrade if a server ever streams a single endless line.
+  private companion object {
+    const val MAX_EVENT_CHARS = AiHttp.MAX_JSON_BYTES
+    const val MAX_LINES_PER_EVENT = 100_000
+  }
+
   private var event: String? = null
   private val data = StringBuilder()
   private var hasData = false
+  private var lines = 0
 
   fun feed(line: String): SseEvent? {
     if (line.isEmpty()) return dispatch()
@@ -24,6 +32,9 @@ class SseParser {
         if (hasData) data.append('\n')
         data.append(value)
         hasData = true
+        if (++lines > MAX_LINES_PER_EVENT || data.length > MAX_EVENT_CHARS) {
+          throw AiException("The provider sent a stream event that is too large.")
+        }
       }
     }
     return null
@@ -37,6 +48,7 @@ class SseParser {
     event = null
     data.setLength(0)
     hasData = false
+    lines = 0
     return result
   }
 }

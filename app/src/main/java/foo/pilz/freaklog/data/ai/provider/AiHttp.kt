@@ -31,7 +31,7 @@ object AiHttp {
 
   // Local models can take minutes before the first token.
   private const val READ_TIMEOUT_MS = 300_000
-  private const val MAX_JSON_BYTES = 8 * 1024 * 1024
+  internal const val MAX_JSON_BYTES = 8 * 1024 * 1024
   private const val MAX_ERROR_CHARS = 600
 
   /** Joins a base URL and a path without doubling or dropping the slash. */
@@ -48,17 +48,16 @@ object AiHttp {
                 open(url, "POST", headers + ("Accept" to "text/event-stream, application/json"))
             withDisconnectOnCancel(conn) {
               send(conn, body)
-              LimitedResponseStream(responseStream(conn)).use { stream ->
+              // Limits apply per event (see SseParser), not to the whole stream: long answers
+              // legitimately send many megabytes over thousands of events.
+              responseStream(conn).use { stream ->
                 if (conn.contentType.orEmpty().contains("json", ignoreCase = true)) {
                   emit(SseEvent(null, readCapped(stream, conn.url.host)))
                 } else {
                   val parser = SseParser()
-                  var lines = 0
                   stream.bufferedReader(Charsets.UTF_8).use { reader ->
                     while (true) {
                       val line = reader.readLine() ?: break
-                      if (++lines > 100_000)
-                          throw AiException("The provider sent too many stream events.")
                       parser.feed(line)?.let { emit(it) }
                     }
                   }
@@ -143,20 +142,6 @@ object AiHttp {
       connectTimeout = CONNECT_TIMEOUT_MS
       readTimeout = READ_TIMEOUT_MS
       headers.forEach { (k, v) -> setRequestProperty(k, v) }
-    }
-  }
-
-  private class LimitedResponseStream(input: InputStream) : java.io.FilterInputStream(input) {
-    private var count = 0L
-
-    override fun read(): Int = super.read().also { if (it >= 0) add(1) }
-
-    override fun read(b: ByteArray, off: Int, len: Int): Int =
-        super.read(b, off, len).also { if (it > 0) add(it) }
-
-    private fun add(size: Int) {
-      count += size
-      if (count > MAX_JSON_BYTES) throw AiException("The provider response is too large.")
     }
   }
 

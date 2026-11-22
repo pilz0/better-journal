@@ -2,6 +2,7 @@ package foo.pilz.freaklog.data.ai.anodyne
 
 import assertk.assertThat
 import assertk.assertions.containsExactly
+import assertk.assertions.endsWith
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isNull
@@ -121,5 +122,21 @@ class AnodyneWikiClientTest {
     val matches = client.search(base(), "same", 10)
     assertThat(matches.size).isEqualTo(10)
     assertThat(matches.first().title).isEqualTo("Page0")
+  }
+
+  @Test
+  fun capsHugeDosingAndEffectsBlocks() = runBlocking {
+    val tiers = JSONArray().apply { repeat(5000) { put(JSONObject().put("Tier", "x".repeat(50))) } }
+    val page =
+        JSONObject()
+            .put("Title", "Example")
+            .put("Dosing Info", tiers)
+            .put("Subjective Effects", tiers)
+    server.enqueue(json(page.toString()))
+
+    val result = client.substance(base(), "Example")!!
+
+    assertThat(result.toString().length < 20_000).isEqualTo(true)
+    assertThat(result.getString("dosing")).endsWith("… (truncated)")
   }
 }

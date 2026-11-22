@@ -30,7 +30,12 @@ class OpenAiChatClient(private val endpoint: AiEndpoint) : AiChatClient {
           val data = event.data.trim()
           if (data == "[DONE]" || data.isEmpty()) return@collect
           val chunk = JSONObject(data)
-          chunk.opt("error")?.let { throw AiException(errorMessage(it)) }
+          // LiteLLM and others send explicit nulls ("error": null); Android's optString turns them
+          // into "null".
+          chunk
+              .opt("error")
+              ?.takeUnless { it == JSONObject.NULL }
+              ?.let { throw AiException(errorMessage(it)) }
           val choice = chunk.optJSONArray("choices")?.optJSONObject(0) ?: return@collect
           // `delta` while streaming; `message` when the server ignored `stream: true`.
           val delta =
@@ -42,18 +47,15 @@ class OpenAiChatClient(private val endpoint: AiEndpoint) : AiChatClient {
           }
           AiJson.objects(delta.optJSONArray("tool_calls")).forEachIndexed { position, fragment ->
             val pending = calls.getOrPut(fragment.optInt("index", position)) { PendingCall() }
-            fragment.optString("id").takeIf { it.isNotBlank() }?.let { pending.id = it }
+            fragment.stringOrNull("id")?.let { pending.id = it }
             val function = fragment.optJSONObject("function") ?: return@forEachIndexed
-            function.optString("name").takeIf { it.isNotBlank() }?.let { pending.name = it }
+            function.stringOrNull("name")?.let { pending.name = it }
             when (val arguments = function.opt("arguments")) {
               is String -> pending.arguments.append(arguments)
               is JSONObject -> pending.arguments.append(arguments.toString())
             }
           }
-          choice
-              .optString("finish_reason")
-              .takeIf { it.isNotBlank() && it != "null" }
-              ?.let { finishReason = it }
+          choice.stringOrNull("finish_reason")?.let { finishReason = it }
         }
     val toolCalls =
         calls.values
@@ -166,3 +168,7 @@ class OpenAiChatClient(private val endpoint: AiEndpoint) : AiChatClient {
         else -> error.toString()
       }
 }
+
+/** A non-blank string value; null for a missing key, a JSON null or another type. */
+private fun JSONObject.stringOrNull(name: String): String? =
+    (opt(name) as? String)?.takeIf { it.isNotBlank() }

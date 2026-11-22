@@ -33,6 +33,7 @@ class AnodyneWikiClient @Inject constructor() {
     const val DEFAULT_BASE_URL = "https://anodyne.wiki/api"
     private const val MAX_RESPONSE_BYTES = 16L * 1024 * 1024
     private const val MAX_TEXT_CHARS = 1500
+    private const val MAX_STRUCTURED_CHARS = 6000
     private const val MAX_LIST_ITEMS = 10
     private const val INDEX_TTL_MS = 24L * 60 * 60 * 1000
 
@@ -169,13 +170,23 @@ class AnodyneWikiClient @Inject constructor() {
                   .take(MAX_LIST_ITEMS)
                   .takeIf { it.isNotEmpty() }
                   ?.let { out.put(LIST_FIELDS.getValue(key), JSONArray(it)) }
-          key == "Dosing Info" -> out.put("dosing", readValue(reader))
-          key == "Subjective Effects" -> out.put("subjective_effects", readValue(reader))
+          key == "Dosing Info" -> out.put("dosing", capped(readValue(reader)))
+          key == "Subjective Effects" -> out.put("subjective_effects", capped(readValue(reader)))
           else -> reader.skipValue()
         }
       }
     }
     return if (notFound) null else out
+  }
+
+  /**
+   * Tool results stay in the chat history and are re-sent with every request, so a huge structured
+   * block becomes truncated text instead.
+   */
+  private fun capped(value: Any): Any {
+    val text = value.toString()
+    return if (text.length <= MAX_STRUCTURED_CHARS) value
+    else text.take(MAX_STRUCTURED_CHARS) + "… (truncated)"
   }
 
   /** Reads a string, number, boolean or array of strings as one string. */

@@ -4,8 +4,10 @@ import assertk.assertFailure
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.hasMessage
+import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
+import assertk.assertions.isNull
 import assertk.assertions.isTrue
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
@@ -194,5 +196,40 @@ class AiConversationTest {
     chat.send("second").toList()
     assertThat(chat.rollbackLastTurn()).isEqualTo("second")
     assertThat(chat.messages).containsExactly(AiMessage.User("first"), AiMessage.Assistant("one"))
+  }
+
+  @Test
+  fun retryAfterAFailureBeforeAnyTextKeepsTheEarlierTurn() = runTest {
+    // The second reply ends without a Completed event, so the turn fails before any text.
+    val client = ScriptedClient(text("first answer"), emptyList())
+    val chat = conversation(client)
+    chat.send("first").toList()
+    assertFailure { chat.send("second").toList() }.isInstanceOf(AiException::class)
+
+    assertThat(chat.rollbackLastTurn()).isNull()
+    assertThat(chat.messages)
+        .containsExactly(AiMessage.User("first"), AiMessage.Assistant("first answer"))
+  }
+
+  @Test
+  fun emptyAnswerIsNotSentBackInLaterRequests() = runTest {
+    val client = ScriptedClient(text(""), text("ok"))
+    val chat = conversation(client)
+    chat.send("first").toList()
+    assertThat(chat.messages).isEmpty()
+
+    chat.send("second").toList()
+    assertThat(client.requests[1].messages).containsExactly(AiMessage.User("second"))
+  }
+
+  @Test
+  fun emptyAnswerAfterToolsKeepsTheToolResults() = runTest {
+    val call = AiToolCall("c1", "list_recent_experiences", emptyMap())
+    val client = ScriptedClient(toolCall(call), text(""))
+    val chat = conversation(client)
+    chat.send("what did I do").toList()
+
+    assertThat(chat.messages.map { it::class.simpleName })
+        .containsExactly("User", "Assistant", "ToolResults")
   }
 }

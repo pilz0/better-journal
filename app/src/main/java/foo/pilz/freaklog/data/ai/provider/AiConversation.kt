@@ -48,9 +48,13 @@ class AiConversation(
   val messages: List<AiMessage>
     get() = history.toList()
 
+  /** False once the last turn's user message was removed again, so there is nothing to roll back. */
+  private var lastTurnInHistory = false
+
   fun send(text: String): Flow<AiTurnEvent> = flow {
     val checkpoint = history.size
     history += AiMessage.User(text)
+    lastTurnInHistory = true
     var finished = false
     val partial = StringBuilder()
     var toolCallsRun = 0
@@ -68,12 +72,21 @@ class AiConversation(
           }
         }
         val assistant = reply ?: throw AiException("The response ended unexpectedly.")
-        history += assistant
         if (assistant.toolCalls.isEmpty()) {
           finished = true
+          if (assistant.text.isNotBlank()) {
+            history += assistant
+          } else if (history.size == checkpoint + 1) {
+            // Anthropic and Gemini reject an empty assistant message in every later request, so
+            // an empty answer is not kept. Without tool results the turn holds nothing worth
+            // keeping and is removed, so Retry sends this question again.
+            history.removeAt(checkpoint)
+            lastTurnInHistory = false
+          }
           emit(AiTurnEvent.Completed(assistant.text))
           return@flow
         }
+        history += assistant
         if (round == maxToolRounds) {
           throw AiException(
               "The assistant kept calling tools without answering. Try a more specific question.",
@@ -109,6 +122,10 @@ class AiConversation(
    * sent again.
    */
   fun rollbackLastTurn(): String? {
+    // A failed turn may already have been removed by [repair]; rolling back would then drop the
+    // previous, answered question instead.
+    if (!lastTurnInHistory) return null
+    lastTurnInHistory = false
     val index = history.indexOfLast { it is AiMessage.User }
     if (index < 0) return null
     val text = (history[index] as AiMessage.User).text
@@ -129,6 +146,7 @@ class AiConversation(
       history += AiMessage.Assistant(text)
     } else {
       while (history.size > checkpoint) history.removeAt(history.lastIndex)
+      lastTurnInHistory = false
     }
   }
 }

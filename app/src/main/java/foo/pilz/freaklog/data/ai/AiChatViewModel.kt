@@ -135,7 +135,10 @@ constructor(
           sessionToken++
           conversation = null
           initialized = false
-          _uiState.value = AiChatUiState()
+          // Profiles are settings, not chat content; the profile flow won't re-emit them.
+          _uiState.update {
+            AiChatUiState(profiles = it.profiles, activeProfileId = it.activeProfileId)
+          }
         }
       }
     }
@@ -388,9 +391,11 @@ constructor(
         is AiTurnEvent.Completed -> {
           if (text.isBlank() && event.text.isNotBlank()) text.append(event.text)
           if (text.isBlank()) {
+            // Only this turn counts: from its user message on.
+            val items = _uiState.value.items
             val hadEarlierText =
-                _uiState.value.items
-                    .dropWhile { !(it is ChatItem.Message && it.isUser) }
+                items
+                    .drop(items.indexOfLast { it is ChatItem.Message && it.isUser } + 1)
                     .any {
                       it is ChatItem.Message &&
                           !it.isUser &&

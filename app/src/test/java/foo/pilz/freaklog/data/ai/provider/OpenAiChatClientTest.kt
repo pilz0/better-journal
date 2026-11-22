@@ -185,4 +185,21 @@ class OpenAiChatClientTest {
     assertThat(done.message.text.isEmpty()).isEqualTo(true)
     assertThat(done.message.toolCalls.single().id == null).isFalse()
   }
+
+  @Test
+  fun explicitJsonNullsAreTreatedAsMissing() = runBlocking {
+    server.enqueue(
+        sse(
+            """{"error":null,"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call_1","function":{"name":"search","arguments":""}}]}}]}""",
+            """{"error":null,"choices":[{"delta":{"tool_calls":[{"index":0,"id":null,"function":{"name":null,"arguments":"{}"}}]},"finish_reason":null}]}""",
+            """{"choices":[{"delta":{},"finish_reason":"tool_calls"}]}""",
+        ),
+    )
+    val completed =
+        client().stream(request(AiMessage.User("hi"))).toList().last() as AiStreamEvent.Completed
+    val call = completed.message.toolCalls.single()
+    assertThat(call.id).isEqualTo("call_1")
+    assertThat(call.name).isEqualTo("search")
+    assertThat(completed.stopReason).isEqualTo("tool_calls")
+  }
 }

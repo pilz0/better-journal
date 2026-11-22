@@ -1,8 +1,10 @@
 package foo.pilz.freaklog.data.ai.provider
 
+import assertk.assertFailure
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEqualTo
+import assertk.assertions.isInstanceOf
 import assertk.assertions.isNull
 import org.junit.Test
 
@@ -48,5 +50,19 @@ class SseParserTest {
     assertThat(parser.feed("")?.event).isEqualTo("error")
     parser.feed("data: y")
     assertThat(parser.feed("")?.event).isNull()
+  }
+
+  @Test
+  fun manySmallEventsAreFineButOneHugeEventIsRejected() {
+    val parser = SseParser()
+    repeat(200_000) {
+      parser.feed("data: x")
+      parser.feed("")
+    }
+    assertFailure {
+          val huge = "x".repeat(1024 * 1024)
+          repeat(10) { parser.feed("data: $huge") }
+        }
+        .isInstanceOf(AiException::class)
   }
 }
