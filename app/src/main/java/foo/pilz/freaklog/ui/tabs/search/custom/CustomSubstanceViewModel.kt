@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
+import foo.pilz.freaklog.data.anodyne.AnodyneRepository
+import foo.pilz.freaklog.data.anodyne.model.AnodyneSubstance
 import foo.pilz.freaklog.data.room.experiences.CustomSubstanceRepository
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithEverything
@@ -16,6 +18,7 @@ import foo.pilz.freaklog.ui.main.navigation.graphs.CustomSubstanceRoute
 import foo.pilz.freaklog.ui.tabs.journal.experience.TimelineDisplayOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.DataForOneEffectLine
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.AllTimelinesModel
+import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import foo.pilz.freaklog.ui.utils.getInstant
 import foo.pilz.freaklog.ui.utils.stateInVm
 import java.time.LocalDateTime
@@ -33,9 +36,14 @@ constructor(
     substanceRepo: SubstanceRepository,
     private val customRepo: CustomSubstanceRepository,
     private val experienceRepo: ExperienceRepository,
+    val anodyneRepo: AnodyneRepository,
+    val userPreferences: UserPreferences,
     state: SavedStateHandle,
 ) : ViewModel() {
-  val customSubstanceId = state.toRoute<CustomSubstanceRoute>().customSubstanceId
+  val customSubstanceId: Int =
+      state.get<Int>("customSubstanceId")
+          ?: runCatching { state.toRoute<CustomSubstanceRoute>().customSubstanceId }.getOrNull()
+          ?: 0
 
   val categoriesByName: Map<String, Category> =
       substanceRepo.getAllCategories().associateBy { it.name }
@@ -44,6 +52,32 @@ constructor(
       customRepo
           .getWithEverythingFlow(customSubstanceId)
           .stateInVm(viewModelScope, null as CustomSubstanceWithEverything?)
+
+  val anodyneSubstanceFlow = MutableStateFlow<AnodyneSubstance?>(null)
+  val isAnodyneLoadingFlow = MutableStateFlow(false)
+
+  init {
+    viewModelScope.launch {
+      userPreferences.anodyneAutoLoadEnabledFlow.collect { autoLoad ->
+        if (autoLoad && anodyneSubstanceFlow.value == null && !isAnodyneLoadingFlow.value) {
+          loadAnodyneData()
+        }
+      }
+    }
+  }
+
+  fun loadAnodyneData() {
+    viewModelScope.launch {
+      val name =
+          substanceFlow.value?.substance?.name
+              ?: customRepo.getWithEverything(customSubstanceId)?.substance?.name
+              ?: return@launch
+      isAnodyneLoadingFlow.value = true
+      val res = anodyneRepo.lookup(name)
+      anodyneSubstanceFlow.value = res.getOrNull()
+      isAnodyneLoadingFlow.value = false
+    }
+  }
 
   val ingestionTimeFlow = MutableStateFlow(LocalDateTime.now())
 

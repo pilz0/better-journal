@@ -265,6 +265,15 @@
             done
             ${pkgs.coreutils}/bin/touch $out
           '';
+
+          nix-google-play-release-tracks = pkgs.runCommand "nix-google-play-release-tracks" { } ''
+            set -eu
+            ${pkgs.gnugrep}/bin/grep -q 'tracks: internal,alpha' ${./.github/workflows/release.yml} || {
+              echo "Google Play upload step in .github/workflows/release.yml missing tracks: internal,alpha"
+              exit 1
+            }
+            ${pkgs.coreutils}/bin/touch $out
+          '';
         };
 
         # Also the environment for AI agents: Copilot's cloud agent loads it

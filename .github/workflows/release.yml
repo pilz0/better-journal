@@ -394,7 +394,7 @@ jobs:
           keep-file-fresh: true
 
   upload-google-play:
-    name: Upload to Google Play (Internal track)
+    name: Upload to Google Play (Internal & Alpha tracks)
     needs: [preconditions, attest]
     if: needs.preconditions.outputs.should-release == 'true'
     runs-on: ubuntu-latest
@@ -414,13 +414,13 @@ jobs:
           name: freaklog-aab
           path: app
 
-      - name: Upload to Google Play (internal track)
+      - name: Upload to Google Play (internal & alpha tracks)
         uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1.1.5
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: foo.pilz.freaklog
           releaseFiles: app/freaklog.aab
-          tracks: internal
+          tracks: internal,alpha
 
   # =========================================================================
   # STAGE 5: GITHUB RELEASE PUBLICATION

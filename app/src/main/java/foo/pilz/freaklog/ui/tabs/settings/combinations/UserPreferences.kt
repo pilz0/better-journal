@@ -82,6 +82,9 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
     val AI_ANODYNE_ENABLED = booleanPreferencesKey("ai_anodyne_enabled")
     val AI_ANODYNE_BASE_URL = stringPreferencesKey("ai_anodyne_base_url")
 
+    val ANODYNE_BASE_URL = stringPreferencesKey("anodyne_base_url")
+    val ANODYNE_AUTO_LOAD_ENABLED = booleanPreferencesKey("anodyne_auto_load_enabled")
+
     val WEBHOOK_USE_FREAKQUERY = booleanPreferencesKey("webhook_use_freakquery")
     val WEBHOOK_FREAKQUERY_SEPARATOR = stringPreferencesKey("webhook_freakquery_separator")
 
@@ -416,6 +419,36 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
       } else {
         preferences[PreferencesKeys.AI_ANODYNE_BASE_URL] = value.trim()
       }
+    }
+  }
+
+  /** Base URL for general AnodyneWiki integration. */
+  val anodyneBaseUrlFlow: Flow<String> =
+      dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.ANODYNE_BASE_URL]
+            ?: preferences[PreferencesKeys.AI_ANODYNE_BASE_URL]
+            ?: "https://anodyne.wiki"
+      }
+
+  suspend fun saveAnodyneBaseUrl(value: String) {
+    dataStore.edit { preferences ->
+      val trimmed = value.trim()
+      if (trimmed.isBlank() || trimmed.removeSuffix("/") == "https://anodyne.wiki") {
+        preferences.remove(PreferencesKeys.ANODYNE_BASE_URL)
+      } else {
+        preferences[PreferencesKeys.ANODYNE_BASE_URL] = trimmed
+      }
+    }
+  }
+
+  val anodyneAutoLoadEnabledFlow: Flow<Boolean> =
+      dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.ANODYNE_AUTO_LOAD_ENABLED] ?: false
+      }
+
+  suspend fun saveAnodyneAutoLoadEnabled(value: Boolean) {
+    dataStore.edit { preferences ->
+      preferences[PreferencesKeys.ANODYNE_AUTO_LOAD_ENABLED] = value
     }
   }
 
