@@ -39,7 +39,7 @@
           };
         };
 
-        buildToolsVersion = "37.0.0";
+        buildToolsVersion = "36.0.0"; # AGP 9.5 default; the offline build cannot download another one
 
         androidSdk = pkgs.androidenv.composeAndroidPackages {
           cmdLineToolsVersion = "23.0";
