@@ -23,6 +23,19 @@ import foo.pilz.freaklog.data.room.reminders.entities.Reminder
 import foo.pilz.freaklog.data.room.webhooks.WebhookRepository
 import kotlinx.serialization.json.Json
 
+/** Reads every journal row an export (or a clinician report) is built from. */
+suspend fun loadExportData(experienceRepository: ExperienceRepository): ExportData =
+    ExportData(
+        experiences =
+            experienceRepository.getAllExperiencesWithIngestionsTimedNotesAndRatingsSorted(),
+        customUnits = experienceRepository.getAllCustomUnitsSorted(),
+        substanceCompanions = experienceRepository.getAllSubstanceCompanions(),
+        customSubstances = experienceRepository.getAllCustomSubstances(),
+        intakeLimits = experienceRepository.getAllIntakeLimits(),
+        customSubstanceDetails = experienceRepository.getAllCustomSubstanceDetails(),
+        bloodPressureReadings = experienceRepository.getAllBloodPressureReadings(),
+    )
+
 /**
  * Reads the whole journal and serializes it, applying [filter] first.
  *
@@ -34,18 +47,7 @@ suspend fun buildJournalExportJson(
     webhookRepository: WebhookRepository,
     filter: ExportFilter = ExportFilter(),
 ): String {
-  val data =
-      ExportData(
-              experiences =
-                  experienceRepository.getAllExperiencesWithIngestionsTimedNotesAndRatingsSorted(),
-              customUnits = experienceRepository.getAllCustomUnitsSorted(),
-              substanceCompanions = experienceRepository.getAllSubstanceCompanions(),
-              customSubstances = experienceRepository.getAllCustomSubstances(),
-              intakeLimits = experienceRepository.getAllIntakeLimits(),
-              customSubstanceDetails = experienceRepository.getAllCustomSubstanceDetails(),
-              bloodPressureReadings = experienceRepository.getAllBloodPressureReadings(),
-          )
-          .filtered(filter)
+  val data = loadExportData(experienceRepository).filtered(filter)
   val journalExport =
       data.toJournalExport(
           reminders = if (filter.isActive) emptyList() else experienceRepository.getAllReminders(),

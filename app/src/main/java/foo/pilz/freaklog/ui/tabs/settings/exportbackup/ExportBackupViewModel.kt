@@ -32,11 +32,19 @@ import foo.pilz.freaklog.data.export.ExportEncryption
 import foo.pilz.freaklog.data.export.ExportFilter
 import foo.pilz.freaklog.data.export.JournalExport
 import foo.pilz.freaklog.data.export.buildJournalExportJson
+import foo.pilz.freaklog.data.export.loadExportData
+import foo.pilz.freaklog.data.report.ClinicianReport
+import foo.pilz.freaklog.data.report.ReportSettings
+import foo.pilz.freaklog.data.report.buildClinicianReport
+import foo.pilz.freaklog.data.report.shareClinicianReportPdf
+import foo.pilz.freaklog.data.report.shareClinicianReportText
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.webhooks.WebhookRepository
 import foo.pilz.freaklog.ui.tabs.settings.FileSystemConnection
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import foo.pilz.freaklog.ui.utils.stateInVm
+import java.time.Instant
+import java.time.ZoneId
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -136,6 +144,46 @@ constructor(
             "Export failed"
           }
       snackbarHostState.showSnackbar(message)
+    }
+  }
+
+  val reportSettingsFlow = MutableStateFlow(ReportSettings())
+
+  fun setReportSettings(settings: ReportSettings) {
+    reportSettingsFlow.value = settings
+  }
+
+  fun shareReportPdf() = shareReport { shareClinicianReportPdf(appContext, it) }
+
+  fun shareReportText() = shareReport { shareClinicianReportText(appContext, it) }
+
+  /** Builds the report from the export filter above it and the report settings. */
+  @Suppress("TooGenericExceptionCaught")
+  private fun shareReport(share: suspend (ClinicianReport) -> Unit) {
+    if (auth.shouldLock.value) return
+    viewModelScope.launch {
+      try {
+        val settings = reportSettingsFlow.value
+        val zone = ZoneId.systemDefault()
+        val (from, to) = settings.range(Instant.now(), zone)
+        val report =
+            withContext(Dispatchers.Default) {
+              buildClinicianReport(
+                  data = loadExportData(experienceRepository).filtered(exportFilterFlow.value),
+                  from = from,
+                  to = to,
+                  style = settings.style,
+                  patientName = settings.patientName,
+                  zone = zone,
+              )
+            }
+        if (auth.shouldLock.value) return@launch
+        share(report)
+      } catch (e: CancellationException) {
+        throw e
+      } catch (_: Exception) {
+        snackbarHostState.showSnackbar("Report failed")
+      }
     }
   }
 

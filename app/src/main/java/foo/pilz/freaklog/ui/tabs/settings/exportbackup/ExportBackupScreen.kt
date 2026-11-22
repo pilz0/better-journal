@@ -24,6 +24,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -36,6 +38,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -48,6 +52,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -61,10 +66,16 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import foo.pilz.freaklog.data.export.ExportFilter
+import foo.pilz.freaklog.data.report.ReportPeriod
+import foo.pilz.freaklog.data.report.ReportSettings
+import foo.pilz.freaklog.data.report.ReportStyle
 import foo.pilz.freaklog.data.substances.classes.IngestionCategory
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import foo.pilz.freaklog.ui.utils.getStringOfPattern
 import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,6 +86,7 @@ fun ExportBackupScreen(viewModel: ExportBackupViewModel = hiltViewModel()) {
   val pendingEncryptedImport = viewModel.pendingEncryptedImport.collectAsState().value
   val backupDirUri = viewModel.backupDirUriFlow.collectAsState().value
   val lastBackupTime = viewModel.lastBackupTimeFlow.collectAsState().value
+  val reportSettings = viewModel.reportSettingsFlow.collectAsState().value
 
   var showSubstanceDialog by remember { mutableStateOf(false) }
   var importToConfirm by remember { mutableStateOf<Uri?>(null) }
@@ -136,6 +148,14 @@ fun ExportBackupScreen(viewModel: ExportBackupViewModel = hiltViewModel()) {
         ) {
           Text("Export plaintext")
         }
+      }
+      SectionCard("Report for a doctor or therapist") {
+        ClinicianReportControls(
+            settings = reportSettings,
+            setSettings = viewModel::setReportSettings,
+            onSharePdf = viewModel::shareReportPdf,
+            onShareText = viewModel::shareReportText,
+        )
       }
       SectionCard("Import") {
         Text(
@@ -344,6 +364,115 @@ private fun ExportFilterControls(
     )
   }
 }
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+private fun ClinicianReportControls(
+    settings: ReportSettings,
+    setSettings: (ReportSettings) -> Unit,
+    onSharePdf: () -> Unit,
+    onShareText: () -> Unit,
+) {
+  var showRangePicker by remember { mutableStateOf(false) }
+  Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    ReportStyle.entries.forEach { style ->
+      FilterChip(
+          selected = settings.style == style,
+          onClick = { setSettings(settings.copy(style = style)) },
+          label = { Text(style.label) },
+      )
+    }
+  }
+  Text(settings.style.description, style = MaterialTheme.typography.bodySmall)
+  FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    ReportPeriod.entries.forEach { period ->
+      FilterChip(
+          selected = settings.period == period,
+          onClick = {
+            if (period == ReportPeriod.CUSTOM) {
+              showRangePicker = true
+            } else {
+              setSettings(settings.copy(period = period))
+            }
+          },
+          label = {
+            val from = settings.customFrom
+            val to = settings.customTo
+            Text(
+                if (period == ReportPeriod.CUSTOM && from != null && to != null) {
+                  "${from.format(customRangeFormat)} – ${to.format(customRangeFormat)}"
+                } else {
+                  period.label
+                }
+            )
+          },
+      )
+    }
+  }
+  OutlinedTextField(
+      value = settings.patientName,
+      onValueChange = { setSettings(settings.copy(patientName = it.take(100))) },
+      label = { Text("Name on report (optional)") },
+      singleLine = true,
+      modifier = Modifier.fillMaxWidth(),
+  )
+  Button(onClick = onSharePdf, Modifier.fillMaxWidth()) { Text("Share PDF") }
+  OutlinedButton(onClick = onShareText, Modifier.fillMaxWidth()) { Text("Share as text") }
+  Text(
+      "Uses the filters under \"What to export\". Only your own ingestions are included.",
+      style = MaterialTheme.typography.bodySmall,
+  )
+
+  if (showRangePicker) {
+    ReportRangeDialog(
+        settings = settings,
+        onConfirm = { from, to ->
+          setSettings(settings.copy(period = ReportPeriod.CUSTOM, customFrom = from, customTo = to))
+          showRangePicker = false
+        },
+        onDismiss = { showRangePicker = false },
+    )
+  }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ReportRangeDialog(
+    settings: ReportSettings,
+    onConfirm: (LocalDate, LocalDate) -> Unit,
+    onDismiss: () -> Unit,
+) {
+  val state =
+      rememberDateRangePickerState(
+          initialSelectedStartDateMillis = settings.customFrom?.toUtcMillis(),
+          initialSelectedEndDateMillis = settings.customTo?.toUtcMillis(),
+      )
+  DatePickerDialog(
+      onDismissRequest = onDismiss,
+      confirmButton = {
+        TextButton(
+            onClick = {
+              val start = state.selectedStartDateMillis?.toUtcDate() ?: return@TextButton
+              onConfirm(start, state.selectedEndDateMillis?.toUtcDate() ?: start)
+            },
+            enabled = state.selectedStartDateMillis != null,
+        ) {
+          Text("Done")
+        }
+      },
+      dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+  ) {
+    DateRangePicker(state = state, modifier = Modifier.heightIn(max = 520.dp))
+  }
+}
+
+private val customRangeFormat = DateTimeFormatter.ofPattern("d MMM yy")
+
+// The Material date pickers work in UTC midnight millis.
+private fun LocalDate.toUtcMillis(): Long = atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+
+private fun Long.toUtcDate(): LocalDate =
+    Instant.ofEpochMilli(this).atZone(ZoneOffset.UTC).toLocalDate()
 
 @Composable
 private fun SwitchRow(text: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {

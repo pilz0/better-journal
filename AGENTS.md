@@ -483,6 +483,14 @@ context) or from the Journal tab's top bar (whole journal).
 
 `JournalExport` is a `@Serializable` data class that holds the full journal state. Serialized to / from JSON using kotlinx.serialization. `InstantSerializer` stores `Instant` as epoch milliseconds.
 
+**Report for a doctor or therapist** (`data/report/`, Export & backup screen): `buildClinicianReport` turns
+`loadExportData(...).filtered(filter)` into a period summary (per substance: days used, times, routes, median
+dose and range via `DoseUnits`, last use), a Timeline Followback-style day calendar, the ingestion log and the
+experiences. It never includes other consumers' ingestions or interaction warnings. `ReportStyle.MEDICAL` leads
+with the substances, `THERAPY` with experiences and notes. `toText()` is the plain-text share. `writeClinicianReportPdf`
+draws an A4 PDF with the platform `PdfDocument` (no library). Robolectric can't create one, so the PDF smoke test is
+an instrumented test.
+
 ## UI layer
 
 ### Navigation
