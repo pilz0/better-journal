@@ -19,4 +19,15 @@ class AnodyneTextCleanerTest {
     val input = "Sample {-{Efn|note}-} with <b>bold</b> &amp; &nbsp; text."
     assertEquals("Sample with bold & text.", AnodyneTextCleaner.clean(input))
   }
+
+  @Test
+  fun macrosShowTheirText() {
+    assertEquals(
+        "light stimulation, heroin, cotard's syndrome",
+        AnodyneTextCleaner.clean(
+            "{sev 'light'} {xeff 'stimulation' 'stimulation'}, {sub 'diacetylmorphine' 'heroin'}, " +
+                "{wkp 'Cotard%27s syndrome' 'cotard{apos}s syndrome'}{rev}"
+        ),
+    )
+  }
 }

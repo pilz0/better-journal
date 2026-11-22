@@ -77,7 +77,7 @@ class AnodyneParserTest {
               "Routes": [
                 {
                   "Name": "Oral",
-                  "Dose": "20 mg",
+                  "Dosage": "20 mg",
                   "Onset": "45m",
                   "Duration": "5h"
                 }
@@ -95,5 +95,46 @@ class AnodyneParserTest {
     assertEquals("2C-B", notes[0].substanceName)
     assertEquals("Oral 20 mg", notes[0].routesSummary)
     assertEquals(listOf("Visuals", "Euphoria"), notes[0].effects)
+  }
+
+  /** Shape of anodyne.wiki/api/user/<name> as served in November 2026. */
+  @Test
+  fun parsesRealUserNoteShape() {
+    val json =
+        JSONObject(
+            """
+            {
+              "Title": "0xea",
+              "Substances": [
+                {
+                  "Name": "Salbutamol",
+                  "Routes": [{"Name": "Inhaled", "Dosage": "100µg", "Onset": "30 seconds", "Active": "4h"}],
+                  "Salts": ["Sulfate"],
+                  "Source": ["Inhaler"],
+                  "Indication": "{wkp 'asthma'}",
+                  "Effects": ["{sev 'light'} {xeff 'stimulation' 'stimulation'}"],
+                  "DEffects": [{"Dosage": "+400µg", "Effects": ["{xeff 'tremor'}"]}],
+                  "Adverse": ["shaky hands"],
+                  "After": ["{xeff 'fatigue'}"],
+                  "Note": "{sub 'estradiol'} too"
+                },
+                {"Name": "Empty"}
+              ]
+            }
+            """
+        )
+    val note = AnodyneParser.parseUserNotes(json).single()
+    assertEquals("Salbutamol", note.substanceName)
+    assertEquals("Inhaled 100µg", note.routesSummary)
+    assertEquals("4h", note.routes.single().duration)
+    assertEquals(listOf("Sulfate"), note.salts)
+    assertEquals(listOf("Inhaler"), note.sources)
+    assertEquals(listOf("asthma"), note.indications)
+    assertEquals(listOf("light stimulation"), note.effects)
+    assertEquals("+400µg", note.effectGroups.single().heading)
+    assertEquals(listOf("tremor"), note.effectGroups.single().effects)
+    assertEquals(listOf("shaky hands"), note.adverse)
+    assertEquals(listOf("fatigue"), note.afterEffects)
+    assertEquals(listOf("estradiol too"), note.notes)
   }
 }

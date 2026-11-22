@@ -1,6 +1,7 @@
 package foo.pilz.freaklog.data.ai
 
 import foo.pilz.freaklog.data.ai.provider.AiToolSpec
+import foo.pilz.freaklog.data.anodyne.AnodyneInstance
 import foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles
 import foo.pilz.freaklog.data.room.experiences.ExperienceDao
 import foo.pilz.freaklog.data.substances.AdministrationRoute
@@ -154,7 +155,7 @@ constructor(
         .put("status", "success")
         .put("name", substance.name)
         .put("source", "PsychonautWiki data bundled with the app")
-        .put("url", substance.url)
+        .put("url", AnodyneInstance.rebase(substance.url))
         .put("common_names", JSONArray(substance.commonNames.take(10)))
         .put("categories", JSONArray(substance.categories))
         .put("summary", substance.summary?.take(MAX_TEXT_CHARS) ?: JSONObject.NULL)

@@ -22,8 +22,6 @@ import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.IosShare
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -67,6 +65,7 @@ import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneEffectsSection
 import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneHealthWarningsSection
 import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneInteractionsSection
 import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneLegalSection
+import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneLoadCard
 import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodynePharmacologySection
 import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneReagentsSection
 import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneSourcesSection
@@ -106,6 +105,7 @@ fun CustomSubstanceScreen(
           viewModel.timelineDisplayOptionFlow.collectAsStateWithLifecycle().value,
       anodyneSubstance = viewModel.anodyneSubstanceFlow.collectAsStateWithLifecycle().value,
       isAnodyneLoading = viewModel.isAnodyneLoadingFlow.collectAsStateWithLifecycle().value,
+      anodyneProblem = viewModel.anodyneProblemFlow.collectAsStateWithLifecycle().value,
       onLoadAnodyne = viewModel::loadAnodyneData,
       navigateBack = navigateBack,
       navigateToEdit = { substance?.let { navigateToEdit(it.substance.id) } },
@@ -125,6 +125,7 @@ fun CustomSubstanceScreen(
     timelineDisplayOption: TimelineDisplayOption,
     anodyneSubstance: AnodyneSubstance? = null,
     isAnodyneLoading: Boolean = false,
+    anodyneProblem: String? = null,
     onLoadAnodyne: () -> Unit = {},
     navigateBack: () -> Unit,
     navigateToEdit: () -> Unit,
@@ -166,7 +167,9 @@ fun CustomSubstanceScreen(
         contentPadding = PaddingValues(vertical = spacing.sm),
         verticalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
-      if (custom.summary != null || customCategories.isNotEmpty()) {
+      val structureSvg = anodyneSubstance?.structureSvg
+      // The structure gets the card on its own too: most custom substances have no summary.
+      if (custom.summary != null || customCategories.isNotEmpty() || structureSvg != null) {
         item(key = "summary_card") {
           ElevatedCard(
               modifier = Modifier.fillMaxWidth().padding(horizontal = spacing.screenHorizontal),
@@ -182,7 +185,7 @@ fun CustomSubstanceScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
               }
-              anodyneSubstance?.structureSvg?.let { svg ->
+              structureSvg?.let { svg ->
                 MoleculeStructureView(svg = svg, substanceName = custom.name)
               }
               if (customCategories.isNotEmpty()) {
@@ -202,32 +205,11 @@ fun CustomSubstanceScreen(
 
       if (anodyneSubstance == null) {
         item(key = "anodyne_enrichment_prompt") {
-          ElevatedCard(
-              modifier = Modifier.fillMaxWidth().padding(horizontal = spacing.screenHorizontal),
-          ) {
-            Row(
-                modifier = Modifier.padding(spacing.lg).fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-              Column(modifier = Modifier.weight(1f)) {
-                Text("AnodyneWiki Enrichment", style = MaterialTheme.typography.titleMedium)
-                Text(
-                    "Load DBI-IGS dosages, reagents & pharmacology",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-              }
-              Spacer(Modifier.width(8.dp))
-              if (isAnodyneLoading) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp))
-              } else {
-                Button(onClick = onLoadAnodyne) {
-                  Text("Load")
-                }
-              }
-            }
-          }
+          AnodyneLoadCard(
+              isLoading = isAnodyneLoading,
+              problem = anodyneProblem,
+              onLoad = onLoadAnodyne,
+          )
         }
       }
 
@@ -435,7 +417,6 @@ fun CustomSubstanceScreen(
         item(key = "anodyne_sources") {
           AnodyneSourcesSection(
               substanceName = anodyneSubstance.title,
-              baseUrl = "https://anodyne.wiki",
               references = anodyneSubstance.references,
           )
         }

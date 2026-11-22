@@ -195,6 +195,7 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
           navigateToProfileEditor = { profileId ->
             navController.navigate(AiProfileEditorRoute(profileId.orEmpty()))
           },
+          navigateToAnodyneSettings = { navController.navigate(AnodyneSettingsRoute) },
       )
     }
     composableWithTransitions<AiProfileEditorRoute> {

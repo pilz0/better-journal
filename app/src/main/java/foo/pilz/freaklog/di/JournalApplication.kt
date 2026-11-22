@@ -20,7 +20,9 @@ package foo.pilz.freaklog.di
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
+import foo.pilz.freaklog.data.anodyne.AnodyneInstance
 import foo.pilz.freaklog.data.room.webhooks.WebhookSeeder
+import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -38,11 +40,16 @@ class JournalApplication : Application() {
 
   @Inject @ApplicationScope lateinit var applicationScope: CoroutineScope
 
+  @Inject lateinit var userPreferences: UserPreferences
+
   override fun onCreate() {
     super.onCreate()
     foo.pilz.freaklog.ui.tabs.journal.experience.notification.TimelineNotificationChannel.create(
         this
     )
+    applicationScope.launch {
+      userPreferences.anodyneBaseUrlFlow.collect { AnodyneInstance.baseUrl = it }
+    }
     applicationScope.launch {
       // Migrate the legacy single-webhook configuration into the new
       // multi-webhook tables on first launch after upgrade. Idempotent.

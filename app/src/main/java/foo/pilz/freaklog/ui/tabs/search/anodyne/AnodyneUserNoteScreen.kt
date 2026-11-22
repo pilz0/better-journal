@@ -107,9 +107,24 @@ private fun NoteDetailContent(
     if (note.effects.isNotEmpty()) {
       NoteEffectsCard(note.effects)
     }
-    if (note.notes.isNotEmpty()) {
-      NoteNotesCard(note.notes)
+    note.effectGroups.forEach { group ->
+      NoteListCard(
+          if (group.heading.isBlank()) "Effects" else "Effects at ${group.heading}",
+          group.effects,
+      )
     }
+    listOf(
+            "Adverse effects" to note.adverse,
+            "After effects" to note.afterEffects,
+            "Tolerance" to note.tolerance,
+            "Indications" to note.indications,
+            "Classes" to note.classes,
+            "Forms" to note.forms,
+            "Salts" to note.salts,
+            "Odor" to note.odor,
+            "Experience Notes" to note.notes,
+        )
+        .forEach { (title, items) -> if (items.isNotEmpty()) NoteListCard(title, items) }
   }
 }
 
@@ -225,7 +240,7 @@ private fun NoteEffectsCard(effects: List<String>) {
 }
 
 @Composable
-private fun NoteNotesCard(notes: List<String>) {
+private fun NoteListCard(title: String, items: List<String>) {
   Card(
       modifier = Modifier.fillMaxWidth(),
       shape = RoundedCornerShape(12.dp),
@@ -236,13 +251,13 @@ private fun NoteNotesCard(notes: List<String>) {
   ) {
     Column(modifier = Modifier.padding(16.dp)) {
       Text(
-          text = "Experience Notes",
+          text = title,
           style = MaterialTheme.typography.titleMedium,
           fontWeight = FontWeight.Bold,
           color = MaterialTheme.colorScheme.primary,
       )
       Spacer(Modifier.height(8.dp))
-      notes.forEachIndexed { i, n ->
+      items.forEachIndexed { i, n ->
         if (i > 0) Spacer(Modifier.height(8.dp))
         Text(
             text = n,

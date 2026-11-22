@@ -188,7 +188,7 @@ private fun InstanceUrlCard(
       if (!isValid) {
         Spacer(Modifier.height(4.dp))
         Text(
-            "Enter a valid web address, e.g. wiki.example.org",
+            "Enter an HTTPS address, e.g. wiki.example.org (plain http only for localhost)",
             color = MaterialTheme.colorScheme.error,
             style = MaterialTheme.typography.bodySmall,
         )

@@ -167,8 +167,21 @@ class AnodyneSubstanceViewModel(
     val sub = currentPhase.substance
     val eRepo = experienceRepo ?: return
     val cRepo = customRepo ?: return
+    if (isAdding) return
+    isAdding = true
 
     viewModelScope.launch {
+      // Custom substance names are unique; open the existing one instead of a duplicate.
+      cRepo.getWithEverythingByName(sub.title)?.let { existing ->
+        _phase.value =
+            currentPhase.copy(
+                localMatch =
+                    LocalSubstanceMatch.Custom(existing.substance.id, existing.substance.name)
+            )
+        isAdding = false
+        onCreated(existing.substance.id)
+        return@launch
+      }
       val defaultUnit = sub.dosing.firstOrNull()?.unit ?: "mg"
       val description =
           listOfNotNull(
@@ -197,7 +210,7 @@ class AnodyneSubstanceViewModel(
                 customSubstanceId = insertedId,
                 route = route,
                 units = dosing.unit ?: defaultUnit,
-                lightMin = null,
+                lightMin = dosing.light?.lower,
                 commonMin = dosing.common?.lower,
                 strongMin = dosing.strong?.lower,
                 heavyMin = dosing.heavy?.lower,
@@ -222,7 +235,10 @@ class AnodyneSubstanceViewModel(
 
       _phase.value =
           currentPhase.copy(localMatch = LocalSubstanceMatch.Custom(insertedId, sub.title))
+      isAdding = false
       onCreated(insertedId)
     }
   }
+
+  private var isAdding = false
 }

@@ -2,6 +2,10 @@ package foo.pilz.freaklog.data.anodyne
 
 object AnodyneTextCleaner {
   private val MACRO_PATTERN = Regex("""\{-?\{[\s\S]*?\}-?\}|\{-[^}]*-?\}|\{[^{}]*\}""")
+
+  /** `{xeff 'name'}` or `{wkp 'article' 'shown text'}`: the wiki shows the last argument. */
+  private val MACRO_WITH_TEXT = Regex("""\{\w+((?:\s+'[^']*')+)\s*\}""")
+  private val MACRO_ARG = Regex("""'([^']*)'""")
   private val HTML_TAG_PATTERN = Regex("""<[^>]+>""")
   private val WHITESPACE = Regex("""\s+""")
   private val SUBSCRIPT_MAP =
@@ -18,9 +22,18 @@ object AnodyneTextCleaner {
           '9' to '₉',
       )
 
+  /** Replaces wiki macros by the text they show; macros without text are dropped. */
+  fun expandMacros(text: String): String =
+      text
+          .replace(MACRO_WITH_TEXT) { m ->
+            MACRO_ARG.findAll(m.groupValues[1]).last().groupValues[1]
+          }
+          // After the arguments: `'cotard{apos}s syndrome'` must stay one quoted argument.
+          .replace("{apos}", "'")
+          .replace(MACRO_PATTERN, " ")
+
   fun clean(text: String): String {
-    return text
-        .replace(MACRO_PATTERN, "")
+    return expandMacros(text)
         .replace(HTML_TAG_PATTERN, "")
         .replace("&nbsp;", " ")
         .replace("&amp;", "&")

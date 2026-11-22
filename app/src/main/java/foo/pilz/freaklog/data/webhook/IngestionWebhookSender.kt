@@ -5,8 +5,11 @@ import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
 import foo.pilz.freaklog.data.room.webhooks.IngestionWebhookMessageRepository
 import foo.pilz.freaklog.data.room.webhooks.WebhookRepository
 import foo.pilz.freaklog.data.room.webhooks.entities.IngestionWebhookMessage
+import foo.pilz.freaklog.di.ApplicationScope
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 private const val TAG = "IngestionWebhookSender"
 
@@ -22,6 +25,8 @@ constructor(
     private val webhookRepository: WebhookRepository,
     private val ingestionWebhookMessageRepository: IngestionWebhookMessageRepository,
     private val experienceRepo: ExperienceRepository,
+    /** Remote deletes outlive the screen that asked for them. */
+    @ApplicationScope private val remoteScope: CoroutineScope,
 ) {
 
   /**
@@ -99,6 +104,65 @@ constructor(
         } catch (e: Exception) {
           // Silently fail - don't block ingestion creation if webhook fails
           android.util.Log.w(TAG, "Webhook \"${webhook.name}\" exception: ${e.message}", e)
+        }
+      }
+    }
+  }
+
+  /**
+   * Deletes [ingestion] and its message on every webhook it was posted to; the remote deletes run
+   * in the background.
+   */
+  suspend fun deleteWithMessages(ingestion: Ingestion) =
+      deleteWithMessages(
+          links = { ingestionWebhookMessageRepository.getByIngestion(ingestion.id) },
+          deleteLocally = { experienceRepo.delete(ingestion) },
+      )
+
+  /** Deletes the experience with everything in it, and its ingestions' webhook messages. */
+  suspend fun deleteExperienceWithMessages(experienceId: Int) =
+      deleteWithMessages(
+          links = { ingestionWebhookMessageRepository.getByExperience(experienceId) },
+          deleteLocally = { experienceRepo.deleteEverythingOfExperience(experienceId) },
+      )
+
+  /**
+   * The message links are read before [deleteLocally]: deleting ingestions cascades to their links,
+   * which used to race the remote deletes so only the first webhook lost its message.
+   */
+  private suspend fun deleteWithMessages(
+      links: suspend () -> List<IngestionWebhookMessage>,
+      deleteLocally: suspend () -> Unit,
+  ) {
+    val targets =
+        try {
+          links().mapNotNull { link ->
+            webhookRepository
+                .getById(link.webhookId)
+                // A changed URL is another destination that never got this message.
+                ?.takeIf { ingestionWebhookMessageRepository.isCurrentDestination(link, it.url) }
+                ?.let { it to link.messageId }
+          }
+        } catch (e: Exception) {
+          android.util.Log.w(TAG, "Failed to load webhook messages: ${e.message}", e)
+          emptyList()
+        }
+    deleteLocally()
+    if (targets.isEmpty()) return
+    remoteScope.launch {
+      for ((webhook, messageId) in targets) {
+        val deleted =
+            try {
+              webhookService.deleteWebhookMessage(url = webhook.url, messageId = messageId)
+            } catch (e: Exception) {
+              android.util.Log.w(TAG, "Webhook delete threw for \"${webhook.name}\"", e)
+              false
+            }
+        if (!deleted) {
+          android.util.Log.w(
+              TAG,
+              "Webhook delete failed for \"${webhook.name}\" message $messageId",
+          )
         }
       }
     }

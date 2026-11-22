@@ -24,6 +24,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit
+import foo.pilz.freaklog.data.webhook.IngestionWebhookSender
 import java.time.LocalDate
 import java.time.ZoneId
 import javax.inject.Inject
@@ -43,7 +44,10 @@ data class IngestionSection(
 @HiltViewModel
 class AllIngestionsViewModel
 @Inject
-constructor(private val experienceRepository: ExperienceRepository) : ViewModel() {
+constructor(
+    private val experienceRepository: ExperienceRepository,
+    private val ingestionWebhookSender: IngestionWebhookSender,
+) : ViewModel() {
 
   companion object {
     private const val MAX_INGESTIONS_TO_LOAD = 500
@@ -104,7 +108,7 @@ constructor(private val experienceRepository: ExperienceRepository) : ViewModel(
 
   fun deleteIngestion(ingestion: Ingestion) {
     viewModelScope.launch {
-      experienceRepository.delete(ingestion)
+      ingestionWebhookSender.deleteWithMessages(ingestion)
     }
   }
 }

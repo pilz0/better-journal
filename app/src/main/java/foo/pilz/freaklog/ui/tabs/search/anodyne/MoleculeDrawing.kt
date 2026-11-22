@@ -39,6 +39,9 @@ data class MoleculeDrawing(
     private const val COLOR_COMPONENT_MAX = 255f
     private const val SHORT_HEX_LENGTH = 3
     private const val HEX_RADIX = 16
+
+    /** rx, ry, x-axis-rotation, large-arc-flag, sweep-flag. */
+    private const val ARC_FLAG_PARAMS = 5
     private val cache = mutableMapOf<String, MoleculeDrawing>()
 
     data class Style(
@@ -240,7 +243,8 @@ data class MoleculeDrawing(
     private class PathCursor(private val tokens: List<String>) {
       var idx = 0
 
-      fun nextNum(): Float? = if (idx < tokens.size) tokens[idx++].toFloatOrNull() else null
+      /** The next number; a command letter is left for the main loop. */
+      fun nextNum(): Float? = tokens.getOrNull(idx)?.toFloatOrNull()?.also { idx++ }
 
       fun hasMore(): Boolean = idx < tokens.size
 
@@ -258,6 +262,11 @@ data class MoleculeDrawing(
       var startX = 0f
       var startY = 0f
       var cmd = 'M'
+
+      // Control point of the previous curve, reflected by the smooth S/T commands.
+      var ctrlX = 0f
+      var ctrlY = 0f
+      var lastCurve = ' '
     }
 
     private fun parseSvgPath(d: String): Path? {
@@ -296,14 +305,68 @@ data class MoleculeDrawing(
 
     private fun executePathCommand(cursor: PathCursor, state: PathState) {
       val rel = state.cmd.isLowerCase()
-      when (state.cmd.uppercaseChar()) {
+      val command = state.cmd.uppercaseChar()
+      val before = cursor.idx
+      when (command) {
         'M' -> executeMoveTo(cursor, state, rel)
         'L' -> executeLineTo(cursor, state, rel)
         'H' -> executeHorizontal(cursor, state, rel)
         'V' -> executeVertical(cursor, state, rel)
-        'C' -> executeCubic(cursor, state, rel)
+        'C' -> executeCubic(cursor, state, rel, smooth = false)
+        'S' -> executeCubic(cursor, state, rel, smooth = true)
+        'Q' -> executeQuadratic(cursor, state, rel, smooth = false)
+        'T' -> executeQuadratic(cursor, state, rel, smooth = true)
+        'A' -> executeArc(cursor, state, rel)
         else -> cursor.advance()
       }
+      if (command != 'C' && command != 'S' && command != 'Q' && command != 'T') {
+        state.lastCurve = ' '
+      }
+      // A malformed command that consumed nothing would otherwise loop forever.
+      if (cursor.idx == before && cursor.hasMore()) cursor.advance()
+    }
+
+    /** Reflection of the last control point, or the current point if [kind] didn't precede. */
+    private fun reflectedControl(state: PathState, kind: Char): Pair<Float, Float> =
+        if (state.lastCurve == kind) {
+          2 * state.curX - state.ctrlX to 2 * state.curY - state.ctrlY
+        } else {
+          state.curX to state.curY
+        }
+
+    private fun executeQuadratic(
+        cursor: PathCursor,
+        state: PathState,
+        rel: Boolean,
+        smooth: Boolean,
+    ) {
+      val dx = if (rel) state.curX else 0f
+      val dy = if (rel) state.curY else 0f
+      val (x1, y1) =
+          if (smooth) {
+            reflectedControl(state, 'Q')
+          } else {
+            (cursor.nextNum() ?: return) + dx to (cursor.nextNum() ?: return) + dy
+          }
+      val x = (cursor.nextNum() ?: return) + dx
+      val y = (cursor.nextNum() ?: return) + dy
+      state.path.quadraticTo(x1, y1, x, y)
+      state.ctrlX = x1
+      state.ctrlY = y1
+      state.lastCurve = 'Q'
+      state.curX = x
+      state.curY = y
+    }
+
+    // ponytail: arcs are drawn as straight lines to their end point; CDK only uses them for
+    // the odd charge ring. Convert to cubic segments if a structure ever looks wrong.
+    private fun executeArc(cursor: PathCursor, state: PathState, rel: Boolean) {
+      repeat(ARC_FLAG_PARAMS) { cursor.nextNum() ?: return }
+      val x = (cursor.nextNum() ?: return) + (if (rel) state.curX else 0f)
+      val y = (cursor.nextNum() ?: return) + (if (rel) state.curY else 0f)
+      state.path.lineTo(x, y)
+      state.curX = x
+      state.curY = y
     }
 
     private fun executeMoveTo(cursor: PathCursor, state: PathState, rel: Boolean) {
@@ -343,14 +406,22 @@ data class MoleculeDrawing(
       state.curY = y
     }
 
-    private fun executeCubic(cursor: PathCursor, state: PathState, rel: Boolean) {
-      val x1 = (cursor.nextNum() ?: return) + (if (rel) state.curX else 0f)
-      val y1 = (cursor.nextNum() ?: return) + (if (rel) state.curY else 0f)
+    private fun executeCubic(cursor: PathCursor, state: PathState, rel: Boolean, smooth: Boolean) {
+      val (x1, y1) =
+          if (smooth) {
+            reflectedControl(state, 'C')
+          } else {
+            (cursor.nextNum() ?: return) + (if (rel) state.curX else 0f) to
+                (cursor.nextNum() ?: return) + (if (rel) state.curY else 0f)
+          }
       val x2 = (cursor.nextNum() ?: return) + (if (rel) state.curX else 0f)
       val y2 = (cursor.nextNum() ?: return) + (if (rel) state.curY else 0f)
       val x = (cursor.nextNum() ?: return) + (if (rel) state.curX else 0f)
       val y = (cursor.nextNum() ?: return) + (if (rel) state.curY else 0f)
       state.path.cubicTo(x1, y1, x2, y2, x, y)
+      state.ctrlX = x2
+      state.ctrlY = y2
+      state.lastCurve = 'C'
       state.curX = x
       state.curY = y
     }

@@ -25,6 +25,12 @@ interface IngestionWebhookMessageDao {
   suspend fun getByIngestion(ingestionId: Int): List<IngestionWebhookMessage>
 
   @Query(
+      "SELECT m.* FROM ingestion_webhook_message m " +
+          "JOIN ingestion i ON i.id = m.ingestionId WHERE i.experienceId = :experienceId"
+  )
+  suspend fun getByExperience(experienceId: Int): List<IngestionWebhookMessage>
+
+  @Query(
       "SELECT * FROM ingestion_webhook_message " +
           "WHERE ingestionId = :ingestionId AND webhookId = :webhookId LIMIT 1"
   )

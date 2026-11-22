@@ -21,6 +21,9 @@ constructor(private val dao: IngestionWebhookMessageDao) {
   suspend fun getByIngestion(ingestionId: Int): List<IngestionWebhookMessage> =
       dao.getByIngestion(ingestionId)
 
+  suspend fun getByExperience(experienceId: Int): List<IngestionWebhookMessage> =
+      dao.getByExperience(experienceId)
+
   suspend fun getByIngestionAndWebhook(
       ingestionId: Int,
       webhookId: Int,

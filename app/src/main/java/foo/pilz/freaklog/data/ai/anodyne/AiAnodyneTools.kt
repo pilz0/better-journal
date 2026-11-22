@@ -4,6 +4,7 @@ import foo.pilz.freaklog.data.ai.ToolParam
 import foo.pilz.freaklog.data.ai.provider.AiToolSpec
 import foo.pilz.freaklog.data.ai.toolError
 import foo.pilz.freaklog.data.ai.toolSpec
+import foo.pilz.freaklog.data.anodyne.AnodyneRepository
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -56,8 +57,8 @@ constructor(
 
   suspend fun isEnabled(): Boolean = userPreferences.aiAnodyneEnabledFlow.first()
 
-  private suspend fun baseUrl(): String =
-      userPreferences.aiAnodyneBaseUrlFlow.first().ifBlank { AnodyneWikiClient.DEFAULT_BASE_URL }
+  /** The API of the instance configured in Settings → AnodyneWiki. */
+  private suspend fun baseUrl(): String = userPreferences.anodyneBaseUrlFlow.first() + "/api"
 
   /** Runs [name] if it is one of these tools; returns null for other names. */
   suspend fun execute(name: String, args: Map<String, Any?>): JSONObject? {
@@ -116,11 +117,6 @@ constructor(
     return page
         .put("status", "success")
         .put("source", "anodyne.wiki")
-        .put(
-            "url",
-            base.removeSuffix("/").removeSuffix("/api") +
-                "/substance/" +
-                pageName.replace(" ", "_"),
-        )
+        .put("url", AnodyneRepository.substancePageUrl(base.removeSuffix("/api"), pageName))
   }
 }

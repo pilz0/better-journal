@@ -16,12 +16,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -37,11 +36,14 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
+import foo.pilz.freaklog.data.anodyne.AnodyneInstance
 import foo.pilz.freaklog.data.anodyne.model.AnodyneLink
 import foo.pilz.freaklog.data.anodyne.model.AnodyneSubstance
 import foo.pilz.freaklog.data.anodyne.model.EffectGroup
 import foo.pilz.freaklog.data.anodyne.model.Reagent
 import foo.pilz.freaklog.data.anodyne.model.Schedule
+import foo.pilz.freaklog.ui.tabs.search.substance.SectionWithTitle
+import foo.pilz.freaklog.ui.theme.horizontalPadding
 
 @Composable
 fun AnodyneCard(
@@ -49,23 +51,41 @@ fun AnodyneCard(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-  Card(
-      modifier = modifier.fillMaxWidth(),
-      colors =
-          CardDefaults.cardColors(
-              containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-          ),
-      shape = RoundedCornerShape(12.dp),
-  ) {
-    Column(modifier = Modifier.padding(16.dp)) {
-      Text(
-          text = title,
-          style = MaterialTheme.typography.titleMedium,
-          fontWeight = FontWeight.Bold,
-          color = MaterialTheme.colorScheme.primary,
-      )
-      Spacer(Modifier.height(8.dp))
+  // Same card as the bundled sections so both sources read as one page.
+  SectionWithTitle(title = title) {
+    Column(
+        modifier =
+            modifier.padding(start = horizontalPadding, end = horizontalPadding, bottom = 12.dp)
+    ) {
       content()
+    }
+  }
+}
+
+/** Offers to load the AnodyneWiki page; says why when the last attempt found nothing. */
+@Composable
+fun AnodyneLoadCard(isLoading: Boolean, problem: String?, onLoad: () -> Unit) {
+  SectionWithTitle(title = "AnodyneWiki") {
+    Row(
+        modifier =
+            Modifier.fillMaxWidth()
+                .padding(start = horizontalPadding, end = horizontalPadding, bottom = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Text(
+          text = problem ?: "Load dosages, effects, reagents, legal status and pharmacology.",
+          style = MaterialTheme.typography.bodySmall,
+          color =
+              problem?.let { MaterialTheme.colorScheme.error }
+                  ?: MaterialTheme.colorScheme.onSurfaceVariant,
+          modifier = Modifier.weight(1f),
+      )
+      Spacer(Modifier.width(8.dp))
+      if (isLoading) {
+        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+      } else {
+        Button(onClick = onLoad) { Text(if (problem != null) "Retry" else "Load") }
+      }
     }
   }
 }
@@ -375,11 +395,10 @@ fun AnodynePharmacologySection(mechanism: String?, metabolism: String?) {
 @Composable
 fun AnodyneSourcesSection(
     substanceName: String,
-    baseUrl: String,
     references: List<AnodyneLink>,
 ) {
   val uriHandler = LocalUriHandler.current
-  val wikiUrl = "$baseUrl/substance/${substanceName.replace(" ", "%20")}"
+  val wikiUrl = AnodyneInstance.substancePageUrl(substanceName)
 
   AnodyneCard("Sources") {
     OutlinedButton(

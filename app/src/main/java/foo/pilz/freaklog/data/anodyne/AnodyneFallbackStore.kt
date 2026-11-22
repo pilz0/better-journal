@@ -74,11 +74,16 @@ class AnodyneFallbackStore @Inject constructor() {
       val route = dosing.route ?: continue
       if (route !in routeDoses) {
         val unit = dosing.unit ?: "mg"
-        if (dosing.common != null || dosing.strong != null || dosing.heavy != null) {
+        if (
+            dosing.light != null ||
+                dosing.common != null ||
+                dosing.strong != null ||
+                dosing.heavy != null
+        ) {
           routeDoses[route] =
               RoaDose(
                   units = unit,
-                  lightMin = null,
+                  lightMin = dosing.light?.lower,
                   commonMin = dosing.common?.lower,
                   strongMin = dosing.strong?.lower,
                   heavyMin = dosing.heavy?.lower,

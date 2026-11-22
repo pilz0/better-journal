@@ -208,49 +208,66 @@ object AnodyneParser {
 
   fun parseUserNotes(userJson: JSONObject): List<AnodyneUserNote> {
     val user = userJson.optString("Title").takeIf { it.isNotBlank() } ?: return emptyList()
-    val triedArray = userJson.optJSONArray("TriedSubstances") ?: return emptyList()
+    // Most profiles use "TriedSubstances"; some (e.g. the wiki owner's) use "Substances".
+    val triedArray =
+        userJson.optJSONArray("TriedSubstances")
+            ?: userJson.optJSONArray("Substances")
+            ?: return emptyList()
 
     return (0 until triedArray.length()).mapNotNull { i ->
       val entry = triedArray.optJSONObject(i) ?: return@mapNotNull null
       val name = entry.optString("Name").takeIf { it.isNotBlank() } ?: return@mapNotNull null
 
-      val routesArr = entry.optJSONArray("Routes")
+      fun field(vararg keys: String) = keys.flatMap { stringsOf(entry.opt(it)) }
+
       val routes =
-          if (routesArr != null) {
-            (0 until routesArr.length()).mapNotNull { j ->
-              val rObj = routesArr.optJSONObject(j) ?: return@mapNotNull null
-              val rName =
-                  rObj.optString("Name").takeIf { it.isNotBlank() } ?: return@mapNotNull null
-              AnodyneUserNote.Route(
-                  name = rName,
-                  dosage = rObj.optString("Dose").takeIf { it.isNotBlank() },
-                  onset = rObj.optString("Onset").takeIf { it.isNotBlank() },
-                  comeup = rObj.optString("Comeup").takeIf { it.isNotBlank() },
-                  duration = rObj.optString("Duration").takeIf { it.isNotBlank() },
-              )
-            }
-          } else {
-            emptyList()
+          parseNoteRoutes(entry.optJSONArray("Routes")) +
+              parseNoteRoutes(entry.optJSONArray("Dosage"))
+      val doseEffects = entry.optJSONArray("DEffects")
+      val effectGroups =
+          (0 until (doseEffects?.length() ?: 0)).mapNotNull { j ->
+            val group = doseEffects!!.optJSONObject(j) ?: return@mapNotNull null
+            stringsOf(group.opt("Effects"))
+                .takeIf { it.isNotEmpty() }
+                ?.let {
+                  AnodyneUserNote.EffectGroup(textOf(group.opt("Dosage")).orEmpty(), it)
+                }
           }
 
       val note =
           AnodyneUserNote(
               user = user,
-              substanceName = name,
+              substanceName = AnodyneTextCleaner.clean(name),
               routes = routes,
-              classes = stringsOf(entry.opt("Classes")),
-              forms = stringsOf(entry.opt("Forms")),
-              sources = stringsOf(entry.opt("Sources")),
-              indications = stringsOf(entry.opt("Indications")),
-              effects = stringsOf(entry.opt("Effects")),
-              afterEffects = stringsOf(entry.opt("After Effects")),
-              tolerance = stringsOf(entry.opt("Tolerance")),
-              odor = stringsOf(entry.opt("Odor")),
-              notes = stringsOf(entry.opt("Notes")),
+              classes = field("Classes"),
+              forms = field("Forms"),
+              salts = field("Salts"),
+              sources = field("Sources", "Source"),
+              indications = field("Indication", "Indications"),
+              effects = field("Effects"),
+              effectGroups = effectGroups,
+              adverse = field("Adverse"),
+              afterEffects = field("After", "After Effects"),
+              tolerance = field("Tolerance"),
+              odor = field("Odor"),
+              notes = field("Notes", "Note"),
           )
       if (note.hasDetails) note else null
     }
   }
+
+  private fun parseNoteRoutes(array: JSONArray?): List<AnodyneUserNote.Route> =
+      (0 until (array?.length() ?: 0)).mapNotNull { j ->
+        val r = array!!.optJSONObject(j) ?: return@mapNotNull null
+        val name = textOf(r.opt("Name")) ?: return@mapNotNull null
+        AnodyneUserNote.Route(
+            name = name,
+            dosage = textOf(r.opt("Dosage")) ?: textOf(r.opt("Dosages")) ?: textOf(r.opt("Dose")),
+            onset = textOf(r.opt("Onset")),
+            comeup = textOf(r.opt("Comeup")),
+            duration = textOf(r.opt("Duration")) ?: textOf(r.opt("Active")),
+        )
+      }
 
   private fun stringsOf(value: Any?): List<String> =
       when (value) {

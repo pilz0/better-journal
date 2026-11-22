@@ -66,6 +66,7 @@ constructor(
     private val webhookService: foo.pilz.freaklog.data.webhook.WebhookService,
     private val webhookRepository: WebhookRepository,
     private val ingestionWebhookMessageRepository: IngestionWebhookMessageRepository,
+    private val ingestionWebhookSender: foo.pilz.freaklog.data.webhook.IngestionWebhookSender,
     @ApplicationScope private val externalScope: CoroutineScope,
     state: SavedStateHandle,
 ) : ViewModel() {
@@ -352,13 +353,7 @@ constructor(
 
   fun deleteIngestion() {
     viewModelScope.launch {
-      ingestion?.let {
-        // Delete webhook message if it exists (in background)
-        externalScope.launch {
-          deleteWebhookForIngestion(it)
-        }
-        experienceRepo.delete(ingestion = it)
-      }
+      ingestion?.let { ingestionWebhookSender.deleteWithMessages(it) }
     }
   }
 
@@ -418,45 +413,6 @@ constructor(
             e,
         )
       }
-    }
-  }
-
-  private suspend fun deleteWebhookForIngestion(ingestion: Ingestion) {
-    val links = ingestionWebhookMessageRepository.getByIngestion(ingestion.id)
-    for (link in links) {
-      val webhook =
-          webhookRepository.getById(link.webhookId)?.takeIf {
-            ingestionWebhookMessageRepository.isCurrentDestination(link, it.url)
-          }
-      if (webhook == null) {
-        // Webhook itself was already deleted; just drop the link row.
-        ingestionWebhookMessageRepository.delete(link)
-        continue
-      }
-      try {
-        val success =
-            webhookService.deleteWebhookMessage(
-                url = webhook.url,
-                messageId = link.messageId,
-            )
-        if (!success) {
-          android.util.Log.w(
-              TAG_EDIT,
-              "Webhook delete failed for \"${webhook.name}\" message ${link.messageId}",
-          )
-        }
-      } catch (e: Exception) {
-        android.util.Log.w(
-            TAG_EDIT,
-            "Webhook delete exception for \"${webhook.name}\": ${e.message}",
-            e,
-        )
-      }
-      // Drop the local link row regardless of remote success — the
-      // ingestion is being deleted and FK CASCADE would do the same
-      // when the row is hit. Doing it explicitly keeps the table tidy
-      // when callers haven't deleted the ingestion yet.
-      ingestionWebhookMessageRepository.delete(link)
     }
   }
 

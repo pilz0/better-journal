@@ -17,6 +17,7 @@ class AnodyneFallbackStoreTest {
     val dosing =
         AnodyneDosing(
             method = "Oral",
+            light = AnodyneTier(50.0, 100.0, "mg", 10),
             common = AnodyneTier(100.0, 150.0, "mg", 20),
             strong = AnodyneTier(150.0, 200.0, "mg", 15),
             heavy = AnodyneTier(200.0, 300.0, "mg", 5),
@@ -33,6 +34,7 @@ class AnodyneFallbackStoreTest {
     val dose = store.getDose("Mescaline", AdministrationRoute.ORAL)
     assertNotNull(dose)
     assertEquals("mg", dose?.units)
+    assertEquals(50.0, dose?.lightMin ?: 0.0, 0.01)
     assertEquals(100.0, dose?.commonMin ?: 0.0, 0.01)
 
     val aliasDose = store.getDose("Peyote", AdministrationRoute.ORAL)

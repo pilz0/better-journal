@@ -46,7 +46,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import foo.pilz.freaklog.data.anodyne.model.AnodyneSubstance
 import foo.pilz.freaklog.data.anodyne.model.AnodyneUserNote
 import foo.pilz.freaklog.ui.theme.horizontalPadding
-import foo.pilz.freaklog.ui.theme.verticalPaddingCards
 import foo.pilz.freaklog.ui.utils.HapticType
 import foo.pilz.freaklog.ui.utils.rememberHaptic
 
@@ -193,12 +192,7 @@ private fun AnodyneSubstanceFoundContent(
     navigateToUserNotes: (String) -> Unit,
 ) {
   Column(
-      modifier =
-          Modifier.padding(padding)
-              .padding(horizontal = horizontalPadding)
-              .fillMaxSize()
-              .verticalScroll(rememberScrollState()),
-      verticalArrangement = Arrangement.spacedBy(verticalPaddingCards),
+      modifier = Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()),
   ) {
     localMatch?.let { match ->
       FreakLogMatchCard(
@@ -239,7 +233,7 @@ private fun AnodyneSubstanceFoundContent(
     AnodyneReagentsSection(sub.reagents)
     AnodyneLegalSection(sub.scheduling)
     AnodynePharmacologySection(sub.mechanismOfAction, sub.metabolism)
-    AnodyneSourcesSection(sub.title, "https://anodyne.wiki", sub.references)
+    AnodyneSourcesSection(sub.title, sub.references)
     Spacer(Modifier.height(16.dp))
   }
 }
@@ -253,13 +247,15 @@ private fun FreakLogMatchCard(
   val performHaptic = rememberHaptic()
   Card(
       modifier =
-          Modifier.fillMaxWidth().padding(top = 8.dp).clickable {
-            performHaptic(HapticType.CLICK)
-            when (match) {
-              is LocalSubstanceMatch.Psychonaut -> navigateToPsychonautSubstance(match.name)
-              is LocalSubstanceMatch.Custom -> navigateToCustomSubstance(match.id)
-            }
-          },
+          Modifier.fillMaxWidth()
+              .padding(horizontal = horizontalPadding, vertical = 8.dp)
+              .clickable {
+                performHaptic(HapticType.CLICK)
+                when (match) {
+                  is LocalSubstanceMatch.Psychonaut -> navigateToPsychonautSubstance(match.name)
+                  is LocalSubstanceMatch.Custom -> navigateToCustomSubstance(match.id)
+                }
+              },
       colors =
           CardDefaults.cardColors(
               containerColor = MaterialTheme.colorScheme.primaryContainer,

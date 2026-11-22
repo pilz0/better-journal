@@ -31,4 +31,31 @@ class MoleculeDrawingTest {
     val shape = drawing?.shapes?.first()
     assertNotNull(shape?.fill)
   }
+
+  /**
+   * Regression: CDK draws atom labels with relative quadratic curves. Unsupported `q` commands used
+   * to desync the relative `h`/`v` moves after them, scattering the labels.
+   */
+  @Test
+  fun quadraticCurvesKeepLaterRelativeMovesInPlace() {
+    val svg = """<svg viewBox="0 0 50 50"><path d="M10 10q10 0 10 10h5t5 5z"/></svg>"""
+    val bounds = MoleculeDrawing.parse(svg)!!.shapes.single().path.getBounds()
+    assertEquals(10f, bounds.left, 0.01f)
+    assertEquals(10f, bounds.top, 0.01f)
+    assertEquals(30f, bounds.right, 0.01f)
+    assertEquals(25f, bounds.bottom, 0.01f)
+  }
+
+  @Test
+  fun parsesMinifiedCdkStructure() {
+    // svgo output as served in "Structure": implicit line-tos, ".7.5"-style number runs, 100% rect.
+    val svg =
+        """<svg viewBox="0 0 64.953 70.208"><rect width="100%" height="100%" fill="#fff"/>""" +
+            """<g fill="#3050f8" stroke="#000" stroke-width=".7"><g class="mol">""" +
+            """<path d="m40.317 12.677 3.843 10.555M42.69 30.383l-6.954 8.29" class="bond"/>""" +
+            """<g stroke="none" class="atom"><path d="M5 5h.7.5v1z"/></g></g></g></svg>"""
+    val drawing = MoleculeDrawing.parse(svg)!!
+    assertEquals(2, drawing.shapes.size)
+    assertEquals(6.2f, drawing.shapes[1].path.getBounds().right, 0.01f)
+  }
 }

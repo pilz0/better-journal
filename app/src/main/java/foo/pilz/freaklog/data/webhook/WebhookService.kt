@@ -22,6 +22,7 @@ import com.ndm4.freakquery.Aliases
 import com.ndm4.freakquery.AnodyneAliases
 import com.ndm4.freakquery.DefaultAliases
 import com.ndm4.freakquery.FreakQueryConfig
+import foo.pilz.freaklog.data.anodyne.AnodyneInstance
 import foo.pilz.freaklog.data.freakquery.FreakQueryRepository
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import java.io.IOException
@@ -79,7 +80,6 @@ internal constructor(
     const val DEFAULT_TEMPLATE =
         "{user}: [{dose} {units} ]{substance}[{formulation}] via {route}[ at {site}][\n> {note}]"
     private const val MAX_RETRIES = 3
-    private const val SUBSTANCE_INFO_URL = "https://anodyne.wiki/substance/"
     private val TEMPLATE_BRACKET_REGEX = Regex("\\[([^\\[\\]]+)\\]")
     private val PLACEHOLDER_REGEX = Regex("\\{([a-zA-Z]+)\\}")
   }
@@ -96,7 +96,7 @@ internal constructor(
       note: String?,
       template: String,
       isHyperlinked: Boolean,
-      substanceInfoUrl: String = SUBSTANCE_INFO_URL,
+      substanceInfoUrl: String = AnodyneInstance.baseUrl + "/substance/",
       formulation: String? = null,
       saltForm: String? = null,
   ): WebhookResult {
@@ -133,7 +133,7 @@ internal constructor(
       note: String?,
       template: String,
       isHyperlinked: Boolean,
-      substanceInfoUrl: String = SUBSTANCE_INFO_URL,
+      substanceInfoUrl: String = AnodyneInstance.baseUrl + "/substance/",
       formulation: String? = null,
       saltForm: String? = null,
   ): WebhookResult {

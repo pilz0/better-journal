@@ -30,7 +30,6 @@ data class AnodyneIndexEntry(
 @Singleton
 class AnodyneWikiClient @Inject constructor() {
   companion object {
-    const val DEFAULT_BASE_URL = "https://anodyne.wiki/api"
     private const val MAX_RESPONSE_BYTES = 16L * 1024 * 1024
     private const val MAX_TEXT_CHARS = 1500
     private const val MAX_STRUCTURED_CHARS = 6000
@@ -55,8 +54,6 @@ class AnodyneWikiClient @Inject constructor() {
             "Aliases" to "aliases",
             "Classes" to "classes",
         )
-    private val MACRO_WITH_TEXT = Regex("""\{\w+\s+'([^']*)'\}""")
-    private val OTHER_MACRO = Regex("""\{[^{}]*\}""")
     private val WHITESPACE = Regex("""\s+""")
 
     private fun stripHtml(text: String): String = buildString {
@@ -76,8 +73,7 @@ class AnodyneWikiClient @Inject constructor() {
     /** Removes HTML tags, wiki macros and entities from a field. */
     fun clean(text: String): String =
         stripHtml(text.take(MAX_TEXT_CHARS * 8))
-            .replace(MACRO_WITH_TEXT, "$1")
-            .replace(OTHER_MACRO, "")
+            .let(foo.pilz.freaklog.data.anodyne.AnodyneTextCleaner::expandMacros)
             .replace("&nbsp;", " ")
             .replace("&amp;", "&")
             .replace(WHITESPACE, " ")

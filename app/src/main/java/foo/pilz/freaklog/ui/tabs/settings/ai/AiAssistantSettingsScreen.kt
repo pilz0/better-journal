@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -23,7 +22,6 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -33,18 +31,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import foo.pilz.freaklog.data.ai.anodyne.AnodyneWikiClient
 import foo.pilz.freaklog.data.ai.profiles.AiProfile
-import foo.pilz.freaklog.data.ai.profiles.isInsecureRemoteUrl
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import java.net.URI
 
@@ -53,6 +45,7 @@ import java.net.URI
 fun AiAssistantSettingsScreen(
     navigateBack: () -> Unit,
     navigateToProfileEditor: (profileId: String?) -> Unit,
+    navigateToAnodyneSettings: () -> Unit = {},
     viewModel: AiSettingsViewModel = hiltViewModel(),
 ) {
   val isEnabled by viewModel.isEnabled.collectAsState()
@@ -114,9 +107,8 @@ fun AiAssistantSettingsScreen(
       }
       AnodyneSection(
           enabled = viewModel.isAnodyneEnabled.collectAsState().value,
-          baseUrl = viewModel.anodyneBaseUrl.collectAsState().value,
           onEnabledChange = viewModel::setAnodyneEnabled,
-          onBaseUrlChange = viewModel::setAnodyneBaseUrl,
+          navigateToAnodyneSettings = navigateToAnodyneSettings,
       )
       Spacer(Modifier.size(24.dp))
     }
@@ -210,11 +202,9 @@ private fun EnableRow(isEnabled: Boolean, onChange: (Boolean) -> Unit) {
 @Composable
 private fun AnodyneSection(
     enabled: Boolean,
-    baseUrl: String,
     onEnabledChange: (Boolean) -> Unit,
-    onBaseUrlChange: (String) -> Unit,
+    navigateToAnodyneSettings: () -> Unit,
 ) {
-  var draftUrl by remember(baseUrl) { mutableStateOf(baseUrl) }
   Text(
       "Substance lookups",
       style = MaterialTheme.typography.titleMedium,
@@ -228,7 +218,7 @@ private fun AnodyneSection(
       Text("Look substances up on AnodyneWiki", style = MaterialTheme.typography.bodyLarge)
       Text(
           text =
-              "Lets the assistant read dose tiers, interactions and warnings from anodyne.wiki when the " +
+              "Lets the assistant read dose tiers, interactions and warnings from AnodyneWiki when the " +
                   "bundled data isn't enough. Only the substance name is sent there.",
           style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -237,40 +227,7 @@ private fun AnodyneSection(
     Switch(checked = enabled, onCheckedChange = onEnabledChange)
   }
   if (enabled) {
-    OutlinedTextField(
-        value = draftUrl,
-        onValueChange = { value ->
-          draftUrl = value
-          onBaseUrlChange(value)
-        },
-        label = { Text("AnodyneWiki API URL") },
-        placeholder = { Text(AnodyneWikiClient.DEFAULT_BASE_URL) },
-        isError = isInsecureRemoteUrl(draftUrl),
-        supportingText = {
-          Text(
-              if (isInsecureRemoteUrl(draftUrl)) {
-                "HTTPS is required for LAN and remote mirrors."
-              } else {
-                "Leave empty for ${AnodyneWikiClient.DEFAULT_BASE_URL}, or use a compatible mirror."
-              }
-          )
-        },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-        trailingIcon = {
-          if (draftUrl.isNotEmpty()) {
-            TextButton(
-                onClick = {
-                  draftUrl = ""
-                  onBaseUrlChange("")
-                }
-            ) {
-              Text("Reset")
-            }
-          }
-        },
-        modifier = Modifier.fillMaxWidth(),
-    )
+    TextButton(onClick = navigateToAnodyneSettings) { Text("Choose the AnodyneWiki instance") }
   }
 }
 

@@ -98,7 +98,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-@Suppress("LargeClass")
+@Suppress("LargeClass", "LongParameterList") // Hilt-injected dependencies
 @HiltViewModel
 class ExperienceViewModel
 @Inject
@@ -109,6 +109,7 @@ constructor(
     private val userPreferences: UserPreferences,
     private val customProfiles: foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles,
     private val skinController: UltraFunSkinController,
+    private val ingestionWebhookSender: foo.pilz.freaklog.data.webhook.IngestionWebhookSender,
     combinationSettingsStorage: CombinationSettingsStorage,
     state: SavedStateHandle,
     @ApplicationContext context: Context,
@@ -739,7 +740,7 @@ constructor(
       if (userPreferences.activeNotificationExperienceIdFlow.firstOrNull() == experienceId) {
         stopNotification(context)
       }
-      experienceRepo.deleteEverythingOfExperience(experienceId = experienceId)
+      ingestionWebhookSender.deleteExperienceWithMessages(experienceId)
     }
   }
 

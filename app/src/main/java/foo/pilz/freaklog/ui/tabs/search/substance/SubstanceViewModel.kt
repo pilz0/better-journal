@@ -64,6 +64,9 @@ constructor(
   val anodyneSubstanceFlow = MutableStateFlow<AnodyneSubstance?>(null)
   val isAnodyneLoadingFlow = MutableStateFlow(false)
 
+  /** Why the last load found nothing; null before a load and after a successful one. */
+  val anodyneProblemFlow = MutableStateFlow<String?>(null)
+
   init {
     viewModelScope.launch {
       userPreferences.anodyneAutoLoadEnabledFlow.collect { autoLoad ->
@@ -80,6 +83,7 @@ constructor(
       val otherNames = substanceWithCategories.substance.commonNames
       val res = anodyneRepo.lookup(substanceName, otherNames)
       anodyneSubstanceFlow.value = res.getOrNull()
+      anodyneProblemFlow.value = AnodyneRepository.lookupProblem(res)
       isAnodyneLoadingFlow.value = false
     }
   }

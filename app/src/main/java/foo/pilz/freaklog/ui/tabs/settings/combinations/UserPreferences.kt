@@ -25,6 +25,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import foo.pilz.freaklog.data.anodyne.AnodyneRepository
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.SavedTimeDisplayOption
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences.PreferencesKeys.WEBHOOK_URL
 import foo.pilz.freaklog.ui.tabs.settings.funny.FunnyConfig
@@ -406,37 +407,28 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
     dataStore.edit { preferences -> preferences[PreferencesKeys.AI_ANODYNE_ENABLED] = value }
   }
 
-  /** Base URL of the AnodyneWiki-compatible API; blank means the default. */
-  val aiAnodyneBaseUrlFlow: Flow<String> =
-      dataStore.data.map { preferences ->
-        preferences[PreferencesKeys.AI_ANODYNE_BASE_URL].orEmpty()
-      }
-
-  suspend fun saveAiAnodyneBaseUrl(value: String) {
-    dataStore.edit { preferences ->
-      if (value.isBlank()) {
-        preferences.remove(PreferencesKeys.AI_ANODYNE_BASE_URL)
-      } else {
-        preferences[PreferencesKeys.AI_ANODYNE_BASE_URL] = value.trim()
-      }
-    }
-  }
-
-  /** Base URL for general AnodyneWiki integration. */
+  /**
+   * AnodyneWiki instance URL (without `/api`) used by every Anodyne feature: the wiki screens, the
+   * assistant's lookups, substance links and webhook hyperlinks. Falls back to the assistant's
+   * older API URL setting, which it replaces.
+   */
   val anodyneBaseUrlFlow: Flow<String> =
       dataStore.data.map { preferences ->
         preferences[PreferencesKeys.ANODYNE_BASE_URL]
-            ?: preferences[PreferencesKeys.AI_ANODYNE_BASE_URL]
-            ?: "https://anodyne.wiki"
+            ?: preferences[PreferencesKeys.AI_ANODYNE_BASE_URL]?.let {
+              AnodyneRepository.normalizeUrl(it)
+            }
+            ?: AnodyneRepository.DEFAULT_INSTANCE_URL
       }
 
   suspend fun saveAnodyneBaseUrl(value: String) {
+    val normalized = AnodyneRepository.normalizeUrl(value)
     dataStore.edit { preferences ->
-      val trimmed = value.trim()
-      if (trimmed.isBlank() || trimmed.removeSuffix("/") == "https://anodyne.wiki") {
+      preferences.remove(PreferencesKeys.AI_ANODYNE_BASE_URL)
+      if (normalized == null || normalized == AnodyneRepository.DEFAULT_INSTANCE_URL) {
         preferences.remove(PreferencesKeys.ANODYNE_BASE_URL)
       } else {
-        preferences[PreferencesKeys.ANODYNE_BASE_URL] = trimmed
+        preferences[PreferencesKeys.ANODYNE_BASE_URL] = normalized
       }
     }
   }

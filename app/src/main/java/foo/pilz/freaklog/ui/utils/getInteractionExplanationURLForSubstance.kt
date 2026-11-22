@@ -18,7 +18,10 @@
 
 package foo.pilz.freaklog.ui.utils
 
-fun getInteractionExplanationURLForSubstance(substanceURL: String): String {
+import foo.pilz.freaklog.data.anodyne.AnodyneInstance
+
+fun getInteractionExplanationURLForSubstance(bundledURL: String): String {
+  val substanceURL = AnodyneInstance.rebase(bundledURL)
   return if (substanceURL.startsWith("https://psychonautwiki.org")) {
     "$substanceURL#Dangerous_interactions"
   } else {

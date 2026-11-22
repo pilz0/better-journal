@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import foo.pilz.freaklog.data.anodyne.AnodyneInstance
 import foo.pilz.freaklog.data.substances.classes.Category
 import foo.pilz.freaklog.ui.tabs.stats.EmptyScreenDisclaimer
 import foo.pilz.freaklog.ui.theme.horizontalPadding
@@ -73,7 +74,7 @@ fun CategoryScreen(category: Category?) {
               actions = {
                 if (category.url != null) {
                   TextButton(
-                      onClick = { uriHandler.openUri(category.url) },
+                      onClick = { uriHandler.openUri(AnodyneInstance.rebase(category.url)) },
                   ) {
                     Text("Article")
                   }

@@ -2,6 +2,7 @@ package foo.pilz.freaklog.data.anodyne
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
+import foo.pilz.freaklog.data.ai.profiles.isInsecureRemoteUrl
 import foo.pilz.freaklog.data.ai.provider.AiHttp
 import foo.pilz.freaklog.data.anodyne.model.AnodyneIndexEntry
 import foo.pilz.freaklog.data.anodyne.model.AnodyneSubstance
@@ -12,6 +13,7 @@ import java.net.URL
 import java.net.URLEncoder
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -46,11 +48,25 @@ constructor(
         val proto = parsed.protocol?.lowercase()
         if (proto != "http" && proto != "https") return null
         if (parsed.host.isNullOrBlank() || parsed.query != null) return null
-        text
+        if (isInsecureRemoteUrl(text)) return null
+        text.removeSuffix("/api")
       } catch (_: Exception) {
         null
       }
     }
+
+    /** What to tell the user after a [lookup] that found no page, or null if it found one. */
+    fun lookupProblem(result: Result<AnodyneSubstance?>): String? =
+        when {
+          result.isFailure ->
+              "Couldn't reach AnodyneWiki. Check your connection or the instance URL."
+          result.getOrNull() == null -> "AnodyneWiki has no page for this substance."
+          else -> null
+        }
+
+    /** Link to the wiki page of [title] on the instance at [baseUrl]. */
+    fun substancePageUrl(baseUrl: String, title: String): String =
+        "$baseUrl/substance/" + URLEncoder.encode(title.trim(), "UTF-8").replace("+", "%20")
   }
 
   private val cacheDir: File
@@ -88,27 +104,27 @@ constructor(
         }
 
         val baseUrl = getBaseUrl()
-        val directResult = fetchSubstance(baseUrl, name)
-        if (directResult.isSuccess && directResult.getOrNull() != null) {
-          val sub = directResult.getOrNull()!!
-          saveSubstanceToCache(name, sub)
+        fetchSubstance(baseUrl, name)?.let { (json, sub) ->
+          saveSubstanceToCache(name, json)
           fallbackStore.record(sub, name)
           return@withContext Result.success(sub)
         }
 
-        // Try index for alias match
-        val indexEntries = getIndexEntries().getOrNull().orEmpty()
+        // Try index for alias match. If even the index is unreachable this is a failure, not
+        // "not found".
+        val indexEntries =
+            getIndexEntries().getOrElse {
+              return@withContext Result.failure(it)
+            }
         val allSearchNames = listOf(name) + otherNames
         val match = indexEntries.firstOrNull { entry ->
           allSearchNames.any { entry.matches(it) }
         }
 
         if (match != null && !match.title.equals(name, ignoreCase = true)) {
-          val canonicalResult = fetchSubstance(baseUrl, match.title)
-          if (canonicalResult.isSuccess && canonicalResult.getOrNull() != null) {
-            val sub = canonicalResult.getOrNull()!!
-            saveSubstanceToCache(name, sub)
-            saveSubstanceToCache(match.title, sub)
+          fetchSubstance(baseUrl, match.title)?.let { (json, sub) ->
+            saveSubstanceToCache(name, json)
+            saveSubstanceToCache(match.title, json)
             fallbackStore.record(sub, name)
             return@withContext Result.success(sub)
           }
@@ -117,14 +133,19 @@ constructor(
         Result.success(null)
       }
 
-  private suspend fun fetchSubstance(baseUrl: String, title: String): Result<AnodyneSubstance?> =
+  /** The raw page and its parsed form, or null when it is missing or unreachable. */
+  private suspend fun fetchSubstance(
+      baseUrl: String,
+      title: String,
+  ): Pair<JSONObject, AnodyneSubstance>? =
       try {
         val encoded = URLEncoder.encode(title.trim(), "UTF-8").replace("+", "%20")
-        val url = "$baseUrl/api/substance/$encoded"
-        val json = AiHttp.getJson(url, emptyMap())
-        Result.success(AnodyneParser.parseSubstance(json))
-      } catch (e: Exception) {
-        Result.failure(e)
+        val json = AiHttp.getJson("$baseUrl/api/substance/$encoded", emptyMap())
+        AnodyneParser.parseSubstance(json)?.let { json to it }
+      } catch (e: CancellationException) {
+        throw e
+      } catch (_: Exception) {
+        null
       }
 
   suspend fun getIndexEntries(): Result<List<AnodyneIndexEntry>> =
@@ -228,34 +249,14 @@ constructor(
 
   private fun getSubstanceCacheFile(name: String): File {
     val safe = name.lowercase().replace(Regex("[^a-z0-9]"), "_")
-    return File(cacheDir, "substance_$safe.json")
+    // "page_": older "substance_" files held a lossy re-encoding of the page; ignore them.
+    return File(cacheDir, "page_$safe.json")
   }
 
-  private fun saveSubstanceToCache(lookupKey: String, substance: AnodyneSubstance) {
+  /** Caches the raw page so a cached lookup parses exactly like a fresh one. */
+  private fun saveSubstanceToCache(lookupKey: String, json: JSONObject) {
     try {
-      val file = getSubstanceCacheFile(lookupKey)
-      val json =
-          JSONObject().apply {
-            put("Title", substance.title)
-            put("Abbreviation", JSONArray(substance.abbreviations))
-            put("Aliases", JSONArray(substance.aliases))
-            put("Classes", JSONArray(substance.classes))
-            put("DurationOfAction", substance.durationOfAction)
-            put("Biological Half-Life", substance.halfLife)
-            put("Interactions", substance.interactions)
-            put("Mechanism of Action", substance.mechanismOfAction)
-            put("Metabolism/Metabolites", substance.metabolism)
-            put("Health Effects", substance.healthEffects)
-            put("Drug Warnings", substance.drugWarnings)
-            put("Reported Fatal Dose", substance.reportedFatalDose)
-            put("Treatment", substance.treatment)
-            put("MolecularFormula", substance.formula)
-            put("MolecularWeight", substance.molarMass)
-            if (substance.structureSvg != null) {
-              put("Structure", substance.structureSvg)
-            }
-          }
-      file.writeText(json.toString())
+      getSubstanceCacheFile(lookupKey).writeText(json.toString())
     } catch (_: Exception) {
       // Best effort cache write
     }

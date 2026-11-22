@@ -44,7 +44,15 @@ constructor(
     viewModelScope.launch {
       _isLoading.value = true
       _error.value = null
-      val result = repository.getUserNotes(listOf(substanceName))
+      // Notes are filed under the wiki title, which often differs from the bundled name
+      // ("LSD" vs "Lysergic acid diethylamide"), so match every name the page goes by.
+      val page = repository.lookup(substanceName).getOrNull()
+      val names =
+          listOf(substanceName) +
+              listOfNotNull(page?.title) +
+              page?.abbreviations.orEmpty() +
+              page?.aliases.orEmpty()
+      val result = repository.getUserNotes(names)
       result.fold(
           onSuccess = { list ->
             _notes.value = list

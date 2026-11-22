@@ -43,9 +43,7 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.GppBad
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -70,6 +68,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import foo.pilz.freaklog.data.anodyne.AnodyneInstance
 import foo.pilz.freaklog.data.anodyne.model.AnodyneSubstance
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.substances.AdministrationRoute
@@ -90,6 +89,7 @@ import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneEffectsSection
 import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneHealthWarningsSection
 import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneInteractionsSection
 import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneLegalSection
+import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneLoadCard
 import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodynePharmacologySection
 import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneReagentsSection
 import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneSourcesSection
@@ -133,6 +133,7 @@ fun SubstanceScreen(
       customUnits = viewModel.customUnitsFlow.collectAsState().value,
       anodyneSubstance = viewModel.anodyneSubstanceFlow.collectAsState().value,
       isAnodyneLoading = viewModel.isAnodyneLoadingFlow.collectAsState().value,
+      anodyneProblem = viewModel.anodyneProblemFlow.collectAsState().value,
       onLoadAnodyne = viewModel::loadAnodyneData,
       navigateToUserNotes = navigateToUserNotes,
   )
@@ -178,6 +179,7 @@ fun SubstanceScreen(
     customUnits: List<CustomUnit>,
     anodyneSubstance: AnodyneSubstance? = null,
     isAnodyneLoading: Boolean = false,
+    anodyneProblem: String? = null,
     onLoadAnodyne: () -> Unit = {},
     navigateToUserNotes: (substanceName: String) -> Unit = {},
 ) {
@@ -189,7 +191,7 @@ fun SubstanceScreen(
             title = { Text(substance.name) },
             actions = {
               TextButton(
-                  onClick = { uriHandler.openUri(substance.url) },
+                  onClick = { uriHandler.openUri(AnodyneInstance.rebase(substance.url)) },
               ) {
                 Text("Article")
               }
@@ -221,7 +223,8 @@ fun SubstanceScreen(
         }
       }
       val categories = substanceWithCategories.categories
-      if (substance.summary != null || categories.isNotEmpty()) {
+      val structureSvg = anodyneSubstance?.structureSvg
+      if (substance.summary != null || categories.isNotEmpty() || structureSvg != null) {
         VerticalSpace()
         ElevatedCard(
             modifier =
@@ -242,7 +245,7 @@ fun SubstanceScreen(
               Text(text = substance.summary)
               VerticalSpace()
             }
-            anodyneSubstance?.structureSvg?.let { svg ->
+            structureSvg?.let { svg ->
               MoleculeStructureView(svg = svg, substanceName = substance.name)
               VerticalSpace()
             }
@@ -258,37 +261,11 @@ fun SubstanceScreen(
         }
       }
       if (anodyneSubstance == null) {
-        ElevatedCard(
-            modifier =
-                Modifier.padding(
-                        horizontal = horizontalPadding,
-                        vertical = verticalPaddingCards,
-                    )
-                    .fillMaxWidth()
-        ) {
-          Row(
-              modifier = Modifier.padding(16.dp).fillMaxWidth(),
-              horizontalArrangement = Arrangement.SpaceBetween,
-              verticalAlignment = Alignment.CenterVertically,
-          ) {
-            Column(modifier = Modifier.weight(1f)) {
-              Text("AnodyneWiki Details", style = MaterialTheme.typography.titleMedium)
-              Text(
-                  "Load DBI-IGS dosages, reagents, effects & pharmacology",
-                  style = MaterialTheme.typography.bodySmall,
-                  color = MaterialTheme.colorScheme.onSurfaceVariant,
-              )
-            }
-            Spacer(Modifier.width(8.dp))
-            if (isAnodyneLoading) {
-              CircularProgressIndicator(modifier = Modifier.size(24.dp))
-            } else {
-              Button(onClick = onLoadAnodyne) {
-                Text("Load")
-              }
-            }
-          }
-        }
+        AnodyneLoadCard(
+            isLoading = isAnodyneLoading,
+            problem = anodyneProblem,
+            onLoad = onLoadAnodyne,
+        )
       }
       val roasWithDosesDefined =
           remember(substance.roas) {
@@ -654,7 +631,6 @@ fun SubstanceScreen(
         }
         AnodyneSourcesSection(
             substanceName = anodyneSubstance.title,
-            baseUrl = "https://anodyne.wiki",
             references = anodyneSubstance.references,
         )
       }

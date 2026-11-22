@@ -13,6 +13,8 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import java.time.Instant
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
@@ -27,6 +29,8 @@ class IngestionWebhookSenderTest {
           webhookRepository,
           messageRepository,
           experienceRepo,
+          // Runs the background deletes right away.
+          TestScope(UnconfinedTestDispatcher()),
       )
 
   private val friends =
@@ -203,5 +207,58 @@ class IngestionWebhookSenderTest {
     sender.send(listOf(ingestion(10, "MDMA")), selection = emptyMap())
 
     coVerify(exactly = 0) { experienceRepo.getWebhookDisplayValues(any()) }
+  }
+
+  /** Regression: the cascade from deleting the ingestion raced the remote deletes. */
+  @Test
+  fun deletesTheMessageOnEveryWebhook() = runTest {
+    val ingestion = ingestion(5, "Caffeine")
+    var cascaded = false
+    val links =
+        listOf(
+            IngestionWebhookMessage(id = 1, ingestionId = 5, webhookId = 1, messageId = "m1"),
+            IngestionWebhookMessage(id = 2, ingestionId = 5, webhookId = 2, messageId = "m2"),
+        )
+    // Deleting the ingestion cascades to its link rows.
+    coEvery { messageRepository.getByIngestion(5) } answers
+        {
+          links.takeUnless { cascaded }.orEmpty()
+        }
+    coEvery { webhookRepository.getById(1) } returns friends
+    coEvery { webhookRepository.getById(2) } returns personal
+    coEvery { messageRepository.isCurrentDestination(any(), any()) } answers { !cascaded }
+    coEvery { experienceRepo.delete(ingestion) } answers { cascaded = true }
+    coEvery { webhookService.deleteWebhookMessage(any(), any()) } returns true
+
+    sender.deleteWithMessages(ingestion)
+
+    coVerify { experienceRepo.delete(ingestion) }
+    coVerify { webhookService.deleteWebhookMessage(friends.url, "m1") }
+    coVerify { webhookService.deleteWebhookMessage(personal.url, "m2") }
+  }
+
+  @Test
+  fun deletingAnExperienceDeletesItsMessagesOnEveryWebhook() = runTest {
+    var cascaded = false
+    val links =
+        listOf(
+            IngestionWebhookMessage(id = 1, ingestionId = 5, webhookId = 1, messageId = "m1"),
+            IngestionWebhookMessage(id = 2, ingestionId = 6, webhookId = 2, messageId = "m2"),
+        )
+    coEvery { messageRepository.getByExperience(7) } answers
+        {
+          links.takeUnless { cascaded }.orEmpty()
+        }
+    coEvery { webhookRepository.getById(1) } returns friends
+    coEvery { webhookRepository.getById(2) } returns personal
+    coEvery { messageRepository.isCurrentDestination(any(), any()) } answers { !cascaded }
+    coEvery { experienceRepo.deleteEverythingOfExperience(7) } answers { cascaded = true }
+    coEvery { webhookService.deleteWebhookMessage(any(), any()) } returns true
+
+    sender.deleteExperienceWithMessages(7)
+
+    coVerify { experienceRepo.deleteEverythingOfExperience(7) }
+    coVerify { webhookService.deleteWebhookMessage(friends.url, "m1") }
+    coVerify { webhookService.deleteWebhookMessage(personal.url, "m2") }
   }
 }
