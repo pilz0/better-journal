@@ -140,6 +140,7 @@ constructor(
                 },
         )
       }
+      insertRecipesAndFormulations(journalExport, validCustomUnitIds)
       // The substance rows were just inserted with new ids; attach each one's details by name.
       journalExport.customSubstanceDetails.forEach { shared ->
         val substanceId =
@@ -172,6 +173,9 @@ constructor(
       journalExport.reminders.forEach { reminderDao.insert(it) }
       ingestionWebhookMessageDao.deleteAll()
       webhookDao.deleteAll()
+      db.customRecipeDao().deleteAllComponents()
+      db.customRecipeDao().deleteAllRecipes()
+      db.customFormulationDao().deleteAll()
       journalExport.webhooks.forEach { webhookDao.insert(it.toEntity()) }
       val validCustomUnitIds = journalExport.customUnits.map { it.id }.filter { it > 0 }.toSet()
       journalExport.substanceGroups.forEach { group ->
@@ -183,6 +187,7 @@ constructor(
                 },
         )
       }
+      insertRecipesAndFormulations(journalExport, validCustomUnitIds)
       val customSubstanceIdByName =
           experienceDao.getAllCustomSubstances().associate { it.name to it.id }
       journalExport.customSubstanceDetails.forEach { shared ->
@@ -222,6 +227,9 @@ constructor(
       reminderDao.deleteAll()
       ingestionWebhookMessageDao.deleteAll()
       webhookDao.deleteAll()
+      db.customRecipeDao().deleteAllComponents()
+      db.customRecipeDao().deleteAllRecipes()
+      db.customFormulationDao().deleteAll()
     }
     notifyJournalChanged()
   }
@@ -460,6 +468,49 @@ constructor(
       experienceDao.getIngestionsWithCustomUnitsForSubstanceSince(substanceName, since)
 
   /** Details of every custom substance that has any; substances with only a name are left out. */
+  suspend fun getAllCustomFormulations() = db.customFormulationDao().getAllOnce()
+
+  suspend fun getAllCustomRecipesWithComponents() =
+      db.customRecipeDao().getAllRecipesWithComponents()
+
+  /**
+   * Formulations keep their ids, like custom units, so ingestions still point at them. Recipes get
+   * new ids; their components keep a custom unit only if that unit was imported too.
+   */
+  private suspend fun insertRecipesAndFormulations(
+      journalExport: JournalExport,
+      validCustomUnitIds: Set<Int>,
+  ) {
+    journalExport.customFormulations.forEach { db.customFormulationDao().insert(it) }
+    journalExport.customRecipes.forEach { recipe ->
+      db.customRecipeDao()
+          .insertRecipeWithComponents(
+              recipe =
+                  foo.pilz.freaklog.data.room.experiences.entities.CustomRecipe(
+                      name = recipe.name,
+                      creationDate = recipe.creationDate,
+                      lastUsedDate = recipe.lastUsedDate,
+                      isArchived = recipe.isArchived,
+                      note = recipe.note,
+                  ),
+              components =
+                  recipe.components.map {
+                    foo.pilz.freaklog.data.room.experiences.entities.CustomRecipeComponent(
+                        customRecipeId = 0,
+                        substanceName = it.substanceName,
+                        dose = it.dose,
+                        isDoseAnEstimate = it.isDoseAnEstimate,
+                        estimatedDoseStandardDeviation = it.estimatedDoseStandardDeviation,
+                        units = it.units,
+                        administrationRoute = it.administrationRoute,
+                        customUnitId = it.customUnitId?.takeIf { id -> id in validCustomUnitIds },
+                        componentOrder = it.componentOrder,
+                    )
+                  },
+          )
+    }
+  }
+
   suspend fun getAllCustomSubstanceDetails():
       List<foo.pilz.freaklog.data.substanceshare.SharedSubstance> =
       experienceDao
@@ -469,7 +520,8 @@ constructor(
                 it.doses.isNotEmpty() ||
                 it.durations.isNotEmpty() ||
                 it.interactions.isNotEmpty() ||
-                it.crossTolerances.isNotEmpty()
+                it.crossTolerances.isNotEmpty() ||
+                it.categories.isNotEmpty()
           }
           .map { it.toShared() }
 

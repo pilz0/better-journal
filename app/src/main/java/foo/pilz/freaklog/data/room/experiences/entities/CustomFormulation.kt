@@ -4,7 +4,9 @@ import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import foo.pilz.freaklog.data.substances.AdministrationRoute
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class FormulationDurationOverrides(
     val onsetMinMinutes: Int? = null,
     val onsetMaxMinutes: Int? = null,
@@ -20,6 +22,7 @@ data class FormulationDurationOverrides(
     val afterglowMaxMinutes: Int? = null,
 )
 
+@Serializable
 @Entity(tableName = "custom_formulation")
 data class CustomFormulation(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,

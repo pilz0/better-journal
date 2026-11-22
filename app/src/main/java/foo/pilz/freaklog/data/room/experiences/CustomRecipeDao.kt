@@ -112,6 +112,10 @@ interface CustomRecipeDao {
     }
   }
 
+  @Transaction
+  @Query("SELECT * FROM CustomRecipe ORDER BY creationDate")
+  suspend fun getAllRecipesWithComponents(): List<CustomRecipeWithComponents>
+
   @Query("DELETE FROM CustomRecipe") suspend fun deleteAllRecipes()
 
   @Query("DELETE FROM CustomRecipeComponent") suspend fun deleteAllComponents()

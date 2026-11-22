@@ -19,6 +19,7 @@
 package foo.pilz.freaklog.data.export
 
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
+import foo.pilz.freaklog.data.room.experiences.relations.CustomRecipeWithComponents
 import foo.pilz.freaklog.data.room.reminders.entities.Reminder
 import foo.pilz.freaklog.data.room.webhooks.WebhookRepository
 import kotlinx.serialization.json.Json
@@ -34,6 +35,7 @@ suspend fun loadExportData(experienceRepository: ExperienceRepository): ExportDa
         intakeLimits = experienceRepository.getAllIntakeLimits(),
         customSubstanceDetails = experienceRepository.getAllCustomSubstanceDetails(),
         bloodPressureReadings = experienceRepository.getAllBloodPressureReadings(),
+        customFormulations = experienceRepository.getAllCustomFormulations(),
     )
 
 /**
@@ -65,6 +67,13 @@ suspend fun buildJournalExportJson(
                   SubstanceGroupSerializable(name = it.group.name, items = it.sortedItems)
                 }
               },
+          // Recipes are presets like substance groups, so a partial export leaves them out too.
+          customRecipes =
+              if (filter.isActive) emptyList()
+              else
+                  experienceRepository.getAllCustomRecipesWithComponents().map {
+                    it.toSerializable()
+                  },
       )
   return Json.encodeToString(journalExport)
 }
@@ -73,11 +82,13 @@ fun ExportData.toJournalExport(
     reminders: List<Reminder> = emptyList(),
     webhooks: List<WebhookSerializable> = emptyList(),
     substanceGroups: List<SubstanceGroupSerializable> = emptyList(),
+    customRecipes: List<CustomRecipeSerializable> = emptyList(),
 ): JournalExport =
     toJournalExport(
         reminders = reminders,
         webhooks = webhooks,
         substanceGroups = substanceGroups,
+        customRecipes = customRecipes,
         bpByExperienceId = bloodPressureReadings.groupBy { it.experienceId },
     )
 
@@ -85,11 +96,14 @@ private fun ExportData.toJournalExport(
     reminders: List<Reminder>,
     webhooks: List<WebhookSerializable>,
     substanceGroups: List<SubstanceGroupSerializable>,
+    customRecipes: List<CustomRecipeSerializable>,
     bpByExperienceId:
         Map<Int, List<foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading>>,
 ): JournalExport =
     JournalExport(
         substanceGroups = substanceGroups,
+        customRecipes = customRecipes,
+        customFormulations = customFormulations,
         experiences =
             experiences.map { experience ->
               val readings = bpByExperienceId[experience.experience.id].orEmpty()
@@ -167,6 +181,8 @@ private fun foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithInge
                   consumerName = ingestion.consumerName,
                   customUnitId = ingestion.customUnitId,
                   administrationSite = ingestion.administrationSite,
+                  formulationName = ingestion.formulationName,
+                  customFormulationId = ingestion.customFormulationId,
                   saltForm = ingestion.saltForm,
                   category = ingestion.category,
               )
@@ -193,4 +209,29 @@ private fun foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithInge
                   isPartOfTimeline = timedNote.isPartOfTimeline,
               )
             },
+    )
+
+private fun CustomRecipeWithComponents.toSerializable() =
+    CustomRecipeSerializable(
+        id = recipe.id,
+        name = recipe.name,
+        creationDate = recipe.creationDate,
+        lastUsedDate = recipe.lastUsedDate,
+        isArchived = recipe.isArchived,
+        note = recipe.note,
+        components =
+            components
+                .sortedBy { it.componentOrder }
+                .map {
+                  CustomRecipeComponentSerializable(
+                      substanceName = it.substanceName,
+                      dose = it.dose,
+                      isDoseAnEstimate = it.isDoseAnEstimate,
+                      estimatedDoseStandardDeviation = it.estimatedDoseStandardDeviation,
+                      units = it.units,
+                      administrationRoute = it.administrationRoute,
+                      customUnitId = it.customUnitId,
+                      componentOrder = it.componentOrder,
+                  )
+                },
     )

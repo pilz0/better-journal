@@ -13,6 +13,11 @@ import kotlinx.coroutines.flow.Flow
 interface CustomFormulationDao {
   @Query("SELECT * FROM custom_formulation") fun getAll(): Flow<List<CustomFormulation>>
 
+  @Query("SELECT * FROM custom_formulation ORDER BY id")
+  suspend fun getAllOnce(): List<CustomFormulation>
+
+  @Query("DELETE FROM custom_formulation") suspend fun deleteAll()
+
   @Insert(onConflict = OnConflictStrategy.REPLACE)
   suspend fun insert(customFormulation: CustomFormulation): Long
 
