@@ -190,8 +190,10 @@ class OpenAiChatClientTest {
   fun explicitJsonNullsAreTreatedAsMissing() = runBlocking {
     server.enqueue(
         sse(
-            """{"error":null,"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call_1","function":{"name":"search","arguments":""}}]}}]}""",
-            """{"error":null,"choices":[{"delta":{"tool_calls":[{"index":0,"id":null,"function":{"name":null,"arguments":"{}"}}]},"finish_reason":null}]}""",
+            """{"error":null,"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call_1",""" +
+                """"function":{"name":"search","arguments":""}}]}}]}""",
+            """{"error":null,"choices":[{"delta":{"tool_calls":[{"index":0,"id":null,""" +
+                """"function":{"name":null,"arguments":"{}"}}]},"finish_reason":null}]}""",
             """{"choices":[{"delta":{},"finish_reason":"tool_calls"}]}""",
         ),
     )

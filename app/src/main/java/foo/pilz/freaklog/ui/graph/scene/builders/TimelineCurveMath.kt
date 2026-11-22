@@ -597,10 +597,14 @@ fun buildRawCurve(shape: TimelineShape, lines: List<RawIngestion>): RawTimelineC
   if (shape is TimelineShape.Full) return buildFull(shape, safeLines)
   val pointLines = safeLines.filter { it.endSeconds == null }
   val ingestionSeconds = pointLines.map { it.startSeconds }
+
   // Time-range ingestions used to be dropped here; only the Full shape had a range model.
   fun segmentsFor(line: RawIngestion) =
-      if (line.endSeconds == null) buildSimpleSegments(shape, line)
-      else stretchedRangeSegments(shape, line)
+      if (line.endSeconds == null) {
+        buildSimpleSegments(shape, line)
+      } else {
+        stretchedRangeSegments(shape, line)
+      }
 
   if (safeLines.size > 1 && shape.returnsToBaseline()) {
     val segs = safeLines.flatMap { segmentsToSegs(segmentsFor(it)) }
@@ -648,8 +652,11 @@ private fun stretchedRangeSegments(shape: TimelineShape, line: RawIngestion): Li
               val control =
                   point.controlSeconds?.let { if (shift && previousShifted) it + range else it }
               previousShifted = shift
-              if (shift) point.copy(seconds = point.seconds + range, controlSeconds = control)
-              else point
+              if (shift) {
+                point.copy(seconds = point.seconds + range, controlSeconds = control)
+              } else {
+                point
+              }
             }
     )
   }

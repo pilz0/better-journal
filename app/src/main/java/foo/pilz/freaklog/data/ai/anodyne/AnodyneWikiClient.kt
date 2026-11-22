@@ -185,8 +185,11 @@ class AnodyneWikiClient @Inject constructor() {
    */
   private fun capped(value: Any): Any {
     val text = value.toString()
-    return if (text.length <= MAX_STRUCTURED_CHARS) value
-    else text.take(MAX_STRUCTURED_CHARS) + "… (truncated)"
+    return if (text.length <= MAX_STRUCTURED_CHARS) {
+      value
+    } else {
+      text.take(MAX_STRUCTURED_CHARS) + "… (truncated)"
+    }
   }
 
   /** Reads a string, number, boolean or array of strings as one string. */

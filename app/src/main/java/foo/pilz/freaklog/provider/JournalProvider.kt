@@ -11,6 +11,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import foo.pilz.freaklog.data.room.experiences.ExperienceDao
+import kotlinx.coroutines.flow.first
 
 class JournalProvider : ContentProvider() {
 
@@ -20,6 +21,8 @@ class JournalProvider : ContentProvider() {
     fun experienceDao(): ExperienceDao
 
     fun biometricAuthManager(): foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthManager
+
+    fun userPreferences(): foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
   }
 
   private val code =
@@ -34,9 +37,27 @@ class JournalProvider : ContentProvider() {
       }
   private lateinit var matcher: UriMatcher
 
-  private val dao: ExperienceDao by lazy {
-    val ctx = context!!.applicationContext
-    EntryPointAccessors.fromApplication(ctx, ProviderEntryPoint::class.java).experienceDao()
+  private val entryPoint: ProviderEntryPoint by lazy {
+    EntryPointAccessors.fromApplication(
+        context!!.applicationContext,
+        ProviderEntryPoint::class.java,
+    )
+  }
+
+  private val dao: ExperienceDao by lazy { entryPoint.experienceDao() }
+
+  /**
+   * While app lock is on, approved readers get nothing either. This reads the saved setting: the
+   * in-memory unlock state only describes this app's own UI, and the provider also serves callers
+   * while the app is not running.
+   */
+  private fun enforceNotLocked() {
+    if (android.os.Binder.getCallingUid() == context!!.applicationInfo.uid) return
+    val locked =
+        kotlinx.coroutines.runBlocking { entryPoint.userPreferences().isLockEnabledFlow.first() }
+    if (locked) {
+      throw SecurityException("The journal is locked. Turn off app lock in Freaklog to share it.")
+    }
   }
 
   override fun onCreate(): Boolean {
@@ -62,6 +83,7 @@ class JournalProvider : ContentProvider() {
       sortOrder: String?,
   ): Cursor {
     JournalClientAccess(context!!.applicationContext).enforce(callingPackage)
+    enforceNotLocked()
     val since = ProviderQueryParams.parseSince(uri.getQueryParameter(JournalContract.QUERY_SINCE))
     val limit = ProviderQueryParams.parseLimit(uri.getQueryParameter(JournalContract.QUERY_LIMIT))
     val cursor =

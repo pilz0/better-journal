@@ -69,11 +69,11 @@ suspend fun buildJournalExportJson(
               },
           // Recipes are presets like substance groups, so a partial export leaves them out too.
           customRecipes =
-              if (filter.isActive) emptyList()
-              else
-                  experienceRepository.getAllCustomRecipesWithComponents().map {
-                    it.toSerializable()
-                  },
+              if (filter.isActive) {
+                emptyList()
+              } else {
+                experienceRepository.getAllCustomRecipesWithComponents().map { it.toSerializable() }
+              },
       )
   return Json.encodeToString(journalExport)
 }

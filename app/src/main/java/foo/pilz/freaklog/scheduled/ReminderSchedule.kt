@@ -73,14 +73,20 @@ object ReminderSchedule {
     if (mask == 0) return null
 
     val anchor =
-        if (reminder.startEpochMillis > 0L) reminder.startEpochMillis
-        else legacyAnchorMillis(reminder, fromMillis, zone) ?: return null
-
-    if (reminder.intervalUnit.uppercase() == "DAYS") {
-      return nextCalendarDayFire(anchor, reminder.intervalValue.toLong(), fromMillis, mask, zone)
+        if (reminder.startEpochMillis > 0L) {
+          reminder.startEpochMillis
+        } else {
+          legacyAnchorMillis(reminder, fromMillis, zone)
+        }
+    return when {
+      anchor == null -> null
+      reminder.intervalUnit.uppercase() == "DAYS" ->
+          nextCalendarDayFire(anchor, reminder.intervalValue.toLong(), fromMillis, mask, zone)
+      else ->
+          nextIntervalAfter(anchor, fromMillis, intervalMs)?.let {
+            nextAllowedIntervalFire(it, intervalMs, mask, zone)
+          }
     }
-    val next = nextIntervalAfter(anchor, fromMillis, intervalMs) ?: return null
-    return nextAllowedIntervalFire(next, intervalMs, mask, zone)
   }
 
   /**

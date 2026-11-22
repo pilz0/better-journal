@@ -71,14 +71,15 @@ constructor(
           // Same lookup as the other dose screens: honours "use intranasal for rectal" and the
           // user's custom substance profiles.
           val useIntranasalForRectal = userPreferences.useIntranasalForRectalFlow.first()
-          roaDose =
-              (substance?.getEffectiveRoa(customUnit.administrationRoute, useIntranasalForRectal)
-                      ?: customProfiles.getEffectiveRoa(
-                          customUnit.substanceName,
-                          customUnit.administrationRoute,
-                          useIntranasalForRectal,
-                      ))
-                  ?.roaDose
+          val route = customUnit.administrationRoute
+          val roa =
+              substance?.getEffectiveRoa(route, useIntranasalForRectal)
+                  ?: customProfiles.getEffectiveRoa(
+                      customUnit.substanceName,
+                      route,
+                      useIntranasalForRectal,
+                  )
+          roaDose = roa?.roaDose
         }
       }
     }

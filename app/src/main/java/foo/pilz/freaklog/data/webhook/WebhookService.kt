@@ -342,10 +342,13 @@ internal constructor(
             } catch (_: IOException) {}
             null
           }
+        } catch (e: WebhookHttpException) {
+          // Discord answered with an error, so nothing was posted and a retry is safe.
+          throw e
         } catch (e: IOException) {
           // A new message is not idempotent: once the body went out, a timeout or reset may come
           // after Discord posted it. Edits (PATCH) are safe to repeat.
-          if (bodySent && !isEdit && e !is WebhookHttpException) throw DeliveryUnknownException(e)
+          if (bodySent && !isEdit) throw DeliveryUnknownException(e)
           throw e
         } finally {
           connection.disconnect()
