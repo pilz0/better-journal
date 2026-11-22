@@ -243,4 +243,55 @@ class ChooseDoseViewModelTest {
     assertEquals(insufflatedDose, viewModel.roaDose)
     viewModel.viewModelScope.cancel()
   }
+
+  @Test
+  fun `dose class converts entered unit to threshold unit`() {
+    val oralDose =
+        RoaDose(
+            units = "mg",
+            lightMin = 5.0,
+            commonMin = 10.0,
+            strongMin = 20.0,
+            heavyMin = 30.0,
+        )
+    val roa =
+        Roa(
+            route = AdministrationRoute.ORAL,
+            roaDose = oralDose,
+            roaDuration = null,
+            bioavailability = null,
+        )
+    val substance =
+        mockk<Substance> {
+          every { name } returns "TestSubstance"
+          every { dosageRemark } returns null
+          every { getEffectiveRoa(AdministrationRoute.ORAL, any()) } returns roa
+          every { getRoa(AdministrationRoute.ORAL) } returns roa
+        }
+    every { substanceRepository.getSubstance("TestSubstance") } returns substance
+
+    val viewModel =
+        ChooseDoseViewModel(
+            repository = substanceRepository,
+            experienceRepo = experienceRepository,
+            userPreferences = userPreferences,
+            state =
+                SavedStateHandle(
+                    mapOf(
+                        "substanceName" to "TestSubstance",
+                        "administrationRoute" to AdministrationRoute.ORAL.name,
+                    )
+                ),
+        )
+
+    viewModel.units = "g"
+    viewModel.onDoseTextChange("0.5")
+
+    // 0.5 g = 500 mg: heavy (> 30 mg), not threshold
+    assertEquals(
+        foo.pilz.freaklog.data.substances.classes.roa.DoseClass.HEAVY,
+        viewModel.currentDoseClass,
+    )
+    viewModel.viewModelScope.cancel()
+  }
 }

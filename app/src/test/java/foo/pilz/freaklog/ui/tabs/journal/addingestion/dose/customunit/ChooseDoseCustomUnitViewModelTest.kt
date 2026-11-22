@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.substances.AdministrationRoute
+import foo.pilz.freaklog.data.substances.classes.Substance
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import io.mockk.coEvery
 import io.mockk.every
@@ -18,7 +19,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -135,4 +138,121 @@ class ChooseDoseCustomUnitViewModelTest {
     unknownDoseViewModel.viewModelScope.cancel()
     viewModel.viewModelScope.cancel()
   }
+
+  @Test
+  fun `currentDoseClass converts custom unit dose to roa threshold unit`() =
+      runTest(testDispatcher) {
+        val customUnit =
+            CustomUnit(
+                id = 10,
+                substanceName = "Creatine",
+                name = "Scoop",
+                administrationRoute = AdministrationRoute.ORAL,
+                dose = 0.5,
+                estimatedDoseStandardDeviation = null,
+                isEstimate = false,
+                isArchived = false,
+                unit = "Scoop",
+                unitPlural = "Scoops",
+                originalUnit = "g",
+                note = "",
+            )
+        val oralDose =
+            foo.pilz.freaklog.data.substances.classes.roa.RoaDose(
+                units = "mg",
+                lightMin = 100.0,
+                commonMin = 200.0,
+                strongMin = 300.0,
+                heavyMin = 400.0,
+            )
+        val roa =
+            foo.pilz.freaklog.data.substances.classes.roa.Roa(
+                route = AdministrationRoute.ORAL,
+                roaDose = oralDose,
+                roaDuration = null,
+                bioavailability = null,
+            )
+        val substance =
+            mockk<Substance> {
+              every { name } returns "Creatine"
+              every { dosageRemark } returns null
+              every { getEffectiveRoa(AdministrationRoute.ORAL, any()) } returns roa
+            }
+        coEvery { experienceRepository.getCustomUnit(10) } returns customUnit
+        every { substanceRepository.getSubstance("Creatine") } returns substance
+
+        val viewModel =
+            ChooseDoseCustomUnitViewModel(
+                experienceRepo = experienceRepository,
+                substanceRepo = substanceRepository,
+                userPreferences = userPreferences,
+                customProfiles = customProfiles,
+                state = SavedStateHandle(mapOf("customUnitId" to 10)),
+            )
+        advanceUntilIdle()
+
+        viewModel.onDoseTextChange("1")
+
+        // 1 scoop = 0.5 g = 500 mg -> Heavy (> 400 mg)
+        assertEquals(
+            foo.pilz.freaklog.data.substances.classes.roa.DoseClass.HEAVY,
+            viewModel.currentDoseClass,
+        )
+      }
+
+  @Test
+  fun `custom unit uses custom profile when substance is not in built-in repo`() =
+      runTest(testDispatcher) {
+        val customUnit =
+            CustomUnit(
+                id = 11,
+                substanceName = "NovelChem",
+                name = "Pill",
+                administrationRoute = AdministrationRoute.ORAL,
+                dose = 50.0,
+                estimatedDoseStandardDeviation = null,
+                isEstimate = false,
+                isArchived = false,
+                unit = "Pill",
+                unitPlural = "Pills",
+                originalUnit = "mg",
+                note = "",
+            )
+        val oralDose =
+            foo.pilz.freaklog.data.substances.classes.roa.RoaDose(
+                units = "mg",
+                lightMin = 10.0,
+                commonMin = 25.0,
+                strongMin = 50.0,
+                heavyMin = 75.0,
+            )
+        val roa =
+            foo.pilz.freaklog.data.substances.classes.roa.Roa(
+                route = AdministrationRoute.ORAL,
+                roaDose = oralDose,
+                roaDuration = null,
+                bioavailability = null,
+            )
+        coEvery { experienceRepository.getCustomUnit(11) } returns customUnit
+        every { substanceRepository.getSubstance("NovelChem") } returns null
+        coEvery {
+          customProfiles.getEffectiveRoa("NovelChem", AdministrationRoute.ORAL, false)
+        } returns roa
+
+        val viewModel =
+            ChooseDoseCustomUnitViewModel(
+                experienceRepo = experienceRepository,
+                substanceRepo = substanceRepository,
+                userPreferences = userPreferences,
+                customProfiles = customProfiles,
+                state = SavedStateHandle(mapOf("customUnitId" to 11)),
+            )
+        advanceUntilIdle()
+
+        viewModel.onDoseTextChange("1")
+        assertEquals(
+            foo.pilz.freaklog.data.substances.classes.roa.DoseClass.STRONG,
+            viewModel.currentDoseClass,
+        )
+      }
 }

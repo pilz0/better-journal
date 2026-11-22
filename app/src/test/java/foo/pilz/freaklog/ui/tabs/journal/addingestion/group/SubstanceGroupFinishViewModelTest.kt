@@ -216,4 +216,39 @@ class SubstanceGroupFinishViewModelTest {
       experienceRepo.insertIngestionExperienceAndCompanion(any(), any(), any())
     }
   }
+
+  @Test
+  fun `moving end time before start time updates start time and title and refreshes experiences`() {
+    val initialStart = java.time.LocalDateTime.of(2026, 5, 20, 14, 0)
+    val initialEnd = java.time.LocalDateTime.of(2026, 5, 20, 15, 0)
+    viewModel.onChangeStartDateOrTime(initialStart)
+    viewModel.onChangeEndDateOrTime(initialEnd)
+    dispatcher.scheduler.advanceUntilIdle()
+
+    // Pick end time at 12:00, which is before the current start time (14:00).
+    val earlierEnd = java.time.LocalDateTime.of(2026, 5, 20, 12, 0)
+    viewModel.onChangeEndDateOrTime(earlierEnd)
+    dispatcher.scheduler.advanceUntilIdle()
+
+    // Start time must have moved to 30 mins before the new end (11:30).
+    assertThat(viewModel.localDateTimeEndFlow.value).isEqualTo(earlierEnd)
+    assertThat(viewModel.localDateTimeStartFlow.value)
+        .isEqualTo(java.time.LocalDateTime.of(2026, 5, 20, 11, 30))
+    // Title is updated based on new start time.
+    assertThat(viewModel.enteredTitle).isEqualTo("20 May 2026")
+  }
+
+  @Test
+  fun `moving end time before start time does not overwrite a manually changed title`() {
+    viewModel.changeTitle("Custom Weekend Group")
+    val initialStart = java.time.LocalDateTime.of(2026, 5, 20, 14, 0)
+    viewModel.onChangeStartDateOrTime(initialStart)
+    dispatcher.scheduler.advanceUntilIdle()
+
+    val earlierEnd = java.time.LocalDateTime.of(2026, 5, 20, 10, 0)
+    viewModel.onChangeEndDateOrTime(earlierEnd)
+    dispatcher.scheduler.advanceUntilIdle()
+
+    assertThat(viewModel.enteredTitle).isEqualTo("Custom Weekend Group")
+  }
 }

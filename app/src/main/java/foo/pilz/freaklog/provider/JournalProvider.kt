@@ -51,14 +51,13 @@ class JournalProvider : ContentProvider() {
    * in-memory unlock state only describes this app's own UI, and the provider also serves callers
    * while the app is not running.
    */
-  private fun enforceNotLocked() {
-    if (android.os.Binder.getCallingUid() == context!!.applicationInfo.uid) return
-    val locked =
+  private fun enforceNotLocked() =
+      enforceJournalUnlocked(
+          callingUid = android.os.Binder.getCallingUid(),
+          ownUid = context!!.applicationInfo.uid,
+      ) {
         kotlinx.coroutines.runBlocking { entryPoint.userPreferences().isLockEnabledFlow.first() }
-    if (locked) {
-      throw SecurityException("The journal is locked. Turn off app lock in Freaklog to share it.")
-    }
-  }
+      }
 
   override fun onCreate(): Boolean {
     val authority = JournalContract.authority(context!!)
@@ -133,4 +132,16 @@ class JournalProvider : ContentProvider() {
 
   override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int =
       throw UnsupportedOperationException("Read-only provider")
+}
+
+/**
+ * Throws for an external caller while app lock is enabled. This app's own process is always
+ * allowed: its widgets and preview workers check the lock themselves. [isLockEnabled] is only read
+ * for external callers.
+ */
+internal fun enforceJournalUnlocked(callingUid: Int, ownUid: Int, isLockEnabled: () -> Boolean) {
+  if (callingUid == ownUid) return
+  if (isLockEnabled()) {
+    throw SecurityException("The journal is locked. Turn off app lock in Freaklog to share it.")
+  }
 }
