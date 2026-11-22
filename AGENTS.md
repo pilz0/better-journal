@@ -302,7 +302,7 @@ The upstream project uses `com.isaakhanimann.journal`. When porting upstream cod
 All library versions live in `gradle/libs.versions.toml` (Gradle Version Catalog).  
 Plugin versions live in the catalog too (`[plugins]`), including Hilt, KSP and the Room Gradle plugin.
 
-Toolchain: Gradle 9.9.0 (the Nix build reads the version and checksum from the wrapper), AGP 9.5.1, Kotlin 2.4.21, KSP 2.3.12, `compileSdk` 37, `targetSdk` 37, `minSdk` 31.
+Toolchain: Gradle 9.9.2 (the Nix build reads the version and checksum from the wrapper), AGP 9.5.2, Kotlin 2.4.21, KSP 2.3.14, `compileSdk` 37.1, `targetSdk` 37, `minSdk` 31, build-tools 37.0.0.
 AGP 9 compiles Kotlin itself, so the `org.jetbrains.kotlin.android` plugin is **not** applied; Kotlin options go in the
 top-level `kotlin { compilerOptions { … } }` block, not `android { kotlinOptions { … } }`.
 
@@ -705,7 +705,7 @@ maintainer's server).
 - No provider SDK is used — see [AI assistant](#ai-assistant-dataai). New provider features go into the `provider/` clients; keep `NativeContent` echoing intact so Gemini `thoughtSignature`s and Anthropic thinking signatures survive.
 - Robolectric has no Android Keystore, so tests use a fake `AiKeyCipher`.
 - `JournalExport` covers experiences (with ingestions, ratings, timed notes, locations and legacy blood pressure rows), substance companions, custom substances with their profiles, custom units, intake limits, substance groups, reminders and webhooks. Filtered (partial) exports leave out substance groups, reminders and webhooks. Other settings are not part of the export payload.
-- `compileSdk` is 37 because the current Compose / AndroidX releases refuse to build against anything lower. `targetSdk` is also 37; LAN AI servers require the Android 17 `ACCESS_LOCAL_NETWORK` runtime permission, requested from AI settings or the profile editor.
+- `compileSdk` is 37.1 (`release(37) { minorApiLevel = 1 }`) because Compose 1.13 refuses to build against anything lower; the Nix SDK includes platform `37.1` for it. `targetSdk` is also 37; LAN AI servers require the Android 17 `ACCESS_LOCAL_NETWORK` runtime permission, requested from AI settings or the profile editor.
 - Use `androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel`; the `androidx.hilt.navigation.compose` one is deprecated.
 
 ### Journal security boundaries

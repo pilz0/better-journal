@@ -39,12 +39,13 @@
           };
         };
 
-        buildToolsVersion = "36.0.0";
+        buildToolsVersion = "37.0.0";
 
         androidSdk = pkgs.androidenv.composeAndroidPackages {
-          cmdLineToolsVersion = "9.0"; # Matches your previous intent
+          cmdLineToolsVersion = "23.0";
           buildToolsVersions = [ buildToolsVersion ];
           platformVersions = [
+            "37.1"
             "37"
             "36"
           ];

@@ -11,7 +11,8 @@ plugins {
 
 android {
   namespace = "foo.pilz.freaklog"
-  compileSdk = 37
+  // Compose 1.13 (BOM 2026.11) requires the Android 17 QPR1 API level 37.1.
+  compileSdk { version = release(37) { minorApiLevel = 1 } }
 
   defaultConfig {
     applicationId = "foo.pilz.freaklog"

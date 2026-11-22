@@ -12,7 +12,7 @@ plugins {
   alias(libs.plugins.ksp) apply false
   alias(libs.plugins.detekt) apply false
   alias(libs.plugins.kover) apply false
-  id("nl.littlerobots.version-catalog-update") version "1.0.1"
+  id("nl.littlerobots.version-catalog-update") version "1.1.2"
 }
 
 // Convenience aggregator: `./gradlew detektAll` runs every Kotlin module's
