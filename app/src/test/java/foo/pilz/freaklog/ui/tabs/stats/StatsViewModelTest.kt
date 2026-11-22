@@ -112,7 +112,7 @@ class StatsViewModelTest {
     val mixedUnits =
         listOf(
             createIngestionWithData(dose = 50.0, units = "mg"),
-            createIngestionWithData(dose = 50.0, units = "ug"),
+            createIngestionWithData(dose = 50.0, units = "ml"),
         )
     assertNull(viewModel.getTotalDose(mixedUnits))
 
@@ -171,7 +171,7 @@ class StatsViewModelTest {
   }
 
   @Test
-  fun `getTotalDose matches microgram aliases without converting different scales`() {
+  fun `getTotalDose matches microgram aliases and converts between scales`() {
     val viewModel = createViewModel()
     val ingestions =
         listOf(
@@ -182,13 +182,63 @@ class StatsViewModelTest {
     val total = requireNotNull(viewModel.getTotalDose(ingestions))
 
     assertEquals(60.0, total.dose, 1e-9)
-    assertEquals("ug", total.units)
+    assertEquals("µg", total.units)
     val mixedScales =
         listOf(
             createIngestionWithData(1.0, "g"),
             createIngestionWithData(1000.0, "mg"),
+            createIngestionWithData(2.0, "drop", customUnit = customUnit(dose = 250.0)),
         )
-    assertNull(viewModel.getTotalDose(mixedScales))
+    val mixedTotal = requireNotNull(viewModel.getTotalDose(mixedScales))
+    assertEquals(2.5, mixedTotal.dose, 1e-9)
+    assertEquals("g", mixedTotal.units)
+  }
+
+  @Test
+  fun `getTotalDose converts volume units`() {
+    val viewModel = createViewModel()
+    val total =
+        requireNotNull(
+            viewModel.getTotalDose(
+                listOf(
+                    createIngestionWithData(1.0, "l"),
+                    createIngestionWithData(250.0, "mL"),
+                    createIngestionWithData(2.0, "dl"),
+                    createIngestionWithData(5.0, "cl"),
+                    createIngestionWithData(500.0, "µl"),
+                )
+            )
+        )
+    assertEquals(1.5005, total.dose, 1e-9)
+    assertEquals("l", total.units)
+
+    val small = requireNotNull(viewModel.getTotalDose(listOf(createIngestionWithData(300.0, "ul"))))
+    assertEquals(300.0, small.dose, 1e-9)
+    assertEquals("µl", small.units)
+  }
+
+  @Test
+  fun `getTotalDose scales deviations and rejects different unit families`() {
+    val viewModel = createViewModel()
+    val total =
+        requireNotNull(
+            viewModel.getTotalDose(
+                listOf(createIngestionWithData(2.0, "g", estimatedDoseStandardDeviation = 0.5))
+            )
+        )
+    assertEquals(2.0, total.dose, 1e-9)
+    assertEquals(0.5, requireNotNull(total.estimatedDoseStandardDeviation), 1e-9)
+
+    assertNull(
+        viewModel.getTotalDose(
+            listOf(createIngestionWithData(10.0, "mg"), createIngestionWithData(1.0, "ml"))
+        )
+    )
+    assertNull(
+        viewModel.getTotalDose(
+            listOf(createIngestionWithData(10.0, "mg"), createIngestionWithData(1.0, "pill"))
+        )
+    )
   }
 
   @Test

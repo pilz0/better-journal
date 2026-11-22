@@ -28,7 +28,6 @@ import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsAndCompanions
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit
 import foo.pilz.freaklog.data.substances.AdministrationRoute
-import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
 import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinController
 import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinEligibility
 import foo.pilz.freaklog.ui.tabs.stats.excelskin.EXCEL_SKIN_MAX_DELAY_MS
@@ -250,27 +249,33 @@ constructor(
   internal fun getTotalDose(
       groupedIngestions: List<IngestionWithCompanionAndCustomUnit>
   ): TotalDose? {
-    val units = groupedIngestions.firstOrNull()?.originalUnit ?: return null
-    val hasIncompatibleDose = groupedIngestions.any {
-      !RoaDose.isMatchingUnit(it.originalUnit, units) || it.pureDose?.isFinite() != true
-    }
+    // Every dose is converted to its family's base unit (mg or ml) so g, mg, µg and custom units
+    // that resolve to them add up.
+    val bases = groupedIngestions.map { DoseUnits.toBase(it.originalUnit) ?: return null }
+    val baseUnit = bases.firstOrNull()?.first ?: return null
+    val hasIncompatibleDose =
+        bases.any { it.first != baseUnit } ||
+            groupedIngestions.any { it.pureDose?.isFinite() != true }
     if (hasIncompatibleDose) return null
-    val sumDose = groupedIngestions.sumOf { it.pureDose ?: 0.0 }
+    val scaled = groupedIngestions.zip(bases) { ingestion, base -> ingestion to base.second }
+    val sumDose = scaled.sumOf { (ingestion, factor) -> (ingestion.pureDose ?: 0.0) * factor }
 
     val (customUnitEstimates, independentIngestions) =
-        groupedIngestions.partition {
-          it.customUnit != null &&
-              it.customUnit?.isEstimate == true &&
-              (it.customUnit?.dose ?: 0.0) > 0.0
+        scaled.partition { (ingestion, _) ->
+          ingestion.customUnit != null &&
+              ingestion.customUnit?.isEstimate == true &&
+              (ingestion.customUnit?.dose ?: 0.0) > 0.0
         }
 
-    var totalVariance = independentIngestions.sumOf {
-      val sd = it.pureDoseStandardDeviation ?: 0.0
+    var totalVariance = independentIngestions.sumOf { (ingestion, factor) ->
+      val sd = (ingestion.pureDoseStandardDeviation ?: 0.0) * factor
       sd * sd
     }
 
-    val byCustomUnit = customUnitEstimates.groupBy { it.customUnit!!.id }
-    for ((_, items) in byCustomUnit) {
+    val byCustomUnit = customUnitEstimates.groupBy { it.first.customUnit!!.id }
+    for ((_, scaledItems) in byCustomUnit) {
+      val factor = scaledItems.first().second
+      val items = scaledItems.map { it.first }
       val customUnit = items.first().customUnit!!
       val expectationY = customUnit.dose ?: 0.0
       val standardDeviationY = customUnit.estimatedDoseStandardDeviation ?: 0.0
@@ -287,13 +292,14 @@ constructor(
       val sum2 = standardDeviationY.pow(2) + expectationY.pow(2)
       val expectations = sumX.pow(2) * expectationY.pow(2)
       val groupVariance = (sum1 * sum2 - expectations).coerceAtLeast(0.0)
-      totalVariance += groupVariance
+      totalVariance += groupVariance * factor * factor
     }
 
-    val combinedStandardDeviation = sqrt(totalVariance)
+    val (units, divisor) = DoseUnits.displayUnit(baseUnit, sumDose)
+    val combinedStandardDeviation = sqrt(totalVariance) / divisor
     val isEstimate = groupedIngestions.any { it.isEstimate }
     return TotalDose(
-        dose = sumDose,
+        dose = sumDose / divisor,
         units = units,
         isEstimate = isEstimate,
         estimatedDoseStandardDeviation = combinedStandardDeviation.takeIf { it > 0.0 },

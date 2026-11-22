@@ -145,6 +145,8 @@ constructor(
                 range = timeRange,
                 now = currentTime,
                 zone = ZoneId.systemDefault(),
+                customUnits = ingestions.mapNotNull { it.customUnit }.associateBy { it.id },
+                preferredUnit = doseThresholds?.unit,
             )
           }
           .flowOn(Dispatchers.Default)

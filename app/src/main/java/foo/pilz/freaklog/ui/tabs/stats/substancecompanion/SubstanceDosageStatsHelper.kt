@@ -1,6 +1,8 @@
 package foo.pilz.freaklog.ui.tabs.stats.substancecompanion
 
+import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
+import foo.pilz.freaklog.ui.tabs.stats.DoseUnits
 import java.time.Instant
 import java.time.Period
 import java.time.ZoneId
@@ -30,21 +32,30 @@ object SubstanceDosageStatsHelper {
       range: DosageTimeRange,
       now: Instant = Instant.now(),
       zone: ZoneId = ZoneId.systemDefault(),
+      customUnits: Map<Int, CustomUnit> = emptyMap(),
+      preferredUnit: String? = null,
   ): SubstanceDosageStatsModel {
     val rangeStart =
         when (range) {
           DosageTimeRange.ALL -> ingestions.minOfOrNull { it.time } ?: now
           else -> now.atZone(zone).minus(range.period ?: Period.ZERO).toInstant()
         }
-    val unsorted = ingestions.filter { it.time >= rangeStart && it.time < now }
-    val visible = unsorted.sortedBy { it.time }
-    val unitsUsed = unsorted.mapNotNull { it.units?.takeIf(String::isNotBlank) }.distinct()
-    val buckets = buildBuckets(visible, range, rangeStart, now, zone, unitsUsed)
+    val visible = ingestions.filter { it.time >= rangeStart && it.time < now }.sortedBy { it.time }
+    // Doses converted to their family's base unit (mg / ml), custom units resolved first.
+    val baseDoses = visible.map { baseDose(it, customUnits) }
+    val baseUnits = baseDoses.mapNotNull { it?.first }.distinct()
+    val singleBase = baseUnits.singleOrNull()
+    val knownBaseDoses =
+        if (singleBase == null) emptyList() else baseDoses.mapNotNull { it?.second }
+    val (unit, divisor) =
+        singleBase?.let { DoseUnits.displayUnit(it, knownBaseDoses.sum(), preferredUnit) }
+            ?: (null to 1.0)
+    val unitsUsed = unit?.let(::listOf) ?: baseUnits
+    val doses = baseDoses.map { dose -> dose?.second?.takeIf { unit != null }?.div(divisor) }
+    val buckets = buildBuckets(visible, doses, range, rangeStart, now, zone, unit)
     val sessions = visible.map { it.experienceId }.toSet()
-    val singleUnit = unitsUsed.singleOrNull()
-    val knownDoses =
-        visible.filter { singleUnit != null && it.units == singleUnit }.mapNotNull { it.dose }
-    val totalKnownDose = singleUnit?.let { knownDoses.sum() }
+    val knownDoses = doses.filterNotNull()
+    val totalKnownDose = unit?.let { knownDoses.sum() }
     val summary =
         SubstanceDosageSummary(
             totalSessions = sessions.size,
@@ -53,7 +64,7 @@ object SubstanceDosageStatsHelper {
                 totalKnownDose?.let {
                   if (sessions.isEmpty()) 0.0 else it / sessions.size
                 },
-            peakKnownDose = singleUnit?.let { knownDoses.maxOrNull() ?: 0.0 },
+            peakKnownDose = unit?.let { knownDoses.maxOrNull() ?: 0.0 },
             unknownDoseCount = visible.count { it.dose == null },
             unitsUsed = unitsUsed,
             longestGapDays = longestGapDays(visible, zone),
@@ -66,19 +77,32 @@ object SubstanceDosageStatsHelper {
     )
   }
 
+  /** Base unit and the dose in it, or null when the ingestion has no unit. */
+  private fun baseDose(
+      ingestion: Ingestion,
+      customUnits: Map<Int, CustomUnit>,
+  ): Pair<String, Double?>? {
+    val customUnit = ingestion.customUnitId?.let(customUnits::get)
+    val (base, factor) =
+        DoseUnits.toBase(customUnit?.originalUnit ?: ingestion.units) ?: return null
+    val perUnit = if (customUnit == null) 1.0 else customUnit.dose
+    val dose = perUnit?.let { ingestion.dose?.times(it) }
+    return base to dose?.takeIf { it.isFinite() }?.times(factor)
+  }
+
   private fun buildBuckets(
       ingestions: List<Ingestion>,
+      doses: List<Double?>,
       range: DosageTimeRange,
       start: Instant,
       end: Instant,
       zone: ZoneId,
-      unitsUsed: List<String>,
+      singleUnit: String?,
   ): List<DosageBucket> {
     val config = bucketConfig(range, start, end, zone)
     val count = bucketCount(range, start, end, zone, config.step)
     val labelFormat = DateTimeFormatter.ofPattern(config.labelPattern)
     val fullDateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
-    val singleUnit = unitsUsed.singleOrNull()
     val buckets = ArrayDeque<DosageBucket>()
     var bucketEnd = end.atZone(zone)
     var ingestionIndex = ingestions.lastIndex
@@ -94,9 +118,7 @@ object SubstanceDosageStatsHelper {
         if (ingestionTime < bucketStartInstant) break
         if (ingestionTime < bucketEndInstant) {
           sessionIds += ingestion.experienceId
-          if (singleUnit != null && ingestion.units == singleUnit) {
-            bucketKnownDose += ingestion.dose ?: 0.0
-          }
+          bucketKnownDose += doses[ingestionIndex] ?: 0.0
         }
         ingestionIndex--
       }
