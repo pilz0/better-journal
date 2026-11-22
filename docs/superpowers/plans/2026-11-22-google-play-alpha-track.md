@@ -13,6 +13,7 @@
 ### Task 1: Add automated invariant check in `flake.nix` for Google Play release tracks
 
 **Files:**
+
 - Modify: `flake.nix:254-268`
 
 - [ ] **Step 1: Write the failing check in `flake.nix`**
@@ -46,6 +47,7 @@ git add flake.nix && git commit -m "test: add nix check for google play release 
 ### Task 2: Update `.github/workflows/release.yml` to deploy to `internal,alpha` tracks
 
 **Files:**
+
 - Modify: `.github/workflows/release.yml:396-425`
 
 - [ ] **Step 1: Update `upload-google-play` in `.github/workflows/release.yml`**
@@ -53,34 +55,34 @@ git add flake.nix && git commit -m "test: add nix check for google play release 
 Update the job and step names to mention both Internal & Alpha tracks, and update `tracks: internal` to `tracks: internal,alpha`.
 
 ```yaml
-  upload-google-play:
-    name: Upload to Google Play (Internal & Alpha tracks)
-    needs: [preconditions, attest]
-    if: needs.preconditions.outputs.should-release == 'true'
-    runs-on: ubuntu-latest
-    environment: internal-track
-    permissions:
-      contents: read
-      actions: read
-    steps:
-      - name: Harden the runner
-        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
-        with:
-          egress-policy: audit
+upload-google-play:
+  name: Upload to Google Play (Internal & Alpha tracks)
+  needs: [preconditions, attest]
+  if: needs.preconditions.outputs.should-release == 'true'
+  runs-on: ubuntu-latest
+  environment: internal-track
+  permissions:
+    contents: read
+    actions: read
+  steps:
+    - name: Harden the runner
+      uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+      with:
+        egress-policy: audit
 
-      - name: Download signed AAB
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: freaklog-aab
-          path: app
+    - name: Download signed AAB
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      with:
+        name: freaklog-aab
+        path: app
 
-      - name: Upload to Google Play (internal & alpha tracks)
-        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1.1.5
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
-          packageName: foo.pilz.freaklog
-          releaseFiles: app/freaklog.aab
-          tracks: internal,alpha
+    - name: Upload to Google Play (internal & alpha tracks)
+      uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1.1.5
+      with:
+        serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+        packageName: foo.pilz.freaklog
+        releaseFiles: app/freaklog.aab
+        tracks: internal,alpha
 ```
 
 - [ ] **Step 2: Run `nix flake check` to verify the check now passes**
@@ -99,6 +101,7 @@ git add .github/workflows/release.yml && git commit -m "ci: publish releases to 
 ### Task 3: Update documentation and synchronize AI instructions
 
 **Files:**
+
 - Modify: `nix/ai/reference.md`
 - Generated: `AGENTS.md`, `.github/copilot-instructions.md`
 
