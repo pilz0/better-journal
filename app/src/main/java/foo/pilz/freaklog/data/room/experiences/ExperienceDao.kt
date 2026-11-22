@@ -1000,14 +1000,48 @@ interface ExperienceDao {
   @Query("UPDATE substancecompanion SET substanceName = :new WHERE substanceName = :old")
   suspend fun renameSubstanceCompanion(old: String, new: String)
 
+  @Query("UPDATE IntakeLimit SET substanceName = :new WHERE substanceName = :old")
+  suspend fun renameInIntakeLimits(old: String, new: String)
+
+  @Query("UPDATE SubstanceGroupItem SET substanceName = :new WHERE substanceName = :old")
+  suspend fun renameInSubstanceGroupItems(old: String, new: String)
+
+  @Query("UPDATE custom_formulation SET substanceName = :new WHERE substanceName = :old")
+  suspend fun renameInCustomFormulations(old: String, new: String)
+
+  @Query("UPDATE CustomRecipeComponent SET substanceName = :new WHERE substanceName = :old")
+  suspend fun renameInRecipeComponents(old: String, new: String)
+
+  @Query("UPDATE reminder SET substanceName = :new WHERE substanceName = :old")
+  suspend fun renameInReminders(old: String, new: String)
+
+  @Query(
+      "SELECT EXISTS(SELECT 1 FROM customsubstance WHERE name = :name) OR " +
+          "EXISTS(SELECT 1 FROM substancecompanion WHERE substanceName = :name) OR " +
+          "EXISTS(SELECT 1 FROM ingestion WHERE substanceName = :name)"
+  )
+  suspend fun isSubstanceNameInUse(name: String): Boolean
+
+  /**
+   * Renames a custom substance everywhere it is referenced. Returns false, changing nothing, when
+   * [new] already belongs to another substance: merging would break the companion's primary key and
+   * pull that substance's ingestions into this one.
+   */
   @Transaction
-  suspend fun renameCustomSubstance(old: String, new: String) {
-    if (old == new || new.isBlank()) return
+  suspend fun renameCustomSubstance(old: String, new: String): Boolean {
+    if (old == new || new.isBlank()) return true
+    if (isSubstanceNameInUse(new)) return false
     renameCustomSubstanceRow(old, new)
     renameSubstanceCompanion(old, new)
     renameInIngestions(old, new)
     renameInCustomUnits(old, new)
     renameInCustomInteractionTargets(old, new)
+    renameInIntakeLimits(old, new)
+    renameInSubstanceGroupItems(old, new)
+    renameInCustomFormulations(old, new)
+    renameInRecipeComponents(old, new)
+    renameInReminders(old, new)
+    return true
   }
 
   @Query("UPDATE customroadose SET units = :new WHERE customSubstanceId = :substanceId")

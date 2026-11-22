@@ -83,15 +83,19 @@ constructor(
       val current = substanceFlow.value?.substance ?: return@launch
       val newName = nameFlow.value
       val newUnits = unitsFlow.value
-      if (current.name != newName && newName.isNotBlank()) {
-        customRepo.renameCustom(current.name, newName)
-      }
+      // A name that is already taken keeps the old one until the user types a free name.
+      val name =
+          if (current.name != newName && newName.isNotBlank()) {
+            if (customRepo.renameCustom(current.name, newName)) newName else current.name
+          } else {
+            current.name
+          }
       if (current.units != newUnits) {
         customRepo.setAllRoaDoseUnits(current.id, newUnits)
       }
       val updated =
           current.copy(
-              name = newName,
+              name = name,
               units = newUnits,
               description = "",
               summary = summaryFlow.value.ifBlank { null },

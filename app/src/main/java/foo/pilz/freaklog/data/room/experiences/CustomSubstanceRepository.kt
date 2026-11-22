@@ -47,7 +47,8 @@ constructor(
 
   suspend fun delete(substance: CustomSubstance) = dao.delete(substance)
 
-  suspend fun renameCustom(oldName: String, newName: String) =
+  /** False when [newName] is already taken; see [ExperienceDao.renameCustomSubstance]. */
+  suspend fun renameCustom(oldName: String, newName: String): Boolean =
       dao.renameCustomSubstance(oldName, newName)
 
   suspend fun setAllRoaDoseUnits(substanceId: Int, units: String) =
