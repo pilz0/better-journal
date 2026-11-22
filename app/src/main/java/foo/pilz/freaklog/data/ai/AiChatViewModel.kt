@@ -394,14 +394,9 @@ constructor(
             // Only this turn counts: from its user message on.
             val items = _uiState.value.items
             val hadEarlierText =
-                items
-                    .drop(items.indexOfLast { it is ChatItem.Message && it.isUser } + 1)
-                    .any {
-                      it is ChatItem.Message &&
-                          !it.isUser &&
-                          it.text.isNotBlank() &&
-                          it.id != bubbleId
-                    }
+                items.drop(items.indexOfLast { it is ChatItem.Message && it.isUser } + 1).any {
+                  it is ChatItem.Message && !it.isUser && it.text.isNotBlank() && it.id != bubbleId
+                }
             if (hadEarlierText) {
               _uiState.update { s -> s.copy(items = s.items.filterNot { it.id == bubbleId }) }
             } else {

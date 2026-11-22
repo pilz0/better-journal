@@ -48,7 +48,9 @@ class AiConversation(
   val messages: List<AiMessage>
     get() = history.toList()
 
-  /** False once the last turn's user message was removed again, so there is nothing to roll back. */
+  /**
+   * False once the last turn's user message was removed again, so there is nothing to roll back.
+   */
   private var lastTurnInHistory = false
 
   fun send(text: String): Flow<AiTurnEvent> = flow {
