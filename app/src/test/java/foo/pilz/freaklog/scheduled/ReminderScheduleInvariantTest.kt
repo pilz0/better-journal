@@ -57,8 +57,9 @@ class ReminderScheduleInvariantTest {
     }
   }
 
+  /** Day intervals count calendar days, so the wall-clock time survives both clock changes. */
   @Test
-  fun intervalMeasuresElapsedTimeAcrossBothClockChanges() {
+  fun dayIntervalKeepsTheLocalTimeAcrossBothClockChanges() {
     for (anchor in listOf("2026-03-28T08:00:00Z", "2026-10-24T07:00:00Z")) {
       val start = Instant.parse(anchor).toEpochMilli()
       val reminder =
@@ -69,7 +70,12 @@ class ReminderScheduleInvariantTest {
               intervalUnit = "DAYS",
           )
       val next = requireNotNull(ReminderSchedule.nextFireAt(reminder, start, zone))
-      assertEquals(Duration.ofHours(24).toMillis(), next - start)
+      val startLocal = Instant.ofEpochMilli(start).atZone(zone)
+      val nextLocal = Instant.ofEpochMilli(next).atZone(zone)
+      assertEquals(startLocal.toLocalTime(), nextLocal.toLocalTime())
+      assertEquals(startLocal.toLocalDate().plusDays(1), nextLocal.toLocalDate())
+      // The clock change makes that day 23 or 25 hours long.
+      assertTrue(Duration.ofMillis(next - start) != Duration.ofHours(24))
     }
   }
 

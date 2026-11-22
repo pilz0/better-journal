@@ -465,4 +465,57 @@ class ReminderScheduleTest {
     val expected = millis(LocalDate.of(2026, 1, 10), LocalTime.of(23, 59))
     assertEquals(expected, ReminderSchedule.nextFireAt(r, now, zone))
   }
+
+  @Test
+  fun dayIntervalsKeepTheirLocalTimeAcrossDaylightSaving() {
+    val berlin = java.time.ZoneId.of("Europe/Berlin")
+    val reminder =
+        Reminder(
+            title = "Daily",
+            hour = 9,
+            minute = 0,
+            isEnabled = true,
+            scheduleType = ReminderSchedule.SCHEDULE_TYPE_INTERVAL,
+            intervalValue = 1,
+            intervalUnit = "DAYS",
+            // 09:00 in Berlin (UTC+1) two days before the switch to summer time.
+            startEpochMillis = java.time.Instant.parse("2026-03-27T08:00:00Z").toEpochMilli(),
+        )
+
+    val next =
+        ReminderSchedule.nextFireAt(
+            reminder,
+            java.time.Instant.parse("2026-03-29T00:00:00Z").toEpochMilli(),
+            berlin,
+        )
+
+    // Still 09:00 local, now UTC+2.
+    assertEquals(java.time.Instant.parse("2026-03-29T07:00:00Z").toEpochMilli(), next)
+  }
+
+  @Test
+  fun everyThreeDaysKeepsItsCycleFromTheStoredStart() {
+    val utc = java.time.ZoneOffset.UTC
+    val reminder =
+        Reminder(
+            title = "Every 3 days",
+            hour = 8,
+            minute = 0,
+            isEnabled = true,
+            scheduleType = ReminderSchedule.SCHEDULE_TYPE_INTERVAL,
+            intervalValue = 3,
+            intervalUnit = "DAYS",
+            startEpochMillis = java.time.Instant.parse("2026-01-01T08:00:00Z").toEpochMilli(),
+        )
+
+    // Asked on 2 Jan (e.g. after a reboot) the next fire is 4 Jan, not "today + 3 days".
+    assertEquals(
+        java.time.Instant.parse("2026-01-04T08:00:00Z").toEpochMilli(),
+        ReminderSchedule.nextFireAt(
+            reminder,
+            java.time.Instant.parse("2026-01-02T12:00:00Z").toEpochMilli(),
+            utc,
+        ),
+    )
+  }
 }

@@ -73,25 +73,65 @@ object ReminderSchedule {
     if (mask == 0) return null
 
     val anchor =
-        runCatching {
-              if (reminder.startEpochMillis > 0L) {
-                reminder.startEpochMillis
-              } else {
-                // Legacy reminders: anchor at hour:minute today (in zone).
-                val today = Instant.ofEpochMilli(fromMillis).atZone(zone).toLocalDate()
-                today
-                    .atTime(
-                        LocalTime.of(reminder.hour.coerceIn(0, 23), reminder.minute.coerceIn(0, 59))
-                    )
-                    .atZone(zone)
-                    .toInstant()
-                    .toEpochMilli()
-              }
-            }
-            .getOrNull() ?: return null
+        if (reminder.startEpochMillis > 0L) reminder.startEpochMillis
+        else legacyAnchorMillis(reminder, fromMillis, zone) ?: return null
 
+    if (reminder.intervalUnit.uppercase() == "DAYS") {
+      return nextCalendarDayFire(anchor, reminder.intervalValue.toLong(), fromMillis, mask, zone)
+    }
     val next = nextIntervalAfter(anchor, fromMillis, intervalMs) ?: return null
     return nextAllowedIntervalFire(next, intervalMs, mask, zone)
+  }
+
+  /**
+   * Anchor for a reminder saved without a start time: hour:minute on the day of [nowMillis].
+   * [NotificationScheduler.rescheduleAll] stores it once, so later reschedules (a reboot, a time
+   * zone change) keep the cycle instead of restarting it today.
+   */
+  fun legacyAnchorMillis(reminder: Reminder, nowMillis: Long, zone: ZoneId): Long? =
+      runCatching {
+            Instant.ofEpochMilli(nowMillis)
+                .atZone(zone)
+                .toLocalDate()
+                .atTime(
+                    LocalTime.of(reminder.hour.coerceIn(0, 23), reminder.minute.coerceIn(0, 59))
+                )
+                .atZone(zone)
+                .toInstant()
+                .toEpochMilli()
+          }
+          .getOrNull()
+
+  /**
+   * "Every N days" steps in calendar days in [zone], so the reminder keeps its wall-clock time
+   * across daylight-saving changes instead of drifting by an hour.
+   */
+  private fun nextCalendarDayFire(
+      anchor: Long,
+      days: Long,
+      fromMillis: Long,
+      mask: Int,
+      zone: ZoneId,
+  ): Long? {
+    if (days <= 0L) return null
+    return runCatching {
+          val start = Instant.ofEpochMilli(anchor).atZone(zone)
+          val fromDate = Instant.ofEpochMilli(fromMillis).atZone(zone).toLocalDate()
+          val elapsed = java.time.temporal.ChronoUnit.DAYS.between(start.toLocalDate(), fromDate)
+          var step = if (elapsed > 0) elapsed / days else 0L
+          // One step can still be at or before fromMillis; after that the weekdays repeat
+          // within 7 steps, so 9 candidates cover every allowed slot.
+          repeat(9) {
+            val candidate = start.plusDays(step * days)
+            val millis = candidate.toInstant().toEpochMilli()
+            if (millis > fromMillis && isDayAllowedForFiring(candidate.dayOfWeek, mask)) {
+              return@runCatching millis
+            }
+            step++
+          }
+          null
+        }
+        .getOrNull()
   }
 
   private fun nextAllowedIntervalFire(

@@ -79,7 +79,7 @@ class ReminderActionReceiver : BroadcastReceiver() {
           ACTION_SNOOZE -> {
             val minutes = intent.getIntExtra(EXTRA_SNOOZE_MINUTES, 15)
             val triggerAt = System.currentTimeMillis() + minutes * 60_000L
-            notificationScheduler.scheduleAt(reminder, triggerAt)
+            notificationScheduler.snooze(reminder, triggerAt)
           }
           ACTION_SKIP -> {
             /* no-op; just dismiss */

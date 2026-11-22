@@ -60,16 +60,19 @@ constructor(
    * the previously scheduled alarm is cancelled.
    */
   fun scheduleReminder(reminder: Reminder, fromMillis: Long = System.currentTimeMillis()) {
-    // Always cancel any pending alarm first so an updated schedule replaces the old one.
-    cancelReminder(reminder.id)
+    // Always cancel any pending alarm first so an updated schedule replaces the old one. A pending
+    // snooze is a deliberate extra fire and stays; disabling or deleting cancels it.
+    cancelReminder(reminder.id, includeSnooze = false)
     if (!reminder.isEnabled) return
     val nextFireAt = ReminderSchedule.nextFireAt(reminder, fromMillis) ?: return
     scheduleAt(reminder, nextFireAt)
   }
 
   /** Schedules a single one-shot fire at [triggerAtMillis] for the given reminder. */
-  fun scheduleAt(reminder: Reminder, triggerAtMillis: Long) {
-    val pendingIntent = makeFirePendingIntent(reminder)
+  fun scheduleAt(reminder: Reminder, triggerAtMillis: Long) =
+      setAlarm(triggerAtMillis, makeFirePendingIntent(reminder))
+
+  private fun setAlarm(triggerAtMillis: Long, pendingIntent: PendingIntent) {
     try {
       if (canScheduleExactAlarms()) {
         alarmManager.setExactAndAllowWhileIdle(
@@ -97,25 +100,52 @@ constructor(
 
   fun cancelReminder(reminder: Reminder) = cancelReminder(reminder.id)
 
-  fun cancelReminder(reminderId: Int) {
+  /** Cancels the regular alarm of [reminderId] (and a pending snooze with [includeSnooze]). */
+  fun cancelReminder(reminderId: Int, includeSnooze: Boolean = true) {
     if (reminderId == 0) return
-    val intent = makeFireIntent(reminderId)
-    val pendingIntent =
-        PendingIntent.getBroadcast(
-            context,
-            reminderId,
-            intent,
-            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE,
+    listOfNotNull(
+            makeFireIntent(reminderId),
+            makeFireIntent(reminderId, snooze = true).takeIf { includeSnooze },
         )
-    if (pendingIntent != null) {
-      alarmManager.cancel(pendingIntent)
-      pendingIntent.cancel()
-    }
+        .forEach { intent ->
+          val pendingIntent =
+              PendingIntent.getBroadcast(
+                  context,
+                  reminderId,
+                  intent,
+                  PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE,
+              )
+          if (pendingIntent != null) {
+            alarmManager.cancel(pendingIntent)
+            pendingIntent.cancel()
+          }
+        }
   }
+
+  /**
+   * A one-off extra fire at [triggerAtMillis]. It has its own PendingIntent identity, so the
+   * reminder's next regular alarm stays scheduled.
+   */
+  fun snooze(reminder: Reminder, triggerAtMillis: Long) =
+      setAlarm(triggerAtMillis, makeFirePendingIntent(reminder, snooze = true))
 
   /** Reschedules all enabled reminders. Safe to call from app start and after reboot. */
   suspend fun rescheduleAll() {
-    remindersRepository.getAllReminders().forEach { scheduleReminder(it) }
+    val now = System.currentTimeMillis()
+    remindersRepository.getAllReminders().forEach { stored ->
+      var reminder = stored
+      // Pin the start of interval reminders saved without one, so the cycle survives reschedules.
+      if (
+          reminder.scheduleType == ReminderSchedule.SCHEDULE_TYPE_INTERVAL &&
+              reminder.startEpochMillis <= 0L
+      ) {
+        ReminderSchedule.legacyAnchorMillis(reminder, now, java.time.ZoneId.systemDefault())?.let {
+          reminder = reminder.copy(startEpochMillis = it)
+          remindersRepository.update(reminder)
+        }
+      }
+      scheduleReminder(reminder, now)
+    }
   }
 
   /**
@@ -228,8 +258,8 @@ constructor(
     return if (parts.isEmpty()) "Time for your scheduled reminder." else parts.joinToString("\n")
   }
 
-  private fun makeFirePendingIntent(reminder: Reminder): PendingIntent {
-    val intent = makeFireIntent(reminder.id)
+  private fun makeFirePendingIntent(reminder: Reminder, snooze: Boolean = false): PendingIntent {
+    val intent = makeFireIntent(reminder.id, snooze)
     return PendingIntent.getBroadcast(
         context,
         reminder.id,
@@ -238,7 +268,7 @@ constructor(
     )
   }
 
-  private fun makeFireIntent(reminderId: Int): Intent =
+  private fun makeFireIntent(reminderId: Int, snooze: Boolean = false): Intent =
       Intent(context, ReminderReceiver::class.java).apply {
         // Explicit component + package: prevents the broadcast from being resolved
         // by any receiver outside this app, even though we also set a custom action
@@ -246,7 +276,7 @@ constructor(
         // PendingIntent).
         setPackage(context.packageName)
         // Set a unique action so PendingIntent equality is per-reminder rather than per-class.
-        action = "$ACTION_FIRE_REMINDER.$reminderId"
+        action = "$ACTION_FIRE_REMINDER.$reminderId" + if (snooze) ".snooze" else ""
         putExtra(EXTRA_REMINDER_ID, reminderId)
       }
 
