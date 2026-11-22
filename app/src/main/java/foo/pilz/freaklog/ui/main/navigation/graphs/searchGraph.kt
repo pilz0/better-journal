@@ -60,6 +60,17 @@ fun NavGraphBuilder.searchGraph(navController: NavHostController) {
           navigateToAddCustomSubstanceScreen = {
             navController.navigate(AddCustomSubstanceRouteOnSearchGraph)
           },
+          navigateToAnodyneSearch = { query ->
+            navController.navigate(AnodyneSearchRoute(query = query))
+          },
+      )
+    }
+    composableWithTransitions<AnodyneSearchRoute> {
+      foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneSearchScreen(
+          navigateBack = navController::popBackStack,
+          navigateToSubstance = { title ->
+            navController.navigate(AnodyneSubstanceRoute(title = title))
+          },
       )
     }
     composableWithTransitions<SubstanceRoute> {
@@ -231,3 +242,13 @@ data class CustomDurationEditorRoute(
 @Serializable object ExplainTimelineOnSearchTabRoute
 
 @Serializable object DosageExplanationRouteOnSearchTab
+
+@Serializable data class AnodyneSearchRoute(val query: String = "")
+
+@Serializable data class AnodyneSubstanceRoute(val title: String)
+
+@Serializable data class AnodyneUserNotesRoute(val substanceName: String)
+
+@Serializable data class AnodyneUserNoteDetailRoute(val user: String, val substanceName: String)
+
+@Serializable data class AnodyneLinksRoute(val title: String, val url: String = "")
