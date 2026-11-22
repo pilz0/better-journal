@@ -1,4 +1,4 @@
-package foo.pilz.freaklog.ui.tabs.stats
+package foo.pilz.freaklog.data.substances.classes.roa
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo

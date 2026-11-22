@@ -191,6 +191,37 @@ class ReminderScheduleTest {
   }
 
   @Test
+  fun nextFireAt_dayInterval_findsAllowedDayBeyondOneWeek() {
+    val anchor = millis(LocalDate.of(2026, 1, 6), LocalTime.of(9, 0)) // Tuesday
+    val r =
+        reminder(
+            scheduleType = ReminderSchedule.SCHEDULE_TYPE_INTERVAL,
+            intervalValue = 5,
+            intervalUnit = "Days",
+            startEpochMillis = anchor,
+            daysMask = 0b0000001, // Monday only
+        )
+    val now = millis(LocalDate.of(2026, 1, 6), LocalTime.of(10, 0))
+    // Sun 11th, Fri 16th, Wed 21st are skipped; Mon 26th is the first allowed slot.
+    val expected = millis(LocalDate.of(2026, 1, 26), LocalTime.of(9, 0))
+    assertEquals(expected, ReminderSchedule.nextFireAt(r, now, zone))
+  }
+
+  @Test
+  fun nextFireAt_dayInterval_neverOnAllowedDay_returnsNull() {
+    val anchor = millis(LocalDate.of(2026, 1, 6), LocalTime.of(9, 0)) // Tuesday
+    val r =
+        reminder(
+            scheduleType = ReminderSchedule.SCHEDULE_TYPE_INTERVAL,
+            intervalValue = 7,
+            intervalUnit = "Days",
+            startEpochMillis = anchor,
+            daysMask = 0b0000001, // Monday only, but every slot is a Tuesday
+        )
+    assertNull(ReminderSchedule.nextFireAt(r, anchor, zone))
+  }
+
+  @Test
   fun nextFireAt_dailyAtTimes_nearMaxMillis_returnsNull() {
     assertThat(ReminderSchedule.nextFireAt(reminder(), Long.MAX_VALUE - 1000L, zone)).isNull()
     assertThat(ReminderSchedule.nextFireAt(reminder(), Long.MAX_VALUE, zone)).isNull()

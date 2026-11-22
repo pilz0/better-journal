@@ -160,8 +160,22 @@ class RoaDoseTest {
 
   @Test
   fun testGetDoseClass_wrongUnits() {
-    val result = standardRoaDose.getDoseClass(100.0, "mg")
-    assertNull(result)
+    assertNull(standardRoaDose.getDoseClass(100.0, "ml"))
+    assertNull(standardRoaDose.getDoseClass(100.0, "pills"))
+    assertNull(standardRoaDose.getNumDots(100.0, "ml"))
+  }
+
+  @Test
+  fun testGetDoseClass_convertsBetweenMassUnits() {
+    // 0.1 mg = 100 µg on a µg scale, 0.1 g = 100 mg on an mg scale.
+    assertEquals(DoseClass.COMMON, standardRoaDose.getDoseClass(0.1, "mg"))
+    assertEquals(2, standardRoaDose.getNumDots(0.1, "mg"))
+    assertEquals(DoseClass.HEAVY, standardRoaDose.getDoseClass(1.0, "mg"))
+    assertEquals(
+        mgRoaDose.getDoseClass(100.0, "mg"),
+        mgRoaDose.getDoseClass(0.1, "g"),
+    )
+    assertEquals(mgRoaDose.getNumDots(100.0, "mg"), mgRoaDose.getNumDots(0.1, "g"))
   }
 
   @Test
@@ -307,8 +321,8 @@ class RoaDoseTest {
 
   @Test
   fun testGetNumDots_wrongUnits() {
-    val result = standardRoaDose.getNumDots(100.0, "mg")
-    assertNull(result)
+    assertNull(standardRoaDose.getNumDots(100.0, "ml"))
+    assertNull(standardRoaDose.getNumDots(100.0, null))
   }
 
   @Test

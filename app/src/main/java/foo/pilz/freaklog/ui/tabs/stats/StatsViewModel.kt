@@ -28,6 +28,7 @@ import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsAndCompanions
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit
 import foo.pilz.freaklog.data.substances.AdministrationRoute
+import foo.pilz.freaklog.data.substances.classes.roa.DoseUnits
 import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinController
 import foo.pilz.freaklog.ui.tabs.settings.funny.UltraFunSkinEligibility
 import foo.pilz.freaklog.ui.tabs.stats.excelskin.EXCEL_SKIN_MAX_DELAY_MS

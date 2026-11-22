@@ -2,6 +2,7 @@ package foo.pilz.freaklog.ui.tabs.settings.intakelimits
 
 import foo.pilz.freaklog.data.room.experiences.entities.IntakeLimit
 import foo.pilz.freaklog.data.room.experiences.entities.IntakeLimitType
+import foo.pilz.freaklog.data.substances.classes.roa.DoseUnits
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
 import java.time.Instant
 import kotlin.math.roundToInt
@@ -53,21 +54,12 @@ data class IntakeLimitStatus(
     get() = projectedPercent >= limit.warningPercent
 }
 
-private val massUnitToMilligrams: Map<String, Double> =
-    mapOf(
-        "µg" to 0.001,
-        "ug" to 0.001,
-        "mcg" to 0.001,
-        "mg" to 1.0,
-        "g" to 1000.0,
-        "kg" to 1_000_000.0,
-    )
-
 fun convertDose(value: Double, fromUnit: String?, toUnit: String?): Double? {
   if (fromUnit == null || toUnit == null || !value.isFinite() || value < 0.0) return null
   if (fromUnit.trim().equals(toUnit.trim(), ignoreCase = true)) return value
-  val from = massUnitToMilligrams[fromUnit.trim().lowercase()] ?: return null
-  val to = massUnitToMilligrams[toUnit.trim().lowercase()] ?: return null
+  val (fromBase, from) = DoseUnits.toBase(fromUnit) ?: return null
+  val (toBase, to) = DoseUnits.toBase(toUnit) ?: return null
+  if (fromBase != toBase) return null
   val converted = value * from / to
   return if (converted.isFinite() && converted >= 0.0) converted else null
 }

@@ -32,6 +32,7 @@ import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsTimedNotesAndRatings
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit
 import foo.pilz.freaklog.data.substances.classes.Substance
+import foo.pilz.freaklog.data.substances.classes.roa.DoseUnits
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
@@ -890,34 +891,57 @@ constructor(
                           return@mapNotNull null
                       val firstIngestion =
                           groupedIngestions.first().ingestionWithCompanionAndCustomUnit
-                      val units = firstIngestion.originalUnit ?: return@mapNotNull null
-                      if (
-                          groupedIngestions.any {
-                            !RoaDose.isMatchingUnit(
-                                it.ingestionWithCompanionAndCustomUnit.originalUnit,
-                                units,
-                            )
-                          }
-                      ) {
-                        return@mapNotNull null
+                      val firstUnit = firstIngestion.originalUnit ?: return@mapNotNull null
+                      // Doses in g, mg and µg (or ml and l) are summed in their base unit.
+                      val bases = groupedIngestions.map {
+                        DoseUnits.toBase(it.ingestionWithCompanionAndCustomUnit.originalUnit)
+                            ?: return@mapNotNull null
+                      }
+                      val baseUnit = bases.first().first
+                      if (bases.any { it.first != baseUnit }) return@mapNotNull null
+                      val factors = bases.map { it.second }
+                      val isSingleUnit = groupedIngestions.all {
+                        RoaDose.isMatchingUnit(
+                            it.ingestionWithCompanionAndCustomUnit.originalUnit,
+                            firstUnit,
+                        )
                       }
                       val isEstimate = groupedIngestions.any {
                         it.ingestionWithCompanionAndCustomUnit.ingestion.isDoseAnEstimate ||
                             (it.ingestionWithCompanionAndCustomUnit.customUnit?.isEstimate ?: false)
                       }
-                      val cumulativeDose =
+                      val baseDose =
                           groupedIngestions
-                              .mapNotNull { it.ingestionWithCompanionAndCustomUnit.pureDose }
-                              .filter { it.isFinite() && it >= 0.0 }
-                              .sum()
-                      val varianceSum =
-                          groupedIngestions
-                              .mapNotNull {
-                                it.ingestionWithCompanionAndCustomUnit.pureDoseStandardDeviation
+                              .zip(factors) { ingestion, factor ->
+                                ingestion.ingestionWithCompanionAndCustomUnit.pureDose
+                                    ?.takeIf { dose -> dose.isFinite() && dose >= 0.0 }
+                                    ?.times(factor)
                               }
-                              .filter { it.isFinite() && it > 0.0 }
+                              .filterNotNull()
+                              .sum()
+                      val baseVariance =
+                          groupedIngestions
+                              .zip(factors) { ingestion, factor ->
+                                ingestion.ingestionWithCompanionAndCustomUnit
+                                    .pureDoseStandardDeviation
+                                    ?.takeIf { sd -> sd.isFinite() && sd > 0.0 }
+                                    ?.times(factor)
+                              }
+                              .filterNotNull()
                               .sumOf { it * it }
-                      val cumulativeDoseStandardDeviation = sqrt(varianceSum)
+                      // One logged unit stays as logged; mixed units use the PsychonautWiki unit.
+                      val (units, divisor) =
+                          if (isSingleUnit) {
+                            firstUnit to factors.first()
+                          } else {
+                            DoseUnits.displayUnit(
+                                baseUnit,
+                                baseDose,
+                                preferred = groupedIngestions.first().roaDose?.units,
+                            )
+                          }
+                      val cumulativeDose = baseDose / divisor
+                      val cumulativeDoseStandardDeviation = sqrt(baseVariance) / divisor
                       val numDots =
                           groupedIngestions
                               .first()

@@ -106,7 +106,10 @@ object ReminderSchedule {
     // next allowed slot. Hard cap the iteration count (100k steps is plenty for any
     // realistic interval; only a sub-second-interval misconfiguration could exceed it,
     // and we'd rather bail than spin) so a degenerate interval can never loop forever.
-    val searchWindowMs = 8L * 24L * 60L * 60_000L
+    // The window also spans at least 7 steps: a multi-day interval visits every weekday it
+    // ever will within 7 steps, so e.g. "every 5 days, Mondays only" still finds a slot.
+    val searchWindowMs =
+        maxOf(8L * 24L * 60L * 60_000L, if (intervalMs > Long.MAX_VALUE / 7) 0L else intervalMs * 7)
     val horizon =
         if (next > Long.MAX_VALUE - searchWindowMs) Long.MAX_VALUE else next + searchWindowMs
     val maxSteps = (searchWindowMs / intervalMs + 8L).coerceAtMost(100_000L).toInt()

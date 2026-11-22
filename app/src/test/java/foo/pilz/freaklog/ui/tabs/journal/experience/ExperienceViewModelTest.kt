@@ -196,6 +196,27 @@ class ExperienceViewModelTest {
   }
 
   @Test
+  fun `cumulative doses convert mixed mass units and skip incompatible ones`() {
+    val route =
+        ExperienceViewModel.getCumulativeDoses(
+                listOf(
+                    ingestion(dose = 0.5, units = "g", deviation = 0.1),
+                    ingestion(dose = 250.0, units = "mg"),
+                )
+            )
+            .single()
+            .cumulativeRouteAndDose
+            .single()
+    assertEquals(750.0, route.cumulativeDose, 1e-9)
+    assertEquals("mg", route.units)
+    assertEquals(100.0, requireNotNull(route.cumulativeDoseStandardDeviation), 1e-9)
+
+    val incompatible =
+        listOf(ingestion(dose = 10.0, units = "mg"), ingestion(dose = 10.0, units = "ml"))
+    assertTrue(ExperienceViewModel.getCumulativeDoses(incompatible).isEmpty())
+  }
+
+  @Test
   fun `cumulative dose uncertainty uses root sum square rather than sum or mean`() {
     val ingestions =
         listOf(

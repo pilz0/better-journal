@@ -1,6 +1,4 @@
-package foo.pilz.freaklog.ui.tabs.stats
-
-import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
+package foo.pilz.freaklog.data.substances.classes.roa
 
 /** Puts doses logged in µg, mg, g, ml, l, ... on one scale so stats can add them up. */
 internal object DoseUnits {

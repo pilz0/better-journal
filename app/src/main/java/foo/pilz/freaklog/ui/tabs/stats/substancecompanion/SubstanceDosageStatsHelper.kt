@@ -2,7 +2,7 @@ package foo.pilz.freaklog.ui.tabs.stats.substancecompanion
 
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
-import foo.pilz.freaklog.ui.tabs.stats.DoseUnits
+import foo.pilz.freaklog.data.substances.classes.roa.DoseUnits
 import java.time.Instant
 import java.time.Period
 import java.time.ZoneId

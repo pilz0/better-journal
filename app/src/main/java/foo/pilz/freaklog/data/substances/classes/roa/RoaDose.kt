@@ -29,37 +29,16 @@ data class RoaDose(
     val heavyMin: Double?,
 ) {
   fun getDoseClass(ingestionDose: Double?, ingestionUnits: String? = units): DoseClass? {
-    if (
-        !isMatchingUnit(ingestionUnits, units) ||
-            ingestionDose == null ||
-            !ingestionDose.isFinite() ||
-            ingestionDose < 0.0
-    )
-        return null
-    return if (lightMin != null && ingestionDose < lightMin) {
+    val dose = doseInOwnUnits(ingestionDose, ingestionUnits) ?: return null
+    return if (lightMin != null && dose < lightMin) {
       DoseClass.THRESHOLD
-    } else if (
-        lightMin != null &&
-            commonMin != null &&
-            lightMin <= ingestionDose &&
-            ingestionDose < commonMin
-    ) {
+    } else if (lightMin != null && commonMin != null && lightMin <= dose && dose < commonMin) {
       DoseClass.LIGHT
-    } else if (
-        commonMin != null &&
-            strongMin != null &&
-            commonMin <= ingestionDose &&
-            ingestionDose < strongMin
-    ) {
+    } else if (commonMin != null && strongMin != null && commonMin <= dose && dose < strongMin) {
       DoseClass.COMMON
-    } else if (
-        strongMin != null &&
-            heavyMin != null &&
-            strongMin <= ingestionDose &&
-            ingestionDose < heavyMin
-    ) {
+    } else if (strongMin != null && heavyMin != null && strongMin <= dose && dose < heavyMin) {
       DoseClass.STRONG
-    } else if (heavyMin != null && heavyMin <= ingestionDose) {
+    } else if (heavyMin != null && heavyMin <= dose) {
       DoseClass.HEAVY
     } else {
       null
@@ -67,45 +46,34 @@ data class RoaDose(
   }
 
   fun getNumDots(ingestionDose: Double?, ingestionUnits: String? = units): Int? {
-    if (
-        !isMatchingUnit(ingestionUnits, units) ||
-            ingestionDose == null ||
-            !ingestionDose.isFinite() ||
-            ingestionDose < 0.0
-    )
-        return null
+    val dose = doseInOwnUnits(ingestionDose, ingestionUnits) ?: return null
     if (heavyMin != null && (heavyMin <= 0.0 || !heavyMin.isFinite())) return null
-    if (lightMin != null && ingestionDose < lightMin) {
+    if (lightMin != null && dose < lightMin) {
       return 0
-    } else if (
-        lightMin != null &&
-            commonMin != null &&
-            lightMin <= ingestionDose &&
-            ingestionDose < commonMin
-    ) {
+    } else if (lightMin != null && commonMin != null && lightMin <= dose && dose < commonMin) {
       return 1
-    } else if (
-        commonMin != null &&
-            strongMin != null &&
-            commonMin <= ingestionDose &&
-            ingestionDose < strongMin
-    ) {
+    } else if (commonMin != null && strongMin != null && commonMin <= dose && dose < strongMin) {
       return 2
-    } else if (
-        strongMin != null &&
-            heavyMin != null &&
-            strongMin <= ingestionDose &&
-            ingestionDose < heavyMin
-    ) {
+    } else if (strongMin != null && heavyMin != null && strongMin <= dose && dose < heavyMin) {
       return 3
     } else if (heavyMin != null) {
-      val timesHeavy = floor(ingestionDose.div(heavyMin))
-      val rest = ingestionDose.rem(heavyMin)
+      val timesHeavy = floor(dose.div(heavyMin))
+      val rest = dose.rem(heavyMin)
       val dots = (timesHeavy * 4) + getNumDotsUpTo4(dose = rest)
       return if (dots in 0.0..Int.MAX_VALUE.toDouble()) dots.roundToInt() else null
     } else {
       return null
     }
+  }
+
+  /** [dose] in this scale's [units] (µg, mg and g convert), or null when they can't be compared. */
+  fun doseInOwnUnits(dose: Double?, ingestionUnits: String?): Double? {
+    if (dose == null || !dose.isFinite() || dose < 0.0) return null
+    if (isMatchingUnit(ingestionUnits, units)) return dose
+    val (fromBase, from) = DoseUnits.toBase(ingestionUnits) ?: return null
+    val (toBase, to) = DoseUnits.toBase(units) ?: return null
+    if (fromBase != toBase) return null
+    return (dose * from / to).takeIf { it.isFinite() }
   }
 
   private fun getNumDotsUpTo4(dose: Double): Int {

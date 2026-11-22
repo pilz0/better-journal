@@ -44,18 +44,19 @@ fun getStrengthRelativeToCommonDose(
     averageDose: Double,
     roaDose: RoaDose?,
 ): Double {
-  val targetUnit = ingestion.originalUnit
-  val commonDose =
-      if (roaDose != null && RoaDose.isMatchingUnit(targetUnit, roaDose.units)) {
-        roaDose.averageCommonDose?.takeIf { it.isFinite() && it > 0.0 }
-      } else {
-        null
-      } ?: averageDose.takeIf { it.isFinite() && it > 0.0 } ?: 1.0
-
+  // Compare against the PsychonautWiki common dose when the units convert (0.1 g vs an mg scale),
+  // otherwise against the average of this substance's ingestions logged in the same unit.
+  val roaCommonDose = roaDose?.averageCommonDose?.takeIf { it.isFinite() && it > 0.0 }
+  val doseInRoaUnits = roaDose?.doseInOwnUnits(ingestion.pureDose, ingestion.originalUnit)
   val relativeDose =
-      ingestion.pureDose?.let { doseSnap ->
-        if (doseSnap.isFinite() && doseSnap >= 0.0) doseSnap / commonDose else 1.0
-      } ?: 1.0
+      if (roaCommonDose != null && doseInRoaUnits != null) {
+        doseInRoaUnits / roaCommonDose
+      } else {
+        val commonDose = averageDose.takeIf { it.isFinite() && it > 0.0 } ?: 1.0
+        ingestion.pureDose?.let { doseSnap ->
+          if (doseSnap.isFinite() && doseSnap >= 0.0) doseSnap / commonDose else 1.0
+        } ?: 1.0
+      }
 
   return if (relativeDose.isFinite() && relativeDose >= 0.0) relativeDose else 1.0
 }

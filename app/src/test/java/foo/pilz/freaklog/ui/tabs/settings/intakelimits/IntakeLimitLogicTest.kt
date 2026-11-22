@@ -118,6 +118,17 @@ class IntakeLimitLogicTest {
   }
 
   @Test
+  fun convertDose_handlesUnitAliasesAndVolumes() {
+    assertEquals(0.5, convertDose(500.0, "μg", "mg")!!, 0.0001) // Greek mu
+    assertEquals(2000.0, convertDose(2.0, "grams", "mg")!!, 0.0001)
+    assertEquals(1500.0, convertDose(1.5, "l", "ml")!!, 0.0001)
+    assertEquals(0.25, convertDose(250.0, "mL", "l")!!, 0.0001)
+    assertEquals(50.0, convertDose(5.0, "cl", "ml")!!, 0.0001)
+    assertEquals(3.0, convertDose(3.0, "Pills", "pills")!!, 0.0001)
+    assertNull(convertDose(1.0, "l", "g"))
+  }
+
+  @Test
   fun convertDose_isCaseInsensitive() {
     assertEquals(1000.0, convertDose(1.0, "G", "MG")!!, 0.0001)
   }
