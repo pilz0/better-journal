@@ -9,6 +9,7 @@
 ## 1. Overview & Goals
 
 FreakLog-iOS introduced an integration with AnodyneWiki (a public-domain harm-reduction and pharmacology meta-wiki at `https://anodyne.wiki`). This specification ports these features to FreakLog Android, bringing full parity:
+
 - Configurable AnodyneWiki instance URL (defaulting to `https://anodyne.wiki`, supporting mirrors/self-hosted instances).
 - Disk caching with automatic TTL management and cache deletion tools.
 - Dedicated AnodyneWiki settings under Settings.
@@ -24,11 +25,13 @@ FreakLog-iOS introduced an integration with AnodyneWiki (a public-domain harm-re
 ## 2. Architecture & Data Layer
 
 ### 2.1 Configuration & Preferences (`UserPreferences`)
+
 - Key `ANODYNE_BASE_URL` (`String`): Configured instance address (default `"https://anodyne.wiki"`). Validates `http`/`https` scheme, normalizes trailing slashes, and accepts raw hostnames (e.g. `wiki.example.org` becomes `https://wiki.example.org`). Changing this value purges cached substance/index files.
 - Key `ANODYNE_AUTO_LOAD_ENABLED` (`Boolean`, default `false`): Controls whether substance pages automatically fetch Anodyne data or wait for the user to tap "More from AnodyneWiki".
 - Preserves backwards compatibility with existing AI assistant tools (`AiAnodyneTools`), ensuring both the AI assistant and the UI use the same configured base URL and client logic.
 
 ### 2.2 Data Models (`foo.pilz.freaklog.data.anodyne.model`)
+
 1. **`AnodyneSubstance`**:
    - `title`: Canonical substance name.
    - `abbreviations`, `aliases`, `slang`, `classes`: List of strings.
@@ -51,6 +54,7 @@ FreakLog-iOS introduced an integration with AnodyneWiki (a public-domain harm-re
    - `classes`, `forms`, `sources`, `indications`, `effects`, `afterEffects`, `tolerance`, `odor`, `notes`: Details parsed from userpage TriedSubstances.
 
 ### 2.3 Repository & Disk Caching (`AnodyneRepository`)
+
 - Caches files in `context.cacheDir.resolve("anodyne")`:
   - `substance_<encoded_name>.json`: 7-day TTL.
   - `index.json`: 24-hour TTL.
@@ -62,6 +66,7 @@ FreakLog-iOS introduced an integration with AnodyneWiki (a public-domain harm-re
   - `getCacheSizeBytes(): Long` and `clearCache()`: Utility methods for cache size management.
 
 ### 2.4 Fallback Store (`AnodyneFallbackStore`)
+
 - Singleton in-memory cache initialized from disk cached substances and user notes.
 - Methods:
   - `getDose(substanceName, route): RoaDose?`: Returns dose from Anodyne dose tiers when PsychonautWiki/custom data is missing.
@@ -74,6 +79,7 @@ FreakLog-iOS introduced an integration with AnodyneWiki (a public-domain harm-re
 ## 3. UI & Navigation Layer
 
 ### 3.1 Settings Screen (`AnodyneSettingsScreen`)
+
 - Route: `AnodyneSettingsRoute` under `settingsGraph`.
 - Entry in main `SettingsScreen`: "AnodyneWiki" row under Data/Integrations.
 - UI elements:
@@ -83,6 +89,7 @@ FreakLog-iOS introduced an integration with AnodyneWiki (a public-domain harm-re
   - Navigation rows: "Browse AnodyneWiki" and external browser link.
 
 ### 3.2 Search Integration & `AnodyneSearchScreen`
+
 - Route: `AnodyneSearchRoute(query)` under `searchGraph`.
 - In `SearchScreen`: Bottom row "Search AnodyneWiki" with book icon leading to `AnodyneSearchScreen`.
 - `AnodyneSearchScreen`:
@@ -91,6 +98,7 @@ FreakLog-iOS introduced an integration with AnodyneWiki (a public-domain harm-re
   - Clicking an entry navigates to `AnodyneSubstanceRoute(title)`.
 
 ### 3.3 Standalone `AnodyneSubstanceScreen`
+
 - Route: `AnodyneSubstanceRoute(title)`.
 - If substance already exists locally (PsychonautWiki or CustomSubstance), shows "Open in FreakLog" action banner.
 - If not present locally, top app bar has an "Add" button opening `AddCustomSubstanceFromAnodyneSheet`:
@@ -110,6 +118,7 @@ FreakLog-iOS introduced an integration with AnodyneWiki (a public-domain harm-re
   - Sources: Link to AnodyneWiki page, references list.
 
 ### 3.4 Combined `SubstanceScreen` & `CustomSubstanceScreen` Integration
+
 - If not auto-loaded and not in cache, shows an "AnodyneWiki" card with button "More from AnodyneWiki".
 - When loaded:
   - Overview includes 2D molecular structure diagram, formula, molar mass.
@@ -118,11 +127,13 @@ FreakLog-iOS introduced an integration with AnodyneWiki (a public-domain harm-re
   - Topic sections (effects, reports, literature interactions, toxicity fatal doses/treatment, health warnings, reagents, legal status, pharmacology, sources) seamlessly appear in topic order.
 
 ### 3.5 User Notes & Links Screens
+
 - `AnodyneUserNotesRoute(substanceName)`: List of all user notes for the substance.
 - `AnodyneUserNoteDetailRoute(userId, substanceName)`: Detailed viewer for an individual user's experience report.
 - `AnodyneLinksRoute(title, links)`: Displays lists of Erowid/Reddit experience reports and references.
 
 ### 3.6 2D Chemical Structure SVG Canvas (`MoleculeStructureView`)
+
 - Parses CDK-generated SVG (`<path d="...">`, `<line>`, `<rect>`, `<polyline>`, `<polygon>`, `<circle>`, `<ellipse>`).
 - Re-colors black strokes/fills to `MaterialTheme.colorScheme.onSurface` so structures render clearly in both dark and light themes, while preserving colored heteroatoms (O=red, N=blue, S=yellow, Cl/F/Br=halogens).
 
@@ -140,6 +151,7 @@ FreakLog-iOS introduced an integration with AnodyneWiki (a public-domain harm-re
 ---
 
 ## 5. Security & Privacy Invariants
+
 - Anodyne queries only send public substance names or index queries.
 - Default behavior preserves user privacy: "Load Automatically" is opt-in, only fetching when explicitly navigated or tapped unless enabled in settings.
 - All network calls use secure HTTP clients without third-party proprietary SDKs.

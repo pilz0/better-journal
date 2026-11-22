@@ -12,14 +12,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Notes
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.IosShare
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -27,6 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -44,6 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import foo.pilz.freaklog.data.anodyne.model.AnodyneSubstance
 import foo.pilz.freaklog.data.room.experiences.entities.CustomInteraction
 import foo.pilz.freaklog.data.room.experiences.entities.CustomInteractionSeverity
 import foo.pilz.freaklog.data.room.experiences.relations.CustomRoaInfo
@@ -56,6 +62,16 @@ import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.TimePickerButton
 import foo.pilz.freaklog.ui.tabs.journal.experience.TimelineDisplayOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.TimeDisplayOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.AllTimelines
+import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneDurationSection
+import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneEffectsSection
+import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneHealthWarningsSection
+import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneInteractionsSection
+import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneLegalSection
+import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodynePharmacologySection
+import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneReagentsSection
+import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneSourcesSection
+import foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneToxicitySection
+import foo.pilz.freaklog.ui.tabs.search.anodyne.MoleculeStructureView
 import foo.pilz.freaklog.ui.tabs.search.substance.InteractionsContent
 import foo.pilz.freaklog.ui.tabs.search.substance.RouteColorBar
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.ToleranceSection
@@ -72,6 +88,7 @@ import kotlin.math.absoluteValue
 fun CustomSubstanceScreen(
     navigateBack: () -> Unit,
     navigateToEdit: (customSubstanceId: Int) -> Unit,
+    navigateToUserNotes: (String) -> Unit = {},
     viewModel: CustomSubstanceViewModel = hiltViewModel(),
 ) {
   val context = LocalContext.current
@@ -87,13 +104,18 @@ fun CustomSubstanceScreen(
       onChangeIngestionTime = viewModel::changeIngestionTime,
       timelineDisplayOption =
           viewModel.timelineDisplayOptionFlow.collectAsStateWithLifecycle().value,
+      anodyneSubstance = viewModel.anodyneSubstanceFlow.collectAsStateWithLifecycle().value,
+      isAnodyneLoading = viewModel.isAnodyneLoadingFlow.collectAsStateWithLifecycle().value,
+      onLoadAnodyne = viewModel::loadAnodyneData,
       navigateBack = navigateBack,
       navigateToEdit = { substance?.let { navigateToEdit(it.substance.id) } },
+      navigateToUserNotes = navigateToUserNotes,
       onShare = { viewModel.share(context) },
   )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Suppress("LongParameterList", "LongMethod", "CyclomaticComplexMethod")
 @Composable
 fun CustomSubstanceScreen(
     substance: CustomSubstanceWithEverything?,
@@ -101,8 +123,12 @@ fun CustomSubstanceScreen(
     ingestionTime: LocalDateTime,
     onChangeIngestionTime: (LocalDateTime) -> Unit,
     timelineDisplayOption: TimelineDisplayOption,
+    anodyneSubstance: AnodyneSubstance? = null,
+    isAnodyneLoading: Boolean = false,
+    onLoadAnodyne: () -> Unit = {},
     navigateBack: () -> Unit,
     navigateToEdit: () -> Unit,
+    navigateToUserNotes: (String) -> Unit = {},
     onShare: () -> Unit,
 ) {
   val spacing = LocalSpacing.current
@@ -156,6 +182,9 @@ fun CustomSubstanceScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
               }
+              anodyneSubstance?.structureSvg?.let { svg ->
+                MoleculeStructureView(svg = svg, substanceName = custom.name)
+              }
               if (customCategories.isNotEmpty()) {
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(spacing.xs),
@@ -164,6 +193,37 @@ fun CustomSubstanceScreen(
                   customCategories.forEach { category ->
                     CategoryChip(category)
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (anodyneSubstance == null) {
+        item(key = "anodyne_enrichment_prompt") {
+          ElevatedCard(
+              modifier = Modifier.fillMaxWidth().padding(horizontal = spacing.screenHorizontal),
+          ) {
+            Row(
+                modifier = Modifier.padding(spacing.lg).fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+              Column(modifier = Modifier.weight(1f)) {
+                Text("AnodyneWiki Enrichment", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    "Load DBI-IGS dosages, reagents & pharmacology",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+              }
+              Spacer(Modifier.width(8.dp))
+              if (isAnodyneLoading) {
+                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+              } else {
+                Button(onClick = onLoadAnodyne) {
+                  Text("Load")
                 }
               }
             }
@@ -328,6 +388,57 @@ fun CustomSubstanceScreen(
       if (custom.longTermRisks != null) {
         item(key = "long_term_risks_header") { SectionHeader("Long-term risks") }
         item(key = "long_term_risks_card") { TextCard(custom.longTermRisks!!) }
+      }
+
+      if (anodyneSubstance != null) {
+        item(key = "anodyne_duration") { AnodyneDurationSection(substance = anodyneSubstance) }
+        item(key = "anodyne_effects") {
+          AnodyneEffectsSection(effectGroups = anodyneSubstance.effectGroups)
+        }
+        item(key = "anodyne_interactions") {
+          AnodyneInteractionsSection(interactions = anodyneSubstance.interactions)
+        }
+        item(key = "anodyne_toxicity") {
+          AnodyneToxicitySection(
+              reportedFatalDose = anodyneSubstance.reportedFatalDose,
+              treatment = anodyneSubstance.treatment,
+          )
+        }
+        item(key = "anodyne_warnings") {
+          AnodyneHealthWarningsSection(
+              healthEffects = anodyneSubstance.healthEffects,
+              drugWarnings = anodyneSubstance.drugWarnings,
+          )
+        }
+        item(key = "anodyne_reagents") {
+          AnodyneReagentsSection(reagents = anodyneSubstance.reagents)
+        }
+        item(key = "anodyne_legal") {
+          AnodyneLegalSection(scheduling = anodyneSubstance.scheduling)
+        }
+        item(key = "anodyne_pharmacology") {
+          AnodynePharmacologySection(
+              mechanism = anodyneSubstance.mechanismOfAction,
+              metabolism = anodyneSubstance.metabolism,
+          )
+        }
+        item(key = "anodyne_notes_button") {
+          OutlinedButton(
+              onClick = { navigateToUserNotes(custom.name) },
+              modifier = Modifier.fillMaxWidth().padding(horizontal = spacing.screenHorizontal),
+          ) {
+            Icon(Icons.AutoMirrored.Outlined.Notes, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text("View User Experience Notes")
+          }
+        }
+        item(key = "anodyne_sources") {
+          AnodyneSourcesSection(
+              substanceName = anodyneSubstance.title,
+              baseUrl = "https://anodyne.wiki",
+              references = anodyneSubstance.references,
+          )
+        }
       }
     }
   }

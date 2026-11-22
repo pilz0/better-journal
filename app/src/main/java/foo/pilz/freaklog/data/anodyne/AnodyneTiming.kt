@@ -9,10 +9,11 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 object AnodyneTiming {
-  private val RANGE_REGEX = Regex(
-      """(\d+(?:[.,]\d+)?)\s*(?:(?:–|-|to)\s*(\d+(?:[.,]\d+)?))?\s*(seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d)\b""",
-      RegexOption.IGNORE_CASE
-  )
+  private val RANGE_REGEX =
+      Regex(
+          """(\d+(?:[.,]\d+)?)\s*(?:(?:–|-|to)\s*(\d+(?:[.,]\d+)?))?\s*(seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d)\b""",
+          RegexOption.IGNORE_CASE,
+      )
 
   fun rangeIn(text: String): DurationRange? {
     val match = RANGE_REGEX.find(text) ?: return null
@@ -23,12 +24,13 @@ object AnodyneTiming {
     val low = lowStr.toFloatOrNull() ?: return null
     val high = highStr?.toFloatOrNull() ?: low
 
-    val units = when {
-      unitStr.startsWith("s") -> DurationUnits.SECONDS
-      unitStr.startsWith("m") -> DurationUnits.MINUTES
-      unitStr.startsWith("d") -> DurationUnits.DAYS
-      else -> DurationUnits.HOURS
-    }
+    val units =
+        when {
+          unitStr.startsWith("s") -> DurationUnits.SECONDS
+          unitStr.startsWith("m") -> DurationUnits.MINUTES
+          unitStr.startsWith("d") -> DurationUnits.DAYS
+          else -> DurationUnits.HOURS
+        }
     return DurationRange(min = min(low, high), max = max(low, high), units = units)
   }
 
@@ -56,21 +58,21 @@ object AnodyneTiming {
   }
 
   private fun readableRange(lowSec: Float, highSec: Float): DurationRange {
-    val unitsWithDivisor = listOf(
-        DurationUnits.HOURS to 3600f,
-        DurationUnits.MINUTES to 60f,
-        DurationUnits.SECONDS to 1f
-    )
-    val (unit, divisor) = unitsWithDivisor.firstOrNull { lowSec / it.second >= 2f }
-        ?: (DurationUnits.SECONDS to 1f)
+    val unitsWithDivisor =
+        listOf(
+            DurationUnits.HOURS to 3600f,
+            DurationUnits.MINUTES to 60f,
+            DurationUnits.SECONDS to 1f,
+        )
+    val (unit, divisor) =
+        unitsWithDivisor.firstOrNull { lowSec / it.second >= 2f } ?: (DurationUnits.SECONDS to 1f)
 
-    fun roundToHalf(value: Float): Float =
-        ((value / divisor) * 2f).roundToInt() / 2f
+    fun roundToHalf(value: Float): Float = ((value / divisor) * 2f).roundToInt() / 2f
 
     return DurationRange(
         min = roundToHalf(lowSec),
         max = roundToHalf(highSec),
-        units = unit
+        units = unit,
     )
   }
 }

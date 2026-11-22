@@ -15,6 +15,7 @@ import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
 import org.json.JSONObject
 
 @Singleton
@@ -77,9 +78,14 @@ constructor(
     }
   }
 
-  suspend fun lookup(name: String, otherNames: List<String> = emptyList()): Result<AnodyneSubstance?> =
+  suspend fun lookup(
+      name: String,
+      otherNames: List<String> = emptyList(),
+  ): Result<AnodyneSubstance?> =
       withContext(Dispatchers.IO) {
-        cachedLookup(name)?.let { return@withContext Result.success(it) }
+        cachedLookup(name)?.let {
+          return@withContext Result.success(it)
+        }
 
         val baseUrl = getBaseUrl()
         val directResult = fetchSubstance(baseUrl, name)
@@ -124,11 +130,16 @@ constructor(
   suspend fun getIndexEntries(): Result<List<AnodyneIndexEntry>> =
       withContext(Dispatchers.IO) {
         val indexFile = File(cacheDir, "index.json")
-        if (indexFile.exists() && System.currentTimeMillis() - indexFile.lastModified() < INDEX_TTL_MS) {
+        if (
+            indexFile.exists() &&
+                System.currentTimeMillis() - indexFile.lastModified() < INDEX_TTL_MS
+        ) {
           try {
             val json = JSONObject(indexFile.readText())
             return@withContext Result.success(AnodyneParser.parseIndex(json))
-          } catch (_: Exception) {}
+          } catch (_: Exception) {
+            // Cache corrupted, fetch fresh
+          }
         }
 
         val baseUrl = getBaseUrl()
@@ -148,34 +159,43 @@ constructor(
         val notesFile = File(cacheDir, "user_notes.json")
         val allNotes = mutableListOf<AnodyneUserNote>()
 
-        if (notesFile.exists() && System.currentTimeMillis() - notesFile.lastModified() < USER_NOTES_TTL_MS) {
+        if (
+            notesFile.exists() &&
+                System.currentTimeMillis() - notesFile.lastModified() < USER_NOTES_TTL_MS
+        ) {
           try {
-            val arr = org.json.JSONArray(notesFile.readText())
+            val arr = JSONArray(notesFile.readText())
             for (i in 0 until arr.length()) {
               val obj = arr.optJSONObject(i) ?: continue
               allNotes.addAll(AnodyneParser.parseUserNotes(obj))
             }
             fallbackStore.record(allNotes)
             return@withContext Result.success(filterNotes(allNotes, names))
-          } catch (_: Exception) {}
+          } catch (_: Exception) {
+            // Cache corrupted, fetch fresh
+          }
         }
 
         val baseUrl = getBaseUrl()
         try {
           val indexUrl = "$baseUrl/api/index/user"
           val indexJson = AiHttp.getJson(indexUrl, emptyMap())
-          val entries = indexJson.optJSONArray("Entries") ?: org.json.JSONArray()
-          val collectedUserJsons = org.json.JSONArray()
+          val entries = indexJson.optJSONArray("Entries") ?: JSONArray()
+          val collectedUserJsons = JSONArray()
 
           for (i in 0 until entries.length()) {
-            val userTitle = entries.optJSONObject(i)?.optString("Title").takeIf { !it.isNullOrBlank() } ?: continue
+            val userTitle =
+                entries.optJSONObject(i)?.optString("Title").takeIf { !it.isNullOrBlank() }
+                    ?: continue
             val encodedUser = URLEncoder.encode(userTitle, "UTF-8").replace("+", "%20")
             val userUrl = "$baseUrl/api/user/$encodedUser"
             try {
               val userJson = AiHttp.getJson(userUrl, emptyMap())
               collectedUserJsons.put(userJson)
               allNotes.addAll(AnodyneParser.parseUserNotes(userJson))
-            } catch (_: Exception) {}
+            } catch (_: Exception) {
+              // Ignore individual user note failures
+            }
           }
 
           notesFile.writeText(collectedUserJsons.toString())
@@ -186,7 +206,10 @@ constructor(
         }
       }
 
-  private fun filterNotes(notes: List<AnodyneUserNote>, names: List<String>): List<AnodyneUserNote> {
+  private fun filterNotes(
+      notes: List<AnodyneUserNote>,
+      names: List<String>,
+  ): List<AnodyneUserNote> {
     val nameSet = names.map { it.lowercase() }.toSet()
     return notes.filter { note ->
       note.hasDetails && nameSet.contains(note.substanceName.lowercase())
@@ -211,27 +234,30 @@ constructor(
   private fun saveSubstanceToCache(lookupKey: String, substance: AnodyneSubstance) {
     try {
       val file = getSubstanceCacheFile(lookupKey)
-      val json = JSONObject().apply {
-        put("Title", substance.title)
-        put("Abbreviation", org.json.JSONArray(substance.abbreviations))
-        put("Aliases", org.json.JSONArray(substance.aliases))
-        put("Classes", org.json.JSONArray(substance.classes))
-        put("DurationOfAction", substance.durationOfAction)
-        put("Biological Half-Life", substance.halfLife)
-        put("Interactions", substance.interactions)
-        put("Mechanism of Action", substance.mechanismOfAction)
-        put("Metabolism/Metabolites", substance.metabolism)
-        put("Health Effects", substance.healthEffects)
-        put("Drug Warnings", substance.drugWarnings)
-        put("Reported Fatal Dose", substance.reportedFatalDose)
-        put("Treatment", substance.treatment)
-        put("MolecularFormula", substance.formula)
-        put("MolecularWeight", substance.molarMass)
-        if (substance.structureSvg != null) {
-          put("Structure", substance.structureSvg)
-        }
-      }
+      val json =
+          JSONObject().apply {
+            put("Title", substance.title)
+            put("Abbreviation", JSONArray(substance.abbreviations))
+            put("Aliases", JSONArray(substance.aliases))
+            put("Classes", JSONArray(substance.classes))
+            put("DurationOfAction", substance.durationOfAction)
+            put("Biological Half-Life", substance.halfLife)
+            put("Interactions", substance.interactions)
+            put("Mechanism of Action", substance.mechanismOfAction)
+            put("Metabolism/Metabolites", substance.metabolism)
+            put("Health Effects", substance.healthEffects)
+            put("Drug Warnings", substance.drugWarnings)
+            put("Reported Fatal Dose", substance.reportedFatalDose)
+            put("Treatment", substance.treatment)
+            put("MolecularFormula", substance.formula)
+            put("MolecularWeight", substance.molarMass)
+            if (substance.structureSvg != null) {
+              put("Structure", substance.structureSvg)
+            }
+          }
       file.writeText(json.toString())
-    } catch (_: Exception) {}
+    } catch (_: Exception) {
+      // Best effort cache write
+    }
   }
 }

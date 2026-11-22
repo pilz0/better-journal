@@ -13,7 +13,8 @@ import javax.inject.Singleton
 class AnodyneFallbackStore @Inject constructor() {
   private val titlesByName = mutableMapOf<String, String>()
   private val totalsByTitle = mutableMapOf<String, RoaDuration>()
-  private val routeDurationsByTitle = mutableMapOf<String, MutableMap<AdministrationRoute, RoaDuration>>()
+  private val routeDurationsByTitle =
+      mutableMapOf<String, MutableMap<AdministrationRoute, RoaDuration>>()
   private val dosesByTitle = mutableMapOf<String, MutableMap<AdministrationRoute, RoaDose>>()
 
   @Synchronized
@@ -50,19 +51,23 @@ class AnodyneFallbackStore @Inject constructor() {
   @Synchronized
   fun record(substance: AnodyneSubstance, lookedUpAs: String = substance.title) {
     val title = substance.title.lowercase()
-    for (alias in listOf(lookedUpAs, substance.title) + substance.abbreviations + substance.aliases) {
+    for (alias in
+        listOf(lookedUpAs, substance.title) + substance.abbreviations + substance.aliases) {
       titlesByName[alias.lowercase()] = title
     }
-    substance.durationOfAction?.let { AnodyneTiming.rangeIn(it) }?.let { totalRange ->
-      totalsByTitle[title] = RoaDuration(
-          onset = null,
-          comeup = null,
-          peak = null,
-          offset = null,
-          total = totalRange,
-          afterglow = null
-      )
-    }
+    substance.durationOfAction
+        ?.let { AnodyneTiming.rangeIn(it) }
+        ?.let { totalRange ->
+          totalsByTitle[title] =
+              RoaDuration(
+                  onset = null,
+                  comeup = null,
+                  peak = null,
+                  offset = null,
+                  total = totalRange,
+                  afterglow = null,
+              )
+        }
 
     val routeDoses = mutableMapOf<AdministrationRoute, RoaDose>()
     for (dosing in substance.dosing) {
@@ -70,13 +75,14 @@ class AnodyneFallbackStore @Inject constructor() {
       if (route !in routeDoses) {
         val unit = dosing.unit ?: "mg"
         if (dosing.common != null || dosing.strong != null || dosing.heavy != null) {
-          routeDoses[route] = RoaDose(
-              units = unit,
-              lightMin = null,
-              commonMin = dosing.common?.lower,
-              strongMin = dosing.strong?.lower,
-              heavyMin = dosing.heavy?.lower,
-          )
+          routeDoses[route] =
+              RoaDose(
+                  units = unit,
+                  lightMin = null,
+                  commonMin = dosing.common?.lower,
+                  strongMin = dosing.strong?.lower,
+                  heavyMin = dosing.heavy?.lower,
+              )
         }
       }
     }
@@ -85,12 +91,14 @@ class AnodyneFallbackStore @Inject constructor() {
 
   @Synchronized
   fun record(notes: List<AnodyneUserNote>) {
-    val routesBySubstance = mutableMapOf<String, MutableMap<AdministrationRoute, MutableList<AnodyneUserNote.Route>>>()
+    val routesBySubstance =
+        mutableMapOf<String, MutableMap<AdministrationRoute, MutableList<AnodyneUserNote.Route>>>()
     for (note in notes) {
       val title = titleFor(note.substanceName)
       for (r in note.routes) {
         val adminRoute = AnodyneDosing.mapRoute(r.name) ?: continue
-        routesBySubstance.getOrPut(title) { mutableMapOf() }
+        routesBySubstance
+            .getOrPut(title) { mutableMapOf() }
             .getOrPut(adminRoute) { mutableListOf() }
             .add(r)
       }
@@ -114,6 +122,5 @@ class AnodyneFallbackStore @Inject constructor() {
     dosesByTitle.clear()
   }
 
-  private fun titleFor(name: String): String =
-      titlesByName[name.lowercase()] ?: name.lowercase()
+  private fun titleFor(name: String): String = titlesByName[name.lowercase()] ?: name.lowercase()
 }

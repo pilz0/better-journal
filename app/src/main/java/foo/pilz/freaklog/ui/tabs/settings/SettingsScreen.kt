@@ -37,7 +37,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
-import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Check
@@ -158,6 +157,41 @@ fun SettingsPreview() {
   )
 }
 
+@Composable
+private fun rememberVitalsController(
+    context: android.content.Context,
+    viewModel: SettingsViewModel,
+): Pair<Boolean, (Boolean) -> Unit> {
+  val vitalsPermissions = remember {
+    HeartRateHealthConnect.permissions +
+        SleepHealthConnect.permissions +
+        BloodPressureHealthConnect.permissions
+  }
+  val vitalsPermissionLauncher =
+      androidx.activity.compose.rememberLauncherForActivityResult(
+          androidx.health.connect.client.PermissionController
+              .createRequestPermissionResultContract()
+      ) { granted ->
+        if (
+            granted.containsAll(HeartRateHealthConnect.permissions) ||
+                granted.containsAll(SleepHealthConnect.permissions) ||
+                granted.containsAll(BloodPressureHealthConnect.permissions)
+        ) {
+          viewModel.saveIsVitalsEnabled(true)
+        } else {
+          viewModel.showMessage("Health Connect permission denied")
+        }
+      }
+  val isVitalsAvailable = remember {
+    HeartRateHealthConnect.isAvailable(context) || BloodPressureHealthConnect.isAvailable(context)
+  }
+  val onSaveIsVitalsEnabled: (Boolean) -> Unit = { enable ->
+    if (enable) vitalsPermissionLauncher.launch(vitalsPermissions)
+    else viewModel.saveIsVitalsEnabled(false)
+  }
+  return Pair(isVitalsAvailable, onSaveIsVitalsEnabled)
+}
+
 @Suppress("LongParameterList")
 @Composable
 fun SettingsScreen(
@@ -179,27 +213,7 @@ fun SettingsScreen(
     navigateToAnodyneSettings: () -> Unit = {},
 ) {
   val context = androidx.compose.ui.platform.LocalContext.current
-  val vitalsPermissions = remember {
-    HeartRateHealthConnect.permissions +
-        SleepHealthConnect.permissions +
-        BloodPressureHealthConnect.permissions
-  }
-  // The setting only turns on once Health Connect has granted at least one kind of read access.
-  val vitalsPermissionLauncher =
-      androidx.activity.compose.rememberLauncherForActivityResult(
-          androidx.health.connect.client.PermissionController
-              .createRequestPermissionResultContract()
-      ) { granted ->
-        if (
-            granted.containsAll(HeartRateHealthConnect.permissions) ||
-                granted.containsAll(SleepHealthConnect.permissions) ||
-                granted.containsAll(BloodPressureHealthConnect.permissions)
-        ) {
-          viewModel.saveIsVitalsEnabled(true)
-        } else {
-          viewModel.showMessage("Health Connect permission denied")
-        }
-      }
+  val (isVitalsAvailable, saveIsVitalsEnabled) = rememberVitalsController(context, viewModel)
   SettingsScreen(
       navigateToFAQ = navigateToFAQ,
       navigateToWebhook = navigateToWebhook,
@@ -232,16 +246,9 @@ fun SettingsScreen(
       saveUltraFunModeEnabled = {
         viewModel.saveFunnyConfig(FunnyConfig(enableFunny = it, teamsSkin = it))
       },
-      isVitalsAvailable =
-          remember {
-            HeartRateHealthConnect.isAvailable(context) ||
-                BloodPressureHealthConnect.isAvailable(context)
-          },
+      isVitalsAvailable = isVitalsAvailable,
       isVitalsEnabled = viewModel.isVitalsEnabledFlow.collectAsState().value,
-      saveIsVitalsEnabled = { enable ->
-        if (enable) vitalsPermissionLauncher.launch(vitalsPermissions)
-        else viewModel.saveIsVitalsEnabled(false)
-      },
+      saveIsVitalsEnabled = saveIsVitalsEnabled,
       sleepStagesEnabled = viewModel.sleepStagesEnabledFlow.collectAsState().value,
       saveSleepStagesEnabled = viewModel::saveSleepStagesEnabled,
       bloodPressureDisplay = viewModel.bloodPressureDisplayFlow.collectAsState().value,
@@ -674,14 +681,6 @@ fun SettingsScreen(
         ) {
           performHaptic(HapticType.CLICK)
           navigateToAiAssistantSettings()
-        }
-        HorizontalDivider()
-        SettingsButton(
-            imageVector = Icons.AutoMirrored.Outlined.MenuBook,
-            text = "AnodyneWiki",
-        ) {
-          performHaptic(HapticType.CLICK)
-          navigateToAnodyneSettings()
         }
       }
 

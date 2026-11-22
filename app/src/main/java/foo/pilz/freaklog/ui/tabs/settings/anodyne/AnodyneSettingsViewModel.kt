@@ -66,7 +66,9 @@ constructor(
 
   fun applyDraftUrl() {
     val draft = _draftUrl.value.trim()
-    val normalized = if (draft.isBlank()) AnodyneRepository.DEFAULT_INSTANCE_URL else AnodyneRepository.normalizeUrl(draft)
+    val normalized =
+        if (draft.isBlank()) AnodyneRepository.DEFAULT_INSTANCE_URL
+        else AnodyneRepository.normalizeUrl(draft)
     if (normalized != null) {
       viewModelScope.launch {
         userPreferences.saveAnodyneBaseUrl(normalized)

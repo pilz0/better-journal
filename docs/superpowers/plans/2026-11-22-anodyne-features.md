@@ -50,6 +50,7 @@
 ### Task 1: Anodyne Models & Subscript/Text Cleaners
 
 **Files:**
+
 - Create: `app/src/main/java/foo/pilz/freaklog/data/anodyne/AnodyneTextCleaner.kt`
 - Create: `app/src/main/java/foo/pilz/freaklog/data/anodyne/model/AnodyneSubstance.kt`
 - Create: `app/src/main/java/foo/pilz/freaklog/data/anodyne/model/AnodyneIndexEntry.kt`
@@ -87,6 +88,7 @@ Expected: Compilation failure (class not found).
 - [ ] **Step 3: Implement `AnodyneTextCleaner` and the data models**
 
 Create `AnodyneTextCleaner.kt`:
+
 ```kotlin
 package foo.pilz.freaklog.data.anodyne
 
@@ -132,6 +134,7 @@ object AnodyneTextCleaner {
 ```
 
 Create `AnodyneSubstance.kt`:
+
 ```kotlin
 package foo.pilz.freaklog.data.anodyne.model
 
@@ -242,6 +245,7 @@ git commit -m "feat(anodyne): add models and text cleaner"
 ### Task 2: Parsing Substance, Index, and User Notes JSON
 
 **Files:**
+
 - Create: `app/src/main/java/foo/pilz/freaklog/data/anodyne/AnodyneParser.kt`
 - Test: `app/src/test/java/foo/pilz/freaklog/data/anodyne/AnodyneParserTest.kt`
 
@@ -312,6 +316,7 @@ git commit -m "feat(anodyne): add JSON parser for substances, index, and user no
 ### Task 3: Timing Parser & Fallback Store
 
 **Files:**
+
 - Create: `app/src/main/java/foo/pilz/freaklog/data/anodyne/AnodyneTiming.kt`
 - Create: `app/src/main/java/foo/pilz/freaklog/data/anodyne/AnodyneFallbackStore.kt`
 - Test: `app/src/test/java/foo/pilz/freaklog/data/anodyne/AnodyneTimingTest.kt`
@@ -364,6 +369,7 @@ git commit -m "feat(anodyne): add timing range parser and fallback store"
 ### Task 4: UserPreferences & Disk Cache Repository
 
 **Files:**
+
 - Modify: `app/src/main/java/foo/pilz/freaklog/ui/tabs/settings/combinations/UserPreferences.kt`
 - Create: `app/src/main/java/foo/pilz/freaklog/data/anodyne/AnodyneRepository.kt`
 - Test: `app/src/test/java/foo/pilz/freaklog/data/anodyne/AnodyneRepositoryTest.kt`
@@ -412,6 +418,7 @@ git commit -m "feat(anodyne): add repository with disk caching and preference in
 ### Task 5: 2D Molecule SVG Parser & Compose Canvas View
 
 **Files:**
+
 - Create: `app/src/main/java/foo/pilz/freaklog/ui/tabs/search/anodyne/MoleculeDrawing.kt`
 - Create: `app/src/main/java/foo/pilz/freaklog/ui/tabs/search/anodyne/MoleculeStructureView.kt`
 - Test: `app/src/test/java/foo/pilz/freaklog/ui/tabs/search/anodyne/MoleculeDrawingTest.kt`
@@ -462,6 +469,7 @@ git commit -m "feat(anodyne): add native 2D chemical structure SVG renderer"
 ### Task 6: Settings Screen (`AnodyneSettingsScreen`)
 
 **Files:**
+
 - Create: `app/src/main/java/foo/pilz/freaklog/ui/tabs/settings/anodyne/AnodyneSettingsViewModel.kt`
 - Create: `app/src/main/java/foo/pilz/freaklog/ui/tabs/settings/anodyne/AnodyneSettingsScreen.kt`
 - Modify: `app/src/main/java/foo/pilz/freaklog/ui/tabs/settings/SettingsScreen.kt`
@@ -501,11 +509,12 @@ Run: `./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.ui.tabs.settings.an
 - [ ] **Step 3: Implement `AnodyneSettingsScreen` and hook into Settings**
 
 Add `AnodyneWiki` row to `SettingsScreen`. Build `AnodyneSettingsScreen` with:
+
 - "Load Automatically" toggle.
 - "Instance" OutlinedTextField with "Use anodyne.wiki" button when custom.
 - "Delete Downloaded Data" button showing formatted byte count.
 - Links to "Browse AnodyneWiki" and external instance URL.
-Add `AnodyneSettingsRoute` to `settingsGraph.kt`.
+  Add `AnodyneSettingsRoute` to `settingsGraph.kt`.
 
 - [ ] **Step 4: Run test to verify it passes**
 
@@ -524,6 +533,7 @@ git commit -m "feat(anodyne): add AnodyneWiki settings screen"
 ### Task 7: Search Screen Integration & `AnodyneSearchScreen`
 
 **Files:**
+
 - Create: `app/src/main/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AnodyneSearchViewModel.kt`
 - Create: `app/src/main/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AnodyneSearchScreen.kt`
 - Modify: `app/src/main/java/foo/pilz/freaklog/ui/tabs/search/SearchScreen.kt`
@@ -583,6 +593,7 @@ git commit -m "feat(anodyne): add AnodyneWiki search screen and integration in s
 ### Task 8: Standalone `AnodyneSubstanceScreen` & Add Custom Substance Sheet
 
 **Files:**
+
 - Create: `app/src/main/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AnodyneSubstanceViewModel.kt`
 - Create: `app/src/main/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AnodyneSubstanceScreen.kt`
 - Create: `app/src/main/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AddCustomSubstanceFromAnodyneSheet.kt`
@@ -641,6 +652,7 @@ git commit -m "feat(anodyne): add standalone Anodyne substance screen and add-as
 ### Task 9: Anodyne Topic Components & Combined `SubstanceScreen` / `CustomSubstanceScreen`
 
 **Files:**
+
 - Create: `app/src/main/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AnodyneDoseLadder.kt`
 - Modify: `app/src/main/java/foo/pilz/freaklog/ui/tabs/search/substance/SubstanceScreen.kt`
 - Modify: `app/src/main/java/foo/pilz/freaklog/ui/tabs/search/substance/SubstanceViewModel.kt`
@@ -678,6 +690,7 @@ Run: `./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.ui.tabs.search.subs
 
 Build `AnodyneDoseLadder` rendering: `≤ Light`, `Common`, `Strong`, `Heavy`, `Extreme` in Material 3 styling with route title and entry log counts.
 In `SubstanceScreen.kt` and `CustomSubstanceScreen.kt`:
+
 - Display "More from AnodyneWiki" action button when not loaded.
 - When loaded, inject:
   - 2D molecular structure diagram and formula/mass.
@@ -702,6 +715,7 @@ git commit -m "feat(anodyne): integrate Anodyne data, dose ladder, and topics in
 ### Task 10: User Notes & Report Links Screens
 
 **Files:**
+
 - Create: `app/src/main/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AnodyneUserNotesScreen.kt`
 - Create: `app/src/main/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AnodyneUserNoteScreen.kt`
 - Create: `app/src/main/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AnodyneLinksScreen.kt`
@@ -755,6 +769,7 @@ git commit -m "feat(anodyne): add user notes and external report links screens"
 ### Task 11: Full Verification & Static Analysis
 
 **Files:**
+
 - Run full test suite and checks.
 
 - [ ] **Step 1: Run complete test suite**

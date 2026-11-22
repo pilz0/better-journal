@@ -32,12 +32,20 @@ class AnodyneSearchViewModelTest {
 
   @Test
   fun testFilterPrioritizesPrefixMatches() = runTest {
-    val repo = mockk<AnodyneRepository> {
-      coEvery { getIndexEntries() } returns Result.success(listOf(
-          AnodyneIndexEntry("Lysergic acid diethylamide", listOf("LSD"), listOf("Psychedelic")),
-          AnodyneIndexEntry("Ketamine", listOf("K"), listOf("Dissociative"))
-      ))
-    }
+    val repo =
+        mockk<AnodyneRepository> {
+          coEvery { getIndexEntries() } returns
+              Result.success(
+                  listOf(
+                      AnodyneIndexEntry(
+                          "Lysergic acid diethylamide",
+                          listOf("LSD"),
+                          listOf("Psychedelic"),
+                      ),
+                      AnodyneIndexEntry("Ketamine", listOf("K"), listOf("Dissociative")),
+                  ),
+              )
+        }
     val vm = AnodyneSearchViewModel(repo)
     advanceUntilIdle()
 
@@ -47,12 +55,20 @@ class AnodyneSearchViewModelTest {
 
   @Test
   fun testFilterByClass() = runTest {
-    val repo = mockk<AnodyneRepository> {
-      coEvery { getIndexEntries() } returns Result.success(listOf(
-          AnodyneIndexEntry("Lysergic acid diethylamide", listOf("LSD"), listOf("Psychedelic")),
-          AnodyneIndexEntry("Ketamine", listOf("K"), listOf("Dissociative"))
-      ))
-    }
+    val repo =
+        mockk<AnodyneRepository> {
+          coEvery { getIndexEntries() } returns
+              Result.success(
+                  listOf(
+                      AnodyneIndexEntry(
+                          "Lysergic acid diethylamide",
+                          listOf("LSD"),
+                          listOf("Psychedelic"),
+                      ),
+                      AnodyneIndexEntry("Ketamine", listOf("K"), listOf("Dissociative")),
+                  ),
+              )
+        }
     val vm = AnodyneSearchViewModel(repo)
     advanceUntilIdle()
 

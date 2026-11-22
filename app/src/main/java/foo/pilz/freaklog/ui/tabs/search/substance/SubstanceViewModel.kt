@@ -23,12 +23,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
+import foo.pilz.freaklog.data.anodyne.AnodyneRepository
+import foo.pilz.freaklog.data.anodyne.model.AnodyneSubstance
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.main.navigation.graphs.SubstanceRoute
 import foo.pilz.freaklog.ui.tabs.journal.experience.TimelineDisplayOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.DataForOneEffectLine
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.AllTimelinesModel
+import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import foo.pilz.freaklog.ui.utils.getInstant
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -46,12 +49,40 @@ class SubstanceViewModel
 constructor(
     substanceRepo: SubstanceRepository,
     experienceRepo: ExperienceRepository,
+    val anodyneRepo: AnodyneRepository,
+    val userPreferences: UserPreferences,
     state: SavedStateHandle,
 ) : ViewModel() {
 
-  val substanceName = state.toRoute<SubstanceRoute>().substanceName
+  val substanceName: String =
+      state.get<String>("substanceName")
+          ?: runCatching { state.toRoute<SubstanceRoute>().substanceName }.getOrNull()
+          ?: ""
 
   val substanceWithCategories = substanceRepo.getSubstanceWithCategories(substanceName)!!
+
+  val anodyneSubstanceFlow = MutableStateFlow<AnodyneSubstance?>(null)
+  val isAnodyneLoadingFlow = MutableStateFlow(false)
+
+  init {
+    viewModelScope.launch {
+      userPreferences.anodyneAutoLoadEnabledFlow.collect { autoLoad ->
+        if (autoLoad && anodyneSubstanceFlow.value == null && !isAnodyneLoadingFlow.value) {
+          loadAnodyneData()
+        }
+      }
+    }
+  }
+
+  fun loadAnodyneData() {
+    viewModelScope.launch {
+      isAnodyneLoadingFlow.value = true
+      val otherNames = substanceWithCategories.substance.commonNames
+      val res = anodyneRepo.lookup(substanceName, otherNames)
+      anodyneSubstanceFlow.value = res.getOrNull()
+      isAnodyneLoadingFlow.value = false
+    }
+  }
 
   val customUnitsFlow =
       experienceRepo

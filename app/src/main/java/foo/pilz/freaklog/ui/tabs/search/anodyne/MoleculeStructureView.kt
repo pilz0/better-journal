@@ -25,12 +25,13 @@ fun MoleculeStructureView(
   val foregroundColor = MaterialTheme.colorScheme.onSurface
 
   Canvas(
-      modifier = modifier
-          .fillMaxWidth()
-          .heightIn(max = 180.dp)
-          .aspectRatio(drawing.viewBox.width / drawing.viewBox.height.coerceAtLeast(1f))
-          .padding(vertical = 8.dp)
-          .semantics { contentDescription = "Structure of $substanceName" }
+      modifier =
+          modifier
+              .fillMaxWidth()
+              .heightIn(max = 180.dp)
+              .aspectRatio(drawing.viewBox.width / drawing.viewBox.height.coerceAtLeast(1f))
+              .padding(vertical = 8.dp)
+              .semantics { contentDescription = "Structure of $substanceName" },
   ) {
     val scale = min(size.width / drawing.viewBox.width, size.height / drawing.viewBox.height)
     val offsetX = (size.width - drawing.viewBox.width * scale) / 2f - drawing.viewBox.left * scale

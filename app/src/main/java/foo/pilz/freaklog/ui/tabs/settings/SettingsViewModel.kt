@@ -19,12 +19,14 @@
 package foo.pilz.freaklog.ui.tabs.settings
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import foo.pilz.freaklog.data.export.*
+import foo.pilz.freaklog.data.export.JournalExport
+import foo.pilz.freaklog.data.export.buildJournalExportJson
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.ui.tabs.settings.combinations.BloodPressureDisplay
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
@@ -301,7 +303,7 @@ constructor(
               duration = SnackbarDuration.Short,
           )
         } catch (e: Exception) {
-          println("Error when decoding: ${e.message}")
+          Log.e("SettingsViewModel", "Error when decoding: ${e.message}", e)
           snackbarHostState.showSnackbar(
               message = "Decoding file failed",
               duration = SnackbarDuration.Short,
@@ -317,7 +319,7 @@ constructor(
       if (biometricAuthManager.shouldLock.value) return@launch
       try {
         val jsonList =
-            foo.pilz.freaklog.data.export.buildJournalExportJson(
+            buildJournalExportJson(
                 experienceRepository,
                 webhookRepository,
             )

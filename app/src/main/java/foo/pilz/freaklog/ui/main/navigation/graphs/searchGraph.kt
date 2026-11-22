@@ -21,6 +21,7 @@ package foo.pilz.freaklog.ui.main.navigation.graphs
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigation
+import androidx.navigation.toRoute
 import foo.pilz.freaklog.data.room.experiences.entities.CustomInteractionSeverity
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.ui.main.navigation.DrugsTopLevelRoute
@@ -73,6 +74,46 @@ fun NavGraphBuilder.searchGraph(navController: NavHostController) {
           },
       )
     }
+    composableWithTransitions<AnodyneSubstanceRoute> {
+      foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneSubstanceScreen(
+          navigateBack = navController::popBackStack,
+          navigateToPsychonautSubstance = { name ->
+            navController.navigate(SubstanceRoute(substanceName = name))
+          },
+          navigateToCustomSubstance = { id ->
+            navController.navigate(CustomSubstanceRoute(customSubstanceId = id))
+          },
+          navigateToUserNotes = { substanceName ->
+            navController.navigate(AnodyneUserNotesRoute(substanceName = substanceName))
+          },
+      )
+    }
+    composableWithTransitions<AnodyneUserNotesRoute> {
+      foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneUserNotesScreen(
+          navigateBack = navController::popBackStack,
+          navigateToNoteDetail = { user, substanceName ->
+            navController.navigate(
+                AnodyneUserNoteDetailRoute(user = user, substanceName = substanceName)
+            )
+          },
+      )
+    }
+    composableWithTransitions<AnodyneUserNoteDetailRoute> { backStackEntry ->
+      val route = backStackEntry.toRoute<AnodyneUserNoteDetailRoute>()
+      foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneUserNoteScreen(
+          user = route.user,
+          substanceName = route.substanceName,
+          navigateBack = navController::popBackStack,
+      )
+    }
+    composableWithTransitions<AnodyneLinksRoute> { backStackEntry ->
+      val route = backStackEntry.toRoute<AnodyneLinksRoute>()
+      foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneLinksScreen(
+          title = route.title,
+          url = route.url,
+          navigateBack = navController::popBackStack,
+      )
+    }
     composableWithTransitions<SubstanceRoute> {
       SubstanceScreen(
           navigateToDosageExplanationScreen = {
@@ -93,6 +134,9 @@ fun NavGraphBuilder.searchGraph(navController: NavHostController) {
           navigateToVolumetricDosingScreen = {
             navController.navigate(VolumetricDosingOnSearchTabRoute)
           },
+          navigateToUserNotes = { substanceName ->
+            navController.navigate(AnodyneUserNotesRoute(substanceName = substanceName))
+          },
       )
     }
     composableWithTransitions<CategoryRoute> {
@@ -103,6 +147,9 @@ fun NavGraphBuilder.searchGraph(navController: NavHostController) {
           navigateBack = navController::popBackStack,
           navigateToEdit = { id ->
             navController.navigate(EditCustomSubstanceRoute(id))
+          },
+          navigateToUserNotes = { substanceName ->
+            navController.navigate(AnodyneUserNotesRoute(substanceName = substanceName))
           },
       )
     }

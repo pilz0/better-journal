@@ -71,149 +71,215 @@ fun AnodyneSettingsScreen(
               }
             },
         )
-      }
+      },
   ) { padding ->
     Column(
-        modifier = Modifier
-            .padding(padding)
-            .padding(horizontal = horizontalPadding)
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+        modifier =
+            Modifier.padding(padding)
+                .padding(horizontal = horizontalPadding)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
     ) {
-      ElevatedCard(
-          modifier = Modifier
-              .fillMaxWidth()
-              .padding(vertical = verticalPaddingCards)
-      ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-          Row(
-              verticalAlignment = Alignment.CenterVertically,
-              modifier = Modifier.fillMaxWidth()
-          ) {
-            Column(modifier = Modifier.weight(1f)) {
-              Text("Load Automatically", style = MaterialTheme.typography.titleMedium)
-              Spacer(Modifier.height(4.dp))
-              Text(
-                  "Substance pages load AnodyneWiki data as they open. Otherwise it is only loaded when tapping More from AnodyneWiki.",
-                  style = MaterialTheme.typography.bodySmall,
-                  color = MaterialTheme.colorScheme.onSurfaceVariant
-              )
-            }
-            Spacer(Modifier.width(12.dp))
-            Switch(
-                checked = isAutoLoad,
-                onCheckedChange = viewModel::onAutoLoadChanged
-            )
-          }
-        }
-      }
+      AutoLoadCard(
+          isAutoLoad = isAutoLoad,
+          onAutoLoadChanged = viewModel::onAutoLoadChanged,
+      )
 
-      ElevatedCard(
-          modifier = Modifier
-              .fillMaxWidth()
-              .padding(vertical = verticalPaddingCards)
-      ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-          Text("Instance", style = MaterialTheme.typography.titleMedium)
-          Spacer(Modifier.height(4.dp))
-          Text(
-              "The AnodyneWiki to load data from and link to. Changing it deletes data downloaded from the previous one.",
-              style = MaterialTheme.typography.bodySmall,
-              color = MaterialTheme.colorScheme.onSurfaceVariant
-          )
-          Spacer(Modifier.height(12.dp))
+      InstanceUrlCard(
+          draftUrl = draftUrl,
+          configuredUrl = configuredUrl,
+          isValid = isValid,
+          onDraftUrlChange = {
+            viewModel.onDraftUrlChange(it)
+            viewModel.applyDraftUrl()
+          },
+          onResetToDefault = viewModel::resetToDefaultUrl,
+      )
 
-          OutlinedTextField(
-              value = draftUrl,
-              onValueChange = {
-                viewModel.onDraftUrlChange(it)
-                viewModel.applyDraftUrl()
-              },
-              label = { Text("Instance URL") },
-              placeholder = { Text(AnodyneRepository.DEFAULT_INSTANCE_URL) },
-              isError = !isValid,
-              singleLine = true,
-              modifier = Modifier.fillMaxWidth()
-          )
-          if (!isValid) {
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "Enter a valid web address, e.g. wiki.example.org",
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall
-            )
-          }
+      DownloadedDataCard(
+          formattedSize = formattedSize,
+          cacheSize = cacheSize,
+          onClearCache = viewModel::clearCache,
+      )
 
-          if (configuredUrl != AnodyneRepository.DEFAULT_INSTANCE_URL) {
-            Spacer(Modifier.height(8.dp))
-            TextButton(onClick = viewModel::resetToDefaultUrl) {
-              Text("Use anodyne.wiki")
-            }
-          }
-        }
-      }
-
-      ElevatedCard(
-          modifier = Modifier
-              .fillMaxWidth()
-              .padding(vertical = verticalPaddingCards)
-      ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-          Text("Downloaded Data", style = MaterialTheme.typography.titleMedium)
-          Spacer(Modifier.height(4.dp))
-          Text(
-              "$formattedSize downloaded. Substances and index entries are cached locally for faster offline access.",
-              style = MaterialTheme.typography.bodySmall,
-              color = MaterialTheme.colorScheme.onSurfaceVariant
-          )
-          Spacer(Modifier.height(12.dp))
-
-          OutlinedButton(
-              onClick = viewModel::clearCache,
-              enabled = cacheSize > 0,
-              colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
-          ) {
-            Icon(Icons.Outlined.Delete, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-            Text("Delete Downloaded Data")
-          }
-        }
-      }
-
-      ElevatedCard(
-          modifier = Modifier
-              .fillMaxWidth()
-              .padding(vertical = verticalPaddingCards)
-      ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-          TextButton(
-              onClick = navigateToBrowse,
-              modifier = Modifier.fillMaxWidth()
-          ) {
-            Icon(Icons.Outlined.Search, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-            Text("Browse AnodyneWiki", modifier = Modifier.weight(1f))
-          }
-
-          TextButton(
-              onClick = { uriHandler.openUri(configuredUrl) },
-              modifier = Modifier.fillMaxWidth()
-          ) {
-            Icon(Icons.AutoMirrored.Outlined.MenuBook, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-            Text("Open Wiki Website", modifier = Modifier.weight(1f))
-            Icon(Icons.Outlined.OpenInNew, contentDescription = null, modifier = Modifier.size(16.dp))
-          }
-        }
-      }
+      NavigationActionsCard(
+          navigateToBrowse = navigateToBrowse,
+          onOpenWebsite = { uriHandler.openUri(configuredUrl) },
+      )
 
       Spacer(Modifier.height(8.dp))
       Text(
-          "AnodyneWiki is a meta-wiki that aggregates substance data from many sources. Its content is in the public domain unless noted otherwise. Dose tiers are statistically derived from logged doses (DBI-IGS) and are not recommendations.",
+          text =
+              "AnodyneWiki is a meta-wiki that aggregates substance data from many sources. " +
+                  "Its content is in the public domain unless noted otherwise. " +
+                  "Dose tiers are statistically derived from logged doses (DBI-IGS) and are not recommendations.",
           style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
-          modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp)
+          modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp),
       )
+    }
+  }
+}
+
+@Composable
+private fun AutoLoadCard(
+    isAutoLoad: Boolean,
+    onAutoLoadChanged: (Boolean) -> Unit,
+) {
+  ElevatedCard(
+      modifier = Modifier.fillMaxWidth().padding(vertical = verticalPaddingCards),
+  ) {
+    Column(modifier = Modifier.padding(16.dp)) {
+      Row(
+          verticalAlignment = Alignment.CenterVertically,
+          modifier = Modifier.fillMaxWidth(),
+      ) {
+        Column(modifier = Modifier.weight(1f)) {
+          Text("Load Automatically", style = MaterialTheme.typography.titleMedium)
+          Spacer(Modifier.height(4.dp))
+          Text(
+              "Substance pages load AnodyneWiki data as they open. " +
+                  "Otherwise it is only loaded when tapping More from AnodyneWiki.",
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+        }
+        Spacer(Modifier.width(12.dp))
+        Switch(
+            checked = isAutoLoad,
+            onCheckedChange = onAutoLoadChanged,
+        )
+      }
+    }
+  }
+}
+
+@Composable
+private fun InstanceUrlCard(
+    draftUrl: String,
+    configuredUrl: String,
+    isValid: Boolean,
+    onDraftUrlChange: (String) -> Unit,
+    onResetToDefault: () -> Unit,
+) {
+  ElevatedCard(
+      modifier = Modifier.fillMaxWidth().padding(vertical = verticalPaddingCards),
+  ) {
+    Column(modifier = Modifier.padding(16.dp)) {
+      Text("Instance", style = MaterialTheme.typography.titleMedium)
+      Spacer(Modifier.height(4.dp))
+      Text(
+          "The AnodyneWiki to load data from and link to. " +
+              "Changing it deletes data downloaded from the previous one.",
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+      Spacer(Modifier.height(12.dp))
+
+      OutlinedTextField(
+          value = draftUrl,
+          onValueChange = onDraftUrlChange,
+          label = { Text("Instance URL") },
+          placeholder = { Text(AnodyneRepository.DEFAULT_INSTANCE_URL) },
+          isError = !isValid,
+          singleLine = true,
+          modifier = Modifier.fillMaxWidth(),
+      )
+      if (!isValid) {
+        Spacer(Modifier.height(4.dp))
+        Text(
+            "Enter a valid web address, e.g. wiki.example.org",
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodySmall,
+        )
+      }
+
+      if (configuredUrl != AnodyneRepository.DEFAULT_INSTANCE_URL) {
+        Spacer(Modifier.height(8.dp))
+        TextButton(onClick = onResetToDefault) {
+          Text("Use anodyne.wiki")
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun DownloadedDataCard(
+    formattedSize: String,
+    cacheSize: Long,
+    onClearCache: () -> Unit,
+) {
+  ElevatedCard(
+      modifier = Modifier.fillMaxWidth().padding(vertical = verticalPaddingCards),
+  ) {
+    Column(modifier = Modifier.padding(16.dp)) {
+      Text("Downloaded Data", style = MaterialTheme.typography.titleMedium)
+      Spacer(Modifier.height(4.dp))
+      Text(
+          "$formattedSize downloaded. Substances and index entries are cached locally for faster offline access.",
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+      Spacer(Modifier.height(12.dp))
+
+      OutlinedButton(
+          onClick = onClearCache,
+          enabled = cacheSize > 0,
+          colors =
+              ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+      ) {
+        Icon(
+            Icons.Outlined.Delete,
+            contentDescription = null,
+            modifier = Modifier.size(ButtonDefaults.IconSize),
+        )
+        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+        Text("Delete Downloaded Data")
+      }
+    }
+  }
+}
+
+@Composable
+private fun NavigationActionsCard(
+    navigateToBrowse: () -> Unit,
+    onOpenWebsite: () -> Unit,
+) {
+  ElevatedCard(
+      modifier = Modifier.fillMaxWidth().padding(vertical = verticalPaddingCards),
+  ) {
+    Column(modifier = Modifier.padding(16.dp)) {
+      TextButton(
+          onClick = navigateToBrowse,
+          modifier = Modifier.fillMaxWidth(),
+      ) {
+        Icon(
+            Icons.Outlined.Search,
+            contentDescription = null,
+            modifier = Modifier.size(ButtonDefaults.IconSize),
+        )
+        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+        Text("Browse AnodyneWiki", modifier = Modifier.weight(1f))
+      }
+
+      TextButton(
+          onClick = onOpenWebsite,
+          modifier = Modifier.fillMaxWidth(),
+      ) {
+        Icon(
+            Icons.AutoMirrored.Outlined.MenuBook,
+            contentDescription = null,
+            modifier = Modifier.size(ButtonDefaults.IconSize),
+        )
+        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+        Text("Open Wiki Website", modifier = Modifier.weight(1f))
+        Icon(
+            Icons.Outlined.OpenInNew,
+            contentDescription = null,
+            modifier = Modifier.size(16.dp),
+        )
+      }
     }
   }
 }

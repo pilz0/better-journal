@@ -14,18 +14,20 @@ class AnodyneFallbackStoreTest {
   @Test
   fun testRecordAndRetrieveDoseAndDuration() {
     val store = AnodyneFallbackStore()
-    val dosing = AnodyneDosing(
-        method = "Oral",
-        common = AnodyneTier(100.0, 150.0, "mg", 20),
-        strong = AnodyneTier(150.0, 200.0, "mg", 15),
-        heavy = AnodyneTier(200.0, 300.0, "mg", 5)
-    )
-    val substance = AnodyneSubstance(
-        title = "Mescaline",
-        abbreviations = listOf("Peyote"),
-        dosing = listOf(dosing),
-        durationOfAction = "8 - 12 hours"
-    )
+    val dosing =
+        AnodyneDosing(
+            method = "Oral",
+            common = AnodyneTier(100.0, 150.0, "mg", 20),
+            strong = AnodyneTier(150.0, 200.0, "mg", 15),
+            heavy = AnodyneTier(200.0, 300.0, "mg", 5),
+        )
+    val substance =
+        AnodyneSubstance(
+            title = "Mescaline",
+            abbreviations = listOf("Peyote"),
+            dosing = listOf(dosing),
+            durationOfAction = "8 - 12 hours",
+        )
     store.record(substance)
 
     val dose = store.getDose("Mescaline", AdministrationRoute.ORAL)
@@ -46,15 +48,9 @@ class AnodyneFallbackStoreTest {
   @Test
   fun testUserNoteTimingsOverrideTotal() {
     val store = AnodyneFallbackStore()
-    val notes = listOf(
-        AnodyneUserNote(
-            user = "bob",
-            substanceName = "NovelChem",
-            routes = listOf(
-                AnodyneUserNote.Route("Insufflated", "20 mg", "5m", "10m", "2h")
-            )
-        )
-    )
+    val route = AnodyneUserNote.Route("Insufflated", "20 mg", "5m", "10m", "2h")
+    val notes =
+        listOf(AnodyneUserNote(user = "bob", substanceName = "NovelChem", routes = listOf(route)))
     store.record(notes)
 
     val dur = store.getDuration("NovelChem", AdministrationRoute.INSUFFLATED)

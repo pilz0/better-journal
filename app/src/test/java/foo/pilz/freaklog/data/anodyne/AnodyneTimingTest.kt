@@ -25,10 +25,11 @@ class AnodyneTimingTest {
 
   @Test
   fun testCombinedDuration() {
-    val routes = listOf(
-        AnodyneUserNote.Route("Oral", "100 mg", "30m", "45m", "4h"),
-        AnodyneUserNote.Route("Oral", "120 mg", "45m", "1h", "6h")
-    )
+    val routes =
+        listOf(
+            AnodyneUserNote.Route("Oral", "100 mg", "30m", "45m", "4h"),
+            AnodyneUserNote.Route("Oral", "120 mg", "45m", "1h", "6h"),
+        )
     val duration = AnodyneTiming.combinedDuration(routes)
     assertNotNull(duration)
     assertEquals(30f, duration?.onset?.min ?: 0f, 0.01f)
