@@ -429,7 +429,13 @@ jobs:
     name: Publish GitHub Release
     needs:
       [preconditions, attest, upload-r2-apk, upload-r2-aab, upload-google-play]
-    if: needs.preconditions.outputs.is-tag == 'true'
+    # Not gated on the Google Play upload: the tag's commit is usually also the
+    # head of main, whose run already uploaded this versionCode, so the tag
+    # run's upload fails with "Version code N has already been used".
+    if: >-
+      !cancelled() && needs.preconditions.outputs.is-tag == 'true' &&
+      needs.upload-r2-apk.result == 'success' &&
+      needs.upload-r2-aab.result == 'success'
     runs-on: ubuntu-latest
     environment: production
     permissions:
