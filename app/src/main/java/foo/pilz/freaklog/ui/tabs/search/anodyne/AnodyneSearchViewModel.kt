@@ -28,7 +28,7 @@ class AnodyneSearchViewModel
 @Inject
 constructor(
     private val repository: AnodyneRepository,
-    savedStateHandle: SavedStateHandle = SavedStateHandle(),
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
   private val initialQuery: String = savedStateHandle.get<String>("query") ?: ""

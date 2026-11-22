@@ -60,7 +60,7 @@ class AnodyneSubstanceViewModel(
       substanceRepo: SubstanceRepository,
       customRepo: CustomSubstanceRepository,
       experienceRepo: ExperienceRepository,
-      savedStateHandle: SavedStateHandle = SavedStateHandle(),
+      savedStateHandle: SavedStateHandle,
   ) : this(
       substanceTitle = savedStateHandle.get<String>("title") ?: "",
       repository = repository,

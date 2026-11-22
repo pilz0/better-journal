@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColorInt
 import foo.pilz.freaklog.data.anodyne.model.AnodyneLink
 import foo.pilz.freaklog.data.anodyne.model.AnodyneSubstance
 import foo.pilz.freaklog.data.anodyne.model.EffectGroup
@@ -323,8 +324,7 @@ private fun parseReagentColor(str: String): Color {
     "green" -> Color(0xFF43A047)
     "clear",
     "white" -> Color(0xFFFAFAFA)
-    else ->
-        runCatching { Color(android.graphics.Color.parseColor("#$clean")) }.getOrDefault(Color.Gray)
+    else -> runCatching { Color("#$clean".toColorInt()) }.getOrDefault(Color.Gray)
   }
 }
 

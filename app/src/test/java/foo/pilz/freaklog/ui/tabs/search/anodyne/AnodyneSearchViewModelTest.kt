@@ -1,5 +1,6 @@
 package foo.pilz.freaklog.ui.tabs.search.anodyne
 
+import androidx.lifecycle.SavedStateHandle
 import foo.pilz.freaklog.data.anodyne.AnodyneRepository
 import foo.pilz.freaklog.data.anodyne.model.AnodyneIndexEntry
 import io.mockk.coEvery
@@ -46,7 +47,7 @@ class AnodyneSearchViewModelTest {
                   ),
               )
         }
-    val vm = AnodyneSearchViewModel(repo)
+    val vm = AnodyneSearchViewModel(repo, SavedStateHandle())
     advanceUntilIdle()
 
     vm.onSearchQueryChange("LSD")
@@ -69,7 +70,7 @@ class AnodyneSearchViewModelTest {
                   ),
               )
         }
-    val vm = AnodyneSearchViewModel(repo)
+    val vm = AnodyneSearchViewModel(repo, SavedStateHandle())
     advanceUntilIdle()
 
     vm.onSearchQueryChange("Dissociative")

@@ -17,7 +17,7 @@ class AnodyneUserNotesViewModel
 @Inject
 constructor(
     private val repository: AnodyneRepository,
-    savedStateHandle: SavedStateHandle = SavedStateHandle(),
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
   val substanceName: String = savedStateHandle.get<String>("substanceName") ?: ""
