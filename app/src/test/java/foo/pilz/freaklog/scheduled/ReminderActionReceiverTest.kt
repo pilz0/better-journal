@@ -22,6 +22,8 @@ import assertk.assertions.isNotNull
 import foo.pilz.freaklog.data.room.AppDatabase
 import foo.pilz.freaklog.data.room.experiences.ExperienceDao
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
+import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
+import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
 import foo.pilz.freaklog.data.room.reminders.entities.Reminder
 import foo.pilz.freaklog.testing.EntityBuilders
 import java.time.Instant
@@ -132,6 +134,15 @@ class ReminderActionReceiverTest {
     assertThat(ingestions.map { it.ingestion.notes })
         .containsExactlyInAnyOrder(null, "Logged from reminder")
     assertThat(dao.getExperience(8)).isEqualTo(null)
+  }
+
+  @Test
+  fun `take keeps the color the user picked for the substance`() = runTest {
+    dao.insert(SubstanceCompanion(substanceName = "Caffeine", color = AdaptiveColor.RED))
+
+    receiver.handleTake(reminder)
+
+    assertThat(dao.getSubstanceCompanion("Caffeine")?.color).isEqualTo(AdaptiveColor.RED)
   }
 
   @Test

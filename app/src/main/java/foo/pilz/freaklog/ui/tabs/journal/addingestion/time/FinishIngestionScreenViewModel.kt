@@ -485,11 +485,10 @@ constructor(
   }
 
   private suspend fun createAndSaveIngestion() {
+    // Stored with REPLACE: copy the existing companion so its default category survives.
     val substanceCompanion =
-        SubstanceCompanion(
-            substanceName,
-            color = selectedColor,
-        )
+        substanceCompanion?.copy(color = selectedColor)
+            ?: SubstanceCompanion(substanceName, color = selectedColor)
     val oldIdToUse = selectedExperienceFlow.firstOrNull()?.experience?.id
     var newIngestion: Ingestion
     if (oldIdToUse == null) {

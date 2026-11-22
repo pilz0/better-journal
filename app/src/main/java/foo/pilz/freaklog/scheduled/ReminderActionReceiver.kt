@@ -120,11 +120,10 @@ class ReminderActionReceiver : BroadcastReceiver() {
           now.isBefore(firstIngestionTime.plus(15, ChronoUnit.HOURS))
     }
 
+    // The companion is stored with REPLACE, so reuse the existing one to keep the user's color.
     val companion =
-        SubstanceCompanion(
-            substanceName = substanceName,
-            color = AdaptiveColor.BLUE,
-        )
+        experienceRepository.getSubstanceCompanion(substanceName)
+            ?: SubstanceCompanion(substanceName = substanceName, color = AdaptiveColor.BLUE)
     if (attachTo != null) {
       val ingestion = newIngestion(reminder, substanceName, route, attachTo.experience.id, now)
       experienceRepository.insertIngestionAndCompanion(ingestion, companion)
