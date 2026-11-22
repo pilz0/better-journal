@@ -223,4 +223,14 @@ class WebhookSeederTest {
               administrationSite = null,
           )
           .also { it.webhookMessageId = msgId }
+
+  @Test
+  fun `an insecure legacy URL is migrated disabled instead of failing every launch`() = runTest {
+    stubPrefs(seeded = false, url = "http://example.com/webhook", name = "Old", template = "")
+
+    seeder().seedIfNeeded()
+
+    assertEquals(false, webhookStore.single().isEnabled)
+    assertTrue(seededFlag)
+  }
 }

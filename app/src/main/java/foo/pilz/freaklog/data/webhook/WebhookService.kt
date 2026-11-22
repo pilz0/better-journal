@@ -160,7 +160,7 @@ internal constructor(
   suspend fun deleteWebhookMessage(url: String, messageId: String): Boolean =
       withContext(Dispatchers.IO) {
         try {
-          val requestUrl = URI("${checkedWebhookUrl(url)}/messages/$messageId").toURL()
+          val requestUrl = URI(messageUrl(checkedWebhookUrl(url), messageId)).toURL()
 
           val connection = requestUrl.openConnection() as HttpURLConnection
           try {
@@ -261,6 +261,10 @@ internal constructor(
                 messageId = messageId,
             )
         return WebhookResult(success = true, messageId = result, error = null)
+      } catch (e: DeliveryUnknownException) {
+        // The server may already have posted the message; another attempt would duplicate it.
+        logger.warn("WebhookService", "Got error: $e")
+        return WebhookResult(success = false, messageId = null, error = e)
       } catch (e: Exception) {
         logger.warn("WebhookService", "Got error: $e")
         lastError = e
@@ -283,13 +287,14 @@ internal constructor(
       withContext(Dispatchers.IO) {
         val requestUrl =
             if (isEdit && messageId != null) {
-              URI("$webhookUrl/messages/$messageId").toURL()
+              URI(messageUrl(webhookUrl, messageId)).toURL()
             } else {
               val separator = if (webhookUrl.contains("?")) "&" else "?"
               URI("$webhookUrl${separator}wait=true").toURL()
             }
 
         val connection = requestUrl.openConnection() as HttpURLConnection
+        var bodySent = false
         try {
           if (isEdit) {
             setPatchMethod(connection)
@@ -305,6 +310,7 @@ internal constructor(
           connection.outputStream.use { os ->
             os.write(jsonString.toByteArray())
           }
+          bodySent = true
 
           val responseCode = connection.responseCode
           if (responseCode !in 200..299) {
@@ -312,24 +318,44 @@ internal constructor(
                 connection.errorStream?.use { readBoundedResponse(it, connection.contentEncoding) }
             val detail = if (!errorBody.isNullOrBlank()) ": $errorBody" else ""
             logger.warn("WebhookService", "HTTP error code:$responseCode$detail")
-            throw IOException("HTTP error code $responseCode$detail")
+            throw WebhookHttpException("HTTP error code $responseCode$detail")
           }
 
           if (!isEdit) {
-            val response =
-                connection.inputStream.use { readBoundedResponse(it, connection.contentEncoding) }
-            val json = Json.parseToJsonElement(response).jsonObject
-            json["id"]?.jsonPrimitive?.content
+            // The message is posted at this point. An unreadable reply only costs the id (so it
+            // can't be edited later); throwing would retry and post it again.
+            try {
+              val response =
+                  connection.inputStream.use { readBoundedResponse(it, connection.contentEncoding) }
+              Json.parseToJsonElement(response).jsonObject["id"]?.jsonPrimitive?.content
+            } catch (e: IOException) {
+              logger.warn("WebhookService", "Sent, but could not read the message id: $e")
+              null
+            } catch (e: IllegalArgumentException) {
+              // Also covers kotlinx.serialization's SerializationException.
+              logger.warn("WebhookService", "Sent, but could not read the message id: $e")
+              null
+            }
           } else {
             try {
               connection.inputStream?.close()
             } catch (_: IOException) {}
             null
           }
+        } catch (e: IOException) {
+          // A new message is not idempotent: once the body went out, a timeout or reset may come
+          // after Discord posted it. Edits (PATCH) are safe to repeat.
+          if (bodySent && !isEdit && e !is WebhookHttpException) throw DeliveryUnknownException(e)
+          throw e
         } finally {
           connection.disconnect()
         }
       }
+
+  private class WebhookHttpException(message: String) : IOException(message)
+
+  private class DeliveryUnknownException(cause: IOException) :
+      IOException("The webhook may have been delivered; not retrying (${cause.message})", cause)
 
   /**
    * Android's okhttp-backed [HttpURLConnection] accepts `PATCH`, but the JDK's implementation (used
@@ -455,6 +481,19 @@ internal constructor(
    *
    * @throws IllegalArgumentException for destinations [isSecureWebhookUrl] rejects
    */
+  /**
+   * Inserts `/messages/{id}` before the query string, so a thread webhook's `?thread_id=` stays a
+   * query parameter. Appending it to the end would target the webhook itself: DELETE would remove
+   * the webhook and PATCH would change it.
+   */
+  internal fun messageUrl(webhookUrl: String, messageId: String): String {
+    val queryStart = webhookUrl.indexOf('?').takeIf { it >= 0 } ?: webhookUrl.length
+    val id = java.net.URLEncoder.encode(messageId, Charsets.UTF_8.name())
+    return webhookUrl.substring(0, queryStart).trimEnd('/') +
+        "/messages/$id" +
+        webhookUrl.substring(queryStart)
+  }
+
   private fun checkedWebhookUrl(url: String): String {
     val cleanUrl = url.trim().removeSuffix("/")
     require(isSecureWebhookUrl(cleanUrl)) { "HTTPS is required for remote webhook destinations" }

@@ -60,7 +60,10 @@ constructor(
                       displayName = legacyName,
                       template = legacyTemplate,
                       isHyperlinked = true,
-                      isEnabled = true,
+                      // insert() refuses an enabled http:// destination; failing here would
+                      // retry the migration on every launch. Disabled, it stays visible in
+                      // Settings for the user to switch to HTTPS.
+                      isEnabled = foo.pilz.freaklog.data.webhook.isSecureWebhookUrl(legacyUrl),
                       sortOrder = 0,
                   )
               webhookRepository.insert(seededWebhook).toInt()

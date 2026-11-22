@@ -754,7 +754,7 @@ class WebhookServiceHttpTest {
   }
 
   @Test
-  fun oversizedSuccessResponseFailsWithBoundedReads() = runBlocking {
+  fun oversizedSuccessResponseIsBoundedAndNotRetried() = runBlocking {
     repeat(3) { enqueue(200, "x".repeat(70_000)) }
     val result =
         service.sendWebhook(
@@ -770,12 +770,14 @@ class WebhookServiceHttpTest {
             template = "{substance}",
             isHyperlinked = false,
         )
-    assertFalse(result.success)
-    assertTrue(result.error.toString().contains("too large"))
+    // Posted, but the oversized reply is not read to the end; retrying would post it again.
+    assertTrue(result.success)
+    assertNull(result.messageId)
+    assertEquals(1, server.requestCount)
   }
 
   @Test
-  fun compressedResponseLimitAppliesAfterDecompression() = runBlocking {
+  fun compressedResponseLimitAppliesAfterDecompressionWithoutRetry() = runBlocking {
     val bytes = java.io.ByteArrayOutputStream()
     java.util.zip.GZIPOutputStream(bytes).use { it.write("x".repeat(1_000_000).toByteArray()) }
     repeat(3) {
@@ -799,8 +801,10 @@ class WebhookServiceHttpTest {
             template = "{substance}",
             isHyperlinked = false,
         )
-    assertFalse(result.success)
-    assertTrue(result.error.toString().contains("too large"))
+    // Posted, but the oversized reply is not read to the end; retrying would post it again.
+    assertTrue(result.success)
+    assertNull(result.messageId)
+    assertEquals(1, server.requestCount)
   }
 
   // ---------------------------------------------------------------------
@@ -1018,5 +1022,52 @@ class WebhookServiceHttpTest {
     val request = takeRequest()
     assertEquals("application/json", request.getHeader("Content-Type"))
     assertEquals(note, JSONObject(request.body.readUtf8()).getString("content"))
+  }
+
+  @Test
+  fun messageUrlKeepsTheThreadQueryAfterTheMessagePath() {
+    assertEquals(
+        "https://discord.com/api/webhooks/1/t/messages/42?thread_id=7",
+        service.messageUrl("https://discord.com/api/webhooks/1/t?thread_id=7", "42"),
+    )
+    assertEquals(
+        "https://discord.com/api/webhooks/1/t/messages/42",
+        service.messageUrl("https://discord.com/api/webhooks/1/t/", "42"),
+    )
+  }
+
+  @Test
+  fun deleteOfAThreadMessageTargetsTheMessageNotTheWebhook() = runBlocking {
+    enqueue(204)
+
+    service.deleteWebhookMessage("$baseUrl?thread_id=7", "42")
+
+    val request = server.takeRequest()
+    assertEquals("DELETE", request.method)
+    assertEquals("/webhooks/abc/token/messages/42?thread_id=7", request.path)
+  }
+
+  @Test
+  fun successfulPostWithAnUnreadableReplyIsNotPostedAgain() = runBlocking {
+    enqueue(200, "not json")
+
+    val result =
+        service.sendWebhook(
+            url = baseUrl,
+            user = "u",
+            substance = "s",
+            dose = null,
+            units = null,
+            isEstimate = false,
+            route = "r",
+            site = null,
+            note = null,
+            template = "{user}",
+            isHyperlinked = false,
+        )
+
+    assertTrue(result.success)
+    assertNull(result.messageId)
+    assertEquals(1, server.requestCount)
   }
 }
