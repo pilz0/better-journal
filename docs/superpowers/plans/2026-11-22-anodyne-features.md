@@ -57,7 +57,7 @@
 - Create: `app/src/main/java/foo/pilz/freaklog/data/anodyne/model/AnodyneUserNote.kt`
 - Test: `app/src/test/java/foo/pilz/freaklog/data/anodyne/AnodyneTextCleanerTest.kt`
 
-- [ ] **Step 1: Write failing unit test for text cleaning and subscripting**
+- [x] **Step 1: Write failing unit test for text cleaning and subscripting**
 
 ```kotlin
 package foo.pilz.freaklog.data.anodyne
@@ -80,12 +80,12 @@ class AnodyneTextCleanerTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.data.anodyne.AnodyneTextCleanerTest" --no-daemon`  
 Expected: Compilation failure (class not found).
 
-- [ ] **Step 3: Implement `AnodyneTextCleaner` and the data models**
+- [x] **Step 3: Implement `AnodyneTextCleaner` and the data models**
 
 Create `AnodyneTextCleaner.kt`:
 
@@ -228,12 +228,12 @@ data class AnodyneSubstance(
 
 Create `AnodyneIndexEntry.kt` and `AnodyneUserNote.kt`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.data.anodyne.AnodyneTextCleanerTest" --no-daemon`  
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/main/java/foo/pilz/freaklog/data/anodyne/ app/src/test/java/foo/pilz/freaklog/data/anodyne/AnodyneTextCleanerTest.kt
@@ -249,7 +249,7 @@ git commit -m "feat(anodyne): add models and text cleaner"
 - Create: `app/src/main/java/foo/pilz/freaklog/data/anodyne/AnodyneParser.kt`
 - Test: `app/src/test/java/foo/pilz/freaklog/data/anodyne/AnodyneParserTest.kt`
 
-- [ ] **Step 1: Write failing unit test for `AnodyneParser`**
+- [x] **Step 1: Write failing unit test for `AnodyneParser`**
 
 ```kotlin
 package foo.pilz.freaklog.data.anodyne
@@ -291,20 +291,20 @@ class AnodyneParserTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify failure**
+- [x] **Step 2: Run test to verify failure**
 
 Run: `./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.data.anodyne.AnodyneParserTest" --no-daemon`
 
-- [ ] **Step 3: Implement `AnodyneParser`**
+- [x] **Step 3: Implement `AnodyneParser`**
 
 Implement `AnodyneParser` with robust parsing of `Title`, `Aliases`, `Dosing Info`, `Subjective Effects`, `Scheduling`, `Reagents`, `Erowid Experience Reports`, `Reddit Experience Reports`, `References`, and structure SVG (handling Base64 decoding if `StructureBase64` is provided).
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.data.anodyne.AnodyneParserTest" --no-daemon`  
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/main/java/foo/pilz/freaklog/data/anodyne/AnodyneParser.kt app/src/test/java/foo/pilz/freaklog/data/anodyne/AnodyneParserTest.kt
@@ -322,7 +322,7 @@ git commit -m "feat(anodyne): add JSON parser for substances, index, and user no
 - Test: `app/src/test/java/foo/pilz/freaklog/data/anodyne/AnodyneTimingTest.kt`
 - Test: `app/src/test/java/foo/pilz/freaklog/data/anodyne/AnodyneFallbackStoreTest.kt`
 
-- [ ] **Step 1: Write failing unit test for `AnodyneTiming`**
+- [x] **Step 1: Write failing unit test for `AnodyneTiming`**
 
 ```kotlin
 package foo.pilz.freaklog.data.anodyne
@@ -344,20 +344,20 @@ class AnodyneTimingTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify failure**
+- [x] **Step 2: Run test to verify failure**
 
 Run: `./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.data.anodyne.AnodyneTimingTest" --no-daemon`
 
-- [ ] **Step 3: Implement `AnodyneTiming` and `AnodyneFallbackStore`**
+- [x] **Step 3: Implement `AnodyneTiming` and `AnodyneFallbackStore`**
 
 Implement regex matching for units (`hours`, `hrs`, `h`, `minutes`, `mins`, `m`, `seconds`, `secs`, `s`, `days`, `d`), converting to `DurationRange` and `RoaDuration`. Implement `AnodyneFallbackStore` with thread-safe synchronized maps holding fallback doses and durations per substance and route.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.data.anodyne.AnodyneTimingTest" --tests "foo.pilz.freaklog.data.anodyne.AnodyneFallbackStoreTest" --no-daemon`  
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/main/java/foo/pilz/freaklog/data/anodyne/AnodyneTiming.kt app/src/main/java/foo/pilz/freaklog/data/anodyne/AnodyneFallbackStore.kt app/src/test/java/foo/pilz/freaklog/data/anodyne/AnodyneTimingTest.kt app/src/test/java/foo/pilz/freaklog/data/anodyne/AnodyneFallbackStoreTest.kt
@@ -374,7 +374,7 @@ git commit -m "feat(anodyne): add timing range parser and fallback store"
 - Create: `app/src/main/java/foo/pilz/freaklog/data/anodyne/AnodyneRepository.kt`
 - Test: `app/src/test/java/foo/pilz/freaklog/data/anodyne/AnodyneRepositoryTest.kt`
 
-- [ ] **Step 1: Write failing unit test for `AnodyneRepository`**
+- [x] **Step 1: Write failing unit test for `AnodyneRepository`**
 
 ```kotlin
 package foo.pilz.freaklog.data.anodyne
@@ -393,20 +393,20 @@ class AnodyneRepositoryTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify failure**
+- [x] **Step 2: Run test to verify failure**
 
 Run: `./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.data.anodyne.AnodyneRepositoryTest" --no-daemon`
 
-- [ ] **Step 3: Update `UserPreferences` and implement `AnodyneRepository`**
+- [x] **Step 3: Update `UserPreferences` and implement `AnodyneRepository`**
 
 Add `ANODYNE_BASE_URL` and `ANODYNE_AUTO_LOAD_ENABLED` keys and flows in `UserPreferences`. Implement `AnodyneRepository` with `@Singleton` injecting `@ApplicationContext`, managing `<cacheDir>/anodyne`, saving/reading JSON with 7-day substance TTL and 24-hr index TTL, and providing cache size and clearing.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.data.anodyne.AnodyneRepositoryTest" --no-daemon`  
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/main/java/foo/pilz/freaklog/ui/tabs/settings/combinations/UserPreferences.kt app/src/main/java/foo/pilz/freaklog/data/anodyne/AnodyneRepository.kt app/src/test/java/foo/pilz/freaklog/data/anodyne/AnodyneRepositoryTest.kt
@@ -423,7 +423,7 @@ git commit -m "feat(anodyne): add repository with disk caching and preference in
 - Create: `app/src/main/java/foo/pilz/freaklog/ui/tabs/search/anodyne/MoleculeStructureView.kt`
 - Test: `app/src/test/java/foo/pilz/freaklog/ui/tabs/search/anodyne/MoleculeDrawingTest.kt`
 
-- [ ] **Step 1: Write failing unit test for `MoleculeDrawing.parse`**
+- [x] **Step 1: Write failing unit test for `MoleculeDrawing.parse`**
 
 ```kotlin
 package foo.pilz.freaklog.ui.tabs.search.anodyne
@@ -444,20 +444,20 @@ class MoleculeDrawingTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify failure**
+- [x] **Step 2: Run test to verify failure**
 
 Run: `./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.ui.tabs.search.anodyne.MoleculeDrawingTest" --no-daemon`
 
-- [ ] **Step 3: Implement `MoleculeDrawing` and `MoleculeStructureView`**
+- [x] **Step 3: Implement `MoleculeDrawing` and `MoleculeStructureView`**
 
 Implement XML parsing for SVG shapes (paths, lines, rects, circles, polylines), viewBox extraction, stroke and fill color mapping (translating #000000 to primary text/onSurface color), and Compose `Canvas` rendering with aspect ratio preservation.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.ui.tabs.search.anodyne.MoleculeDrawingTest" --no-daemon`  
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/main/java/foo/pilz/freaklog/ui/tabs/search/anodyne/MoleculeDrawing.kt app/src/main/java/foo/pilz/freaklog/ui/tabs/search/anodyne/MoleculeStructureView.kt app/src/test/java/foo/pilz/freaklog/ui/tabs/search/anodyne/MoleculeDrawingTest.kt
@@ -476,7 +476,7 @@ git commit -m "feat(anodyne): add native 2D chemical structure SVG renderer"
 - Modify: `app/src/main/java/foo/pilz/freaklog/ui/main/navigation/graphs/settingsGraph.kt`
 - Test: `app/src/test/java/foo/pilz/freaklog/ui/tabs/settings/anodyne/AnodyneSettingsViewModelTest.kt`
 
-- [ ] **Step 1: Write failing unit test for `AnodyneSettingsViewModel`**
+- [x] **Step 1: Write failing unit test for `AnodyneSettingsViewModel`**
 
 ```kotlin
 package foo.pilz.freaklog.ui.tabs.settings.anodyne
@@ -502,11 +502,11 @@ class AnodyneSettingsViewModelTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify failure**
+- [x] **Step 2: Run test to verify failure**
 
 Run: `./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.ui.tabs.settings.anodyne.AnodyneSettingsViewModelTest" --no-daemon`
 
-- [ ] **Step 3: Implement `AnodyneSettingsScreen` and hook into Settings**
+- [x] **Step 3: Implement `AnodyneSettingsScreen` and hook into Settings**
 
 Add `AnodyneWiki` row to `SettingsScreen`. Build `AnodyneSettingsScreen` with:
 
@@ -516,12 +516,12 @@ Add `AnodyneWiki` row to `SettingsScreen`. Build `AnodyneSettingsScreen` with:
 - Links to "Browse AnodyneWiki" and external instance URL.
   Add `AnodyneSettingsRoute` to `settingsGraph.kt`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.ui.tabs.settings.anodyne.AnodyneSettingsViewModelTest" --no-daemon`  
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/main/java/foo/pilz/freaklog/ui/tabs/settings/anodyne/ app/src/main/java/foo/pilz/freaklog/ui/tabs/settings/SettingsScreen.kt app/src/main/java/foo/pilz/freaklog/ui/main/navigation/graphs/settingsGraph.kt app/src/test/java/foo/pilz/freaklog/ui/tabs/settings/anodyne/
@@ -540,7 +540,7 @@ git commit -m "feat(anodyne): add AnodyneWiki settings screen"
 - Modify: `app/src/main/java/foo/pilz/freaklog/ui/main/navigation/graphs/searchGraph.kt`
 - Test: `app/src/test/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AnodyneSearchViewModelTest.kt`
 
-- [ ] **Step 1: Write failing unit test for `AnodyneSearchViewModel`**
+- [x] **Step 1: Write failing unit test for `AnodyneSearchViewModel`**
 
 ```kotlin
 package foo.pilz.freaklog.ui.tabs.search.anodyne
@@ -568,20 +568,20 @@ class AnodyneSearchViewModelTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify failure**
+- [x] **Step 2: Run test to verify failure**
 
 Run: `./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneSearchViewModelTest" --no-daemon`
 
-- [ ] **Step 3: Implement `AnodyneSearchScreen` and connect SearchScreen**
+- [x] **Step 3: Implement `AnodyneSearchScreen` and connect SearchScreen**
 
 In `SearchScreen.kt`, add the "Search AnodyneWiki" button at the bottom of the list with a book icon. In `AnodyneSearchScreen.kt`, provide live search filtering over titles, abbreviations, and classes, navigating to `AnodyneSubstanceRoute(title)`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneSearchViewModelTest" --no-daemon`  
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/main/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AnodyneSearchViewModel.kt app/src/main/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AnodyneSearchScreen.kt app/src/main/java/foo/pilz/freaklog/ui/tabs/search/SearchScreen.kt app/src/main/java/foo/pilz/freaklog/ui/main/navigation/graphs/searchGraph.kt app/src/test/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AnodyneSearchViewModelTest.kt
@@ -601,7 +601,7 @@ git commit -m "feat(anodyne): add AnodyneWiki search screen and integration in s
 - Modify: `app/src/main/java/foo/pilz/freaklog/ui/main/navigation/graphs/searchGraph.kt`
 - Test: `app/src/test/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AnodyneSubstanceViewModelTest.kt`
 
-- [ ] **Step 1: Write failing unit test for `AnodyneSubstanceViewModel`**
+- [x] **Step 1: Write failing unit test for `AnodyneSubstanceViewModel`**
 
 ```kotlin
 package foo.pilz.freaklog.ui.tabs.search.anodyne
@@ -627,20 +627,20 @@ class AnodyneSubstanceViewModelTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify failure**
+- [x] **Step 2: Run test to verify failure**
 
 Run: `./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneSubstanceViewModelTest" --no-daemon`
 
-- [ ] **Step 3: Implement `AnodyneSubstanceScreen` & Add Custom Substance Sheet**
+- [x] **Step 3: Implement `AnodyneSubstanceScreen` & Add Custom Substance Sheet**
 
 Create `AnodyneSections.kt` containing topic sections: Overview, Effects, Reports, Logged Doses, Duration, Literature Interactions, Toxicity, Health Warnings, Reagent Tests (with color chips), Legal Status, Pharmacology, and Sources. Implement `AddCustomSubstanceFromAnodyneSheet` creating a Room `CustomSubstance` prefilling dose tiers for all routes and matching categories.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneSubstanceViewModelTest" --no-daemon`  
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/main/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AnodyneSubstanceViewModel.kt app/src/main/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AnodyneSubstanceScreen.kt app/src/main/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AddCustomSubstanceFromAnodyneSheet.kt app/src/main/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AnodyneSections.kt app/src/main/java/foo/pilz/freaklog/ui/main/navigation/graphs/searchGraph.kt app/src/test/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AnodyneSubstanceViewModelTest.kt
@@ -660,7 +660,7 @@ git commit -m "feat(anodyne): add standalone Anodyne substance screen and add-as
 - Modify: `app/src/main/java/foo/pilz/freaklog/ui/tabs/search/custom/CustomSubstanceViewModel.kt`
 - Test: `app/src/test/java/foo/pilz/freaklog/ui/tabs/search/substance/SubstanceAnodyneIntegrationTest.kt`
 
-- [ ] **Step 1: Write failing unit test for `SubstanceAnodyneIntegration`**
+- [x] **Step 1: Write failing unit test for `SubstanceAnodyneIntegration`**
 
 ```kotlin
 package foo.pilz.freaklog.ui.tabs.search.substance
@@ -682,11 +682,11 @@ class SubstanceAnodyneIntegrationTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify failure**
+- [x] **Step 2: Run test to verify failure**
 
 Run: `./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.ui.tabs.search.substance.SubstanceAnodyneIntegrationTest" --no-daemon`
 
-- [ ] **Step 3: Implement `AnodyneDoseLadder` and integrate into `SubstanceScreen` and `CustomSubstanceScreen`**
+- [x] **Step 3: Implement `AnodyneDoseLadder` and integrate into `SubstanceScreen` and `CustomSubstanceScreen`**
 
 Build `AnodyneDoseLadder` rendering: `≤ Light`, `Common`, `Strong`, `Heavy`, `Extreme` in Material 3 styling with route title and entry log counts.
 In `SubstanceScreen.kt` and `CustomSubstanceScreen.kt`:
@@ -698,12 +698,12 @@ In `SubstanceScreen.kt` and `CustomSubstanceScreen.kt`:
   - Duration section fallback using `AnodyneFallbackStore`.
   - Subjective effects, report links, literature interactions, toxicity fatal doses/treatment, health warnings, reagents, legal status, pharmacology, and sources.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.ui.tabs.search.substance.SubstanceAnodyneIntegrationTest" --no-daemon`  
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/main/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AnodyneDoseLadder.kt app/src/main/java/foo/pilz/freaklog/ui/tabs/search/substance/ app/src/main/java/foo/pilz/freaklog/ui/tabs/search/custom/ app/src/test/java/foo/pilz/freaklog/ui/tabs/search/substance/SubstanceAnodyneIntegrationTest.kt
@@ -722,7 +722,7 @@ git commit -m "feat(anodyne): integrate Anodyne data, dose ladder, and topics in
 - Modify: `app/src/main/java/foo/pilz/freaklog/ui/main/navigation/graphs/searchGraph.kt`
 - Test: `app/src/test/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AnodyneUserNotesScreenTest.kt`
 
-- [ ] **Step 1: Write failing unit test for user notes screen**
+- [x] **Step 1: Write failing unit test for user notes screen**
 
 ```kotlin
 package foo.pilz.freaklog.ui.tabs.search.anodyne
@@ -744,20 +744,20 @@ class AnodyneUserNotesScreenTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify failure**
+- [x] **Step 2: Run test to verify failure**
 
 Run: `./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneUserNotesScreenTest" --no-daemon`
 
-- [ ] **Step 3: Implement User Notes & Links Screens**
+- [x] **Step 3: Implement User Notes & Links Screens**
 
 Implement `AnodyneUserNotesScreen` (listing notes with user, dosage/timings summary, and preview), `AnodyneUserNoteScreen` (full userpage note display with routes, classes, forms, sources, indications, effects, after-effects, tolerance, odor, and personal notes), and `AnodyneLinksScreen` (listing Erowid/Reddit reports and references). Register destinations in `searchGraph.kt`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.ui.tabs.search.anodyne.AnodyneUserNotesScreenTest" --no-daemon`  
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/src/main/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AnodyneUserNotesScreen.kt app/src/main/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AnodyneUserNoteScreen.kt app/src/main/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AnodyneLinksScreen.kt app/src/main/java/foo/pilz/freaklog/ui/main/navigation/graphs/searchGraph.kt app/src/test/java/foo/pilz/freaklog/ui/tabs/search/anodyne/AnodyneUserNotesScreenTest.kt
@@ -772,17 +772,17 @@ git commit -m "feat(anodyne): add user notes and external report links screens"
 
 - Run full test suite and checks.
 
-- [ ] **Step 1: Run complete test suite**
+- [x] **Step 1: Run complete test suite**
 
 Run: `./gradlew testDebugUnitTest --no-daemon`  
 Expected: PASS across all shards.
 
-- [ ] **Step 2: Run Detekt and Lint checks**
+- [x] **Step 2: Run Detekt and Lint checks**
 
 Run: `./gradlew detekt :app:lintDebug --no-daemon`  
 Expected: Clean with no violations.
 
-- [ ] **Step 3: Commit all remaining verification changes**
+- [x] **Step 3: Commit all remaining verification changes**
 
 ```bash
 git commit --allow-empty -m "chore(anodyne): complete verification of AnodyneWiki feature integration"
