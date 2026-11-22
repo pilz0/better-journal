@@ -145,4 +145,48 @@ class CustomSubstanceChooseDoseViewModelTest {
         assertEquals(AdministrationRoute.INSUFFLATED, viewModel.administrationRoute)
         viewModel.viewModelScope.cancel()
       }
+
+  @Test
+  fun `dose class converts the entered unit to the threshold unit`() =
+      runTest(testDispatcher) {
+        every {
+          customProfiles.getEffectiveRoa("2C-B-FLY", AdministrationRoute.ORAL, false)
+        } returns
+            foo.pilz.freaklog.data.substances.classes.roa.Roa(
+                route = AdministrationRoute.ORAL,
+                roaDose =
+                    foo.pilz.freaklog.data.substances.classes.roa.RoaDose(
+                        units = "mg",
+                        lightMin = 5.0,
+                        commonMin = 10.0,
+                        strongMin = 20.0,
+                        heavyMin = 30.0,
+                    ),
+                roaDuration = null,
+                bioavailability = null,
+            )
+        val viewModel =
+            CustomSubstanceChooseDoseViewModel(
+                experienceRepository = experienceRepository,
+                customProfiles = customProfiles,
+                userPreferences = userPreferences,
+                state =
+                    SavedStateHandle(
+                        mapOf(
+                            "customSubstanceName" to "2C-B-FLY",
+                            "administrationRoute" to AdministrationRoute.ORAL,
+                        )
+                    ),
+            )
+        advanceUntilIdle()
+
+        viewModel.units = "g"
+        viewModel.onDoseTextChange("0.5")
+
+        // 0.5 g is 500 mg: heavy, not "below threshold".
+        assertEquals(
+            foo.pilz.freaklog.data.substances.classes.roa.DoseClass.HEAVY,
+            viewModel.currentDoseClass,
+        )
+      }
 }

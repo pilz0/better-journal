@@ -14,7 +14,7 @@ suspend fun loadIntakeLimitStatuses(
   val limits = experienceRepo.getIntakeLimitsForSubstance(substanceName).filter { it.isEnabled }
   if (limits.isEmpty()) return emptyList()
   val now = Instant.now()
-  val maxWindow = limits.maxOf { it.windowSeconds }
+  val maxWindow = limits.maxOf { it.boundedWindowSeconds }
   val since = now.minusSeconds(maxWindow)
   val past =
       experienceRepo

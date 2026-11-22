@@ -30,6 +30,12 @@ import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChooseDoseCustomUnitViewModelTest {
+  private val userPreferences =
+      mockk<foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences> {
+        every { useIntranasalForRectalFlow } returns kotlinx.coroutines.flow.flowOf(false)
+      }
+  private val customProfiles =
+      mockk<foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles>(relaxed = true)
 
   private val testDispatcher = StandardTestDispatcher()
   private val experienceRepository = mockk<ExperienceRepository>()
@@ -69,6 +75,8 @@ class ChooseDoseCustomUnitViewModelTest {
         ChooseDoseCustomUnitViewModel(
             experienceRepo = experienceRepository,
             substanceRepo = substanceRepository,
+            userPreferences = userPreferences,
+            customProfiles = customProfiles,
             state = SavedStateHandle(mapOf("customUnitId" to 5)),
         )
     testDispatcher.scheduler.advanceUntilIdle()
@@ -116,6 +124,8 @@ class ChooseDoseCustomUnitViewModelTest {
         ChooseDoseCustomUnitViewModel(
             experienceRepo = experienceRepository,
             substanceRepo = substanceRepository,
+            userPreferences = userPreferences,
+            customProfiles = customProfiles,
             state = SavedStateHandle(mapOf("customUnitId" to 6)),
         )
     testDispatcher.scheduler.advanceUntilIdle()

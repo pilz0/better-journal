@@ -33,7 +33,7 @@ constructor(
 
   private suspend fun computeItem(limit: IntakeLimit): IntakeLimitListItem {
     val now = Instant.now()
-    val since = now.minusSeconds(limit.windowSeconds)
+    val since = now.minusSeconds(limit.boundedWindowSeconds)
     val ingestions =
         experienceRepository.getIngestionsWithCustomUnitsForSubstanceSince(
             limit.substanceName,

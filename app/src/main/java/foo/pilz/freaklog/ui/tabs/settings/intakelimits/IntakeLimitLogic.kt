@@ -70,16 +70,18 @@ fun evaluateIntakeLimit(
     pastIngestions: List<LimitIngestion>,
     pending: LimitIngestion?,
 ): IntakeLimitStatus {
-  val windowStart = now.minusSeconds(limit.windowSeconds)
+  val windowStart = now.minusSeconds(limit.boundedWindowSeconds)
   val inWindow = pastIngestions.filter { it.time.isAfter(windowStart) }
   return when (limit.limitType) {
     IntakeLimitType.COUNT -> {
       val contributions =
           inWindow.map {
-            LimitContribution(1.0, it.time.plusSeconds(limit.windowSeconds))
+            LimitContribution(1.0, it.time.plusSeconds(limit.boundedWindowSeconds))
           } +
               listOfNotNull(
-                  pending?.let { LimitContribution(1.0, now.plusSeconds(limit.windowSeconds)) }
+                  pending?.let {
+                    LimitContribution(1.0, now.plusSeconds(limit.boundedWindowSeconds))
+                  }
               )
       IntakeLimitStatus(
           limit = limit,
@@ -106,7 +108,7 @@ fun evaluateIntakeLimit(
           contributions.add(
               LimitContribution(
                   converted,
-                  ingestion.time.plusSeconds(limit.windowSeconds),
+                  ingestion.time.plusSeconds(limit.boundedWindowSeconds),
               )
           )
         }
@@ -117,7 +119,7 @@ fun evaluateIntakeLimit(
         contributions.add(
             LimitContribution(
                 pendingValue,
-                now.plusSeconds(limit.windowSeconds),
+                now.plusSeconds(limit.boundedWindowSeconds),
             )
         )
       }
@@ -153,6 +155,16 @@ fun IntakeLimitStatus.instantUnderWarning(): Instant? =
     instantUnder(maxValue * limit.warningPercent / 100.0)
 
 fun IntakeLimitStatus.instantFullReset(): Instant? = instantUnder(0.0)
+
+/** Ten years: longer windows only serve to overflow [Instant] math. */
+const val MAX_INTAKE_LIMIT_WINDOW_SECONDS = 10L * 365 * 86_400
+
+/**
+ * The window clamped to a range [Instant] arithmetic can handle. Saved or imported rows may hold
+ * any value, and an 11-digit one made `Instant.minusSeconds` throw on every dose screen.
+ */
+val IntakeLimit.boundedWindowSeconds: Long
+  get() = windowSeconds.coerceIn(1L, MAX_INTAKE_LIMIT_WINDOW_SECONDS)
 
 fun IntakeLimit.windowDescription(): String {
   val seconds = windowSeconds

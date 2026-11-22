@@ -135,8 +135,7 @@ class InteractionCheckerTest {
   }
 
   @Test
-  fun `wildcard match replaces x with two chars to match substance`() {
-    // "2C-T-x" with [\\S]{2} matches "2C-T-21"
+  fun `wildcard match lets x stand for several chars`() {
     val subA = fakeSubstance("Tramadol", dangerous = listOf("2C-T-x"))
     val subB = fakeSubstance("2C-T-21")
     every { substanceRepo.getSubstance("Tramadol") } returns subA
@@ -244,5 +243,20 @@ class InteractionCheckerTest {
 
     val result = checker.getInteractionBetween("SubA", "OtherDrug")
     assertThat(result).isNull()
+  }
+
+  @Test
+  fun `wildcard match covers single letter family members`() {
+    listOf("2C-x" to "2C-B", "DOx" to "DOB", "25x-NBOMe" to "25I-NBOMe").forEach { (family, name) ->
+      // A fresh name per case: the checker caches each substance's cleaned interactions.
+      val other = "Tramadol $family"
+      every { substanceRepo.getSubstance(other) } returns
+          fakeSubstance(other, dangerous = listOf(family))
+      every { substanceRepo.getSubstance(name) } returns fakeSubstance(name)
+
+      val result = checker.getInteractionBetween(other, name)
+      assertThat(result).isNotNull()
+      assertThat(result!!.interactionType).isEqualTo(InteractionType.DANGEROUS)
+    }
   }
 }

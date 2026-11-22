@@ -153,12 +153,20 @@ constructor(
           WindowMode.DAY -> 86_400L
           WindowMode.WEEK -> 604_800L
           WindowMode.MONTH -> 2_592_000L
-          WindowMode.CUSTOM ->
-              (customWindowValueText.toLongOrNull() ?: 0L) * customWindowUnit.seconds
+          WindowMode.CUSTOM -> {
+            val value = customWindowValueText.toLongOrNull() ?: 0L
+            // Anything that would overflow (or exceed the maximum) is rejected by isValid.
+            if (value > MAX_INTAKE_LIMIT_WINDOW_SECONDS / customWindowUnit.seconds) {
+              Long.MAX_VALUE
+            } else {
+              value * customWindowUnit.seconds
+            }
+          }
         }
 
+  // Same parser as the dose fields: accepts "0,5", rejects "Infinity" and NaN.
   private val maxDose: Double?
-    get() = maxDoseText.toDoubleOrNull()
+    get() = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(maxDoseText)
 
   private val maxCount: Int?
     get() = maxCountText.toIntOrNull()
@@ -169,7 +177,7 @@ constructor(
 
   val isValid: Boolean
     get() {
-      if (windowSeconds <= 0L) return false
+      if (windowSeconds !in 1L..MAX_INTAKE_LIMIT_WINDOW_SECONDS) return false
       return when (limitType) {
         IntakeLimitType.DOSE -> (maxDose ?: 0.0) > 0.0 && unit.isNotBlank()
         IntakeLimitType.COUNT -> (maxCount ?: 0) > 0

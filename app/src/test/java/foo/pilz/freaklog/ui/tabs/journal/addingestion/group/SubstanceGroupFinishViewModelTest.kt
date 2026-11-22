@@ -179,4 +179,41 @@ class SubstanceGroupFinishViewModelTest {
       experienceRepo.insertIngestionExperienceAndCompanion(any(), any(), any())
     }
   }
+
+  @Test
+  fun `a group that crosses an intake limit asks before saving`() {
+    coEvery { experienceRepo.getIntakeLimitsForSubstance("MDMA") } returns
+        listOf(
+            foo.pilz.freaklog.data.room.experiences.entities.IntakeLimit(
+                id = 1,
+                substanceName = "MDMA",
+                limitType = foo.pilz.freaklog.data.room.experiences.entities.IntakeLimitType.DOSE,
+                maxDose = 150.0,
+                unit = "mg",
+                maxCount = null,
+                windowSeconds = 86_400,
+                warningPercent = 80,
+            )
+        )
+    coEvery { experienceRepo.getIntakeLimitsForSubstance("Caffeine") } returns emptyList()
+    coEvery {
+      experienceRepo.getIngestionsWithCustomUnitsForSubstanceSince(any(), any())
+    } returns emptyList()
+
+    // 100 mg x 2 = 200 mg, over the 150 mg limit.
+    viewModel.onDoseMultiplierChange("2")
+    viewModel.onDoneClicked {}
+    dispatcher.scheduler.advanceUntilIdle()
+
+    assertThat(viewModel.isShowingLimitWarning).isEqualTo(true)
+    coVerify(exactly = 0) {
+      experienceRepo.insertIngestionExperienceAndCompanion(any(), any(), any())
+    }
+
+    viewModel.confirmLimitWarningAndSave()
+    dispatcher.scheduler.advanceUntilIdle()
+    coVerify(exactly = 1) {
+      experienceRepo.insertIngestionExperienceAndCompanion(any(), any(), any())
+    }
+  }
 }

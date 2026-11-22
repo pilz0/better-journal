@@ -100,7 +100,7 @@ constructor(
             ?.roaDose
 
   val currentDoseClass: foo.pilz.freaklog.data.substances.classes.roa.DoseClass?
-    get() = roaDose?.getDoseClass(ingestionDose = dose)
+    get() = roaDose?.getDoseClass(ingestionDose = dose, ingestionUnits = units)
 
   fun onDoseTextChange(newDoseText: String) {
     doseText = newDoseText

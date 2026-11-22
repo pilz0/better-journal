@@ -198,7 +198,8 @@ constructor(
 
   private fun buildWildcardRegex(interaction: String): Regex {
     val parts = interaction.split(Regex("(?i)x"))
-    val pattern = parts.joinToString(separator = "[\\S]{2}") { Regex.escape(it) }
+    // Each x stands for one or more characters: "2C-x" covers 2C-B as well as 2C-T-21.
+    val pattern = parts.joinToString(separator = "[\\S]+") { Regex.escape(it) }
     return Regex(pattern = pattern, option = RegexOption.IGNORE_CASE)
   }
 

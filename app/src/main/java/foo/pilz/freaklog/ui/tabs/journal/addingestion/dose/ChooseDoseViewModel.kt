@@ -111,7 +111,7 @@ constructor(
     get() = isValidDoseInput(dose, if (isEstimate) estimatedDoseStandardDeviation else null)
 
   val currentDoseClass: DoseClass?
-    get() = roaDose?.getDoseClass(ingestionDose = dose)
+    get() = roaDose?.getDoseClass(ingestionDose = dose, ingestionUnits = units)
 
   fun onDoseTextChange(newDoseText: String) {
     doseText = newDoseText

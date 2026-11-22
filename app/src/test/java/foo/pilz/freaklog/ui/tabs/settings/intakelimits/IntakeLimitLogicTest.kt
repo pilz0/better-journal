@@ -376,4 +376,13 @@ class IntakeLimitLogicTest {
     assertTrue(reset.startsWith("Back under the limit in "))
     assertFalse(reset.contains("zero"))
   }
+
+  @Test
+  fun `a huge saved window is clamped instead of crashing`() {
+    val limit = doseLimit(windowSeconds = 99_999_999_999L)
+    val status =
+        evaluateIntakeLimit(limit, now, listOf(LimitIngestion(50.0, "mg", ago(1))), pending = null)
+    assertThat(status.currentValue).isEqualTo(50.0)
+    assertThat(limit.boundedWindowSeconds).isEqualTo(MAX_INTAKE_LIMIT_WINDOW_SECONDS)
+  }
 }

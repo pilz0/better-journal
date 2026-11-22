@@ -36,6 +36,7 @@ import foo.pilz.freaklog.ui.tabs.journal.addingestion.search.suggestion.models.C
 import foo.pilz.freaklog.ui.utils.evaluateNumericExpression
 import foo.pilz.freaklog.ui.utils.isValidDoseInput
 import javax.inject.Inject
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -44,6 +45,8 @@ class ChooseDoseCustomUnitViewModel
 constructor(
     experienceRepo: ExperienceRepository,
     substanceRepo: SubstanceRepository,
+    userPreferences: foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences,
+    customProfiles: foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles,
     state: SavedStateHandle,
 ) : ViewModel() {
 
@@ -65,7 +68,17 @@ constructor(
         if (customUnit != null) {
           val substance = substanceRepo.getSubstance(customUnit.substanceName)
           doseRemark = substance?.dosageRemark
-          roaDose = substance?.getRoa(customUnit.administrationRoute)?.roaDose
+          // Same lookup as the other dose screens: honours "use intranasal for rectal" and the
+          // user's custom substance profiles.
+          val useIntranasalForRectal = userPreferences.useIntranasalForRectalFlow.first()
+          roaDose =
+              (substance?.getEffectiveRoa(customUnit.administrationRoute, useIntranasalForRectal)
+                      ?: customProfiles.getEffectiveRoa(
+                          customUnit.substanceName,
+                          customUnit.administrationRoute,
+                          useIntranasalForRectal,
+                      ))
+                  ?.roaDose
         }
       }
     }
@@ -108,7 +121,11 @@ constructor(
     }
 
   val currentDoseClass: DoseClass?
-    get() = roaDose?.getDoseClass(ingestionDose = customUnitDose?.calculatedDose)
+    get() =
+        roaDose?.getDoseClass(
+            ingestionDose = customUnitDose?.calculatedDose,
+            ingestionUnits = customUnit?.originalUnit,
+        )
 
   val customUnitCalculationText: String?
     get() {

@@ -91,7 +91,7 @@ fun SubstanceGroupFinishScreen(
       },
       floatingActionButton = {
         FloatingDoneButton(
-            onDone = { viewModel.confirmAndDismiss(dismissAddIngestionScreens) },
+            onDone = { viewModel.onDoneClicked(dismissAddIngestionScreens) },
             modifier = Modifier.imePadding(),
         )
       },
@@ -421,6 +421,13 @@ fun SubstanceGroupFinishScreen(
         Spacer(modifier = Modifier.height(spacing.fabBottomPad))
       }
     }
+  }
+  if (viewModel.isShowingLimitWarning) {
+    foo.pilz.freaklog.ui.tabs.settings.intakelimits.IntakeLimitWarningDialog(
+        statuses = viewModel.limitWarningStatuses,
+        onConfirm = viewModel::confirmLimitWarningAndSave,
+        onDismiss = viewModel::dismissLimitWarning,
+    )
   }
 }
 

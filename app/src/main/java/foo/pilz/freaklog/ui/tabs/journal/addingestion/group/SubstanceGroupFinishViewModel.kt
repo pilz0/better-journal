@@ -263,6 +263,68 @@ constructor(
     enteredTitle = time.getStringOfPattern("dd MMMM yyyy")
   }
 
+  var isShowingLimitWarning by mutableStateOf(false)
+    private set
+
+  var limitWarningStatuses by
+      mutableStateOf<List<foo.pilz.freaklog.ui.tabs.settings.intakelimits.IntakeLimitStatus>>(
+          emptyList()
+      )
+    private set
+
+  private var pendingDismiss: (() -> Unit)? = null
+
+  /**
+   * Saves right away unless the group, with its multiplier applied, would cross an intake limit; in
+   * that case it asks first, like the single-ingestion screen.
+   */
+  fun onDoneClicked(dismiss: () -> Unit) {
+    val loadedGroup = _group.value ?: return
+    val checkedItems = loadedGroup.sortedItems.filter { selectedItemIds[it.id] ?: true }
+    val multiplier = doseMultiplier ?: return
+    if (checkedItems.isEmpty()) return
+    viewModelScope.launch {
+      val breached =
+          if (consumerName.isNotBlank()) {
+            emptyList()
+          } else {
+            // ponytail: items of one substance are summed only when they share a unit; mixed
+            // units are checked one by one, and a count limit sees each group as one ingestion.
+            checkedItems
+                .groupBy { Triple(it.substanceName, it.units, it.customUnitId) }
+                .flatMap { (key, items) ->
+                  val doses = items.map { it.dose?.times(multiplier) }
+                  foo.pilz.freaklog.ui.tabs.settings.intakelimits.loadBreachedIntakeLimits(
+                      experienceRepo = experienceRepo,
+                      substanceName = key.first,
+                      pendingDose = if (doses.any { it == null }) null else doses.sumOf { it!! },
+                      pendingUnits = key.second,
+                      pendingCustomUnitId = key.third,
+                  )
+                }
+                .distinctBy { it.limit.id }
+          }
+      if (breached.isEmpty()) {
+        confirmAndDismiss(dismiss)
+      } else {
+        limitWarningStatuses = breached
+        pendingDismiss = dismiss
+        isShowingLimitWarning = true
+      }
+    }
+  }
+
+  fun confirmLimitWarningAndSave() {
+    isShowingLimitWarning = false
+    pendingDismiss?.let { confirmAndDismiss(it) }
+    pendingDismiss = null
+  }
+
+  fun dismissLimitWarning() {
+    isShowingLimitWarning = false
+    pendingDismiss = null
+  }
+
   fun confirmAndDismiss(dismiss: () -> Unit) {
     val loadedGroup = _group.value ?: return
     val checkedItems = loadedGroup.sortedItems.filter { selectedItemIds[it.id] ?: true }

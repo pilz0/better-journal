@@ -57,7 +57,7 @@ constructor(
   var isUnitsFieldShown by mutableStateOf(false)
 
   val currentDoseClass: DoseClass?
-    get() = roaDose?.getDoseClass(ingestionDose = dose)
+    get() = roaDose?.getDoseClass(ingestionDose = dose, ingestionUnits = originalUnit)
 
   fun onChangeOfName(newName: String) {
     name = newName
