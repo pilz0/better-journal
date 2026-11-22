@@ -100,8 +100,7 @@ class AiChatViewModelTest {
       runTest(testDispatcher) {
         val conversation = mockk<AiConversation>()
         // First turn fails before any text
-        every { conversation.send("Hello") } returns
-            flow { throw AiException("Network error") }
+        every { conversation.send("Hello") } returns flow { throw AiException("Network error") }
         // Rollback returns null because the turn had already rolled back on failure
         every { conversation.rollbackLastTurn() } returns null
 
@@ -161,6 +160,7 @@ class AiChatViewModelTest {
 
         val messages = vm.uiState.value.items.filterIsInstance<ChatItem.Message>()
         assertThat(messages.any { it.text == "Checking..." }).isTrue()
-        assertThat(messages.none { it.text == "The assistant returned an empty response." }).isTrue()
+        assertThat(messages.none { it.text == "The assistant returned an empty response." })
+            .isTrue()
       }
 }

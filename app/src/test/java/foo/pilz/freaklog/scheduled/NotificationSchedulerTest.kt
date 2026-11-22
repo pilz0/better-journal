@@ -145,9 +145,7 @@ class NotificationSchedulerTest {
     scheduler.rescheduleAll()
 
     coVerify {
-      remindersRepository.update(
-          match { it.id == 5 && it.startEpochMillis > 0L }
-      )
+      remindersRepository.update(match { it.id == 5 && it.startEpochMillis > 0L })
     }
     assertTrue(shadowAlarmManager.scheduledAlarms.isNotEmpty())
   }
