@@ -223,7 +223,12 @@ constructor(
       val endTime = newLocalDateTime.atZone(ZoneId.systemDefault()).toInstant()
       val startTime = localDateTimeStartFlow.first().atZone(ZoneId.systemDefault()).toInstant()
       if (startTime > endTime) {
-        localDateTimeStartFlow.emit(endTime.minus(30, ChronoUnit.MINUTES).getLocalDateTime())
+        val newStart = endTime.minus(30, ChronoUnit.MINUTES)
+        localDateTimeStartFlow.emit(newStart.getLocalDateTime())
+        // The start moved, so the title and the matching experience follow it, exactly as when
+        // the start is changed directly. Otherwise the group could be saved into the wrong one.
+        if (!hasTitleBeenChanged) updateTitleBasedOnTime(newStart)
+        refreshExperiencesInRange()
       }
     }
   }

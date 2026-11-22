@@ -38,7 +38,10 @@ data class BatemanCurve(
     override val isCertain: Boolean,
     /** Visual decay threshold (fraction of peak) used to compute [curveEndSec]. */
     private val tailEpsilon: Double = 0.05,
-    /** Hard upper bound on [curveEndSec] in seconds (safety net). */
+    /**
+     * Hard upper bound, in seconds, on how long the curve runs after the ingestion ends (safety
+     * net). Counting from the start instead cut the comedown off long time-range ingestions.
+     */
     private val maxCurveLengthSec: Float = Float.MAX_VALUE,
 ) : IngestionCurve {
 
@@ -86,8 +89,7 @@ data class BatemanCurve(
     // After ingestion ends, the tail decays approximately as e^(-ke·s) relative
     // to the peak. Its duration must not depend on the unscaled peak amplitude.
     val tailFromPeakEnd = if (ke > 0.0) -ln(tailEpsilon) / ke else 0.0
-    val tau = max(0.0, tailFromPeakEnd) + infusionDurationSec
-    val endSec = max(ingestionEndSec.toDouble(), ingestionStartSec.toDouble() + min(tau, cap))
+    val endSec = ingestionEndSec.toDouble() + min(max(0.0, tailFromPeakEnd), cap)
     endSec.coerceAtMost(Float.MAX_VALUE.toDouble()).toFloat()
   }
 

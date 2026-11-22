@@ -346,7 +346,7 @@ class TimelineCurveMathTest {
   }
 
   @Test
-  fun buildRawCurveSimpleShapeUsesPointIngestionsOnly() {
+  fun buildRawCurveSimpleShapeDrawsPointAndRangedIngestions() {
     val shape =
         TimelineShape.OnsetComeupPeak(
             FullDurationRange(60f, 60f),
@@ -359,15 +359,16 @@ class TimelineCurveMathTest {
             RawIngestion(0f, 600f, 0.5f, 1f),
         )
     val curve = buildRawCurve(shape, lines)
-    assertEquals(1, curve.segments.size)
+    // The ranged ingestion is drawn too (it used to be dropped); only point doses get a dot.
+    assertEquals(2, curve.segments.size)
     assertEquals(1, curve.ingestionDots.size)
   }
 
   @Test
-  fun buildRawCurveSimpleShapeWithOnlyRangedIngestionsHasNoSegments() {
+  fun buildRawCurveSimpleShapeWithOnlyRangedIngestionsIsStillDrawn() {
     val shape = TimelineShape.OnsetComeup(FullDurationRange(60f, 60f), FullDurationRange(60f, 60f))
     val curve = buildRawCurve(shape, listOf(RawIngestion(0f, 600f, 0.5f, 1f)))
-    assertEquals(0, curve.segments.size)
+    assertEquals(1, curve.segments.size)
     assertEquals(0, curve.ingestionDots.size)
   }
 
@@ -560,5 +561,27 @@ class TimelineCurveMathTest {
     val lines = (0 until 20_000).map { RawIngestion(it.toFloat(), null, 0.5f, 1f) }
     val curve = buildFull(shape, lines)
     assertEquals(20_000, curve.ingestionDots.size)
+  }
+
+  @Test
+  fun timeRangeIngestionIsDrawnForShapesWithoutARangeModel() {
+    val shape =
+        TimelineShape.OnsetComeupPeakTotal(
+            onset = FullDurationRange(60f, 60f),
+            comeup = FullDurationRange(60f, 60f),
+            peak = FullDurationRange(120f, 120f),
+            total = FullDurationRange(600f, 600f),
+        )
+    val range =
+        RawIngestion(startSeconds = 0f, endSeconds = 300f, horizontalWeight = 0.5f, height = 1f)
+
+    val curve = buildRawCurve(shape, listOf(range))
+
+    val points = curve.segments.flatMap { it.points }
+    assertTrue(points.isNotEmpty())
+    // Onset still starts at the first intake; the peak is reached after the 300 s range.
+    assertEquals(60f, points.first { it.height == 0f && it.seconds > 0f }.seconds, 1e-3f)
+    assertEquals(420f, points.first { it.height > 0f }.seconds, 1e-3f)
+    assertEquals(900f, curve.endSeconds, 1e-3f)
   }
 }

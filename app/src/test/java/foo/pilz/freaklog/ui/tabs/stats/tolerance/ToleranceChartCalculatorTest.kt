@@ -609,4 +609,22 @@ class ToleranceChartCalculatorTest {
     assertThat(result.map { it.substanceName }.toSet()).isEqualTo(setOf("LSD", "Mystery"))
     assertThat(result).hasSize(4)
   }
+
+  @Test
+  fun `decimal weeks are read like the tolerance calculator reads them`() {
+    val day = Instant.parse("2026-01-01T12:00:00Z")
+    every { substanceRepo.getSubstance("Ketamine") } returns
+        createSubstance("Ketamine", halfTolerance = "1.5 weeks", zeroTolerance = "3 weeks")
+
+    val result =
+        ToleranceChartCalculator.getToleranceWindows(
+            substanceAndDays = listOf(SubstanceAndDay("Ketamine", day)),
+            substanceCompanions = emptyList(),
+            substanceRepository = substanceRepo,
+        )
+
+    // FULL lasts until half tolerance: 1.5 weeks = 10.5 days, not the 5 weeks the old regex read.
+    val full = result.first { it.toleranceType == ToleranceType.FULL }
+    assertThat(full.end).isEqualTo(day.plus(Duration.ofHours(252)))
+  }
 }

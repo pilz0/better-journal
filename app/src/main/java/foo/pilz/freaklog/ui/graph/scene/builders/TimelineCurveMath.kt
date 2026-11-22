@@ -597,9 +597,13 @@ fun buildRawCurve(shape: TimelineShape, lines: List<RawIngestion>): RawTimelineC
   if (shape is TimelineShape.Full) return buildFull(shape, safeLines)
   val pointLines = safeLines.filter { it.endSeconds == null }
   val ingestionSeconds = pointLines.map { it.startSeconds }
+  // Time-range ingestions used to be dropped here; only the Full shape had a range model.
+  fun segmentsFor(line: RawIngestion) =
+      if (line.endSeconds == null) buildSimpleSegments(shape, line)
+      else stretchedRangeSegments(shape, line)
 
-  if (pointLines.size > 1 && shape.returnsToBaseline()) {
-    val segs = pointLines.flatMap { segmentsToSegs(buildSimpleSegments(shape, it)) }
+  if (safeLines.size > 1 && shape.returnsToBaseline()) {
+    val segs = safeLines.flatMap { segmentsToSegs(segmentsFor(it)) }
     val points = superpose(segs, ingestionSeconds)
     val nonNorm = points.maxOfOrNull { it.height }?.takeIf { it.isFinite() && it > 0f } ?: 0.01f
     val end = points.maxOfOrNull { it.seconds } ?: (ingestionSeconds.maxOrNull() ?: 0f)
@@ -612,7 +616,7 @@ fun buildRawCurve(shape: TimelineShape, lines: List<RawIngestion>): RawTimelineC
     )
   }
 
-  val segments = pointLines.flatMap { line -> buildSimpleSegments(shape, line) }
+  val segments = safeLines.flatMap(::segmentsFor)
   val allPoints = segments.flatMap { it.points }
   val nonNorm = allPoints.maxOfOrNull { it.height } ?: 0.01f
   val end = allPoints.maxOfOrNull { it.seconds } ?: (ingestionSeconds.maxOrNull() ?: 0f)
@@ -620,6 +624,35 @@ fun buildRawCurve(shape: TimelineShape, lines: List<RawIngestion>): RawTimelineC
     RawPoint(seconds = it.startSeconds, height = 0f, isIngestionDot = true)
   }
   return RawTimelineCurve(segments, ingestionDots, nonNorm, end)
+}
+
+/**
+ * A time-range ingestion for shapes without a range model: drawn like a dose at its start, with
+ * everything from the first rise on pushed back by the length of the range. The onset still begins
+ * at the first intake and the effect peaks once intake is complete.
+ */
+private fun stretchedRangeSegments(shape: TimelineShape, line: RawIngestion): List<CurveSegment> {
+  val end = line.endSeconds ?: return buildSimpleSegments(shape, line)
+  val range = (end - line.startSeconds).takeIf { it.isFinite() && it > 0f } ?: 0f
+  val segments = buildSimpleSegments(shape, line.copy(endSeconds = null))
+  val firstRise =
+      segments.flatMap { it.points }.filter { it.height > 0f }.minOfOrNull { it.seconds }
+          ?: return segments
+  return segments.map { segment ->
+    var previousShifted = false
+    segment.copy(
+        points =
+            segment.points.map { point ->
+              val shift = point.seconds >= firstRise
+              // A control point between two shifted points moves with them.
+              val control =
+                  point.controlSeconds?.let { if (shift && previousShifted) it + range else it }
+              previousShifted = shift
+              if (shift) point.copy(seconds = point.seconds + range, controlSeconds = control)
+              else point
+            }
+    )
+  }
 }
 
 private fun buildSimpleSegments(shape: TimelineShape, line: RawIngestion): List<CurveSegment> =

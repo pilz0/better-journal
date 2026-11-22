@@ -315,4 +315,22 @@ class BatemanCurveTest {
         isCertain = true,
     )
   }
+
+  @Test
+  fun lengthCapDoesNotCutTheTailOfALongTimeRangeIngestion() {
+    val hour = 3_600f
+    val curve =
+        BatemanCurve(
+            ka = 2.0 / hour,
+            ke = 0.5 / hour,
+            ingestionStartSec = 0f,
+            ingestionEndSec = 8 * hour,
+            peakHeight = 1f,
+            isCertain = true,
+            maxCurveLengthSec = 4 * hour,
+        )
+    // The cap is shorter than the 8 h infusion; the comedown after it must still be drawn.
+    org.junit.Assert.assertTrue(curve.curveEndSec > 8 * hour)
+    org.junit.Assert.assertTrue(curve.valueAt(9 * hour) > 0f)
+  }
 }

@@ -31,8 +31,6 @@ import java.time.ZoneId
 
 object ToleranceChartCalculator {
 
-  private val weeksPattern = Regex("""(?<!\d)(\d+)(?:-(\d+))?\s*weeks?""", RegexOption.IGNORE_CASE)
-  private val daysPattern = Regex("""(?<!\d)(\d+)(?:-(\d+))?\s*days?""", RegexOption.IGNORE_CASE)
   private const val MAX_TOLERANCE_HOURS = 876000.0
 
   fun getToleranceWindows(
@@ -133,35 +131,12 @@ object ToleranceChartCalculator {
     }
   }
 
-  private fun parseToleranceToHours(toleranceString: String?): Double? {
-    if (toleranceString == null || toleranceString.length > ToleranceTextParser.MAX_TEXT_LENGTH)
-        return null
-
-    // Try to parse patterns like "1-2 weeks", "3-4 days", "2 weeks", etc.
-    val weeksMatch = weeksPattern.find(toleranceString)
-    if (weeksMatch != null) {
-      val min =
-          weeksMatch.groupValues[1].toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 }
-              ?: return null
-      val max =
-          weeksMatch.groupValues[2].toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 } ?: min
-      val hours = ((min + max) / 2) * 7 * 24
-      return hours.takeIf { it.isFinite() && it >= 0.0 }
-    }
-
-    val daysMatch = daysPattern.find(toleranceString)
-    if (daysMatch != null) {
-      val min =
-          daysMatch.groupValues[1].toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 }
-              ?: return null
-      val max =
-          daysMatch.groupValues[2].toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 } ?: min
-      val hours = ((min + max) / 2) * 24
-      return hours.takeIf { it.isFinite() && it >= 0.0 }
-    }
-
-    return null
-  }
+  /**
+   * The same parser as the tolerance calculator, so both agree: it understands decimals ("1.5
+   * weeks"), hours, months, spaced ranges and the descriptive PsychonautWiki phrases.
+   */
+  private fun parseToleranceToHours(toleranceString: String?): Double? =
+      ToleranceTextParser.parseDurationText(toleranceString)?.toDouble()?.times(24)
 
   private fun getSubstanceIntervalsGroupedBySubstance(
       substanceIntervals: List<SubstanceInterval>
