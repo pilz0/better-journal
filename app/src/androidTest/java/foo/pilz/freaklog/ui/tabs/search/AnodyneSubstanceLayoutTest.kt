@@ -54,14 +54,13 @@ class AnodyneSubstanceLayoutTest {
     }
 
     compose.onNodeWithContentDescription("Structure of ${bundled.substance.name}").assertExists()
-    val bundledTitle = compose.onAllNodesWithText("Dosage").onFirst()
-    val anodyneTitle = compose.onNodeWithText("Duration & Elimination")
-    anodyneTitle.performScrollTo()
+    // Bounds are clipped to the viewport, so measure each title while it is scrolled into view.
+    val bundledLeft =
+        compose.onAllNodesWithText("Dosage").onFirst().performScrollTo().getBoundsInRoot().left
+    val anodyneLeft =
+        compose.onNodeWithText("Duration & Elimination").performScrollTo().getBoundsInRoot().left
     // Same card inset + title padding as the bundled sections (they used to run edge to edge).
-    assertEquals(
-        bundledTitle.getBoundsInRoot().left,
-        anodyneTitle.getBoundsInRoot().left,
-    )
+    assertEquals(bundledLeft, anodyneLeft)
   }
 
   /** Regression: the structure lived in the summary card, which most custom substances lack. */
