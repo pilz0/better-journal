@@ -36,6 +36,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Check
@@ -144,6 +146,7 @@ fun SettingsPreview() {
       saveIsDrugsHidden = {},
       saveHapticFeedbackEnabled = {},
       navigateToAiAssistantSettings = {},
+      navigateToAnodyneSettings = {},
       aiAssistantEnabled = false,
       saveAiAssistantEnabled = {},
       isLockEnabled = false,
@@ -173,6 +176,7 @@ fun SettingsScreen(
     navigateToExportBackup: () -> Unit = {},
     navigateToFreakQueryShell: () -> Unit = {},
     navigateToAiAssistantSettings: () -> Unit,
+    navigateToAnodyneSettings: () -> Unit = {},
 ) {
   val context = androidx.compose.ui.platform.LocalContext.current
   val vitalsPermissions = remember {
@@ -211,6 +215,7 @@ fun SettingsScreen(
       navigateToExportBackup = navigateToExportBackup,
       navigateToFreakQueryShell = navigateToFreakQueryShell,
       navigateToAiAssistantSettings = navigateToAiAssistantSettings,
+      navigateToAnodyneSettings = navigateToAnodyneSettings,
       deleteEverything = viewModel::deleteEverything,
       importFile = viewModel::importFile,
       exportFile = viewModel::exportFile,
@@ -290,6 +295,7 @@ fun SettingsScreen(
     navigateToExportBackup: () -> Unit = {},
     navigateToFreakQueryShell: () -> Unit = {},
     navigateToAiAssistantSettings: () -> Unit,
+    navigateToAnodyneSettings: () -> Unit = {},
     deleteEverything: () -> Unit,
     importFile: (uri: Uri) -> Unit,
     exportFile: (uri: Uri) -> Unit,
@@ -435,6 +441,14 @@ fun SettingsScreen(
         SettingsButton(imageVector = Icons.Outlined.Webhook, text = "Webhooks") {
           performHaptic(HapticType.CLICK)
           navigateToWebhook()
+        }
+        HorizontalDivider()
+        SettingsButton(
+            imageVector = Icons.AutoMirrored.Outlined.MenuBook,
+            text = "AnodyneWiki",
+        ) {
+          performHaptic(HapticType.CLICK)
+          navigateToAnodyneSettings()
         }
       }
 
@@ -660,6 +674,14 @@ fun SettingsScreen(
         ) {
           performHaptic(HapticType.CLICK)
           navigateToAiAssistantSettings()
+        }
+        HorizontalDivider()
+        SettingsButton(
+            imageVector = Icons.AutoMirrored.Outlined.MenuBook,
+            text = "AnodyneWiki",
+        ) {
+          performHaptic(HapticType.CLICK)
+          navigateToAnodyneSettings()
         }
       }
 

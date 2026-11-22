@@ -95,6 +95,17 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
           navigateToAiAssistantSettings = {
             navController.navigate(AiAssistantSettingsRoute)
           },
+          navigateToAnodyneSettings = {
+            navController.navigate(AnodyneSettingsRoute)
+          },
+      )
+    }
+    composableWithTransitions<AnodyneSettingsRoute> {
+      foo.pilz.freaklog.ui.tabs.settings.anodyne.AnodyneSettingsScreen(
+          navigateBack = navController::popBackStack,
+          navigateToBrowse = {
+            navController.navigate(AnodyneSearchRoute(query = ""))
+          },
       )
     }
     composableWithTransitions<CustomSubstancesRoute> {
@@ -341,3 +352,5 @@ data class AddGroupItemConfigRoute(
     val substanceName: String,
     val isCustomSubstance: Boolean,
 )
+
+@Serializable object AnodyneSettingsRoute
