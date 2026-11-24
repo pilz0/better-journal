@@ -20,6 +20,7 @@ import foo.pilz.freaklog.ui.utils.getInstant
 import foo.pilz.freaklog.ui.utils.stateInVm
 import java.time.LocalDateTime
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -28,17 +29,38 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @HiltViewModel
-class CustomDurationEditorViewModel
-@Inject
-constructor(
+class CustomDurationEditorViewModel(
     val experienceRepository: ExperienceRepository,
     private val anodyneRepository: AnodyneRepository,
     val state: SavedStateHandle,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
-  private val navRoute = state.toRoute<CustomDurationEditorRoute>()
-  val substanceId = navRoute.substanceId
-  val substanceName = navRoute.substanceName
-  val route = navRoute.route
+
+  @Inject
+  constructor(
+      experienceRepository: ExperienceRepository,
+      anodyneRepository: AnodyneRepository,
+      state: SavedStateHandle,
+  ) : this(
+      experienceRepository = experienceRepository,
+      anodyneRepository = anodyneRepository,
+      state = state,
+      ioDispatcher = Dispatchers.IO,
+      defaultDispatcher = Dispatchers.Default,
+  )
+
+  private val navRoute: CustomDurationEditorRoute? =
+      runCatching { state.toRoute<CustomDurationEditorRoute>() }.getOrNull()
+  val substanceId: Int = navRoute?.substanceId ?: state.get<Int>("substanceId") ?: 0
+  val substanceName: String = navRoute?.substanceName ?: state.get<String>("substanceName") ?: ""
+  val route: AdministrationRoute =
+      navRoute?.route
+          ?: state.get<AdministrationRoute>("route")
+          ?: state.get<String>("route")?.let {
+            runCatching { AdministrationRoute.valueOf(it) }.getOrNull()
+          }
+          ?: AdministrationRoute.ORAL
   var roaDurationFlow = MutableStateFlow<CustomRoaDuration?>(null)
   var roaDoseFlow = MutableStateFlow<CustomRoaDose?>(null)
   var roaFlow = MutableStateFlow<CustomRoa?>(null)
@@ -79,7 +101,7 @@ constructor(
                 )
             return@combine TimelineDisplayOption.Shown(model)
           }
-          .flowOn(Dispatchers.Default)
+          .flowOn(defaultDispatcher)
           .stateInVm(viewModelScope, TimelineDisplayOption.Loading)
 
   init {
@@ -160,7 +182,7 @@ constructor(
   // Cached AnodyneWiki data, or loaded now if the user lets it load automatically, as on iOS
   private suspend fun loadAnodyneDosing() {
     val substance =
-        withContext(Dispatchers.IO) { anodyneRepository.cachedLookup(substanceName) }
+        withContext(ioDispatcher) { anodyneRepository.cachedLookup(substanceName) }
             ?: if (anodyneRepository.isAutoLoadEnabled()) {
               anodyneRepository.lookup(substanceName).getOrNull()
             } else {
@@ -192,7 +214,13 @@ constructor(
 
   fun onDone(onComplete: () -> Unit = {}) {
     viewModelScope.launch {
-      roaDurationFlow.value?.let { experienceRepository.insert(it) }
+      roaDurationFlow.value?.let { duration ->
+        if (duration.hasPhases) {
+          experienceRepository.insert(duration)
+        } else {
+          experienceRepository.delete(duration)
+        }
+      }
       roaDoseFlow.value?.let { dose ->
         if (dose.hasTiers) {
           experienceRepository.upsertCustomRoaDose(substanceId, dose)

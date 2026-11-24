@@ -64,8 +64,10 @@ data class ReportSettings(
     return when (period) {
       ReportPeriod.ALL -> null to now
       ReportPeriod.CUSTOM -> {
-        val start = customFrom ?: today
-        val end = maxOf(customTo ?: today, start)
+        val fromDate = customFrom ?: today
+        val toDate = customTo ?: today
+        val start = minOf(fromDate, toDate)
+        val end = maxOf(fromDate, toDate)
         start.atStartOfDay(zone).toInstant() to
             end.plusDays(1).atStartOfDay(zone).toInstant().minusMillis(1)
       }
@@ -321,8 +323,10 @@ data class UsePattern(
 
 /** At most [maxBuckets] buckets; a bucket is one day when the period is short enough. */
 fun ClinicianReport.usePattern(maxBuckets: Int): UsePattern {
-  val bucketDays = ((periodDays + maxBuckets - 1) / maxBuckets).toInt().coerceAtLeast(1)
-  val buckets = ((periodDays + bucketDays - 1) / bucketDays).toInt()
+  val safeMaxBuckets = maxBuckets.coerceAtLeast(1)
+  val safePeriodDays = periodDays.coerceAtLeast(1L)
+  val bucketDays = ((safePeriodDays + safeMaxBuckets - 1) / safeMaxBuckets).toInt().coerceAtLeast(1)
+  val buckets = ((safePeriodDays + bucketDays - 1) / bucketDays).toInt().coerceAtLeast(1)
   fun share(dates: List<LocalDate>): List<Float> {
     val counts = IntArray(buckets)
     dates.forEach {

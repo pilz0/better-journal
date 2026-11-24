@@ -522,7 +522,7 @@ jobs:
         with:
           java-version: "17"
           distribution: "temurin"
-          update-java-home: false
+          set-default: false
 
       - name: Exercise scheduling, export, and parsing in regional JVM defaults
         env:

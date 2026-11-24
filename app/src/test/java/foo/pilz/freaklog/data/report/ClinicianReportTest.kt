@@ -347,4 +347,37 @@ class ClinicianReportTest {
     assertThat(report.useFreeDays).isEqualTo(30L)
     assertThat(report.longestUseFreeStretch).isEqualTo(30L)
   }
+
+  @Test
+  fun `handles inverted custom date ranges gracefully`() {
+    val now = Instant.parse("2026-03-10T15:00:00Z")
+    val range =
+        ReportSettings(
+                period = ReportPeriod.CUSTOM,
+                customFrom = LocalDate.of(2026, 2, 10),
+                customTo = LocalDate.of(2026, 2, 5),
+            )
+            .range(now, utc)
+    assertThat(range)
+        .isEqualTo(
+            Instant.parse("2026-02-05T00:00:00Z") to Instant.parse("2026-02-10T23:59:59.999Z")
+        )
+  }
+
+  @Test
+  fun `usePattern handles single day and small maxBuckets safely`() {
+    val singleDayReport =
+        buildClinicianReport(
+            data = ExportData(emptyList(), emptyList(), emptyList(), emptyList()),
+            from = Instant.parse("2026-01-15T00:00:00Z"),
+            to = Instant.parse("2026-01-15T23:59:59Z"),
+            style = ReportStyle.MEDICAL,
+            zone = utc,
+            generatedAt = to,
+        )
+    val pattern = singleDayReport.usePattern(maxBuckets = 1)
+    assertThat(pattern.bucketDays).isEqualTo(1)
+    assertThat(pattern.any.size).isEqualTo(1)
+    assertThat(pattern.any.first()).isEqualTo(0f)
+  }
 }
