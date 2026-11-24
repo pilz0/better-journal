@@ -45,6 +45,9 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.DataForOneRating
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.DataForOneTimedNote
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateHealthConnect
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.SleepHealthConnect
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.VITALS_REFRESH_INTERVAL
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.VitalsHealthConnect
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.isOngoingAt
 import foo.pilz.freaklog.ui.tabs.settings.combinations.BloodPressureDisplay
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import foo.pilz.freaklog.ui.utils.isHealthConnectAvailable
@@ -54,10 +57,13 @@ import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -272,6 +278,8 @@ constructor(
     }
   }
 
+  /** Reads once per timeline, then every few minutes while the experience is still ongoing. */
+  @OptIn(ExperimentalCoroutinesApi::class)
   @Suppress("TooGenericExceptionCaught")
   private fun <T> healthConnectFlow(
       enabledFlow: Flow<Boolean>,
@@ -282,15 +290,32 @@ constructor(
       combine(timelineDisplayOptionFlow, enabledFlow) { option, isEnabled ->
             (option as? TimelineDisplayOption.Shown)?.allTimelinesModel?.takeIf { isEnabled }
           }
-          .map { model ->
-            if (model == null || consumerName != YOU || !isAvailable()) return@map emptyList()
-            try {
-              if (!isPermissionGranted()) return@map emptyList()
-              read(model.startTime, model.startTime.plusSeconds(model.widthInSeconds.toLong()))
-            } catch (e: CancellationException) {
-              throw e
-            } catch (_: Exception) {
-              emptyList()
+          .flatMapLatest { model ->
+            flow {
+              if (model == null || consumerName != YOU || !isAvailable()) {
+                emit(emptyList())
+                return@flow
+              }
+              while (true) {
+                val values =
+                    try {
+                      if (isPermissionGranted()) {
+                        read(
+                            model.startTime,
+                            model.startTime.plusSeconds(model.widthInSeconds.toLong()),
+                        )
+                      } else {
+                        emptyList()
+                      }
+                    } catch (e: CancellationException) {
+                      throw e
+                    } catch (_: Exception) {
+                      emptyList()
+                    }
+                emit(values)
+                if (!model.isOngoingAt(Instant.now())) break
+                delay(VITALS_REFRESH_INTERVAL.toMillis())
+              }
             }
           }
           .stateInVm(viewModelScope, emptyList<T>())
@@ -326,5 +351,20 @@ constructor(
           isAvailable = { BloodPressureHealthConnect.isAvailable(context) },
           isPermissionGranted = { BloodPressureHealthConnect.isPermissionGranted(context) },
           read = { start, end -> BloodPressureHealthConnect.read(context, start, end) },
+      )
+
+  val vitalSeriesFlow =
+      healthConnectFlow(
+          enabledFlow =
+              combine(userPreferences.isVitalsEnabledFlow, userPreferences.extraVitalsFlow) {
+                  vitals,
+                  kinds ->
+                vitals && kinds.isNotEmpty()
+              },
+          isAvailable = { isHealthConnectAvailable(context) },
+          isPermissionGranted = { true }, // checked per kind in VitalsHealthConnect.read
+          read = { start, end ->
+            VitalsHealthConnect.read(context, userPreferences.extraVitalsFlow.first(), start, end)
+          },
       )
 }

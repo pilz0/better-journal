@@ -1,13 +1,12 @@
 package foo.pilz.freaklog.ui.tabs.journal.experience.timeline
 
 import android.content.Context
-import android.os.Build
-import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.BloodPressureRecord
-import androidx.health.connect.client.request.ReadRecordsRequest
-import androidx.health.connect.client.time.TimeRangeFilter
 import foo.pilz.freaklog.ui.graph.scene.Vec2
+import foo.pilz.freaklog.ui.utils.hasHealthPermissions
+import foo.pilz.freaklog.ui.utils.isHealthConnectAvailable
+import foo.pilz.freaklog.ui.utils.readHealthRecords
 import java.time.Duration
 import java.time.Instant
 import kotlin.math.ceil
@@ -33,50 +32,23 @@ object BloodPressureHealthConnect {
           HealthPermission.getWritePermission(BloodPressureRecord::class),
       )
 
-  fun isAvailable(context: Context): Boolean =
-      Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
-          HealthConnectClient.getSdkStatus(context) == HealthConnectClient.SDK_AVAILABLE
+  fun isAvailable(context: Context): Boolean = isHealthConnectAvailable(context)
 
   suspend fun isPermissionGranted(context: Context): Boolean =
-      HealthConnectClient.getOrCreate(context)
-          .permissionController
-          .getGrantedPermissions()
-          .containsAll(permissions)
+      hasHealthPermissions(context, permissions)
 
-  suspend fun read(context: Context, start: Instant, end: Instant): List<BloodPressureReading> {
-    val client = HealthConnectClient.getOrCreate(context)
-    val readings = mutableListOf<BloodPressureReading>()
-    var pageToken: String? = null
-    do {
-      val response =
-          client.readRecords(
-              ReadRecordsRequest(
-                  recordType = BloodPressureRecord::class,
-                  timeRangeFilter =
-                      TimeRangeFilter.between(
-                          start.minus(Duration.ofHours(24)),
-                          end,
-                      ),
-                  pageSize = 5000,
-                  pageToken = pageToken,
-              )
-          )
-      response.records.forEach { record ->
-        if (!record.time.isBefore(start) && !record.time.isAfter(end)) {
-          readings.add(
-              BloodPressureReading(
-                  id = record.metadata.id,
-                  time = record.time,
-                  systolic = record.systolic.inMillimetersOfMercury,
-                  diastolic = record.diastolic.inMillimetersOfMercury,
-              )
-          )
-        }
-      }
-      pageToken = response.pageToken
-    } while (pageToken != null)
-    return readings.sortedBy { it.time }
-  }
+  suspend fun read(context: Context, start: Instant, end: Instant): List<BloodPressureReading> =
+      readHealthRecords(context, BloodPressureRecord::class, start, end)
+          .filter { !it.time.isBefore(start) && !it.time.isAfter(end) }
+          .map { record ->
+            BloodPressureReading(
+                id = record.metadata.id,
+                time = record.time,
+                systolic = record.systolic.inMillimetersOfMercury,
+                diastolic = record.diastolic.inMillimetersOfMercury,
+            )
+          }
+          .sortedBy { it.time }
 }
 
 private const val MAX_HEIGHT_FRACTION = 0.35f

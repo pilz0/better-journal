@@ -25,8 +25,10 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import foo.pilz.freaklog.data.anodyne.AnodyneRepository
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.SavedTimeDisplayOption
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.VitalKind
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences.PreferencesKeys.WEBHOOK_URL
 import foo.pilz.freaklog.ui.tabs.settings.funny.FunnyConfig
 import java.time.Instant
@@ -72,6 +74,7 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
     val HEART_RATE_ENABLED = booleanPreferencesKey("heart_rate_enabled")
     val KEY_SLEEP_STAGES_ENABLED = booleanPreferencesKey("KEY_SLEEP_STAGES_ENABLED")
     val KEY_BLOOD_PRESSURE_DISPLAY = stringPreferencesKey("KEY_BLOOD_PRESSURE_DISPLAY")
+    val KEY_EXTRA_VITALS = stringSetPreferencesKey("KEY_EXTRA_VITALS")
     val KEY_FUN_MODE = booleanPreferencesKey("KEY_FUN_MODE")
     val KEY_TEAMS_SKIN = booleanPreferencesKey("KEY_TEAMS_SKIN")
     val BACKUP_DIR_URI = stringPreferencesKey("backup_dir_uri")
@@ -317,6 +320,20 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
 
   suspend fun saveBloodPressureDisplay(value: BloodPressureDisplay) {
     dataStore.edit { it[PreferencesKeys.KEY_BLOOD_PRESSURE_DISPLAY] = value.name }
+  }
+
+  /** Extra vitals ([VitalKind]) drawn on timelines. Empty, i.e. all off, until the user opts in. */
+  val extraVitalsFlow: Flow<Set<VitalKind>> =
+      dataStore.data.map { preferences ->
+        val names = preferences[PreferencesKeys.KEY_EXTRA_VITALS].orEmpty()
+        VitalKind.entries.filter { it.name in names }.toSet()
+      }
+
+  suspend fun saveExtraVitalEnabled(kind: VitalKind, enabled: Boolean) {
+    dataStore.edit {
+      val names = it[PreferencesKeys.KEY_EXTRA_VITALS].orEmpty()
+      it[PreferencesKeys.KEY_EXTRA_VITALS] = if (enabled) names + kind.name else names - kind.name
+    }
   }
 
   /** Opt-in easter eggs; [FunnyConfig.teamsSkin] is the "ultra fun mode" that disguises screens. */

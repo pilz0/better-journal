@@ -97,6 +97,7 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.BloodPressureHealthConnect
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateHealthConnect
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.SleepHealthConnect
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.VitalKind
 import foo.pilz.freaklog.ui.tabs.settings.combinations.BloodPressureDisplay
 import foo.pilz.freaklog.ui.tabs.settings.funny.FunnyConfig
 import foo.pilz.freaklog.ui.theme.horizontalPadding
@@ -192,6 +193,36 @@ private fun rememberVitalsController(
   return Pair(isVitalsAvailable, onSaveIsVitalsEnabled)
 }
 
+/** Turning an extra vital on first asks Health Connect for its read permission. */
+@Composable
+private fun rememberExtraVitalToggle(viewModel: SettingsViewModel): (VitalKind, Boolean) -> Unit {
+  var pendingKind by
+      androidx.compose.runtime.saveable.rememberSaveable {
+        mutableStateOf<VitalKind?>(null)
+      }
+  val launcher =
+      androidx.activity.compose.rememberLauncherForActivityResult(
+          androidx.health.connect.client.PermissionController
+              .createRequestPermissionResultContract()
+      ) { granted ->
+        val kind = pendingKind ?: return@rememberLauncherForActivityResult
+        pendingKind = null
+        if (granted.containsAll(kind.permissions)) {
+          viewModel.saveExtraVitalEnabled(kind, true)
+        } else {
+          viewModel.showMessage("Health Connect permission denied")
+        }
+      }
+  return { kind, enable ->
+    if (enable) {
+      pendingKind = kind
+      launcher.launch(kind.permissions)
+    } else {
+      viewModel.saveExtraVitalEnabled(kind, false)
+    }
+  }
+}
+
 @Suppress("LongParameterList")
 @Composable
 fun SettingsScreen(
@@ -214,6 +245,11 @@ fun SettingsScreen(
 ) {
   val context = androidx.compose.ui.platform.LocalContext.current
   val (isVitalsAvailable, saveIsVitalsEnabled) = rememberVitalsController(context, viewModel)
+  val saveExtraVitalEnabled = rememberExtraVitalToggle(viewModel)
+  val supportedExtraVitals = remember { VitalKind.entries.filter { it.isSupported(context) } }
+  val canInstallHealthConnect = remember {
+    foo.pilz.freaklog.ui.utils.isHealthConnectInstallable(context)
+  }
   SettingsScreen(
       navigateToFAQ = navigateToFAQ,
       navigateToWebhook = navigateToWebhook,
@@ -253,6 +289,21 @@ fun SettingsScreen(
       saveSleepStagesEnabled = viewModel::saveSleepStagesEnabled,
       bloodPressureDisplay = viewModel.bloodPressureDisplayFlow.collectAsState().value,
       saveBloodPressureDisplay = viewModel::saveBloodPressureDisplay,
+      supportedExtraVitals = supportedExtraVitals,
+      extraVitals = viewModel.extraVitalsFlow.collectAsState().value,
+      saveExtraVitalEnabled = saveExtraVitalEnabled,
+      installHealthConnect =
+          if (canInstallHealthConnect) {
+            {
+              try {
+                context.startActivity(foo.pilz.freaklog.ui.utils.healthConnectInstallIntent())
+              } catch (_: android.content.ActivityNotFoundException) {
+                viewModel.showMessage("Play Store not found")
+              }
+            }
+          } else {
+            null
+          },
       areSubstanceHeightsIndependent =
           viewModel.areSubstanceHeightsIndependentFlow.collectAsState().value,
       saveAreSubstanceHeightsIndependent = viewModel::saveAreSubstanceHeightsIndependent,
@@ -322,6 +373,10 @@ fun SettingsScreen(
     saveSleepStagesEnabled: (Boolean) -> Unit = {},
     bloodPressureDisplay: BloodPressureDisplay = BloodPressureDisplay.COMBINED,
     saveBloodPressureDisplay: (BloodPressureDisplay) -> Unit = {},
+    supportedExtraVitals: List<VitalKind> = emptyList(),
+    extraVitals: Set<VitalKind> = emptySet(),
+    saveExtraVitalEnabled: (VitalKind, Boolean) -> Unit = { _, _ -> },
+    installHealthConnect: (() -> Unit)? = null,
     areSubstanceHeightsIndependent: Boolean,
     saveAreSubstanceHeightsIndependent: (Boolean) -> Unit,
     isStatsHidden: Boolean,
@@ -537,14 +592,14 @@ fun SettingsScreen(
             text = "Vitals on timeline",
             checked = isVitalsEnabled && isVitalsAvailable,
             description =
-                if (isVitalsAvailable) {
-                  "Health Connect: heart rate, sleep, blood pressure"
-                } else {
-                  "Health Connect is not available on this device"
+                when {
+                  isVitalsAvailable -> "Health Connect: heart rate, sleep, blood pressure"
+                  installHealthConnect != null -> "Tap to install or update Health Connect"
+                  else -> "Health Connect is not available on this device"
                 },
             onCheckedChange = {
               performHaptic(HapticType.TOGGLE)
-              if (isVitalsAvailable) saveIsVitalsEnabled(it)
+              if (isVitalsAvailable) saveIsVitalsEnabled(it) else installHealthConnect?.invoke()
             },
         )
         if (isVitalsEnabled && isVitalsAvailable) {
@@ -562,6 +617,18 @@ fun SettingsScreen(
               value = bloodPressureDisplay,
               onValueChange = saveBloodPressureDisplay,
           )
+          supportedExtraVitals.forEach { kind ->
+            HorizontalDivider()
+            SettingsSwitchRow(
+                text = kind.title,
+                checked = kind in extraVitals,
+                description = kind.description,
+                onCheckedChange = {
+                  performHaptic(HapticType.TOGGLE)
+                  saveExtraVitalEnabled(kind, it)
+                },
+            )
+          }
         }
         HorizontalDivider()
         SettingsSwitchRow(

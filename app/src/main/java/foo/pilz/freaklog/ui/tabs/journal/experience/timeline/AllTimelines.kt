@@ -71,6 +71,7 @@ fun AllTimelines(
     sleepSamples: List<SleepSessionSample> = emptyList(),
     showSleepStages: Boolean = false,
     bloodPressureReadings: List<BloodPressureReading> = emptyList(),
+    vitalSeries: List<VitalSeries> = emptyList(),
 ) {
   val isDarkTheme = isSystemInDarkTheme()
   val density = LocalDensity.current
@@ -129,6 +130,19 @@ fun AllTimelines(
   val heartRatePolylines =
       remember(heartRateSamples, model) {
         buildHeartRatePolylines(heartRateSamples, model.startTime, model.widthInSeconds)
+      }
+
+  val vitalPolylines =
+      remember(vitalSeries, model) {
+        vitalSeries.map { series ->
+          series.kind.color to
+              buildVitalPolylines(
+                  series.samples,
+                  model.startTime,
+                  model.widthInSeconds,
+                  series.kind.minDeviation,
+              )
+        }
       }
 
   val bloodPressurePolylines =
@@ -190,36 +204,14 @@ fun AllTimelines(
       val canvasHeightWithVerticalLine = size.height
 
       val marker = currentTimeMarker(model, currentTime, isShowingCurrentTime, graphStyle)
-      heartRatePolylines.forEach { polyline ->
-        if (polyline.size == 1) {
-          val point = polyline.single()
-          drawCircle(
-              color = graphStyle.heartRateColor,
-              radius = 2.dp.toPx(),
-              center =
-                  Offset(
-                      point.x * size.width,
-                      point.y * canvasHeightWithVerticalLine,
-                  ),
-          )
-          return@forEach
-        }
-        reusablePath.reset()
-        polyline.forEachIndexed { index, point ->
-          val x = point.x * size.width
-          val y = point.y * canvasHeightWithVerticalLine
-          if (index == 0) reusablePath.moveTo(x, y) else reusablePath.lineTo(x, y)
-        }
-        drawPath(
-            path = reusablePath,
-            color = graphStyle.heartRateColor,
-            style =
-                Stroke(
-                    width = 1.5.dp.toPx(),
-                    cap = StrokeCap.Round,
-                    join = StrokeJoin.Round,
-                ),
-        )
+      drawVitalPolylines(
+          heartRatePolylines,
+          graphStyle.heartRateColor,
+          canvasHeightWithVerticalLine,
+          reusablePath,
+      )
+      vitalPolylines.forEach { (color, polylines) ->
+        drawVitalPolylines(polylines, color, canvasHeightWithVerticalLine, reusablePath)
       }
 
       paintScene(scene, graphStyle, textMeasurer)
@@ -330,6 +322,7 @@ fun AllTimelines(
             heartRateSamples = heartRateSamples,
             flattenedSleepStages = flattenedSleepStages,
             showSleepStages = showSleepStages,
+            vitalSeries = vitalSeries,
         )
       }
     }
@@ -350,6 +343,37 @@ fun AllTimelines(
         )
       }
     }
+  }
+}
+
+/** Thin lines for heart rate and the other vitals; an isolated sample becomes a dot. */
+private fun DrawScope.drawVitalPolylines(
+    polylines: List<List<Vec2>>,
+    color: Color,
+    canvasHeight: Float,
+    path: Path,
+) {
+  polylines.forEach { polyline ->
+    if (polyline.size == 1) {
+      val point = polyline.single()
+      drawCircle(
+          color = color,
+          radius = 2.dp.toPx(),
+          center = Offset(point.x * size.width, point.y * canvasHeight),
+      )
+      return@forEach
+    }
+    path.reset()
+    polyline.forEachIndexed { index, point ->
+      val x = point.x * size.width
+      val y = point.y * canvasHeight
+      if (index == 0) path.moveTo(x, y) else path.lineTo(x, y)
+    }
+    drawPath(
+        path = path,
+        color = color,
+        style = Stroke(width = 1.5.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round),
+    )
   }
 }
 
@@ -462,6 +486,7 @@ private fun DrawScope.drawDragPointLineAndTimeLabel(
     heartRateSamples: List<HeartRateSample>,
     flattenedSleepStages: List<SleepStageSample>,
     showSleepStages: Boolean,
+    vitalSeries: List<VitalSeries>,
 ) {
   val horizontallyLimitedDragPoint =
       Offset(
@@ -490,6 +515,7 @@ private fun DrawScope.drawDragPointLineAndTimeLabel(
       heartRateSamples,
       flattenedSleepStages,
       showSleepStages,
+      vitalSeries,
   )
 }
 
@@ -509,6 +535,7 @@ private fun DrawScope.drawDragTimeLabelWithBackground(
     heartRateSamples: List<HeartRateSample>,
     flattenedSleepStages: List<SleepStageSample>,
     showSleepStages: Boolean,
+    vitalSeries: List<VitalSeries>,
 ) {
   val secondsAtDragPoint = horizontallyLimitedDragPoint.x / pixelsPerSec
   val timeAtDragPoint = model.startTime.plusSeconds(secondsAtDragPoint.toLong())
@@ -552,8 +579,21 @@ private fun DrawScope.drawDragTimeLabelWithBackground(
           withSleepStages = showSleepStages,
       )
 
+  val vitalsLabel =
+      vitalSeries
+          .mapNotNull { series ->
+            nearestVitalValue(series.samples, timeAtDragPoint)?.let(series.kind::format)
+          }
+          .joinToString(" · ")
+          .ifEmpty { null }
+
   val fullLabel =
-      listOfNotNull(timeLabel, sleepStageAtDraPoint?.stage?.displayText).joinToString(" · ")
+      listOfNotNull(
+              listOfNotNull(timeLabel, sleepStageAtDraPoint?.stage?.displayText)
+                  .joinToString(" · "),
+              vitalsLabel,
+          )
+          .joinToString("\n")
 
   val measuredText =
       textMeasurer.measure(
@@ -572,12 +612,12 @@ private fun DrawScope.drawDragTimeLabelWithBackground(
           x =
               (horizontallyLimitedDragPoint.x - rectSize.width / 2).coerceIn(
                   0f,
-                  canvasWidth - rectSize.width,
+                  max(0f, canvasWidth - rectSize.width),
               ),
           y =
               (textHeight - rectSize.height / 2).coerceIn(
                   0f,
-                  canvasHeightWithVerticalLine - rectSize.height,
+                  max(0f, canvasHeightWithVerticalLine - rectSize.height),
               ),
       )
 

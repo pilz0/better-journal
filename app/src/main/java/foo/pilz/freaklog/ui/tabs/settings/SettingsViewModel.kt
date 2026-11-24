@@ -28,6 +28,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.export.JournalExport
 import foo.pilz.freaklog.data.export.buildJournalExportJson
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.VitalKind
 import foo.pilz.freaklog.ui.tabs.settings.combinations.BloodPressureDisplay
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import foo.pilz.freaklog.ui.tabs.settings.funny.FunnyConfig
@@ -78,6 +79,10 @@ constructor(
     userPreferences.saveAreSleepStagesEnabled(value)
   }
 
+  fun saveExtraVitalEnabled(kind: VitalKind, enabled: Boolean) = viewModelScope.launch {
+    userPreferences.saveExtraVitalEnabled(kind, enabled)
+  }
+
   fun saveBloodPressureDisplay(value: BloodPressureDisplay) = viewModelScope.launch {
     userPreferences.saveBloodPressureDisplay(value)
   }
@@ -85,6 +90,13 @@ constructor(
   val isVitalsEnabledFlow =
       userPreferences.isVitalsEnabledFlow.stateIn(
           initialValue = false,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+      )
+
+  val extraVitalsFlow =
+      userPreferences.extraVitalsFlow.stateIn(
+          initialValue = emptySet(),
           scope = viewModelScope,
           started = SharingStarted.WhileSubscribed(5000),
       )

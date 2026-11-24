@@ -55,6 +55,7 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.AllTimelines
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.BloodPressureReading
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateSample
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.SleepSessionSample
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.VitalSeries
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 
 @Composable
@@ -67,6 +68,7 @@ fun TimelineScreen(viewModel: TimelineScreenViewModel = hiltViewModel()) {
       sleepSamples = viewModel.sleepSamplesFlow.collectAsState().value,
       showSleepStages = viewModel.showSleepStagesFlow.collectAsState().value,
       bloodPressureReadings = viewModel.bloodPressureReadingsFlow.collectAsState().value,
+      vitalSeries = viewModel.vitalSeriesFlow.collectAsState().value,
   )
 }
 
@@ -80,6 +82,7 @@ fun TimelineScreen(
     sleepSamples: List<SleepSessionSample> = emptyList(),
     showSleepStages: Boolean = false,
     bloodPressureReadings: List<BloodPressureReading> = emptyList(),
+    vitalSeries: List<VitalSeries> = emptyList(),
 ) {
   Scaffold(
       topBar = {
@@ -117,6 +120,7 @@ fun TimelineScreen(
                 sleepSamples = sleepSamples,
                 showSleepStages = showSleepStages,
                 bloodPressureReadings = bloodPressureReadings,
+                vitalSeries = vitalSeries,
                 modifier =
                     Modifier.fillMaxHeight(if (isOrientationPortrait) 0.5f else 0.8f)
                         .width(canvasWidth.dp)

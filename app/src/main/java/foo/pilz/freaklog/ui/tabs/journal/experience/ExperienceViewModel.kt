@@ -67,6 +67,10 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateHealthConn
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateSample
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.SleepHealthConnect
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.SleepSessionSample
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.VITALS_REFRESH_INTERVAL
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.VitalSeries
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.VitalsHealthConnect
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.isOngoingAt
 import foo.pilz.freaklog.ui.tabs.settings.combinations.BloodPressureDisplay
 import foo.pilz.freaklog.ui.tabs.settings.combinations.CombinationSettingsStorage
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
@@ -83,6 +87,7 @@ import kotlin.math.sqrt
 import kotlin.random.Random
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -91,6 +96,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -581,44 +587,71 @@ constructor(
       userPreferences.areSleepStagesEnabledFlow.stateInVm(viewModelScope, false)
   val isVitalsEnabledFlow = userPreferences.isVitalsEnabledFlow.stateInVm(viewModelScope, false)
 
-  @Suppress("TooGenericExceptionCaught")
+  private val localVitalSeries = MutableStateFlow<List<VitalSeries>>(emptyList())
+  val vitalSeriesFlow: StateFlow<List<VitalSeries>> = localVitalSeries
+  private var vitalsJob: Job? = null
+
+  /**
+   * Shows or hides heart rate, sleep and the extra vitals enabled in Settings. While the experience
+   * is ongoing they are re-read every [VITALS_REFRESH_INTERVAL].
+   */
+  @Suppress("TooGenericExceptionCaught", "LongMethod")
   fun toggleHeartRate(context: Context, requestPermission: () -> Unit = {}) {
-    viewModelScope.launch {
-      if (localHeartRateSamples.value.isNotEmpty() || localSleepSamples.value.isNotEmpty()) {
-        localHeartRateSamples.value = emptyList()
-        localSleepSamples.value = emptyList()
-        return@launch
-      }
-      val model =
-          (timelineDisplayOptionFlow.value as? TimelineDisplayOption.Shown)?.allTimelinesModel
-              ?: return@launch
+    val isShown =
+        localHeartRateSamples.value.isNotEmpty() ||
+            localSleepSamples.value.isNotEmpty() ||
+            localVitalSeries.value.isNotEmpty()
+    if (vitalsJob?.isActive == true || isShown) {
+      vitalsJob?.cancel()
+      localHeartRateSamples.value = emptyList()
+      localSleepSamples.value = emptyList()
+      localVitalSeries.value = emptyList()
+      return
+    }
+    vitalsJob = viewModelScope.launch {
       try {
         val grantedPermissions =
             HealthConnectClient.getOrCreate(context).permissionController.getGrantedPermissions()
         val isHeartRateGranted = grantedPermissions.containsAll(HeartRateHealthConnect.permissions)
         val isSleepGranted = grantedPermissions.containsAll(SleepHealthConnect.permissions)
-        if (!isHeartRateGranted && !isSleepGranted) {
+        val extraKinds =
+            userPreferences.extraVitalsFlow.first().filterTo(mutableSetOf()) {
+              grantedPermissions.containsAll(it.permissions)
+            }
+        if (!isHeartRateGranted && !isSleepGranted && extraKinds.isEmpty()) {
           requestPermission()
           return@launch
         }
-        val end = model.startTime.plusSeconds(model.widthInSeconds.toLong())
-        val hrSamples =
-            if (isHeartRateGranted) {
-              HeartRateHealthConnect.read(context, model.startTime, end)
-            } else {
-              emptyList()
-            }
-        val sleepSamples =
-            if (isSleepGranted) {
-              SleepHealthConnect.read(context, model.startTime, end)
-            } else {
-              emptyList()
-            }
-        if (hrSamples.isEmpty() && sleepSamples.isEmpty()) {
-          Toast.makeText(context, "No health data found", Toast.LENGTH_SHORT).show()
+        var isFirstRead = true
+        while (true) {
+          val model =
+              (timelineDisplayOptionFlow.value as? TimelineDisplayOption.Shown)?.allTimelinesModel
+                  ?: break
+          val end = model.startTime.plusSeconds(model.widthInSeconds.toLong())
+          val hrSamples =
+              if (isHeartRateGranted) {
+                HeartRateHealthConnect.read(context, model.startTime, end)
+              } else {
+                emptyList()
+              }
+          val sleepSamples =
+              if (isSleepGranted) {
+                SleepHealthConnect.read(context, model.startTime, end)
+              } else {
+                emptyList()
+              }
+          val vitals = VitalsHealthConnect.read(context, extraKinds, model.startTime, end)
+          if (isFirstRead && hrSamples.isEmpty() && sleepSamples.isEmpty() && vitals.isEmpty()) {
+            Toast.makeText(context, "No health data found", Toast.LENGTH_SHORT).show()
+            break
+          }
+          isFirstRead = false
+          localHeartRateSamples.value = hrSamples
+          localSleepSamples.value = sleepSamples
+          localVitalSeries.value = vitals
+          if (!model.isOngoingAt(Instant.now())) break
+          delay(VITALS_REFRESH_INTERVAL.toMillis())
         }
-        localHeartRateSamples.value = hrSamples
-        localSleepSamples.value = sleepSamples
       } catch (e: CancellationException) {
         throw e
       } catch (e: Exception) {

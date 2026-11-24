@@ -119,6 +119,7 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateHealthConn
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateSample
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.SleepHealthConnect
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.SleepSessionSample
+import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.VitalSeries
 import foo.pilz.freaklog.ui.tabs.settings.combinations.BloodPressureDisplay
 import foo.pilz.freaklog.ui.tabs.settings.funny.AchievementDef
 import foo.pilz.freaklog.ui.tabs.settings.funny.TierBadge
@@ -269,6 +270,7 @@ fun ExperienceScreen(
           )
         }
       },
+      vitalSeries = viewModel.vitalSeriesFlow.collectAsState().value,
       bloodPressureReadings = viewModel.bloodPressureReadingsFlow.collectAsState().value,
       isBloodPressureAvailable = isBloodPressureAvailable,
       isBloodPressureInSubstanceList = isBloodPressureInSubstanceList,
@@ -387,6 +389,7 @@ fun ExperienceScreen(
     sleepStagesEnabled: Boolean = false,
     isHeartRateButtonVisible: Boolean = false,
     onToggleHeartRate: () -> Unit = {},
+    vitalSeries: List<VitalSeries> = emptyList(),
     bloodPressureReadings: List<BloodPressureReading> = emptyList(),
     isBloodPressureAvailable: Boolean = false,
     isBloodPressureInSubstanceList: Boolean = false,
@@ -441,6 +444,7 @@ fun ExperienceScreen(
           sleepStagesEnabled = sleepStagesEnabled,
           isHeartRateButtonVisible = isHeartRateButtonVisible,
           onToggleHeartRate = onToggleHeartRate,
+          vitalSeries = vitalSeries,
           bloodPressureReadings = bloodPressureReadings,
           isBloodPressureInSubstanceList = isBloodPressureInSubstanceList,
           onToggleBloodPressureInSubstanceList = onToggleBloodPressureInSubstanceList,
@@ -1021,6 +1025,7 @@ private fun MyTimelineSection(
     sleepStagesEnabled: Boolean = false,
     isHeartRateButtonVisible: Boolean = false,
     onToggleHeartRate: () -> Unit = {},
+    vitalSeries: List<VitalSeries> = emptyList(),
     bloodPressureReadings: List<BloodPressureReading> = emptyList(),
     isBloodPressureInSubstanceList: Boolean = false,
     onToggleBloodPressureInSubstanceList: () -> Unit = {},
@@ -1043,10 +1048,13 @@ private fun MyTimelineSection(
             }
             if (isHeartRateButtonVisible) {
               IconButton(onClick = onToggleHeartRate) {
-                val isShown = heartRateSamples.isNotEmpty()
+                val isShown =
+                    heartRateSamples.isNotEmpty() ||
+                        sleepSamples.isNotEmpty() ||
+                        vitalSeries.isNotEmpty()
                 Icon(
                     if (isShown) Icons.Filled.MonitorHeart else Icons.Outlined.MonitorHeart,
-                    contentDescription = if (isShown) "Hide heart rate" else "Show heart rate",
+                    contentDescription = if (isShown) "Hide vitals" else "Show vitals",
                 )
               }
             }
@@ -1089,6 +1097,7 @@ private fun MyTimelineSection(
               sleepSamples = sleepSamples,
               showSleepStages = sleepStagesEnabled,
               bloodPressureReadings = bloodPressureReadings,
+              vitalSeries = vitalSeries,
               modifier = Modifier.fillMaxWidth().height(200.dp),
           )
           val hasOralIngestion =

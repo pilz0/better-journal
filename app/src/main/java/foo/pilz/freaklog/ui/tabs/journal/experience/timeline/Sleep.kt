@@ -2,11 +2,10 @@ package foo.pilz.freaklog.ui.tabs.journal.experience.timeline
 
 import android.content.Context
 import androidx.compose.ui.graphics.Color
-import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.SleepSessionRecord
-import androidx.health.connect.client.request.ReadRecordsRequest
-import androidx.health.connect.client.time.TimeRangeFilter
+import foo.pilz.freaklog.ui.utils.hasHealthPermissions
+import foo.pilz.freaklog.ui.utils.readHealthRecords
 import java.time.Duration
 import java.time.Instant
 import kotlin.math.max
@@ -71,68 +70,43 @@ object SleepHealthConnect {
       )
 
   suspend fun isPermissionGranted(context: Context): Boolean =
-      HealthConnectClient.getOrCreate(context)
-          .permissionController
-          .getGrantedPermissions()
-          .containsAll(permissions)
+      hasHealthPermissions(context, permissions)
 
-  suspend fun read(context: Context, start: Instant, end: Instant): List<SleepSessionSample> {
-    val client = HealthConnectClient.getOrCreate(context)
-    val result = mutableListOf<SleepSessionSample>()
-    var pageToken: String? = null
-
-    do {
-      val response =
-          client.readRecords(
-              ReadRecordsRequest(
-                  recordType = SleepSessionRecord::class,
-                  timeRangeFilter =
-                      TimeRangeFilter.between(
-                          start.minus(Duration.ofHours(24)),
-                          end.plus(Duration.ofHours(2)),
-                      ),
-                  pageSize = 5000,
-                  pageToken = pageToken,
-              )
-          )
-
-      pageToken = response.pageToken
-
-      for (record in response.records) {
-        val stages =
-            if (record.stages.isNotEmpty()) {
-              record.stages.map {
-                SleepStageSample(
-                    start = it.startTime,
-                    end = it.endTime,
-                    stage =
-                        when (it.stage) {
-                          SleepSessionRecord.STAGE_TYPE_AWAKE,
-                          SleepSessionRecord.STAGE_TYPE_AWAKE_IN_BED,
-                          SleepSessionRecord.STAGE_TYPE_OUT_OF_BED -> SleepStageType.Awake
-                          SleepSessionRecord.STAGE_TYPE_SLEEPING -> SleepStageType.Sleeping
-                          SleepSessionRecord.STAGE_TYPE_LIGHT -> SleepStageType.SleepingLight
-                          SleepSessionRecord.STAGE_TYPE_DEEP -> SleepStageType.SleepingDeep
-                          SleepSessionRecord.STAGE_TYPE_REM -> SleepStageType.SleepingREM
-                          else -> SleepStageType.Unknown
-                        },
-                )
-              }
-            } else {
-              listOf(
-                  SleepStageSample(
-                      start = record.startTime,
-                      end = record.endTime,
-                      stage = SleepStageType.Sleeping,
+  suspend fun read(context: Context, start: Instant, end: Instant): List<SleepSessionSample> =
+      readHealthRecords(context, SleepSessionRecord::class, start, end.plus(Duration.ofHours(2)))
+          .map { record ->
+            val stages =
+                if (record.stages.isNotEmpty()) {
+                  record.stages.map {
+                    SleepStageSample(
+                        start = it.startTime,
+                        end = it.endTime,
+                        stage =
+                            when (it.stage) {
+                              SleepSessionRecord.STAGE_TYPE_AWAKE,
+                              SleepSessionRecord.STAGE_TYPE_AWAKE_IN_BED,
+                              SleepSessionRecord.STAGE_TYPE_OUT_OF_BED -> SleepStageType.Awake
+                              SleepSessionRecord.STAGE_TYPE_SLEEPING -> SleepStageType.Sleeping
+                              SleepSessionRecord.STAGE_TYPE_LIGHT -> SleepStageType.SleepingLight
+                              SleepSessionRecord.STAGE_TYPE_DEEP -> SleepStageType.SleepingDeep
+                              SleepSessionRecord.STAGE_TYPE_REM -> SleepStageType.SleepingREM
+                              else -> SleepStageType.Unknown
+                            },
+                    )
+                  }
+                } else {
+                  listOf(
+                      SleepStageSample(
+                          start = record.startTime,
+                          end = record.endTime,
+                          stage = SleepStageType.Sleeping,
+                      )
                   )
-              )
-            }
-        result.add(SleepSessionSample(stages = stages))
-      }
-    } while (pageToken != null)
-
-    return result.filter { it.start != null }.sortedBy { it.start }
-  }
+                }
+            SleepSessionSample(stages = stages)
+          }
+          .filter { it.start != null }
+          .sortedBy { it.start }
 
   fun flattenSleepSessions(sessions: List<SleepSessionSample>) = sessions.flatMap { it.stages }
 
