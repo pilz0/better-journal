@@ -272,10 +272,77 @@ internal const val REPORT_TITLE = "Substance use summary (self-reported)"
 internal const val REPORT_DISCLAIMER =
     "Recorded by the patient in the Freaklog app. Not verified by a clinician or by testing."
 
+internal val reportDayFormat: DateTimeFormatter
+  get() = DateTimeFormatter.ofPattern("EEE, d MMM yyyy", Locale.getDefault())
+
+internal val ClinicianReport.periodRange: String
+  get() = "${from.format(reportDateFormat)} – ${to.format(reportDateFormat)} ($periodDays days)"
+
 internal val ClinicianReport.periodLine: String
-  get() =
-      "${from.format(reportDateFormat)} – ${to.format(reportDateFormat)} ($periodDays days). " +
-          "Days with any use: ${days.size} of $periodDays."
+  get() = "$periodRange. Days with any use: ${days.size} of $periodDays."
+
+val ClinicianReport.useFreeDays: Long
+  get() = periodDays - days.keys.count { it in from..to }
+
+/** The longest run of days inside the period without any recorded use. */
+val ClinicianReport.longestUseFreeStretch: Long
+  get() {
+    var longest = 0L
+    var previous = from.minusDays(1)
+    (days.keys.filter { it in from..to }.sorted() + to.plusDays(1)).forEach {
+      longest = maxOf(longest, ChronoUnit.DAYS.between(previous, it) - 1)
+      previous = it
+    }
+    return longest
+  }
+
+/**
+ * Days per week with use of [name] in the first and the second half of the period, so a clinician
+ * sees the direction of change. Null for periods under four weeks, where halves say little.
+ */
+fun ClinicianReport.daysPerWeekByHalf(name: String): Pair<Double, Double>? {
+  if (periodDays < 28) return null
+  val half = periodDays / 2
+  val middle = from.plusDays(half)
+  val used = days.filterValues { name in it }.keys.filter { it in from..to }
+  return used.count { it < middle } * 7.0 / half to
+      used.count { it >= middle } * 7.0 / (periodDays - half)
+}
+
+/**
+ * Days with use over time, in [bucketDays]-day buckets from [ClinicianReport.from]. Each value is
+ * the share of the bucket's days with use, 0..1.
+ */
+data class UsePattern(
+    val bucketDays: Int,
+    val any: List<Float>,
+    val bySubstance: Map<String, List<Float>>,
+)
+
+/** At most [maxBuckets] buckets; a bucket is one day when the period is short enough. */
+fun ClinicianReport.usePattern(maxBuckets: Int): UsePattern {
+  val bucketDays = ((periodDays + maxBuckets - 1) / maxBuckets).toInt().coerceAtLeast(1)
+  val buckets = ((periodDays + bucketDays - 1) / bucketDays).toInt()
+  fun share(dates: List<LocalDate>): List<Float> {
+    val counts = IntArray(buckets)
+    dates.forEach {
+      val index = ChronoUnit.DAYS.between(from, it)
+      if (index in 0 until periodDays) counts[(index / bucketDays).toInt()]++
+    }
+    return counts.mapIndexed { i, count ->
+      val length = minOf(bucketDays.toLong(), periodDays - i.toLong() * bucketDays)
+      count / length.toFloat()
+    }
+  }
+  return UsePattern(
+      bucketDays = bucketDays,
+      any = share(days.keys.toList()),
+      bySubstance =
+          substances.associate { substance ->
+            substance.name to share(days.filterValues { substance.name in it }.keys.toList())
+          },
+  )
+}
 
 internal fun SubstanceSummary.doseText(): String =
     listOfNotNull(

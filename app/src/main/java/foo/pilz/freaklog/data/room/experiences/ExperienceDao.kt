@@ -74,12 +74,6 @@ internal fun escapeLikeParameter(value: String): String =
 @Dao
 interface ExperienceDao {
 
-  @Query("SELECT * FROM experience ORDER BY creationDate DESC")
-  fun getSortedExperiencesFlow(): Flow<List<Experience>>
-
-  @Query("SELECT * FROM ingestion ORDER BY time DESC")
-  fun getIngestionsSortedDescendingFlow(): Flow<List<Ingestion>>
-
   @Query(
       "SELECT * FROM ingestion as i" +
           " INNER JOIN (SELECT id, MAX(time) AS time FROM ingestion WHERE time > :instant GROUP BY substanceName) as sub" +
@@ -273,10 +267,6 @@ interface ExperienceDao {
   @Query("SELECT * FROM experience WHERE id =:id") fun getExperienceFlow(id: Int): Flow<Experience?>
 
   @Transaction
-  @Query("SELECT * FROM ingestion WHERE id =:id")
-  fun getIngestionWithExperienceFlow(id: Int): Flow<IngestionWithExperienceAndCustomUnit?>
-
-  @Transaction
   @Query("SELECT * FROM ingestion WHERE time >= :fromInstant AND time < :toInstant")
   fun getIngestionWithExperiencesFlow(
       fromInstant: Instant,
@@ -293,10 +283,6 @@ interface ExperienceDao {
   @Transaction
   @Query("SELECT * FROM ingestion WHERE id =:id")
   fun getIngestionFlow(id: Int): Flow<IngestionWithCompanionAndCustomUnit?>
-
-  @Transaction
-  @Query("SELECT * FROM ingestion WHERE id =:id")
-  fun getIngestionWithCompanionFlow(id: Int): Flow<IngestionWithCompanionAndCustomUnit?>
 
   @Transaction
   @Query(
@@ -648,12 +634,6 @@ interface ExperienceDao {
   }
 
   @Transaction
-  @Query("SELECT * FROM experience WHERE id = :experienceId")
-  fun getExperienceWithIngestionsAndCompanionsFlow(
-      experienceId: Int
-  ): Flow<ExperienceWithIngestionsAndCompanions?>
-
-  @Transaction
   @Query("SELECT * FROM ingestion WHERE experienceId = :experienceId")
   fun getIngestionsWithCompanionsFlow(
       experienceId: Int
@@ -845,15 +825,6 @@ interface ExperienceDao {
   @Query("SELECT * FROM customunit WHERE id IN (:ids)")
   suspend fun getCustomUnitsByIds(ids: List<Int>): List<CustomUnit>
 
-  @Query(
-      "SELECT * FROM customunit WHERE substanceName = :substanceName AND name = :name AND administrationRoute = :route LIMIT 1"
-  )
-  suspend fun findCustomUnitByKey(
-      substanceName: String,
-      name: String,
-      route: AdministrationRoute,
-  ): CustomUnit?
-
   @Query("SELECT * FROM experience") fun getAllExperiencesFlow(): Flow<List<Experience>>
 
   @Transaction
@@ -861,15 +832,6 @@ interface ExperienceDao {
   suspend fun getAllIngestionsWithCompanions(): List<IngestionWithCompanion>
 
   @Query("DELETE FROM substancegroup") suspend fun deleteAllSubstanceGroups()
-
-  @Insert(onConflict = OnConflictStrategy.REPLACE)
-  suspend fun insertIngestions(ingestions: List<Ingestion>)
-
-  @Insert(onConflict = OnConflictStrategy.REPLACE)
-  suspend fun insertRatings(ratings: List<ShulginRating>)
-
-  @Insert(onConflict = OnConflictStrategy.REPLACE)
-  suspend fun insertTimedNotes(timedNotes: List<TimedNote>)
 
   @Insert(onConflict = OnConflictStrategy.REPLACE)
   suspend fun insert(customRoaDuration: CustomRoaDuration): Long
@@ -1058,9 +1020,6 @@ interface ExperienceDao {
   suspend fun deleteCustomCategory(substanceId: Int, categoryName: String)
 
   @Query("SELECT * FROM customcategoryassignment WHERE customSubstanceId = :substanceId")
-  suspend fun getCustomCategories(substanceId: Int): List<CustomCategoryAssignment>
-
-  @Query("SELECT * FROM customcategoryassignment WHERE customSubstanceId = :substanceId")
   fun getCustomCategoriesFlow(substanceId: Int): Flow<List<CustomCategoryAssignment>>
 
   @Query("SELECT * FROM customcategoryassignment")
@@ -1080,9 +1039,6 @@ interface ExperienceDao {
       "DELETE FROM customcrosstolerance WHERE customSubstanceId = :substanceId AND categoryName = :categoryName"
   )
   suspend fun deleteCustomCrossTolerance(substanceId: Int, categoryName: String)
-
-  @Query("SELECT * FROM customcrosstolerance WHERE customSubstanceId = :substanceId")
-  suspend fun getCustomCrossTolerances(substanceId: Int): List<CustomCrossTolerance>
 
   @Query("SELECT * FROM customcrosstolerance WHERE customSubstanceId = :substanceId")
   fun getCustomCrossTolerancesFlow(substanceId: Int): Flow<List<CustomCrossTolerance>>
@@ -1183,9 +1139,6 @@ interface ExperienceDao {
 
   @Delete suspend fun delete(item: SubstanceGroupItem)
 
-  @Query("SELECT * FROM substancegroup ORDER BY name COLLATE NOCASE ASC")
-  fun getSubstanceGroupsFlow(): Flow<List<SubstanceGroup>>
-
   @Transaction
   @Query("SELECT * FROM substancegroup ORDER BY name COLLATE NOCASE ASC")
   fun getSubstanceGroupsWithItemsFlow(): Flow<List<SubstanceGroupWithItems>>
@@ -1205,17 +1158,6 @@ interface ExperienceDao {
   @Transaction
   @Query("SELECT * FROM substancegroup")
   suspend fun getSubstanceGroupsWithItems(): List<SubstanceGroupWithItems>
-
-  @Query("DELETE FROM substancegroupitem WHERE groupId = :groupId")
-  suspend fun deleteSubstanceGroupItems(groupId: Int)
-
-  @Transaction
-  suspend fun replaceSubstanceGroupItems(groupId: Int, items: List<SubstanceGroupItem>) {
-    deleteSubstanceGroupItems(groupId)
-    for (i in items) {
-      insert(i.copy(id = 0, groupId = groupId))
-    }
-  }
 
   @Transaction
   suspend fun insertSubstanceGroupWithItems(

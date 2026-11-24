@@ -20,6 +20,7 @@ package foo.pilz.freaklog.data.room
 
 import androidx.room.AutoMigration
 import androidx.room.Database
+import androidx.room.DeleteTable
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.AutoMigrationSpec
@@ -41,8 +42,6 @@ import foo.pilz.freaklog.data.room.experiences.entities.ShulginRating
 import foo.pilz.freaklog.data.room.experiences.entities.Spray
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
 import foo.pilz.freaklog.data.room.experiences.entities.TimedNote
-import foo.pilz.freaklog.data.room.inventory.InventoryDao
-import foo.pilz.freaklog.data.room.inventory.InventoryItem
 import foo.pilz.freaklog.data.room.reminders.ReminderDao
 import foo.pilz.freaklog.data.room.reminders.entities.Reminder
 import foo.pilz.freaklog.data.room.webhooks.IngestionWebhookMessageDao
@@ -56,7 +55,7 @@ import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
     AdministrationRouteConverter::class,
 )
 @Database(
-    version = 30,
+    version = 31,
     entities =
         [
             Experience::class,
@@ -70,7 +69,6 @@ import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
             Reminder::class,
             CustomRecipe::class,
             CustomRecipeComponent::class,
-            InventoryItem::class,
             Webhook::class,
             IngestionWebhookMessage::class,
             IngestionChangeLog::class,
@@ -115,6 +113,7 @@ import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
             AutoMigration(from = 27, to = 28),
             AutoMigration(from = 28, to = 29),
             AutoMigration(from = 29, to = 30),
+            AutoMigration(from = 30, to = 31, spec = AppDatabase.DropInventory::class),
         ],
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -125,8 +124,6 @@ abstract class AppDatabase : RoomDatabase() {
   abstract fun reminderDao(): ReminderDao
 
   abstract fun customRecipeDao(): CustomRecipeDao
-
-  abstract fun inventoryDao(): InventoryDao
 
   abstract fun webhookDao(): WebhookDao
 
@@ -181,12 +178,15 @@ abstract class AppDatabase : RoomDatabase() {
     }
   }
 
+  /** The inventory tab was removed in schema 31. */
+  @DeleteTable(tableName = "InventoryItem") class DropInventory : AutoMigrationSpec
+
   companion object {
     /**
      * The current schema version. Kept in sync with the `version = ` field on the `@Database`
      * annotation above. Exposed for migration tests so they don't have to hard-code the value.
      */
-    const val LATEST_SCHEMA_VERSION: Int = 30
+    const val LATEST_SCHEMA_VERSION: Int = 31
 
     /**
      * Installs change-log triggers on the Ingestion table. Called from both [MIGRATION_21_22]

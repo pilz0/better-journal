@@ -30,4 +30,52 @@ class AnodyneTextCleanerTest {
         ),
     )
   }
+
+  @Test
+  fun spansLinkWikipediaIcdEffectsAndWikiPages() {
+    val text =
+        "{b}reaccuring{Eb} {xeff 'suicidal-ideation'} ({icd 'R45.8'}), " +
+            "{wkp 'Social_rejection#Rejection_sensitivity' 'rejection sensitivity'} with {sub 'ketamine'}"
+    val spans = AnodyneTextCleaner.spans(text, "https://wiki.example/")
+    assertEquals(
+        listOf(
+            AnodyneTextCleaner.Span("reaccuring "),
+            AnodyneTextCleaner.Span(
+                "suicidal ideation",
+                "https://www.effectindex.com/effects/suicidal-ideation",
+            ),
+            AnodyneTextCleaner.Span(" ("),
+            AnodyneTextCleaner.Span("R45.8", "https://icd.who.int/browse10/2019/en#/R45.8"),
+            AnodyneTextCleaner.Span("), "),
+            AnodyneTextCleaner.Span(
+                "rejection sensitivity",
+                "https://en.wikipedia.org/wiki/Social_rejection#Rejection_sensitivity",
+            ),
+            AnodyneTextCleaner.Span(" with "),
+            AnodyneTextCleaner.Span(
+                "ketamine",
+                "https://wiki.example/substance/ketamine",
+                substanceTitle = "ketamine",
+            ),
+        ),
+        spans,
+    )
+    assertEquals(AnodyneTextCleaner.clean(text), spans.joinToString("") { it.text })
+  }
+
+  @Test
+  fun spansHighlightSeverityAndKeepUnknownMacrosAsText() {
+    assertEquals(
+        listOf(
+            AnodyneTextCleaner.Span("strong", isSeverity = true),
+            AnodyneTextCleaner.Span(" "),
+            AnodyneTextCleaner.Span("Mixed anxiety", "https://en.wikipedia.org/wiki/Mixed_anxiety"),
+            AnodyneTextCleaner.Span(" typo"),
+        ),
+        AnodyneTextCleaner.spans(
+            " {sev 'strong'} {wkp 'Mixed anxiety'} {wpk 'typo'}{rev} ",
+            "https://a.b",
+        ),
+    )
+  }
 }

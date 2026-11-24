@@ -77,9 +77,6 @@ constructor(
 
   private val consumerFlow = MutableStateFlow<String?>(null)
 
-  private val _chartModeFlow = MutableStateFlow(ChartMode.INGESTION_COUNT)
-  val chartModeFlow = _chartModeFlow.asStateFlow()
-
   fun onTapOption(timePickerOption: TimePickerOption) {
     viewModelScope.launch {
       _optionFlow.emit(timePickerOption)
@@ -89,12 +86,6 @@ constructor(
   fun onChangeConsumer(consumerName: String?) {
     viewModelScope.launch {
       consumerFlow.emit(consumerName)
-    }
-  }
-
-  fun onChangeChartMode(chartMode: ChartMode) {
-    viewModelScope.launch {
-      _chartModeFlow.emit(chartMode)
     }
   }
 
@@ -395,17 +386,6 @@ data class ColorCount(
     val count: Int,
 )
 
-data class ColorDose(
-    val color: AdaptiveColor,
-    val dose: Double,
-    val unit: String,
-)
-
-data class ChartBucket(
-    val colorCounts: List<ColorCount>,
-    val colorDoses: List<ColorDose>,
-)
-
 data class StatItem(
     val substanceName: String,
     val color: AdaptiveColor,
@@ -479,18 +459,6 @@ enum class TimePickerOption {
   abstract val bucketCount: Int
   abstract val oneBucketSize: Period
   abstract val allBucketSizes: Period
-}
-
-enum class ChartMode {
-  INGESTION_COUNT,
-  DOSAGE;
-
-  val displayText: String
-    get() =
-        when (this) {
-          INGESTION_COUNT -> "Count"
-          DOSAGE -> "Dosage"
-        }
 }
 
 fun Instant.getEndOfDay(): Instant {

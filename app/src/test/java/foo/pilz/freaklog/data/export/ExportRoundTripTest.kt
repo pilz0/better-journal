@@ -119,7 +119,7 @@ class ExportRoundTripTest {
     repository.deleteEverything()
     repository.replaceEverything(Json { ignoreUnknownKeys = true }.decodeFromString(json))
 
-    val ingestion = dao.getIngestionsSortedDescendingFlow().first().single()
+    val ingestion = dao.getSortedIngestionsFlow().first().single()
     assertThat(ingestion.administrationSite).isEqualTo("left nostril")
     assertThat(ingestion.formulationName).isEqualTo("Medikinet retard")
     assertThat(db.customFormulationDao().getAllOnce().single().id)

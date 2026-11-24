@@ -44,7 +44,8 @@ Don't install JDKs or SDKs by hand. If a tool is missing, add it to `devShells.d
 ./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.ui.*" --no-daemon
 ./gradlew testDebugUnitTest -PtestExclude=foo.pilz.freaklog.data.*,foo.pilz.freaklog.ui.* --no-daemon
 
-# Static analysis
+# Formatting (ktfmt via treefmt) and static analysis
+nix fmt
 ./gradlew detekt --no-daemon
 ./gradlew :app:lintDebug --no-daemon
 
@@ -60,7 +61,7 @@ nix run --inputs-from . gradle2nix -- -t assembleRelease -t bundleRelease
 ## High-impact invariants
 
 - Android package namespace is `foo.pilz.freaklog` (not upstream `com.isaakhanimann.journal`).
-- Room schema version is `30` with an `@AutoMigration` chain in `AppDatabase.kt`.
+- Room schema version is `31` with an `@AutoMigration` chain in `AppDatabase.kt`.
 - The AI assistant uses its own raw-HTTP clients for the OpenAI, Anthropic and Gemini APIs in `data/ai/provider/`. Don't add provider SDKs (the archived `generative-ai-android` drops Gemini's `thoughtSignature`), and keep the raw `NativeContent` round-trip intact.
 - AI API keys are only stored encrypted (`AiProfileStore` + `AiKeyCipher`); never write them to plain preferences, logs or exports.
 - If dependencies or plugins change, regenerate `gradle.lock` (command above) or the Nix build breaks.
@@ -120,10 +121,6 @@ app/src/main/java/foo/pilz/freaklog/
 │   │   │   ├── CustomRecipeDao.kt / CustomRecipeRepository.kt
 │   │   │   ├── entities/       # Experience, Ingestion, CustomUnit, Spray, …
 │   │   │   └── relations/      # ExperienceWithIngestions, IngestionWithCompanion, …
-│   │   ├── inventory/          # Stash / inventory tracking
-│   │   │   ├── InventoryDao.kt
-│   │   │   ├── InventoryItem.kt
-│   │   │   └── InventoryRepository.kt
 │   │   └── reminders/
 │   │       ├── ReminderDao.kt
 │   │       ├── RemindersRepository.kt
@@ -164,9 +161,6 @@ app/src/main/java/foo/pilz/freaklog/
     │   │       ├── edit/       # EditExperienceScreen + ViewModel
     │   │       ├── recommendations/ # AiChatBottomSheet
     │   │       └── timeline/   # AllTimelines, Health Connect vitals, curve/, screen
-    │   ├── inventory/          # Inventory tab (optional — gated by Settings flag)
-    │   │   ├── InventoryScreen.kt
-    │   │   └── InventoryViewModel.kt
     │   ├── safer/              # Harm-reduction screens
     │   │   ├── tolerance/      # ToleranceCalculator, ToleranceTextParser, Screen
     │   │   ├── spray/          # SprayCalculatorScreen + ViewModel
@@ -180,7 +174,6 @@ app/src/main/java/foo/pilz/freaklog/
     │   ├── settings/           # Settings, webhook, export, reminders, …
     │   │   ├── combinations/   # UserPreferences (DataStore)
     │   │   ├── customunits/    # Custom unit management
-    │   │   ├── customrecipes/  # Custom recipe management
     │   │   ├── reminders/      # Reminder management
     │   │   ├── colors/         # Color preference screens
     │   │   ├── lock/           # App-lock (biometrics / PIN) settings
@@ -312,7 +305,7 @@ To upgrade: run `./gradlew versionCatalogUpdate --interactive --no-configuration
 
 ### Room database (`data/room/AppDatabase.kt`)
 
-Current schema version: **30**. All migrations from v1 to v30 are handled by `@AutoMigration`.
+Current schema version: **31**. All migrations from v1 to v31 are handled by `@AutoMigration`.
 The `16 → 17` step uses an `AutoMigrationSpec` (`AppDatabase.ReminderV16To17`) that
 back-fills `scheduleType = 'INTERVAL'` on legacy reminder rows so they don't silently
 disable when the new column default (`DAILY_AT_TIMES`) is applied without `timesOfDay`.
@@ -335,7 +328,6 @@ There is no schema version 13 — the migration jumps directly from 12 to 14
 | `Reminder`                                        | Scheduled substance reminder                                                                                         |
 | `CustomRecipe`                                    | A named recipe (mix of substances)                                                                                   |
 | `CustomRecipeComponent`                           | One ingredient line within a recipe                                                                                  |
-| `InventoryItem`                                   | Stash / inventory entry tracked by the Inventory tab                                                                 |
 | `Webhook`                                         | One Discord webhook destination (added in v18)                                                                       |
 | `IngestionWebhookMessage`                         | Link table mapping `Ingestion` ↔ `Webhook` with the Discord `messageId` returned for that destination (added in v18) |
 | `IntakeLimit`                                     | Per-substance dose or count cap over a sliding window (v24)                                                          |
@@ -488,28 +480,30 @@ context) or from the Journal tab's top bar (whole journal).
 dose and range via `DoseUnits`, last use), a Timeline Followback-style day calendar, the ingestion log and the
 experiences. It never includes other consumers' ingestions or interaction warnings. `ReportStyle.MEDICAL` leads
 with the substances, `THERAPY` with experiences and notes. `toText()` is the plain-text share. `writeClinicianReportPdf`
-draws an A4 PDF with the platform `PdfDocument` (no library). Robolectric can't create one, so the PDF smoke test is
-an instrumented test.
+draws an A4 PDF with the platform `PdfDocument` (no library), black on white like a lab report so it survives
+black-and-white printing: an identifier block, key figures (days with use, % days without use, longest use-free
+stretch), the substance table with a first-half → second-half days/week trend, per-substance pattern strips
+(`usePattern`), then calendar/log or experiences, with "Page x of y" footers (the document is laid out twice to
+count pages). Robolectric can't create a `PdfDocument`, so the PDF smoke test is an instrumented test.
 
 ## UI layer
 
 ### Navigation
 
-Routes and the `NavHost` are defined in `MainActivity.kt`. The bottom navigation bar exposes Journal, Search, Safer Use, Stats, Inventory and Settings — though Safer Use, Stats and Inventory are conditionally shown based on user preferences (see [Bottom navigation tabs](#bottom-navigation-tabs)).
+Routes and the `NavHost` are defined in `MainActivity.kt`. The bottom navigation bar exposes Journal, Search, Safer Use, Stats and Settings — though Safer Use and Stats are conditionally shown based on user preferences (see [Bottom navigation tabs](#bottom-navigation-tabs)).
 
 ### Bottom navigation tabs
 
-| Tab       | Package              | Description                                                      |
-| --------- | -------------------- | ---------------------------------------------------------------- |
-| Journal   | `ui/tabs/journal/`   | Experience list, calendar view, timeline, add/edit               |
-| Search    | `ui/tabs/search/`    | Substance search and detail pages                                |
-| Safer Use | `ui/tabs/safer/`     | Harm-reduction tools (tolerance, dosing, reagent tests)          |
-| Stats     | `ui/tabs/stats/`     | Usage statistics and charts                                      |
-| Inventory | `ui/tabs/inventory/` | Stash tracking — **optional**, hidden unless enabled in Settings |
-| Settings  | `ui/tabs/settings/`  | Preferences, webhook, export/import, reminders, AI, lock         |
+| Tab       | Package             | Description                                              |
+| --------- | ------------------- | -------------------------------------------------------- |
+| Journal   | `ui/tabs/journal/`  | Experience list, calendar view, timeline, add/edit       |
+| Search    | `ui/tabs/search/`   | Substance search and detail pages                        |
+| Safer Use | `ui/tabs/safer/`    | Harm-reduction tools (tolerance, dosing, reagent tests)  |
+| Stats     | `ui/tabs/stats/`    | Usage statistics and charts                              |
+| Settings  | `ui/tabs/settings/` | Preferences, webhook, export/import, reminders, AI, lock |
 
 Tabs are conditionally shown by `MainScreen` based on `MainScreenViewModel` flags
-(`activateSaferFlow`, `isStatsHiddenFlow`, `isInventoryEnabledFlow`, `isDrugsHiddenFlow`).
+(`activateSaferFlow`, `isStatsHiddenFlow`, `isDrugsHiddenFlow`).
 
 ### Timeline rendering
 
@@ -619,11 +613,13 @@ All ViewModels use `@HiltViewModel` + `@Inject constructor`. Repositories and DA
 
 ### Static analysis & coverage
 
+- **Formatting**: ktfmt (default style) through treefmt. Run `nix fmt`; `nix flake check`
+  fails on unformatted files. Detekt's ktlint `formatting` rule set is not used.
 - **Detekt**: `./gradlew detekt`. Config in `config/detekt/detekt.yml`,
   baseline in `config/detekt/baseline.xml`. SARIF uploaded to code scanning.
+  Fix new findings instead of adding them to the baseline.
 - **Android Lint**: `./gradlew :app:lintDebug`. `checkDependencies = true`.
-  SARIF uploaded to code scanning. `abortOnError = false` while we're
-  cleaning up legacy issues; flip to `true` once clean.
+  SARIF uploaded to code scanning. Lint is clean and `abortOnError = true`.
 - **Kover (coverage)**: `./gradlew :app:koverHtmlReportDebug
 :app:koverXmlReportDebug :app:koverVerifyDebug`. CI fails if coverage
   drops below the floor configured in `app/build.gradle.kts`. Ratchet

@@ -19,8 +19,6 @@ constructor(
     json.keys().asSequence().associateWith { android.graphics.Color.parseColor(json.getString(it)) }
   }
 
-  fun colorFor(substanceName: String): Int? = colorsByName[substanceName]
-
   fun colorOrRandom(substanceName: String): Int =
       colorsByName[substanceName] ?: (0xFF000000.toInt() or Random.nextInt(0x1000000))
 }

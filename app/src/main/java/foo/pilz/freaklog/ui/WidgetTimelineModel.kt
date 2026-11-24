@@ -405,13 +405,6 @@ data class WidgetTimelineModel(
      * double-count at that x and create a 2x spike.
      */
     fun contains(x: Float): Boolean = x1 > x0 && x >= x0 && x < x1
-
-    fun heightAt(x: Float): Float {
-      val span = x1 - x0
-      if (span <= 0f) return 0f
-      val t = (x - x0) / span
-      return y0 + t * (y1 - y0)
-    }
   }
 
   internal sealed class Shape {

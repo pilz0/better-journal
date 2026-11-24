@@ -46,6 +46,22 @@ class MoleculeDrawingTest {
     assertEquals(25f, bounds.bottom, 0.01f)
   }
 
+  /**
+   * Regression: CDK's stereo bonds use arcs (Codeine's hashed bond below). The tokenizer dropped
+   * the `a` command, so its numbers became absolute line-tos and drew strays toward the origin.
+   */
+  @Test
+  fun arcsStayOnTheirBond() {
+    val svg =
+        """<svg viewBox="0 0 70 70"><path d="M59.816 61.744a.376.376 0 0 1-.35-.348""" +
+            """l-.046-6.804h.7l.046 6.807a.376.376 0 0 1-.348.352h-.002z"/></svg>"""
+    val bounds = MoleculeDrawing.parse(svg)!!.shapes.single().path.getBounds()
+    assertEquals(59.42f, bounds.left, 0.01f)
+    assertEquals(54.59f, bounds.top, 0.01f)
+    assertEquals(60.17f, bounds.right, 0.01f)
+    assertEquals(61.75f, bounds.bottom, 0.01f)
+  }
+
   @Test
   fun parsesMinifiedCdkStructure() {
     // svgo output as served in "Structure": implicit line-tos, ".7.5"-style number runs, 100% rect.

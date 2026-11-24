@@ -104,6 +104,9 @@ fun NavGraphBuilder.searchGraph(navController: NavHostController) {
           user = route.user,
           substanceName = route.substanceName,
           navigateBack = navController::popBackStack,
+          navigateToAnodyneSubstance = { title ->
+            navController.navigate(AnodyneSubstanceRoute(title = title))
+          },
       )
     }
     composableWithTransitions<AnodyneLinksRoute> { backStackEntry ->

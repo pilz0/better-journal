@@ -188,17 +188,6 @@ constructor(
           started = SharingStarted.WhileSubscribed(5000),
       )
 
-  val isInventoryEnabledFlow =
-      userPreferences.isInventoryEnabledFlow.stateIn(
-          initialValue = false,
-          scope = viewModelScope,
-          started = SharingStarted.WhileSubscribed(5000),
-      )
-
-  fun saveIsInventoryEnabled(value: Boolean) = viewModelScope.launch {
-    userPreferences.saveInventoryEnabled(value)
-  }
-
   val isRedoseShownFlow =
       userPreferences.isRedoseShownFlow.stateIn(
           initialValue = false,

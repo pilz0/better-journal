@@ -585,12 +585,6 @@ constructor(
   suspend fun getCustomUnitsByIds(ids: List<Int>): List<CustomUnit> =
       if (ids.isEmpty()) emptyList() else experienceDao.getCustomUnitsByIds(ids)
 
-  suspend fun findMatchingCustomUnit(
-      substanceName: String,
-      name: String,
-      route: foo.pilz.freaklog.data.substances.AdministrationRoute,
-  ): CustomUnit? = experienceDao.findCustomUnitByKey(substanceName, name, route)
-
   fun getAllExperiencesFlow() =
       experienceDao.getAllExperiencesFlow().flowOn(Dispatchers.IO).conflate()
 

@@ -102,7 +102,7 @@ fun CustomToleranceEditorScreen(
             modifier = Modifier.fillMaxWidth().padding(horizontal = spacing.screenHorizontal),
         ) {
           ListItem(
-              headlineContent = { Text("Categories") },
+              content = { Text("Categories") },
               supportingContent = {
                 Text(
                     text = if (cross.isEmpty()) "None" else cross.joinToString(", "),

@@ -272,7 +272,7 @@ data class MoleculeDrawing(
     private fun parseSvgPath(d: String): Path? {
       return try {
         val tokens =
-            Regex("""[MmLlHhVvCcSsQqTtZz]|-?(?:\d+\.\d*|\.\d+|\d+)(?:[eE][-+]?\d+)?""")
+            Regex("""[MmLlHhVvCcSsQqTtAaZz]|-?(?:\d+\.\d*|\.\d+|\d+)(?:[eE][-+]?\d+)?""")
                 .findAll(d)
                 .map { it.value }
                 .toList()
@@ -358,8 +358,8 @@ data class MoleculeDrawing(
       state.curY = y
     }
 
-    // ponytail: arcs are drawn as straight lines to their end point; CDK only uses them for
-    // the odd charge ring. Convert to cubic segments if a structure ever looks wrong.
+    // ponytail: arcs are drawn as straight lines to their end point; CDK only uses them for the
+    // tiny rounded ends of stereo bonds. Convert to cubic segments if a big arc ever shows up.
     private fun executeArc(cursor: PathCursor, state: PathState, rel: Boolean) {
       repeat(ARC_FLAG_PARAMS) { cursor.nextNum() ?: return }
       val x = (cursor.nextNum() ?: return) + (if (rel) state.curX else 0f)

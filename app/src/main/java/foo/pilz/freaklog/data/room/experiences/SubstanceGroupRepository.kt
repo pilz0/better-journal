@@ -16,9 +16,6 @@ class SubstanceGroupRepository
 constructor(
     private val dao: ExperienceDao,
 ) {
-  fun getGroupsFlow(): Flow<List<SubstanceGroup>> =
-      dao.getSubstanceGroupsFlow().flowOn(Dispatchers.IO).conflate()
-
   fun getGroupsWithItemsFlow(): Flow<List<SubstanceGroupWithItems>> =
       dao.getSubstanceGroupsWithItemsFlow().flowOn(Dispatchers.IO).conflate()
 
@@ -36,9 +33,6 @@ constructor(
   suspend fun update(group: SubstanceGroup) = dao.update(group)
 
   suspend fun delete(group: SubstanceGroup) = dao.delete(group)
-
-  suspend fun replaceItems(groupId: Int, items: List<SubstanceGroupItem>) =
-      dao.replaceSubstanceGroupItems(groupId, items)
 
   suspend fun appendItem(groupId: Int, item: SubstanceGroupItem) {
     item.groupId = groupId

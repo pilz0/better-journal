@@ -24,9 +24,6 @@ fun hasActivePsychedelic(entries: List<SkinEligibilityEntry>): Boolean = entries
   it.isHallucinogen && isPhaseActive(it.phase)
 }
 
-fun shouldTriggerOnOpen(isEligible: Boolean, roll: Double, probability: Double): Boolean =
-    isEligible && roll < probability
-
 fun germanNameFor(seed: Int): String = GERMAN_NAMES[Math.floorMod(seed, GERMAN_NAMES.size)]
 
 fun randomGermanName(): String = GERMAN_NAMES.random()

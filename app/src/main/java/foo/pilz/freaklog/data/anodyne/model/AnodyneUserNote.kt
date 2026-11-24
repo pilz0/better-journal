@@ -30,12 +30,6 @@ data class AnodyneUserNote(
       val effects: List<String> = emptyList(),
   )
 
-  val routesSummary: String
-    get() =
-        routes.joinToString(", ") { route ->
-          listOfNotNull(route.name, route.dosage).joinToString(" ")
-        }
-
   val hasDetails: Boolean
     get() =
         routes.isNotEmpty() ||

@@ -73,12 +73,6 @@ object AppModule {
 
   @Singleton
   @Provides
-  fun provideInventoryDao(
-      appDatabase: AppDatabase
-  ): foo.pilz.freaklog.data.room.inventory.InventoryDao = appDatabase.inventoryDao()
-
-  @Singleton
-  @Provides
   fun provideWebhookDao(appDatabase: AppDatabase): foo.pilz.freaklog.data.room.webhooks.WebhookDao =
       appDatabase.webhookDao()
 

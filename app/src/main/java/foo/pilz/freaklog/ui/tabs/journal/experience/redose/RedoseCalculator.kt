@@ -4,7 +4,6 @@
  */
 package foo.pilz.freaklog.ui.tabs.journal.experience.redose
 
-import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
 import foo.pilz.freaklog.data.substances.classes.roa.DurationRange
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
 import java.time.Instant
@@ -70,19 +69,6 @@ fun computeRedoseTime(
           (peak ?: 0f) * params.peakFraction
   if (offsetSec <= 0f) return null
   return ingestionTime.plusSeconds(offsetSec.toLong())
-}
-
-/**
- * For a given substance (identified by name and route) find the latest ingestion of that pair and
- * return its redose time. Used by the experience view to show a single chip per (substance, route).
- */
-fun computeRedoseForLatest(
-    ingestions: List<Ingestion>,
-    duration: RoaDuration?,
-    params: RedoseParameters,
-): Instant? {
-  val latest = ingestions.maxByOrNull { it.time } ?: return null
-  return computeRedoseTime(latest.time, duration, params)
 }
 
 private fun avgSeconds(range: DurationRange?): Float? {

@@ -59,11 +59,12 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -254,10 +255,8 @@ fun EditIngestionScreen(
         (foo.pilz.freaklog.data.substances.classes.IngestionCategory?) -> Unit,
 ) {
   var isPresentingBottomSheet by rememberSaveable { mutableStateOf(false) }
-  val skipPartiallyExpanded by remember { mutableStateOf(false) }
   val scope = rememberCoroutineScope()
-  val bottomSheetState =
-      rememberModalBottomSheetState(skipPartiallyExpanded = skipPartiallyExpanded)
+  val bottomSheetState = rememberBottomSheetState(SheetValue.Hidden)
   Scaffold(
       topBar = {
         TopAppBar(
@@ -650,7 +649,7 @@ fun EditIngestionScreen(
       LazyColumn {
         item {
           ListItem(
-              headlineContent = { Text(YOU) },
+              content = { Text(YOU) },
               leadingContent = {
                 Icon(
                     Icons.Default.Person,
@@ -672,7 +671,7 @@ fun EditIngestionScreen(
         }
         items(consumerNamesSorted, key = { it }) { consumerName ->
           ListItem(
-              headlineContent = { Text(consumerName) },
+              content = { Text(consumerName) },
               leadingContent = {
                 Icon(
                     Icons.Default.Person,

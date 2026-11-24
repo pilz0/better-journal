@@ -11,9 +11,6 @@ val EXCEL_FILE_NAMES =
         "IHateMyJob.csv",
     )
 
-fun excelFileNameFor(seed: Int): String =
-    EXCEL_FILE_NAMES[Math.floorMod(seed, EXCEL_FILE_NAMES.size)]
-
 fun randomExcelFileName(): String = EXCEL_FILE_NAMES.random()
 
 fun excelSumFormula(dataRowCount: Int): String = "=SUM(B2:B${(dataRowCount + 1).coerceAtLeast(2)})"

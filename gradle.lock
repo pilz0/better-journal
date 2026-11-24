@@ -1021,20 +1021,6 @@
       "hash": "sha256-MnKsyvfjrUPaPhTz7pIeQwif5l3lAUgM7EfIKAmW6FA="
     }
   },
-  "androidx.core:core-splashscreen:1.2.0": {
-    "core-splashscreen-1.2.0.aar": {
-      "url": "https://dl.google.com/dl/android/maven2/androidx/core/core-splashscreen/1.2.0/core-splashscreen-1.2.0.aar",
-      "hash": "sha256-Ws6GXE634PJDaXkNLHbt2v0Nux6+oyiPVcGNlgXqDuA="
-    },
-    "core-splashscreen-1.2.0.module": {
-      "url": "https://dl.google.com/dl/android/maven2/androidx/core/core-splashscreen/1.2.0/core-splashscreen-1.2.0.module",
-      "hash": "sha256-HIgQZAbN+mnTsNvWnlrvTDdqQFmZyOjbvq0scoH0q7I="
-    },
-    "core-splashscreen-1.2.0.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/androidx/core/core-splashscreen/1.2.0/core-splashscreen-1.2.0.pom",
-      "hash": "sha256-NRxJ+mBwKhY1dJ3B0kxsAkUK+HT7Z4UsvbCt4Gvqxmo="
-    }
-  },
   "androidx.core:core-viewtree:1.0.0": {
     "core-viewtree-1.0.0.aar": {
       "url": "https://dl.google.com/dl/android/maven2/androidx/core/core-viewtree/1.0.0/core-viewtree-1.0.0.aar",
@@ -2627,12 +2613,6 @@
     "vectordrawable-animated-1.2.0.pom": {
       "url": "https://dl.google.com/dl/android/maven2/androidx/vectordrawable/vectordrawable-animated/1.2.0/vectordrawable-animated-1.2.0.pom",
       "hash": "sha256-JkHJmjkZ8MIDkkDHyH9U+Hn3PNoEQA9DeFl3PMTqRAU="
-    }
-  },
-  "androidx.vectordrawable:vectordrawable-animated:1.1.0": {
-    "vectordrawable-animated-1.1.0.pom": {
-      "url": "https://dl.google.com/dl/android/maven2/androidx/vectordrawable/vectordrawable-animated/1.1.0/vectordrawable-animated-1.1.0.pom",
-      "hash": "sha256-J2ogEWtwX7dbkAPulJbFb2/TsyN1+yMkcoEeumCgQL0="
     }
   },
   "androidx.versionedparcelable:versionedparcelable:1.1.1": {

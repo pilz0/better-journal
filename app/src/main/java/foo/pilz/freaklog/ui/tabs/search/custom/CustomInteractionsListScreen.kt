@@ -103,7 +103,7 @@ private fun SeverityCard(
       entries.forEach { entry ->
         ListItem(
             leadingContent = { AccentBar(color = accent) },
-            headlineContent = { Text(entry.targetName) },
+            content = { Text(entry.targetName) },
             supportingContent = { Text(entry.targetType.displayLabel()) },
             trailingContent = {
               IconButton(onClick = { onRemove(entry) }) {

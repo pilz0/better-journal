@@ -15,8 +15,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedCard
@@ -275,7 +275,7 @@ private fun NavigationActionsCard(
         Spacer(Modifier.width(ButtonDefaults.IconSpacing))
         Text("Open Wiki Website", modifier = Modifier.weight(1f))
         Icon(
-            Icons.Outlined.OpenInNew,
+            Icons.AutoMirrored.Outlined.OpenInNew,
             contentDescription = null,
             modifier = Modifier.size(16.dp),
         )

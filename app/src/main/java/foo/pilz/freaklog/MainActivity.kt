@@ -23,14 +23,12 @@ import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.lifecycle.lifecycleScope
@@ -61,9 +59,12 @@ class MainActivity : FragmentActivity() {
   private var shouldNavigateToExperienceId by mutableStateOf<Int?>(null)
 
   override fun onCreate(savedInstanceState: Bundle?) {
-    installSplashScreen()
     super.onCreate(savedInstanceState)
-    enableEdgeToEdge()
+    // Android 15+ draws edge-to-edge by default; bar colours, icons and cutout mode come from
+    // Theme.Journal (themes.xml).
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+      @Suppress("DEPRECATION") window.setDecorFitsSystemWindows(false)
+    }
 
     handleIntent(intent)
 

@@ -51,13 +51,6 @@ class TeamsSkinLogicTest {
   }
 
   @Test
-  fun triggerRespectsProbabilityAndEligibility() {
-    assertTrue(shouldTriggerOnOpen(true, 0.1, 0.15))
-    assertFalse(shouldTriggerOnOpen(true, 0.2, 0.15))
-    assertFalse(shouldTriggerOnOpen(false, 0.0, 0.15))
-  }
-
-  @Test
   fun germanNameDeterministicAndInRange() {
     assertEquals(germanNameFor(0), germanNameFor(GERMAN_NAMES.size))
     assertTrue(GERMAN_NAMES.contains(germanNameFor(-7)))

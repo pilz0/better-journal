@@ -4,13 +4,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.HealthAndSafety
-import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.Medication
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Book
 import androidx.compose.material.icons.outlined.HealthAndSafety
-import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Medication
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -27,9 +25,8 @@ fun topLevelRoutes(
     hideSafer: Boolean = false,
     hideStats: Boolean = false,
     hideDrugs: Boolean = false,
-    showInventory: Boolean = false,
 ) =
-    listOfNotNull(
+    listOf(
             TopLevelRoute(
                 "Stats",
                 StatsTopLevelRoute,
@@ -49,14 +46,6 @@ fun topLevelRoutes(
                 Icons.Filled.HealthAndSafety,
                 Icons.Outlined.HealthAndSafety,
             ),
-            if (showInventory) {
-              TopLevelRoute(
-                  "Inventory",
-                  InventoryTopLevelRoute,
-                  Icons.Filled.Inventory2,
-                  Icons.Outlined.Inventory2,
-              )
-            } else null,
             TopLevelRoute(
                 "Settings",
                 SettingsTopLevelRoute,
@@ -77,7 +66,5 @@ fun topLevelRoutes(
 @Serializable object DrugsTopLevelRoute
 
 @Serializable object SaferUseTopLevelRoute
-
-@Serializable object InventoryTopLevelRoute
 
 @Serializable object SettingsTopLevelRoute

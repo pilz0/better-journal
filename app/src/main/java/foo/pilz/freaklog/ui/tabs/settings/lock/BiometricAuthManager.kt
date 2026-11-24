@@ -254,11 +254,6 @@ constructor(
     prompt.authenticate(info, cryptoObject)
   }
 
-  /** Forces a re-lock — used when toggling the setting on. */
-  fun lockNow() {
-    _isUnlocked.value = false
-  }
-
   private fun createCryptoObject(): BiometricPrompt.CryptoObject {
     val cipher = Cipher.getInstance(CIPHER_TRANSFORMATION)
     try {

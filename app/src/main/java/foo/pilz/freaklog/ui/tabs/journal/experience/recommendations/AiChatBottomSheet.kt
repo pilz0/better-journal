@@ -52,10 +52,11 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -103,7 +104,11 @@ fun AiChatBottomSheet(
 
   ModalBottomSheet(
       onDismissRequest = onDismiss,
-      sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+      sheetState =
+          rememberBottomSheetState(
+              SheetValue.Hidden,
+              setOf(SheetValue.Hidden, SheetValue.Expanded),
+          ),
       modifier = Modifier.fillMaxHeight(0.95f),
   ) {
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {

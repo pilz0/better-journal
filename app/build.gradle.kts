@@ -31,10 +31,7 @@ android {
     checkReleaseBuilds = true
     // Lint dependencies as well, so reports include issues in libraries we ship.
     checkDependencies = true
-    // Don't fail the build on lint errors yet; the SARIF is uploaded to
-    // code scanning so reviewers can triage them. Flip to `true` once the
-    // existing baseline is clean.
-    abortOnError = false
+    abortOnError = true
   }
 
   testOptions {
@@ -163,8 +160,6 @@ tasks.withType<io.gitlab.arturbosch.detekt.DetektCreateBaselineTask>().configure
 
 dependencies {
   implementation(project(":freakquery-android"))
-
-  detektPlugins(libs.detekt.formatting)
 }
 
 // --- Kover (Kotlinx coverage) ---
@@ -234,8 +229,6 @@ dependencies {
   implementation(libs.androidx.datastore.preferences)
   implementation(libs.kotlinx.serialization.json)
   implementation(libs.compose)
-
-  implementation(libs.androidx.core.splashscreen)
 
   implementation(libs.androidx.glance)
   implementation(libs.androidx.glance.appwidget)

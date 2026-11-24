@@ -310,4 +310,41 @@ class ClinicianReportTest {
             Instant.parse("2026-02-01T00:00:00Z") to Instant.parse("2026-02-03T23:59:59.999Z")
         )
   }
+
+  @Test
+  fun `use-free stretch, halves and pattern buckets`() {
+    // Period 2–31 Jan (30 days); use on 5, 6 and 25 Jan.
+    val report =
+        report(
+            experience(
+                1,
+                listOf(5, 6, 25).map {
+                  EntityBuilders.ingestion(substanceName = "Cannabis", time = at(it))
+                },
+            )
+        )
+
+    assertThat(report.useFreeDays).isEqualTo(27L)
+    // 7–24 Jan.
+    assertThat(report.longestUseFreeStretch).isEqualTo(18L)
+    // Halves are 2–16 and 17–31 Jan.
+    assertThat(report.daysPerWeekByHalf("Cannabis")).isEqualTo(2 * 7.0 / 15 to 1 * 7.0 / 15)
+
+    val daily = report.usePattern(maxBuckets = 120)
+    assertThat(daily.bucketDays).isEqualTo(1)
+    assertThat(daily.any.size).isEqualTo(30)
+    assertThat(daily.bySubstance.getValue("Cannabis")[3]).isEqualTo(1f)
+
+    val weekly = report.usePattern(maxBuckets = 5)
+    assertThat(weekly.bucketDays).isEqualTo(6)
+    // 2–7 Jan holds 5 and 6 Jan.
+    assertThat(weekly.any.first()).isEqualTo(2 / 6f)
+  }
+
+  @Test
+  fun `no use means the whole period is use-free`() {
+    val report = report()
+    assertThat(report.useFreeDays).isEqualTo(30L)
+    assertThat(report.longestUseFreeStretch).isEqualTo(30L)
+  }
 }

@@ -93,7 +93,8 @@ class AnodyneParserTest {
     assertEquals(1, notes.size)
     assertEquals("alice", notes[0].user)
     assertEquals("2C-B", notes[0].substanceName)
-    assertEquals("Oral 20 mg", notes[0].routesSummary)
+    assertEquals("Oral", notes[0].routes.single().name)
+    assertEquals("20 mg", notes[0].routes.single().dosage)
     assertEquals(listOf("Visuals", "Euphoria"), notes[0].effects)
   }
 
@@ -125,16 +126,18 @@ class AnodyneParserTest {
         )
     val note = AnodyneParser.parseUserNotes(json).single()
     assertEquals("Salbutamol", note.substanceName)
-    assertEquals("Inhaled 100µg", note.routesSummary)
+    assertEquals("Inhaled", note.routes.single().name)
+    assertEquals("100µg", note.routes.single().dosage)
     assertEquals("4h", note.routes.single().duration)
     assertEquals(listOf("Sulfate"), note.salts)
     assertEquals(listOf("Inhaler"), note.sources)
-    assertEquals(listOf("asthma"), note.indications)
-    assertEquals(listOf("light stimulation"), note.effects)
+    assertEquals(listOf("{wkp 'asthma'}"), note.indications)
+    // List fields keep the markup for the note screen to link
+    assertEquals(listOf("light stimulation"), note.effects.map(AnodyneTextCleaner::clean))
     assertEquals("+400µg", note.effectGroups.single().heading)
-    assertEquals(listOf("tremor"), note.effectGroups.single().effects)
+    assertEquals(listOf("{xeff 'tremor'}"), note.effectGroups.single().effects)
     assertEquals(listOf("shaky hands"), note.adverse)
-    assertEquals(listOf("fatigue"), note.afterEffects)
-    assertEquals(listOf("estradiol too"), note.notes)
+    assertEquals(listOf("fatigue"), note.afterEffects.map(AnodyneTextCleaner::clean))
+    assertEquals(listOf("estradiol too"), note.notes.map(AnodyneTextCleaner::clean))
   }
 }

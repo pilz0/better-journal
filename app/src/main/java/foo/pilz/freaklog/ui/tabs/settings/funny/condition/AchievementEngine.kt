@@ -1,21 +1,12 @@
 package foo.pilz.freaklog.ui.tabs.settings.funny.condition
 
 class AchievementEngine {
-  private class Entry(val compiled: Compiled, val monotonic: Boolean)
-
-  private val cache = java.util.concurrent.ConcurrentHashMap<String, Entry>()
+  private val cache = java.util.concurrent.ConcurrentHashMap<String, Compiled>()
   private val compiler = Compiler()
 
-  private fun entryFor(condition: String): Entry =
-      cache.getOrPut(condition) {
-        val expr = Parser(Lexer(condition).tokenize()).parse()
-        Entry(compiler.compile(expr), conditionMonotonic(expr))
-      }
+  private fun compiled(condition: String): Compiled =
+      cache.getOrPut(condition) { compiler.compile(Parser(Lexer(condition).tokenize()).parse()) }
 
   fun evaluate(condition: String, context: EvalContext, checkActive: () -> Unit = {}): Boolean =
-      asBool(
-          entryFor(condition).compiled(Frame(context, emptyMap(), EvaluationBudget(checkActive)))
-      )
-
-  fun isMonotonic(condition: String): Boolean = entryFor(condition).monotonic
+      asBool(compiled(condition)(Frame(context, emptyMap(), EvaluationBudget(checkActive))))
 }

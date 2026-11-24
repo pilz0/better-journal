@@ -93,8 +93,6 @@ constructor(
 
   fun setIntervalUnit(value: String) = _state.update { it.copy(intervalUnit = value) }
 
-  fun setIntervalAnchor(value: Long) = _state.update { it.copy(intervalAnchorMillis = value) }
-
   fun addTime(time: LocalTime) = _state.update {
     val updated = (it.timesOfDay + time).distinct().sorted()
     it.copy(timesOfDay = updated)

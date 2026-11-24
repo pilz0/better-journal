@@ -69,23 +69,8 @@ exceptions:
   SwallowedException:
     active: false
 
-formatting:
-  active: true
-  android: true
-  autoCorrect: false
-  MaximumLineLength:
-    maxLineLength: 140
-  Indentation:
-    active: true
-    indentSize: 4
-  NoWildcardImports:
-    active: true
-  ArgumentListWrapping:
-    active: false
-  TrailingCommaOnCallSite:
-    active: false
-  TrailingCommaOnDeclarationSite:
-    active: false
+# Formatting is ktfmt's job (treefmt, `nix flake check`), so detekt's ktlint
+# `formatting` rule set is not used.
 
 potential-bugs:
   active: true

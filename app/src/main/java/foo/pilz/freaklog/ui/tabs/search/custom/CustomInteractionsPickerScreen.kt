@@ -151,7 +151,7 @@ private fun LazyListScope.pickerSection(
           else -> RectangleShape
         }
     ListItem(
-        headlineContent = { Text(name) },
+        content = { Text(name) },
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         modifier =
             Modifier.fillMaxWidth()

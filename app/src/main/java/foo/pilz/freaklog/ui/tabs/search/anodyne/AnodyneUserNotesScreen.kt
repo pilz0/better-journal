@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import foo.pilz.freaklog.data.anodyne.AnodyneTextCleaner
 import foo.pilz.freaklog.data.anodyne.model.AnodyneUserNote
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import foo.pilz.freaklog.ui.utils.HapticType
@@ -198,7 +199,7 @@ private fun UserNoteCard(
       if (note.notes.isNotEmpty()) {
         Spacer(Modifier.height(8.dp))
         Text(
-            text = note.notes.joinToString("\n\n"),
+            text = note.notes.joinToString("\n\n", transform = AnodyneTextCleaner::clean),
             style = MaterialTheme.typography.bodyMedium,
             maxLines = 4,
         )

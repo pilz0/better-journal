@@ -99,7 +99,7 @@ fun SubstanceGroupEditorContent(
           HorizontalDivider(modifier = Modifier.padding(horizontal = spacing.lg))
         }
         ListItem(
-            headlineContent = {
+            content = {
               Text(
                   text = "Add substance",
                   color =

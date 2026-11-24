@@ -98,12 +98,6 @@ data class WebhookSerializable(
     const val REDACTED_TOKEN = "REDACTED"
 
     /**
-     * Returns true if [url] has its secret token redacted via [redactUrl]. Imported webhooks with a
-     * redacted URL should be disabled until the user re-supplies the real URL.
-     */
-    fun isRedacted(url: String): Boolean = url.endsWith("/$REDACTED_TOKEN")
-
-    /**
      * Discord webhook URLs have the form `https://discord.com/api/webhooks/{id}/{token}` where
      * `{token}` is a secret. Replace the trailing token segment with [REDACTED_TOKEN] so exported
      * journals don't leak credentials.

@@ -9,6 +9,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -52,7 +54,8 @@ fun MoleculeStructureView(
         drawPath(
             path = shape.path,
             color = strokePaint.resolve(foregroundColor),
-            style = Stroke(width = shape.lineWidth),
+            // CDK always draws round caps and joins; butt caps leave notches where bonds meet.
+            style = Stroke(width = shape.lineWidth, cap = StrokeCap.Round, join = StrokeJoin.Round),
         )
       }
     }

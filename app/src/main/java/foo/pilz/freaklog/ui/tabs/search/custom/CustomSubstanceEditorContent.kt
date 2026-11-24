@@ -196,7 +196,7 @@ fun CustomSubstanceEditorContent(
         Column {
           sectionRows.forEachIndexed { index, row ->
             ListItem(
-                headlineContent = { Text(row.title) },
+                content = { Text(row.title) },
                 supportingContent = {
                   Text(
                       text = row.valueText,

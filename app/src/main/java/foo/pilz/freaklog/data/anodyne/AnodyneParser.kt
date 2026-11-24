@@ -269,13 +269,15 @@ object AnodyneParser {
         )
       }
 
+  // Keeps the wiki markup, so the note screen can link it (AnodyneTextCleaner.spans); a value that
+  // only holds markup without text, e.g. "{br}", is dropped.
   private fun stringsOf(value: Any?): List<String> =
       when (value) {
         is String ->
-            if (value.isNotBlank()) listOf(AnodyneTextCleaner.clean(value)) else emptyList()
+            listOfNotNull(value.trim().takeIf { AnodyneTextCleaner.clean(it).isNotEmpty() })
         is JSONArray ->
             (0 until value.length()).mapNotNull { i ->
-              value.optString(i).takeIf { it.isNotBlank() }?.let { AnodyneTextCleaner.clean(it) }
+              value.optString(i).trim().takeIf { AnodyneTextCleaner.clean(it).isNotEmpty() }
             }
         else -> emptyList()
       }

@@ -107,7 +107,7 @@ fun CustomDurationRow(
 
   ListItem(
       modifier = modifier.clickable(onClick = onClick),
-      headlineContent = { Text(route.displayText) },
+      content = { Text(route.displayText) },
       supportingContent = {
         if (duration != null || dose != null) {
           CompositionLocalProvider(

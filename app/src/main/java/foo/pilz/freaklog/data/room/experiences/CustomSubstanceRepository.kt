@@ -1,17 +1,13 @@
 package foo.pilz.freaklog.data.room.experiences
 
-import androidx.room.withTransaction
-import foo.pilz.freaklog.data.room.AppDatabase
 import foo.pilz.freaklog.data.room.experiences.entities.CustomCategoryAssignment
 import foo.pilz.freaklog.data.room.experiences.entities.CustomCrossTolerance
 import foo.pilz.freaklog.data.room.experiences.entities.CustomInteraction
 import foo.pilz.freaklog.data.room.experiences.entities.CustomInteractionSeverity
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRoa
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRoaDose
-import foo.pilz.freaklog.data.room.experiences.entities.CustomRoaDuration
 import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
 import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithEverything
-import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.substanceshare.SharedSubstanceExpansion
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,12 +17,7 @@ import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.flowOn
 
 @Singleton
-class CustomSubstanceRepository
-@Inject
-constructor(
-    private val db: AppDatabase,
-    private val dao: ExperienceDao,
-) {
+class CustomSubstanceRepository @Inject constructor(private val dao: ExperienceDao) {
 
   fun getWithEverythingFlow(id: Int): Flow<CustomSubstanceWithEverything?> =
       dao.getCustomSubstanceWithEverythingFlow(id).flowOn(Dispatchers.IO).conflate()
@@ -59,27 +50,8 @@ constructor(
     dao.insert(roa)
   }
 
-  suspend fun deleteRoa(roa: CustomRoa) = dao.delete(roa)
-
   suspend fun upsertDose(substanceId: Int, dose: CustomRoaDose) =
       dao.upsertCustomRoaDose(substanceId, dose)
-
-  suspend fun deleteDose(dose: CustomRoaDose) = dao.delete(dose)
-
-  suspend fun upsertDuration(substanceId: Int, duration: CustomRoaDuration) {
-    duration.customSubstanceId = substanceId
-    dao.insert(duration)
-  }
-
-  suspend fun deleteDuration(duration: CustomRoaDuration) = dao.delete(duration)
-
-  suspend fun deleteRouteEverywhere(substanceId: Int, route: AdministrationRoute) {
-    db.withTransaction {
-      dao.getCustomRoa(substanceId, route)?.let { dao.delete(it) }
-      dao.getCustomRoaDose(substanceId, route)?.let { dao.delete(it) }
-      dao.getCustomRoaDurations(substanceId).find { it.route == route }?.let { dao.delete(it) }
-    }
-  }
 
   suspend fun upsertInteraction(substanceId: Int, interaction: CustomInteraction) {
     interaction.customSubstanceId = substanceId
@@ -119,9 +91,6 @@ constructor(
   fun getCategoriesFlow(substanceId: Int): Flow<List<CustomCategoryAssignment>> =
       dao.getCustomCategoriesFlow(substanceId).flowOn(Dispatchers.IO).conflate()
 
-  suspend fun getCategories(substanceId: Int): List<CustomCategoryAssignment> =
-      dao.getCustomCategories(substanceId)
-
   suspend fun assignCrossTolerance(substanceId: Int, categoryName: String) {
     dao.insert(
         CustomCrossTolerance(
@@ -136,9 +105,6 @@ constructor(
 
   fun getCrossTolerancesFlow(substanceId: Int): Flow<List<CustomCrossTolerance>> =
       dao.getCustomCrossTolerancesFlow(substanceId).flowOn(Dispatchers.IO).conflate()
-
-  suspend fun getCrossTolerances(substanceId: Int): List<CustomCrossTolerance> =
-      dao.getCustomCrossTolerances(substanceId)
 
   suspend fun insertFromShared(expansion: SharedSubstanceExpansion): Int =
       dao.insertCustomSubstanceWithFullRoaInfo(

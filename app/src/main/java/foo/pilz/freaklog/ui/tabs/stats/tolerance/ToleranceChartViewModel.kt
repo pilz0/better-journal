@@ -120,10 +120,6 @@ constructor(
   fun setIsTimeRelative(value: Boolean) {
     _isTimeRelative.value = value
   }
-
-  fun addTemporaryIngestion(substanceAndDay: SubstanceAndDay) {
-    _additionalSubstanceDays.value = _additionalSubstanceDays.value + substanceAndDay
-  }
 }
 
 data class ToleranceData(

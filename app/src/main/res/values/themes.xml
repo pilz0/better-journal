@@ -18,14 +18,18 @@
   -->
 
 <resources>
+    <!-- Edge-to-edge and the splash screen are set up here instead of through androidx.activity's
+         enableEdgeToEdge() and core-splashscreen, which call the window colour APIs deprecated in
+         Android 15. Bar icons follow the system theme like the Compose theme does. -->
+    <bool name="light_system_bars">true</bool>
     <style name="Theme.Journal" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
-    </style>
-    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@android:color/transparent</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
-        <item name="postSplashScreenTheme">@style/Theme.Journal</item>
+        <item name="android:windowLightStatusBar">@bool/light_system_bars</item>
+        <item name="android:windowLightNavigationBar">@bool/light_system_bars</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">always</item>
+        <item name="android:windowSplashScreenBackground">@android:color/transparent</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
     </style>
     <style name="DialogThemeDark" parent="android:Theme.DeviceDefault.Dialog" />
     <style name="DialogThemeLight" parent="android:Theme.DeviceDefault.Light.Dialog" />

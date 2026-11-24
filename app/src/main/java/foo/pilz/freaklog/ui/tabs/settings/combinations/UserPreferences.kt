@@ -92,8 +92,6 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
     val WEBHOOK_USE_FREAKQUERY = booleanPreferencesKey("webhook_use_freakquery")
     val WEBHOOK_FREAKQUERY_SEPARATOR = stringPreferencesKey("webhook_freakquery_separator")
 
-    val KEY_INVENTORY_ENABLED = booleanPreferencesKey("key_inventory_enabled")
-
     val KEY_REDOSE_ONSET_FRACTION = stringPreferencesKey("key_redose_onset_fraction")
     val KEY_REDOSE_COMEUP_FRACTION = stringPreferencesKey("key_redose_comeup_fraction")
     val KEY_REDOSE_PEAK_FRACTION = stringPreferencesKey("key_redose_peak_fraction")
@@ -102,8 +100,6 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
     // App lock (biometric)
     val KEY_LOCK_ENABLED = booleanPreferencesKey("key_lock_enabled")
     val KEY_LOCK_TIME_OPTION = stringPreferencesKey("key_lock_time_option")
-    val KEY_LOCK_LAST_ACTIVE = longPreferencesKey("key_lock_last_active_epoch_seconds")
-
     val KEY_USE_INTRANASAL_FOR_RECTAL = booleanPreferencesKey("key_use_intranasal_for_rectal")
   }
 
@@ -234,33 +230,15 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
         (preferences[WEBHOOK_URL] ?: "")
       }
 
-  suspend fun writeWebhookURL(value: String) {
-    dataStore.edit { preferences ->
-      preferences[WEBHOOK_URL] = value
-    }
-  }
-
   fun readWebhookName(): Flow<String> =
       dataStore.data.map { preferences ->
         (preferences[PreferencesKeys.WEBHOOK_NAME] ?: "")
       }
 
-  suspend fun writeWebhookName(value: String) {
-    dataStore.edit { preferences ->
-      preferences[PreferencesKeys.WEBHOOK_NAME] = value
-    }
-  }
-
   fun readWebhookTemplate(): Flow<String> =
       dataStore.data.map { preferences ->
         (preferences[PreferencesKeys.WEBHOOK_TEMPLATE] ?: "")
       }
-
-  suspend fun writeWebhookTemplate(value: String) {
-    dataStore.edit { preferences ->
-      preferences[PreferencesKeys.WEBHOOK_TEMPLATE] = value
-    }
-  }
 
   /** Whether the legacy single-webhook preferences have already been migrated. */
   suspend fun isWebhookSeeded(): Boolean =
@@ -461,17 +439,6 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
     }
   }
 
-  // ---- Inventory tab ----
-
-  val isInventoryEnabledFlow: Flow<Boolean> =
-      dataStore.data.map { prefs ->
-        prefs[PreferencesKeys.KEY_INVENTORY_ENABLED] ?: false
-      }
-
-  suspend fun saveInventoryEnabled(value: Boolean) {
-    dataStore.edit { prefs -> prefs[PreferencesKeys.KEY_INVENTORY_ENABLED] = value }
-  }
-
   // ---- Redose recommendation ----
 
   val isRedoseShownFlow: Flow<Boolean> =
@@ -526,19 +493,6 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
 
   suspend fun saveLockTimeOption(value: foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption) {
     dataStore.edit { prefs -> prefs[PreferencesKeys.KEY_LOCK_TIME_OPTION] = value.name }
-  }
-
-  /**
-   * Last time the app was foregrounded, expressed as epoch seconds. 0 means "unknown", which is
-   * treated as "needs to lock" by [foo.pilz.freaklog.ui.tabs.settings.lock.shouldLockNow].
-   */
-  val lastActiveEpochSecondsFlow: Flow<Long> =
-      dataStore.data.map { prefs ->
-        prefs[PreferencesKeys.KEY_LOCK_LAST_ACTIVE] ?: 0L
-      }
-
-  suspend fun saveLastActiveEpochSeconds(value: Long) {
-    dataStore.edit { prefs -> prefs[PreferencesKeys.KEY_LOCK_LAST_ACTIVE] = value }
   }
 
   val useIntranasalForRectalFlow: Flow<Boolean> =

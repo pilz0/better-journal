@@ -26,7 +26,6 @@ class AnodyneRepository
 constructor(
     @ApplicationContext private val context: Context,
     private val userPreferences: UserPreferences,
-    private val fallbackStore: AnodyneFallbackStore,
 ) {
   companion object {
     const val DEFAULT_INSTANCE_URL = "https://anodyne.wiki"
@@ -86,9 +85,7 @@ constructor(
     if (System.currentTimeMillis() - file.lastModified() > SUBSTANCE_TTL_MS) return null
     return try {
       val json = JSONObject(file.readText())
-      AnodyneParser.parseSubstance(json)?.also {
-        fallbackStore.record(it, name)
-      }
+      AnodyneParser.parseSubstance(json)
     } catch (_: Exception) {
       null
     }
@@ -106,7 +103,6 @@ constructor(
         val baseUrl = getBaseUrl()
         fetchSubstance(baseUrl, name)?.let { (json, sub) ->
           saveSubstanceToCache(name, json)
-          fallbackStore.record(sub, name)
           return@withContext Result.success(sub)
         }
 
@@ -125,7 +121,6 @@ constructor(
           fetchSubstance(baseUrl, match.title)?.let { (json, sub) ->
             saveSubstanceToCache(name, json)
             saveSubstanceToCache(match.title, json)
-            fallbackStore.record(sub, name)
             return@withContext Result.success(sub)
           }
         }
@@ -190,7 +185,6 @@ constructor(
               val obj = arr.optJSONObject(i) ?: continue
               allNotes.addAll(AnodyneParser.parseUserNotes(obj))
             }
-            fallbackStore.record(allNotes)
             return@withContext Result.success(filterNotes(allNotes, names))
           } catch (_: Exception) {
             // Cache corrupted, fetch fresh
@@ -220,7 +214,6 @@ constructor(
           }
 
           notesFile.writeText(collectedUserJsons.toString())
-          fallbackStore.record(allNotes)
           Result.success(filterNotes(allNotes, names))
         } catch (e: Exception) {
           Result.failure(e)
@@ -244,7 +237,6 @@ constructor(
 
   fun clearCache() {
     cacheDir.listFiles()?.forEach { it.delete() }
-    fallbackStore.clear()
   }
 
   private fun getSubstanceCacheFile(name: String): File {

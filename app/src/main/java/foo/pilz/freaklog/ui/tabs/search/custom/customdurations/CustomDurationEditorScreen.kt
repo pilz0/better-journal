@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -55,6 +56,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -73,6 +76,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import foo.pilz.freaklog.data.anodyne.model.AnodyneDosing
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRoa
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRoaDose
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRoaDuration
@@ -158,6 +162,10 @@ fun CustomDurationEditorScreen(
       onRoaChange = { viewModel.roaFlow.value = it },
       previewTimelineDisplayOption =
           viewModel.timelineDisplayOptionFlow.collectAsStateWithLifecycle().value,
+      otherRoutes = viewModel.otherRoutesFlow.collectAsStateWithLifecycle().value,
+      onCopyRoute = viewModel::copyRoute,
+      anodyneDosing = viewModel.anodyneDosingFlow.collectAsStateWithLifecycle().value,
+      onCopyAnodyneDose = viewModel::copyAnodyneDose,
       onDone = { viewModel.onDone(navigateBack) },
       onDelete = { viewModel.onDelete(navigateBack) },
       sharedTransitionScope = sharedTransitionScope,
@@ -183,9 +191,27 @@ fun CustomDurationEditorScreen(
     onDelete: () -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope,
+    otherRoutes: List<RouteCopySource> = emptyList(),
+    onCopyRoute: (RouteCopySource) -> Unit = {},
+    anodyneDosing: List<AnodyneDosing> = emptyList(),
+    onCopyAnodyneDose: (AnodyneDosing) -> Unit = {},
 ) {
   val spacing = LocalSpacing.current
   var showDeleteDialog by remember { mutableStateOf(false) }
+  var pendingCopy by remember { mutableStateOf<CopyChoice?>(null) }
+  // The input fields keep what was typed; a copy re-creates them with the copied values.
+  var copyCount by remember { mutableIntStateOf(0) }
+  val copy: (CopyChoice) -> Unit = { choice ->
+    when (choice) {
+      is CopyChoice.Route -> onCopyRoute(choice.source)
+      is CopyChoice.Anodyne -> onCopyAnodyneDose(choice.dosing)
+    }
+    copyCount++
+  }
+  // Asks first when the copy would replace something already entered
+  val onCopyChosen: (CopyChoice) -> Unit = { choice ->
+    if (choice.replacesData(roaDose, roaDuration)) pendingCopy = choice else copy(choice)
+  }
   val scrollState = rememberScrollState()
   // hidden if scrolled all the way down, unless there's not enough content to allow scrolling.
   // derivedStateOf so the FAB only recomposes when this flips, not on every scroll pixel.
@@ -305,52 +331,62 @@ fun CustomDurationEditorScreen(
         }
       }
 
-      OutlinedCard(modifier = Modifier.fillMaxWidth().padding(spacing.sm)) {
-        if (roaDuration != null) {
-          Column(modifier = Modifier.padding(spacing.sm)) {
-            Text(
-                "Ingestion durations",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(spacing.sm),
-            )
-            Text(
-                "These values are used to generate the ingestion timeline. " +
-                    "If a field has both a min and max value, the actual value " +
-                    "will be interpolated between those based on dosage classification " +
-                    "data, if available.",
-                modifier =
-                    Modifier.padding(
-                        start = spacing.sm,
-                        bottom = spacing.sm,
-                        end = spacing.sm,
-                    ),
-            )
+      if (otherRoutes.isNotEmpty() || anodyneDosing.isNotEmpty()) {
+        CopyDataButton(
+            otherRoutes = otherRoutes,
+            anodyneDosing = anodyneDosing,
+            onSelect = onCopyChosen,
+        )
+      }
 
-            DurationInputRow(
-                duration = roaDuration.onset,
-                onDurationChange = { onDurationChange(roaDuration.copy(onset = it)) },
-                "Onset",
-            )
-            DurationInputRow(
-                duration = roaDuration.comeup,
-                onDurationChange = { onDurationChange(roaDuration.copy(comeup = it)) },
-                "Comeup",
-            )
-            DurationInputRow(
-                duration = roaDuration.peak,
-                onDurationChange = { onDurationChange(roaDuration.copy(peak = it)) },
-                "Peak",
-            )
-            DurationInputRow(
-                duration = roaDuration.offset,
-                onDurationChange = { onDurationChange(roaDuration.copy(offset = it)) },
-                "Offset",
-            )
-            DurationInputRow(
-                duration = roaDuration.total,
-                onDurationChange = { onDurationChange(roaDuration.copy(total = it)) },
-                "Total",
-            )
+      key(copyCount) {
+        OutlinedCard(modifier = Modifier.fillMaxWidth().padding(spacing.sm)) {
+          if (roaDuration != null) {
+            Column(modifier = Modifier.padding(spacing.sm)) {
+              Text(
+                  "Ingestion durations",
+                  style = MaterialTheme.typography.titleLarge,
+                  modifier = Modifier.padding(spacing.sm),
+              )
+              Text(
+                  "These values are used to generate the ingestion timeline. " +
+                      "If a field has both a min and max value, the actual value " +
+                      "will be interpolated between those based on dosage classification " +
+                      "data, if available.",
+                  modifier =
+                      Modifier.padding(
+                          start = spacing.sm,
+                          bottom = spacing.sm,
+                          end = spacing.sm,
+                      ),
+              )
+
+              DurationInputRow(
+                  duration = roaDuration.onset,
+                  onDurationChange = { onDurationChange(roaDuration.copy(onset = it)) },
+                  "Onset",
+              )
+              DurationInputRow(
+                  duration = roaDuration.comeup,
+                  onDurationChange = { onDurationChange(roaDuration.copy(comeup = it)) },
+                  "Comeup",
+              )
+              DurationInputRow(
+                  duration = roaDuration.peak,
+                  onDurationChange = { onDurationChange(roaDuration.copy(peak = it)) },
+                  "Peak",
+              )
+              DurationInputRow(
+                  duration = roaDuration.offset,
+                  onDurationChange = { onDurationChange(roaDuration.copy(offset = it)) },
+                  "Offset",
+              )
+              DurationInputRow(
+                  duration = roaDuration.total,
+                  onDurationChange = { onDurationChange(roaDuration.copy(total = it)) },
+                  "Total",
+              )
+            }
           }
         }
       }
@@ -373,36 +409,37 @@ fun CustomDurationEditorScreen(
                         end = spacing.sm,
                     ),
             )
-
-            Row() {
-              DosageClassificationInput(
-                  doseClass = DoseClass.LIGHT,
-                  value = roaDose.lightMin,
-                  onValueChange = { onDoseChange(roaDose.copy(lightMin = it)) },
-                  unit = substanceUnit,
-                  modifier = Modifier.weight(1.0f),
-              )
-              DosageClassificationInput(
-                  doseClass = DoseClass.COMMON,
-                  value = roaDose.commonMin,
-                  onValueChange = { onDoseChange(roaDose.copy(commonMin = it)) },
-                  unit = substanceUnit,
-                  modifier = Modifier.weight(1.0f),
-              )
-              DosageClassificationInput(
-                  doseClass = DoseClass.STRONG,
-                  value = roaDose.strongMin,
-                  onValueChange = { onDoseChange(roaDose.copy(strongMin = it)) },
-                  unit = substanceUnit,
-                  modifier = Modifier.weight(1.0f),
-              )
-              DosageClassificationInput(
-                  doseClass = DoseClass.HEAVY,
-                  value = roaDose.heavyMin,
-                  onValueChange = { onDoseChange(roaDose.copy(heavyMin = it)) },
-                  unit = substanceUnit,
-                  modifier = Modifier.weight(1.0f),
-              )
+            key(copyCount) {
+              Row() {
+                DosageClassificationInput(
+                    doseClass = DoseClass.LIGHT,
+                    value = roaDose.lightMin,
+                    onValueChange = { onDoseChange(roaDose.copy(lightMin = it)) },
+                    unit = substanceUnit,
+                    modifier = Modifier.weight(1.0f),
+                )
+                DosageClassificationInput(
+                    doseClass = DoseClass.COMMON,
+                    value = roaDose.commonMin,
+                    onValueChange = { onDoseChange(roaDose.copy(commonMin = it)) },
+                    unit = substanceUnit,
+                    modifier = Modifier.weight(1.0f),
+                )
+                DosageClassificationInput(
+                    doseClass = DoseClass.STRONG,
+                    value = roaDose.strongMin,
+                    onValueChange = { onDoseChange(roaDose.copy(strongMin = it)) },
+                    unit = substanceUnit,
+                    modifier = Modifier.weight(1.0f),
+                )
+                DosageClassificationInput(
+                    doseClass = DoseClass.HEAVY,
+                    value = roaDose.heavyMin,
+                    onValueChange = { onDoseChange(roaDose.copy(heavyMin = it)) },
+                    unit = substanceUnit,
+                    modifier = Modifier.weight(1.0f),
+                )
+              }
             }
           }
         }
@@ -433,6 +470,37 @@ fun CustomDurationEditorScreen(
           }
         }
       }
+    }
+
+    pendingCopy?.let { choice ->
+      AlertDialog(
+          onDismissRequest = { pendingCopy = null },
+          confirmButton = {
+            TextButton(
+                onClick = {
+                  copy(choice)
+                  pendingCopy = null
+                }
+            ) {
+              Text("Replace")
+            }
+          },
+          dismissButton = { TextButton(onClick = { pendingCopy = null }) { Text("Cancel") } },
+          title = { Text("Replace the data of this route?") },
+          text = {
+            Text(
+                when (choice) {
+                  is CopyChoice.Route ->
+                      "The dose and durations entered here are replaced with those of " +
+                          "${choice.source.route.displayText}."
+                  is CopyChoice.Anodyne ->
+                      "The dose entered here is replaced with AnodyneWiki's " +
+                          "${choice.dosing.route?.displayText ?: choice.dosing.method} dose. " +
+                          "Durations stay."
+                }
+            )
+          },
+      )
     }
 
     if (showDeleteDialog) {
@@ -764,4 +832,126 @@ private fun validateNumberField(value: String): Boolean {
   // toFloatOrNull accepts "Infinity" and "NaN", which must not reach the timeline math
   val num = value.toFloatOrNull() ?: return false
   return num.isFinite() && num >= 0f
+}
+
+private sealed interface CopyChoice {
+  /** Whether copying this would overwrite something entered: AnodyneWiki only copies doses. */
+  fun replacesData(dose: CustomRoaDose?, duration: CustomRoaDuration?): Boolean =
+      dose?.hasTiers == true || (this is Route && duration?.hasPhases == true)
+
+  data class Route(val source: RouteCopySource) : CopyChoice
+
+  data class Anodyne(val dosing: AnodyneDosing) : CopyChoice
+}
+
+/**
+ * Starts this route from another route's dose and durations, or from AnodyneWiki's dose for a
+ * route, as the iOS app's "Copy Data From…".
+ */
+@Composable
+private fun CopyDataButton(
+    otherRoutes: List<RouteCopySource>,
+    anodyneDosing: List<AnodyneDosing>,
+    onSelect: (CopyChoice) -> Unit,
+) {
+  val spacing = LocalSpacing.current
+  var isExpanded by remember { mutableStateOf(false) }
+  Box(modifier = Modifier.padding(horizontal = spacing.sm)) {
+    OutlinedButton(onClick = { isExpanded = true }) {
+      Icon(Icons.Outlined.ContentCopy, contentDescription = null)
+      Spacer(modifier = Modifier.padding(spacing.xs))
+      Text("Copy data from…")
+    }
+    DropdownMenu(expanded = isExpanded, onDismissRequest = { isExpanded = false }) {
+      @Composable
+      fun item(title: String, summary: String?, choice: CopyChoice) {
+        DropdownMenuItem(
+            text = {
+              Column {
+                Text(title)
+                summary?.let {
+                  Text(
+                      it,
+                      style = MaterialTheme.typography.bodySmall,
+                      color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  )
+                }
+              }
+            },
+            onClick = {
+              isExpanded = false
+              onSelect(choice)
+            },
+        )
+      }
+      if (otherRoutes.isNotEmpty()) {
+        MenuSectionHeader("Other routes")
+        otherRoutes.forEach { source ->
+          item(source.route.displayText, routeSourceSummary(source), CopyChoice.Route(source))
+        }
+      }
+      if (anodyneDosing.isNotEmpty()) {
+        if (otherRoutes.isNotEmpty()) HorizontalDivider()
+        MenuSectionHeader("AnodyneWiki doses")
+        anodyneDosing.forEach { dosing ->
+          item(
+              dosing.route?.displayText ?: dosing.method,
+              anodyneDoseSummary(dosing),
+              CopyChoice.Anodyne(dosing),
+          )
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun MenuSectionHeader(title: String) {
+  Text(
+      title,
+      style = MaterialTheme.typography.labelMedium,
+      color = MaterialTheme.colorScheme.primary,
+      modifier =
+          Modifier.padding(
+              horizontal = LocalSpacing.current.lg,
+              vertical = LocalSpacing.current.sm,
+          ),
+  )
+}
+
+private fun formatTier(value: Double): String =
+    value.toBigDecimal().stripTrailingZeros().toPlainString()
+
+// E.g. "common 10 · strong 20 mg, durations"
+private fun routeSourceSummary(source: RouteCopySource): String {
+  val dose = source.dose?.takeIf { it.hasTiers }
+  val tiers = dose?.let {
+    listOf(
+            "light" to it.lightMin,
+            "common" to it.commonMin,
+            "strong" to it.strongMin,
+            "heavy" to it.heavyMin,
+        )
+        .mapNotNull { (name, value) -> value?.let { "$name ${formatTier(it)}" } }
+        .joinToString(" · ", postfix = " ${it.units}")
+  }
+  return listOfNotNull(tiers, "durations".takeIf { source.duration?.hasPhases == true })
+      .joinToString(", ")
+}
+
+// E.g. "light 5 · common 10 · strong 20 mg"
+private fun anodyneDoseSummary(dosing: AnodyneDosing): String? {
+  val tiers =
+      listOf(
+              "light" to dosing.light,
+              "common" to dosing.common,
+              "strong" to dosing.strong,
+              "heavy" to dosing.heavy,
+          )
+          .mapNotNull { (name, tier) ->
+            tier?.let { "$name ${formatTier(it.lower)}" }
+          }
+  return tiers
+      .takeIf { it.isNotEmpty() }
+      ?.joinToString(" · ", postfix = dosing.unit?.let { " $it" }.orEmpty())
 }

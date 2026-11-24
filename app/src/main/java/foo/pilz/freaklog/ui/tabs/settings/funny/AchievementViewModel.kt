@@ -13,10 +13,8 @@ import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
@@ -37,18 +35,6 @@ constructor(
 ) : ViewModel() {
 
   private val defs = loadAchievements(context)
-  private val defsById = defs.associateBy { it.id }
-
-  /**
-   * Tracks which IDs were unlocked on the previous emission, so we can fire popups only for
-   * genuinely new unlocks (not on cold-start).
-   */
-  private var previouslyUnlocked: Set<String> = emptySet()
-  private var isFirstEmission: Boolean = true
-
-  private val _newlyUnlocked = MutableSharedFlow<AchievementDef>()
-  val newlyUnlocked = _newlyUnlocked.asSharedFlow()
-
   /**
    * Combines all the journal data the evaluator needs into a single flow, and uses
    * [distinctUntilChanged] to skip re-running the whole evaluator when the underlying entity lists
@@ -86,7 +72,7 @@ constructor(
                     checkActive = { evaluationContext.ensureActive() },
                 )
 
-            val results = defs.map { def ->
+            defs.map { def ->
               currentCoroutineContext().ensureActive()
               UnlockedAchievement(
                   def = def,
@@ -94,20 +80,6 @@ constructor(
                       runCatching { evaluateAchievement(def.condition, ctx) }.getOrDefault(false),
               )
             }
-
-            val currentlyUnlocked =
-                results.asSequence().filter { it.unlocked }.map { it.def.id }.toSet()
-            if (!isFirstEmission) {
-              val newOnes = currentlyUnlocked - previouslyUnlocked
-              newOnes.forEach { id ->
-                val def = defsById[id] ?: return@forEach
-                viewModelScope.launch { _newlyUnlocked.emit(def) }
-              }
-            }
-            isFirstEmission = false
-            previouslyUnlocked = currentlyUnlocked
-
-            results
           }
           .flowOn(Dispatchers.Default)
           .stateIn(

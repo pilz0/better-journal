@@ -59,7 +59,7 @@ class CustomSubstanceRepositoryTest {
         Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-    repository = CustomSubstanceRepository(db, db.experienceDao())
+    repository = CustomSubstanceRepository(db.experienceDao())
   }
 
   @After
@@ -120,38 +120,6 @@ class CustomSubstanceRepositoryTest {
       assertRowCount("customsubstance", 1)
       profileTables.forEach { assertRowCount(it, 1) }
     }
-  }
-
-  @Test
-  fun `route deletion removes only the selected route`() = runTest {
-    val shared = original.copy(roas = original.roas + replacement.roas)
-    val id = repository.insertFromShared(shared.expand())
-
-    repository.deleteRouteEverywhere(id, AdministrationRoute.ORAL)
-
-    assertThat(repository.getWithEverything(id)?.toShared())
-        .isEqualTo(shared.copy(roas = replacement.roas))
-  }
-
-  @Test
-  fun `failed route deletion restores route dose and duration`() = runTest {
-    val id = repository.insertFromShared(original.expand())
-    val before = repository.getWithEverything(id)
-    val sqlite = db.openHelper.writableDatabase
-    sqlite.execSQL(
-        "CREATE TRIGGER reject_duration_delete BEFORE DELETE ON customroaduration " +
-            "BEGIN SELECT RAISE(ABORT, 'Rejected duration delete'); END"
-    )
-    val failure =
-        try {
-          runCatching { repository.deleteRouteEverywhere(id, AdministrationRoute.ORAL) }
-              .exceptionOrNull()
-        } finally {
-          sqlite.execSQL("DROP TRIGGER reject_duration_delete")
-        }
-
-    assertThat(failure).isNotNull().isInstanceOf(SQLiteConstraintException::class)
-    assertThat(repository.getWithEverything(id)).isEqualTo(before)
   }
 
   private suspend fun assertInsertRejected(table: String, operation: suspend () -> Unit) {

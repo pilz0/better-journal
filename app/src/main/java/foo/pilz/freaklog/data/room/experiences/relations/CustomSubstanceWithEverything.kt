@@ -65,12 +65,6 @@ data class CustomSubstanceWithEverything(
           }
           .sortedBy { it.route.ordinal }
     }
-
-  fun interactionsBySeverity():
-      Map<
-          foo.pilz.freaklog.data.room.experiences.entities.CustomInteractionSeverity,
-          List<CustomInteraction>,
-      > = interactions.groupBy { it.severity }
 }
 
 fun List<CustomRoaInfo>.byRoute(route: AdministrationRoute): CustomRoaInfo? = find {

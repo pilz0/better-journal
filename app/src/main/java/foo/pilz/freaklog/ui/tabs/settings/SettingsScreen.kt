@@ -69,6 +69,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -77,7 +78,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -131,8 +132,6 @@ fun SettingsPreview() {
       saveAreSubstanceHeightsIndependent = {},
       activateSafer = true,
       saveActivateSafer = {},
-      isInventoryEnabled = false,
-      saveIsInventoryEnabled = {},
       isRedoseShown = true,
       saveRedoseShown = {},
       redoseOnsetFraction = 1.0f,
@@ -313,8 +312,6 @@ fun SettingsScreen(
       saveIsDrugsHidden = viewModel::saveIsDrugsHidden,
       activateSafer = viewModel.activateSaferFlow.collectAsState().value,
       saveActivateSafer = viewModel::saveActivateSafer,
-      isInventoryEnabled = viewModel.isInventoryEnabledFlow.collectAsState().value,
-      saveIsInventoryEnabled = viewModel::saveIsInventoryEnabled,
       isRedoseShown = viewModel.isRedoseShownFlow.collectAsState().value,
       saveRedoseShown = viewModel::saveRedoseShown,
       redoseOnsetFraction = viewModel.redoseOnsetFractionFlow.collectAsState().value,
@@ -385,8 +382,6 @@ fun SettingsScreen(
     saveIsDrugsHidden: (Boolean) -> Unit,
     activateSafer: Boolean,
     saveActivateSafer: (Boolean) -> Unit,
-    isInventoryEnabled: Boolean,
-    saveIsInventoryEnabled: (Boolean) -> Unit,
     isRedoseShown: Boolean,
     saveRedoseShown: (Boolean) -> Unit,
     redoseOnsetFraction: Float,
@@ -636,7 +631,11 @@ fun SettingsScreen(
             checked = areSubstanceHeightsIndependent,
             description = "Scale each substance and route independently in timelines.",
             trailingInfo = {
-              val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+              val sheetState =
+                  rememberBottomSheetState(
+                      SheetValue.Hidden,
+                      setOf(SheetValue.Hidden, SheetValue.Expanded),
+                  )
               var showBottomSheet by remember { mutableStateOf(false) }
               Icon(
                   Icons.Outlined.Info,
@@ -824,8 +823,6 @@ fun SettingsScreen(
           saveIsDrugsHidden = saveIsDrugsHidden,
           activateSafer = activateSafer,
           saveActivateSafer = saveActivateSafer,
-          isInventoryEnabled = isInventoryEnabled,
-          saveIsInventoryEnabled = saveIsInventoryEnabled,
           performHaptic = performHaptic,
       )
       ConfirmActionDialog(
@@ -870,8 +867,6 @@ fun SettingsScreen(
     }
   }
 }
-
-const val SHARE_APP_URL = "https://psychonautwiki.org/wiki/PsychonautWiki_Journal"
 
 @Composable
 private fun BloodPressureDisplayRow(
@@ -953,8 +948,6 @@ private fun VisibleTabsDialog(
     saveIsDrugsHidden: (Boolean) -> Unit,
     activateSafer: Boolean,
     saveActivateSafer: (Boolean) -> Unit,
-    isInventoryEnabled: Boolean,
-    saveIsInventoryEnabled: (Boolean) -> Unit,
     performHaptic: (HapticType) -> Unit,
 ) {
   AnimatedVisibility(visible = visible) {
@@ -985,14 +978,6 @@ private fun VisibleTabsDialog(
                 onCheckedChange = {
                   performHaptic(HapticType.TOGGLE)
                   saveActivateSafer(!it)
-                },
-            )
-            TabVisibilityRow(
-                text = "Inventory",
-                checked = isInventoryEnabled,
-                onCheckedChange = {
-                  performHaptic(HapticType.TOGGLE)
-                  saveIsInventoryEnabled(it)
                 },
             )
           }

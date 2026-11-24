@@ -119,9 +119,9 @@ fun AnodyneSubstanceScreen(
           AddCustomSubstanceFromAnodyneSheet(
               substance = p.substance,
               onDismiss = { showAddSheet = false },
-              onConfirm = { _, _ ->
+              onConfirm = { name, unit ->
                 showAddSheet = false
-                viewModel.addAsCustomSubstance { newId ->
+                viewModel.addAsCustomSubstance(name, unit) { newId ->
                   performHaptic(HapticType.SUCCESS)
                   navigateToCustomSubstance(newId)
                 }

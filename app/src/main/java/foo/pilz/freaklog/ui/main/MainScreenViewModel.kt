@@ -75,13 +75,6 @@ constructor(
           started = SharingStarted.WhileSubscribed(5000),
       )
 
-  val isInventoryEnabledFlow =
-      userPreferences.isInventoryEnabledFlow.stateIn(
-          initialValue = false,
-          scope = viewModelScope,
-          started = SharingStarted.WhileSubscribed(5000),
-      )
-
   val isHapticFeedbackEnabledFlow =
       userPreferences.isHapticFeedbackEnabledFlow.stateIn(
           initialValue = true,

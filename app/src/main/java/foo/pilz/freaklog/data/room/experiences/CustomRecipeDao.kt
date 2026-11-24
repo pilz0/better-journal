@@ -60,9 +60,6 @@ interface CustomRecipeDao {
   suspend fun insertRecipe(recipe: CustomRecipe): Long
 
   @Insert(onConflict = OnConflictStrategy.REPLACE)
-  suspend fun insertComponent(component: CustomRecipeComponent): Long
-
-  @Insert(onConflict = OnConflictStrategy.REPLACE)
   suspend fun insertComponents(components: List<CustomRecipeComponent>)
 
   @Update suspend fun updateRecipe(recipe: CustomRecipe)

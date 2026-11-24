@@ -161,7 +161,8 @@ class AnodyneSubstanceViewModel(
     return null
   }
 
-  fun addAsCustomSubstance(onCreated: (Int) -> Unit) {
+  /** [name] and [unit] are what the user confirmed in the sheet. */
+  fun addAsCustomSubstance(name: String, unit: String, onCreated: (Int) -> Unit) {
     val currentPhase = _phase.value
     if (currentPhase !is AnodyneSubstancePhase.Found) return
     val sub = currentPhase.substance
@@ -172,7 +173,7 @@ class AnodyneSubstanceViewModel(
 
     viewModelScope.launch {
       // Custom substance names are unique; open the existing one instead of a duplicate.
-      cRepo.getWithEverythingByName(sub.title)?.let { existing ->
+      cRepo.getWithEverythingByName(name)?.let { existing ->
         _phase.value =
             currentPhase.copy(
                 localMatch =
@@ -182,7 +183,7 @@ class AnodyneSubstanceViewModel(
         onCreated(existing.substance.id)
         return@launch
       }
-      val defaultUnit = sub.dosing.firstOrNull()?.unit ?: "mg"
+      val defaultUnit = unit
       val description =
           listOfNotNull(
                   sub.healthEffects?.takeIf { it.isNotBlank() },
@@ -194,7 +195,7 @@ class AnodyneSubstanceViewModel(
 
       val customSubstance =
           CustomSubstance(
-              name = sub.title,
+              name = name,
               units = defaultUnit,
               description = description,
           )
@@ -233,8 +234,7 @@ class AnodyneSubstanceViewModel(
         }
       }
 
-      _phase.value =
-          currentPhase.copy(localMatch = LocalSubstanceMatch.Custom(insertedId, sub.title))
+      _phase.value = currentPhase.copy(localMatch = LocalSubstanceMatch.Custom(insertedId, name))
       isAdding = false
       onCreated(insertedId)
     }
