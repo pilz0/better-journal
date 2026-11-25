@@ -3,7 +3,7 @@ package foo.pilz.freaklog.ui.tabs.search.custom
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -43,7 +43,7 @@ fun AddCustomSubstanceScreen(
             title = { Text("Add custom substance") },
             navigationIcon = {
               IconButton(onClick = { isShowingDiscardDialog = true }) {
-                Icon(Icons.Default.ChevronLeft, contentDescription = "Back")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
               }
             },
         )
@@ -88,9 +88,23 @@ fun AddCustomSubstanceScreen(
     AnimatedVisibility(visible = isShowingDiscardDialog) {
       AlertDialog(
           onDismissRequest = { isShowingDiscardDialog = false },
-          title = { Text("Discard substance?") },
-          text = { Text("Anything you have entered will be lost.") },
+          // The draft is saved as you edit, so leaving is normally "save"; discard is the
+          // exception.
+          title = { Text("Save substance?") },
+          text = {
+            Text("Your changes are already saved. Discard the substance to remove it again.")
+          },
           confirmButton = {
+            TextButton(
+                onClick = {
+                  isShowingDiscardDialog = false
+                  navigateBack()
+                }
+            ) {
+              Text("Save")
+            }
+          },
+          dismissButton = {
             TextButton(
                 onClick = {
                   isShowingDiscardDialog = false
@@ -99,16 +113,6 @@ fun AddCustomSubstanceScreen(
                 },
             ) {
               Text("Discard")
-            }
-          },
-          dismissButton = {
-            TextButton(
-                onClick = {
-                  isShowingDiscardDialog = false
-                  navigateBack()
-                }
-            ) {
-              Text("Keep")
             }
           },
       )

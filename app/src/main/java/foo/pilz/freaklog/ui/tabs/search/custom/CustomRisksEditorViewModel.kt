@@ -13,17 +13,21 @@ import foo.pilz.freaklog.ui.utils.stateInVm
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 @HiltViewModel
 class CustomRisksEditorViewModel
 @Inject
 constructor(
     private val experienceRepo: ExperienceRepository,
-    customRepo: CustomSubstanceRepository,
+    private val customRepo: CustomSubstanceRepository,
     state: SavedStateHandle,
 ) : ViewModel() {
 
   val customSubstanceId = state.toRoute<CustomRisksEditorRoute>().customSubstanceId
+
+  private val persistLock = Mutex()
 
   val substanceFlow =
       customRepo
@@ -67,14 +71,18 @@ constructor(
   private fun persist() {
     if (!hasHydrated) return
     viewModelScope.launch {
-      val current = substanceFlow.value?.substance ?: return@launch
-      val updated =
-          current.copy(
-              effectsText = effectsFlow.value.ifBlank { null },
-              generalRisks = generalRisksFlow.value.ifBlank { null },
-              longTermRisks = longTermRisksFlow.value.ifBlank { null },
-          )
-      experienceRepo.update(updated)
+      // One save at a time, from the row as stored: concurrent saves from fast typing read a stale
+      // copy and lost the last characters of a rename or reverted other fields.
+      persistLock.withLock {
+        val current = customRepo.getWithEverything(customSubstanceId)?.substance ?: return@withLock
+        val updated =
+            current.copy(
+                effectsText = effectsFlow.value.ifBlank { null },
+                generalRisks = generalRisksFlow.value.ifBlank { null },
+                longTermRisks = longTermRisksFlow.value.ifBlank { null },
+            )
+        experienceRepo.update(updated)
+      }
     }
   }
 }

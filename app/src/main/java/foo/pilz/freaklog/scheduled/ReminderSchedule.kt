@@ -9,6 +9,7 @@ import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalTime
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /**
@@ -239,7 +240,8 @@ object ReminderSchedule {
    * Human-readable summary of a reminder's schedule, e.g. "Daily at 08:00, 20:00" "Mon, Wed, Fri at
    * 09:30" "Every 6 hours · Mon–Fri"
    */
-  fun summarize(reminder: Reminder): String {
+  /** [is24h]: the device's clock setting, e.g. `DateFormat.is24HourFormat(context)`. */
+  fun summarize(reminder: Reminder, is24h: Boolean = true): String {
     val days = daysSummary(reminder.daysOfWeekMask)
     return when (reminder.scheduleType) {
       SCHEDULE_TYPE_INTERVAL -> {
@@ -255,9 +257,8 @@ object ReminderSchedule {
             if (times.isEmpty()) {
               "(no times set)"
             } else {
-              times.joinToString(", ") {
-                String.format(Locale.ROOT, "%02d:%02d", it.hour, it.minute)
-              }
+              val format = DateTimeFormatter.ofPattern(if (is24h) "HH:mm" else "h:mm a", Locale.US)
+              times.joinToString(", ") { it.format(format) }
             }
         if (days == "Daily") "Daily at $timesStr" else "$days at $timesStr"
       }

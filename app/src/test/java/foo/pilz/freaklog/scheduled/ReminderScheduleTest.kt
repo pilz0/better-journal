@@ -361,6 +361,12 @@ class ReminderScheduleTest {
   }
 
   @Test
+  fun summarize_followsTwelveHourClock() {
+    val r = reminder(times = "08:00,20:30", daysMask = 127)
+    assertEquals("Daily at 8:00 AM, 8:30 PM", ReminderSchedule.summarize(r, is24h = false))
+  }
+
+  @Test
   fun summarize_dailyAtTimes_weekdays() {
     val r = reminder(times = "09:30", daysMask = 0b0011111)
     assertEquals("Mon–Fri at 09:30", ReminderSchedule.summarize(r))

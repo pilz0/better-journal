@@ -13,6 +13,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Medication
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,9 +23,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -70,13 +75,35 @@ fun CustomFormulationsScreen(
         )
       }
     } else {
+      var formulationToDelete by remember { mutableStateOf<CustomFormulation?>(null) }
       LazyColumn(modifier = Modifier.fillMaxSize().padding(padding)) {
         items(formulations, key = { it.id }) { formulation ->
           CustomFormulationItem(
               formulation = formulation,
-              onDelete = { viewModel.delete(formulation) },
+              onDelete = { formulationToDelete = formulation },
           )
         }
+      }
+      // Same confirmation as deleting an ingestion: the red icon is one tap from data loss.
+      formulationToDelete?.let { formulation ->
+        AlertDialog(
+            onDismissRequest = { formulationToDelete = null },
+            title = { Text("Delete formulation?") },
+            text = { Text("This will permanently delete \"${formulation.name}\".") },
+            confirmButton = {
+              TextButton(
+                  onClick = {
+                    viewModel.delete(formulation)
+                    formulationToDelete = null
+                  }
+              ) {
+                Text("Delete")
+              }
+            },
+            dismissButton = {
+              TextButton(onClick = { formulationToDelete = null }) { Text("Cancel") }
+            },
+        )
       }
     }
   }
@@ -98,7 +125,7 @@ fun CustomFormulationItem(
       Column(modifier = Modifier.weight(1f)) {
         Text(text = formulation.name, style = MaterialTheme.typography.titleMedium)
         Text(
-            text = "${formulation.substanceName} (${formulation.baseRoa.name})",
+            text = "${formulation.substanceName} (${formulation.baseRoa.displayText})",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

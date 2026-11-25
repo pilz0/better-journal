@@ -14,17 +14,21 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 @HiltViewModel
 class CustomToleranceEditorViewModel
 @Inject
 constructor(
     private val experienceRepo: ExperienceRepository,
-    customRepo: CustomSubstanceRepository,
+    private val customRepo: CustomSubstanceRepository,
     state: SavedStateHandle,
 ) : ViewModel() {
 
   val customSubstanceId = state.toRoute<CustomToleranceEditorRoute>().customSubstanceId
+
+  private val persistLock = Mutex()
 
   val substanceFlow =
       customRepo
@@ -73,14 +77,18 @@ constructor(
   private fun persist() {
     if (!hasHydrated) return
     viewModelScope.launch {
-      val current = substanceFlow.value?.substance ?: return@launch
-      val updated =
-          current.copy(
-              toleranceFull = fullFlow.value.ifBlank { null },
-              toleranceHalf = halfFlow.value.ifBlank { null },
-              toleranceZero = zeroFlow.value.ifBlank { null },
-          )
-      experienceRepo.update(updated)
+      // One save at a time, from the row as stored: concurrent saves from fast typing read a stale
+      // copy and lost the last characters of a rename or reverted other fields.
+      persistLock.withLock {
+        val current = customRepo.getWithEverything(customSubstanceId)?.substance ?: return@withLock
+        val updated =
+            current.copy(
+                toleranceFull = fullFlow.value.ifBlank { null },
+                toleranceHalf = halfFlow.value.ifBlank { null },
+                toleranceZero = zeroFlow.value.ifBlank { null },
+            )
+        experienceRepo.update(updated)
+      }
     }
   }
 }

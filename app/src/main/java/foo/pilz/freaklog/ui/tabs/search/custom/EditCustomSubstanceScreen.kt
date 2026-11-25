@@ -2,7 +2,7 @@ package foo.pilz.freaklog.ui.tabs.search.custom
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.IosShare
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,7 +41,7 @@ fun EditCustomSubstanceScreen(
             title = { Text("Edit custom substance") },
             navigationIcon = {
               IconButton(onClick = navigateBack) {
-                Icon(Icons.Default.ChevronLeft, contentDescription = "Back")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
               }
             },
             actions = {

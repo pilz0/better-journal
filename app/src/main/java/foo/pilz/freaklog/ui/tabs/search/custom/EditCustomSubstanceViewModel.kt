@@ -17,6 +17,8 @@ import foo.pilz.freaklog.ui.utils.stateInVm
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 @HiltViewModel
 class EditCustomSubstanceViewModel
@@ -28,6 +30,8 @@ constructor(
 ) : ViewModel() {
 
   val id = state.toRoute<EditCustomSubstanceRoute>().customSubstanceId
+
+  private val persistLock = Mutex()
 
   val substanceFlow =
       customRepo
@@ -80,27 +84,31 @@ constructor(
   private fun persistSubstance() {
     if (!hasHydrated) return
     viewModelScope.launch {
-      val current = substanceFlow.value?.substance ?: return@launch
-      val newName = nameFlow.value
-      val newUnits = unitsFlow.value
-      // A name that is already taken keeps the old one until the user types a free name.
-      val name =
-          if (current.name != newName && newName.isNotBlank()) {
-            if (customRepo.renameCustom(current.name, newName)) newName else current.name
-          } else {
-            current.name
-          }
-      if (current.units != newUnits) {
-        customRepo.setAllRoaDoseUnits(current.id, newUnits)
+      // One save at a time, from the row as stored: concurrent saves from fast typing read a stale
+      // copy and lost the last characters of a rename or reverted other fields.
+      persistLock.withLock {
+        val current = customRepo.getWithEverything(id)?.substance ?: return@withLock
+        val newName = nameFlow.value
+        val newUnits = unitsFlow.value
+        // A name that is already taken keeps the old one until the user types a free name.
+        val name =
+            if (current.name != newName && newName.isNotBlank()) {
+              if (customRepo.renameCustom(current.name, newName)) newName else current.name
+            } else {
+              current.name
+            }
+        if (current.units != newUnits) {
+          customRepo.setAllRoaDoseUnits(current.id, newUnits)
+        }
+        val updated =
+            current.copy(
+                name = name,
+                units = newUnits,
+                description = "",
+                summary = summaryFlow.value.ifBlank { null },
+            )
+        experienceRepo.update(updated)
       }
-      val updated =
-          current.copy(
-              name = name,
-              units = newUnits,
-              description = "",
-              summary = summaryFlow.value.ifBlank { null },
-          )
-      experienceRepo.update(updated)
     }
   }
 

@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.NotificationsOff
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
@@ -271,7 +272,10 @@ private fun ReminderRow(
           )
           Spacer(Modifier.height(2.dp))
           Text(
-              ReminderSchedule.summarize(reminder),
+              ReminderSchedule.summarize(
+                  reminder,
+                  is24h = android.text.format.DateFormat.is24HourFormat(LocalContext.current),
+              ),
               style = MaterialTheme.typography.bodyMedium,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
           )
@@ -318,6 +322,7 @@ private fun ReminderRowMenu(
     onDuplicate: (Reminder) -> Unit,
 ) {
   var expanded by remember { mutableStateOf(false) }
+  var showDeleteDialog by remember { mutableStateOf(false) }
   Box {
     IconButton(onClick = { expanded = true }) {
       Icon(Icons.Default.MoreVert, contentDescription = "More")
@@ -345,10 +350,29 @@ private fun ReminderRowMenu(
           leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) },
           onClick = {
             expanded = false
-            onDelete(reminder)
+            showDeleteDialog = true
           },
       )
     }
+  }
+  // Same confirmation as deleting a webhook.
+  if (showDeleteDialog) {
+    AlertDialog(
+        onDismissRequest = { showDeleteDialog = false },
+        title = { Text("Delete reminder?") },
+        text = { Text("This will permanently delete this reminder.") },
+        confirmButton = {
+          TextButton(
+              onClick = {
+                showDeleteDialog = false
+                onDelete(reminder)
+              }
+          ) {
+            Text("Delete")
+          }
+        },
+        dismissButton = { TextButton(onClick = { showDeleteDialog = false }) { Text("Cancel") } },
+    )
   }
 }
 

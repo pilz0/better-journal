@@ -2,7 +2,7 @@ package foo.pilz.freaklog.ui.tabs.settings.substancegroups.edit
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.IosShare
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,7 +38,7 @@ fun EditSubstanceGroupScreen(
             title = { Text("Edit substance group") },
             navigationIcon = {
               IconButton(onClick = navigateBack) {
-                Icon(Icons.Default.ChevronLeft, contentDescription = "Back")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
               }
             },
             actions = {

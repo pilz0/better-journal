@@ -17,8 +17,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Notes
-import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.IosShare
@@ -140,7 +140,7 @@ fun CustomSubstanceScreen(
             title = { Text(substance?.substance?.name ?: "") },
             navigationIcon = {
               IconButton(onClick = navigateBack) {
-                Icon(Icons.Default.ChevronLeft, contentDescription = "Back")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
               }
             },
             actions = {
