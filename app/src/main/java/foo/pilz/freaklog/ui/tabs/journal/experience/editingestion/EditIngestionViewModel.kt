@@ -46,6 +46,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -395,6 +396,8 @@ constructor(
     val (displayDose, displayUnits) =
         try {
           experienceRepo.getWebhookDisplayValues(ingestion)
+        } catch (ce: CancellationException) {
+          throw ce
         } catch (e: Exception) {
           android.util.Log.w(TAG_EDIT, "Failed to compute webhook display values: ${e.message}", e)
           Pair(ingestion.dose, ingestion.units)
@@ -437,6 +440,8 @@ constructor(
                   (result.error?.message ?: "Unknown error"),
           )
         }
+      } catch (ce: CancellationException) {
+        throw ce
       } catch (e: Exception) {
         android.util.Log.w(
             TAG_EDIT,
@@ -459,6 +464,8 @@ constructor(
         val (displayDose, displayUnits) =
             try {
               experienceRepo.getWebhookDisplayValues(currentIngestion)
+            } catch (ce: CancellationException) {
+              throw ce
             } catch (e: Exception) {
               android.util.Log.w(
                   TAG_EDIT,
@@ -508,6 +515,8 @@ constructor(
                       (result.error?.message ?: "Unknown error"),
               )
             }
+          } catch (ce: CancellationException) {
+            throw ce
           } catch (e: Exception) {
             android.util.Log.w(
                 TAG_EDIT,

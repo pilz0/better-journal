@@ -108,6 +108,7 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import kotlin.math.absoluteValue
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Suppress("LongParameterList")
 @Composable
 fun SubstanceScreen(
@@ -120,6 +121,23 @@ fun SubstanceScreen(
     navigateToUserNotes: (substanceName: String) -> Unit = {},
     viewModel: SubstanceViewModel = hiltViewModel(),
 ) {
+  val substanceWithCategories = viewModel.substanceWithCategories
+  if (substanceWithCategories == null) {
+    Scaffold(
+        topBar = {
+          TopAppBar(
+              navigationIcon = { NavigateBackButton() },
+              title = { Text(viewModel.substanceName.ifBlank { "Substance" }) },
+          )
+        }
+    ) { padding ->
+      Text(
+          text = "Substance not found.",
+          modifier = Modifier.padding(padding).padding(horizontal = horizontalPadding),
+      )
+    }
+    return
+  }
   SubstanceScreen(
       timelineDisplayOption =
           viewModel.timelineDisplayOptionFlow.collectAsStateWithLifecycle().value,
@@ -131,7 +149,7 @@ fun SubstanceScreen(
       navigateToVolumetricDosingScreen = navigateToVolumetricDosingScreen,
       navigateToCategoryScreen = navigateToCategoryScreen,
       navigateToExplainTimeline = navigateToExplainTimeline,
-      substanceWithCategories = viewModel.substanceWithCategories,
+      substanceWithCategories = substanceWithCategories,
       customUnits = viewModel.customUnitsFlow.collectAsStateWithLifecycle().value,
       anodyneSubstance = viewModel.anodyneSubstanceFlow.collectAsStateWithLifecycle().value,
       isAnodyneLoading = viewModel.isAnodyneLoadingFlow.collectAsStateWithLifecycle().value,
@@ -512,18 +530,17 @@ fun SubstanceScreen(
         }
       }
       val interactions = substance.interactions
-      if (interactions != null) {
-        if (
-            interactions.dangerous.isNotEmpty() ||
-                interactions.unsafe.isNotEmpty() ||
-                interactions.uncertain.isNotEmpty()
-        ) {
-          SectionWithTitle(title = "Interactions") {
-            InteractionsView(
-                interactions = substance.interactions,
-                substanceURL = substance.url,
-            )
-          }
+      if (
+          interactions != null &&
+              (interactions.dangerous.isNotEmpty() ||
+                  interactions.unsafe.isNotEmpty() ||
+                  interactions.uncertain.isNotEmpty())
+      ) {
+        SectionWithTitle(title = "Interactions") {
+          InteractionsView(
+              interactions = substance.interactions,
+              substanceURL = substance.url,
+          )
         }
       }
       if (substance.effectsSummary != null) {

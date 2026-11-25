@@ -301,11 +301,11 @@ constructor(
             checkedItems
                 .groupBy { Triple(it.substanceName, it.units, it.customUnitId) }
                 .flatMap { (key, items) ->
-                  val doses = items.map { it.dose?.times(multiplier) }
+                  val doses = items.mapNotNull { it.dose?.times(multiplier) }
                   foo.pilz.freaklog.ui.tabs.settings.intakelimits.loadBreachedIntakeLimits(
                       experienceRepo = experienceRepo,
                       substanceName = key.first,
-                      pendingDose = if (doses.any { it == null }) null else doses.sumOf { it!! },
+                      pendingDose = if (doses.size == items.size) doses.sum() else null,
                       pendingUnits = key.second,
                       pendingCustomUnitId = key.third,
                   )

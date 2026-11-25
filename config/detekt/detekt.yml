@@ -29,6 +29,11 @@ complexity:
   MethodOverloading:
     active: false
 
+coroutines:
+  active: true
+  GlobalCoroutineUsage:
+    active: true
+
 style:
   active: true
   MagicNumber:
@@ -41,6 +46,8 @@ style:
     active: true
   UnusedPrivateMember:
     active: true
+    ignoreAnnotated:
+      - "Preview"
   UnusedImports:
     active: true
   MaxLineLength:
@@ -49,6 +56,28 @@ style:
     excludeImportStatements: true
   ForbiddenComment:
     active: false
+  CollapsibleIfStatements:
+    active: true
+  DataClassShouldBeImmutable:
+    active: true
+    excludes:
+      - "**/data/room/**"
+      - "**/data/export/**"
+  NoTabs:
+    active: true
+  OptionalUnit:
+    active: true
+  RedundantVisibilityModifierRule:
+    active: true
+  UntilInsteadOfRangeTo:
+    active: true
+  ForbiddenImport:
+    active: true
+    imports:
+      - "androidx.compose.runtime.collectAsState"
+      - "androidx.hilt.navigation.compose.hiltViewModel"
+      - "kotlinx.coroutines.GlobalScope"
+      - "com.isaakhanimann.journal.*"
 
 naming:
   active: true
@@ -64,10 +93,14 @@ empty-blocks:
 
 exceptions:
   active: true
+  NotImplementedDeclaration:
+    active: true
+  ThrowingExceptionInMain:
+    active: true
   TooGenericExceptionCaught:
     active: false
   SwallowedException:
-    active: false
+    active: true
 
 # Formatting is ktfmt's job (treefmt, `nix flake check`), so detekt's ktlint
 # `formatting` rule set is not used.
@@ -76,10 +109,17 @@ potential-bugs:
   active: true
   UnsafeCast:
     active: true
+  CastToNullableType:
+    active: true
+  MissingPackageDeclaration:
+    active: true
+  UnconditionalJumpStatementInLoop:
+    active: true
 
 performance:
   active: true
+  UnnecessaryPartOfBinaryExpression:
+    active: true
 
 # Compose-specific advice — built-ins from Detekt 1.23.x are enabled via the
-# default config; for stricter Compose linting consider adding the
-# `io.nlopez.compose.rules:detekt` ruleset in a follow-up.
+# default config and `config/lint/lint.xml` enforces Compose Lint rules.

@@ -19,6 +19,7 @@
 package foo.pilz.freaklog.data.substances.parse
 
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 
 // Most optional fields are absent for most substances, so these helpers check for a value
@@ -31,7 +32,7 @@ fun JSONObject.getOptionalString(name: String): String? {
   if (!has(name) || isNull(name)) return null
   return try {
     getString(name)
-  } catch (e: Exception) {
+  } catch (_: JSONException) {
     null
   }
 }
@@ -40,7 +41,7 @@ fun JSONObject.getOptionalBoolean(name: String): Boolean? {
   if (!has(name) || isNull(name)) return null
   return try {
     getBoolean(name)
-  } catch (e: Exception) {
+  } catch (_: JSONException) {
     null
   }
 }
@@ -49,7 +50,7 @@ fun JSONObject.getOptionalLong(name: String): Long? {
   if (!has(name) || isNull(name)) return null
   return try {
     getLong(name)
-  } catch (e: Exception) {
+  } catch (_: JSONException) {
     null
   }
 }
@@ -60,7 +61,7 @@ fun JSONObject.getOptionalDouble(name: String): Double? {
   if (!has(name) || isNull(name)) return null
   return try {
     getDouble(name)
-  } catch (e: Exception) {
+  } catch (_: JSONException) {
     null
   }
 }
@@ -69,7 +70,7 @@ fun JSONArray.getOptionalString(index: Int): String? {
   if (isNull(index)) return null
   return try {
     getString(index)
-  } catch (e: Exception) {
+  } catch (_: JSONException) {
     null
   }
 }

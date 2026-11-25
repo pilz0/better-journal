@@ -171,7 +171,6 @@ class MyAppWidget : GlanceAppWidget() {
                 ),
         )
       }
-      return
     }
     provideContent {
       val size = LocalSize.current
@@ -979,6 +978,8 @@ class PeriodicWidgetRefreshWorker(
         enqueueRefresh(applicationContext, appWidgetId)
       }
       Result.success()
+    } catch (ce: CancellationException) {
+      throw ce
     } catch (e: Exception) {
       Log.w("PeriodicWidgetRefreshWorker", "Widget refresh failed", e)
       Result.retry()

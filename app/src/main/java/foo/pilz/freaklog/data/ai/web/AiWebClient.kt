@@ -11,6 +11,7 @@ import java.net.URL
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.Charset
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
@@ -203,12 +204,14 @@ internal constructor(
         withContext(Dispatchers.IO) {
           var result: WebPageContent? = null
           for (hop in 0..MAX_REDIRECTS) {
-            val outcome = executeFetchHop(currentUrl, hop)
-            if (outcome.second != null) {
-              result = outcome.second
+            val (nextUrl, page) = executeFetchHop(currentUrl, hop)
+            if (page != null) {
+              result = page
               break
             }
-            currentUrl = outcome.first!!
+            if (nextUrl != null) {
+              currentUrl = nextUrl
+            }
           }
           result ?: throw AiException("Too many redirects.")
         }
@@ -255,7 +258,7 @@ internal constructor(
       currentUrl: URL,
   ): WebPageContent {
     val rawContentType = conn.contentType.orEmpty()
-    val mime = rawContentType.substringBefore(';').trim().lowercase()
+    val mime = rawContentType.substringBefore(';').trim().lowercase(Locale.ROOT)
     if (!isSupportedTextMime(mime)) {
       throw AiException("Unsupported content type '$mime'. Only text and HTML pages can be read.")
     }
@@ -291,7 +294,7 @@ internal constructor(
           "Accept-Language" to "en-US,en;q=0.9",
       )
 
-  private data class HttpBytesResponse(
+  private class HttpBytesResponse(
       val code: Int,
       val contentType: String,
       val bytes: ByteArray,
@@ -420,7 +423,11 @@ internal constructor(
     val tagStart = html.lastIndexOf('<', marker)
     val tagName =
         if (tagStart >= fromIndex) {
-          html.substring(tagStart + 1, marker).trim().takeWhile { !it.isWhitespace() }.lowercase()
+          html
+              .substring(tagStart + 1, marker)
+              .trim()
+              .takeWhile { !it.isWhitespace() }
+              .lowercase(Locale.ROOT)
         } else {
           ""
         }
@@ -438,7 +445,7 @@ internal constructor(
     while (i < tagBody.length) {
       val nameStart = i
       while (i < tagBody.length && !tagBody[i].isWhitespace() && tagBody[i] != '=') i++
-      val name = tagBody.substring(nameStart, i).lowercase()
+      val name = tagBody.substring(nameStart, i).lowercase(Locale.ROOT)
       while (i < tagBody.length && tagBody[i].isWhitespace()) i++
       if (i < tagBody.length && tagBody[i] == '=') {
         val (value, nextIndex) = readAttributeValue(tagBody, i + 1)

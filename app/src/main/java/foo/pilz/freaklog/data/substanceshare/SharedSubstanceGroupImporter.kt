@@ -8,6 +8,7 @@ import foo.pilz.freaklog.data.room.experiences.SubstanceGroupRepository
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceGroup
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceGroupItem
 import foo.pilz.freaklog.data.substances.AdministrationRoute
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
@@ -32,7 +33,9 @@ suspend fun parseAndImportGroup(
   val text =
       try {
         context.contentResolver.openInputStream(uri)?.use { readSharedPayload(it) }
-      } catch (e: Exception) {
+      } catch (ce: CancellationException) {
+        throw ce
+      } catch (_: Exception) {
         null
       } ?: return GroupImportResult.Failed(ImportFailure.OpenStream)
 
@@ -40,6 +43,7 @@ suspend fun parseAndImportGroup(
       try {
         groupJson.decodeFromString(SharedGroupEnvelope.serializer(), text)
       } catch (e: SerializationException) {
+        android.util.Log.w("SharedSubstanceGroupImporter", "Failed to parse shared group", e)
         return GroupImportResult.Failed(ImportFailure.Parse)
       }
 

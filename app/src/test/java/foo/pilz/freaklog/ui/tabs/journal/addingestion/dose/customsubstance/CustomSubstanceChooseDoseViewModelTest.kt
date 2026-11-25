@@ -188,5 +188,51 @@ class CustomSubstanceChooseDoseViewModelTest {
             foo.pilz.freaklog.data.substances.classes.roa.DoseClass.HEAVY,
             viewModel.currentDoseClass,
         )
+        viewModel.viewModelScope.cancel()
+      }
+
+  @Test
+  fun `useIntranasalForRectal loads asynchronously and updates roaDose`() =
+      runTest(testDispatcher) {
+        val sniffDose =
+            foo.pilz.freaklog.data.substances.classes.roa.RoaDose(
+                units = "mg",
+                lightMin = 5.0,
+                commonMin = 10.0,
+                strongMin = 20.0,
+                heavyMin = 30.0,
+            )
+        val insufflatedRoa =
+            foo.pilz.freaklog.data.substances.classes.roa.Roa(
+                route = AdministrationRoute.INSUFFLATED,
+                roaDose = sniffDose,
+                roaDuration = null,
+                bioavailability = null,
+            )
+        every { userPreferences.useIntranasalForRectalFlow } returns flowOf(true)
+        every {
+          customProfiles.getEffectiveRoa("2C-B-FLY", AdministrationRoute.RECTAL, false)
+        } returns null
+        every {
+          customProfiles.getEffectiveRoa("2C-B-FLY", AdministrationRoute.RECTAL, true)
+        } returns insufflatedRoa
+
+        val viewModel =
+            CustomSubstanceChooseDoseViewModel(
+                experienceRepository = experienceRepository,
+                customProfiles = customProfiles,
+                userPreferences = userPreferences,
+                state =
+                    SavedStateHandle(
+                        mapOf(
+                            "customSubstanceName" to "2C-B-FLY",
+                            "administrationRoute" to AdministrationRoute.RECTAL,
+                        )
+                    ),
+            )
+        advanceUntilIdle()
+
+        assertEquals(sniffDose, viewModel.roaDose)
+        viewModel.viewModelScope.cancel()
       }
 }

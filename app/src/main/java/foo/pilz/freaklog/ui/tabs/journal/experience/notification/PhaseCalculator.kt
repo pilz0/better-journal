@@ -123,9 +123,11 @@ object PhaseCalculator {
     if (range == null) return null
     val minSec = range.minInSec
     val maxSec = range.maxInSec
-    if (minSec == null && maxSec == null) return null
-    val a = minSec ?: maxSec!!
-    val b = maxSec ?: minSec!!
-    return (a + b) / 2f
+    return when {
+      minSec != null && maxSec != null -> (minSec + maxSec) / 2f
+      minSec != null -> minSec
+      maxSec != null -> maxSec
+      else -> null
+    }
   }
 }

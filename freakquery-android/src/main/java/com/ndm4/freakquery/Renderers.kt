@@ -15,43 +15,45 @@ internal object TextRenderer {
     val list = data as? List<*> ?: return data.toString()
     if (list.isEmpty()) return ""
 
-    val showDose = truthy(plan.display["dose"], ctx.config.renderDose)
-    val showUnit = truthy(plan.display["unit"], ctx.config.renderUnit)
-    val showRoute = truthy(plan.display["route"], false)
-    val showSite = truthy(plan.display["site"], false)
-    val useParens = truthy(plan.display["parens"], ctx.config.renderParens)
-    val showLabels = truthy(plan.display["labels"], ctx.config.renderLabels)
+    val rowOptions =
+        NormalRowOptions(
+            showLabels = truthy(plan.display["labels"], ctx.config.renderLabels),
+            showDose = truthy(plan.display["dose"], ctx.config.renderDose),
+            showUnit = truthy(plan.display["unit"], ctx.config.renderUnit),
+            showRoute = truthy(plan.display["route"], false),
+            showSite = truthy(plan.display["site"], false),
+            useParens = truthy(plan.display["parens"], ctx.config.renderParens),
+            compact = truthy(plan.display["compact"], ctx.config.renderCompact),
+            sep = plan.display["sep"]?.toString() ?: ctx.config.renderSeparator,
+            timeMode =
+                plan.display["time"] ?: ctx.config.renderTimeFormat ?: ctx.config.renderTimeEnabled,
+        )
     val showCount = truthy(plan.display["count"], ctx.config.renderCount)
     val showPercent = truthy(plan.display["percent"], ctx.config.renderPercent)
-    val compact = truthy(plan.display["compact"], ctx.config.renderCompact)
-    val sep = plan.display["sep"]?.toString() ?: ctx.config.renderSeparator
-    val timeMode: Any? =
-        plan.display["time"] ?: ctx.config.renderTimeFormat ?: ctx.config.renderTimeEnabled
 
     val lines = list.map { item ->
       @Suppress("UNCHECKED_CAST") val row = item as? Row ?: return@map item.toString()
 
       when {
         row.containsKey("value") && row.containsKey("label") ->
-            renderRatioRow(row, showLabels, showCount, showPercent)
+            renderRatioRow(row, rowOptions.showLabels, showCount, showPercent)
         row.containsKey("value") && row.containsKey("count") && !row.containsKey("label") ->
-            renderValueCount(row, showLabels, showCount, useParens, ctx.config)
-        row.containsKey("substance") && row.containsKey("count") && row.size <= 2 ->
-            renderTopSubstance(row, showLabels, showCount, useParens, ctx.config)
-        else ->
-            renderNormalRow(
+            renderValueCount(
                 row,
-                showLabels,
-                showDose,
-                showUnit,
-                showRoute,
-                showSite,
-                useParens,
-                compact,
-                sep,
-                timeMode,
+                rowOptions.showLabels,
+                showCount,
+                rowOptions.useParens,
                 ctx.config,
             )
+        row.containsKey("substance") && row.containsKey("count") && row.size <= 2 ->
+            renderTopSubstance(
+                row,
+                rowOptions.showLabels,
+                showCount,
+                rowOptions.useParens,
+                ctx.config,
+            )
+        else -> renderNormalRow(row, rowOptions, ctx.config)
       }
     }
 
@@ -95,56 +97,62 @@ internal object TextRenderer {
     return listOf(left, right).filter { it.isNotBlank() }.joinToString(" ").trim()
   }
 
+  private data class NormalRowOptions(
+      val showLabels: Boolean,
+      val showDose: Boolean,
+      val showUnit: Boolean,
+      val showRoute: Boolean,
+      val showSite: Boolean,
+      val useParens: Boolean,
+      val compact: Boolean,
+      val sep: String,
+      val timeMode: Any?,
+  )
+
   private fun renderNormalRow(
       row: Row,
-      showLabels: Boolean,
-      showDose: Boolean,
-      showUnit: Boolean,
-      showRoute: Boolean,
-      showSite: Boolean,
-      useParens: Boolean,
-      compact: Boolean,
-      sep: String,
-      timeMode: Any?,
+      options: NormalRowOptions,
       config: FreakQueryConfig,
   ): String {
     val parts = mutableListOf<String>()
     val time = Aliases.rowGet(config, row, "time")
-    if (truthy(timeMode, false) && time != null) parts += formatTime(time, timeMode)
+    if (truthy(options.timeMode, false) && time != null) {
+      parts += formatTime(time, options.timeMode)
+    }
 
     val sub = Aliases.rowGet(config, row, "substance")
-    if (showLabels && sub != null && sub.toString().isNotBlank()) {
+    if (options.showLabels && sub != null && sub.toString().isNotBlank()) {
       parts += Aliases.displayValue(config, "substance", sub)
     }
 
     val extras = mutableListOf<String>()
     val dose = Aliases.rowGet(config, row, "dose")
-    if (showDose && dose != null) {
+    if (options.showDose && dose != null) {
       var text = cleanNumber(dose)
       val unit = Aliases.rowGet(config, row, "unit")
-      if (showUnit && unit != null && unit.toString().isNotBlank()) {
+      if (options.showUnit && unit != null && unit.toString().isNotBlank()) {
         text += " " + Aliases.displayValue(config, "unit", unit)
       }
       extras += text
     }
 
     val route = Aliases.rowGet(config, row, "route")
-    if (showRoute && route != null && route.toString().isNotBlank()) {
+    if (options.showRoute && route != null && route.toString().isNotBlank()) {
       extras += Aliases.displayValue(config, "route", route)
     }
 
     val site = Aliases.rowGet(config, row, "site")
-    if (showSite && site != null && site.toString().isNotBlank()) {
+    if (options.showSite && site != null && site.toString().isNotBlank()) {
       extras += Aliases.displayValue(config, "site", site)
     }
 
     if (extras.isNotEmpty()) {
-      val text = extras.joinToString(sep)
-      parts += if (useParens) "($text)" else text
+      val text = extras.joinToString(options.sep)
+      parts += if (options.useParens) "($text)" else text
     }
 
     if (parts.isEmpty()) parts += row.toString()
-    return if (compact) parts.joinToString(sep) else parts.joinToString(" ")
+    return if (options.compact) parts.joinToString(options.sep) else parts.joinToString(" ")
   }
 
   private fun wrapCount(value: String, parens: Boolean): String = if (parens) "($value)" else value
@@ -180,7 +188,7 @@ internal object TextRenderer {
 internal object JsonRenderer {
   private const val MAX_DEPTH = 32
 
-  fun render(data: Any?, plan: QueryPlan, ctx: Context): String {
+  fun render(data: Any?, ctx: Context): String {
     val maxLen = ctx.config.maxOutputLength ?: Int.MAX_VALUE
     val sb = StringBuilder()
     serialize(data, ctx.config, sb, 0, maxLen)
@@ -202,6 +210,8 @@ internal object JsonRenderer {
     when (data) {
       null -> sb.append("null")
       is Boolean -> sb.append(data)
+      is Double -> sb.append(if (data.isFinite()) data else "null")
+      is Float -> sb.append(if (data.isFinite()) data else "null")
       is Number -> sb.append(data)
       is String -> quoteString(data, sb, maxLen)
       is List<*> -> {

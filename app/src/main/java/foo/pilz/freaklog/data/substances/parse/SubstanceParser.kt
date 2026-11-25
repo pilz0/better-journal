@@ -38,6 +38,7 @@ class SubstanceParser @Inject constructor() : SubstanceParserInterface {
           substances = parseSubstances(wholeFile),
       )
     } catch (e: Exception) {
+      android.util.Log.w("SubstanceParser", "Failed to parse substance file", e)
       SubstanceFile(emptyList(), emptyList())
     }
   }
@@ -49,6 +50,7 @@ class SubstanceParser @Inject constructor() : SubstanceParserInterface {
       val substances = data.getJSONArray("substances")
       substances.toString()
     } catch (e: Exception) {
+      android.util.Log.w("SubstanceParser", "Failed to extract substance string", e)
       null
     }
   }

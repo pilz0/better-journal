@@ -46,6 +46,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.firstOrNull
@@ -237,7 +238,7 @@ internal constructor(
     private const val MAX_RETRIES = 2
     const val KEEP_COUNT = 7
     private val BACKUP_FILE_PATTERN = Regex("journal-backup-.*\\.enc")
-    private val FILE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmm")
+    private val FILE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmm", Locale.US)
 
     /** Names sort chronologically, which is what pruning relies on. */
     fun backupFileName(time: Instant, zone: ZoneId): String =

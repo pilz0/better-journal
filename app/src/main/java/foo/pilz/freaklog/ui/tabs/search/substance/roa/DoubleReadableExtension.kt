@@ -41,7 +41,8 @@ fun Double.toReadableString(): String {
         absValue >= 1 -> 2
         else -> 3
       }
-  return readableFormats.get()!![fractionDigits].format(this)
+  val formats = checkNotNull(readableFormats.get()) { "readableFormats ThreadLocal missing" }
+  return formats[fractionDigits].format(this)
 }
 
 /** Every digit kept, but no "100.0" or "1.0E-4": for prefilling fields the user edits. */

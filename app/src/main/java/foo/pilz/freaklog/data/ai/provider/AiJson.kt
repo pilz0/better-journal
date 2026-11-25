@@ -1,5 +1,6 @@
 package foo.pilz.freaklog.data.ai.provider
 
+import java.util.Locale
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -45,7 +46,7 @@ internal object AiJson {
       copy.put(
           key,
           when {
-            key == "type" && value is String -> value.uppercase()
+            key == "type" && value is String -> value.uppercase(Locale.ROOT)
             value is JSONObject -> upperCaseSchemaTypes(value)
             else -> value
           },

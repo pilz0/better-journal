@@ -71,7 +71,11 @@ data class ReportSettings(
         start.atStartOfDay(zone).toInstant() to
             end.plusDays(1).atStartOfDay(zone).toInstant().minusMillis(1)
       }
-      else -> today.minusDays(period.days!! - 1).atStartOfDay(zone).toInstant() to now
+      else -> {
+        val days =
+            checkNotNull(period.days) { "Expected finite day count for report period $period" }
+        today.minusDays(days - 1).atStartOfDay(zone).toInstant() to now
+      }
     }
   }
 }
@@ -212,18 +216,19 @@ private fun summarize(
     day: (Instant) -> LocalDate,
 ): SubstanceSummary {
   val withBase = uses.mapNotNull { use ->
+    val pureDose = use.pureDose?.takeIf { it.isFinite() }
     val base = DoseUnits.toBase(use.originalUnit)
-    if (use.pureDose?.isFinite() == true && base != null) use to base else null
+    if (pureDose != null && base != null) Triple(use, pureDose, base) else null
   }
   val dosed = withBase.map { it.first }
-  val bases = withBase.map { it.second }
+  val bases = withBase.map { it.third }
   val baseUnit = bases.map { it.first }.distinct().singleOrNull()
   var usual: String? = null
   var range: String? = null
   if (bases.isNotEmpty() && baseUnit == null) {
     usual = "varies"
   } else if (baseUnit != null) {
-    val amounts = dosed.zip(bases) { use, base -> use.pureDose!! * base.second }.sorted()
+    val amounts = withBase.map { (_, pureDose, base) -> pureDose * base.second }.sorted()
     val median = amounts.median()
     // Show doses in the unit the user logs most, e.g. g instead of mg.
     val preferred = dosed.groupingBy { it.originalUnit }.eachCount().maxBy { it.value }.key
@@ -240,7 +245,9 @@ private fun summarize(
       times = uses.size,
       routes =
           uses
-              .groupingBy { it.ingestion.administrationRoute.displayText.lowercase() }
+              .groupingBy {
+                it.ingestion.administrationRoute.displayText.lowercase(Locale.getDefault())
+              }
               .eachCount()
               .entries
               .sortedByDescending { it.value }

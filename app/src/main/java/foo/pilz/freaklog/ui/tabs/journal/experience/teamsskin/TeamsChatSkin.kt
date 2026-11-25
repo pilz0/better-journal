@@ -56,6 +56,7 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.AllTimelinesModel
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 private val HeaderHairline = Color(0xFFE1E1E1)
 private val PresenceGreen = Color(0xFF92C353)
@@ -83,8 +84,10 @@ val AvatarPalette =
 
 private val BubbleShape = RoundedCornerShape(12.dp)
 
-private val shortTimeFormatter =
-    DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault())
+private fun shortTime(instant: Instant): String =
+    DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault())
+        .withZone(ZoneId.systemDefault())
+        .format(instant)
 
 private data class FakeMessage(val fromContact: Boolean, val text: String, val time: String)
 
@@ -121,12 +124,13 @@ private val LINKEDIN_OPENERS =
         FakeMessage(false, "Be off with ye!", "09:31"),
     )
 
-private fun shortTime(instant: Instant): String = shortTimeFormatter.format(instant)
-
 private fun doseLine(iwc: IngestionWithCompanionAndCustomUnit): String {
   val ingestion = iwc.ingestion
   val dosePart = ingestion.dose?.let { "$it ${ingestion.units ?: ""}".trim() } ?: "unknown dose"
-  val route = ingestion.administrationRoute.name.lowercase().replaceFirstChar { it.uppercase() }
+  val route =
+      ingestion.administrationRoute.name.lowercase(Locale.ROOT).replaceFirstChar {
+        it.uppercase(Locale.ROOT)
+      }
   return "$dosePart, $route"
 }
 

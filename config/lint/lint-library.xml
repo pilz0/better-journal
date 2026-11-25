@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- High-signal correctness, API, concurrency, resource, and locale checks -->
+    <issue id="StopShip" severity="error" />
+    <issue id="NoOp" severity="error" />
+    <issue id="DiscouragedApi" severity="error" />
+    <issue id="ObsoleteSdkInt" severity="error" />
+    <issue id="UnusedResources" severity="error" />
+    <issue id="UnusedIds" severity="error" />
+    <issue id="UseKtx" severity="error" />
+    <issue id="DefaultLocale" severity="error" />
+    <issue id="SimpleDateFormat" severity="error" />
+    <issue id="StringFormatMatches" severity="error" />
+    <issue id="StringFormatCount" severity="error" />
+    <issue id="KotlinNullnessAnnotation" severity="error" />
+    <issue id="WrongThread" severity="error" />
+    <issue id="NewApi" severity="error" />
+    <issue id="InlinedApi" severity="error" />
+    <issue id="ApplySharedPref" severity="error" />
+    <issue id="CommitPrefEdits" severity="error" />
+    <issue id="Recycle" severity="error" />
+    <issue id="Registered" severity="error" />
+    <issue id="UnsafeImplicitIntentLaunch" severity="error" />
+
+    <!-- Security checks -->
+    <issue id="AllowAllHostnameVerifier" severity="error" />
+    <issue id="TrustAllX509TrustManager" severity="error" />
+    <issue id="BadHostnameVerifier" severity="error" />
+    <issue id="SetJavaScriptEnabled" severity="error" />
+    <issue id="ExportedContentProvider" severity="error" />
+    <issue id="ExportedReceiver" severity="error" />
+    <issue id="ExportedService" severity="error" />
+    <issue id="UsingHttp" severity="error" />
+    <issue id="PackageManagerGetSignatures" severity="error" />
+
+    <!-- Noise suppressed for an English-only, reproducible Nix-locked library -->
+    <issue id="MissingTranslation" severity="ignore" />
+    <issue id="ExtraTranslation" severity="ignore" />
+    <issue id="GradleDependency" severity="ignore" />
+    <issue id="NewerVersionAvailable" severity="ignore" />
+    <issue id="AndroidGradlePluginVersion" severity="ignore" />
+    <issue id="OldTargetApi" severity="ignore" />
+    <issue id="TypographyQuotes" severity="ignore" />
+    <issue id="HardcodedText" severity="ignore" />
+    <issue id="IconLocation" severity="ignore" />
+    <issue id="MonochromeLauncherIcon" severity="ignore" />
+</lint>

@@ -6,6 +6,7 @@ import android.os.Binder
 import android.os.Build
 import androidx.core.content.edit
 import java.security.MessageDigest
+import java.util.Locale
 
 /** Owner grants are pinned to both the installed package and its signing certificates. */
 class JournalClientAccess(private val context: Context) {
@@ -39,7 +40,7 @@ class JournalClientAccess(private val context: Context) {
                   MessageDigest.getInstance("SHA-256").digest(signature.toByteArray()).joinToString(
                       ""
                   ) {
-                    "%02x".format(it)
+                    "%02x".format(Locale.ROOT, it)
                   }
                 }
                 ?.sorted()

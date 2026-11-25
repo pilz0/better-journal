@@ -235,6 +235,7 @@ constructor(
               _isUnlocked.value = true
               onUnlocked()
             } catch (e: GeneralSecurityException) {
+              android.util.Log.w("BiometricAuthManager", "Biometric proof verification failed", e)
               onError(ERROR_AUTH_NOT_VERIFIED)
             }
           }
@@ -261,6 +262,7 @@ constructor(
     } catch (e: InvalidKeyException) {
       // The auth key can be invalidated when the enrolled biometrics change.
       // Regenerate it once so the user can authenticate with the new enrollment.
+      android.util.Log.w("BiometricAuthManager", "Biometric key invalidated; regenerating", e)
       deleteSecretKey()
       try {
         cipher.init(Cipher.ENCRYPT_MODE, getOrCreateSecretKey())

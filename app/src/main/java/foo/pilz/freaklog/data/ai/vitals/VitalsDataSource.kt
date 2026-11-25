@@ -14,6 +14,7 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.VitalSeries
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.VitalsHealthConnect
 import foo.pilz.freaklog.ui.utils.isHealthConnectAvailable
 import java.time.Instant
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
@@ -74,7 +75,7 @@ object VitalsTypes {
       )
 
   fun normalize(raw: String): String? {
-    val key = raw.trim().lowercase().replace('-', '_').replace(' ', '_')
+    val key = raw.trim().lowercase(Locale.ROOT).replace('-', '_').replace(' ', '_')
     return ALIASES[key]
   }
 

@@ -3,6 +3,7 @@ package foo.pilz.freaklog.provider
 import android.content.ContentProvider
 import android.content.ContentUris
 import android.content.ContentValues
+import android.content.Context
 import android.content.UriMatcher
 import android.database.Cursor
 import android.net.Uri
@@ -12,6 +13,7 @@ import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import foo.pilz.freaklog.data.room.experiences.ExperienceDao
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
 class JournalProvider : ContentProvider() {
 
@@ -37,9 +39,12 @@ class JournalProvider : ContentProvider() {
       }
   private lateinit var matcher: UriMatcher
 
+  private fun requireProviderContext(): Context =
+      checkNotNull(context) { "Provider context is null" }
+
   private val entryPoint: ProviderEntryPoint by lazy {
     EntryPointAccessors.fromApplication(
-        context!!.applicationContext,
+        requireProviderContext().applicationContext,
         ProviderEntryPoint::class.java,
     )
   }
@@ -54,13 +59,13 @@ class JournalProvider : ContentProvider() {
   private fun enforceNotLocked() =
       enforceJournalUnlocked(
           callingUid = android.os.Binder.getCallingUid(),
-          ownUid = context!!.applicationInfo.uid,
+          ownUid = requireProviderContext().applicationInfo.uid,
       ) {
-        kotlinx.coroutines.runBlocking { entryPoint.userPreferences().isLockEnabledFlow.first() }
+        runBlocking { entryPoint.userPreferences().isLockEnabledFlow.first() }
       }
 
   override fun onCreate(): Boolean {
-    val authority = JournalContract.authority(context!!)
+    val authority = JournalContract.authority(requireProviderContext())
     matcher =
         UriMatcher(UriMatcher.NO_MATCH).apply {
           addURI(authority, JournalContract.PATH_INGESTIONS, code.ingestions)
@@ -81,7 +86,8 @@ class JournalProvider : ContentProvider() {
       selectionArgs: Array<out String>?,
       sortOrder: String?,
   ): Cursor {
-    JournalClientAccess(context!!.applicationContext).enforce(callingPackage)
+    val providerContext = requireProviderContext()
+    JournalClientAccess(providerContext.applicationContext).enforce(callingPackage)
     enforceNotLocked()
     val since = ProviderQueryParams.parseSince(uri.getQueryParameter(JournalContract.QUERY_SINCE))
     val limit = ProviderQueryParams.parseLimit(uri.getQueryParameter(JournalContract.QUERY_LIMIT))
@@ -103,22 +109,23 @@ class JournalProvider : ContentProvider() {
           code.ingestionChangesMeta -> dao.providerIngestionChangesMeta()
           else -> throw IllegalArgumentException("Unknown URI: $uri")
         }
-    cursor.setNotificationUri(context!!.contentResolver, uri)
+    cursor.setNotificationUri(providerContext.contentResolver, uri)
     return cursor
   }
 
-  override fun getType(uri: Uri): String =
-      when (matcher.match(uri)) {
-        code.ingestions,
-        code.ingestionsPublic -> "vnd.android.cursor.dir/vnd.${context!!.packageName}.ingestion"
-        code.ingestionById,
-        code.ingestionPublicById -> "vnd.android.cursor.item/vnd.${context!!.packageName}.ingestion"
-        code.experiences -> "vnd.android.cursor.dir/vnd.${context!!.packageName}.experience"
-        code.ingestionChanges,
-        code.ingestionChangesMeta ->
-            "vnd.android.cursor.dir/vnd.${context!!.packageName}.ingestion_change"
-        else -> throw IllegalArgumentException("Unknown URI: $uri")
-      }
+  override fun getType(uri: Uri): String {
+    val packageName = requireProviderContext().packageName
+    return when (matcher.match(uri)) {
+      code.ingestions,
+      code.ingestionsPublic -> "vnd.android.cursor.dir/vnd.$packageName.ingestion"
+      code.ingestionById,
+      code.ingestionPublicById -> "vnd.android.cursor.item/vnd.$packageName.ingestion"
+      code.experiences -> "vnd.android.cursor.dir/vnd.$packageName.experience"
+      code.ingestionChanges,
+      code.ingestionChangesMeta -> "vnd.android.cursor.dir/vnd.$packageName.ingestion_change"
+      else -> throw IllegalArgumentException("Unknown URI: $uri")
+    }
+  }
 
   override fun insert(uri: Uri, values: ContentValues?): Uri =
       throw UnsupportedOperationException("Read-only provider")

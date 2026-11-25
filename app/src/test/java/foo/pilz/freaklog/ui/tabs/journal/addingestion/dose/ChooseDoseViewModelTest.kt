@@ -169,6 +169,7 @@ class ChooseDoseViewModelTest {
         mockk<Substance> {
           every { name } returns "Ketamine"
           every { dosageRemark } returns null
+          every { getEffectiveRoa(AdministrationRoute.RECTAL, false) } returns null
           every { getEffectiveRoa(AdministrationRoute.RECTAL, true) } returns insufflatedRoa
           every { getRoa(AdministrationRoute.RECTAL) } returns null
         }
@@ -188,9 +189,11 @@ class ChooseDoseViewModelTest {
                     )
                 ),
         )
+    testDispatcher.scheduler.advanceUntilIdle()
 
     assertEquals(AdministrationRoute.RECTAL, viewModel.administrationRoute)
     assertEquals(sniffDose, viewModel.roaDose)
+    assertEquals("mg", viewModel.units)
     viewModel.viewModelScope.cancel()
   }
 

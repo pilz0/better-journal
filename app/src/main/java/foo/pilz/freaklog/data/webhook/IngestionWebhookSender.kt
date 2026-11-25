@@ -8,6 +8,7 @@ import foo.pilz.freaklog.data.room.webhooks.entities.IngestionWebhookMessage
 import foo.pilz.freaklog.di.ApplicationScope
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -35,33 +36,11 @@ constructor(
    * so they can't undo or block the logging itself.
    */
   suspend fun send(ingestions: List<Ingestion>, selection: Map<Int, Boolean>) {
-    val enabledHooks =
-        try {
-          webhookRepository.getEnabled()
-        } catch (e: Exception) {
-          android.util.Log.w(TAG, "Failed to load webhooks: ${e.message}", e)
-          return
-        }
-    val hooks = enabledHooks.filter { webhook ->
-      (selection[webhook.id] ?: true).also { isSelected ->
-        if (!isSelected) {
-          android.util.Log.d(TAG, "Webhook \"${webhook.name}\" deselected for this ingestion")
-        }
-      }
-    }
-    if (hooks.isEmpty()) {
-      android.util.Log.d(TAG, "No enabled webhooks selected, skipping")
-      return
-    }
+    val hooks = loadSelectedHooks(selection)
+    if (hooks.isEmpty()) return
 
     for (ingestion in ingestions) {
-      val (displayDose, displayUnits) =
-          try {
-            experienceRepo.getWebhookDisplayValues(ingestion)
-          } catch (e: Exception) {
-            android.util.Log.w(TAG, "Failed to compute webhook display values: ${e.message}", e)
-            Pair(ingestion.dose, ingestion.units)
-          }
+      val (displayDose, displayUnits) = resolveDisplayValues(ingestion)
       val route = ingestion.administrationRoute.displayText
 
       for (webhook in hooks) {
@@ -101,6 +80,8 @@ constructor(
                     (result.error?.message ?: "Unknown error"),
             )
           }
+        } catch (ce: CancellationException) {
+          throw ce
         } catch (e: Exception) {
           // Silently fail - don't block ingestion creation if webhook fails
           android.util.Log.w(TAG, "Webhook \"${webhook.name}\" exception: ${e.message}", e)
@@ -108,6 +89,41 @@ constructor(
       }
     }
   }
+
+  private suspend fun loadSelectedHooks(
+      selection: Map<Int, Boolean>
+  ): List<foo.pilz.freaklog.data.room.webhooks.entities.Webhook> {
+    val enabledHooks =
+        try {
+          webhookRepository.getEnabled()
+        } catch (ce: CancellationException) {
+          throw ce
+        } catch (e: Exception) {
+          android.util.Log.w(TAG, "Failed to load webhooks: ${e.message}", e)
+          return emptyList()
+        }
+    val hooks = enabledHooks.filter { webhook ->
+      (selection[webhook.id] ?: true).also { isSelected ->
+        if (!isSelected) {
+          android.util.Log.d(TAG, "Webhook \"${webhook.name}\" deselected for this ingestion")
+        }
+      }
+    }
+    if (hooks.isEmpty()) {
+      android.util.Log.d(TAG, "No enabled webhooks selected, skipping")
+    }
+    return hooks
+  }
+
+  private suspend fun resolveDisplayValues(ingestion: Ingestion): Pair<Double?, String?> =
+      try {
+        experienceRepo.getWebhookDisplayValues(ingestion)
+      } catch (ce: CancellationException) {
+        throw ce
+      } catch (e: Exception) {
+        android.util.Log.w(TAG, "Failed to compute webhook display values: ${e.message}", e)
+        Pair(ingestion.dose, ingestion.units)
+      }
 
   /**
    * Deletes [ingestion] and its message on every webhook it was posted to; the remote deletes run
@@ -143,6 +159,8 @@ constructor(
                 ?.takeIf { ingestionWebhookMessageRepository.isCurrentDestination(link, it.url) }
                 ?.let { it to link.messageId }
           }
+        } catch (ce: CancellationException) {
+          throw ce
         } catch (e: Exception) {
           android.util.Log.w(TAG, "Failed to load webhook messages: ${e.message}", e)
           emptyList()
@@ -154,6 +172,8 @@ constructor(
         val deleted =
             try {
               webhookService.deleteWebhookMessage(url = webhook.url, messageId = messageId)
+            } catch (ce: CancellationException) {
+              throw ce
             } catch (e: Exception) {
               android.util.Log.w(TAG, "Webhook delete threw for \"${webhook.name}\"", e)
               false

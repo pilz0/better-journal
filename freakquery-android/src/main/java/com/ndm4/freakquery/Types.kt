@@ -16,7 +16,7 @@ internal object Types {
   const val ANY = "any"
 }
 
-internal data class QueryPlan(
+internal class QueryPlan(
     var group: String? = null,
     var selector: String? = null,
     val filters: MutableList<String> = mutableListOf(),

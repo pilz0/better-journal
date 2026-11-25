@@ -12,6 +12,7 @@ import foo.pilz.freaklog.data.substances.repositories.SubstanceRepositoryInterfa
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.interactions.InteractionChecker
 import foo.pilz.freaklog.ui.tabs.safer.tolerance.ToleranceCalculator
 import java.time.Instant
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.roundToInt
@@ -110,7 +111,7 @@ constructor(
     val all = substances.getAllSubstances()
     return all.firstOrNull { it.name.equals(q, ignoreCase = true) }
         ?: all.firstOrNull { s -> s.commonNames.any { it.equals(q, ignoreCase = true) } }
-        ?: ALIASES[q.lowercase()]?.let { alias -> substances.getSubstance(alias) }
+        ?: ALIASES[q.lowercase(Locale.ROOT)]?.let { alias -> substances.getSubstance(alias) }
   }
 
   private fun isKnown(query: String): Boolean = customName(query) != null || resolve(query) != null
@@ -214,7 +215,7 @@ constructor(
 
   private fun checkInteractions(requested: List<String>): JSONObject {
     val unrecognized = requested.filterNot(::isKnown)
-    val names = requested.map(::canonicalName).distinctBy { it.lowercase() }
+    val names = requested.map(::canonicalName).distinctBy { it.lowercase(Locale.ROOT) }
     if (names.size < 2) return toolError("Give at least two different substances.")
     if (names.size > MAX_INTERACTION_SUBSTANCES) {
       return toolError("Check at most $MAX_INTERACTION_SUBSTANCES substances at once.")
@@ -231,7 +232,7 @@ constructor(
               JSONObject()
                   .put("a", names[i])
                   .put("b", names[j])
-                  .put("risk", interaction.interactionType.name.lowercase()),
+                  .put("risk", interaction.interactionType.name.lowercase(Locale.ROOT)),
           )
         }
       }

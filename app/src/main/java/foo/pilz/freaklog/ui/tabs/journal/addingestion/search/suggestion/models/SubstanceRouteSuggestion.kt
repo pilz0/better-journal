@@ -173,20 +173,13 @@ data class CustomUnitDose(
   // 20 mg or 20±2 mg
   val calculatedDoseDescription: String?
     get() {
-      return calculatedDose?.let { calculatedDoseUnwrapped ->
-        calculatedDoseStandardDeviation?.let {
-          return "${calculatedDoseUnwrapped.toReadableString()}±${it.toReadableString()} ${customUnit.originalUnit}"
-        }
-            ?: run {
-              val description =
-                  "${calculatedDoseUnwrapped.toReadableString()} ${customUnit.originalUnit}"
-              if (isEstimate || customUnit.isEstimate) {
-                return "~$description"
-              } else {
-                return description
-              }
-            }
+      val unwrappedDose = calculatedDose ?: return null
+      val sd = calculatedDoseStandardDeviation
+      if (sd != null) {
+        return "${unwrappedDose.toReadableString()}±${sd.toReadableString()} ${customUnit.originalUnit}"
       }
+      val description = "${unwrappedDose.toReadableString()} ${customUnit.originalUnit}"
+      return if (isEstimate || customUnit.isEstimate) "~$description" else description
     }
 
   // 2 pills

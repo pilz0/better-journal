@@ -225,13 +225,17 @@ object AnodyneParser {
               parseNoteRoutes(entry.optJSONArray("Dosage"))
       val doseEffects = entry.optJSONArray("DEffects")
       val effectGroups =
-          (0 until (doseEffects?.length() ?: 0)).mapNotNull { j ->
-            val group = doseEffects!!.optJSONObject(j) ?: return@mapNotNull null
-            stringsOf(group.opt("Effects"))
-                .takeIf { it.isNotEmpty() }
-                ?.let {
-                  AnodyneUserNote.EffectGroup(textOf(group.opt("Dosage")).orEmpty(), it)
-                }
+          if (doseEffects == null) {
+            emptyList()
+          } else {
+            (0 until doseEffects.length()).mapNotNull { j ->
+              val group = doseEffects.optJSONObject(j) ?: return@mapNotNull null
+              stringsOf(group.opt("Effects"))
+                  .takeIf { it.isNotEmpty() }
+                  ?.let {
+                    AnodyneUserNote.EffectGroup(textOf(group.opt("Dosage")).orEmpty(), it)
+                  }
+            }
           }
 
       val note =
@@ -256,18 +260,20 @@ object AnodyneParser {
     }
   }
 
-  private fun parseNoteRoutes(array: JSONArray?): List<AnodyneUserNote.Route> =
-      (0 until (array?.length() ?: 0)).mapNotNull { j ->
-        val r = array!!.optJSONObject(j) ?: return@mapNotNull null
-        val name = textOf(r.opt("Name")) ?: return@mapNotNull null
-        AnodyneUserNote.Route(
-            name = name,
-            dosage = textOf(r.opt("Dosage")) ?: textOf(r.opt("Dosages")) ?: textOf(r.opt("Dose")),
-            onset = textOf(r.opt("Onset")),
-            comeup = textOf(r.opt("Comeup")),
-            duration = textOf(r.opt("Duration")) ?: textOf(r.opt("Active")),
-        )
-      }
+  private fun parseNoteRoutes(array: JSONArray?): List<AnodyneUserNote.Route> {
+    if (array == null) return emptyList()
+    return (0 until array.length()).mapNotNull { j ->
+      val r = array.optJSONObject(j) ?: return@mapNotNull null
+      val name = textOf(r.opt("Name")) ?: return@mapNotNull null
+      AnodyneUserNote.Route(
+          name = name,
+          dosage = textOf(r.opt("Dosage")) ?: textOf(r.opt("Dosages")) ?: textOf(r.opt("Dose")),
+          onset = textOf(r.opt("Onset")),
+          comeup = textOf(r.opt("Comeup")),
+          duration = textOf(r.opt("Duration")) ?: textOf(r.opt("Active")),
+      )
+    }
+  }
 
   // Keeps the wiki markup, so the note screen can link it (AnodyneTextCleaner.spans); a value that
   // only holds markup without text, e.g. "{br}", is dropped.

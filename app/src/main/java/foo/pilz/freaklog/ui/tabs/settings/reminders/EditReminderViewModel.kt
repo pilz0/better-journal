@@ -155,7 +155,7 @@ constructor(
     // Earlier versions inserted a draft row so the broadcast receiver could look it up;
     // that left orphan reminders behind for new (unsaved) reminders.
     val reminder = _state.value.toReminder()
-    notificationScheduler.testNotification(reminder)
+    viewModelScope.launch { notificationScheduler.testNotification(reminder) }
   }
 
   private fun ReminderFormState.toReminder(): Reminder {

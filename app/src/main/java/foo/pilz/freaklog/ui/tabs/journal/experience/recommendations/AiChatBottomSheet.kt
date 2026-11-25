@@ -119,8 +119,9 @@ fun AiChatBottomSheet(
           onOpenSettings = onOpenSettings,
       )
 
+      val setupMessage = uiState.setupMessage
       when {
-        uiState.setupMessage != null -> SetupNeededState(uiState.setupMessage!!, onOpenSettings)
+        setupMessage != null -> SetupNeededState(setupMessage, onOpenSettings)
         uiState.isAssistantDisabled -> AssistantDisabledState(onOpenSettings)
         uiState.isContextLoading -> {
           LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp))

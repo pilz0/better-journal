@@ -63,4 +63,46 @@ class RenderTest {
     val result = FreakQuery.query("all | json", rows)
     org.junit.Assert.assertFalse(result.contains("\n"))
   }
+
+  @Test
+  fun limitAndTopZeroOrOneParseAsIntegersInsteadOfBooleans() {
+    val rows =
+        listOf(
+            mapOf("substance" to "LSD", "dose" to 100, "time" to 1_700_000_000_000L),
+            mapOf("substance" to "MDMA", "dose" to 120, "time" to 1_700_010_000_000L),
+        )
+    assertEquals(
+        "[{\"substance\":\"LSD\",\"dose\":100,\"time\":1700000000000}]",
+        FreakQuery.query("all | limit=1 | json", rows),
+    )
+    assertEquals("[]", FreakQuery.query("all | limit=0 | json", rows))
+    assertEquals("LSD (1)", FreakQuery.query("top_substances | top=1", rows))
+  }
+
+  @Test
+  fun jsonRender_emitsNullForNonFiniteFloatingPointNumbers() {
+    val rows =
+        listOf(
+            mapOf("substance" to "LSD", "dose" to Double.NaN, "extra" to Double.POSITIVE_INFINITY)
+        )
+    val result = FreakQuery.query("all | json", rows)
+    assertEquals("[{\"substance\":\"LSD\",\"dose\":null,\"extra\":null}]", result)
+  }
+
+  @Test
+  fun weekFilter_handlesIsoWeekYearAcrossDecJanBoundary() {
+    fun millis(year: Int, monthZeroBased: Int, day: Int): Long =
+        java.util.Calendar.getInstance()
+            .apply {
+              set(year, monthZeroBased, day, 12, 0, 0)
+              set(java.util.Calendar.MILLISECOND, 0)
+            }
+            .timeInMillis
+
+    val dec30Year2024 = millis(2024, java.util.Calendar.DECEMBER, 30)
+    val jan01Year2025 = millis(2025, java.util.Calendar.JANUARY, 1)
+    val rows = listOf(mapOf("substance" to "LSD", "dose" to 100, "time" to dec30Year2024))
+    val ctx = Context(rows, FreakQueryConfig(), nowMs = jan01Year2025)
+    assertEquals("1", FreakQuery.executeTag("week | count", rows, ctx))
+  }
 }

@@ -31,6 +31,7 @@ import java.net.ProtocolException
 import java.net.URI
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -180,7 +181,9 @@ internal constructor(
           } finally {
             connection.disconnect()
           }
-        } catch (e: Exception) {
+        } catch (ce: CancellationException) {
+          throw ce
+        } catch (_: Exception) {
           false
         }
       }
@@ -207,8 +210,8 @@ internal constructor(
     val unitString: String
     if (dose != null && dose >= 0) {
       val formattedDose =
-          if (dose % 1.0 == 0.0) {
-            dose.toInt().toString()
+          if (dose.isFinite() && dose % 1.0 == 0.0 && dose <= Long.MAX_VALUE.toDouble()) {
+            dose.toLong().toString()
           } else {
             dose.toString()
           }
@@ -261,6 +264,8 @@ internal constructor(
                 messageId = messageId,
             )
         return WebhookResult(success = true, messageId = result, error = null)
+      } catch (ce: CancellationException) {
+        throw ce
       } catch (e: DeliveryUnknownException) {
         // The server may already have posted the message; another attempt would duplicate it.
         logger.warn("WebhookService", "Got error: $e")
@@ -480,11 +485,6 @@ internal constructor(
   }
 
   /**
-   * Returns [url] without surrounding whitespace and a single trailing slash.
-   *
-   * @throws IllegalArgumentException for destinations [isSecureWebhookUrl] rejects
-   */
-  /**
    * Inserts `/messages/{id}` before the query string, so a thread webhook's `?thread_id=` stays a
    * query parameter. Appending it to the end would target the webhook itself: DELETE would remove
    * the webhook and PATCH would change it.
@@ -497,6 +497,11 @@ internal constructor(
         webhookUrl.substring(queryStart)
   }
 
+  /**
+   * Returns [url] without surrounding whitespace and a single trailing slash.
+   *
+   * @throws IllegalArgumentException for destinations [isSecureWebhookUrl] rejects
+   */
   private fun checkedWebhookUrl(url: String): String {
     val cleanUrl = url.trim().removeSuffix("/")
     require(isSecureWebhookUrl(cleanUrl)) { "HTTPS is required for remote webhook destinations" }

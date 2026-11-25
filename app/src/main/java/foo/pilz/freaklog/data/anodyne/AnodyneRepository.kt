@@ -12,6 +12,7 @@ import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import java.io.File
 import java.net.URL
 import java.net.URLEncoder
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.cancellation.CancellationException
@@ -45,7 +46,7 @@ constructor(
       }
       return try {
         val parsed = URL(text)
-        val proto = parsed.protocol?.lowercase()
+        val proto = parsed.protocol?.lowercase(Locale.ROOT)
         if (proto != "http" && proto != "https") return null
         if (parsed.host.isNullOrBlank() || parsed.query != null) return null
         if (isInsecureRemoteUrl(text)) return null
@@ -160,6 +161,8 @@ constructor(
           try {
             val json = JSONObject(indexFile.readText())
             return@withContext Result.success(AnodyneParser.parseIndex(json))
+          } catch (ce: CancellationException) {
+            throw ce
           } catch (_: Exception) {
             // Cache corrupted, fetch fresh
           }
@@ -172,6 +175,8 @@ constructor(
           indexFile.writeText(json.toString())
           val entries = AnodyneParser.parseIndex(json)
           Result.success(entries)
+        } catch (ce: CancellationException) {
+          throw ce
         } catch (e: Exception) {
           Result.failure(e)
         }
@@ -193,6 +198,8 @@ constructor(
               allNotes.addAll(AnodyneParser.parseUserNotes(obj))
             }
             return@withContext Result.success(filterNotes(allNotes, names))
+          } catch (ce: CancellationException) {
+            throw ce
           } catch (_: Exception) {
             // Cache corrupted, fetch fresh
           }
@@ -215,6 +222,8 @@ constructor(
               val userJson = AiHttp.getJson(userUrl, emptyMap())
               collectedUserJsons.put(userJson)
               allNotes.addAll(AnodyneParser.parseUserNotes(userJson))
+            } catch (ce: CancellationException) {
+              throw ce
             } catch (_: Exception) {
               // Ignore individual user note failures
             }
@@ -222,6 +231,8 @@ constructor(
 
           notesFile.writeText(collectedUserJsons.toString())
           Result.success(filterNotes(allNotes, names))
+        } catch (ce: CancellationException) {
+          throw ce
         } catch (e: Exception) {
           Result.failure(e)
         }
@@ -231,9 +242,9 @@ constructor(
       notes: List<AnodyneUserNote>,
       names: List<String>,
   ): List<AnodyneUserNote> {
-    val nameSet = names.map { it.lowercase() }.toSet()
+    val nameSet = names.map { it.lowercase(Locale.ROOT) }.toSet()
     return notes.filter { note ->
-      note.hasDetails && nameSet.contains(note.substanceName.lowercase())
+      note.hasDetails && nameSet.contains(note.substanceName.lowercase(Locale.ROOT))
     }
   }
 
@@ -247,7 +258,7 @@ constructor(
   }
 
   private fun getSubstanceCacheFile(name: String): File {
-    val safe = name.lowercase().replace(Regex("[^a-z0-9]"), "_")
+    val safe = name.lowercase(Locale.ROOT).replace(Regex("[^a-z0-9]"), "_")
     // "page_": older "substance_" files held a lossy re-encoding of the page; ignore them.
     return File(cacheDir, "page_$safe.json")
   }

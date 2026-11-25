@@ -10,8 +10,16 @@ internal object Metrics {
 
     val isGrouped = data is List<*> && data.firstOrNull() is List<*>
     if (isGrouped) {
-      @Suppress("UNCHECKED_CAST") val groups = data as List<Rows>
-      return when (metric) {
+      @Suppress("UNCHECKED_CAST")
+      return applyGrouped(data as List<Rows>, metric, ctx)
+    }
+
+    val rows = (data as? List<*>)?.filterIsInstance<Row>() ?: return data
+    return applyRowMetric(rows, metric, plan, ctx)
+  }
+
+  private fun applyGrouped(groups: List<Rows>, metric: String, ctx: Context): Any =
+      when (metric) {
         "count",
         "group_count" -> groups.size
         "group_sum" -> cleanNumericValue(groups.sumOf { Grouping.groupSum(it, ctx.config) })
@@ -19,105 +27,94 @@ internal object Metrics {
             humanSince(groups.maxOfOrNull { Grouping.groupDuration(it, ctx.config) } ?: 0L)
         "main_substance" -> Grouping.mainSubstance(groups.flatten(), ctx.config)
         "sum_dose" ->
-            cleanNumericValue(
-                groups.flatten().sumOf {
-                  Units.toMgOrNull(
-                      Aliases.rowGet(ctx.config, it, "dose"),
-                      Aliases.canonicalValue(
-                          ctx.config,
-                          "unit",
-                          Aliases.rowGet(ctx.config, it, "unit"),
-                      ),
-                  ) ?: 0.0
-                }
-            )
-        else -> data
+            cleanNumericValue(groups.flatten().sumOf { row -> sumDoseMg(row, ctx.config) })
+        else -> groups
       }
-    }
 
-    @Suppress("UNCHECKED_CAST")
-    val rows = (data as? List<*>)?.filterIsInstance<Row>() ?: return data
-    val total = rows.size
+  private fun applyRowMetric(rows: Rows, metric: String, plan: QueryPlan, ctx: Context): Any =
+      applyBasicRowMetric(rows, metric, ctx)
+          ?: applyTopOrSequenceMetric(rows, metric, plan, ctx)
+          ?: rows
 
-    return when {
-      metric == "count" -> total
-      metric == "first" -> rows.firstOrNull() ?: emptyMap<String, Any?>()
-      metric == "last" -> rows.lastOrNull() ?: emptyMap<String, Any?>()
-      metric == "since" ->
-          rows
-              .lastOrNull()
-              ?.let {
-                humanSince((ctx.nowMs - rowTime(it, ctx.config)).coerceAtLeast(0L))
-              }
-              .orEmpty()
-      metric == "dose" -> rows.lastOrNull()?.let { rowDoseText(it, ctx.config) }.orEmpty()
-      metric == "substance" -> rows.lastOrNull()?.let { rowSubstance(it, ctx.config) }.orEmpty()
-      metric == "sum_dose" ->
-          cleanNumericValue(
-              rows.sumOf {
-                Units.toMgOrNull(
-                    Aliases.rowGet(ctx.config, it, "dose"),
-                    Aliases.canonicalValue(
-                        ctx.config,
-                        "unit",
-                        Aliases.rowGet(ctx.config, it, "unit"),
-                    ),
-                ) ?: 0.0
-              }
-          )
-      metric == "top_substances" ->
-          topN(
-              counter(rows.mapNotNull { rowSubstance(it, ctx.config).takeIf(String::isNotEmpty) })
-                  .map { mapOf("substance" to it.key, "count" to it.value) },
-              plan.params["limit"],
-          )
-      metric == "top_routes" ->
-          topN(
-              counter(
-                      rows.mapNotNull {
-                        Aliases.rowGet(ctx.config, it, "route")?.let { value ->
-                          Aliases.canonicalValue(ctx.config, "route", value)
-                              .takeIf(String::isNotEmpty)
-                        }
-                      }
-                  )
-                  .map { mapOf("value" to it.key, "count" to it.value) },
-              plan.params["limit"],
-          )
-      metric == "sites" ->
-          topN(
-              counter(
-                      rows.mapNotNull {
-                        Aliases.rowGet(ctx.config, it, "site")?.let { value ->
-                          Aliases.canonicalValue(ctx.config, "site", value)
-                              .takeIf(String::isNotEmpty)
-                        }
-                      }
-                  )
-                  .map { mapOf("value" to it.key, "count" to it.value) },
-              plan.params["limit"],
-          )
-      metric == "substance_totals" -> substanceTotals(rows, plan, ctx.config)
-      metric.startsWith("ratio=") -> ratio(rows, metric.substringAfter("="), plan, ctx)
-      metric == "group_sum" -> cleanNumericValue(Grouping.groupSum(rows, ctx.config))
-      metric == "group_duration" -> humanSince(Grouping.groupDuration(rows, ctx.config))
-      metric == "group_count" -> rows.size
-      metric == "main_substance" -> Grouping.mainSubstance(rows, ctx.config)
-      metric == "substances_count" -> orderedSubstances(rows, ctx.config).toSet().size
-      metric == "avg_gap" -> avgGap(rows, ctx.config)
-      metric == "timeline" -> rows
-      metric == "sequence" ->
-          compressSequence(orderedSubstances(rows, ctx.config)).joinToString(" -> ")
-      metric == "sequence=dose" -> sequenceDose(rows, ctx.config)
-      metric == "sequence=time" -> sequenceTime(rows, ctx.config)
-      metric == "sequence=patterns" -> counterRows(sequencePatterns(rows, ctx.config))
-      metric.startsWith("sequence=after:") ->
-          sequenceAfter(rows, metric.substringAfter(":"), ctx.config)
-      metric.startsWith("sequence=before:") ->
-          sequenceBefore(rows, metric.substringAfter(":"), ctx.config)
-      else -> rows
-    }
-  }
+  private fun applyBasicRowMetric(rows: Rows, metric: String, ctx: Context): Any? =
+      when (metric) {
+        "count" -> rows.size
+        "first" -> rows.firstOrNull() ?: emptyMap<String, Any?>()
+        "last" -> rows.lastOrNull() ?: emptyMap<String, Any?>()
+        "since" ->
+            rows
+                .lastOrNull()
+                ?.let { humanSince((ctx.nowMs - rowTime(it, ctx.config)).coerceAtLeast(0L)) }
+                .orEmpty()
+        "dose" -> rows.lastOrNull()?.let { rowDoseText(it, ctx.config) }.orEmpty()
+        "substance" -> rows.lastOrNull()?.let { rowSubstance(it, ctx.config) }.orEmpty()
+        "sum_dose" -> cleanNumericValue(rows.sumOf { row -> sumDoseMg(row, ctx.config) })
+        "group_sum" -> cleanNumericValue(Grouping.groupSum(rows, ctx.config))
+        "group_duration" -> humanSince(Grouping.groupDuration(rows, ctx.config))
+        "group_count" -> rows.size
+        "main_substance" -> Grouping.mainSubstance(rows, ctx.config)
+        "substances_count" -> orderedSubstances(rows, ctx.config).toSet().size
+        "avg_gap" -> avgGap(rows, ctx.config)
+        "timeline" -> rows
+        else -> null
+      }
+
+  private fun applyTopOrSequenceMetric(
+      rows: Rows,
+      metric: String,
+      plan: QueryPlan,
+      ctx: Context,
+  ): Any? =
+      when {
+        metric == "top_substances" ->
+            topN(
+                counter(rows.mapNotNull { rowSubstance(it, ctx.config).takeIf(String::isNotEmpty) })
+                    .map { mapOf("substance" to it.key, "count" to it.value) },
+                plan.params["limit"],
+            )
+        metric == "top_routes" -> topCanonicalField(rows, "route", plan, ctx)
+        metric == "sites" -> topCanonicalField(rows, "site", plan, ctx)
+        metric == "substance_totals" -> substanceTotals(rows, plan, ctx.config)
+        metric.startsWith("ratio=") -> ratio(rows, metric.substringAfter("="), plan, ctx)
+        metric == "sequence" ->
+            compressSequence(orderedSubstances(rows, ctx.config)).joinToString(" -> ")
+        metric == "sequence=dose" -> sequenceDose(rows, ctx.config)
+        metric == "sequence=time" -> sequenceTime(rows, ctx.config)
+        metric == "sequence=patterns" -> counterRows(sequencePatterns(rows, ctx.config))
+        metric.startsWith("sequence=after:") ->
+            sequenceAfter(rows, metric.substringAfter(":"), ctx.config)
+        metric.startsWith("sequence=before:") ->
+            sequenceBefore(rows, metric.substringAfter(":"), ctx.config)
+        else -> null
+      }
+
+  private fun topCanonicalField(
+      rows: Rows,
+      field: String,
+      plan: QueryPlan,
+      ctx: Context,
+  ): List<Map<String, Any?>> =
+      topN(
+          counter(
+                  rows.mapNotNull {
+                    Aliases.rowGet(ctx.config, it, field)?.let { value ->
+                      Aliases.canonicalValue(ctx.config, field, value).takeIf(String::isNotEmpty)
+                    }
+                  }
+              )
+              .map { mapOf("value" to it.key, "count" to it.value) },
+          plan.params["limit"],
+      )
+
+  private fun sumDoseMg(row: Row, config: FreakQueryConfig): Double =
+      Units.toMgOrNull(
+          Aliases.rowGet(config, row, "dose"),
+          Aliases.canonicalValue(
+              config,
+              "unit",
+              Aliases.rowGet(config, row, "unit"),
+          ),
+      ) ?: 0.0
 
   private fun resolveMetric(plan: QueryPlan): String? {
     for (metric in plan.metrics) {
@@ -159,13 +156,20 @@ internal object Metrics {
     val counts = linkedMapOf<String, Int>()
     for (row in rows) {
       val sub = rowSubstance(row, config)
-      if (sub.isEmpty()) continue
       // Rows without a mass dose (e.g. ml or custom units) can't be totalled in mg.
       val mg =
-          Units.toMgOrNull(Aliases.rowGet(config, row, "dose"), Aliases.rowGet(config, row, "unit"))
-              ?: continue
-      totals[sub] = (totals[sub] ?: 0.0) + mg
-      counts[sub] = (counts[sub] ?: 0) + 1
+          if (sub.isNotEmpty()) {
+            Units.toMgOrNull(
+                Aliases.rowGet(config, row, "dose"),
+                Aliases.rowGet(config, row, "unit"),
+            )
+          } else {
+            null
+          }
+      if (mg != null) {
+        totals[sub] = (totals[sub] ?: 0.0) + mg
+        counts[sub] = (counts[sub] ?: 0) + 1
+      }
     }
     return topN(
         totals

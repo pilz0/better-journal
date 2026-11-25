@@ -35,7 +35,6 @@ import foo.pilz.freaklog.ui.utils.isValidDoseInput
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 @HiltViewModel
 class CustomSubstanceChooseDoseViewModel
@@ -48,9 +47,7 @@ constructor(
 ) : ViewModel() {
   var substanceName by mutableStateOf("")
   val administrationRoute: AdministrationRoute
-  private val useIntranasalForRectal: Boolean = runBlocking {
-    userPreferences.useIntranasalForRectalFlow.first()
-  }
+  private var useIntranasalForRectal by mutableStateOf(false)
   var units by mutableStateOf("mg")
   var isEstimate by mutableStateOf(false)
   var doseText by mutableStateOf("")
@@ -123,6 +120,9 @@ constructor(
     val customSubstanceName =
         chooseCustomSubstanceDoseRoute?.customSubstanceName?.ifBlank { null }
             ?: state.get<String>("customSubstanceName")
+    viewModelScope.launch {
+      useIntranasalForRectal = userPreferences.useIntranasalForRectalFlow.first()
+    }
     if (customSubstanceName != null) {
       viewModelScope.launch {
         val customSubstance =

@@ -70,10 +70,11 @@ constructor(
           }
       color = otherColors.randomOrNull() ?: AdaptiveColor.BLUE
       val lastIngestionTime = ingestionsWithCompanions.maxOfOrNull { it.ingestion.time }
-      if (lastIngestionTime != null) {
-        if (Duration.between(lastIngestionTime, Instant.now()).toHours() > 12) {
-          isPartOfTimeline = false
-        }
+      if (
+          lastIngestionTime != null &&
+              Duration.between(lastIngestionTime, Instant.now()).toHours() > 12
+      ) {
+        isPartOfTimeline = false
       }
     }
   }

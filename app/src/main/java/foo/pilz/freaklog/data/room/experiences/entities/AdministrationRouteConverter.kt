@@ -38,7 +38,7 @@ class AdministrationRouteConverter {
     return try {
       AdministrationRoute.valueOf(value)
     } catch (e: IllegalArgumentException) {
-      Log.w(TAG, "Unknown AdministrationRoute value: $value, falling back to ORAL")
+      Log.w(TAG, "Unknown AdministrationRoute value: $value, falling back to ORAL", e)
       AdministrationRoute.ORAL
     }
   }

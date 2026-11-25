@@ -16,6 +16,7 @@ import foo.pilz.freaklog.ui.utils.isHealthConnectAvailable
 import foo.pilz.freaklog.ui.utils.readHealthRecords
 import java.time.Duration
 import java.time.Instant
+import java.util.Locale
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.abs
 import kotlin.math.max
@@ -82,8 +83,8 @@ enum class VitalKind(
       when (this) {
         OXYGEN_SATURATION -> "${value.roundToInt()}% SpO₂"
         RESPIRATORY_RATE -> "${value.roundToInt()} breaths/min"
-        BODY_TEMPERATURE -> "%.1f °C".format(value)
-        SKIN_TEMPERATURE -> "%+.1f °C skin".format(value)
+        BODY_TEMPERATURE -> "%.1f °C".format(Locale.getDefault(), value)
+        SKIN_TEMPERATURE -> "%+.1f °C skin".format(Locale.getDefault(), value)
         HEART_RATE_VARIABILITY -> "${value.roundToInt()} ms HRV"
       }
 

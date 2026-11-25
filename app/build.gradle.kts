@@ -28,10 +28,15 @@ android {
   }
 
   lint {
+    lintConfig = rootProject.file("config/lint/lint.xml")
     checkReleaseBuilds = true
     // Lint dependencies as well, so reports include issues in libraries we ship.
     checkDependencies = true
+    checkTestSources = true
+    checkAllWarnings = true
+    warningsAsErrors = true
     abortOnError = true
+    explainIssues = true
   }
 
   testOptions {
@@ -91,6 +96,16 @@ kotlin {
   jvmToolchain(17)
   compilerOptions {
     jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    allWarningsAsErrors.set(true)
+    extraWarnings.set(true)
+    progressiveMode.set(true)
+    freeCompilerArgs.addAll(
+        "-Xjsr305=strict",
+        // Room's KSP codegen emits redundant visibility modifiers and mutable
+        // locals; Detekt's RedundantVisibilityModifierRule still checks handwritten code.
+        "-Xwarning-level=REDUNDANT_VISIBILITY_MODIFIER:disabled",
+        "-Xwarning-level=CAN_BE_VAL:disabled",
+    )
   }
 }
 

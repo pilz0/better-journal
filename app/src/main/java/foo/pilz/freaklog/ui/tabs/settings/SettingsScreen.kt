@@ -98,6 +98,7 @@ import foo.pilz.freaklog.ui.utils.HapticType
 import foo.pilz.freaklog.ui.utils.getStringOfPattern
 import foo.pilz.freaklog.ui.utils.rememberHaptic
 import java.time.Instant
+import java.util.Locale
 import kotlinx.coroutines.launch
 
 @Preview
@@ -884,8 +885,9 @@ private fun RedoseFractionsSection(
     )
     Text(
         text =
-            "redoseAt = ingestionTime + onset×${"%.2f".format(onsetFraction)}" +
-                " + comeup×${"%.2f".format(comeupFraction)} + peak×${"%.2f".format(peakFraction)}",
+            "redoseAt = ingestionTime + onset×${"%.2f".format(Locale.US, onsetFraction)}" +
+                " + comeup×${"%.2f".format(Locale.US, comeupFraction)} + " +
+                "peak×${"%.2f".format(Locale.US, peakFraction)}",
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
@@ -921,6 +923,6 @@ private fun RedoseFractionSlider(label: String, value: Float, onChange: (Float) 
         },
         modifier = Modifier.weight(1f),
     )
-    Text(text = "%.2f".format(safe), modifier = Modifier.width(48.dp))
+    Text(text = "%.2f".format(Locale.US, safe), modifier = Modifier.width(48.dp))
   }
 }

@@ -67,6 +67,7 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -265,7 +266,14 @@ private fun TimesOfDayEditor(
           },
           // Same 12/24-hour choice as the picker that edits it.
           label = {
-            Text(time.format(DateTimeFormatter.ofPattern(if (is24h) "HH:mm" else "h:mm a")))
+            Text(
+                time.format(
+                    DateTimeFormatter.ofPattern(
+                        if (is24h) "HH:mm" else "h:mm a",
+                        Locale.getDefault(),
+                    )
+                )
+            )
           },
           trailingIcon = {
             IconButton(
@@ -418,7 +426,7 @@ private fun EndDatePicker(endEpochMillis: Long?, onChange: (Long?) -> Unit) {
           endEpochMillis?.let {
             // The cutoff is the start of the day after the chosen end date, so subtract
             // one day's worth of millis to get the human-meaningful "end day".
-            DateTimeFormatter.ofPattern("yyyy-MM-dd")
+            DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.US)
                 .withZone(ZoneId.systemDefault())
                 .format(Instant.ofEpochMilli(it - 86_400_000L))
           } ?: "No end"

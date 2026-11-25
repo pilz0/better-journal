@@ -149,4 +149,27 @@ class NotificationSchedulerTest {
     }
     assertTrue(shadowAlarmManager.scheduledAlarms.isNotEmpty())
   }
+
+  @Test
+  fun `postReminderNotification fails closed when lock preference read throws`() = runTest {
+    every { userPreferences.isLockEnabledFlow } returns
+        kotlinx.coroutines.flow.flow { error("datastore failure") }
+    val shadowNotificationManager =
+        shadowOf(
+            context.getSystemService(Context.NOTIFICATION_SERVICE)
+                as android.app.NotificationManager
+        )
+    val shadowApp = shadowOf(context as android.app.Application)
+    shadowApp.grantPermissions(android.Manifest.permission.POST_NOTIFICATIONS)
+
+    scheduler.postReminderNotification(reminder(id = 42, title = "Secret Substance"))
+
+    val posted = shadowNotificationManager.getNotification(42)
+    assertEquals("Reminder", posted.extras.getString(android.app.Notification.EXTRA_TITLE))
+    assertEquals(
+        "Time for your scheduled reminder.",
+        posted.extras.getString(android.app.Notification.EXTRA_TEXT),
+    )
+    assertEquals(0, posted.actions?.size ?: 0)
+  }
 }

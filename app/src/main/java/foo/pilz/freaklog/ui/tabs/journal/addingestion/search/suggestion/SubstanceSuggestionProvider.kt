@@ -25,7 +25,7 @@ import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.search.suggestion.models.CustomUnitDoseSuggestion
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.search.suggestion.models.DoseAndUnit
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.search.suggestion.models.Suggestion
-import foo.pilz.freaklog.ui.utils.getInstant
+import java.time.Instant
 
 class SubstanceSuggestionProvider : PreviewParameterProvider<Suggestion> {
   override val values: Sequence<Suggestion> =
@@ -55,8 +55,7 @@ class SubstanceSuggestionProvider : PreviewParameterProvider<Suggestion> {
                           estimatedDoseStandardDeviation = null,
                       ),
                   ),
-              sortInstant =
-                  getInstant(year = 2023, month = 4, day = 10, hourOfDay = 5, minute = 20)!!,
+              sortInstant = Instant.parse("2023-04-10T05:20:00Z"),
           ),
           Suggestion.CustomUnitSuggestion(
               customUnit = CustomUnit.mdmaSample,
@@ -74,8 +73,7 @@ class SubstanceSuggestionProvider : PreviewParameterProvider<Suggestion> {
                           estimatedDoseStandardDeviation = null,
                       ),
                   ),
-              sortInstant =
-                  getInstant(year = 2023, month = 4, day = 10, hourOfDay = 5, minute = 20)!!,
+              sortInstant = Instant.parse("2023-04-10T05:20:00Z"),
           ),
       )
 }

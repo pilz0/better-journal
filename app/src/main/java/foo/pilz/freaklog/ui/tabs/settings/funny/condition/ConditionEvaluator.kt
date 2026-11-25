@@ -229,10 +229,11 @@ internal class Compiler {
       when {
         recv is Value.Coll && name == "count" -> {
           val b = body ?: error("count {} requires a lambda")
+          val p = param ?: error("count {} requires a parameter")
           Value.Num(
               recv.items
                   .count {
-                    asBool(b(Frame(f.ctx, f.env + (param!! to it), f.budget)))
+                    asBool(b(Frame(f.ctx, f.env + (p to it), f.budget)))
                   }
                   .toDouble()
           )
@@ -240,9 +241,10 @@ internal class Compiler {
 
         recv is Value.Coll && name == "filter" -> {
           val b = body ?: error("filter {} requires a lambda")
+          val p = param ?: error("filter {} requires a parameter")
           Value.Coll(
               recv.items.filter {
-                asBool(b(Frame(f.ctx, f.env + (param!! to it), f.budget)))
+                asBool(b(Frame(f.ctx, f.env + (p to it), f.budget)))
               }
           )
         }

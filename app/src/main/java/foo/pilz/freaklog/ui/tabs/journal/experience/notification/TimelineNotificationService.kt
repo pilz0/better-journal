@@ -20,6 +20,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -83,7 +84,7 @@ class TimelineNotificationService : Service() {
   lateinit var customProfiles: foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles
   @Inject @ApplicationScope lateinit var appScope: CoroutineScope
 
-  private val serviceScope = CoroutineScope(Dispatchers.Default + Job())
+  private val serviceScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
   private var updateJob: Job? = null
   private var experienceId: Int = -1
   private var isExplicitStop = false

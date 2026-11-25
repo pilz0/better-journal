@@ -25,9 +25,11 @@ import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
@@ -55,7 +57,8 @@ class ReminderActionReceiver : BroadcastReceiver() {
     val action = intent.action ?: return
 
     val pendingResult = goAsync()
-    CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+    val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    scope.launch {
       try {
         val reminder = remindersRepository.getReminderById(reminderId)
         if (reminder == null) {
@@ -86,13 +89,16 @@ class ReminderActionReceiver : BroadcastReceiver() {
           }
         }
         NotificationManagerCompat.from(context).cancel(reminderId)
-      } catch (t: Throwable) {
+      } catch (ce: CancellationException) {
+        throw ce
+      } catch (e: Exception) {
         Log.e(
             "ReminderActionReceiver",
             "Error processing reminder action $action for id $reminderId",
-            t,
+            e,
         )
       } finally {
+        scope.cancel()
         pendingResult.finish()
       }
     }
@@ -103,7 +109,12 @@ class ReminderActionReceiver : BroadcastReceiver() {
     if (userPreferences.isLockEnabledFlow.first()) return
     val substanceName = reminder.substanceName?.takeIf { it.isNotBlank() } ?: return
     val routeName = reminder.administrationRoute?.takeIf { it.isNotBlank() } ?: return
-    val route = runCatching { AdministrationRoute.valueOf(routeName) }.getOrNull() ?: return
+    val route =
+        try {
+          AdministrationRoute.valueOf(routeName)
+        } catch (_: IllegalArgumentException) {
+          return
+        }
 
     val now = Instant.now()
     // Reuse the most recent experience whose first ingestion is within the last 15 hours,

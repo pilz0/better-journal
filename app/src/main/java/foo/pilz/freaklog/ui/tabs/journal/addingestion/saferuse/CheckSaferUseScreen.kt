@@ -56,7 +56,7 @@ fun CheckSaferUseScreen(
   ) { padding ->
     Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(padding)) {
       BulletPoints(
-          points = viewModel.substance.saferUse,
+          points = viewModel.substance?.saferUse.orEmpty(),
           modifier = Modifier.padding(horizontal = horizontalPadding),
       )
       Spacer(modifier = Modifier.height(8.dp))

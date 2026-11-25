@@ -34,5 +34,5 @@ constructor(
     state: SavedStateHandle,
 ) : ViewModel() {
   val substanceName = state.toRoute<CheckSaferUseRoute>().substanceName
-  val substance = substanceRepo.getSubstance(substanceName)!!
+  val substance = substanceRepo.getSubstance(substanceName)
 }

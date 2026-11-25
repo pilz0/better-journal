@@ -38,7 +38,7 @@ internal object Grouping {
     if (group.isEmpty()) return 0L
     val times = group.mapNotNull { rowTime(it, config).takeIf { t -> t > 0L } }
     if (times.isEmpty()) return 0L
-    return (times.maxOrNull()!! - times.minOrNull()!!).coerceAtLeast(0L)
+    return (times.max() - times.min()).coerceAtLeast(0L)
   }
 
   fun groupSum(group: Rows, config: FreakQueryConfig): Double = group.sumOf {
@@ -170,7 +170,7 @@ internal object Transforms {
 internal fun rowTime(row: Row, config: FreakQueryConfig): Long =
     Aliases.rowGet(config, row, "time")?.toString()?.toLongOrNull() ?: 0L
 
-private data class DayFields(
+internal data class DayFields(
     val year: Int,
     val month: Int,
     val dayOfYear: Int,
@@ -178,21 +178,30 @@ private data class DayFields(
     val weekYear: Int,
 )
 
-private fun dayFields(ms: Long): DayFields {
+internal fun dayFields(ms: Long): DayFields {
   val calendar = Calendar.getInstance()
   calendar.firstDayOfWeek = Calendar.MONDAY
   calendar.minimalDaysInFirstWeek = 4
   calendar.timeInMillis = ms
+  val year = calendar.get(Calendar.YEAR)
+  val month = calendar.get(Calendar.MONTH)
+  val week = calendar.get(Calendar.WEEK_OF_YEAR)
+  val weekYear =
+      when {
+        month == Calendar.DECEMBER && week == 1 -> year + 1
+        month == Calendar.JANUARY && week >= 52 -> year - 1
+        else -> year
+      }
   return DayFields(
-      year = calendar.get(Calendar.YEAR),
-      month = calendar.get(Calendar.MONTH),
+      year = year,
+      month = month,
       dayOfYear = calendar.get(Calendar.DAY_OF_YEAR),
-      week = calendar.get(Calendar.WEEK_OF_YEAR),
-      weekYear = calendar.weekYear,
+      week = week,
+      weekYear = weekYear,
   )
 }
 
-private fun dayStart(ms: Long): Long {
+internal fun dayStart(ms: Long): Long {
   val calendar = Calendar.getInstance()
   calendar.timeInMillis = ms
   calendar.set(Calendar.HOUR_OF_DAY, 0)
@@ -202,7 +211,7 @@ private fun dayStart(ms: Long): Long {
   return calendar.timeInMillis
 }
 
-private fun nextDayStart(ms: Long): Long {
+internal fun nextDayStart(ms: Long): Long {
   val calendar = Calendar.getInstance()
   calendar.timeInMillis = ms
   calendar.add(Calendar.DAY_OF_YEAR, 1)

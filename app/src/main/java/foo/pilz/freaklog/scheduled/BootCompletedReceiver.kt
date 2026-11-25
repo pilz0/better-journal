@@ -10,9 +10,11 @@ import android.content.Intent
 import android.util.Log
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 /**
@@ -39,13 +41,17 @@ class BootCompletedReceiver : BroadcastReceiver() {
       else -> return
     }
     val pendingResult = goAsync()
-    CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+    val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    scope.launch {
       try {
         NotificationScheduler.ensureNotificationChannel(context)
         notificationScheduler.rescheduleAll()
-      } catch (t: Throwable) {
-        Log.e("BootCompletedReceiver", "Failed to reschedule reminders on boot/time change", t)
+      } catch (ce: CancellationException) {
+        throw ce
+      } catch (e: Exception) {
+        Log.e("BootCompletedReceiver", "Failed to reschedule reminders on boot/time change", e)
       } finally {
+        scope.cancel()
         pendingResult.finish()
       }
     }

@@ -52,10 +52,10 @@ constructor(
 ) : ViewModel() {
   private val checkInteractionsRoute = state.toRoute<CheckInteractionsRoute>()
   val substanceName = checkInteractionsRoute.substanceName
-  val substance = substanceRepo.getSubstance(substanceName)!!
-  val dangerousInteractions = substance.interactions?.dangerous ?: emptyList()
-  val unsafeInteractions = substance.interactions?.unsafe ?: emptyList()
-  val uncertainInteractions = substance.interactions?.uncertain ?: emptyList()
+  val substance = substanceRepo.getSubstance(substanceName)
+  val dangerousInteractions = substance?.interactions?.dangerous ?: emptyList()
+  val unsafeInteractions = substance?.interactions?.unsafe ?: emptyList()
+  val uncertainInteractions = substance?.interactions?.uncertain ?: emptyList()
 
   var isSearchingForInteractions by mutableStateOf(true)
   var isShowingAlert by mutableStateOf(false)
@@ -92,13 +92,13 @@ constructor(
             .sortedByDescending { it.time }
     val enabledExtraInteractions = combinationSettingsStorage.enabledInteractionsFlow.first()
     val dangerousExtras = enabledExtraInteractions.filter {
-      substance.interactions?.dangerous?.contains(it) == true
+      substance?.interactions?.dangerous?.contains(it) == true
     }
     val unsafeExtras = enabledExtraInteractions.filter {
-      substance.interactions?.unsafe?.contains(it) == true
+      substance?.interactions?.unsafe?.contains(it) == true
     }
     val uncertainExtras = enabledExtraInteractions.filter {
-      substance.interactions?.uncertain?.contains(it) == true
+      substance?.interactions?.uncertain?.contains(it) == true
     }
     alertInteractionType =
         if (dangerousIngestions.isNotEmpty() || dangerousExtras.isNotEmpty()) {

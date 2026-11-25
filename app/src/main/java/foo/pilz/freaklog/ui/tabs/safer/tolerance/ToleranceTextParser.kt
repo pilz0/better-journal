@@ -60,10 +60,13 @@ object ToleranceTextParser {
     val halfDays = parseDurationText(tolerance.half)
     val zeroDays = parseDurationText(tolerance.zero)
 
-    if (halfDays == null && zeroDays == null) return null
-
-    val effectiveHalf = halfDays ?: (zeroDays!! * 0.5f)
-    val effectiveZero = (zeroDays ?: (halfDays!! * 2.5f)).coerceAtLeast(effectiveHalf)
+    val (effectiveHalf, effectiveZero) =
+        when {
+          halfDays != null && zeroDays != null -> halfDays to zeroDays.coerceAtLeast(halfDays)
+          zeroDays != null -> (zeroDays * 0.5f) to zeroDays
+          halfDays != null -> halfDays to (halfDays * 2.5f).coerceAtLeast(halfDays)
+          else -> return null
+        }
     val effectiveFull = parseDurationText(tolerance.full) ?: 0f
 
     return ParsedTolerance(

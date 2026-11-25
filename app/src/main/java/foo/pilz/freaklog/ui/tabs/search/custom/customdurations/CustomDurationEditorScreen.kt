@@ -594,14 +594,13 @@ fun DurationInputRow(
                     minInput = it
                     try {
                       if (it.isEmpty()) {
-                        onDurationChange(
-                            duration!!.copy(
-                                min = null,
-                                max = null,
-                            )
-                        )
+                        duration?.let { current ->
+                          onDurationChange(current.copy(min = null, max = null))
+                        }
                       } else if (validateNumberField(it)) {
-                        onDurationChange(duration!!.copy(min = it.toFloat()))
+                        duration?.let { current ->
+                          onDurationChange(current.copy(min = it.toFloat()))
+                        }
                       }
                     } catch (_: java.lang.NumberFormatException) {}
                   },
@@ -618,9 +617,11 @@ fun DurationInputRow(
                     maxInput = it
                     try {
                       if (it.isEmpty()) {
-                        onDurationChange(duration!!.copy(max = null))
+                        duration?.let { current -> onDurationChange(current.copy(max = null)) }
                       } else if (validateNumberField(it)) {
-                        onDurationChange(duration!!.copy(max = it.toFloat()))
+                        duration?.let { current ->
+                          onDurationChange(current.copy(max = it.toFloat()))
+                        }
                       }
                     } catch (_: java.lang.NumberFormatException) {}
                   },
@@ -682,7 +683,7 @@ fun DurationInputRow(
                         onClick = {
                           inputUnit = unit
                           unitDropdownOpen = false
-                          onDurationChange(duration!!.copy(units = unit))
+                          duration?.let { current -> onDurationChange(current.copy(units = unit)) }
                         },
                     )
                   }

@@ -184,7 +184,7 @@ private class PageWriter(
   private var tableHeader: (() -> Unit)? = null
 
   private val canvas
-    get() = page!!.canvas
+    get() = checkNotNull(page) { "No active PDF page" }.canvas
 
   fun finish() {
     page?.let {

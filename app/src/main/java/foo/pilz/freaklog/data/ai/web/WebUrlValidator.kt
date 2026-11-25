@@ -8,6 +8,7 @@ import java.net.URI
 import java.net.URISyntaxException
 import java.net.URL
 import java.net.UnknownHostException
+import java.util.Locale
 
 fun interface HostResolver {
   fun resolveAll(host: String): List<InetAddress>
@@ -57,17 +58,17 @@ object WebUrlValidator {
             !parsed.protocol.equals("https", ignoreCase = true)
     val hasCredentials = uri.rawUserInfo != null || parsed.userInfo != null
     val host = parsed.host?.trim()?.takeIf { it.isNotEmpty() }
+    if (host == null) throw AiException("URL must include a host.")
+    val bareHost = host.removePrefix("[").removeSuffix("]")
     val error =
         when {
           invalidScheme -> "Only public https:// URLs are allowed."
           hasCredentials -> "URLs with embedded credentials are not allowed."
-          host == null -> "URL must include a host."
-          isLocalHostname(host.removePrefix("[").removeSuffix("]")) ->
-              "Refusing to connect to local or private host '${host.removePrefix("[").removeSuffix("]")}'."
+          isLocalHostname(bareHost) -> "Refusing to connect to local or private host '$bareHost'."
           else -> null
         }
     if (error != null) throw AiException(error)
-    return host!!
+    return host
   }
 
   private fun resolveAndVerifyPublicHost(bareHost: String, resolver: HostResolver) {
@@ -103,7 +104,7 @@ object WebUrlValidator {
     return try {
       val uri = URI(text)
       val parsed = URL(text)
-      val proto = parsed.protocol?.lowercase()
+      val proto = parsed.protocol?.lowercase(Locale.ROOT)
       val invalid =
           (proto != "http" && proto != "https") ||
               parsed.host.isNullOrBlank() ||
@@ -119,7 +120,7 @@ object WebUrlValidator {
   }
 
   internal fun isLocalHostname(host: String): Boolean {
-    val lower = host.lowercase()
+    val lower = host.lowercase(Locale.ROOT)
     return lower == "localhost" ||
         lower.endsWith(".localhost") ||
         lower.endsWith(".local") ||

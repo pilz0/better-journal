@@ -186,6 +186,7 @@ constructor(
                   if (text.isEmpty()) "Connected." else "Connected. The model replied: $text"
               )
             } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+              android.util.Log.w("AiProfileEditorViewModel", "Connection test timed out", e)
               ConnectionTest.Failed("No answer within ${TEST_TIMEOUT_MS / 1000} seconds.")
             } catch (ce: CancellationException) {
               throw ce

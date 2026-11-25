@@ -26,8 +26,8 @@ import foo.pilz.freaklog.ui.tabs.search.substance.roa.toPreservedString
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 
 /**
  * Schedules and cancels reminder alarms.
@@ -155,7 +155,7 @@ constructor(
    * are omitted because, for an unsaved reminder, there is no row for `ReminderActionReceiver` to
    * act on.
    */
-  fun testNotification(reminder: Reminder) {
+  suspend fun testNotification(reminder: Reminder) {
     postReminderNotification(
         reminder,
         includeActions = false,
@@ -165,9 +165,9 @@ constructor(
 
   /**
    * Posts the user-visible notification for [reminder]. Shared between the alarm path (via
-   * [ReminderReceiver]) and the synchronous test path.
+   * [ReminderReceiver]) and the test path.
    */
-  fun postReminderNotification(
+  suspend fun postReminderNotification(
       reminder: Reminder,
       includeActions: Boolean = true,
       notificationId: Int = reminder.id,
@@ -198,9 +198,15 @@ constructor(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
-    val isLocked = runBlocking {
-      runCatching { userPreferences.isLockEnabledFlow.first() }.getOrDefault(false)
-    }
+    val isLocked =
+        try {
+          userPreferences.isLockEnabledFlow.first()
+        } catch (ce: CancellationException) {
+          throw ce
+        } catch (_: Exception) {
+          // Fail closed so substance details aren't exposed on a notification if preferences fail.
+          true
+        }
 
     val title = if (isLocked) "Reminder" else reminder.title.ifBlank { "Reminder" }
     val body = if (isLocked) "Time for your scheduled reminder." else buildBody(reminder)

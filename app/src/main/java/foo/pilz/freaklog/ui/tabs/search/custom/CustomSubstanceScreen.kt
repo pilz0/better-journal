@@ -178,9 +178,9 @@ fun CustomSubstanceScreen(
                 modifier = Modifier.padding(spacing.lg),
                 verticalArrangement = Arrangement.spacedBy(spacing.md),
             ) {
-              if (custom.summary != null) {
+              custom.summary?.let { summary ->
                 Text(
-                    text = custom.summary!!,
+                    text = summary,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -357,19 +357,19 @@ fun CustomSubstanceScreen(
         item(key = "interactions_card") { InteractionsContent(rows = interactionRows) }
       }
 
-      if (custom.effectsText != null) {
+      custom.effectsText?.let { effectsText ->
         item(key = "effects_header") { SectionHeader("Effects") }
-        item(key = "effects_card") { TextCard(custom.effectsText!!) }
+        item(key = "effects_card") { TextCard(effectsText) }
       }
 
-      if (custom.generalRisks != null) {
+      custom.generalRisks?.let { generalRisks ->
         item(key = "risks_header") { SectionHeader("Risks") }
-        item(key = "risks_card") { TextCard(custom.generalRisks!!) }
+        item(key = "risks_card") { TextCard(generalRisks) }
       }
 
-      if (custom.longTermRisks != null) {
+      custom.longTermRisks?.let { longTermRisks ->
         item(key = "long_term_risks_header") { SectionHeader("Long-term risks") }
-        item(key = "long_term_risks_card") { TextCard(custom.longTermRisks!!) }
+        item(key = "long_term_risks_card") { TextCard(longTermRisks) }
       }
 
       if (anodyneSubstance != null) {

@@ -140,16 +140,20 @@ internal object Planner {
     for (part in parts) {
       if ("=" in part) {
         val key = part.substringBefore("=")
-        if (key in setOf("substance", "route", "limit", "top", "ratio")) {
-          if (current != Types.LOG_ROWS) return false to "$key= requires log_rows, got $current"
+        if (
+            key in setOf("substance", "route", "limit", "top", "ratio") && current != Types.LOG_ROWS
+        ) {
+          return false to "$key= requires log_rows, got $current"
         }
-        continue
+      } else {
+        val allowed = Tags.accepts(part)
+        if (allowed != null) {
+          if (Types.ANY !in allowed && current !in allowed) {
+            return false to "$part requires ${allowed.sorted().joinToString("/")}, got $current"
+          }
+          current = Tags.returns(part) ?: current
+        }
       }
-      val allowed = Tags.accepts(part) ?: continue
-      if (Types.ANY !in allowed && current !in allowed) {
-        return false to "$part requires ${allowed.sorted().joinToString("/")}, got $current"
-      }
-      current = Tags.returns(part) ?: current
     }
     return true to null
   }
@@ -158,42 +162,47 @@ internal object Planner {
     val plan = QueryPlan()
     for (raw in parts) {
       val part = raw.trim()
-      if (part.isEmpty()) continue
-      val low = part.lowercase(Locale.ROOT)
-
-      if ("=" in part) {
-        val key = part.substringBefore("=").trim().lowercase(Locale.ROOT)
-        val value = part.substringAfter("=").trim()
-        when {
-          key == "ratio" -> plan.metrics += "ratio=${value.lowercase(Locale.ROOT)}"
-          key == "sequence" -> plan.metrics += "sequence=$value"
-          key == "field" -> plan.params["field"] = value
-          key in setOf("limit", "top") -> plan.params["limit"] = parseValue(value)
-          key == "reverse" -> plan.params["reverse"] = parseValue(value)
-          key in displayOnly -> plan.display[key] = parseValue(value)
-          else -> plan.filters += "$key=$value"
-        }
-        continue
-      }
-
-      when {
-        low in setOf("today", "week", "month", "year") -> plan.filters += low
-        low == "reverse" -> plan.params["reverse"] = true
-        low in fieldExtractors -> {
-          if (plan.selector != null) plan.metrics += low else plan.display[low] = true
-        }
-        low in displayOnly -> plan.display[low] = true
-        low == "json" -> plan.formats += "json"
-        Tags.contains(low) ->
-            when (Tags.stage(low)) {
-              "group" -> plan.group = low
-              "selector" -> plan.selector = low
-              "metric" -> plan.metrics += low
-            }
+      if (part.isNotEmpty()) {
+        applyPlanPart(part, plan)
       }
     }
     applyDefaultLimits(plan, config)
     return plan
+  }
+
+  private fun applyPlanPart(part: String, plan: QueryPlan) {
+    val low = part.lowercase(Locale.ROOT)
+    if ("=" in part) {
+      val key = part.substringBefore("=").trim().lowercase(Locale.ROOT)
+      val value = part.substringAfter("=").trim()
+      when {
+        key == "ratio" -> plan.metrics += "ratio=${value.lowercase(Locale.ROOT)}"
+        key == "sequence" -> plan.metrics += "sequence=$value"
+        key == "field" -> plan.params["field"] = value
+        key in setOf("limit", "top") ->
+            plan.params["limit"] = value.trim().toIntOrNull() ?: parseValue(value)
+        key == "reverse" -> plan.params["reverse"] = parseValue(value)
+        key in displayOnly -> plan.display[key] = parseValue(value)
+        else -> plan.filters += "$key=$value"
+      }
+      return
+    }
+
+    when {
+      low in setOf("today", "week", "month", "year") -> plan.filters += low
+      low == "reverse" -> plan.params["reverse"] = true
+      low in fieldExtractors -> {
+        if (plan.selector != null) plan.metrics += low else plan.display[low] = true
+      }
+      low in displayOnly -> plan.display[low] = true
+      low == "json" -> plan.formats += "json"
+      Tags.contains(low) ->
+          when (Tags.stage(low)) {
+            "group" -> plan.group = low
+            "selector" -> plan.selector = low
+            "metric" -> plan.metrics += low
+          }
+    }
   }
 
   private fun parseValue(value: String): Any {

@@ -182,10 +182,41 @@
                 nativeBuildInputs = [
                   pkgs.actionlint
                   pkgs.shellcheck
+                  pkgs.zizmor
                 ];
               }
               ''
+                set -eu
                 actionlint -shellcheck=shellcheck -pyflakes= ${./.github/workflows}/*.yml
+                zizmor --offline --config ${./.github/zizmor.yml} ${./.github/workflows}
+                touch $out
+              '';
+
+          nix-lint =
+            pkgs.runCommand "nix-lint"
+              {
+                nativeBuildInputs = [
+                  pkgs.statix
+                  pkgs.deadnix
+                ];
+              }
+              ''
+                set -eu
+                statix check ${./.}
+                deadnix --fail ${./.}
+                touch $out
+              '';
+
+          shell-lint =
+            pkgs.runCommand "shell-lint"
+              {
+                nativeBuildInputs = [
+                  pkgs.shellcheck
+                ];
+              }
+              ''
+                set -eu
+                shellcheck ${./.github/scripts}/*.sh
                 touch $out
               '';
 
@@ -234,25 +265,38 @@
             ${pkgs.coreutils}/bin/touch $out
           '';
 
-          nix-room-schema-v27-present = pkgs.runCommand "nix-room-schema-v27-present" { } ''
+          nix-room-schemas-valid = pkgs.runCommand "nix-room-schemas-valid" { } ''
             set -eu
-            schema_file="${./app/schemas/foo.pilz.freaklog.data.room.AppDatabase/27.json}"
-            if [ ! -s "$schema_file" ]; then
-              echo "Room schema version 27 is missing or empty"
+            app_db=${./app/src/main/java/foo/pilz/freaklog/data/room/AppDatabase.kt}
+            latest_ver="$(${pkgs.gnugrep}/bin/grep -Eo 'LATEST_SCHEMA_VERSION:\s*Int\s*=\s*[0-9]+' "$app_db" | ${pkgs.gnused}/bin/sed -E 's/.*=\s*([0-9]+)/\1/')"
+            if [ -z "$latest_ver" ]; then
+              echo "Failed to parse LATEST_SCHEMA_VERSION from AppDatabase.kt"
               exit 1
             fi
-            version="$(${pkgs.jq}/bin/jq '.formatVersion' "$schema_file")"
-            if [ "$version" != "1" ]; then
-              echo "Unexpected Room schema formatVersion: $version"
-              exit 1
-            fi
+            schema_dir="${./app/schemas/foo.pilz.freaklog.data.room.AppDatabase}"
+            for v in $(${pkgs.coreutils}/bin/seq 1 "$latest_ver"); do
+              if [ "$v" = "13" ]; then
+                continue
+              fi
+              schema_file="$schema_dir/$v.json"
+              if [ ! -s "$schema_file" ]; then
+                echo "Room schema version $v is missing or empty"
+                exit 1
+              fi
+              fmt_ver="$(${pkgs.jq}/bin/jq '.formatVersion' "$schema_file")"
+              db_ver="$(${pkgs.jq}/bin/jq '.database.version' "$schema_file")"
+              if [ "$fmt_ver" != "1" ] || [ "$db_ver" != "$v" ]; then
+                echo "Invalid Room schema $v.json: formatVersion=$fmt_ver database.version=$db_ver"
+                exit 1
+              fi
+            done
             ${pkgs.coreutils}/bin/touch $out
           '';
 
           nix-no-legacy-package-leaks = pkgs.runCommand "nix-no-legacy-package-leaks" { } ''
             set -eu
-            if ${pkgs.gnugrep}/bin/grep -rn "com\.isaakhanimann\.journal" ${./app/src/main} ; then
-              echo "Found legacy package references to com.isaakhanimann.journal in app/src/main"
+            if ${pkgs.gnugrep}/bin/grep -rn "com\.isaakhanimann\.journal" ${./app/src} ${./freakquery-android/src} ; then
+              echo "Found legacy package references to com.isaakhanimann.journal"
               exit 1
             fi
             ${pkgs.coreutils}/bin/touch $out
@@ -270,6 +314,29 @@
                 exit 1
               }
             done
+            ${pkgs.python3}/bin/python3 - ${./.github/workflows}/*.yml <<'PY'
+            import re, sys
+
+            for wf in sys.argv[1:]:
+                with open(wf, encoding="utf-8") as f:
+                    lines = f.readlines()
+                for idx, line in enumerate(lines, 1):
+                    stripped = line.strip()
+                    if stripped.startswith("#"):
+                        continue
+                    m = re.match(r"^(?:-\s+)?uses:\s*([^\s#]+)", stripped)
+                    if m:
+                        ref = m.group(1)
+                        if not ref.startswith("./") and not ref.startswith("$/"):
+                            if not re.search(r"@[0-9a-f]{40}$", ref):
+                                print(f"Unpinned action in {wf}:{idx}: {ref}")
+                                sys.exit(1)
+                        if ref.startswith("actions/checkout@"):
+                            block = "".join(lines[idx - 1 : min(len(lines), idx + 8)])
+                            if "persist-credentials: false" not in block:
+                                print(f"Checkout missing persist-credentials: false in {wf}:{idx}")
+                                sys.exit(1)
+            PY
             ${pkgs.coreutils}/bin/touch $out
           '';
 
@@ -290,7 +357,10 @@
             pkgs.jdk17
             pkgs.jdk21
             pkgs.actionlint
+            pkgs.deadnix
             pkgs.shellcheck
+            pkgs.statix
+            pkgs.zizmor
             androidSdk.androidsdk
             pkgs.ripgrep
             pkgs.jq
@@ -324,11 +394,13 @@
         treefmt.x86_64-linux = self.checks.x86_64-linux.treefmt;
         ai-instructions-in-sync.x86_64-linux = self.checks.x86_64-linux.ai-instructions-in-sync;
         workflow-lint.x86_64-linux = self.checks.x86_64-linux.workflow-lint;
+        nix-lint.x86_64-linux = self.checks.x86_64-linux.nix-lint;
+        shell-lint.x86_64-linux = self.checks.x86_64-linux.shell-lint;
         nix-version-sync.x86_64-linux = self.checks.x86_64-linux.nix-version-sync;
         nix-gradle-lock-present.x86_64-linux = self.checks.x86_64-linux.nix-gradle-lock-present;
         nix-release-artifact-paths.x86_64-linux = self.checks.x86_64-linux.nix-release-artifact-paths;
         nix-substances-json-valid.x86_64-linux = self.checks.x86_64-linux.nix-substances-json-valid;
-        nix-room-schema-v27-present.x86_64-linux = self.checks.x86_64-linux.nix-room-schema-v27-present;
+        nix-room-schemas-valid.x86_64-linux = self.checks.x86_64-linux.nix-room-schemas-valid;
         nix-no-legacy-package-leaks.x86_64-linux = self.checks.x86_64-linux.nix-no-legacy-package-leaks;
         nix-workflow-security-invariants.x86_64-linux =
           self.checks.x86_64-linux.nix-workflow-security-invariants;

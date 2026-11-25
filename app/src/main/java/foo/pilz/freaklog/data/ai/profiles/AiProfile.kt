@@ -7,6 +7,7 @@ import foo.pilz.freaklog.data.ai.provider.AnthropicMessagesClient
 import foo.pilz.freaklog.data.ai.provider.GeminiClient
 import foo.pilz.freaklog.data.ai.provider.OpenAiChatClient
 import java.net.URI
+import java.util.Locale
 import kotlinx.serialization.Serializable
 
 /**
@@ -148,7 +149,7 @@ data class AiProfile(
 fun isInsecureRemoteUrl(url: String): Boolean {
   val uri = runCatching { URI(url.trim()) }.getOrNull() ?: return false
   if (!uri.scheme.equals("http", ignoreCase = true)) return false
-  val host = uri.host?.lowercase() ?: return false
+  val host = uri.host?.lowercase(Locale.ROOT) ?: return false
   return host != "localhost" && host != "127.0.0.1" && host != "::1" && host != "[::1]"
 }
 

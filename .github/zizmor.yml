@@ -1,0 +1,17 @@
+rules:
+  dangerous-triggers:
+    ignore:
+      # release.yml's preconditions job verifies via the GitHub API that the
+      # upstream workflow_run came from a push on the repository's default branch
+      # or a repository tag before any secret-bearing job is allowed to run.
+      - release.yml
+  self-repository:
+    ignore:
+      # GitHub Actions reusable workflow calls require `./.github/workflows/...`
+      # syntax for actionlint compatibility across all runners.
+      - build.yml
+  superfluous-actions:
+    ignore:
+      # softprops/action-gh-release handles asset globbing, release notes, and
+      # atomic tag release creation across matrix outputs cleanly.
+      - release.yml

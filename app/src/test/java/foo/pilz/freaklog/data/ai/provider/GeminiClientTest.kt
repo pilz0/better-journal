@@ -6,6 +6,7 @@ import assertk.assertions.containsExactly
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
 import assertk.assertions.messageContains
+import java.util.Locale
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
@@ -144,5 +145,24 @@ class GeminiClientTest {
             ),
     )
     assertThat(client.listModels()).containsExactly("gemini-a", "gemini-b")
+  }
+
+  @Test
+  fun upperCaseSchemaTypesUsesRootLocaleUnderTurkishLocale() {
+    val previous = Locale.getDefault()
+    Locale.setDefault(Locale.forLanguageTag("tr-TR"))
+    try {
+      val schema =
+          JSONObject(
+              """{"type":"object","properties":{"count":{"type":"integer"},"q":{"type":"string"}}}"""
+          )
+      val upper = AiJson.upperCaseSchemaTypes(schema)
+      assertThat(upper.getString("type")).isEqualTo("OBJECT")
+      val props = upper.getJSONObject("properties")
+      assertThat(props.getJSONObject("count").getString("type")).isEqualTo("INTEGER")
+      assertThat(props.getJSONObject("q").getString("type")).isEqualTo("STRING")
+    } finally {
+      Locale.setDefault(previous)
+    }
   }
 }

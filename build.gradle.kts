@@ -20,5 +20,5 @@ plugins {
 tasks.register("detektAll") {
   group = "verification"
   description = "Runs Detekt across all Kotlin modules."
-  dependsOn(":app:detekt")
+  dependsOn(":app:detekt", ":freakquery-android:detekt")
 }

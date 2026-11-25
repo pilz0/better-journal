@@ -12,9 +12,11 @@ import dagger.hilt.android.AndroidEntryPoint
 import foo.pilz.freaklog.data.room.reminders.RemindersRepository
 import foo.pilz.freaklog.scheduled.NotificationScheduler.Companion.EXTRA_REMINDER_ID
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 /**
@@ -32,7 +34,8 @@ class ReminderReceiver : BroadcastReceiver() {
     if (reminderId == -1) return
 
     val pendingResult = goAsync()
-    CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+    val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    scope.launch {
       try {
         val reminder = remindersRepository.getReminderById(reminderId) ?: return@launch
         notificationScheduler.postReminderNotification(reminder)
@@ -42,9 +45,12 @@ class ReminderReceiver : BroadcastReceiver() {
               fromMillis = System.currentTimeMillis() + 1000L,
           )
         }
-      } catch (t: Throwable) {
-        Log.e("ReminderReceiver", "Error processing reminder alarm for id $reminderId", t)
+      } catch (ce: CancellationException) {
+        throw ce
+      } catch (e: Exception) {
+        Log.e("ReminderReceiver", "Error processing reminder alarm for id $reminderId", e)
       } finally {
+        scope.cancel()
         pendingResult.finish()
       }
     }

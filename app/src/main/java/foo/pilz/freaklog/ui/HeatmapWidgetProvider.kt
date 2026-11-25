@@ -108,14 +108,12 @@ class HeatmapAppWidget : GlanceAppWidget() {
                 ),
         )
       }
-      return
     }
     provideContent {
       val prefs = currentState<Preferences>()
       val hasData = prefs[HeatmapWidgetKeys.HAS_DATA] ?: false
       val isLoading = prefs[HeatmapWidgetKeys.IS_LOADING] ?: true
       val heatmapImagePath = prefs[HeatmapWidgetKeys.HEATMAP_IMAGE_PATH]
-      val ingestionCount = prefs[HeatmapWidgetKeys.INGESTION_COUNT] ?: "0"
 
       val openAppIntent =
           Intent(context, MainActivity::class.java).apply {

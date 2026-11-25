@@ -39,6 +39,7 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.models.IngestionElement
 import foo.pilz.freaklog.ui.tabs.journal.experience.models.InteractionExplanation
 import foo.pilz.freaklog.ui.tabs.journal.experience.models.OneExperienceScreenModel
 import foo.pilz.freaklog.ui.utils.getInstant
+import java.time.Instant
 
 class OneExperienceScreenPreviewProvider : PreviewParameterProvider<OneExperienceScreenModel> {
 
@@ -55,7 +56,7 @@ class OneExperienceScreenPreviewProvider : PreviewParameterProvider<OneExperienc
                       day = 19,
                       hourOfDay = 20,
                       minute = 5,
-                  )!!,
+                  ) ?: Instant.EPOCH,
               notes = "Some Notes",
               locationName = "Zurich",
               isCurrentExperience = true,
@@ -107,7 +108,7 @@ class OneExperienceScreenPreviewProvider : PreviewParameterProvider<OneExperienc
                                   day = 20,
                                   hourOfDay = 1,
                                   minute = 15,
-                              )!!,
+                              ) ?: Instant.EPOCH,
                           creationDate =
                               getInstant(
                                   year = 2022,
@@ -115,7 +116,7 @@ class OneExperienceScreenPreviewProvider : PreviewParameterProvider<OneExperienc
                                   day = 20,
                                   hourOfDay = 1,
                                   minute = 15,
-                              )!!,
+                              ) ?: Instant.EPOCH,
                           option = ShulginRatingOption.TWO_PLUS,
                           experienceId = 0,
                       ),
@@ -127,7 +128,7 @@ class OneExperienceScreenPreviewProvider : PreviewParameterProvider<OneExperienc
                                   day = 20,
                                   hourOfDay = 3,
                                   minute = 15,
-                              )!!,
+                              ) ?: Instant.EPOCH,
                           creationDate =
                               getInstant(
                                   year = 2022,
@@ -135,7 +136,7 @@ class OneExperienceScreenPreviewProvider : PreviewParameterProvider<OneExperienc
                                   day = 20,
                                   hourOfDay = 1,
                                   minute = 15,
-                              )!!,
+                              ) ?: Instant.EPOCH,
                           option = ShulginRatingOption.PLUS,
                           experienceId = 0,
                       ),
@@ -150,7 +151,7 @@ class OneExperienceScreenPreviewProvider : PreviewParameterProvider<OneExperienc
                                   day = 19,
                                   hourOfDay = 23,
                                   minute = 25,
-                              )!!,
+                              ) ?: Instant.EPOCH,
                           time =
                               getInstant(
                                   year = 2022,
@@ -158,7 +159,7 @@ class OneExperienceScreenPreviewProvider : PreviewParameterProvider<OneExperienc
                                   day = 19,
                                   hourOfDay = 23,
                                   minute = 25,
-                              )!!,
+                              ) ?: Instant.EPOCH,
                           note = "Onset start",
                           color = AdaptiveColor.PURPLE,
                           experienceId = 0,
@@ -172,7 +173,7 @@ class OneExperienceScreenPreviewProvider : PreviewParameterProvider<OneExperienc
                                   day = 19,
                                   hourOfDay = 23,
                                   minute = 25,
-                              )!!,
+                              ) ?: Instant.EPOCH,
                           time =
                               getInstant(
                                   year = 2022,
@@ -180,7 +181,7 @@ class OneExperienceScreenPreviewProvider : PreviewParameterProvider<OneExperienc
                                   day = 19,
                                   hourOfDay = 23,
                                   minute = 45,
-                              )!!,
+                              ) ?: Instant.EPOCH,
                           note =
                               "Peak start and this is a note that spans multiple lines, so long that we can see what a bigger layout looks like.",
                           color = AdaptiveColor.BLUE,
@@ -209,7 +210,7 @@ class OneExperienceScreenPreviewProvider : PreviewParameterProvider<OneExperienc
                                         day = 19,
                                         hourOfDay = 20,
                                         minute = 5,
-                                    )!!,
+                                    ) ?: Instant.EPOCH,
                                 endTime = null,
                                 administrationRoute = AdministrationRoute.ORAL,
                                 dose = 90.0,
@@ -283,7 +284,7 @@ class OneExperienceScreenPreviewProvider : PreviewParameterProvider<OneExperienc
                                         day = 19,
                                         hourOfDay = 23,
                                         minute = 5,
-                                    )!!,
+                                    ) ?: Instant.EPOCH,
                                 endTime = null,
                                 administrationRoute = AdministrationRoute.INSUFFLATED,
                                 dose = 80.0,
@@ -352,7 +353,7 @@ class OneExperienceScreenPreviewProvider : PreviewParameterProvider<OneExperienc
                                         day = 20,
                                         hourOfDay = 1,
                                         minute = 15,
-                                    )!!,
+                                    ) ?: Instant.EPOCH,
                                 endTime = null,
                                 administrationRoute = AdministrationRoute.INSUFFLATED,
                                 dose = 50.0,

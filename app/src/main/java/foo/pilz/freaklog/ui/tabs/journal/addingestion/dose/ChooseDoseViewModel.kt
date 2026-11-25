@@ -38,7 +38,6 @@ import foo.pilz.freaklog.ui.utils.isValidDoseInput
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 @HiltViewModel
 class ChooseDoseViewModel
@@ -62,13 +61,16 @@ constructor(
       chooseDoseRoute?.substanceName ?: state.get<String>("substanceName") ?: ""
   val substance: Substance? = repository.getSubstance(substanceName)
   val doseRemark: String? = substance?.dosageRemark
-  private val useIntranasalForRectal: Boolean = runBlocking {
-    userPreferences.useIntranasalForRectalFlow.first()
-  }
-  private val effectiveRoa = substance?.getEffectiveRoa(administrationRoute, useIntranasalForRectal)
-  val roaDose: RoaDose? = effectiveRoa?.roaDose
-  val roaDuration: foo.pilz.freaklog.data.substances.classes.roa.RoaDuration? =
-      effectiveRoa?.roaDuration
+  private var useIntranasalForRectal by mutableStateOf(false)
+  private val effectiveRoa
+    get() = substance?.getEffectiveRoa(administrationRoute, useIntranasalForRectal)
+
+  val roaDose: RoaDose?
+    get() = effectiveRoa?.roaDose
+
+  val roaDuration: foo.pilz.freaklog.data.substances.classes.roa.RoaDuration?
+    get() = effectiveRoa?.roaDuration
+
   var isEstimate by mutableStateOf(false)
   var doseText by mutableStateOf("")
   var estimatedDoseStandardDeviationText by mutableStateOf("")
@@ -154,8 +156,15 @@ constructor(
     }
 
   init {
-    units = roaDose?.units ?: ""
-    viewModelScope.launch { loadIntakeLimits() }
+    val initialUnits = roaDose?.units ?: ""
+    units = initialUnits
+    viewModelScope.launch {
+      useIntranasalForRectal = userPreferences.useIntranasalForRectalFlow.first()
+      if (units == initialUnits) {
+        roaDose?.units?.let { units = it }
+      }
+      loadIntakeLimits()
+    }
   }
 
   private suspend fun loadIntakeLimits() {

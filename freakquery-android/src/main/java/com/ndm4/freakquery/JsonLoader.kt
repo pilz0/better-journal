@@ -1,3 +1,5 @@
+@file:Suppress("MatchingDeclarationName")
+
 package com.ndm4.freakquery
 
 import java.io.File
@@ -43,11 +45,24 @@ object FreakQueryLoader {
     val experiences = data.optJSONArray("experiences") ?: return emptyList()
 
     for (i in 0 until experiences.length()) {
-      val exp = experiences.optJSONObject(i) ?: continue
-      val ingestions = exp.optJSONArray("ingestions") ?: continue
+      val exp = experiences.optJSONObject(i)
+      val ingestions = exp?.optJSONArray("ingestions")
+      if (ingestions != null) {
+        appendExperienceIngestions(ingestions, config, rows)
+      }
+    }
 
-      for (j in 0 until ingestions.length()) {
-        val ing = ingestions.optJSONObject(j) ?: continue
+    return rows
+  }
+
+  private fun appendExperienceIngestions(
+      ingestions: JSONArray,
+      config: FreakQueryConfig,
+      rows: MutableList<MutableMap<String, Any?>>,
+  ) {
+    for (j in 0 until ingestions.length()) {
+      val ing = ingestions.optJSONObject(j)
+      if (ing != null) {
         val time = jsonValue(ing, "time")
         val id = time?.toString()?.toLongOrNull() ?: (rows.size + 1).toLong()
 
@@ -82,8 +97,6 @@ object FreakQueryLoader {
         rows += row
       }
     }
-
-    return rows
   }
 
   private fun jsonArrayToRows(array: JSONArray): List<Map<String, Any?>> {

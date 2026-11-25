@@ -59,7 +59,7 @@ constructor(
           ?: runCatching { state.toRoute<SubstanceRoute>().substanceName }.getOrNull()
           ?: ""
 
-  val substanceWithCategories = substanceRepo.getSubstanceWithCategories(substanceName)!!
+  val substanceWithCategories = substanceRepo.getSubstanceWithCategories(substanceName)
 
   val anodyneSubstanceFlow = MutableStateFlow<AnodyneSubstance?>(null)
   val isAnodyneLoadingFlow = MutableStateFlow(false)
@@ -80,7 +80,7 @@ constructor(
   fun loadAnodyneData() {
     viewModelScope.launch {
       isAnodyneLoadingFlow.value = true
-      val otherNames = substanceWithCategories.substance.commonNames
+      val otherNames = substanceWithCategories?.substance?.commonNames.orEmpty()
       val res = anodyneRepo.lookup(substanceName, otherNames)
       anodyneSubstanceFlow.value = res.getOrNull()
       anodyneProblemFlow.value = AnodyneRepository.lookupProblem(res)
@@ -108,7 +108,9 @@ constructor(
   val timelineDisplayOptionFlow =
       ingestionTimeFlow
           .map { ingestionTime ->
-            val substance = substanceWithCategories.substance
+            val substance =
+                substanceWithCategories?.substance
+                    ?: return@map TimelineDisplayOption.NotWorthDrawing
             val roasWithDurationsDefined =
                 substance.roas.filter { roa ->
                   val roaDuration = roa.roaDuration

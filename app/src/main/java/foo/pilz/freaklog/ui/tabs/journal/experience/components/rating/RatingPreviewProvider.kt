@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import foo.pilz.freaklog.data.room.experiences.entities.ShulginRating
 import foo.pilz.freaklog.data.room.experiences.entities.ShulginRatingOption
 import foo.pilz.freaklog.ui.utils.getInstant
+import java.time.Instant
 
 class RatingPreviewProvider : PreviewParameterProvider<ShulginRating> {
   override val values: Sequence<ShulginRating> =
@@ -34,7 +35,7 @@ class RatingPreviewProvider : PreviewParameterProvider<ShulginRating> {
                       day = 20,
                       hourOfDay = 1,
                       minute = 15,
-                  )!!,
+                  ) ?: Instant.EPOCH,
               creationDate =
                   getInstant(
                       year = 2022,
@@ -42,7 +43,7 @@ class RatingPreviewProvider : PreviewParameterProvider<ShulginRating> {
                       day = 20,
                       hourOfDay = 1,
                       minute = 15,
-                  )!!,
+                  ) ?: Instant.EPOCH,
               option = ShulginRatingOption.THREE_PLUS,
               experienceId = 0,
           ),
@@ -54,7 +55,7 @@ class RatingPreviewProvider : PreviewParameterProvider<ShulginRating> {
                       day = 20,
                       hourOfDay = 3,
                       minute = 15,
-                  )!!,
+                  ) ?: Instant.EPOCH,
               creationDate =
                   getInstant(
                       year = 2022,
@@ -62,7 +63,7 @@ class RatingPreviewProvider : PreviewParameterProvider<ShulginRating> {
                       day = 20,
                       hourOfDay = 3,
                       minute = 15,
-                  )!!,
+                  ) ?: Instant.EPOCH,
               option = ShulginRatingOption.TWO_PLUS,
               experienceId = 0,
           ),

@@ -3,6 +3,7 @@ package foo.pilz.freaklog.data.substanceshare
 import android.content.Context
 import android.net.Uri
 import foo.pilz.freaklog.data.room.experiences.CustomSubstanceRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
@@ -31,7 +32,9 @@ suspend fun parseAndImport(
   val text =
       try {
         context.contentResolver.openInputStream(uri)?.use { it.bufferedReader().readText() }
-      } catch (e: Exception) {
+      } catch (ce: CancellationException) {
+        throw ce
+      } catch (_: Exception) {
         null
       } ?: return ImportResult.Failed(ImportFailure.OpenStream)
 
@@ -39,6 +42,7 @@ suspend fun parseAndImport(
       try {
         json.decodeFromString(SharedSubstanceEnvelope.serializer(), text)
       } catch (e: SerializationException) {
+        android.util.Log.w("SharedSubstanceImporter", "Failed to parse shared substance", e)
         return ImportResult.Failed(ImportFailure.Parse)
       }
 

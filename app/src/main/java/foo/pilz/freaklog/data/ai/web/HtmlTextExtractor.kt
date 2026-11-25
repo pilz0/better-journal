@@ -1,5 +1,7 @@
 package foo.pilz.freaklog.data.ai.web
 
+import java.util.Locale
+
 data class ExtractedHtml(val title: String, val text: String)
 
 /**
@@ -55,10 +57,11 @@ object HtmlTextExtractor {
     val state = ExtractState(minOf(html.length, 65_536))
     var i = 0
     while (i < html.length) {
+      val skipTag = state.skipTag
       i =
           when {
-            state.skipTag != null -> {
-              val nextIndex = advanceInsideSkippedTag(html, i, state.skipTag!!, state.skipDepth)
+            skipTag != null -> {
+              val nextIndex = advanceInsideSkippedTag(html, i, skipTag, state.skipDepth)
               state.skipDepth = nextIndex.second
               if (state.skipDepth == 0) state.skipTag = null
               nextIndex.first
@@ -149,7 +152,7 @@ object HtmlTextExtractor {
   }
 
   private fun decodeEntity(name: String): String? {
-    NAMED_ENTITIES[name.lowercase()]?.let {
+    NAMED_ENTITIES[name.lowercase(Locale.ROOT)]?.let {
       return it
     }
     if (!name.startsWith("#")) return null
@@ -257,7 +260,7 @@ object HtmlTextExtractor {
     var end = 0
     while (end < body.length && !body[end].isWhitespace() && body[end] != '/') end++
     if (end == 0) return null
-    val name = body.substring(0, end).lowercase()
+    val name = body.substring(0, end).lowercase(Locale.ROOT)
     val isSelfClosing = !isClosing && trimmed.endsWith('/')
     return ParsedTag(name, isClosing, isSelfClosing)
   }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
@@ -28,7 +29,9 @@ suspend fun parseAndImportColors(
   val text =
       try {
         context.contentResolver.openInputStream(uri)?.use { it.bufferedReader().readText() }
-      } catch (e: Exception) {
+      } catch (ce: CancellationException) {
+        throw ce
+      } catch (_: Exception) {
         null
       } ?: return ColorImportResult.Failed(ImportFailure.OpenStream)
 
@@ -36,6 +39,7 @@ suspend fun parseAndImportColors(
       try {
         json.decodeFromString(SharedSubstanceColorsEnvelope.serializer(), text)
       } catch (e: SerializationException) {
+        android.util.Log.w("SharedSubstanceColorsImporter", "Failed to parse shared colors", e)
         return ColorImportResult.Failed(ImportFailure.Parse)
       }
 

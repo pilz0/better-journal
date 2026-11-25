@@ -1,3 +1,5 @@
+@file:Suppress("LongMethod", "LargeClass")
+
 package com.ndm4.freakquery
 
 object AnodyneAliases {

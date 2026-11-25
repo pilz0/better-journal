@@ -1070,4 +1070,36 @@ class WebhookServiceHttpTest {
     assertNull(result.messageId)
     assertEquals(1, server.requestCount)
   }
+
+  @Test
+  fun sendWebhookRethrowsCancellationExceptionInsteadOfSwallowing() = runBlocking {
+    enqueue(500)
+    val cancellingService =
+        WebhookService(
+            logger = WebhookLogger { _, _ -> },
+            delayMillis = { throw kotlinx.coroutines.CancellationException("job cancelled") },
+        )
+
+    var cancelled = false
+    try {
+      cancellingService.sendWebhook(
+          url = baseUrl,
+          user = "u",
+          substance = "s",
+          dose = null,
+          units = null,
+          isEstimate = false,
+          route = "r",
+          site = null,
+          note = null,
+          template = "{user}",
+          isHyperlinked = false,
+      )
+    } catch (_: kotlinx.coroutines.CancellationException) {
+      cancelled = true
+    }
+
+    assertTrue(cancelled)
+    assertEquals(1, server.requestCount)
+  }
 }

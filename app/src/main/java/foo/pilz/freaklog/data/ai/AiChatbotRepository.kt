@@ -15,6 +15,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.firstOrNull
 
 sealed interface AiChatSessionResult {
@@ -91,6 +92,8 @@ constructor(
           )
       val label = context?.experience?.title?.let { "This experience: $it" } ?: "Whole journal"
       AiChatSessionResult.Ready(conversation, profile, label)
+    } catch (ce: CancellationException) {
+      throw ce
     } catch (e: Exception) {
       Log.e(TAG, "Failed to initialise chat session: ${e.message}", e)
       AiChatSessionResult.Failed(e.message ?: e::class.java.simpleName)
