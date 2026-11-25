@@ -29,8 +29,6 @@ import foo.pilz.freaklog.data.export.JournalExport
 import foo.pilz.freaklog.data.export.buildJournalExportJson
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.scheduled.NotificationScheduler
-import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.VitalKind
-import foo.pilz.freaklog.ui.tabs.settings.combinations.BloodPressureDisplay
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import foo.pilz.freaklog.ui.tabs.settings.funny.FunnyConfig
 import foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthManager
@@ -73,54 +71,6 @@ constructor(
           scope = viewModelScope,
           started = SharingStarted.WhileSubscribed(5000),
       )
-
-  fun saveIsVitalsEnabled(value: Boolean) = viewModelScope.launch {
-    userPreferences.saveIsVitalsEnabled(value)
-  }
-
-  fun saveSleepStagesEnabled(value: Boolean) = viewModelScope.launch {
-    userPreferences.saveAreSleepStagesEnabled(value)
-  }
-
-  fun saveExtraVitalEnabled(kind: VitalKind, enabled: Boolean) = viewModelScope.launch {
-    userPreferences.saveExtraVitalEnabled(kind, enabled)
-  }
-
-  fun saveBloodPressureDisplay(value: BloodPressureDisplay) = viewModelScope.launch {
-    userPreferences.saveBloodPressureDisplay(value)
-  }
-
-  val isVitalsEnabledFlow =
-      userPreferences.isVitalsEnabledFlow.stateIn(
-          initialValue = false,
-          scope = viewModelScope,
-          started = SharingStarted.WhileSubscribed(5000),
-      )
-
-  val extraVitalsFlow =
-      userPreferences.extraVitalsFlow.stateIn(
-          initialValue = emptySet(),
-          scope = viewModelScope,
-          started = SharingStarted.WhileSubscribed(5000),
-      )
-
-  val sleepStagesEnabledFlow =
-      userPreferences.areSleepStagesEnabledFlow.stateIn(
-          initialValue = false,
-          scope = viewModelScope,
-          started = SharingStarted.WhileSubscribed(5000),
-      )
-
-  val bloodPressureDisplayFlow =
-      userPreferences.bloodPressureDisplayFlow.stateIn(
-          initialValue = BloodPressureDisplay.COMBINED,
-          scope = viewModelScope,
-          started = SharingStarted.WhileSubscribed(5000),
-      )
-
-  fun showMessage(message: String) = viewModelScope.launch {
-    snackbarHostState.showSnackbar(message)
-  }
 
   fun saveTimelineNotificationAutoStart(value: Boolean) = viewModelScope.launch {
     userPreferences.saveTimelineNotificationAutoStartEnabled(value)

@@ -37,6 +37,7 @@ import foo.pilz.freaklog.ui.tabs.settings.customunits.archive.CustomUnitArchiveS
 import foo.pilz.freaklog.ui.tabs.settings.customunits.edit.EditCustomUnitScreen
 import foo.pilz.freaklog.ui.tabs.settings.freakquery.FreakQueryShellScreen
 import foo.pilz.freaklog.ui.tabs.settings.funny.AchievementsScreen
+import foo.pilz.freaklog.ui.tabs.settings.health.HealthSettingsScreen
 import foo.pilz.freaklog.ui.tabs.settings.reminders.EditReminderScreen
 import foo.pilz.freaklog.ui.tabs.settings.reminders.RemindersScreen
 import foo.pilz.freaklog.ui.tabs.settings.substancegroups.SubstanceGroupsScreen
@@ -93,8 +94,12 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
           navigateToAnodyneSettings = {
             navController.navigate(AnodyneSettingsRoute)
           },
+          navigateToHealthSettings = {
+            navController.navigate(HealthSettingsRoute)
+          },
       )
     }
+    composableWithTransitions<HealthSettingsRoute> { HealthSettingsScreen() }
     composableWithTransitions<AnodyneSettingsRoute> {
       foo.pilz.freaklog.ui.tabs.settings.anodyne.AnodyneSettingsScreen(
           navigateBack = navController::popBackStack,
@@ -192,6 +197,7 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
             navController.navigate(AiProfileEditorRoute(profileId.orEmpty()))
           },
           navigateToAnodyneSettings = { navController.navigate(AnodyneSettingsRoute) },
+          navigateToHealthSettings = { navController.navigate(HealthSettingsRoute) },
       )
     }
     composableWithTransitions<AiProfileEditorRoute> {
@@ -337,3 +343,5 @@ data class AddGroupItemConfigRoute(
 )
 
 @Serializable object AnodyneSettingsRoute
+
+@Serializable object HealthSettingsRoute

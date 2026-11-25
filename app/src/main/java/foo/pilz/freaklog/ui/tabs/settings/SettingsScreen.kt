@@ -24,7 +24,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -37,9 +36,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.ArrowDropUp
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Backup
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.DeleteForever
@@ -48,6 +44,7 @@ import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Medication
+import androidx.compose.material.icons.outlined.MonitorHeart
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.QuestionAnswer
@@ -61,8 +58,6 @@ import androidx.compose.material.icons.outlined.Workspaces
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -79,7 +74,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberBottomSheetState
+import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -95,11 +92,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.ui.VERSION_NAME
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
-import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.BloodPressureHealthConnect
-import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.HeartRateHealthConnect
-import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.SleepHealthConnect
-import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.VitalKind
-import foo.pilz.freaklog.ui.tabs.settings.combinations.BloodPressureDisplay
 import foo.pilz.freaklog.ui.tabs.settings.funny.FunnyConfig
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import foo.pilz.freaklog.ui.utils.HapticType
@@ -156,71 +148,6 @@ fun SettingsPreview() {
   )
 }
 
-@Composable
-private fun rememberVitalsController(
-    context: android.content.Context,
-    viewModel: SettingsViewModel,
-): Pair<Boolean, (Boolean) -> Unit> {
-  val vitalsPermissions = remember {
-    HeartRateHealthConnect.permissions +
-        SleepHealthConnect.permissions +
-        BloodPressureHealthConnect.permissions
-  }
-  val vitalsPermissionLauncher =
-      androidx.activity.compose.rememberLauncherForActivityResult(
-          androidx.health.connect.client.PermissionController
-              .createRequestPermissionResultContract()
-      ) { granted ->
-        if (
-            granted.containsAll(HeartRateHealthConnect.permissions) ||
-                granted.containsAll(SleepHealthConnect.permissions) ||
-                granted.containsAll(BloodPressureHealthConnect.permissions)
-        ) {
-          viewModel.saveIsVitalsEnabled(true)
-        } else {
-          viewModel.showMessage("Health Connect permission denied")
-        }
-      }
-  val isVitalsAvailable = remember {
-    HeartRateHealthConnect.isAvailable(context) || BloodPressureHealthConnect.isAvailable(context)
-  }
-  val onSaveIsVitalsEnabled: (Boolean) -> Unit = { enable ->
-    if (enable) vitalsPermissionLauncher.launch(vitalsPermissions)
-    else viewModel.saveIsVitalsEnabled(false)
-  }
-  return Pair(isVitalsAvailable, onSaveIsVitalsEnabled)
-}
-
-/** Turning an extra vital on first asks Health Connect for its read permission. */
-@Composable
-private fun rememberExtraVitalToggle(viewModel: SettingsViewModel): (VitalKind, Boolean) -> Unit {
-  var pendingKind by
-      androidx.compose.runtime.saveable.rememberSaveable {
-        mutableStateOf<VitalKind?>(null)
-      }
-  val launcher =
-      androidx.activity.compose.rememberLauncherForActivityResult(
-          androidx.health.connect.client.PermissionController
-              .createRequestPermissionResultContract()
-      ) { granted ->
-        val kind = pendingKind ?: return@rememberLauncherForActivityResult
-        pendingKind = null
-        if (granted.containsAll(kind.permissions)) {
-          viewModel.saveExtraVitalEnabled(kind, true)
-        } else {
-          viewModel.showMessage("Health Connect permission denied")
-        }
-      }
-  return { kind, enable ->
-    if (enable) {
-      pendingKind = kind
-      launcher.launch(kind.permissions)
-    } else {
-      viewModel.saveExtraVitalEnabled(kind, false)
-    }
-  }
-}
-
 @Suppress("LongParameterList")
 @Composable
 fun SettingsScreen(
@@ -239,14 +166,8 @@ fun SettingsScreen(
     navigateToFreakQueryShell: () -> Unit = {},
     navigateToAiAssistantSettings: () -> Unit,
     navigateToAnodyneSettings: () -> Unit = {},
+    navigateToHealthSettings: () -> Unit = {},
 ) {
-  val context = androidx.compose.ui.platform.LocalContext.current
-  val (isVitalsAvailable, saveIsVitalsEnabled) = rememberVitalsController(context, viewModel)
-  val saveExtraVitalEnabled = rememberExtraVitalToggle(viewModel)
-  val supportedExtraVitals = remember { VitalKind.entries.filter { it.isSupported(context) } }
-  val canInstallHealthConnect = remember {
-    foo.pilz.freaklog.ui.utils.isHealthConnectInstallable(context)
-  }
   SettingsScreen(
       navigateToFAQ = navigateToFAQ,
       navigateToWebhook = navigateToWebhook,
@@ -262,6 +183,7 @@ fun SettingsScreen(
       navigateToFreakQueryShell = navigateToFreakQueryShell,
       navigateToAiAssistantSettings = navigateToAiAssistantSettings,
       navigateToAnodyneSettings = navigateToAnodyneSettings,
+      navigateToHealthSettings = navigateToHealthSettings,
       deleteEverything = viewModel::deleteEverything,
       importFile = viewModel::importFile,
       exportFile = viewModel::exportFile,
@@ -280,28 +202,6 @@ fun SettingsScreen(
       saveUltraFunModeEnabled = {
         viewModel.saveFunnyConfig(FunnyConfig(enableFunny = it, teamsSkin = it))
       },
-      isVitalsAvailable = isVitalsAvailable,
-      isVitalsEnabled = viewModel.isVitalsEnabledFlow.collectAsStateWithLifecycle().value,
-      saveIsVitalsEnabled = saveIsVitalsEnabled,
-      sleepStagesEnabled = viewModel.sleepStagesEnabledFlow.collectAsStateWithLifecycle().value,
-      saveSleepStagesEnabled = viewModel::saveSleepStagesEnabled,
-      bloodPressureDisplay = viewModel.bloodPressureDisplayFlow.collectAsStateWithLifecycle().value,
-      saveBloodPressureDisplay = viewModel::saveBloodPressureDisplay,
-      supportedExtraVitals = supportedExtraVitals,
-      extraVitals = viewModel.extraVitalsFlow.collectAsStateWithLifecycle().value,
-      saveExtraVitalEnabled = saveExtraVitalEnabled,
-      installHealthConnect =
-          if (canInstallHealthConnect) {
-            {
-              try {
-                context.startActivity(foo.pilz.freaklog.ui.utils.healthConnectInstallIntent())
-              } catch (_: android.content.ActivityNotFoundException) {
-                viewModel.showMessage("Play Store not found")
-              }
-            }
-          } else {
-            null
-          },
       areSubstanceHeightsIndependent =
           viewModel.areSubstanceHeightsIndependentFlow.collectAsStateWithLifecycle().value,
       saveAreSubstanceHeightsIndependent = viewModel::saveAreSubstanceHeightsIndependent,
@@ -351,6 +251,7 @@ fun SettingsScreen(
     navigateToFreakQueryShell: () -> Unit = {},
     navigateToAiAssistantSettings: () -> Unit,
     navigateToAnodyneSettings: () -> Unit = {},
+    navigateToHealthSettings: () -> Unit = {},
     deleteEverything: () -> Unit,
     importFile: (uri: Uri) -> Unit,
     exportFile: (uri: Uri) -> Unit,
@@ -363,17 +264,6 @@ fun SettingsScreen(
     saveTimelineNotificationAutoStart: (Boolean) -> Unit = {},
     isUltraFunModeEnabled: Boolean = false,
     saveUltraFunModeEnabled: (Boolean) -> Unit = {},
-    isVitalsAvailable: Boolean = false,
-    isVitalsEnabled: Boolean = false,
-    saveIsVitalsEnabled: (Boolean) -> Unit = {},
-    sleepStagesEnabled: Boolean = false,
-    saveSleepStagesEnabled: (Boolean) -> Unit = {},
-    bloodPressureDisplay: BloodPressureDisplay = BloodPressureDisplay.COMBINED,
-    saveBloodPressureDisplay: (BloodPressureDisplay) -> Unit = {},
-    supportedExtraVitals: List<VitalKind> = emptyList(),
-    extraVitals: Set<VitalKind> = emptySet(),
-    saveExtraVitalEnabled: (VitalKind, Boolean) -> Unit = { _, _ -> },
-    installHealthConnect: (() -> Unit)? = null,
     areSubstanceHeightsIndependent: Boolean,
     saveAreSubstanceHeightsIndependent: (Boolean) -> Unit,
     isStatsHidden: Boolean,
@@ -499,6 +389,14 @@ fun SettingsScreen(
           performHaptic(HapticType.CLICK)
           navigateToAnodyneSettings()
         }
+        HorizontalDivider()
+        SettingsButton(
+            imageVector = Icons.Outlined.MonitorHeart,
+            text = "Health & vitals",
+        ) {
+          performHaptic(HapticType.CLICK)
+          navigateToHealthSettings()
+        }
       }
 
       CardWithTitle(title = "Automation", innerPaddingHorizontal = 0.dp) {
@@ -574,49 +472,6 @@ fun SettingsScreen(
               saveUltraFunModeEnabled(it)
             },
         )
-        HorizontalDivider()
-        SettingsSwitchRow(
-            text = "Vitals on timeline",
-            checked = isVitalsEnabled && isVitalsAvailable,
-            description =
-                when {
-                  isVitalsAvailable -> "Health Connect: heart rate, sleep, blood pressure"
-                  installHealthConnect != null -> "Tap to install or update Health Connect"
-                  else -> "Health Connect is not available on this device"
-                },
-            onCheckedChange = {
-              performHaptic(HapticType.TOGGLE)
-              if (isVitalsAvailable) saveIsVitalsEnabled(it) else installHealthConnect?.invoke()
-            },
-        )
-        if (isVitalsEnabled && isVitalsAvailable) {
-          HorizontalDivider()
-          SettingsSwitchRow(
-              text = "Show detailed sleep stages",
-              checked = sleepStagesEnabled,
-              onCheckedChange = {
-                performHaptic(HapticType.TOGGLE)
-                saveSleepStagesEnabled(it)
-              },
-          )
-          HorizontalDivider()
-          BloodPressureDisplayRow(
-              value = bloodPressureDisplay,
-              onValueChange = saveBloodPressureDisplay,
-          )
-          supportedExtraVitals.forEach { kind ->
-            HorizontalDivider()
-            SettingsSwitchRow(
-                text = kind.title,
-                checked = kind in extraVitals,
-                description = kind.description,
-                onCheckedChange = {
-                  performHaptic(HapticType.TOGGLE)
-                  saveExtraVitalEnabled(kind, it)
-                },
-            )
-          }
-        }
         HorizontalDivider()
         SettingsSwitchRow(
             text = "Independent substance heights",
@@ -861,42 +716,7 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun BloodPressureDisplayRow(
-    value: BloodPressureDisplay,
-    onValueChange: (BloodPressureDisplay) -> Unit,
-) {
-  var menuOpen by remember { mutableStateOf(false) }
-  Row(
-      modifier = Modifier.fillMaxWidth().padding(start = horizontalPadding),
-      horizontalArrangement = Arrangement.SpaceBetween,
-      verticalAlignment = Alignment.CenterVertically,
-  ) {
-    Text("Blood pressure", style = MaterialTheme.typography.bodyLarge)
-    Box {
-      TextButton(onClick = { menuOpen = true }) {
-        Text(value.displayName)
-        Icon(if (menuOpen) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown, null)
-      }
-      DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-        BloodPressureDisplay.entries.forEach { display ->
-          DropdownMenuItem(
-              text = { Text(display.displayName) },
-              onClick = {
-                onValueChange(display)
-                menuOpen = false
-              },
-              leadingIcon = {
-                if (display == value) Icon(Icons.Default.Check, "Selected")
-              },
-          )
-        }
-      }
-    }
-  }
-}
-
-@Composable
-private fun SettingsSwitchRow(
+internal fun SettingsSwitchRow(
     text: String,
     checked: Boolean,
     description: String? = null,
@@ -1084,13 +904,21 @@ private fun RedoseFractionSlider(label: String, value: Float, onChange: (Float) 
   // callback all operate on the same in-range float (guards against
   // out-of-range or NaN values that may linger in preferences).
   val safe = if (value.isFinite()) value.coerceIn(0f, 3f) else 0f
+  val sliderState = rememberSliderState(value = safe, steps = 29, trackRange = 0f..3f)
+  LaunchedEffect(safe) {
+    if (sliderState.value != safe) {
+      sliderState.value = safe
+    }
+  }
   Row(verticalAlignment = Alignment.CenterVertically) {
     Text(text = label, modifier = Modifier.width(70.dp))
     Slider(
-        value = safe,
-        onValueChange = { onChange(it.coerceIn(0f, 3f)) },
-        valueRange = 0f..3f,
-        steps = 29,
+        state = sliderState,
+        onValueChange = {
+          val clamped = it.coerceIn(0f, 3f)
+          sliderState.value = clamped
+          onChange(clamped)
+        },
         modifier = Modifier.weight(1f),
     )
     Text(text = "%.2f".format(safe), modifier = Modifier.width(48.dp))
