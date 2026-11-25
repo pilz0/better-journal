@@ -22,6 +22,7 @@ import foo.pilz.freaklog.MainActivity
 import foo.pilz.freaklog.R
 import foo.pilz.freaklog.data.room.reminders.RemindersRepository
 import foo.pilz.freaklog.data.room.reminders.entities.Reminder
+import foo.pilz.freaklog.ui.tabs.search.substance.roa.toPreservedString
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -247,8 +248,7 @@ constructor(
     val units = reminder.units
     val substance = reminder.substanceName
     if (dose != null && !substance.isNullOrBlank()) {
-      val doseText =
-          if (dose == dose.toLong().toDouble()) dose.toLong().toString() else dose.toString()
+      val doseText = dose.toPreservedString()
       val unitsText = units?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
       parts += "Take $doseText$unitsText $substance"
     } else if (!substance.isNullOrBlank()) {

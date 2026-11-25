@@ -19,6 +19,7 @@
 package foo.pilz.freaklog.ui.tabs.stats.tolerance
 
 import androidx.compose.ui.graphics.Color
+import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import java.time.Instant
 
 enum class ToleranceType {
@@ -32,13 +33,18 @@ data class ToleranceWindow(
     val end: Instant,
     val toleranceType: ToleranceType,
     val substanceColor: Color,
+    val adaptiveColor: AdaptiveColor? = null,
 ) {
   val barColor: Color
-    get() =
-        when (toleranceType) {
-          ToleranceType.FULL -> substanceColor
-          ToleranceType.HALF -> substanceColor.copy(alpha = 0.5f)
-        }
+    get() = barColor(isDarkTheme = false)
+
+  fun barColor(isDarkTheme: Boolean): Color {
+    val baseColor = adaptiveColor?.getComposeColor(isDarkTheme) ?: substanceColor
+    return when (toleranceType) {
+      ToleranceType.FULL -> baseColor
+      ToleranceType.HALF -> baseColor.copy(alpha = 0.5f)
+    }
+  }
 
   fun contains(date: Instant): Boolean {
     return date >= start && date <= end

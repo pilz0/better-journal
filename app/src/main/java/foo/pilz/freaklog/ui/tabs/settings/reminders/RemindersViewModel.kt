@@ -12,6 +12,7 @@ import foo.pilz.freaklog.data.room.reminders.entities.Reminder
 import foo.pilz.freaklog.scheduled.NotificationScheduler
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -23,13 +24,13 @@ constructor(
     private val notificationScheduler: NotificationScheduler,
 ) : ViewModel() {
 
-  val reminders =
+  val reminders: StateFlow<List<Reminder>?> =
       remindersRepository
           .getAllRemindersFlow()
           .stateIn(
               scope = viewModelScope,
               started = SharingStarted.WhileSubscribed(5000),
-              initialValue = emptyList(),
+              initialValue = null,
           )
 
   fun canScheduleExactAlarms(): Boolean = notificationScheduler.canScheduleExactAlarms()

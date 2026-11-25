@@ -16,9 +16,13 @@ import foo.pilz.freaklog.data.substanceshare.shareSubstanceGroup
 import foo.pilz.freaklog.ui.main.navigation.graphs.EditSubstanceGroupRoute
 import foo.pilz.freaklog.ui.utils.stateInVm
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class EditSubstanceGroupViewModel
@@ -42,7 +46,9 @@ constructor(
 
   val nameFlow = MutableStateFlow("")
 
+  private val persistLock = Mutex()
   private var hasHydrated = false
+  private var isDeleting = false
 
   init {
     viewModelScope.launch {
@@ -61,9 +67,12 @@ constructor(
   }
 
   private fun persist() {
-    if (!hasHydrated) return
+    if (!hasHydrated || isDeleting) return
     viewModelScope.launch {
-      groupRepo.update(SubstanceGroup(id = id, name = nameFlow.value.trim()))
+      persistLock.withLock {
+        if (isDeleting) return@withLock
+        groupRepo.update(SubstanceGroup(id = id, name = nameFlow.value.trim()))
+      }
     }
   }
 
@@ -71,9 +80,18 @@ constructor(
     viewModelScope.launch { groupRepo.deleteItem(item) }
   }
 
-  fun delete() {
+  fun delete(onDone: () -> Unit = {}) {
+    if (isDeleting) return
+    isDeleting = true
     viewModelScope.launch {
-      groupRepo.delete(SubstanceGroup(id = id, name = nameFlow.value.trim()))
+      try {
+        persistLock.withLock {
+          groupRepo.delete(SubstanceGroup(id = id, name = nameFlow.value.trim()))
+        }
+        withContext(Dispatchers.Main) { onDone() }
+      } finally {
+        isDeleting = false
+      }
     }
   }
 

@@ -26,12 +26,14 @@ import foo.pilz.freaklog.data.room.experiences.entities.Spray
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
 import java.time.Instant
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class SprayCalculatorViewModel @Inject constructor(private val sprayRepository: SprayRepository) :
@@ -128,7 +130,15 @@ class SprayCalculatorViewModel @Inject constructor(private val sprayRepository: 
     }
   }
 
-  fun addSpray(name: String, contentInMl: Double, numSprays: Double) {
+  private var isAddingSpray = false
+
+  fun addSpray(
+      name: String,
+      contentInMl: Double,
+      numSprays: Double,
+      onSaved: () -> Unit = {},
+  ) {
+    if (isAddingSpray) return
     val trimmedName = name.trim()
     val isValid =
         trimmedName.isNotEmpty() &&
@@ -137,17 +147,24 @@ class SprayCalculatorViewModel @Inject constructor(private val sprayRepository: 
             numSprays.isFinite() &&
             numSprays > 0.0
     if (!isValid) return
+    isAddingSpray = true
     viewModelScope.launch {
-      val spray =
-          Spray(
-              name = trimmedName,
-              contentInMl = contentInMl,
-              numSprays = numSprays,
-              creationDate = Instant.now(),
-              isPreferred = true,
-          )
-      val id = sprayRepository.insert(spray).toInt()
-      _selectedSprayId.value = id
+      try {
+        val spray =
+            Spray(
+                name = trimmedName,
+                contentInMl = contentInMl,
+                numSprays = numSprays,
+                creationDate = Instant.now(),
+                isPreferred = true,
+            )
+        val id = sprayRepository.insert(spray).toInt()
+        _selectedSprayId.value = id
+        recalculate()
+        withContext(Dispatchers.Main) { onSaved() }
+      } finally {
+        isAddingSpray = false
+      }
     }
   }
 

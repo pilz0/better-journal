@@ -277,7 +277,7 @@ fun Day(
         } else if (experienceInfos.experienceIds.isEmpty()) {
           Text(
               text = dayText,
-              color = if (isSystemInDarkTheme()) Color.Gray else Color.LightGray,
+              color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
           )
         } else {
           Text(

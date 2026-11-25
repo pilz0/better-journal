@@ -204,7 +204,6 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
     }
     composableWithTransitions<RemindersScreenRoute> {
       RemindersScreen(
-          navigateBack = navController::popBackStack,
           navigateToEdit = { reminderId ->
             navController.navigate(EditReminderRoute(reminderId))
           },

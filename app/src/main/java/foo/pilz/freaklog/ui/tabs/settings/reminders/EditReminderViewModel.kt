@@ -14,14 +14,18 @@ import foo.pilz.freaklog.data.room.reminders.entities.Reminder
 import foo.pilz.freaklog.scheduled.NotificationScheduler
 import foo.pilz.freaklog.scheduled.ReminderSchedule
 import foo.pilz.freaklog.ui.main.navigation.graphs.EditReminderRoute
+import foo.pilz.freaklog.ui.tabs.search.substance.roa.toPreservedString
+import foo.pilz.freaklog.ui.utils.evaluateNumericExpression
 import java.time.DayOfWeek
 import java.time.LocalTime
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** Form state for the reminder edit screen. Held as a single immutable value for clarity. */
 data class ReminderFormState(
@@ -58,11 +62,20 @@ constructor(
   private val _state = MutableStateFlow(ReminderFormState())
   val state: StateFlow<ReminderFormState> = _state.asStateFlow()
 
+  private var isLoaded = isNew
+  private var isSaving = false
+
   init {
     if (!isNew) {
       viewModelScope.launch {
-        val existing = remindersRepository.getReminderById(reminderId) ?: return@launch
-        _state.value = existing.toForm()
+        try {
+          val existing = remindersRepository.getReminderById(reminderId)
+          if (existing != null) {
+            _state.value = existing.toForm()
+          }
+        } finally {
+          isLoaded = true
+        }
       }
     }
   }
@@ -99,7 +112,9 @@ constructor(
   }
 
   fun removeTime(time: LocalTime) = _state.update {
-    it.copy(timesOfDay = it.timesOfDay.filter { t -> t != time })
+    // Keep at least one time of day, mirroring toggleDay refusing an empty day mask.
+    if (it.timesOfDay.size <= 1) it
+    else it.copy(timesOfDay = it.timesOfDay.filter { t -> t != time })
   }
 
   fun toggleDay(day: DayOfWeek) = _state.update {
@@ -113,19 +128,25 @@ constructor(
   fun canScheduleExactAlarms(): Boolean = notificationScheduler.canScheduleExactAlarms()
 
   /** Saves the form, schedules the reminder, then invokes [onDone]. */
-  fun save(onDone: () -> Unit) {
+  fun save(onDone: () -> Unit = {}) {
+    if (!isLoaded || isSaving) return
+    isSaving = true
     viewModelScope.launch {
-      val reminder = _state.value.toReminder()
-      val savedId =
-          if (isNew) {
-            remindersRepository.insert(reminder).toInt()
-          } else {
-            remindersRepository.update(reminder)
-            reminder.id
-          }
-      val toSchedule = reminder.copy(id = savedId)
-      notificationScheduler.scheduleReminder(toSchedule)
-      onDone()
+      try {
+        val reminder = _state.value.toReminder()
+        val savedId =
+            if (isNew) {
+              remindersRepository.insert(reminder).toInt()
+            } else {
+              remindersRepository.update(reminder)
+              reminder.id
+            }
+        val toSchedule = reminder.copy(id = savedId)
+        notificationScheduler.scheduleReminder(toSchedule)
+        withContext(Dispatchers.Main) { onDone() }
+      } finally {
+        isSaving = false
+      }
     }
   }
 
@@ -162,7 +183,7 @@ constructor(
         endEpochMillis = endEpochMillis,
         substanceName = substanceName.trim().takeIf { it.isNotEmpty() },
         administrationRoute = administrationRoute,
-        dose = dose.toDoubleOrNull(),
+        dose = evaluateNumericExpression(dose)?.takeIf { it > 0.0 },
         units = units.trim().takeIf { it.isNotEmpty() },
         notes = notes.trim(),
     )
@@ -186,12 +207,7 @@ constructor(
           endEpochMillis = endEpochMillis,
           substanceName = substanceName.orEmpty(),
           administrationRoute = administrationRoute,
-          dose =
-              dose
-                  ?.let {
-                    if (it == it.toLong().toDouble()) it.toLong().toString() else it.toString()
-                  }
-                  .orEmpty(),
+          dose = dose?.toPreservedString().orEmpty(),
           units = units.orEmpty(),
           notes = notes,
       )

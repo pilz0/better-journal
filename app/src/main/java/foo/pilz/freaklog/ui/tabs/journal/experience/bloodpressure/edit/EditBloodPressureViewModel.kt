@@ -18,12 +18,16 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import foo.pilz.freaklog.ui.main.navigation.graphs.EditBloodPressureRoute
 import foo.pilz.freaklog.ui.tabs.journal.experience.bloodpressure.bloodPressureFieldErrors
 import foo.pilz.freaklog.ui.tabs.journal.experience.bloodpressure.isBloodPressureInputValid
+import foo.pilz.freaklog.ui.tabs.search.substance.roa.toPreservedString
 import foo.pilz.freaklog.ui.utils.getInstant
 import foo.pilz.freaklog.ui.utils.getLocalDateTime
 import java.time.LocalDateTime
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class EditBloodPressureViewModel
@@ -45,6 +49,7 @@ constructor(
     get() = isBloodPressureInputValid(systolic, diastolic)
 
   private var metadata: Metadata? = null
+  private var isBusy = false
 
   init {
     viewModelScope.launch {
@@ -52,9 +57,11 @@ constructor(
         val client = HealthConnectClient.getOrCreate(context)
         val record = client.readRecord(BloodPressureRecord::class, recordId).record
         metadata = record.metadata
-        systolic = record.systolic.inMillimetersOfMercury.toString()
-        diastolic = record.diastolic.inMillimetersOfMercury.toString()
+        systolic = record.systolic.inMillimetersOfMercury.toPreservedString()
+        diastolic = record.diastolic.inMillimetersOfMercury.toPreservedString()
         localDateTimeFlow.emit(record.time.getLocalDateTime())
+      } catch (ce: CancellationException) {
+        throw ce
       } catch (e: Exception) {
         Toast.makeText(
                 context,
@@ -80,25 +87,29 @@ constructor(
     diastolic = newDiastolic
   }
 
-  fun onDoneTap() {
-    if (!isInputValid) return
+  fun onDoneTap(onDone: () -> Unit = {}) {
+    if (!isInputValid || isBusy) return
 
     val metadata = metadata ?: return
-    val systolic = systolic.trim().replace(',', '.').toDoubleOrNull() ?: return
-    val diastolic = diastolic.trim().replace(',', '.').toDoubleOrNull() ?: return
+    val systolicValue = systolic.trim().replace(',', '.').toDoubleOrNull() ?: return
+    val diastolicValue = diastolic.trim().replace(',', '.').toDoubleOrNull() ?: return
+    isBusy = true
 
     val record =
         BloodPressureRecord(
             time = localDateTimeFlow.value.getInstant(),
             zoneOffset = null,
             metadata = metadata,
-            systolic = Pressure.millimetersOfMercury(systolic),
-            diastolic = Pressure.millimetersOfMercury(diastolic),
+            systolic = Pressure.millimetersOfMercury(systolicValue),
+            diastolic = Pressure.millimetersOfMercury(diastolicValue),
         )
     viewModelScope.launch {
       try {
         val client = HealthConnectClient.getOrCreate(context)
         client.updateRecords(listOf(record))
+        withContext(Dispatchers.Main) { onDone() }
+      } catch (ce: CancellationException) {
+        throw ce
       } catch (e: Exception) {
         Toast.makeText(
                 context,
@@ -106,15 +117,22 @@ constructor(
                 Toast.LENGTH_LONG,
             )
             .show()
+      } finally {
+        isBusy = false
       }
     }
   }
 
-  fun delete() {
+  fun delete(onDone: () -> Unit = {}) {
+    if (isBusy) return
+    isBusy = true
     viewModelScope.launch {
       try {
         val client = HealthConnectClient.getOrCreate(context)
         client.deleteRecords(BloodPressureRecord::class, listOf(recordId), emptyList())
+        withContext(Dispatchers.Main) { onDone() }
+      } catch (ce: CancellationException) {
+        throw ce
       } catch (e: Exception) {
         Toast.makeText(
                 context,
@@ -122,6 +140,8 @@ constructor(
                 Toast.LENGTH_LONG,
             )
             .show()
+      } finally {
+        isBusy = false
       }
     }
   }

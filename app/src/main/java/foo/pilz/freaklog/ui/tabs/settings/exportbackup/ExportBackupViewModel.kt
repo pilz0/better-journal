@@ -40,6 +40,7 @@ import foo.pilz.freaklog.data.report.shareClinicianReportPdf
 import foo.pilz.freaklog.data.report.shareClinicianReportText
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.webhooks.WebhookRepository
+import foo.pilz.freaklog.scheduled.NotificationScheduler
 import foo.pilz.freaklog.ui.tabs.settings.FileSystemConnection
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import foo.pilz.freaklog.ui.utils.stateInVm
@@ -56,7 +57,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
 @HiltViewModel
-@Suppress("TooManyFunctions")
+@Suppress("TooManyFunctions", "LongParameterList")
 class ExportBackupViewModel
 @Inject
 constructor(
@@ -70,6 +71,7 @@ constructor(
     private val auth: foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthManager,
     private val customSubstanceRepository:
         foo.pilz.freaklog.data.room.experiences.CustomSubstanceRepository,
+    private val notificationScheduler: NotificationScheduler,
 ) : ViewModel() {
 
   val snackbarHostState = SnackbarHostState()
@@ -255,7 +257,11 @@ constructor(
         }
     val message =
         try {
+          experienceRepository.getAllReminders().forEach {
+            notificationScheduler.cancelReminder(it.id)
+          }
           experienceRepository.replaceEverything(journalExport)
+          notificationScheduler.rescheduleAll()
           "Import successful"
         } catch (e: CancellationException) {
           throw e

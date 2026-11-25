@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import foo.pilz.freaklog.data.room.experiences.entities.FormulationDurationOverrides
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -149,23 +150,28 @@ fun AddCustomFormulationScreen(
       Button(
           onClick = {
             viewModel.saveFormulation(
-                substanceName = substanceName.trim(),
-                baseRoa = baseRoa,
-                name = name.trim(),
-                onsetMin = onsetMin.toIntOrNull(),
-                onsetMax = onsetMax.toIntOrNull(),
-                comeupMin = comeupMin.toIntOrNull(),
-                comeupMax = comeupMax.toIntOrNull(),
-                peakMin = peakMin.toIntOrNull(),
-                peakMax = peakMax.toIntOrNull(),
-                offsetMin = offsetMin.toIntOrNull(),
-                offsetMax = offsetMax.toIntOrNull(),
-                totalMin = totalMin.toIntOrNull(),
-                totalMax = totalMax.toIntOrNull(),
-                afterglowMin = afterglowMin.toIntOrNull(),
-                afterglowMax = afterglowMax.toIntOrNull(),
+                CustomFormulationDraft(
+                    substanceName = substanceName.trim(),
+                    baseRoa = baseRoa,
+                    name = name.trim(),
+                    durationOverrides =
+                        FormulationDurationOverrides(
+                            onsetMinMinutes = onsetMin.toIntOrNull(),
+                            onsetMaxMinutes = onsetMax.toIntOrNull(),
+                            comeupMinMinutes = comeupMin.toIntOrNull(),
+                            comeupMaxMinutes = comeupMax.toIntOrNull(),
+                            peakMinMinutes = peakMin.toIntOrNull(),
+                            peakMaxMinutes = peakMax.toIntOrNull(),
+                            offsetMinMinutes = offsetMin.toIntOrNull(),
+                            offsetMaxMinutes = offsetMax.toIntOrNull(),
+                            totalMinMinutes = totalMin.toIntOrNull(),
+                            totalMaxMinutes = totalMax.toIntOrNull(),
+                            afterglowMinMinutes = afterglowMin.toIntOrNull(),
+                            afterglowMaxMinutes = afterglowMax.toIntOrNull(),
+                        ),
+                ),
+                onSaved = navigateBack,
             )
-            navigateBack()
           },
           modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
           enabled = canSave,

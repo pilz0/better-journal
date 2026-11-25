@@ -97,8 +97,7 @@ fun EditCustomSubstanceScreen(
             TextButton(
                 onClick = {
                   isShowingDeleteDialog = false
-                  viewModel.deleteCustomSubstance()
-                  navigateBack()
+                  viewModel.deleteCustomSubstance(navigateBack)
                 },
             ) {
               Text("Delete")

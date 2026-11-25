@@ -118,7 +118,7 @@ fun SearchField(
                       if (categoryChipModel.isActive) {
                         Icon(
                             Icons.Filled.Check,
-                            contentDescription = "Check",
+                            contentDescription = null,
                             modifier = Modifier.size(ButtonDefaults.IconSize),
                         )
                       }

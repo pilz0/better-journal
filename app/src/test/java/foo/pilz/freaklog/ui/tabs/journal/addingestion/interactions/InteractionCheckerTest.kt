@@ -16,6 +16,9 @@ import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
 import assertk.assertions.isNull
 import foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles
+import foo.pilz.freaklog.data.room.experiences.entities.CustomCategoryAssignment
+import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
+import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithEverything
 import foo.pilz.freaklog.data.substances.classes.InteractionType
 import foo.pilz.freaklog.data.substances.classes.Interactions
 import foo.pilz.freaklog.data.substances.classes.Substance
@@ -74,6 +77,7 @@ class InteractionCheckerTest {
             customProfiles = customProfiles,
         )
     // Default: no custom profile interactions
+    every { customProfiles.byNameFlow } returns MutableStateFlow(emptyMap())
     every { customProfiles.getInteraction(any(), any(), any()) } returns null
   }
 
@@ -258,5 +262,56 @@ class InteractionCheckerTest {
       assertThat(result).isNotNull()
       assertThat(result!!.interactionType).isEqualTo(InteractionType.DANGEROUS)
     }
+  }
+
+  @Test
+  fun `same substance ignoring case and whitespace returns null`() {
+    val result = checker.getInteractionBetween("mdma", " MDMA ")
+    assertThat(result).isNull()
+  }
+
+  @Test
+  fun `interactions among names checks custom substance referenced with different casing and spaces`() {
+    val profile =
+        CustomSubstanceWithEverything(
+            substance = CustomSubstance(id = 1, name = "MyChem", units = "mg", description = ""),
+        )
+    every { customProfiles.byNameFlow } returns MutableStateFlow(mapOf("mychem" to profile))
+    every { customProfiles.getInteraction(any(), any(), any()) } answers
+        {
+          val a = firstArg<String>()
+          val b = secondArg<String>()
+          if (a.trim().equals("mychem", ignoreCase = true) && b == "CustomOther") {
+            InteractionType.UNSAFE
+          } else {
+            null
+          }
+        }
+    every { substanceRepo.getSubstance(any()) } returns null
+
+    val result = checker.getInteractionsAmong(listOf(" MYCHEM ", "CustomOther"))
+
+    assertThat(result.map { it.interactionType }).containsExactly(InteractionType.UNSAFE)
+  }
+
+  @Test
+  fun `built-in class interaction falls back to custom substance categories`() {
+    val alcohol = fakeSubstance("Alcohol", dangerous = listOf("Depressants"))
+    val profile =
+        CustomSubstanceWithEverything(
+            substance = CustomSubstance(id = 1, name = "MyDowner", units = "mg", description = ""),
+            categories =
+                listOf(
+                    CustomCategoryAssignment(customSubstanceId = 1, categoryName = "depressant")
+                ),
+        )
+    every { customProfiles.byNameFlow } returns MutableStateFlow(mapOf("mydowner" to profile))
+    every { substanceRepo.getSubstance("Alcohol") } returns alcohol
+    every { substanceRepo.getSubstance("MyDowner") } returns null
+
+    val result = checker.getInteractionBetween("Alcohol", "MyDowner")
+
+    assertThat(result).isNotNull()
+    assertThat(result!!.interactionType).isEqualTo(InteractionType.DANGEROUS)
   }
 }

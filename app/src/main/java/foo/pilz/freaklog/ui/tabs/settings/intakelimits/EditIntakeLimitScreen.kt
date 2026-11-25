@@ -139,8 +139,10 @@ fun EditIntakeLimitScreen(
                   },
                   isError =
                       viewModel.maxDoseText.isNotBlank() &&
-                          viewModel.maxDoseText.toDoubleOrNull() == null,
-                  keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                          !foo.pilz.freaklog.ui.utils.isValidPositiveDoseText(
+                              viewModel.maxDoseText
+                          ),
+                  keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                   singleLine = true,
                   modifier = Modifier.fillMaxWidth(),
               )

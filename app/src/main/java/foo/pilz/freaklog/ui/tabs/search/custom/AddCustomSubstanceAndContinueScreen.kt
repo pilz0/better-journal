@@ -53,8 +53,7 @@ fun AddCustomSubstanceAndContinueScreen(
     }
   }
   BackHandler {
-    viewModel.deleteDraft()
-    navigateBack()
+    viewModel.deleteDraft(navigateBack)
   }
   Scaffold(
       topBar = {

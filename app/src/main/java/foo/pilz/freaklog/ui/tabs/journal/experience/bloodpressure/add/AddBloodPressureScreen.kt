@@ -4,9 +4,10 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,8 +40,7 @@ fun AddBloodPressureScreen(
           PermissionController.createRequestPermissionResultContract()
       ) { granted ->
         if (granted.containsAll(BloodPressureHealthConnect.writePermissions)) {
-          viewModel.onDoneTap()
-          navigateBack()
+          viewModel.onDoneTap(onDone = navigateBack)
         } else {
           Toast.makeText(context, "Health Connect permission denied", Toast.LENGTH_SHORT).show()
         }
@@ -67,7 +67,7 @@ fun AddBloodPressureScreen(
               ) {
                 Icon(
                     Icons.Filled.Done,
-                    contentDescription = "Done icon",
+                    contentDescription = "Save",
                 )
               }
             },
@@ -76,7 +76,9 @@ fun AddBloodPressureScreen(
   ) { padding ->
     Column(
         modifier =
-            Modifier.padding(padding)
+            Modifier.verticalScroll(rememberScrollState())
+                .imePadding()
+                .padding(padding)
                 .padding(horizontal = spacing.screenHorizontal, vertical = spacing.md),
         verticalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
@@ -91,7 +93,6 @@ fun AddBloodPressureScreen(
           systolicError = viewModel.fieldErrors.systolic,
           diastolicError = viewModel.fieldErrors.diastolic,
       )
-      Spacer(modifier = Modifier.height(spacing.fabBottomPad))
     }
   }
 }

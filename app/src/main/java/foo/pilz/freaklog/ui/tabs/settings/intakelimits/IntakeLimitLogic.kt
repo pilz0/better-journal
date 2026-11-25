@@ -172,9 +172,18 @@ fun IntakeLimit.windowDescription(): String {
     seconds == 86_400L -> "24 hours"
     seconds == 604_800L -> "7 days"
     seconds == 2_592_000L -> "30 days"
-    seconds % 86_400L == 0L -> "${seconds / 86_400L} days"
-    seconds % 3_600L == 0L -> "${seconds / 3_600L} hours"
-    else -> "${seconds / 60L} minutes"
+    seconds % 86_400L == 0L -> {
+      val days = seconds / 86_400L
+      "$days ${if (days == 1L) "day" else "days"}"
+    }
+    seconds % 3_600L == 0L -> {
+      val hours = seconds / 3_600L
+      "$hours ${if (hours == 1L) "hour" else "hours"}"
+    }
+    else -> {
+      val minutes = seconds / 60L
+      "$minutes ${if (minutes == 1L) "minute" else "minutes"}"
+    }
   }
 }
 

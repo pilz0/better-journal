@@ -27,13 +27,19 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -41,10 +47,12 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.ShulginRatingOption
 import foo.pilz.freaklog.ui.components.NavigateBackButton
+import foo.pilz.freaklog.ui.components.clearOfImeFab
 import foo.pilz.freaklog.ui.tabs.journal.experience.rating.FloatingDoneButton
 import foo.pilz.freaklog.ui.tabs.journal.experience.rating.RatingPickerSection
 import foo.pilz.freaklog.ui.tabs.journal.experience.rating.RatingsExplanationSection
 import foo.pilz.freaklog.ui.tabs.journal.experience.rating.TimePickerSection
+import foo.pilz.freaklog.ui.theme.LocalSpacing
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import java.time.LocalDateTime
 
@@ -68,18 +76,12 @@ fun EditRatingScreen(
     navigateBack: () -> Unit,
 ) {
   EditRatingScreen(
-      onDone = {
-        viewModel.onDoneTap()
-        navigateBack()
-      },
+      onDone = { viewModel.onDoneTap(navigateBack) },
       selectedTime = viewModel.localDateTimeFlow.collectAsStateWithLifecycle().value,
       onTimeChange = viewModel::onChangeTime,
       selectedRating = viewModel.selectedRatingOption,
       onRatingChange = viewModel::onChangeRating,
-      onDelete = {
-        viewModel.delete()
-        navigateBack()
-      },
+      onDelete = { viewModel.delete(navigateBack) },
       isOverallRating = viewModel.isOverallRatingFlow.collectAsStateWithLifecycle().value,
   )
 }
@@ -95,6 +97,16 @@ fun EditRatingScreen(
     onDelete: () -> Unit,
     isOverallRating: Boolean,
 ) {
+  var isShowingDeleteDialog by remember { mutableStateOf(false) }
+  if (isShowingDeleteDialog) {
+    DeleteRatingDialog(
+        onConfirm = {
+          isShowingDeleteDialog = false
+          onDelete()
+        },
+        onDismiss = { isShowingDeleteDialog = false },
+    )
+  }
   Scaffold(
       topBar = {
         TopAppBar(
@@ -102,7 +114,7 @@ fun EditRatingScreen(
             title = { Text("Edit Shulgin rating") },
             actions = {
               IconButton(
-                  onClick = { onDelete() },
+                  onClick = { isShowingDeleteDialog = true },
               ) {
                 Icon(
                     Icons.Default.Delete,
@@ -121,7 +133,8 @@ fun EditRatingScreen(
   ) { padding ->
     Column(
         modifier =
-            Modifier.verticalScroll(rememberScrollState())
+            Modifier.clearOfImeFab()
+                .verticalScroll(rememberScrollState())
                 .padding(padding)
                 .padding(horizontal = horizontalPadding)
     ) {
@@ -131,6 +144,20 @@ fun EditRatingScreen(
       }
       RatingPickerSection(selectedRating = selectedRating, onRatingChange = onRatingChange)
       RatingsExplanationSection()
+      Spacer(modifier = Modifier.height(LocalSpacing.current.fabBottomPad))
     }
   }
+}
+
+@Composable
+private fun DeleteRatingDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+  AlertDialog(
+      onDismissRequest = onDismiss,
+      title = { Text("Delete rating?") },
+      confirmButton = { TextButton(onClick = onConfirm) { Text("Delete") } },
+      dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+  )
 }

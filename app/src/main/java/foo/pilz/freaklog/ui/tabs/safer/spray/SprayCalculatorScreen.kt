@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.outlined.SwapVert
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -363,7 +364,19 @@ fun SpraySelectionDropdown(
     modifier: Modifier = Modifier,
 ) {
   var expanded by remember { mutableStateOf(false) }
+  var sprayToDelete by remember { mutableStateOf<Spray?>(null) }
   val selectedSpray = sprays.find { it.id == selectedSprayId }
+
+  sprayToDelete?.let { spray ->
+    DeleteSprayDialog(
+        spray = spray,
+        onConfirm = {
+          sprayToDelete = null
+          onDeleteSpray(spray)
+        },
+        onDismiss = { sprayToDelete = null },
+    )
+  }
 
   ExposedDropdownMenuBox(
       expanded = expanded,
@@ -391,35 +404,14 @@ fun SpraySelectionDropdown(
       } else {
         sprays.forEach { spray ->
           key(spray.id) {
-            DropdownMenuItem(
-                text = {
-                  Column {
-                    Text(spray.name)
-                    Text(
-                        "${spray.contentInMl.toReadableString()}ml / ${spray.numSprays.toReadableString()} sprays",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                  }
-                },
-                trailingIcon = {
-                  IconButton(
-                      onClick = {
-                        onDeleteSpray(spray)
-                        // Don't close menu immediately upon delete to allow multiple deletes?
-                        // Or close it. Let's close for simplicity/safety.
-                        expanded = false
-                      }
-                  ) {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = "Delete",
-                        tint = MaterialTheme.colorScheme.error,
-                    )
-                  }
-                },
-                onClick = {
+            SprayDropdownItem(
+                spray = spray,
+                onSelect = {
                   onSelectSpray(spray.id)
+                  expanded = false
+                },
+                onRequestDelete = {
+                  sprayToDelete = spray
                   expanded = false
                 },
             )
@@ -428,6 +420,51 @@ fun SpraySelectionDropdown(
       }
     }
   }
+}
+
+@Composable
+private fun SprayDropdownItem(
+    spray: Spray,
+    onSelect: () -> Unit,
+    onRequestDelete: () -> Unit,
+) {
+  DropdownMenuItem(
+      text = {
+        Column {
+          Text(spray.name)
+          Text(
+              "${spray.contentInMl.toReadableString()}ml / ${spray.numSprays.toReadableString()} sprays",
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+        }
+      },
+      trailingIcon = {
+        IconButton(onClick = onRequestDelete) {
+          Icon(
+              Icons.Default.Delete,
+              contentDescription = "Delete",
+              tint = MaterialTheme.colorScheme.error,
+          )
+        }
+      },
+      onClick = onSelect,
+  )
+}
+
+@Composable
+private fun DeleteSprayDialog(
+    spray: Spray,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+  AlertDialog(
+      onDismissRequest = onDismiss,
+      title = { Text("Delete spray?") },
+      text = { Text("Delete \"${spray.name}\" from saved spray bottles?") },
+      confirmButton = { TextButton(onClick = onConfirm) { Text("Delete") } },
+      dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

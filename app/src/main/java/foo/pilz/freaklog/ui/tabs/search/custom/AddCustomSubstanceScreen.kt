@@ -108,8 +108,7 @@ fun AddCustomSubstanceScreen(
             TextButton(
                 onClick = {
                   isShowingDiscardDialog = false
-                  viewModel.deleteDraft()
-                  navigateBack()
+                  viewModel.deleteDraft(navigateBack)
                 },
             ) {
               Text("Discard")

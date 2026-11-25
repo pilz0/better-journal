@@ -34,9 +34,11 @@ import foo.pilz.freaklog.ui.utils.getInstant
 import foo.pilz.freaklog.ui.utils.getLocalDateTime
 import java.time.LocalDateTime
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class EditRatingViewModel
@@ -78,21 +80,35 @@ constructor(
     selectedRatingOption = newRating
   }
 
-  fun delete() {
+  private var isBusy = false
+
+  fun delete(onDone: () -> Unit = {}) {
+    if (isBusy) return
+    val currentRating = rating ?: return
+    isBusy = true
     viewModelScope.launch {
-      rating?.let {
-        experienceRepo.delete(it)
+      try {
+        experienceRepo.delete(currentRating)
+        withContext(Dispatchers.Main) { onDone() }
+      } finally {
+        isBusy = false
       }
     }
   }
 
-  fun onDoneTap() {
+  fun onDoneTap(onDone: () -> Unit = {}) {
+    if (isBusy) return
+    val currentRating = rating ?: return
+    isBusy = true
     viewModelScope.launch {
-      val selectedInstant = localDateTimeFlow.firstOrNull()?.getInstant() ?: return@launch
-      rating?.let {
-        it.time = if (isOverallRatingFlow.value) null else selectedInstant
-        it.option = selectedRatingOption
-        experienceRepo.update(it)
+      try {
+        val selectedInstant = localDateTimeFlow.firstOrNull()?.getInstant() ?: return@launch
+        currentRating.time = if (isOverallRatingFlow.value) null else selectedInstant
+        currentRating.option = selectedRatingOption
+        experienceRepo.update(currentRating)
+        withContext(Dispatchers.Main) { onDone() }
+      } finally {
+        isBusy = false
       }
     }
   }

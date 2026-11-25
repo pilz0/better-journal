@@ -42,7 +42,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
@@ -421,9 +420,7 @@ fun IngestionRowOnSubstanceCompanionScreen(
       if (ingestionAndCustomUnit.customUnit != null) {
         append(" " + ingestionAndCustomUnit.customUnit.name)
       }
-      withStyle(
-          style = SpanStyle(color = if (isSystemInDarkTheme()) Color.Gray else Color.LightGray)
-      ) {
+      withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
         val routeText = ingestionAndCustomUnit.ingestion.administrationRoute.displayText.lowercase()
         if (ingestionAndCustomUnit.customUnit == null) {
           append(" $routeText")

@@ -21,6 +21,7 @@ package foo.pilz.freaklog.ui.tabs.stats
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -75,6 +76,7 @@ import foo.pilz.freaklog.ui.utils.rememberHaptic
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatsScreen(
     viewModel: StatsViewModel = hiltViewModel(),
@@ -84,15 +86,26 @@ fun StatsScreen(
   val statsModel by viewModel.statsModelFlow.collectAsStateWithLifecycle()
   val consumerNamesSorted by viewModel.sortedConsumerNamesFlow.collectAsStateWithLifecycle()
   androidx.compose.runtime.LaunchedEffect(Unit) { viewModel.runExcelSkin() }
-  StatsScreen(
-      navigateToSubstanceCompanion = navigateToSubstanceCompanion,
-      navigateToToleranceChart = navigateToToleranceChart,
-      onTapOption = viewModel::onTapOption,
-      statsModel = statsModel,
-      onChangeConsumerName = viewModel::onChangeConsumer,
-      consumerNamesSorted = consumerNamesSorted,
-      onOpenSpreadsheet = viewModel::showExcelSkin,
-  )
+  val loadedStatsModel = statsModel
+  if (loadedStatsModel == null) {
+    Scaffold(
+        topBar = {
+          TopAppBar(title = { Text("Statistics") })
+        }
+    ) { padding ->
+      Box(modifier = Modifier.padding(padding))
+    }
+  } else {
+    StatsScreen(
+        navigateToSubstanceCompanion = navigateToSubstanceCompanion,
+        navigateToToleranceChart = navigateToToleranceChart,
+        onTapOption = viewModel::onTapOption,
+        statsModel = loadedStatsModel,
+        onChangeConsumerName = viewModel::onChangeConsumer,
+        consumerNamesSorted = consumerNamesSorted,
+        onOpenSpreadsheet = viewModel::showExcelSkin,
+    )
+  }
 }
 
 @Preview
@@ -166,7 +179,7 @@ fun StatsScreen(
                         if (statsModel.consumerName == null) {
                           Icon(
                               Icons.Filled.Check,
-                              contentDescription = "Check",
+                              contentDescription = null,
                               modifier = Modifier.size(ButtonDefaults.IconSize),
                           )
                         }
@@ -184,7 +197,7 @@ fun StatsScreen(
                           if (statsModel.consumerName == consumerName) {
                             Icon(
                                 Icons.Filled.Check,
-                                contentDescription = "Check",
+                                contentDescription = null,
                                 modifier = Modifier.size(ButtonDefaults.IconSize),
                             )
                           }

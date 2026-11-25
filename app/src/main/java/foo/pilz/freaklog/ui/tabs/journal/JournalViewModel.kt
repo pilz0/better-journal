@@ -201,9 +201,14 @@ constructor(
                     ignoreCase = true,
                 ) ||
                     it.ingestionsWithCompanions.any { ingestionWithCompanion ->
-                      // Use the ingestion's own name: the companion can be missing.
+                      // Use the ingestion's own name: the companion can be missing, and unknown
+                      // or Anodyne-imported substances still need to match by ingestion name.
                       val isSubstanceAMatch =
-                          ingestionWithCompanion.ingestion.substanceName in matchingSubstances
+                          ingestionWithCompanion.ingestion.substanceName in matchingSubstances ||
+                              ingestionWithCompanion.ingestion.substanceName.contains(
+                                  other = searchText,
+                                  ignoreCase = true,
+                              )
                       val isConsumerAMatch =
                           ingestionWithCompanion.ingestion.consumerName?.contains(
                               searchText,

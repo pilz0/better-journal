@@ -15,10 +15,12 @@ import foo.pilz.freaklog.data.substanceshare.shareCustomSubstance
 import foo.pilz.freaklog.ui.main.navigation.graphs.EditCustomSubstanceRoute
 import foo.pilz.freaklog.ui.utils.stateInVm
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class EditCustomSubstanceViewModel
@@ -32,6 +34,7 @@ constructor(
   val id = state.toRoute<EditCustomSubstanceRoute>().customSubstanceId
 
   private val persistLock = Mutex()
+  private var isDeleting = false
 
   val substanceFlow =
       customRepo
@@ -82,11 +85,12 @@ constructor(
   }
 
   private fun persistSubstance() {
-    if (!hasHydrated) return
+    if (!hasHydrated || isDeleting) return
     viewModelScope.launch {
       // One save at a time, from the row as stored: concurrent saves from fast typing read a stale
       // copy and lost the last characters of a rename or reverted other fields.
       persistLock.withLock {
+        if (isDeleting) return@withLock
         val current = customRepo.getWithEverything(id)?.substance ?: return@withLock
         val newName = nameFlow.value
         val newUnits = unitsFlow.value
@@ -128,10 +132,19 @@ constructor(
     }
   }
 
-  fun deleteCustomSubstance() {
+  fun deleteCustomSubstance(onDone: () -> Unit = {}) {
+    if (isDeleting) return
+    isDeleting = true
     viewModelScope.launch {
-      val current = substanceFlow.value?.substance ?: return@launch
-      experienceRepo.delete(current)
+      try {
+        persistLock.withLock {
+          val current = customRepo.getWithEverything(id)?.substance ?: return@withLock
+          experienceRepo.delete(current)
+        }
+        withContext(Dispatchers.Main) { onDone() }
+      } finally {
+        isDeleting = false
+      }
     }
   }
 }

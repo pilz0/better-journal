@@ -13,8 +13,13 @@ import foo.pilz.freaklog.data.room.experiences.entities.SubstanceGroupItem
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.main.navigation.graphs.AddGroupItemConfigRoute
+import foo.pilz.freaklog.ui.utils.evaluateNumericExpression
+import foo.pilz.freaklog.ui.utils.isValidOptionalStandardDeviationText
+import foo.pilz.freaklog.ui.utils.isValidPositiveDoseText
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class AddGroupItemConfigViewModel
@@ -44,6 +49,7 @@ constructor(
   var unitsText by mutableStateOf("mg")
   var isEstimate by mutableStateOf(false)
   var estimatedStdDevText by mutableStateOf("")
+  private var isSaving = false
 
   init {
     viewModelScope.launch {
@@ -95,19 +101,12 @@ constructor(
 
   val canSave: Boolean
     get() =
-        doseText.replace(',', '.').toDoubleOrNull() != null &&
-            (!isEstimate ||
-                estimatedStdDevText.isBlank() ||
-                estimatedStdDevText
-                    .replace(
-                        ',',
-                        '.',
-                    )
-                    .toDoubleOrNull() != null)
+        isValidPositiveDoseText(doseText) &&
+            (!isEstimate || isValidOptionalStandardDeviationText(estimatedStdDevText))
 
   private fun buildItem(sortOrder: Int): SubstanceGroupItem {
-    val dose = doseText.replace(',', '.').toDoubleOrNull()
-    val stdDev = estimatedStdDevText.replace(',', '.').toDoubleOrNull()
+    val dose = evaluateNumericExpression(doseText)
+    val stdDev = evaluateNumericExpression(estimatedStdDevText)
     return SubstanceGroupItem(
         sortOrder = sortOrder,
         substanceName = substanceName,
@@ -122,12 +121,17 @@ constructor(
   }
 
   fun saveAndDismiss(onDone: () -> Unit) {
-    if (!canSave) return
+    if (!canSave || isSaving) return
+    isSaving = true
     viewModelScope.launch {
-      val existing = groupRepo.getWithItems(groupId)
-      val nextSort = (existing?.items?.maxOfOrNull { it.sortOrder } ?: -1) + 1
-      groupRepo.appendItem(groupId, buildItem(nextSort))
-      onDone()
+      try {
+        val existing = groupRepo.getWithItems(groupId)
+        val nextSort = (existing?.items?.maxOfOrNull { it.sortOrder } ?: -1) + 1
+        groupRepo.appendItem(groupId, buildItem(nextSort))
+        withContext(Dispatchers.Main) { onDone() }
+      } finally {
+        isSaving = false
+      }
     }
   }
 }

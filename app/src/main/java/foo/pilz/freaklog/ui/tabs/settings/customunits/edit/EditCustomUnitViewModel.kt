@@ -33,7 +33,7 @@ import foo.pilz.freaklog.data.substances.classes.roa.DoseClass
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.main.navigation.graphs.EditCustomUnitRoute
-import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
+import foo.pilz.freaklog.ui.tabs.search.substance.roa.toPreservedString
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -49,6 +49,7 @@ constructor(
 ) : ViewModel() {
 
   private var customUnit: CustomUnit? = null
+  private var isBusy = false
 
   var roaDose: RoaDose? = null
 
@@ -121,32 +122,39 @@ constructor(
   }
 
   fun updateAndDismissAfter(dismiss: () -> Unit) {
+    if (isBusy) return
+    isBusy = true
     viewModelScope.launch {
-      customUnit?.let {
-        it.dose = dose
-        it.name = name
-        it.isEstimate = isEstimate
-        it.originalUnit = originalUnit
-        it.unitPlural = unitPlural
-        it.estimatedDoseStandardDeviation = if (isEstimate) estimatedDoseStandardDeviation else null
-        it.isArchived = isArchived
-        it.unit = unit
-        it.note = note
-        experienceRepo.update(it)
-      }
-      withContext(Dispatchers.Main) {
-        dismiss()
+      try {
+        customUnit?.let {
+          it.dose = dose
+          it.name = name
+          it.isEstimate = isEstimate
+          it.originalUnit = originalUnit
+          it.unitPlural = unitPlural
+          it.estimatedDoseStandardDeviation =
+              if (isEstimate) estimatedDoseStandardDeviation else null
+          it.isArchived = isArchived
+          it.unit = unit
+          it.note = note
+          experienceRepo.update(it)
+        }
+        withContext(Dispatchers.Main) { dismiss() }
+      } finally {
+        isBusy = false
       }
     }
   }
 
   fun deleteCustomUnit(dismiss: () -> Unit) {
+    if (isBusy) return
+    isBusy = true
     viewModelScope.launch {
-      customUnit?.let {
-        experienceRepo.delete(customUnit = it)
-      }
-      withContext(Dispatchers.Main) {
-        dismiss()
+      try {
+        customUnit?.let { experienceRepo.delete(customUnit = it) }
+        withContext(Dispatchers.Main) { dismiss() }
+      } finally {
+        isBusy = false
       }
     }
   }
@@ -168,9 +176,9 @@ constructor(
         val pluralizableUnit = customUnit.getPluralizableUnit()
         unit = customUnit.unit
         unitPlural = pluralizableUnit.plural
-        doseText = customUnit.dose?.toReadableString() ?: ""
+        doseText = customUnit.dose?.toPreservedString() ?: ""
         estimatedDoseDeviationText =
-            customUnit.estimatedDoseStandardDeviation?.toReadableString() ?: ""
+            customUnit.estimatedDoseStandardDeviation?.toPreservedString() ?: ""
         isEstimate = customUnit.isEstimate
         isArchived = customUnit.isArchived
         note = customUnit.note

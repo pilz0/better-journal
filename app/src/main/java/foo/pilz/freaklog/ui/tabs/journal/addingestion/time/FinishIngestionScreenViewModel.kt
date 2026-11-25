@@ -150,7 +150,7 @@ constructor(
   val selectedExperienceFlow = MutableStateFlow<ExperienceWithIngestions?>(null)
   var enteredTitle by mutableStateOf(LocalDateTime.now().getStringOfPattern("dd MMMM yyyy"))
   val isEnteredTitleOk
-    get() = enteredTitle.isNotEmpty()
+    get() = enteredTitle.isNotBlank()
 
   var consumerName by mutableStateOf("")
   var ingestionCategory: foo.pilz.freaklog.data.substances.classes.IngestionCategory? by
@@ -438,9 +438,12 @@ constructor(
     private set
 
   private var pendingDismiss: (() -> Unit)? = null
+  private var isSaving = false
 
   /** Saves right away unless the dose would cross an intake limit, in which case it asks first. */
   fun onDoneClicked(dismiss: () -> Unit) {
+    if (isSaving) return
+    isSaving = true
     viewModelScope.launch {
       val breached =
           if (consumerName.isBlank()) {
@@ -455,8 +458,9 @@ constructor(
             emptyList()
           }
       if (breached.isEmpty()) {
-        createSaveAndDismissAfter(dismiss)
+        saveAndDismissInternal(dismiss)
       } else {
+        isSaving = false
         limitWarningStatuses = breached
         pendingDismiss = dismiss
         isShowingLimitWarning = true
@@ -466,8 +470,9 @@ constructor(
 
   fun confirmLimitWarningAndSave() {
     isShowingLimitWarning = false
-    pendingDismiss?.let { createSaveAndDismissAfter(it) }
+    val dismiss = pendingDismiss
     pendingDismiss = null
+    dismiss?.let { createSaveAndDismissAfter(it) }
   }
 
   fun dismissLimitWarning() {
@@ -476,11 +481,17 @@ constructor(
   }
 
   fun createSaveAndDismissAfter(dismiss: () -> Unit) {
-    viewModelScope.launch {
+    if (isSaving) return
+    isSaving = true
+    viewModelScope.launch { saveAndDismissInternal(dismiss) }
+  }
+
+  private suspend fun saveAndDismissInternal(dismiss: () -> Unit) {
+    try {
       createAndSaveIngestion()
-      withContext(Dispatchers.Main) {
-        dismiss()
-      }
+      withContext(Dispatchers.Main) { dismiss() }
+    } finally {
+      isSaving = false
     }
   }
 
@@ -497,7 +508,7 @@ constructor(
       val newExperience =
           Experience(
               id = newIdToUse,
-              title = enteredTitle,
+              title = enteredTitle.trim(),
               text = "",
               creationDate = Instant.now(),
               sortDate = ingestionTime,

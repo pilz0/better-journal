@@ -87,4 +87,35 @@ class DoseExpressionTest {
     assertFalse(isValidDoseInput(10.0, MAX_VALID_DOSE + 1.0))
     assertFalse(isValidDoseInput(10.0, 1e308))
   }
+
+  @Test
+  fun isValidPositiveDoseText_handlesExpressionsAndBounds() {
+    assertTrue(isValidPositiveDoseText("25"))
+    assertTrue(isValidPositiveDoseText("12,5 + 2.5"))
+    assertTrue(isValidPositiveDoseText("1000000"))
+
+    assertFalse(isValidPositiveDoseText(""))
+    assertFalse(isValidPositiveDoseText("   "))
+    assertFalse(isValidPositiveDoseText("0"))
+    assertFalse(isValidPositiveDoseText("-5"))
+    assertFalse(isValidPositiveDoseText("10 - 10"))
+    assertFalse(isValidPositiveDoseText("1000001"))
+    assertFalse(isValidPositiveDoseText("Infinity"))
+    assertFalse(isValidPositiveDoseText("10 / 0"))
+    assertFalse(isValidPositiveDoseText("abc"))
+  }
+
+  @Test
+  fun isValidOptionalStandardDeviationText_allowsBlankAndZero() {
+    assertTrue(isValidOptionalStandardDeviationText(""))
+    assertTrue(isValidOptionalStandardDeviationText("   "))
+    assertTrue(isValidOptionalStandardDeviationText("0"))
+    assertTrue(isValidOptionalStandardDeviationText("5,5 * 2"))
+    assertTrue(isValidOptionalStandardDeviationText("1000000"))
+
+    assertFalse(isValidOptionalStandardDeviationText("-0.1"))
+    assertFalse(isValidOptionalStandardDeviationText("1000001"))
+    assertFalse(isValidOptionalStandardDeviationText("NaN"))
+    assertFalse(isValidOptionalStandardDeviationText("xyz"))
+  }
 }

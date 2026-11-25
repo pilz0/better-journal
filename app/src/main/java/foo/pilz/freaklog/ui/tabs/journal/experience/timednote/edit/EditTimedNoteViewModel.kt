@@ -34,6 +34,7 @@ import foo.pilz.freaklog.ui.utils.getInstant
 import foo.pilz.freaklog.ui.utils.getLocalDateTime
 import java.time.LocalDateTime
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -42,6 +43,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class EditTimedNoteViewModel
@@ -122,23 +124,37 @@ constructor(
               started = SharingStarted.WhileSubscribed(5000),
           )
 
-  fun delete() {
+  private var isBusy = false
+
+  fun delete(onDone: () -> Unit = {}) {
+    if (isBusy) return
+    val currentNote = timedNote ?: return
+    isBusy = true
     viewModelScope.launch {
-      timedNote?.let {
-        experienceRepo.delete(it)
+      try {
+        experienceRepo.delete(currentNote)
+        withContext(Dispatchers.Main) { onDone() }
+      } finally {
+        isBusy = false
       }
     }
   }
 
-  fun onDoneTap() {
+  fun onDoneTap(onDone: () -> Unit = {}) {
+    if (isBusy) return
+    val currentNote = timedNote ?: return
+    isBusy = true
     viewModelScope.launch {
-      val selectedInstant = localDateTimeFlow.firstOrNull()?.getInstant() ?: return@launch
-      timedNote?.let {
-        it.time = selectedInstant
-        it.note = note
-        it.color = color
-        it.isPartOfTimeline = isPartOfTimeline
-        experienceRepo.update(it)
+      try {
+        val selectedInstant = localDateTimeFlow.firstOrNull()?.getInstant() ?: return@launch
+        currentNote.time = selectedInstant
+        currentNote.note = note
+        currentNote.color = color
+        currentNote.isPartOfTimeline = isPartOfTimeline
+        experienceRepo.update(currentNote)
+        withContext(Dispatchers.Main) { onDone() }
+      } finally {
+        isBusy = false
       }
     }
   }

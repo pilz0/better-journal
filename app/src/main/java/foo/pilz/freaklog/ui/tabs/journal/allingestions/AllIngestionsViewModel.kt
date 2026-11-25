@@ -59,7 +59,7 @@ constructor(
   private val _isTimeRelative = MutableStateFlow(false)
   val isTimeRelative: StateFlow<Boolean> = _isTimeRelative.asStateFlow()
 
-  val ingestionSectionsFlow: StateFlow<List<IngestionSection>> =
+  val ingestionSectionsFlow: StateFlow<List<IngestionSection>?> =
       combine(
               experienceRepository.getSortedIngestionsWithSubstanceCompanionsFlow(
                   MAX_INGESTIONS_TO_LOAD
@@ -79,7 +79,7 @@ constructor(
           .stateIn(
               scope = viewModelScope,
               started = SharingStarted.WhileSubscribed(5000),
-              initialValue = emptyList(),
+              initialValue = null,
           )
 
   private fun groupIngestionsByDate(

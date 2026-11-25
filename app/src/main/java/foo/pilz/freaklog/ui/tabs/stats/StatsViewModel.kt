@@ -298,7 +298,7 @@ constructor(
     )
   }
 
-  val statsModelFlow: StateFlow<StatsModel> =
+  val statsModelFlow: StateFlow<StatsModel?> =
       combine(
               combine(optionFlow, startDateTextFlow, ::Pair),
               statsFlowItem,
@@ -317,15 +317,7 @@ constructor(
           }
           .flowOn(Dispatchers.Default)
           .stateIn(
-              initialValue =
-                  StatsModel(
-                      selectedOption = TimePickerOption.WEEKS_26,
-                      areThereAnyIngestions = false,
-                      startDateText = "",
-                      statItems = emptyList(),
-                      chartBuckets = emptyList(),
-                      consumerName = null,
-                  ),
+              initialValue = null,
               scope = viewModelScope,
               started = SharingStarted.WhileSubscribed(5000),
           )
@@ -367,7 +359,9 @@ constructor(
     val fileName = randomExcelFileName()
     skinController.show(
         viewModelScope,
-        statsModelFlow.map { ExcelSkinPayload(statItems = it.statItems, fileName = fileName) },
+        statsModelFlow.map {
+          ExcelSkinPayload(statItems = it?.statItems.orEmpty(), fileName = fileName)
+        },
     )
   }
 }

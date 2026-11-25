@@ -22,7 +22,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
@@ -62,12 +61,16 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.reminders.entities.Reminder
+import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.scheduled.ReminderSchedule
+import foo.pilz.freaklog.ui.components.EmptyScreenDisclaimer
+import foo.pilz.freaklog.ui.components.NavigateBackButton
+import foo.pilz.freaklog.ui.components.SectionHeader
+import foo.pilz.freaklog.ui.tabs.search.substance.roa.toPreservedString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RemindersScreen(
-    navigateBack: () -> Unit,
     navigateToEdit: (Int) -> Unit,
     viewModel: RemindersViewModel = hiltViewModel(),
 ) {
@@ -94,14 +97,7 @@ fun RemindersScreen(
       topBar = {
         TopAppBar(
             title = { Text("Reminders") },
-            navigationIcon = {
-              IconButton(onClick = navigateBack) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                )
-              }
-            },
+            navigationIcon = { NavigateBackButton() },
         )
       },
       floatingActionButton = {
@@ -122,16 +118,23 @@ fun RemindersScreen(
             }
         )
       }
-      if (reminders.isEmpty()) {
-        EmptyState(onAdd = { navigateToEdit(-1) })
-      } else {
-        ReminderList(
-            reminders = reminders,
-            onEdit = { navigateToEdit(it.id) },
-            onToggle = viewModel::toggleReminder,
-            onDelete = viewModel::deleteReminder,
-            onDuplicate = viewModel::duplicateReminder,
-        )
+      val loadedReminders = reminders
+      if (loadedReminders != null) {
+        if (loadedReminders.isEmpty()) {
+          EmptyScreenDisclaimer(
+              title = "No reminders yet",
+              description = "Add a reminder to get notified when it's time to take a substance.",
+              icon = Icons.Outlined.NotificationsOff,
+          )
+        } else {
+          ReminderList(
+              reminders = loadedReminders,
+              onEdit = { navigateToEdit(it.id) },
+              onToggle = viewModel::toggleReminder,
+              onDelete = viewModel::deleteReminder,
+              onDuplicate = viewModel::duplicateReminder,
+          )
+        }
       }
     }
   }
@@ -169,38 +172,6 @@ private fun ExactAlarmBanner(onOpenSettings: () -> Unit) {
 }
 
 @Composable
-private fun EmptyState(onAdd: () -> Unit) {
-  Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.padding(32.dp),
-    ) {
-      Icon(
-          Icons.Outlined.NotificationsOff,
-          contentDescription = null,
-          modifier = Modifier.size(64.dp),
-          tint = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-      Text(
-          "No reminders yet",
-          style = MaterialTheme.typography.titleLarge,
-      )
-      Text(
-          "Add a reminder to get notified when it's time to take a substance.",
-          style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-      TextButton(onClick = onAdd) {
-        Icon(Icons.Default.Add, contentDescription = null)
-        Spacer(Modifier.size(4.dp))
-        Text("Add reminder")
-      }
-    }
-  }
-}
-
-@Composable
 private fun ReminderList(
     reminders: List<Reminder>,
     onEdit: (Reminder) -> Unit,
@@ -229,16 +200,6 @@ private fun ReminderList(
       }
     }
   }
-}
-
-@Composable
-private fun SectionHeader(text: String) {
-  Text(
-      text = text.uppercase(),
-      style = MaterialTheme.typography.labelMedium,
-      color = MaterialTheme.colorScheme.onSurfaceVariant,
-      modifier = Modifier.padding(start = 4.dp, top = 4.dp, bottom = 4.dp),
-  )
 }
 
 @Composable
@@ -380,15 +341,20 @@ private fun doseSummary(reminder: Reminder): String {
   val parts = mutableListOf<String>()
   val dose = reminder.dose
   if (dose != null) {
-    val doseText =
-        if (dose == dose.toLong().toDouble()) dose.toLong().toString() else dose.toString()
+    val doseText = dose.toPreservedString()
     val units = reminder.units?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
     parts += "$doseText$units"
   }
   val substance = reminder.substanceName?.takeIf { it.isNotBlank() }
   if (substance != null) parts += substance
-  val route = reminder.administrationRoute?.takeIf { it.isNotBlank() }
-  if (route != null) parts += route.lowercase().replaceFirstChar { it.uppercase() }
+  val route =
+      reminder.administrationRoute
+          ?.takeIf { it.isNotBlank() }
+          ?.let { raw ->
+            AdministrationRoute.entries.firstOrNull { it.name == raw }?.displayText
+                ?: raw.lowercase().replaceFirstChar { it.uppercase() }
+          }
+  if (route != null) parts += route
   return parts.joinToString(" · ")
 }
 

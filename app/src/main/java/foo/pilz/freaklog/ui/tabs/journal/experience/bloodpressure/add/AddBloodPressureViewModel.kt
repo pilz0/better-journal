@@ -18,8 +18,11 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.bloodpressure.isBloodPressur
 import foo.pilz.freaklog.ui.utils.getInstant
 import java.time.LocalDateTime
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class AddBloodPressureViewModel
@@ -30,6 +33,7 @@ constructor(
   var systolic by mutableStateOf("")
   var diastolic by mutableStateOf("")
   var localDateTimeFlow = MutableStateFlow(LocalDateTime.now())
+  private var isSaving = false
 
   val fieldErrors
     get() = bloodPressureFieldErrors(systolic, diastolic)
@@ -51,22 +55,26 @@ constructor(
     diastolic = newDiastolic
   }
 
-  fun onDoneTap() {
-    if (!isInputValid) return
-    val systolic = systolic.trim().replace(',', '.').toDoubleOrNull() ?: return
-    val diastolic = diastolic.trim().replace(',', '.').toDoubleOrNull() ?: return
+  fun onDoneTap(onDone: () -> Unit = {}) {
+    if (!isInputValid || isSaving) return
+    val systolicValue = systolic.trim().replace(',', '.').toDoubleOrNull() ?: return
+    val diastolicValue = diastolic.trim().replace(',', '.').toDoubleOrNull() ?: return
+    isSaving = true
     val record =
         BloodPressureRecord(
             time = localDateTimeFlow.value.getInstant(),
             zoneOffset = null,
             metadata = Metadata.manualEntry(),
-            systolic = Pressure.millimetersOfMercury(systolic),
-            diastolic = Pressure.millimetersOfMercury(diastolic),
+            systolic = Pressure.millimetersOfMercury(systolicValue),
+            diastolic = Pressure.millimetersOfMercury(diastolicValue),
         )
     viewModelScope.launch {
       try {
         val client = HealthConnectClient.getOrCreate(context)
         client.insertRecords(listOf(record))
+        withContext(Dispatchers.Main) { onDone() }
+      } catch (ce: CancellationException) {
+        throw ce
       } catch (e: Exception) {
         Toast.makeText(
                 context,
@@ -74,6 +82,8 @@ constructor(
                 Toast.LENGTH_LONG,
             )
             .show()
+      } finally {
+        isSaving = false
       }
     }
   }

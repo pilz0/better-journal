@@ -19,7 +19,6 @@
 package foo.pilz.freaklog.ui.tabs.stats.tolerance
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -40,6 +39,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -61,17 +61,19 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import foo.pilz.freaklog.ui.components.EmptyScreenDisclaimer
 import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import foo.pilz.freaklog.ui.utils.getStringOfPattern
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.time.temporal.ChronoUnit
@@ -169,17 +171,10 @@ fun ToleranceChartScreenContent(
       Spacer(modifier = Modifier.height(16.dp))
 
       if (toleranceData.toleranceWindows.isEmpty()) {
-        Box(
-            modifier = Modifier.fillMaxWidth().height(200.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-          Text(
-              text = "No ingestions with tolerance info",
-              style = MaterialTheme.typography.bodyLarge,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-              textAlign = TextAlign.Center,
-          )
-        }
+        EmptyScreenDisclaimer(
+            title = "No ingestions with tolerance info",
+            description = "Ingestions with tolerance curves in this range will appear here.",
+        )
       } else {
         ToleranceChart(
             toleranceWindows = toleranceData.toleranceWindows,
@@ -219,14 +214,14 @@ fun ToleranceChartScreenContent(
 
   if (showDatePicker) {
     val datePickerState =
-        rememberDatePickerState(initialSelectedDateMillis = sinceDate.toEpochMilli())
+        rememberDatePickerState(initialSelectedDateMillis = instantToDatePickerUtcMillis(sinceDate))
     DatePickerDialog(
         onDismissRequest = { showDatePicker = false },
         confirmButton = {
           TextButton(
               onClick = {
                 datePickerState.selectedDateMillis?.let { millis ->
-                  onChangeSinceDate(Instant.ofEpochMilli(millis))
+                  onChangeSinceDate(datePickerUtcMillisToInstant(millis))
                 }
                 showDatePicker = false
               }
@@ -258,33 +253,33 @@ fun InfoRow(
     title: String,
     onClick: () -> Unit,
 ) {
-  Row(
-      modifier =
-          Modifier.fillMaxWidth()
-              .clip(RoundedCornerShape(12.dp))
-              .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-              .clickable(onClick = onClick)
-              .padding(16.dp),
-      horizontalArrangement = Arrangement.SpaceBetween,
-      verticalAlignment = Alignment.CenterVertically,
+  ElevatedCard(
+      onClick = onClick,
+      modifier = Modifier.fillMaxWidth(),
   ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            imageVector = Icons.Default.Info, // Or a specific icon if needed
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge,
+        )
+      }
       Icon(
-          imageVector = Icons.Default.Info, // Or a specific icon if needed
+          imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
           contentDescription = null,
-          tint = MaterialTheme.colorScheme.primary,
-      )
-      Spacer(modifier = Modifier.width(16.dp))
-      Text(
-          text = title,
-          style = MaterialTheme.typography.bodyLarge,
+          tint = MaterialTheme.colorScheme.onSurfaceVariant,
       )
     }
-    Icon(
-        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-        contentDescription = null,
-        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
   }
 }
 
@@ -334,12 +329,14 @@ fun ToleranceChart(
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
           }
         }
       }
 
       // Chart Area
+      val nowLineColor = MaterialTheme.colorScheme.onSurface
       Box(modifier = Modifier.weight(1f).height(chartHeight)) {
         Canvas(modifier = Modifier.fillMaxSize()) {
           val canvasWidth = size.width
@@ -386,7 +383,7 @@ fun ToleranceChart(
                 val barTopOffset = (singleRowHeight - barHeight) / 2
 
                 drawRoundRect(
-                    color = window.barColor,
+                    color = window.barColor(isDarkTheme),
                     topLeft = Offset(startX, topY + barTopOffset),
                     size = Size(barWidth, barHeight),
                     cornerRadius = CornerRadius(4.dp.toPx(), 4.dp.toPx()),
@@ -399,7 +396,7 @@ fun ToleranceChart(
           val nowX = ((nowMillis - minTimeMillis).toFloat() / totalDuration) * canvasWidth
           if (nowX in 0f..canvasWidth) {
             drawLine(
-                color = Color.White, // Strong white as in screenshot
+                color = nowLineColor,
                 start = Offset(nowX, 0f),
                 end = Offset(nowX, canvasHeight),
                 strokeWidth = 2f,
@@ -501,3 +498,19 @@ internal fun joinNames(names: List<String>): String =
       2 -> "${names[0]} and ${names[1]}"
       else -> names.dropLast(1).joinToString(", ") + ", and " + names.last()
     }
+
+internal fun instantToDatePickerUtcMillis(
+    instant: Instant,
+    zoneId: ZoneId = ZoneId.systemDefault(),
+): Long =
+    instant.atZone(zoneId).toLocalDate().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+
+internal fun datePickerUtcMillisToInstant(
+    utcMillis: Long,
+    zoneId: ZoneId = ZoneId.systemDefault(),
+): Instant =
+    Instant.ofEpochMilli(utcMillis)
+        .atZone(ZoneOffset.UTC)
+        .toLocalDate()
+        .atStartOfDay(zoneId)
+        .toInstant()

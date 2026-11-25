@@ -219,7 +219,7 @@ fun SubstanceScreen(
                       horizontal = horizontalPadding,
                   )
           ) {
-            Icon(imageVector = Icons.Default.GppBad, contentDescription = "Verified")
+            Icon(imageVector = Icons.Default.GppBad, contentDescription = "Not verified")
             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
             Text(text = "Info is not approved")
           }

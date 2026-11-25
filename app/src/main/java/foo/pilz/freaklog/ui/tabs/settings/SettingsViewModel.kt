@@ -28,6 +28,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.export.JournalExport
 import foo.pilz.freaklog.data.export.buildJournalExportJson
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
+import foo.pilz.freaklog.scheduled.NotificationScheduler
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.VitalKind
 import foo.pilz.freaklog.ui.tabs.settings.combinations.BloodPressureDisplay
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
@@ -36,6 +37,7 @@ import foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthManager
 import foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAvailability
 import foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -50,6 +52,7 @@ constructor(
     private val userPreferences: UserPreferences,
     private val biometricAuthManager: BiometricAuthManager,
     private val webhookRepository: foo.pilz.freaklog.data.room.webhooks.WebhookRepository,
+    private val notificationScheduler: NotificationScheduler,
 ) : ViewModel() {
 
   fun saveDosageDotsAreHidden(value: Boolean) = viewModelScope.launch {
@@ -286,7 +289,9 @@ constructor(
   val snackbarHostState = SnackbarHostState()
 
   fun importFile(uri: Uri) {
+    if (biometricAuthManager.shouldLock.value) return
     viewModelScope.launch {
+      if (biometricAuthManager.shouldLock.value) return@launch
       val text = fileSystemConnection.getTextFromUri(uri)
       if (text == null) {
         snackbarHostState.showSnackbar(
@@ -297,12 +302,19 @@ constructor(
         try {
           val json = Json { ignoreUnknownKeys = true }
           val journalExport = json.decodeFromString<JournalExport>(text)
+          // Cancel alarms for old reminders before replacing the DB, then arm the imported ones.
+          experienceRepository.getAllReminders().forEach {
+            notificationScheduler.cancelReminder(it.id)
+          }
           // One transaction: a document that fails to insert leaves the journal as it was.
           experienceRepository.replaceEverything(journalExport)
+          notificationScheduler.rescheduleAll()
           snackbarHostState.showSnackbar(
               message = "Import successful",
               duration = SnackbarDuration.Short,
           )
+        } catch (ce: CancellationException) {
+          throw ce
         } catch (e: Exception) {
           Log.e("SettingsViewModel", "Error when decoding: ${e.message}", e)
           snackbarHostState.showSnackbar(
@@ -343,6 +355,7 @@ constructor(
     if (biometricAuthManager.shouldLock.value) return
     viewModelScope.launch {
       if (biometricAuthManager.shouldLock.value) return@launch
+      experienceRepository.getAllReminders().forEach { notificationScheduler.cancelReminder(it.id) }
       experienceRepository.deleteEverything()
     }
   }

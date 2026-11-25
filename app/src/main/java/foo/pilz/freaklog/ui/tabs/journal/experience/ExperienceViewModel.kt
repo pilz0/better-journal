@@ -768,12 +768,21 @@ constructor(
     }
   }
 
-  fun deleteExperience(context: Context) {
+  private var isDeletingExperience = false
+
+  fun deleteExperience(context: Context, onDeleted: () -> Unit = {}) {
+    if (isDeletingExperience) return
+    isDeletingExperience = true
     viewModelScope.launch {
-      if (userPreferences.activeNotificationExperienceIdFlow.firstOrNull() == experienceId) {
-        stopNotification(context)
+      try {
+        if (userPreferences.activeNotificationExperienceIdFlow.firstOrNull() == experienceId) {
+          stopNotification(context)
+        }
+        ingestionWebhookSender.deleteExperienceWithMessages(experienceId)
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { onDeleted() }
+      } finally {
+        isDeletingExperience = false
       }
-      ingestionWebhookSender.deleteExperienceWithMessages(experienceId)
     }
   }
 

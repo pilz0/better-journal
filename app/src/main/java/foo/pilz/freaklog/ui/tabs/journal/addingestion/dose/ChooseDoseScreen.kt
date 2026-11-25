@@ -469,9 +469,9 @@ fun ChooseDoseScreen(
                           }
                       ),
                   isError =
-                      foo.pilz.freaklog.ui.utils.evaluateNumericExpression(
+                      !foo.pilz.freaklog.ui.utils.isValidOptionalStandardDeviationText(
                           estimatedDoseStandardDeviationText
-                      ) == null,
+                      ),
                   keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                   singleLine = true,
                   modifier = Modifier.fillMaxWidth(),

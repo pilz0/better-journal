@@ -11,7 +11,9 @@ import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithEver
 import foo.pilz.freaklog.data.substances.classes.IngestionCategory
 import foo.pilz.freaklog.ui.utils.stateInVm
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -19,6 +21,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -38,6 +41,9 @@ constructor(
   val categoryFlow = MutableStateFlow<IngestionCategory?>(null)
 
   private val persistLock = Mutex()
+  private var draftDeleted = false
+  private var isDeleting = false
+  private val initJob: Job
 
   val substanceFlow =
       _idFlow
@@ -47,11 +53,18 @@ constructor(
           .stateInVm(viewModelScope, null as CustomSubstanceWithEverything?)
 
   init {
-    viewModelScope.launch {
+    initJob = viewModelScope.launch {
       val stub = CustomSubstance(name = "", units = "", description = "")
       _idFlow.value = experienceRepo.insert(stub)
       // Anything typed before the row existed was not saved yet.
-      if (nameFlow.value.isNotBlank() || unitsFlow.value.isNotBlank()) persistSubstance()
+      if (
+          !draftDeleted &&
+              (nameFlow.value.isNotBlank() ||
+                  unitsFlow.value.isNotBlank() ||
+                  summaryFlow.value.isNotBlank())
+      ) {
+        persistSubstance()
+      }
     }
   }
 
@@ -80,6 +93,7 @@ constructor(
       // One save at a time, from the row as stored: concurrent saves from fast typing read a stale
       // copy and lost the last characters of a rename or reverted other fields.
       persistLock.withLock {
+        if (draftDeleted) return@withLock
         val id = _idFlow.value ?: return@withLock
         val current = customRepo.getWithEverything(id)?.substance ?: return@withLock
         val newName = nameFlow.value
@@ -108,6 +122,7 @@ constructor(
 
   private fun persistCategory() {
     viewModelScope.launch {
+      if (draftDeleted) return@launch
       val name = nameFlow.value
       if (name.isBlank()) return@launch
       val companion = experienceRepo.getSubstanceCompanion(name) ?: SubstanceCompanion(name)
@@ -115,10 +130,27 @@ constructor(
     }
   }
 
-  fun deleteDraft() {
+  internal suspend fun awaitPendingSaves() {
+    initJob.join()
+    persistLock.withLock {}
+  }
+
+  fun deleteDraft(onDone: () -> Unit = {}) {
+    if (isDeleting) return
+    draftDeleted = true
+    isDeleting = true
     viewModelScope.launch {
-      val current = substanceFlow.value?.substance ?: return@launch
-      experienceRepo.delete(current)
+      try {
+        initJob.join()
+        persistLock.withLock {
+          val current = _idFlow.value?.let { customRepo.getWithEverything(it)?.substance }
+          if (current != null) {
+            experienceRepo.delete(current)
+          }
+        }
+      } finally {
+        withContext(Dispatchers.Main) { onDone() }
+      }
     }
   }
 }

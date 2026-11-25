@@ -45,10 +45,12 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.ShulginRatingOption
 import foo.pilz.freaklog.ui.components.NavigateBackButton
+import foo.pilz.freaklog.ui.components.clearOfImeFab
 import foo.pilz.freaklog.ui.tabs.journal.experience.rating.FloatingDoneButton
 import foo.pilz.freaklog.ui.tabs.journal.experience.rating.RatingPickerSection
 import foo.pilz.freaklog.ui.tabs.journal.experience.rating.RatingsExplanationSection
 import foo.pilz.freaklog.ui.tabs.journal.experience.rating.TimePickerSection
+import foo.pilz.freaklog.ui.theme.LocalSpacing
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import java.time.LocalDateTime
 
@@ -73,10 +75,7 @@ fun AddRatingScreen(
     navigateBack: () -> Unit,
 ) {
   AddRatingScreen(
-      onDone = {
-        viewModel.onDoneTap()
-        navigateBack()
-      },
+      onDone = { viewModel.onDoneTap(navigateBack) },
       selectedTime = viewModel.localDateTimeFlow.collectAsStateWithLifecycle().value,
       onTimeChange = viewModel::onChangeTime,
       selectedRating = viewModel.selectedRating,
@@ -116,7 +115,8 @@ fun AddRatingScreen(
   ) { padding ->
     Column(
         modifier =
-            Modifier.verticalScroll(rememberScrollState())
+            Modifier.clearOfImeFab()
+                .verticalScroll(rememberScrollState())
                 .padding(padding)
                 .padding(horizontal = horizontalPadding)
     ) {
@@ -144,6 +144,7 @@ fun AddRatingScreen(
       }
       RatingPickerSection(selectedRating = selectedRating, onRatingChange = onRatingChange)
       RatingsExplanationSection()
+      Spacer(modifier = Modifier.height(LocalSpacing.current.fabBottomPad))
     }
   }
 }

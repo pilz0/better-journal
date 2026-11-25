@@ -8,13 +8,18 @@ import foo.pilz.freaklog.data.room.experiences.entities.SubstanceGroup
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceGroupItem
 import foo.pilz.freaklog.ui.utils.stateInVm
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -29,6 +34,11 @@ constructor(
 
   val nameFlow = MutableStateFlow("")
 
+  private val persistLock = Mutex()
+  private var draftDeleted = false
+  private var isDeleting = false
+  private val initJob: Job
+
   val itemsFlow =
       _idFlow
           .flatMapLatest { id ->
@@ -38,8 +48,11 @@ constructor(
           .stateInVm(viewModelScope, emptyList<SubstanceGroupItem>())
 
   init {
-    viewModelScope.launch {
+    initJob = viewModelScope.launch {
       _idFlow.value = groupRepo.create(SubstanceGroup(name = ""))
+      if (!draftDeleted && nameFlow.value.isNotBlank()) {
+        persist()
+      }
     }
   }
 
@@ -49,9 +62,12 @@ constructor(
   }
 
   private fun persist() {
-    val id = _idFlow.value ?: return
     viewModelScope.launch {
-      groupRepo.update(SubstanceGroup(id = id, name = nameFlow.value.trim()))
+      persistLock.withLock {
+        if (draftDeleted) return@withLock
+        val id = _idFlow.value ?: return@withLock
+        groupRepo.update(SubstanceGroup(id = id, name = nameFlow.value.trim()))
+      }
     }
   }
 
@@ -59,10 +75,20 @@ constructor(
     viewModelScope.launch { groupRepo.deleteItem(item) }
   }
 
-  fun deleteDraft() {
-    val id = _idFlow.value ?: return
+  fun deleteDraft(onDone: () -> Unit = {}) {
+    if (isDeleting) return
+    draftDeleted = true
+    isDeleting = true
     viewModelScope.launch {
-      groupRepo.delete(SubstanceGroup(id = id, name = nameFlow.value.trim()))
+      try {
+        initJob.join()
+        persistLock.withLock {
+          val id = _idFlow.value ?: return@withLock
+          groupRepo.delete(SubstanceGroup(id = id, name = nameFlow.value.trim()))
+        }
+      } finally {
+        withContext(Dispatchers.Main) { onDone() }
+      }
     }
   }
 }

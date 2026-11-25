@@ -31,7 +31,9 @@ import foo.pilz.freaklog.data.room.experiences.entities.Experience
 import foo.pilz.freaklog.data.room.experiences.entities.Location
 import foo.pilz.freaklog.ui.main.navigation.graphs.EditExperienceRoute
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class EditExperienceViewModel
@@ -50,6 +52,7 @@ constructor(
   var enteredLocation by mutableStateOf("")
   private var oldLongitude: Double? = null
   private var oldLatitude: Double? = null
+  private var isSaving = false
 
   init {
     val experienceId: Int =
@@ -69,10 +72,12 @@ constructor(
     }
   }
 
-  fun onDoneTap() {
-    if (isEnteredTitleOk) {
-      val currentExperience = experience ?: return
-      viewModelScope.launch {
+  fun onDoneTap(onDone: () -> Unit = {}) {
+    if (!isEnteredTitleOk || isSaving) return
+    val currentExperience = experience ?: return
+    isSaving = true
+    viewModelScope.launch {
+      try {
         currentExperience.title = enteredTitle.trim()
         currentExperience.text = enteredText
         val trimmedLocation = enteredLocation.trim()
@@ -93,6 +98,9 @@ constructor(
             }
         currentExperience.location = location
         repository.update(experience = currentExperience)
+        withContext(Dispatchers.Main) { onDone() }
+      } finally {
+        isSaving = false
       }
     }
   }

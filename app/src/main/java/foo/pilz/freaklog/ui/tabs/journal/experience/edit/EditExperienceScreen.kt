@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -41,9 +42,9 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import foo.pilz.freaklog.ui.components.NavigateBackButton
+import foo.pilz.freaklog.ui.theme.LocalSpacing
 
 @Composable
 fun EditExperienceScreen(
@@ -54,10 +55,7 @@ fun EditExperienceScreen(
       enteredTitle = viewModel.enteredTitle,
       onChangeOfEnteredTitle = { viewModel.enteredTitle = it },
       isEnteredTitleOk = viewModel.isEnteredTitleOk,
-      onDoneTap = {
-        viewModel.onDoneTap()
-        navigateBack()
-      },
+      onDoneTap = { viewModel.onDoneTap(navigateBack) },
       text = viewModel.enteredText,
       onTextChange = { viewModel.enteredText = it },
       location = viewModel.enteredLocation,
@@ -102,7 +100,7 @@ fun EditExperienceScreen(
                 IconButton(onClick = onDoneTap) {
                   Icon(
                       Icons.Filled.Done,
-                      contentDescription = "Done icon",
+                      contentDescription = "Save",
                   )
                 }
               }
@@ -110,10 +108,15 @@ fun EditExperienceScreen(
         )
       }
   ) { padding ->
+    val spacing = LocalSpacing.current
     Column(
-        modifier = Modifier.padding(padding).padding(10.dp).fillMaxSize(),
+        modifier =
+            Modifier.padding(padding)
+                .imePadding()
+                .padding(horizontal = spacing.screenHorizontal, vertical = spacing.md)
+                .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(spacing.md),
     ) {
       val focusManager = LocalFocusManager.current
       OutlinedTextField(

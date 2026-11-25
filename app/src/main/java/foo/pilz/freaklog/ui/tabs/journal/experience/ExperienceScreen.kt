@@ -256,77 +256,151 @@ fun ExperienceScreen(
 
   ExperienceScreen(
       oneExperienceScreenModel = oneExperienceScreenModel,
-      timelineDisplayOption = timelineDisplayOption,
-      isOralDisclaimerHidden =
-          viewModel.isOralTimelineDisclaimerHidden.collectAsStateWithLifecycle().value,
-      onChangeIsOralDisclaimerHidden = viewModel::saveOralDisclaimerIsHidden,
-      addIngestion = {
-        viewModel.saveLastIngestionTimeOfExperience()
-        navigateToAddIngestionSearch()
-      },
-      deleteExperience = { viewModel.deleteExperience(context) },
-      onShareExperience = {
-        (context as? androidx.activity.ComponentActivity)?.let(viewModel::shareExperience)
-      },
-      heartRateSamples = viewModel.heartRateSamplesFlow.collectAsStateWithLifecycle().value,
-      sleepSamples = viewModel.sleepSamplesFlow.collectAsStateWithLifecycle().value,
-      sleepStagesEnabled = viewModel.sleepStagesEnabledFlow.collectAsStateWithLifecycle().value,
-      isHeartRateButtonVisible = isVitalsEnabled && isHeartRateAvailable,
-      onToggleHeartRate = {
-        viewModel.toggleHeartRate(context) {
-          healthPermissionLauncher.launch(
-              HeartRateHealthConnect.permissions + SleepHealthConnect.permissions
-          )
-        }
-      },
-      vitalSeries = viewModel.vitalSeriesFlow.collectAsStateWithLifecycle().value,
-      bloodPressureReadings =
-          viewModel.bloodPressureReadingsFlow.collectAsStateWithLifecycle().value,
-      isBloodPressureAvailable = isBloodPressureAvailable,
-      isBloodPressureInSubstanceList = isBloodPressureInSubstanceList,
-      onToggleBloodPressureInSubstanceList = {
-        viewModel.saveBloodPressureDisplay(
-            if (isBloodPressureInSubstanceList) BloodPressureDisplay.SEPARATE
-            else BloodPressureDisplay.COMBINED
-        )
-      },
-      navigateToRecordBloodPressureScreen = navigateToRecordBloodPressureScreen,
-      navigateToEditBloodPressureScreen = navigateToEditBloodPressureScreen,
-      isNotificationActive = isNotificationActive,
-      onToggleNotification = {
-        val needsPermission =
-            !isNotificationActive &&
-                android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU &&
-                androidx.core.content.ContextCompat.checkSelfPermission(
-                    context,
-                    android.Manifest.permission.POST_NOTIFICATIONS,
-                ) != android.content.pm.PackageManager.PERMISSION_GRANTED
-        if (needsPermission) {
-          notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-        } else {
-          viewModel.toggleNotification(context)
-        }
-      },
-      navigateToEditExperienceScreen = navigateToEditExperienceScreen,
-      navigateToExplainTimeline = navigateToExplainTimeline,
-      navigateToIngestionScreen = navigateToIngestionScreen,
-      navigateToAddRatingScreen = navigateToAddRatingScreen,
-      navigateToAddTimedNoteScreen = navigateToAddTimedNoteScreen,
-      navigateBack = navigateBack,
-      saveIsFavorite = viewModel::saveIsFavorite,
-      openAiChat = { showAiChat = true },
-      isAiAssistantEnabled = isAiAssistantEnabled,
-      navigateToEditRatingScreen = navigateToEditRatingScreen,
-      navigateToEditTimedNoteScreen = navigateToEditTimedNoteScreen,
-      savedTimeDisplayOption = viewModel.savedTimeDisplayOption.collectAsStateWithLifecycle().value,
-      timeDisplayOption = viewModel.timeDisplayOptionFlow.collectAsStateWithLifecycle().value,
-      onChangeTimeDisplayOption = viewModel::saveTimeDisplayOption,
-      navigateToTimelineScreen = navigateToTimelineScreen,
-      areDosageDotsHidden = viewModel.areDosageDotsHiddenFlow.collectAsStateWithLifecycle().value,
-      isTimelineHidden = viewModel.isTimelineHiddenFlow.collectAsStateWithLifecycle().value,
-      matchedAchievements = viewModel.matchedAchievementsFlow.collectAsStateWithLifecycle().value,
+      timelineUi =
+          ExperienceTimelineUi(
+              timelineDisplayOption = timelineDisplayOption,
+              timeDisplayOption =
+                  viewModel.timeDisplayOptionFlow.collectAsStateWithLifecycle().value,
+              savedTimeDisplayOption =
+                  viewModel.savedTimeDisplayOption.collectAsStateWithLifecycle().value,
+              onChangeTimeDisplayOption = viewModel::saveTimeDisplayOption,
+              isOralDisclaimerHidden =
+                  viewModel.isOralTimelineDisclaimerHidden.collectAsStateWithLifecycle().value,
+              onChangeIsOralDisclaimerHidden = viewModel::saveOralDisclaimerIsHidden,
+          ),
+      displayUi =
+          ExperienceDisplayUi(
+              areDosageDotsHidden =
+                  viewModel.areDosageDotsHiddenFlow.collectAsStateWithLifecycle().value,
+              isTimelineHidden = viewModel.isTimelineHiddenFlow.collectAsStateWithLifecycle().value,
+              matchedAchievements =
+                  viewModel.matchedAchievementsFlow.collectAsStateWithLifecycle().value,
+              isAiAssistantEnabled = isAiAssistantEnabled,
+              isNotificationActive = isNotificationActive,
+              onToggleNotification = {
+                val needsPermission =
+                    !isNotificationActive &&
+                        android.os.Build.VERSION.SDK_INT >=
+                            android.os.Build.VERSION_CODES.TIRAMISU &&
+                        androidx.core.content.ContextCompat.checkSelfPermission(
+                            context,
+                            android.Manifest.permission.POST_NOTIFICATIONS,
+                        ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+                if (needsPermission) {
+                  notificationPermissionLauncher.launch(
+                      android.Manifest.permission.POST_NOTIFICATIONS
+                  )
+                } else {
+                  viewModel.toggleNotification(context)
+                }
+              },
+              onShareExperience = {
+                (context as? androidx.activity.ComponentActivity)?.let(viewModel::shareExperience)
+              },
+              onToggleBloodPressureInSubstanceList = {
+                viewModel.saveBloodPressureDisplay(
+                    if (isBloodPressureInSubstanceList) BloodPressureDisplay.SEPARATE
+                    else BloodPressureDisplay.COMBINED
+                )
+              },
+          ),
+      navCallbacks =
+          ExperienceNavCallbacks(
+              addIngestion = {
+                viewModel.saveLastIngestionTimeOfExperience()
+                navigateToAddIngestionSearch()
+              },
+              deleteExperience = { viewModel.deleteExperience(context, onDeleted = navigateBack) },
+              navigateToEditExperienceScreen = navigateToEditExperienceScreen,
+              navigateToExplainTimeline = navigateToExplainTimeline,
+              navigateToIngestionScreen = navigateToIngestionScreen,
+              navigateToAddRatingScreen = navigateToAddRatingScreen,
+              navigateToAddTimedNoteScreen = navigateToAddTimedNoteScreen,
+              navigateToTimelineScreen = navigateToTimelineScreen,
+          ),
+      extrasCallbacks =
+          ExperienceExtrasCallbacks(
+              saveIsFavorite = viewModel::saveIsFavorite,
+              openAiChat = { showAiChat = true },
+              navigateToEditRatingScreen = navigateToEditRatingScreen,
+              navigateToEditTimedNoteScreen = navigateToEditTimedNoteScreen,
+              navigateToRecordBloodPressureScreen = navigateToRecordBloodPressureScreen,
+              navigateToEditBloodPressureScreen = navigateToEditBloodPressureScreen,
+          ),
+      vitalsUi =
+          ExperienceVitalsUi(
+              heartRateSamples = viewModel.heartRateSamplesFlow.collectAsStateWithLifecycle().value,
+              sleepSamples = viewModel.sleepSamplesFlow.collectAsStateWithLifecycle().value,
+              sleepStagesEnabled =
+                  viewModel.sleepStagesEnabledFlow.collectAsStateWithLifecycle().value,
+              isHeartRateButtonVisible = isVitalsEnabled && isHeartRateAvailable,
+              onToggleHeartRate = {
+                viewModel.toggleHeartRate(context) {
+                  healthPermissionLauncher.launch(
+                      HeartRateHealthConnect.permissions + SleepHealthConnect.permissions
+                  )
+                }
+              },
+              vitalSeries = viewModel.vitalSeriesFlow.collectAsStateWithLifecycle().value,
+              bloodPressureReadings =
+                  viewModel.bloodPressureReadingsFlow.collectAsStateWithLifecycle().value,
+              isBloodPressureAvailable = isBloodPressureAvailable,
+              isBloodPressureInSubstanceList = isBloodPressureInSubstanceList,
+          ),
   )
 }
+
+private data class ExperienceTimelineUi(
+    val timelineDisplayOption: TimelineDisplayOption,
+    val timeDisplayOption: TimeDisplayOption,
+    val savedTimeDisplayOption: SavedTimeDisplayOption,
+    val onChangeTimeDisplayOption: (SavedTimeDisplayOption) -> Unit,
+    val isOralDisclaimerHidden: Boolean,
+    val onChangeIsOralDisclaimerHidden: (Boolean) -> Unit,
+)
+
+private data class ExperienceDisplayUi(
+    val areDosageDotsHidden: Boolean,
+    val isTimelineHidden: Boolean,
+    val matchedAchievements: List<AchievementDef> = emptyList(),
+    val isAiAssistantEnabled: Boolean = false,
+    val isNotificationActive: Boolean = false,
+    val onToggleNotification: () -> Unit = {},
+    val onShareExperience: () -> Unit = {},
+    val onToggleBloodPressureInSubstanceList: () -> Unit = {},
+)
+
+private data class ExperienceNavCallbacks(
+    val addIngestion: () -> Unit,
+    val deleteExperience: () -> Unit,
+    val navigateToEditExperienceScreen: () -> Unit,
+    val navigateToExplainTimeline: () -> Unit,
+    val navigateToIngestionScreen: (ingestionId: Int) -> Unit,
+    val navigateToAddRatingScreen: () -> Unit,
+    val navigateToAddTimedNoteScreen: () -> Unit,
+    val navigateToTimelineScreen: (consumerName: String) -> Unit,
+)
+
+private data class ExperienceExtrasCallbacks(
+    val saveIsFavorite: (Boolean) -> Unit,
+    val openAiChat: () -> Unit,
+    val navigateToEditRatingScreen: (ratingId: Int) -> Unit,
+    val navigateToEditTimedNoteScreen: (timedNoteId: Int) -> Unit,
+    val navigateToRecordBloodPressureScreen: () -> Unit = {},
+    val navigateToEditBloodPressureScreen: (recordId: String) -> Unit = {},
+)
+
+private data class ExperienceVitalsUi(
+    val heartRateSamples: List<HeartRateSample> = emptyList(),
+    val sleepSamples: List<SleepSessionSample> = emptyList(),
+    val sleepStagesEnabled: Boolean = false,
+    val isHeartRateButtonVisible: Boolean = false,
+    val onToggleHeartRate: () -> Unit = {},
+    val vitalSeries: List<VitalSeries> = emptyList(),
+    val bloodPressureReadings: List<BloodPressureReading> = emptyList(),
+    val isBloodPressureAvailable: Boolean = false,
+    val isBloodPressureInSubstanceList: Boolean = false,
+)
 
 @Preview
 @Composable
@@ -340,97 +414,82 @@ fun ExperienceScreenPreview(
   JournalTheme {
     ExperienceScreen(
         oneExperienceScreenModel = oneExperienceScreenModel,
-        timelineDisplayOption = TimelineDisplayOption.Loading,
-        isOralDisclaimerHidden = false,
-        onChangeIsOralDisclaimerHidden = {},
-        addIngestion = {},
-        deleteExperience = {},
-        navigateToEditExperienceScreen = {},
-        navigateToExplainTimeline = {},
-        navigateToIngestionScreen = {},
-        navigateToAddRatingScreen = {},
-        navigateToAddTimedNoteScreen = {},
-        navigateBack = {},
-        saveIsFavorite = {},
-        openAiChat = {},
-        navigateToEditRatingScreen = {},
-        navigateToEditTimedNoteScreen = {},
-        savedTimeDisplayOption = SavedTimeDisplayOption.RELATIVE_TO_START,
-        timeDisplayOption = TimeDisplayOption.RELATIVE_TO_START,
-        onChangeTimeDisplayOption = {},
-        navigateToTimelineScreen = {},
-        areDosageDotsHidden = false,
-        isTimelineHidden = false,
+        timelineUi =
+            ExperienceTimelineUi(
+                timelineDisplayOption = TimelineDisplayOption.Loading,
+                timeDisplayOption = TimeDisplayOption.RELATIVE_TO_START,
+                savedTimeDisplayOption = SavedTimeDisplayOption.RELATIVE_TO_START,
+                onChangeTimeDisplayOption = {},
+                isOralDisclaimerHidden = false,
+                onChangeIsOralDisclaimerHidden = {},
+            ),
+        displayUi =
+            ExperienceDisplayUi(
+                areDosageDotsHidden = false,
+                isTimelineHidden = false,
+            ),
+        navCallbacks =
+            ExperienceNavCallbacks(
+                addIngestion = {},
+                deleteExperience = {},
+                navigateToEditExperienceScreen = {},
+                navigateToExplainTimeline = {},
+                navigateToIngestionScreen = {},
+                navigateToAddRatingScreen = {},
+                navigateToAddTimedNoteScreen = {},
+                navigateToTimelineScreen = {},
+            ),
+        extrasCallbacks =
+            ExperienceExtrasCallbacks(
+                saveIsFavorite = {},
+                openAiChat = {},
+                navigateToEditRatingScreen = {},
+                navigateToEditTimedNoteScreen = {},
+            ),
+        vitalsUi = ExperienceVitalsUi(),
     )
   }
 }
 
 @Composable
-fun ExperienceScreen(
+private fun ExperienceScreen(
     oneExperienceScreenModel: OneExperienceScreenModel,
-    timelineDisplayOption: TimelineDisplayOption,
-    isOralDisclaimerHidden: Boolean,
-    onChangeIsOralDisclaimerHidden: (Boolean) -> Unit,
-    addIngestion: () -> Unit,
-    deleteExperience: () -> Unit,
-    navigateToEditExperienceScreen: () -> Unit,
-    navigateToExplainTimeline: () -> Unit,
-    navigateToIngestionScreen: (ingestionId: Int) -> Unit,
-    navigateToAddRatingScreen: () -> Unit,
-    navigateToAddTimedNoteScreen: () -> Unit,
-    navigateBack: () -> Unit,
-    saveIsFavorite: (Boolean) -> Unit,
-    openAiChat: () -> Unit,
-    isAiAssistantEnabled: Boolean = false,
-    navigateToEditRatingScreen: (ratingId: Int) -> Unit,
-    navigateToEditTimedNoteScreen: (timedNoteId: Int) -> Unit,
-    savedTimeDisplayOption: SavedTimeDisplayOption,
-    timeDisplayOption: TimeDisplayOption,
-    onChangeTimeDisplayOption: (SavedTimeDisplayOption) -> Unit,
-    navigateToTimelineScreen: (consumerName: String) -> Unit,
-    areDosageDotsHidden: Boolean,
-    isTimelineHidden: Boolean,
-    matchedAchievements: List<AchievementDef> = emptyList(),
-    isNotificationActive: Boolean = false,
-    onToggleNotification: () -> Unit = {},
-    onShareExperience: () -> Unit = {},
-    heartRateSamples: List<HeartRateSample> = emptyList(),
-    sleepSamples: List<SleepSessionSample> = emptyList(),
-    sleepStagesEnabled: Boolean = false,
-    isHeartRateButtonVisible: Boolean = false,
-    onToggleHeartRate: () -> Unit = {},
-    vitalSeries: List<VitalSeries> = emptyList(),
-    bloodPressureReadings: List<BloodPressureReading> = emptyList(),
-    isBloodPressureAvailable: Boolean = false,
-    isBloodPressureInSubstanceList: Boolean = false,
-    onToggleBloodPressureInSubstanceList: () -> Unit = {},
-    navigateToRecordBloodPressureScreen: () -> Unit = {},
-    navigateToEditBloodPressureScreen: (recordId: String) -> Unit = {},
+    timelineUi: ExperienceTimelineUi,
+    displayUi: ExperienceDisplayUi,
+    navCallbacks: ExperienceNavCallbacks,
+    extrasCallbacks: ExperienceExtrasCallbacks,
+    vitalsUi: ExperienceVitalsUi,
 ) {
   Scaffold(
       topBar = {
         ExperienceTopBar(
             oneExperienceScreenModel = oneExperienceScreenModel,
-            onChangeTimeDisplayOption = onChangeTimeDisplayOption,
-            savedTimeDisplayOption = savedTimeDisplayOption,
-            deleteExperience = deleteExperience,
-            navigateBack = navigateBack,
-            openAiChat = openAiChat,
-            isAiAssistantEnabled = isAiAssistantEnabled,
-            navigateToEditExperienceScreen = navigateToEditExperienceScreen,
-            saveIsFavorite = saveIsFavorite,
-            navigateToAddTimedNoteScreen = navigateToAddTimedNoteScreen,
-            navigateToAddRatingScreen = navigateToAddRatingScreen,
-            addIngestion = addIngestion,
-            isNotificationActive = isNotificationActive,
-            onToggleNotification = onToggleNotification,
-            onShareExperience = onShareExperience,
-            isBloodPressureAvailable = isBloodPressureAvailable,
-            navigateToRecordBloodPressureScreen = navigateToRecordBloodPressureScreen,
+            savedTimeDisplayOption = timelineUi.savedTimeDisplayOption,
+            isAiAssistantEnabled = displayUi.isAiAssistantEnabled,
+            callbacks =
+                ExperienceTopBarCallbacks(
+                    onChangeTimeDisplayOption = timelineUi.onChangeTimeDisplayOption,
+                    deleteExperience = navCallbacks.deleteExperience,
+                    openAiChat = extrasCallbacks.openAiChat,
+                    navigateToEditExperienceScreen = navCallbacks.navigateToEditExperienceScreen,
+                    saveIsFavorite = extrasCallbacks.saveIsFavorite,
+                    navigateToAddTimedNoteScreen = navCallbacks.navigateToAddTimedNoteScreen,
+                    navigateToAddRatingScreen = navCallbacks.navigateToAddRatingScreen,
+                    addIngestion = navCallbacks.addIngestion,
+                ),
+            extras =
+                ExperienceTopBarExtras(
+                    isNotificationActive = displayUi.isNotificationActive,
+                    onToggleNotification = displayUi.onToggleNotification,
+                    onShareExperience = displayUi.onShareExperience,
+                    isBloodPressureAvailable = vitalsUi.isBloodPressureAvailable,
+                    navigateToRecordBloodPressureScreen =
+                        extrasCallbacks.navigateToRecordBloodPressureScreen,
+                ),
         )
       },
       floatingActionButton = {
-        AddIngestionFAB(oneExperienceScreenModel, addIngestion)
+        AddIngestionFAB(oneExperienceScreenModel, navCallbacks.addIngestion)
       },
   ) { padding ->
     Column(
@@ -439,110 +498,148 @@ fun ExperienceScreen(
                 .padding(padding)
                 .padding(horizontal = horizontalPadding)
     ) {
-      val verticalCardPadding = 4.dp
-      MyTimelineSection(
-          timelineDisplayOption = timelineDisplayOption,
-          verticalCardPadding = verticalCardPadding,
-          navigateToExplainTimeline = navigateToExplainTimeline,
-          navigateToTimelineScreen = navigateToTimelineScreen,
+      ExperiencePrimarySections(
           oneExperienceScreenModel = oneExperienceScreenModel,
-          timeDisplayOption = timeDisplayOption,
-          isOralDisclaimerHidden = isOralDisclaimerHidden,
-          onChangeIsOralDisclaimerHidden = onChangeIsOralDisclaimerHidden,
-          heartRateSamples = heartRateSamples,
-          sleepSamples = sleepSamples,
-          sleepStagesEnabled = sleepStagesEnabled,
-          isHeartRateButtonVisible = isHeartRateButtonVisible,
-          onToggleHeartRate = onToggleHeartRate,
-          vitalSeries = vitalSeries,
-          bloodPressureReadings = bloodPressureReadings,
-          isBloodPressureInSubstanceList = isBloodPressureInSubstanceList,
-          onToggleBloodPressureInSubstanceList = onToggleBloodPressureInSubstanceList,
+          timelineUi = timelineUi,
+          displayUi = displayUi,
+          navCallbacks = navCallbacks,
+          extrasCallbacks = extrasCallbacks,
+          vitalsUi = vitalsUi,
       )
-      val bloodPressureInSubstances =
-          isBloodPressureInSubstanceList && bloodPressureReadings.isNotEmpty()
-      if (oneExperienceScreenModel.ingestionElements.isNotEmpty() || bloodPressureInSubstances) {
-        MyIngestionList(
-            verticalCardPadding = verticalCardPadding,
-            oneExperienceScreenModel = oneExperienceScreenModel,
-            areDosageDotsHidden = areDosageDotsHidden,
-            navigateToIngestionScreen = navigateToIngestionScreen,
-            timeDisplayOption = timeDisplayOption,
-            bloodPressureReadings =
-                if (bloodPressureInSubstances) bloodPressureReadings else emptyList(),
-            navigateToEditBloodPressureScreen = navigateToEditBloodPressureScreen,
-        )
-      }
-      val cumulativeDoses = oneExperienceScreenModel.cumulativeDoses
-      if (cumulativeDoses.isNotEmpty()) {
-        CumulativeDosesSection(
-            verticalCardPadding = verticalCardPadding,
-            cumulativeDoses = cumulativeDoses,
-            areDosageDotsHidden = areDosageDotsHidden,
-        )
-      }
-      val timedNotesSorted = oneExperienceScreenModel.timedNotesSorted
-      if (timedNotesSorted.isNotEmpty()) {
-        TimedNotesSection(
-            verticalCardPadding = verticalCardPadding,
-            timedNotesSorted = timedNotesSorted,
-            navigateToEditTimedNoteScreen = navigateToEditTimedNoteScreen,
-            timeDisplayOption = timeDisplayOption,
-            firstIngestionTime = oneExperienceScreenModel.firstIngestionTime,
-        )
-      }
-      if (oneExperienceScreenModel.ratings.isNotEmpty()) {
-        ShulginRatingsSection(
-            verticalCardPadding = verticalCardPadding,
-            oneExperienceScreenModel = oneExperienceScreenModel,
-            navigateToEditRatingScreen = navigateToEditRatingScreen,
-            timeDisplayOption = timeDisplayOption,
-        )
-      }
-      if (bloodPressureReadings.isNotEmpty() && !isBloodPressureInSubstanceList) {
-        BloodPressureReadingsSection(
-            verticalCardPadding = verticalCardPadding,
-            readings = bloodPressureReadings,
-            navigateToEditBloodPressureScreen = navigateToEditBloodPressureScreen,
-            timeDisplayOption = timeDisplayOption,
-            firstIngestionTime = oneExperienceScreenModel.firstIngestionTime,
-        )
-      }
-      val notes = oneExperienceScreenModel.notes
-      if (notes.isNotBlank()) {
-        NotesSection(
-            verticalCardPadding = verticalCardPadding,
-            navigateToEditExperienceScreen = navigateToEditExperienceScreen,
-            oneExperienceScreenModel = oneExperienceScreenModel,
-        )
-      }
-      oneExperienceScreenModel.consumersWithIngestions.forEach { consumerWithIngestions ->
-        ConsumerSection(
-            verticalCardPadding = verticalCardPadding,
-            consumerWithIngestions = consumerWithIngestions,
-            navigateToTimelineScreen = navigateToTimelineScreen,
-            timeDisplayOption = timeDisplayOption,
-            areDosageDotsHidden = areDosageDotsHidden,
-            navigateToIngestionScreen = navigateToIngestionScreen,
-            isTimelineHidden = isTimelineHidden,
-        )
-      }
-      val interactions = oneExperienceScreenModel.interactions
-      AnimatedVisibility(visible = interactions.isNotEmpty()) {
-        ExperienceInteractionsSection(
-            verticalCardPadding = verticalCardPadding,
-            interactions = interactions,
-            oneExperienceScreenModel = oneExperienceScreenModel,
-        )
-      }
-      AnimatedVisibility(visible = matchedAchievements.isNotEmpty()) {
-        ExperienceAchievementsSection(
-            verticalCardPadding = verticalCardPadding,
-            matchedAchievements = matchedAchievements,
-        )
-      }
+      ExperienceSecondarySections(
+          oneExperienceScreenModel = oneExperienceScreenModel,
+          timelineUi = timelineUi,
+          displayUi = displayUi,
+          navCallbacks = navCallbacks,
+          extrasCallbacks = extrasCallbacks,
+          vitalsUi = vitalsUi,
+      )
       Spacer(modifier = Modifier.height(60.dp))
     }
+  }
+}
+
+@Composable
+private fun ExperiencePrimarySections(
+    oneExperienceScreenModel: OneExperienceScreenModel,
+    timelineUi: ExperienceTimelineUi,
+    displayUi: ExperienceDisplayUi,
+    navCallbacks: ExperienceNavCallbacks,
+    extrasCallbacks: ExperienceExtrasCallbacks,
+    vitalsUi: ExperienceVitalsUi,
+) {
+  val verticalCardPadding = 4.dp
+  MyTimelineSection(
+      timelineDisplayOption = timelineUi.timelineDisplayOption,
+      verticalCardPadding = verticalCardPadding,
+      navigateToExplainTimeline = navCallbacks.navigateToExplainTimeline,
+      navigateToTimelineScreen = navCallbacks.navigateToTimelineScreen,
+      oneExperienceScreenModel = oneExperienceScreenModel,
+      timeDisplayOption = timelineUi.timeDisplayOption,
+      isOralDisclaimerHidden = timelineUi.isOralDisclaimerHidden,
+      onChangeIsOralDisclaimerHidden = timelineUi.onChangeIsOralDisclaimerHidden,
+      heartRateSamples = vitalsUi.heartRateSamples,
+      sleepSamples = vitalsUi.sleepSamples,
+      sleepStagesEnabled = vitalsUi.sleepStagesEnabled,
+      isHeartRateButtonVisible = vitalsUi.isHeartRateButtonVisible,
+      onToggleHeartRate = vitalsUi.onToggleHeartRate,
+      vitalSeries = vitalsUi.vitalSeries,
+      bloodPressureReadings = vitalsUi.bloodPressureReadings,
+      isBloodPressureInSubstanceList = vitalsUi.isBloodPressureInSubstanceList,
+      onToggleBloodPressureInSubstanceList = displayUi.onToggleBloodPressureInSubstanceList,
+  )
+  val bloodPressureInSubstances =
+      vitalsUi.isBloodPressureInSubstanceList && vitalsUi.bloodPressureReadings.isNotEmpty()
+  if (oneExperienceScreenModel.ingestionElements.isNotEmpty() || bloodPressureInSubstances) {
+    MyIngestionList(
+        verticalCardPadding = verticalCardPadding,
+        oneExperienceScreenModel = oneExperienceScreenModel,
+        areDosageDotsHidden = displayUi.areDosageDotsHidden,
+        navigateToIngestionScreen = navCallbacks.navigateToIngestionScreen,
+        timeDisplayOption = timelineUi.timeDisplayOption,
+        bloodPressureReadings =
+            if (bloodPressureInSubstances) vitalsUi.bloodPressureReadings else emptyList(),
+        navigateToEditBloodPressureScreen = extrasCallbacks.navigateToEditBloodPressureScreen,
+    )
+  }
+  val cumulativeDoses = oneExperienceScreenModel.cumulativeDoses
+  if (cumulativeDoses.isNotEmpty()) {
+    CumulativeDosesSection(
+        verticalCardPadding = verticalCardPadding,
+        cumulativeDoses = cumulativeDoses,
+        areDosageDotsHidden = displayUi.areDosageDotsHidden,
+    )
+  }
+}
+
+@Composable
+private fun ExperienceSecondarySections(
+    oneExperienceScreenModel: OneExperienceScreenModel,
+    timelineUi: ExperienceTimelineUi,
+    displayUi: ExperienceDisplayUi,
+    navCallbacks: ExperienceNavCallbacks,
+    extrasCallbacks: ExperienceExtrasCallbacks,
+    vitalsUi: ExperienceVitalsUi,
+) {
+  val verticalCardPadding = 4.dp
+  val timedNotesSorted = oneExperienceScreenModel.timedNotesSorted
+  if (timedNotesSorted.isNotEmpty()) {
+    TimedNotesSection(
+        verticalCardPadding = verticalCardPadding,
+        timedNotesSorted = timedNotesSorted,
+        navigateToEditTimedNoteScreen = extrasCallbacks.navigateToEditTimedNoteScreen,
+        timeDisplayOption = timelineUi.timeDisplayOption,
+        firstIngestionTime = oneExperienceScreenModel.firstIngestionTime,
+    )
+  }
+  if (oneExperienceScreenModel.ratings.isNotEmpty()) {
+    ShulginRatingsSection(
+        verticalCardPadding = verticalCardPadding,
+        oneExperienceScreenModel = oneExperienceScreenModel,
+        navigateToEditRatingScreen = extrasCallbacks.navigateToEditRatingScreen,
+        timeDisplayOption = timelineUi.timeDisplayOption,
+    )
+  }
+  if (vitalsUi.bloodPressureReadings.isNotEmpty() && !vitalsUi.isBloodPressureInSubstanceList) {
+    BloodPressureReadingsSection(
+        verticalCardPadding = verticalCardPadding,
+        readings = vitalsUi.bloodPressureReadings,
+        navigateToEditBloodPressureScreen = extrasCallbacks.navigateToEditBloodPressureScreen,
+        timeDisplayOption = timelineUi.timeDisplayOption,
+        firstIngestionTime = oneExperienceScreenModel.firstIngestionTime,
+    )
+  }
+  if (oneExperienceScreenModel.notes.isNotBlank()) {
+    NotesSection(
+        verticalCardPadding = verticalCardPadding,
+        navigateToEditExperienceScreen = navCallbacks.navigateToEditExperienceScreen,
+        oneExperienceScreenModel = oneExperienceScreenModel,
+    )
+  }
+  oneExperienceScreenModel.consumersWithIngestions.forEach { consumerWithIngestions ->
+    ConsumerSection(
+        verticalCardPadding = verticalCardPadding,
+        consumerWithIngestions = consumerWithIngestions,
+        navigateToTimelineScreen = navCallbacks.navigateToTimelineScreen,
+        timeDisplayOption = timelineUi.timeDisplayOption,
+        areDosageDotsHidden = displayUi.areDosageDotsHidden,
+        navigateToIngestionScreen = navCallbacks.navigateToIngestionScreen,
+        isTimelineHidden = displayUi.isTimelineHidden,
+    )
+  }
+  val interactions = oneExperienceScreenModel.interactions
+  AnimatedVisibility(visible = interactions.isNotEmpty()) {
+    ExperienceInteractionsSection(
+        verticalCardPadding = verticalCardPadding,
+        interactions = interactions,
+        oneExperienceScreenModel = oneExperienceScreenModel,
+    )
+  }
+  AnimatedVisibility(visible = displayUi.matchedAchievements.isNotEmpty()) {
+    ExperienceAchievementsSection(
+        verticalCardPadding = verticalCardPadding,
+        matchedAchievements = displayUi.matchedAchievements,
+    )
   }
 }
 
@@ -1165,26 +1262,33 @@ private fun AddIngestionFAB(
   }
 }
 
+private data class ExperienceTopBarCallbacks(
+    val onChangeTimeDisplayOption: (SavedTimeDisplayOption) -> Unit,
+    val deleteExperience: () -> Unit,
+    val openAiChat: () -> Unit,
+    val navigateToEditExperienceScreen: () -> Unit,
+    val saveIsFavorite: (Boolean) -> Unit,
+    val navigateToAddTimedNoteScreen: () -> Unit,
+    val navigateToAddRatingScreen: () -> Unit,
+    val addIngestion: () -> Unit,
+)
+
+private data class ExperienceTopBarExtras(
+    val isNotificationActive: Boolean = false,
+    val onToggleNotification: () -> Unit = {},
+    val onShareExperience: () -> Unit = {},
+    val isBloodPressureAvailable: Boolean = false,
+    val navigateToRecordBloodPressureScreen: () -> Unit = {},
+)
+
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 private fun ExperienceTopBar(
     oneExperienceScreenModel: OneExperienceScreenModel,
-    onChangeTimeDisplayOption: (SavedTimeDisplayOption) -> Unit,
     savedTimeDisplayOption: SavedTimeDisplayOption,
-    deleteExperience: () -> Unit,
-    navigateBack: () -> Unit,
-    openAiChat: () -> Unit,
     isAiAssistantEnabled: Boolean,
-    navigateToEditExperienceScreen: () -> Unit,
-    saveIsFavorite: (Boolean) -> Unit,
-    navigateToAddTimedNoteScreen: () -> Unit,
-    navigateToAddRatingScreen: () -> Unit,
-    addIngestion: () -> Unit,
-    isNotificationActive: Boolean = false,
-    onToggleNotification: () -> Unit = {},
-    onShareExperience: () -> Unit = {},
-    isBloodPressureAvailable: Boolean = false,
-    navigateToRecordBloodPressureScreen: () -> Unit = {},
+    callbacks: ExperienceTopBarCallbacks,
+    extras: ExperienceTopBarExtras = ExperienceTopBarExtras(),
 ) {
   // Up to six actions leave no room beside them: the title gets its own line below.
   MediumTopAppBar(
@@ -1193,21 +1297,21 @@ private fun ExperienceTopBar(
         Text(oneExperienceScreenModel.title, maxLines = 2, overflow = TextOverflow.Ellipsis)
       },
       actions = {
-        IconButton(onClick = onShareExperience) {
+        IconButton(onClick = extras.onShareExperience) {
           Icon(
               androidx.compose.material.icons.Icons.Outlined.Share,
               contentDescription = "Share as image",
           )
         }
-        IconButton(onClick = onToggleNotification) {
+        IconButton(onClick = extras.onToggleNotification) {
           Icon(
-              if (isNotificationActive) {
+              if (extras.isNotificationActive) {
                 androidx.compose.material.icons.Icons.Filled.Notifications
               } else {
                 androidx.compose.material.icons.Icons.Outlined.Notifications
               },
               contentDescription =
-                  if (isNotificationActive) {
+                  if (extras.isNotificationActive) {
                     "Stop live notification"
                   } else {
                     "Start live notification"
@@ -1215,213 +1319,233 @@ private fun ExperienceTopBar(
           )
         }
         if (isAiAssistantEnabled) {
-          IconButton(onClick = openAiChat) {
+          IconButton(onClick = callbacks.openAiChat) {
             Icon(
                 androidx.compose.material.icons.Icons.Outlined.SmartToy,
                 contentDescription = "AI assistant",
             )
           }
         }
-        var areTimeOptionsExpanded by remember { mutableStateOf(false) }
-        IconButton(onClick = { areTimeOptionsExpanded = true }) {
-          Icon(Icons.Outlined.Timer, contentDescription = "Time display option")
-        }
-        DropdownMenu(
-            expanded = areTimeOptionsExpanded,
-            onDismissRequest = { areTimeOptionsExpanded = false },
-        ) {
-          SavedTimeDisplayOption.entries.forEach { option ->
-            DropdownMenuItem(
-                text = { Text(option.text) },
-                onClick = {
-                  onChangeTimeDisplayOption(option)
-                  areTimeOptionsExpanded = false
-                },
-                leadingIcon = {
-                  if (option == savedTimeDisplayOption) {
-                    Icon(
-                        Icons.Filled.Check,
-                        contentDescription = "Check",
-                        modifier = Modifier.size(ButtonDefaults.IconSize),
-                    )
-                  }
-                },
-            )
-          }
-        }
-        var areEditOptionsExpanded by remember { mutableStateOf(false) }
-        IconButton(onClick = { areEditOptionsExpanded = true }) {
-          Icon(
-              Icons.Default.Edit,
-              contentDescription = "Edit options",
-          )
-        }
-        var isShowingDeleteDialog by remember { mutableStateOf(false) }
-        AnimatedVisibility(visible = isShowingDeleteDialog) {
-          AlertDialog(
-              onDismissRequest = { isShowingDeleteDialog = false },
-              title = {
-                Text(text = "Delete experience?")
-              },
-              text = {
-                Text("This will also delete all its ingestions.")
-              },
-              confirmButton = {
-                TextButton(
-                    onClick = {
-                      isShowingDeleteDialog = false
-                      deleteExperience()
-                      navigateBack()
-                    }
-                ) {
-                  Text("Delete")
-                }
-              },
-              dismissButton = {
-                TextButton(onClick = { isShowingDeleteDialog = false }) {
-                  Text("Cancel")
-                }
-              },
-          )
-        }
-        DropdownMenu(
-            expanded = areEditOptionsExpanded,
-            onDismissRequest = { areEditOptionsExpanded = false },
-        ) {
-          DropdownMenuItem(
-              text = { Text("Edit title/notes/location") },
-              onClick = {
-                navigateToEditExperienceScreen()
-                areEditOptionsExpanded = false
-              },
-              leadingIcon = {
-                Icon(
-                    Icons.Outlined.Edit,
-                    contentDescription = "Edit experience",
-                    modifier = Modifier.size(ButtonDefaults.IconSize),
-                )
-              },
-          )
-          val isFavorite = oneExperienceScreenModel.isFavorite
-          if (isFavorite) {
-            DropdownMenuItem(
-                text = { Text("Unmark favorite") },
-                onClick = {
-                  saveIsFavorite(false)
-                  areEditOptionsExpanded = false
-                },
-                leadingIcon = {
-                  Icon(
-                      Icons.Filled.Star,
-                      contentDescription = "Unmark favorite",
-                      modifier = Modifier.size(ButtonDefaults.IconSize),
-                  )
-                },
-            )
-          } else {
-            DropdownMenuItem(
-                text = { Text("Mark favorite") },
-                onClick = {
-                  saveIsFavorite(true)
-                  areEditOptionsExpanded = false
-                },
-                leadingIcon = {
-                  Icon(
-                      Icons.Outlined.StarOutline,
-                      contentDescription = "Mark favorite",
-                      modifier = Modifier.size(ButtonDefaults.IconSize),
-                  )
-                },
-            )
-          }
-          DropdownMenuItem(
-              text = { Text("Delete experience") },
-              onClick = {
-                isShowingDeleteDialog = true
-                areEditOptionsExpanded = false
-              },
-              leadingIcon = {
-                Icon(
-                    Icons.Outlined.Delete,
-                    contentDescription = "Delete experience",
-                    modifier = Modifier.size(ButtonDefaults.IconSize),
-                )
-              },
-          )
-        }
-
-        var areAddOptionsExpanded by remember { mutableStateOf(false) }
-        IconButton(onClick = { areAddOptionsExpanded = true }) {
-          Icon(
-              Icons.Outlined.Add,
-              contentDescription = "Add options",
-          )
-        }
-        DropdownMenu(
-            expanded = areAddOptionsExpanded,
-            onDismissRequest = { areAddOptionsExpanded = false },
-        ) {
-          DropdownMenuItem(
-              text = { Text("Add ingestion") },
-              onClick = {
-                addIngestion()
-                areAddOptionsExpanded = false
-              },
-              leadingIcon = {
-                Icon(
-                    Icons.Outlined.Add,
-                    contentDescription = null,
-                    modifier = Modifier.size(ButtonDefaults.IconSize),
-                )
-              },
-          )
-          DropdownMenuItem(
-              text = { Text("Add timed note") },
-              onClick = {
-                navigateToAddTimedNoteScreen()
-                areAddOptionsExpanded = false
-              },
-              leadingIcon = {
-                Icon(
-                    Icons.AutoMirrored.Outlined.NoteAdd,
-                    contentDescription = "Add timed note",
-                    modifier = Modifier.size(ButtonDefaults.IconSize),
-                )
-              },
-          )
-          DropdownMenuItem(
-              text = { Text("Add Shulgin rating") },
-              onClick = {
-                navigateToAddRatingScreen()
-                areAddOptionsExpanded = false
-              },
-              leadingIcon = {
-                Icon(
-                    Icons.Outlined.ExposurePlus2,
-                    contentDescription = "Add Shulgin rating",
-                    modifier = Modifier.size(ButtonDefaults.IconSize),
-                )
-              },
-          )
-          if (isBloodPressureAvailable) {
-            DropdownMenuItem(
-                text = { Text("Record blood pressure") },
-                onClick = {
-                  navigateToRecordBloodPressureScreen()
-                  areAddOptionsExpanded = false
-                },
-                leadingIcon = {
-                  Icon(
-                      Icons.Outlined.Bloodtype,
-                      contentDescription = null,
-                      modifier = Modifier.size(ButtonDefaults.IconSize),
-                  )
-                },
-            )
-          }
-        }
+        ExperienceTimeDisplayMenu(
+            savedTimeDisplayOption = savedTimeDisplayOption,
+            onChangeTimeDisplayOption = callbacks.onChangeTimeDisplayOption,
+        )
+        ExperienceEditMenuButton(
+            isFavorite = oneExperienceScreenModel.isFavorite,
+            navigateToEditExperienceScreen = callbacks.navigateToEditExperienceScreen,
+            saveIsFavorite = callbacks.saveIsFavorite,
+            deleteExperience = callbacks.deleteExperience,
+        )
+        ExperienceAddMenuButton(
+            addIngestion = callbacks.addIngestion,
+            navigateToAddTimedNoteScreen = callbacks.navigateToAddTimedNoteScreen,
+            navigateToAddRatingScreen = callbacks.navigateToAddRatingScreen,
+            isBloodPressureAvailable = extras.isBloodPressureAvailable,
+            navigateToRecordBloodPressureScreen = extras.navigateToRecordBloodPressureScreen,
+        )
       },
   )
+}
+
+@Composable
+private fun ExperienceTimeDisplayMenu(
+    savedTimeDisplayOption: SavedTimeDisplayOption,
+    onChangeTimeDisplayOption: (SavedTimeDisplayOption) -> Unit,
+) {
+  var areTimeOptionsExpanded by remember { mutableStateOf(false) }
+  IconButton(onClick = { areTimeOptionsExpanded = true }) {
+    Icon(Icons.Outlined.Timer, contentDescription = "Time display option")
+  }
+  DropdownMenu(
+      expanded = areTimeOptionsExpanded,
+      onDismissRequest = { areTimeOptionsExpanded = false },
+  ) {
+    SavedTimeDisplayOption.entries.forEach { option ->
+      DropdownMenuItem(
+          text = { Text(option.text) },
+          onClick = {
+            onChangeTimeDisplayOption(option)
+            areTimeOptionsExpanded = false
+          },
+          leadingIcon = {
+            if (option == savedTimeDisplayOption) {
+              Icon(
+                  Icons.Filled.Check,
+                  contentDescription = null,
+                  modifier = Modifier.size(ButtonDefaults.IconSize),
+              )
+            }
+          },
+      )
+    }
+  }
+}
+
+@Composable
+private fun ExperienceEditMenuButton(
+    isFavorite: Boolean,
+    navigateToEditExperienceScreen: () -> Unit,
+    saveIsFavorite: (Boolean) -> Unit,
+    deleteExperience: () -> Unit,
+) {
+  var areEditOptionsExpanded by remember { mutableStateOf(false) }
+  var isShowingDeleteDialog by remember { mutableStateOf(false) }
+  IconButton(onClick = { areEditOptionsExpanded = true }) {
+    Icon(
+        Icons.Default.Edit,
+        contentDescription = "Edit options",
+    )
+  }
+  AnimatedVisibility(visible = isShowingDeleteDialog) {
+    DeleteExperienceDialog(
+        onConfirm = {
+          isShowingDeleteDialog = false
+          deleteExperience()
+        },
+        onDismiss = { isShowingDeleteDialog = false },
+    )
+  }
+  DropdownMenu(
+      expanded = areEditOptionsExpanded,
+      onDismissRequest = { areEditOptionsExpanded = false },
+  ) {
+    DropdownMenuItem(
+        text = { Text("Edit title/notes/location") },
+        onClick = {
+          navigateToEditExperienceScreen()
+          areEditOptionsExpanded = false
+        },
+        leadingIcon = {
+          Icon(
+              Icons.Outlined.Edit,
+              contentDescription = "Edit experience",
+              modifier = Modifier.size(ButtonDefaults.IconSize),
+          )
+        },
+    )
+    DropdownMenuItem(
+        text = { Text(if (isFavorite) "Unmark favorite" else "Mark favorite") },
+        onClick = {
+          saveIsFavorite(!isFavorite)
+          areEditOptionsExpanded = false
+        },
+        leadingIcon = {
+          Icon(
+              if (isFavorite) Icons.Filled.Star else Icons.Outlined.StarOutline,
+              contentDescription = if (isFavorite) "Unmark favorite" else "Mark favorite",
+              modifier = Modifier.size(ButtonDefaults.IconSize),
+          )
+        },
+    )
+    DropdownMenuItem(
+        text = { Text("Delete experience") },
+        onClick = {
+          isShowingDeleteDialog = true
+          areEditOptionsExpanded = false
+        },
+        leadingIcon = {
+          Icon(
+              Icons.Outlined.Delete,
+              contentDescription = "Delete experience",
+              modifier = Modifier.size(ButtonDefaults.IconSize),
+          )
+        },
+    )
+  }
+}
+
+@Composable
+private fun DeleteExperienceDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+  AlertDialog(
+      onDismissRequest = onDismiss,
+      title = { Text(text = "Delete experience?") },
+      text = { Text("This will also delete all its ingestions.") },
+      confirmButton = { TextButton(onClick = onConfirm) { Text("Delete") } },
+      dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+  )
+}
+
+@Composable
+private fun ExperienceAddMenuButton(
+    addIngestion: () -> Unit,
+    navigateToAddTimedNoteScreen: () -> Unit,
+    navigateToAddRatingScreen: () -> Unit,
+    isBloodPressureAvailable: Boolean,
+    navigateToRecordBloodPressureScreen: () -> Unit,
+) {
+  var areAddOptionsExpanded by remember { mutableStateOf(false) }
+  IconButton(onClick = { areAddOptionsExpanded = true }) {
+    Icon(
+        Icons.Outlined.Add,
+        contentDescription = "Add options",
+    )
+  }
+  DropdownMenu(
+      expanded = areAddOptionsExpanded,
+      onDismissRequest = { areAddOptionsExpanded = false },
+  ) {
+    DropdownMenuItem(
+        text = { Text("Add ingestion") },
+        onClick = {
+          addIngestion()
+          areAddOptionsExpanded = false
+        },
+        leadingIcon = {
+          Icon(
+              Icons.Outlined.Add,
+              contentDescription = null,
+              modifier = Modifier.size(ButtonDefaults.IconSize),
+          )
+        },
+    )
+    DropdownMenuItem(
+        text = { Text("Add timed note") },
+        onClick = {
+          navigateToAddTimedNoteScreen()
+          areAddOptionsExpanded = false
+        },
+        leadingIcon = {
+          Icon(
+              Icons.AutoMirrored.Outlined.NoteAdd,
+              contentDescription = "Add timed note",
+              modifier = Modifier.size(ButtonDefaults.IconSize),
+          )
+        },
+    )
+    DropdownMenuItem(
+        text = { Text("Add Shulgin rating") },
+        onClick = {
+          navigateToAddRatingScreen()
+          areAddOptionsExpanded = false
+        },
+        leadingIcon = {
+          Icon(
+              Icons.Outlined.ExposurePlus2,
+              contentDescription = "Add Shulgin rating",
+              modifier = Modifier.size(ButtonDefaults.IconSize),
+          )
+        },
+    )
+    if (isBloodPressureAvailable) {
+      DropdownMenuItem(
+          text = { Text("Record blood pressure") },
+          onClick = {
+            navigateToRecordBloodPressureScreen()
+            areAddOptionsExpanded = false
+          },
+          leadingIcon = {
+            Icon(
+                Icons.Outlined.Bloodtype,
+                contentDescription = null,
+                modifier = Modifier.size(ButtonDefaults.IconSize),
+            )
+          },
+      )
+    }
+  }
 }
 
 @Composable

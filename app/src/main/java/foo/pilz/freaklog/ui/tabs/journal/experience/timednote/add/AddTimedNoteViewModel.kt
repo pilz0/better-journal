@@ -35,9 +35,11 @@ import java.time.Duration
 import java.time.Instant
 import java.time.LocalDateTime
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class AddTimedNoteViewModel
@@ -94,9 +96,17 @@ constructor(
     color = newColor
   }
 
-  fun onDoneTap() {
-    if (note.isNotBlank()) {
-      viewModelScope.launch {
+  private var isSaving = false
+
+  fun onDoneTap(onDone: () -> Unit = {}) {
+    if (isSaving) return
+    if (note.isBlank()) {
+      onDone()
+      return
+    }
+    isSaving = true
+    viewModelScope.launch {
+      try {
         val newTimedNote =
             TimedNote(
                 time = localDateTimeFlow.firstOrNull()?.getInstant() ?: Instant.now(),
@@ -107,6 +117,9 @@ constructor(
                 isPartOfTimeline = isPartOfTimeline,
             )
         experienceRepo.insert(newTimedNote)
+        withContext(Dispatchers.Main) { onDone() }
+      } finally {
+        isSaving = false
       }
     }
   }

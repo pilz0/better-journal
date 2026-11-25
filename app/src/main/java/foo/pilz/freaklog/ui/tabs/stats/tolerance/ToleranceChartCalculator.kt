@@ -251,6 +251,7 @@ object ToleranceChartCalculator {
           end = interval.end,
           toleranceType = interval.toleranceType,
           substanceColor = color,
+          adaptiveColor = companion?.color,
       )
     }
   }

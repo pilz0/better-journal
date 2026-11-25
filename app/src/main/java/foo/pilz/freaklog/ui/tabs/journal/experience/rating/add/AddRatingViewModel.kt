@@ -36,12 +36,14 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class AddRatingViewModel
@@ -87,22 +89,31 @@ constructor(
     selectedRating = newRating
   }
 
-  fun onDoneTap() {
+  private var isSaving = false
+
+  fun onDoneTap(onDone: () -> Unit = {}) {
+    if (isSaving) return
+    isSaving = true
     viewModelScope.launch {
-      val selectedInstant =
-          if (isThisOverallRating) {
-            null
-          } else {
-            localDateTimeFlow.firstOrNull()?.getInstant()
-          }
-      val newRating =
-          ShulginRating(
-              time = selectedInstant,
-              creationDate = Instant.now(),
-              option = selectedRating,
-              experienceId = experienceId,
-          )
-      experienceRepo.insert(newRating)
+      try {
+        val selectedInstant =
+            if (isThisOverallRating) {
+              null
+            } else {
+              localDateTimeFlow.firstOrNull()?.getInstant()
+            }
+        val newRating =
+            ShulginRating(
+                time = selectedInstant,
+                creationDate = Instant.now(),
+                option = selectedRating,
+                experienceId = experienceId,
+            )
+        experienceRepo.insert(newRating)
+        withContext(Dispatchers.Main) { onDone() }
+      } finally {
+        isSaving = false
+      }
     }
   }
 }

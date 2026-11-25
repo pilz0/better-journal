@@ -385,4 +385,16 @@ class IntakeLimitLogicTest {
     assertThat(status.currentValue).isEqualTo(50.0)
     assertThat(limit.boundedWindowSeconds).isEqualTo(MAX_INTAKE_LIMIT_WINDOW_SECONDS)
   }
+
+  @Test
+  fun windowDescription_usesSingularAndPluralUnits() {
+    assertEquals("24 hours", doseLimit(windowSeconds = 86_400L).windowDescription())
+    assertEquals("7 days", doseLimit(windowSeconds = 604_800L).windowDescription())
+    assertEquals("30 days", doseLimit(windowSeconds = 2_592_000L).windowDescription())
+    assertEquals("2 days", doseLimit(windowSeconds = 2L * 86_400L).windowDescription())
+    assertEquals("1 hour", doseLimit(windowSeconds = 3_600L).windowDescription())
+    assertEquals("3 hours", doseLimit(windowSeconds = 3L * 3_600L).windowDescription())
+    assertEquals("1 minute", doseLimit(windowSeconds = 60L).windowDescription())
+    assertEquals("15 minutes", doseLimit(windowSeconds = 15L * 60L).windowDescription())
+  }
 }

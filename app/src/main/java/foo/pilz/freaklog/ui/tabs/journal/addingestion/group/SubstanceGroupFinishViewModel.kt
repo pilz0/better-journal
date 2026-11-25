@@ -90,7 +90,7 @@ constructor(
     private set
 
   val isEnteredTitleOk: Boolean
-    get() = enteredTitle.isNotEmpty()
+    get() = enteredTitle.isNotBlank()
 
   private var hasTitleBeenChanged = false
 
@@ -278,16 +278,19 @@ constructor(
     private set
 
   private var pendingDismiss: (() -> Unit)? = null
+  private var isSaving = false
 
   /**
    * Saves right away unless the group, with its multiplier applied, would cross an intake limit; in
    * that case it asks first, like the single-ingestion screen.
    */
   fun onDoneClicked(dismiss: () -> Unit) {
+    if (isSaving) return
     val loadedGroup = _group.value ?: return
     val checkedItems = loadedGroup.sortedItems.filter { selectedItemIds[it.id] ?: true }
     val multiplier = doseMultiplier ?: return
     if (checkedItems.isEmpty()) return
+    isSaving = true
     viewModelScope.launch {
       val breached =
           if (consumerName.isNotBlank()) {
@@ -310,8 +313,9 @@ constructor(
                 .distinctBy { it.limit.id }
           }
       if (breached.isEmpty()) {
-        confirmAndDismiss(dismiss)
+        saveAndDismissInternal(checkedItems, multiplier, dismiss)
       } else {
+        isSaving = false
         limitWarningStatuses = breached
         pendingDismiss = dismiss
         isShowingLimitWarning = true
@@ -321,8 +325,9 @@ constructor(
 
   fun confirmLimitWarningAndSave() {
     isShowingLimitWarning = false
-    pendingDismiss?.let { confirmAndDismiss(it) }
+    val dismiss = pendingDismiss
     pendingDismiss = null
+    dismiss?.let { confirmAndDismiss(it) }
   }
 
   fun dismissLimitWarning() {
@@ -331,11 +336,21 @@ constructor(
   }
 
   fun confirmAndDismiss(dismiss: () -> Unit) {
+    if (isSaving) return
     val loadedGroup = _group.value ?: return
     val checkedItems = loadedGroup.sortedItems.filter { selectedItemIds[it.id] ?: true }
-    if (checkedItems.isEmpty() || doseMultiplier == null) return
-    viewModelScope.launch {
-      val multiplier = doseMultiplier ?: return@launch
+    val multiplier = doseMultiplier
+    if (checkedItems.isEmpty() || multiplier == null) return
+    isSaving = true
+    viewModelScope.launch { saveAndDismissInternal(checkedItems, multiplier, dismiss) }
+  }
+
+  private suspend fun saveAndDismissInternal(
+      checkedItems: List<SubstanceGroupItem>,
+      multiplier: Double,
+      dismiss: () -> Unit,
+  ) {
+    try {
       val startTime = localDateTimeStartFlow.value.atZone(ZoneId.systemDefault()).toInstant()
       val endTime =
           if (ingestionTimePickerOptionFlow.value == IngestionTimePickerOption.TIME_RANGE) {
@@ -350,6 +365,8 @@ constructor(
         ingestionWebhookSender.send(savedIngestions, webhookSelection)
       }
       withContext(Dispatchers.Main) { dismiss() }
+    } finally {
+      isSaving = false
     }
   }
 
@@ -401,7 +418,7 @@ constructor(
     val newExperience =
         Experience(
             id = newId,
-            title = enteredTitle,
+            title = enteredTitle.trim(),
             text = "",
             creationDate = Instant.now(),
             sortDate = startTime,

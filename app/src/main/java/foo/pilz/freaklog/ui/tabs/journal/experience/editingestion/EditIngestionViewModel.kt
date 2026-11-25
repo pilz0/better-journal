@@ -47,6 +47,7 @@ import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -56,6 +57,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class EditIngestionViewModel
@@ -227,8 +229,9 @@ constructor(
     isEstimate = newIsEstimate
   }
 
-  fun saveClonedIngestionTime() = viewModelScope.launch {
+  fun saveClonedIngestionTime(onSaved: () -> Unit = {}) = viewModelScope.launch {
     userPreferences.saveClonedIngestionTime(ingestion?.time)
+    withContext(Dispatchers.Main) { onSaved() }
   }
 
   val relevantExperiences: StateFlow<List<ExperienceOption>> =
@@ -261,6 +264,7 @@ constructor(
       )
     private set
 
+  private var isBusy = false
   private var pendingSave: (() -> Unit)? = null
 
   /**
@@ -268,39 +272,51 @@ constructor(
    * first.
    */
   fun onDoneClicked(onSaved: () -> Unit) {
+    if (isBusy) return
+    isBusy = true
     viewModelScope.launch {
-      val ing = ingestion
-      val breached =
-          if (ing != null && consumerName.isBlank()) {
-            foo.pilz.freaklog.ui.tabs.settings.intakelimits.loadBreachedIntakeLimits(
-                experienceRepo = experienceRepo,
-                substanceName = ing.substanceName,
-                pendingDose = if (isKnown) evaluateNumericExpression(dose) else null,
-                pendingUnits = units,
-                pendingCustomUnitId = customUnit?.id,
-                excludeIngestionId = ing.id,
-            )
-          } else {
-            emptyList()
-          }
-      if (breached.isEmpty()) {
-        performSave()
-        onSaved()
-      } else {
-        limitWarningStatuses = breached
-        pendingSave = onSaved
-        isShowingLimitWarning = true
+      try {
+        val ing = ingestion
+        val breached =
+            if (ing != null && consumerName.isBlank()) {
+              foo.pilz.freaklog.ui.tabs.settings.intakelimits.loadBreachedIntakeLimits(
+                  experienceRepo = experienceRepo,
+                  substanceName = ing.substanceName,
+                  pendingDose = if (isKnown) evaluateNumericExpression(dose) else null,
+                  pendingUnits = units,
+                  pendingCustomUnitId = customUnit?.id,
+                  excludeIngestionId = ing.id,
+              )
+            } else {
+              emptyList()
+            }
+        if (breached.isEmpty()) {
+          performSave()
+          withContext(Dispatchers.Main) { onSaved() }
+        } else {
+          limitWarningStatuses = breached
+          pendingSave = onSaved
+          isShowingLimitWarning = true
+        }
+      } finally {
+        isBusy = false
       }
     }
   }
 
   fun confirmLimitWarningAndSave() {
+    if (isBusy) return
+    isBusy = true
     isShowingLimitWarning = false
     val save = pendingSave
     pendingSave = null
     viewModelScope.launch {
-      performSave()
-      save?.invoke()
+      try {
+        performSave()
+        withContext(Dispatchers.Main) { save?.invoke() }
+      } finally {
+        isBusy = false
+      }
     }
   }
 
@@ -309,9 +325,16 @@ constructor(
     pendingSave = null
   }
 
-  fun onDoneTap() {
+  fun onDoneTap(onDone: () -> Unit = {}) {
+    if (isBusy) return
+    isBusy = true
     viewModelScope.launch {
-      performSave()
+      try {
+        performSave()
+        withContext(Dispatchers.Main) { onDone() }
+      } finally {
+        isBusy = false
+      }
     }
   }
 
@@ -344,16 +367,24 @@ constructor(
       it.category = ingestionCategory
       experienceRepo.update(it)
 
-      // Send webhook edit notification in background
+      // Snapshot the updated row before leaving the caller scope.
+      val webhookSnapshot = it.copy()
       externalScope.launch {
-        editWebhookForIngestion(it)
+        editWebhookForIngestion(webhookSnapshot)
       }
     }
   }
 
-  fun deleteIngestion() {
+  fun deleteIngestion(onDeleted: () -> Unit = {}) {
+    if (isBusy) return
+    isBusy = true
     viewModelScope.launch {
-      ingestion?.let { ingestionWebhookSender.deleteWithMessages(it) }
+      try {
+        ingestion?.let { ingestionWebhookSender.deleteWithMessages(it) }
+        withContext(Dispatchers.Main) { onDeleted() }
+      } finally {
+        isBusy = false
+      }
     }
   }
 

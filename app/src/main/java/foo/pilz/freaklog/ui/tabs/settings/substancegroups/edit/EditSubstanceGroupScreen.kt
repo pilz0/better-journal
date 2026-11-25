@@ -68,8 +68,7 @@ fun EditSubstanceGroupScreen(
             TextButton(
                 onClick = {
                   isShowingDeleteDialog = false
-                  viewModel.delete()
-                  navigateBack()
+                  viewModel.delete(navigateBack)
                 },
             ) {
               Text("Delete")

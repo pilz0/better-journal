@@ -56,7 +56,7 @@ fun CustomSubstanceChooseRouteScreen(
       topBar = {
         TopAppBar(
             navigationIcon = { NavigateBackButton() },
-            title = { Text("$substanceName route".trim()) },
+            title = { Text(if (substanceName.isBlank()) "Route" else "$substanceName route") },
         )
       }
   ) { padding ->

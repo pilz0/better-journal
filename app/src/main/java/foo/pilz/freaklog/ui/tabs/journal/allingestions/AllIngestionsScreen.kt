@@ -20,7 +20,6 @@ package foo.pilz.freaklog.ui.tabs.journal.allingestions
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -32,12 +31,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.AlertDialog
@@ -51,7 +46,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -60,19 +54,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit
+import foo.pilz.freaklog.ui.components.EmptyScreenDisclaimer
 import foo.pilz.freaklog.ui.components.NavigateBackButton
+import foo.pilz.freaklog.ui.theme.SearchBar
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import foo.pilz.freaklog.ui.utils.getShortTimeText
 import foo.pilz.freaklog.ui.utils.getStringOfPattern
@@ -105,7 +96,7 @@ fun AllIngestionsScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AllIngestionsScreenContent(
-    sections: List<IngestionSection>,
+    sections: List<IngestionSection>?,
     searchText: String,
     isTimeRelative: Boolean,
     onSearchTextChange: (String) -> Unit,
@@ -136,90 +127,93 @@ fun AllIngestionsScreenContent(
       }
   ) { padding ->
     Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-      // Search bar
-      val focusManager = LocalFocusManager.current
-      TextField(
-          value = searchText,
-          onValueChange = onSearchTextChange,
-          modifier = Modifier.fillMaxWidth(),
-          placeholder = { Text("Search by substance name") },
-          leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
-          trailingIcon = {
-            if (searchText.isNotEmpty()) {
-              IconButton(onClick = { onSearchTextChange("") }) {
-                Icon(Icons.Default.Close, contentDescription = "Clear")
-              }
-            }
-          },
-          keyboardOptions =
-              KeyboardOptions(
-                  keyboardType = KeyboardType.Text,
-                  imeAction = ImeAction.Done,
-                  capitalization = KeyboardCapitalization.Sentences,
-              ),
-          keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-          singleLine = true,
+      SearchBar(
+          searchText = searchText,
+          onChangeSearchText = onSearchTextChange,
+          placeholder = "Search by substance name",
       )
 
-      if (sections.isEmpty()) {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(horizontal = horizontalPadding),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-          Text(
-              text = if (searchText.isEmpty()) "No ingestions yet" else "No results",
-              style = MaterialTheme.typography.headlineSmall,
-              textAlign = TextAlign.Center,
-          )
-        }
-      } else {
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-          sections.forEach { section ->
-            item(key = "header_${section.date}") {
-              SectionHeader(date = section.date)
-            }
-            items(section.ingestions, key = { it.ingestion.id }) { ingestionWithCompanion ->
-              IngestionItem(
-                  ingestionWithCompanion = ingestionWithCompanion,
-                  isTimeRelative = isTimeRelative,
-                  onClick = { onIngestionClick(ingestionWithCompanion) },
-                  onDelete = { ingestionToDelete = ingestionWithCompanion },
-              )
-              HorizontalDivider(modifier = Modifier.padding(start = 0.dp))
-            }
-          }
-        }
+      when {
+        sections == null -> Unit
+        sections.isEmpty() ->
+            EmptyScreenDisclaimer(
+                title = if (searchText.isEmpty()) "No ingestions yet" else "No results",
+                description =
+                    if (searchText.isEmpty()) {
+                      "Your logged ingestions will appear here."
+                    } else {
+                      "No ingestions match \"$searchText\"."
+                    },
+            )
+        else ->
+            IngestionsSectionList(
+                sections = sections,
+                isTimeRelative = isTimeRelative,
+                onIngestionClick = onIngestionClick,
+                onRequestDelete = { ingestionToDelete = it },
+            )
       }
     }
   }
 
   ingestionToDelete?.let { ingestionWithCompanion ->
-    AlertDialog(
-        onDismissRequest = { ingestionToDelete = null },
-        title = { Text("Delete ingestion?") },
-        text = {
-          Text(
-              "This will permanently delete this ${ingestionWithCompanion.ingestion.substanceName} ingestion."
-          )
+    DeleteIngestionDialog(
+        substanceName = ingestionWithCompanion.ingestion.substanceName,
+        onConfirm = {
+          onDeleteIngestion(ingestionWithCompanion)
+          ingestionToDelete = null
         },
-        confirmButton = {
-          TextButton(
-              onClick = {
-                onDeleteIngestion(ingestionWithCompanion)
-                ingestionToDelete = null
-              }
-          ) {
-            Text("Delete", color = MaterialTheme.colorScheme.error)
-          }
-        },
-        dismissButton = {
-          TextButton(onClick = { ingestionToDelete = null }) {
-            Text("Cancel")
-          }
-        },
+        onDismiss = { ingestionToDelete = null },
     )
   }
+}
+
+@Composable
+private fun IngestionsSectionList(
+    sections: List<IngestionSection>,
+    isTimeRelative: Boolean,
+    onIngestionClick: (IngestionWithCompanionAndCustomUnit) -> Unit,
+    onRequestDelete: (IngestionWithCompanionAndCustomUnit) -> Unit,
+) {
+  LazyColumn(modifier = Modifier.fillMaxSize()) {
+    sections.forEach { section ->
+      item(key = "header_${section.date}") {
+        SectionHeader(date = section.date)
+      }
+      items(section.ingestions, key = { it.ingestion.id }) { ingestionWithCompanion ->
+        IngestionItem(
+            ingestionWithCompanion = ingestionWithCompanion,
+            isTimeRelative = isTimeRelative,
+            onClick = { onIngestionClick(ingestionWithCompanion) },
+            onDelete = { onRequestDelete(ingestionWithCompanion) },
+        )
+        HorizontalDivider(modifier = Modifier.padding(start = 0.dp))
+      }
+    }
+  }
+}
+
+@Composable
+private fun DeleteIngestionDialog(
+    substanceName: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+  AlertDialog(
+      onDismissRequest = onDismiss,
+      title = { Text("Delete ingestion?") },
+      text = { Text("This will permanently delete this $substanceName ingestion.") },
+      confirmButton = {
+        TextButton(onClick = onConfirm) {
+          Text("Delete", color = MaterialTheme.colorScheme.error)
+        }
+      },
+      dismissButton = {
+        TextButton(onClick = onDismiss) {
+          Text("Cancel")
+        }
+      },
+  )
 }
 
 @Composable

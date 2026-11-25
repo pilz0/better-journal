@@ -18,6 +18,7 @@
 
 package foo.pilz.freaklog.ui.tabs.journal.addingestion.interactions
 
+import foo.pilz.freaklog.data.room.experiences.findProfile
 import foo.pilz.freaklog.data.substances.classes.InteractionType
 import foo.pilz.freaklog.data.substances.classes.Interactions
 import foo.pilz.freaklog.data.substances.classes.Substance
@@ -36,7 +37,7 @@ constructor(
   private val wildcardRegexCache = ConcurrentHashMap<String, Regex>()
 
   fun getInteractionBetween(aName: String, bName: String): Interaction? {
-    if (aName == bName) {
+    if (aName.trim().equals(bName.trim(), ignoreCase = true)) {
       return null
     }
     // What the user declared for a custom substance wins over built-in data.
@@ -85,7 +86,7 @@ constructor(
     val distinct = names.distinct().take(MAX_SUBSTANCE_NAMES)
     val profiles = customProfiles.byNameFlow.value
     val hasData = distinct.map {
-      substanceRepo.getSubstance(it) != null || profiles.containsKey(it)
+      substanceRepo.getSubstance(it) != null || findProfile(profiles, it) != null
     }
     val results = mutableListOf<Interaction>()
     var pairsEvaluated = 0
@@ -121,9 +122,14 @@ constructor(
     if (wildcardInteraction != null) {
       return wildcardInteraction
     }
-    if (toSubstance != null && toSubstance.categories.isNotEmpty()) {
-      val classInteraction =
-          getClassInteraction(cleaned = cleaned, categories = toSubstance.categories)
+    val toCategories =
+        toSubstance?.categories
+            ?: findProfile(customProfiles.byNameFlow.value, toName)
+                ?.categories
+                ?.map { it.categoryName }
+                .orEmpty()
+    if (toCategories.isNotEmpty()) {
+      val classInteraction = getClassInteraction(cleaned = cleaned, categories = toCategories)
       if (classInteraction != null) {
         return classInteraction
       }

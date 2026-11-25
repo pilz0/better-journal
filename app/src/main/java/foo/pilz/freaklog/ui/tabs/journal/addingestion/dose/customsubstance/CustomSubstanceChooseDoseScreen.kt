@@ -296,7 +296,10 @@ fun CustomSubstanceChooseDoseScreen(
                   },
                   textStyle = textStyle,
                   label = { Text("Estimated standard deviation", style = textStyle) },
-                  isError = !isValidDose,
+                  isError =
+                      !foo.pilz.freaklog.ui.utils.isValidOptionalStandardDeviationText(
+                          estimatedDoseStandardDeviationText
+                      ),
                   trailingIcon = {
                     Text(
                         text = units,

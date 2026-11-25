@@ -14,6 +14,13 @@ fun isValidDoseInput(
   return isDoseOk && isDeviationOk
 }
 
+fun isValidPositiveDoseText(text: String, maxDose: Double = MAX_VALID_DOSE): Boolean =
+    evaluateNumericExpression(text)?.let { it > 0.0 && it.isFinite() && it <= maxDose } == true
+
+fun isValidOptionalStandardDeviationText(text: String, maxDose: Double = MAX_VALID_DOSE): Boolean =
+    text.isBlank() ||
+        evaluateNumericExpression(text)?.let { it >= 0.0 && it.isFinite() && it <= maxDose } == true
+
 fun evaluateNumericExpression(input: String): Double? {
   val text = input.trim().replace(',', '.')
   if (text.isEmpty()) return null

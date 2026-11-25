@@ -29,7 +29,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -94,7 +93,7 @@ fun IngestionRow(
       ) {
         val text = buildAnnotatedString {
           append(ingestionWithCompanionAndCustomUnit.doseDescription)
-          withStyle(style = SpanStyle(color = Color.Gray)) {
+          withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
             if (customUnit == null) {
               append(" " + ingestion.administrationRoute.displayText.lowercase())
             } else {

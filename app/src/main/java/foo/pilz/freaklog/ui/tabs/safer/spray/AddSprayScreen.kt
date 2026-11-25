@@ -58,8 +58,7 @@ fun AddSprayScreen(
 ) {
   AddSprayScreenContent(
       onSave = { name, contentInMl, numSprays ->
-        viewModel.addSpray(name, contentInMl, numSprays)
-        navigateBack()
+        viewModel.addSpray(name, contentInMl, numSprays, onSaved = navigateBack)
       }
   )
 }

@@ -15,7 +15,7 @@ import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.main.navigation.graphs.EditIntakeLimitRoute
-import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
+import foo.pilz.freaklog.ui.tabs.search.substance.roa.toPreservedString
 import java.time.Instant
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -83,6 +83,8 @@ constructor(
 
   private var existingId = 0
   private var creationDate: Instant = Instant.now()
+  private var isSaving = false
+  private var isDeleting = false
 
   init {
     viewModelScope.launch {
@@ -120,7 +122,7 @@ constructor(
     creationDate = limit.creationDate
     substanceName = limit.substanceName
     limitType = limit.limitType
-    maxDoseText = limit.maxDose?.toReadableString() ?: ""
+    maxDoseText = limit.maxDose?.toPreservedString() ?: ""
     unit = limit.unit ?: "mg"
     maxCountText = limit.maxCount?.toString() ?: ""
     warningPercentText = limit.warningPercent.toString()
@@ -185,30 +187,41 @@ constructor(
     }
 
   fun saveAndDismiss(dismiss: () -> Unit) {
-    if (!isValid) return
+    if (!isValid || isSaving || isDeleting) return
+    isSaving = true
     viewModelScope.launch {
-      val limit =
-          IntakeLimit(
-              id = existingId,
-              substanceName = substanceName,
-              creationDate = creationDate,
-              limitType = limitType,
-              maxDose = if (limitType == IntakeLimitType.DOSE) maxDose else null,
-              unit = if (limitType == IntakeLimitType.DOSE) unit.trim() else null,
-              maxCount = if (limitType == IntakeLimitType.COUNT) maxCount else null,
-              windowSeconds = windowSeconds,
-              warningPercent = warningPercent,
-              isEnabled = isEnabled,
-          )
-      if (isEditing) experienceRepo.update(limit) else experienceRepo.insert(limit)
-      withContext(Dispatchers.Main) { dismiss() }
+      try {
+        val limit =
+            IntakeLimit(
+                id = existingId,
+                substanceName = substanceName,
+                creationDate = creationDate,
+                limitType = limitType,
+                maxDose = if (limitType == IntakeLimitType.DOSE) maxDose else null,
+                unit = if (limitType == IntakeLimitType.DOSE) unit.trim() else null,
+                maxCount = if (limitType == IntakeLimitType.COUNT) maxCount else null,
+                windowSeconds = windowSeconds,
+                warningPercent = warningPercent,
+                isEnabled = isEnabled,
+            )
+        if (isEditing) experienceRepo.update(limit) else experienceRepo.insert(limit)
+        withContext(Dispatchers.Main) { dismiss() }
+      } finally {
+        isSaving = false
+      }
     }
   }
 
   fun deleteAndDismiss(dismiss: () -> Unit) {
+    if (isDeleting || isSaving) return
+    isDeleting = true
     viewModelScope.launch {
-      experienceRepo.getIntakeLimit(existingId)?.let { experienceRepo.delete(it) }
-      withContext(Dispatchers.Main) { dismiss() }
+      try {
+        experienceRepo.getIntakeLimit(existingId)?.let { experienceRepo.delete(it) }
+        withContext(Dispatchers.Main) { dismiss() }
+      } finally {
+        isDeleting = false
+      }
     }
   }
 }
