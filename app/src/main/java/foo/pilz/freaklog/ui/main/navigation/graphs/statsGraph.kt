@@ -7,6 +7,7 @@ import foo.pilz.freaklog.ui.main.navigation.StatsTopLevelRoute
 import foo.pilz.freaklog.ui.main.navigation.composableWithTransitions
 import foo.pilz.freaklog.ui.tabs.stats.StatsScreen
 import foo.pilz.freaklog.ui.tabs.stats.substancecompanion.SubstanceCompanionScreen
+import foo.pilz.freaklog.ui.tabs.stats.substancecompanion.SubstanceInfoTarget
 import foo.pilz.freaklog.ui.tabs.stats.tolerance.ToleranceChartScreen
 import kotlinx.serialization.Serializable
 
@@ -30,7 +31,21 @@ fun NavGraphBuilder.statsGraph(navController: NavHostController) {
       )
     }
     composableWithTransitions<SubstanceCompanionRoute> {
-      SubstanceCompanionScreen()
+      SubstanceCompanionScreen(
+          navigateToExperience = { experienceId ->
+            navController.navigate(ExperienceRoute(experienceId))
+          },
+          navigateToSubstanceInfo = { target ->
+            when (target) {
+              is SubstanceInfoTarget.BuiltIn ->
+                  navController.navigate(SubstanceRoute(substanceName = target.substanceName))
+              is SubstanceInfoTarget.Custom ->
+                  navController.navigate(
+                      CustomSubstanceRoute(customSubstanceId = target.customSubstanceId)
+                  )
+            }
+          },
+      )
     }
     composableWithTransitions<ToleranceChartRoute> {
       ToleranceChartScreen()

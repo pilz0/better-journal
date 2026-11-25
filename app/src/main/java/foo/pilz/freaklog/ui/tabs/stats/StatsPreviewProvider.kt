@@ -29,8 +29,10 @@ class StatsPreviewProvider : PreviewParameterProvider<StatsModel> {
           StatsModel(
               selectedOption = TimePickerOption.DAYS_7,
               areThereAnyIngestions = true,
-              startDateText = "22. June 2022",
+              startDateText = "22 Jun 2022",
               consumerName = null,
+              totalIngestions = 23,
+              totalExperiences = 7,
               statItems =
                   listOf(
                       StatItem(
@@ -48,13 +50,13 @@ class StatsPreviewProvider : PreviewParameterProvider<StatsModel> {
                           totalDose =
                               TotalDose(
                                   dose = 500.0,
-                                  units = "ug",
+                                  units = "µg",
                                   isEstimate = false,
                                   estimatedDoseStandardDeviation = null,
                               ),
                           lastUsed = Instant.parse("2026-04-29T12:00:00Z"),
-                          unknownDoseCount = 1,
-                          unitNames = listOf("ug"),
+                          unknownDoseCount = 0,
+                          unitNames = listOf("µg"),
                       ),
                       StatItem(
                           substanceName = "MDMA",
@@ -80,7 +82,7 @@ class StatsPreviewProvider : PreviewParameterProvider<StatsModel> {
                                   estimatedDoseStandardDeviation = 50.0,
                               ),
                           lastUsed = Instant.parse("2026-04-29T12:00:00Z"),
-                          unknownDoseCount = 1,
+                          unknownDoseCount = 0,
                           unitNames = listOf("mg"),
                       ),
                       StatItem(
@@ -99,6 +101,13 @@ class StatsPreviewProvider : PreviewParameterProvider<StatsModel> {
                           lastUsed = Instant.parse("2026-04-29T12:00:00Z"),
                           unknownDoseCount = 1,
                           unitNames = listOf("mg"),
+                          knownTotalDose =
+                              TotalDose(
+                                  dose = 420.0,
+                                  units = "mg",
+                                  isEstimate = false,
+                                  estimatedDoseStandardDeviation = null,
+                              ),
                       ),
                       StatItem(
                           substanceName = "Ketamine",
@@ -120,37 +129,56 @@ class StatsPreviewProvider : PreviewParameterProvider<StatsModel> {
                                   estimatedDoseStandardDeviation = 5.0,
                               ),
                           lastUsed = Instant.parse("2026-04-29T12:00:00Z"),
-                          unknownDoseCount = 1,
+                          unknownDoseCount = 0,
                           unitNames = listOf("mg"),
                       ),
                   ),
               chartBuckets =
                   listOf(
-                      listOf(
-                          ColorCount(
-                              color = AdaptiveColor.PINK,
-                              count = 2,
-                          ),
-                          ColorCount(
-                              color = AdaptiveColor.BLUE,
-                              count = 3,
-                          ),
+                      StatsChartBucket(
+                          label = "Mon",
+                          fullDateText = "22 Jun 2022",
+                          items =
+                              listOf(
+                                  ColorCount(
+                                      color = AdaptiveColor.BLUE,
+                                      count = 3,
+                                      substanceName = "LSD",
+                                  ),
+                                  ColorCount(
+                                      color = AdaptiveColor.PINK,
+                                      count = 2,
+                                      substanceName = "MDMA",
+                                  ),
+                              ),
                       ),
-                      listOf(),
-                      listOf(),
-                      listOf(),
-                      listOf(),
-                      listOf(
-                          ColorCount(
-                              color = AdaptiveColor.ORANGE,
-                              count = 1,
-                          ),
+                      StatsChartBucket("Tue", "23 Jun 2022", emptyList()),
+                      StatsChartBucket("Wed", "24 Jun 2022", emptyList()),
+                      StatsChartBucket("Thu", "25 Jun 2022", emptyList()),
+                      StatsChartBucket("Fri", "26 Jun 2022", emptyList()),
+                      StatsChartBucket(
+                          label = "Sat",
+                          fullDateText = "27 Jun 2022",
+                          items =
+                              listOf(
+                                  ColorCount(
+                                      color = AdaptiveColor.ORANGE,
+                                      count = 1,
+                                      substanceName = "Cocaine",
+                                  )
+                              ),
                       ),
-                      listOf(
-                          ColorCount(
-                              color = AdaptiveColor.PURPLE,
-                              count = 1,
-                          )
+                      StatsChartBucket(
+                          label = "Sun",
+                          fullDateText = "28 Jun 2022",
+                          items =
+                              listOf(
+                                  ColorCount(
+                                      color = AdaptiveColor.PURPLE,
+                                      count = 1,
+                                      substanceName = "Ketamine",
+                                  )
+                              ),
                       ),
                   ),
           )

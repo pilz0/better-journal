@@ -19,10 +19,14 @@
 package foo.pilz.freaklog.ui.tabs.stats.substancecompanion
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -39,44 +43,57 @@ fun TimeArrowUpPreview() {
 }
 
 @Composable
-fun TimeArrowUp(timeText: String) {
-  val color = MaterialTheme.colorScheme.onBackground
-  val strokeWidth = 4f
-  Column(horizontalAlignment = Alignment.CenterHorizontally) {
-    Canvas(modifier = Modifier.width(6.dp).height(20.dp)) {
-      val canvasWidth = size.width
-      val canvasHeight = size.height
+fun TimeArrowUp(timeText: String, modifier: Modifier = Modifier) {
+  val lineColor = MaterialTheme.colorScheme.outlineVariant
+  Column(
+      modifier = modifier,
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.spacedBy(2.dp),
+  ) {
+    Canvas(modifier = Modifier.width(8.dp).height(14.dp)) {
+      val stroke = 1.5.dp.toPx()
+      val cx = size.width / 2f
       drawLine(
-          start = Offset(x = canvasWidth / 2, y = 0f),
-          end = Offset(x = canvasWidth / 2, y = canvasHeight),
-          strokeWidth = strokeWidth,
-          color = color,
+          start = Offset(x = cx, y = 0f),
+          end = Offset(x = cx, y = size.height),
+          strokeWidth = stroke,
+          color = lineColor,
           cap = StrokeCap.Round,
       )
       drawLine(
-          start = Offset(x = canvasWidth / 2, y = 0f),
-          end = Offset(x = 0f, y = canvasHeight / 4),
-          strokeWidth = strokeWidth,
-          color = color,
+          start = Offset(x = cx, y = 0f),
+          end = Offset(x = 0f, y = size.width / 2f),
+          strokeWidth = stroke,
+          color = lineColor,
           cap = StrokeCap.Round,
       )
       drawLine(
-          start = Offset(x = canvasWidth / 2, y = 0f),
-          end = Offset(x = canvasWidth, y = canvasHeight / 4),
-          strokeWidth = strokeWidth,
-          color = color,
+          start = Offset(x = cx, y = 0f),
+          end = Offset(x = size.width, y = size.width / 2f),
+          strokeWidth = stroke,
+          color = lineColor,
           cap = StrokeCap.Round,
       )
     }
-    Text(text = timeText)
-    Canvas(modifier = Modifier.width(6.dp).height(20.dp)) {
-      val canvasWidth = size.width
-      val canvasHeight = size.height
+    Surface(
+        shape = RoundedCornerShape(50),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    ) {
+      Text(
+          text = timeText,
+          style = MaterialTheme.typography.labelSmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
+      )
+    }
+    Canvas(modifier = Modifier.width(8.dp).height(12.dp)) {
+      val stroke = 1.5.dp.toPx()
+      val cx = size.width / 2f
       drawLine(
-          start = Offset(x = canvasWidth / 2, y = 0f),
-          end = Offset(x = canvasWidth / 2, y = canvasHeight),
-          strokeWidth = strokeWidth,
-          color = color,
+          start = Offset(x = cx, y = 0f),
+          end = Offset(x = cx, y = size.height),
+          strokeWidth = stroke,
+          color = lineColor,
           cap = StrokeCap.Round,
       )
     }

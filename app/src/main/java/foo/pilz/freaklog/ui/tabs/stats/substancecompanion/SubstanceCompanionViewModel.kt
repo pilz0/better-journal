@@ -23,11 +23,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
+import foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
+import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.room.experiences.entities.Experience
 import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
+import foo.pilz.freaklog.data.room.experiences.findProfile
+import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithExperienceAndCustomUnit
+import foo.pilz.freaklog.data.room.experiences.toTolerance
+import foo.pilz.freaklog.data.substances.classes.Tolerance
+import foo.pilz.freaklog.data.substances.classes.roa.Roa
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.main.navigation.graphs.SubstanceCompanionRoute
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.search.suggestion.models.CustomUnitDose
@@ -52,12 +59,19 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+sealed interface SubstanceInfoTarget {
+  data class BuiltIn(val substanceName: String) : SubstanceInfoTarget
+
+  data class Custom(val customSubstanceId: Int) : SubstanceInfoTarget
+}
+
 @HiltViewModel
 class SubstanceCompanionViewModel
 @Inject
 constructor(
     experienceRepo: ExperienceRepository,
     substanceRepo: SubstanceRepository,
+    customProfiles: CustomSubstanceProfiles,
     state: SavedStateHandle,
 ) : ViewModel() {
 
@@ -72,24 +86,73 @@ constructor(
           .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000), replay = 1)
 
   private val substanceCompanionRoute = state.toRoute<SubstanceCompanionRoute>()
-  private val substanceName = substanceCompanionRoute.substanceName
+  val substanceName: String = substanceCompanionRoute.substanceName
   val consumerName = substanceCompanionRoute.consumerName
 
   private val substance = substanceRepo.getSubstance(substanceName)
-  val tolerance = substance?.tolerance
-  val crossTolerances = substance?.crossTolerances ?: emptyList()
+  private val customProfileFlow =
+      customProfiles.byNameFlow.map { profiles -> findProfile(profiles, substanceName) }
 
-  /** Dose thresholds from PsychonautWiki for the first ROA that has dose data. */
-  val doseThresholds: DoseThresholds? =
-      substance
-          ?.roas
-          ?.firstOrNull { it.roaDose != null }
-          ?.roaDose
-          ?.let { d -> DoseThresholds(d.units, d.lightMin, d.commonMin, d.strongMin, d.heavyMin) }
+  private val initialCustomProfile = findProfile(customProfiles.byNameFlow.value, substanceName)
+
+  val toleranceFlow: StateFlow<Tolerance?> =
+      customProfileFlow
+          .map { customProfile ->
+            substance?.tolerance ?: customProfile?.substance?.toTolerance()
+          }
+          .stateIn(
+              initialValue = substance?.tolerance ?: initialCustomProfile?.substance?.toTolerance(),
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+          )
+
+  val crossTolerancesFlow: StateFlow<List<String>> =
+      customProfileFlow
+          .map { customProfile ->
+            if (substance != null) {
+              substance.crossTolerances
+            } else {
+              customProfile?.crossTolerances?.map { it.categoryName }.orEmpty()
+            }
+          }
+          .stateIn(
+              initialValue =
+                  if (substance != null) {
+                    substance.crossTolerances
+                  } else {
+                    initialCustomProfile?.crossTolerances?.map { it.categoryName }.orEmpty()
+                  },
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+          )
+
+  val substanceInfoTargetFlow: StateFlow<SubstanceInfoTarget?> =
+      customProfileFlow
+          .map { customProfile ->
+            when {
+              substance != null -> SubstanceInfoTarget.BuiltIn(substance.name)
+              customProfile != null -> SubstanceInfoTarget.Custom(customProfile.substance.id)
+              else -> null
+            }
+          }
+          .stateIn(
+              initialValue =
+                  when {
+                    substance != null -> SubstanceInfoTarget.BuiltIn(substance.name)
+                    initialCustomProfile != null ->
+                        SubstanceInfoTarget.Custom(initialCustomProfile.substance.id)
+                    else -> null
+                  },
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+          )
 
   val thisCompanionFlow: StateFlow<SubstanceCompanion?> =
       experienceRepo
           .getSubstanceCompanionFlow(substanceName)
+          .map {
+            it ?: SubstanceCompanion(substanceName = substanceName, color = AdaptiveColor.BLUE)
+          }
           .stateIn(
               initialValue = null,
               scope = viewModelScope,
@@ -125,98 +188,139 @@ constructor(
   }
 
   // Source of all ingestions for this substance/consumer.
-  // Shared once via stateIn so the downstream pipelines below
-  // (`dosageStatsFlow`, `ingestionBurstsFlow`, `frequencyFlow`)
-  // don't each re-collect (and re-query) the underlying Room flow.
+  // Shared once via shareIn(replay = 1) so downstream pipelines
+  // (`doseThresholdsFlow`, `dosageStatsFlow`, `ingestionBurstsFlow`, `frequencyFlow`)
+  // share one Room collection without emitting a bogus emptyList() before Room answers.
   private val allIngestionsFlow =
       experienceRepo
           .getSortedIngestionsWithExperienceAndCustomUnitFlow(substanceName)
           .map { list -> list.filter { it.ingestion.consumerName == consumerName } }
           .flowOn(Dispatchers.Default)
-          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+          .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000), replay = 1)
 
-  val dosageStatsFlow: StateFlow<SubstanceDosageStatsModel> =
-      combine(allIngestionsFlow, selectedTimeRange, currentTimeFlow) {
+  /**
+   * Dose thresholds from PsychonautWiki or custom substance profile, preferring the user's most
+   * frequently logged route that defines dose thresholds.
+   */
+  val doseThresholdsFlow: StateFlow<DoseThresholds?> =
+      combine(allIngestionsFlow, customProfileFlow) { ingestions, customProfile ->
+            val roas: List<Roa> =
+                substance?.roas ?: customProfile?.roaInfos?.map { it.toRoa() }.orEmpty()
+            val roasWithThresholds = roas.filter { roa ->
+              val d = roa.roaDose
+              d != null &&
+                  (d.lightMin != null ||
+                      d.commonMin != null ||
+                      d.strongMin != null ||
+                      d.heavyMin != null)
+            }
+            if (roasWithThresholds.isEmpty()) return@combine null
+            val countsByRoute =
+                ingestions.groupingBy { it.ingestion.administrationRoute }.eachCount()
+            val chosenRoa =
+                roasWithThresholds.maxByOrNull { countsByRoute[it.route] ?: 0 }
+                    ?: roasWithThresholds.first()
+            chosenRoa.roaDose?.let { d ->
+              DoseThresholds(
+                  unit = d.units,
+                  lightMin = d.lightMin,
+                  commonMin = d.commonMin,
+                  strongMin = d.strongMin,
+                  heavyMin = d.heavyMin,
+                  route = chosenRoa.route,
+              )
+            }
+          }
+          .stateIn(
+              initialValue = null,
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(5000),
+          )
+
+  val dosageStatsFlow: StateFlow<SubstanceDosageStatsModel?> =
+      combine(allIngestionsFlow, selectedTimeRange, currentTimeFlow, doseThresholdsFlow) {
               ingestions,
               timeRange,
-              currentTime ->
+              currentTime,
+              thresholds ->
             SubstanceDosageStatsHelper.build(
                 ingestions = ingestions.map { it.ingestion },
                 range = timeRange,
                 now = currentTime,
                 zone = ZoneId.systemDefault(),
                 customUnits = ingestions.mapNotNull { it.customUnit }.associateBy { it.id },
-                preferredUnit = doseThresholds?.unit,
+                preferredUnit = thresholds?.unit,
             )
           }
           .flowOn(Dispatchers.Default)
           .stateIn(
-              initialValue =
-                  SubstanceDosageStatsModel(
-                      buckets = emptyList(),
-                      summary =
-                          SubstanceDosageSummary(
-                              totalSessions = 0,
-                              totalKnownDose = null,
-                              averageKnownDosePerSession = null,
-                              peakKnownDose = null,
-                              unknownDoseCount = 0,
-                              unitsUsed = emptyList(),
-                              longestGapDays = null,
-                              currentStreakWeeks = 0,
-                          ),
-                      hasMixedUnits = false,
-                  ),
+              initialValue = null,
               scope = viewModelScope,
               started = SharingStarted.WhileSubscribed(5000),
           )
 
-  val ingestionBurstsFlow: StateFlow<List<IngestionsBurst>> =
+  val ingestionBurstsFlow: StateFlow<List<IngestionsBurst>?> =
       allIngestionsFlow
-          .combine(currentTimeFlow) { sortedIngestionsWithExperiences, currentTime ->
-            val experiencesWithIngestions = sortedIngestionsWithExperiences.groupBy {
-              it.ingestion.experienceId
-            }
-            var lastDate = currentTime
-            val allIngestionBursts: MutableList<IngestionsBurst> = mutableListOf()
-            for (oneExperience in experiencesWithIngestions) {
-              val experience = oneExperience.value.firstOrNull()?.experience ?: continue
-              val ingestionsSorted =
-                  oneExperience.value
-                      .map {
-                        IngestionsBurst.IngestionAndCustomUnit(it.ingestion, it.customUnit)
-                      }
-                      .sortedBy { it.ingestion.time }
-              val experienceStart = ingestionsSorted.first().ingestion.time
-              val experienceEnd = ingestionsSorted.last().ingestion.time
-              val diffText =
-                  getTimeDifferenceText(
-                      fromInstant = experienceEnd,
-                      toInstant = lastDate,
-                  )
-              allIngestionBursts.add(
-                  IngestionsBurst(
-                      timeUntil = diffText,
-                      experience = experience,
-                      ingestions = ingestionsSorted,
-                  )
-              )
-              lastDate = experienceStart
-            }
-            allIngestionBursts
-          }
+          .combine(currentTimeFlow, ::buildIngestionBursts)
           .flowOn(Dispatchers.Default)
           .stateIn(
-              initialValue = emptyList(),
+              initialValue = null,
               scope = viewModelScope,
               started = SharingStarted.WhileSubscribed(5000),
           )
+
+  private fun buildIngestionBursts(
+      sortedIngestionsWithExperiences: List<IngestionWithExperienceAndCustomUnit>,
+      currentTime: Instant,
+  ): List<IngestionsBurst> {
+    val sortedExperiences =
+        sortedIngestionsWithExperiences
+            .groupBy { it.ingestion.experienceId }
+            .values
+            .mapNotNull { entries ->
+              val experience = entries.firstOrNull()?.experience ?: return@mapNotNull null
+              val ingestionsSorted =
+                  entries
+                      .map { IngestionsBurst.IngestionAndCustomUnit(it.ingestion, it.customUnit) }
+                      .sortedBy { it.ingestion.time }
+              experience to ingestionsSorted
+            }
+            .sortedByDescending { (_, ingestionsSorted) -> ingestionsSorted.last().ingestion.time }
+    var lastDate = currentTime
+    val allIngestionBursts = mutableListOf<IngestionsBurst>()
+    for ((experience, ingestionsSorted) in sortedExperiences) {
+      val experienceStart = ingestionsSorted.first().ingestion.time
+      val experienceEnd = ingestionsSorted.last().ingestion.time
+      val diffText =
+          if (experienceEnd > currentTime && experienceEnd > lastDate) {
+            "in " +
+                getTimeDifferenceText(
+                    fromInstant = lastDate,
+                    toInstant = experienceEnd,
+                )
+          } else {
+            getTimeDifferenceText(
+                fromInstant = experienceEnd,
+                toInstant = lastDate,
+            )
+          }
+      allIngestionBursts.add(
+          IngestionsBurst(
+              timeUntil = diffText,
+              experience = experience,
+              ingestions = ingestionsSorted,
+          )
+      )
+      lastDate = experienceStart
+    }
+    return allIngestionBursts
+  }
 
   /**
    * Frequency of this substance over three time ranges, normalized to the busiest range. Used by
    * the "Usage frequency" section of the screen.
    */
-  val frequencyFlow: StateFlow<SubstanceFrequency> =
+  val frequencyFlow: StateFlow<SubstanceFrequency?> =
       combine(allIngestionsFlow, currentTimeFlow) { ingestions, now ->
             SubstanceFrequency.compute(
                 ingestions = ingestions.map { it.ingestion },
@@ -226,17 +330,17 @@ constructor(
           }
           .flowOn(Dispatchers.Default)
           .stateIn(
-              initialValue = SubstanceFrequency(0, 0, 0),
+              initialValue = null,
               scope = viewModelScope,
               started = SharingStarted.WhileSubscribed(5000),
           )
 }
 
 enum class DosageTimeRange(val displayText: String, val title: String, val period: Period?) {
-  DAYS_30("30D", "Last 30 Days", Period.ofDays(30)),
-  WEEKS_26("26W", "Last 26 Weeks", Period.ofWeeks(26)),
-  MONTHS_12("12M", "Last 12 Months", Period.ofMonths(12)),
-  ALL("All", "All Time", null),
+  DAYS_30("30D", "Last 30 days", Period.ofDays(30)),
+  WEEKS_26("26W", "Last 26 weeks", Period.ofWeeks(26)),
+  MONTHS_12("12M", "Last 12 months", Period.ofMonths(12)),
+  ALL("All", "All time", null),
 }
 
 /**
@@ -308,11 +412,12 @@ data class IngestionsBurst(
     private val ingestionDoseDescription
       get() =
           ingestion.dose?.let { dose ->
+            val unitSuffix = ingestion.units?.takeIf(String::isNotBlank)?.let { " $it" }.orEmpty()
             ingestion.estimatedDoseStandardDeviation?.let { estimatedDoseStandardDeviation ->
-              "${dose.toReadableString()}±${estimatedDoseStandardDeviation.toReadableString()} ${ingestion.units}"
+              "${dose.toReadableString()}±${estimatedDoseStandardDeviation.toReadableString()}$unitSuffix"
             }
                 ?: run {
-                  val description = "${dose.toReadableString()} ${ingestion.units}"
+                  val description = "${dose.toReadableString()}$unitSuffix"
                   if (ingestion.isDoseAnEstimate) {
                     "~$description"
                   } else {

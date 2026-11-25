@@ -18,8 +18,11 @@
 
 package foo.pilz.freaklog.ui.tabs.search.substance.roa
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import foo.pilz.freaklog.data.substances.classes.Tolerance
 
@@ -55,45 +59,48 @@ fun ToleranceSection(
     modifier: Modifier = Modifier,
 ) {
   if (tolerance != null || crossTolerances.isNotEmpty()) {
-    Column(modifier) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
       if (tolerance != null) {
-        val labelWidth = 40.dp
-        Row(verticalAlignment = Alignment.Top) {
-          if (tolerance.full != null) {
-            Text(
-                text = "full:",
-                modifier = Modifier.width(labelWidth),
-            )
-            Text(text = tolerance.full)
-          }
-        }
-        Row(verticalAlignment = Alignment.Top) {
-          if (tolerance.half != null) {
-            Text(
-                text = "half:",
-                modifier = Modifier.width(labelWidth),
-            )
-            Text(text = tolerance.half)
-          }
-        }
-        Row(verticalAlignment = Alignment.Top) {
-          if (tolerance.zero != null) {
-            Text(
-                text = "zero:",
-                modifier = Modifier.width(labelWidth),
-            )
-            Text(text = tolerance.zero)
-          }
-        }
+        val labelWidth = 52.dp
+        ToleranceRow(label = "full:", value = tolerance.full, labelWidth = labelWidth)
+        ToleranceRow(label = "half:", value = tolerance.half, labelWidth = labelWidth)
+        ToleranceRow(label = "zero:", value = tolerance.zero, labelWidth = labelWidth)
+        Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = "* zero is the time until tolerance is like the first time.",
             style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
       }
       if (crossTolerances.isNotEmpty()) {
-        val names = crossTolerances.map { it }.distinct().joinToString(separator = ", ")
-        Text(text = "Cross tolerance with $names.")
+        if (tolerance != null) Spacer(modifier = Modifier.height(2.dp))
+        val names = crossTolerances.distinct().joinToString(separator = ", ")
+        Text(
+            text = "Cross tolerance with $names.",
+            style = MaterialTheme.typography.bodyMedium,
+        )
       }
     }
+  }
+}
+
+@Composable
+private fun ToleranceRow(
+    label: String,
+    value: String?,
+    labelWidth: Dp,
+) {
+  if (value == null) return
+  Row(verticalAlignment = Alignment.Top) {
+    Text(
+        text = label,
+        modifier = Modifier.width(labelWidth),
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    Text(
+        text = value,
+        style = MaterialTheme.typography.bodyMedium,
+    )
   }
 }

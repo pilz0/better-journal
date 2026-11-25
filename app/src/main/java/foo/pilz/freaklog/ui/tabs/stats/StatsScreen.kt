@@ -18,13 +18,19 @@
 
 package foo.pilz.freaklog.ui.tabs.stats
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -32,9 +38,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.GridOn
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Schedule
@@ -43,7 +53,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,12 +64,18 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -69,12 +85,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.ui.YOU
 import foo.pilz.freaklog.ui.components.EmptyScreenDisclaimer
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
+import foo.pilz.freaklog.ui.tabs.stats.substancecompanion.formatSiValue
 import foo.pilz.freaklog.ui.theme.JournalTheme
-import foo.pilz.freaklog.ui.theme.horizontalPadding
+import foo.pilz.freaklog.ui.theme.LocalSpacing
 import foo.pilz.freaklog.ui.utils.HapticType
+import foo.pilz.freaklog.ui.utils.getStringOfPattern
 import foo.pilz.freaklog.ui.utils.rememberHaptic
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,45 +101,37 @@ fun StatsScreen(
 ) {
   val statsModel by viewModel.statsModelFlow.collectAsStateWithLifecycle()
   val consumerNamesSorted by viewModel.sortedConsumerNamesFlow.collectAsStateWithLifecycle()
-  androidx.compose.runtime.LaunchedEffect(Unit) { viewModel.runExcelSkin() }
+  LaunchedEffect(Unit) { viewModel.runExcelSkin() }
   val loadedStatsModel = statsModel
   if (loadedStatsModel == null) {
-    Scaffold(
-        topBar = {
-          TopAppBar(title = { Text("Statistics") })
-        }
-    ) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text("Statistics") }) }) { padding ->
       Box(modifier = Modifier.padding(padding))
     }
   } else {
     StatsScreen(
-        navigateToSubstanceCompanion = navigateToSubstanceCompanion,
-        navigateToToleranceChart = navigateToToleranceChart,
-        onTapOption = viewModel::onTapOption,
         statsModel = loadedStatsModel,
-        onChangeConsumerName = viewModel::onChangeConsumer,
         consumerNamesSorted = consumerNamesSorted,
-        onOpenSpreadsheet = viewModel::showExcelSkin,
+        callbacks =
+            StatsScreenCallbacks(
+                navigateToSubstanceCompanion = navigateToSubstanceCompanion,
+                navigateToToleranceChart = navigateToToleranceChart,
+                onTapOption = viewModel::onTapOption,
+                onChangeConsumerName = viewModel::onChangeConsumer,
+                onChangeSortOption = viewModel::onChangeSortOption,
+                onOpenSpreadsheet = viewModel::showExcelSkin,
+            ),
     )
   }
 }
 
 @Preview
 @Composable
-fun StatsPreview(
-    @PreviewParameter(
-        StatsPreviewProvider::class,
-    )
-    statsModel: StatsModel
-) {
+fun StatsPreview(@PreviewParameter(StatsPreviewProvider::class) statsModel: StatsModel) {
   JournalTheme {
     StatsScreen(
-        navigateToSubstanceCompanion = { _, _ -> },
-        navigateToToleranceChart = {},
-        onTapOption = {},
         statsModel = statsModel,
-        onChangeConsumerName = {},
         consumerNamesSorted = listOf("You", "Someone else"),
+        callbacks = StatsScreenCallbacks(),
     )
   }
 }
@@ -131,156 +139,455 @@ fun StatsPreview(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatsScreen(
-    navigateToSubstanceCompanion: (substanceName: String, consumerName: String?) -> Unit,
-    navigateToToleranceChart: () -> Unit = {},
-    onTapOption: (option: TimePickerOption) -> Unit,
     statsModel: StatsModel,
-    onChangeConsumerName: (String?) -> Unit,
     consumerNamesSorted: List<String>,
-    onOpenSpreadsheet: () -> Unit = {},
+    callbacks: StatsScreenCallbacks,
 ) {
   val performHaptic = rememberHaptic()
 
   Scaffold(
       topBar = {
-        TopAppBar(
-            title = {
-              Text(
-                  if (statsModel.consumerName == null) "Statistics"
-                  else "Statistics for ${statsModel.consumerName}"
-              )
-            },
-            actions = {
-              IconButton(onClick = onOpenSpreadsheet) {
-                Icon(Icons.Outlined.GridOn, contentDescription = "Show as spreadsheet")
-              }
-              if (consumerNamesSorted.isNotEmpty()) {
-                var isConsumerSelectionExpanded by remember { mutableStateOf(false) }
-                IconButton(
-                    onClick = {
-                      performHaptic(HapticType.CLICK)
-                      isConsumerSelectionExpanded = true
-                    }
-                ) {
-                  Icon(Icons.Outlined.Person, contentDescription = "Consumer")
-                }
-                DropdownMenu(
-                    expanded = isConsumerSelectionExpanded,
-                    onDismissRequest = { isConsumerSelectionExpanded = false },
-                ) {
-                  DropdownMenuItem(
-                      text = { Text(YOU) },
-                      onClick = {
-                        performHaptic(HapticType.SELECTION)
-                        onChangeConsumerName(null)
-                        isConsumerSelectionExpanded = false
-                      },
-                      leadingIcon = {
-                        if (statsModel.consumerName == null) {
-                          Icon(
-                              Icons.Filled.Check,
-                              contentDescription = null,
-                              modifier = Modifier.size(ButtonDefaults.IconSize),
-                          )
-                        }
-                      },
-                  )
-                  consumerNamesSorted.forEach { consumerName ->
-                    DropdownMenuItem(
-                        text = { Text(consumerName) },
-                        onClick = {
-                          performHaptic(HapticType.SELECTION)
-                          onChangeConsumerName(consumerName)
-                          isConsumerSelectionExpanded = false
-                        },
-                        leadingIcon = {
-                          if (statsModel.consumerName == consumerName) {
-                            Icon(
-                                Icons.Filled.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(ButtonDefaults.IconSize),
-                            )
-                          }
-                        },
-                    )
-                  }
-                }
-              }
-              IconButton(
-                  onClick = {
-                    performHaptic(HapticType.CLICK)
-                    navigateToToleranceChart()
-                  }
-              ) {
-                Icon(Icons.Outlined.Schedule, contentDescription = "Tolerance")
-              }
-            },
+        StatsTopBar(
+            consumerName = statsModel.consumerName,
+            consumerNamesSorted = consumerNamesSorted,
+            onOpenSpreadsheet = callbacks.onOpenSpreadsheet,
+            onChangeConsumerName = callbacks.onChangeConsumerName,
+            onOpenToleranceChart = callbacks.navigateToToleranceChart,
         )
       },
   ) { padding ->
     if (!statsModel.areThereAnyIngestions) {
-      EmptyScreenDisclaimer(
-          title = "Nothing to show yet",
-          description =
-              "Start logging your ingestions to see an overview of your consumption pattern.",
+      Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+        EmptyScreenDisclaimer(
+            title = "Nothing to show yet",
+            description =
+                "Start logging your ingestions to see an overview of your consumption pattern.",
+        )
+      }
+      return@Scaffold
+    }
+
+    Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+      PrimaryTabRow(
+          selectedTabIndex = statsModel.selectedOption.tabIndex,
+          contentColor = MaterialTheme.colorScheme.onSurface,
+      ) {
+        TimePickerOption.entries.forEachIndexed { index, option ->
+          Tab(
+              text = { Text(option.displayText) },
+              selected = statsModel.selectedOption.tabIndex == index,
+              onClick = {
+                performHaptic(HapticType.SELECTION)
+                callbacks.onTapOption(option)
+              },
+          )
+        }
+      }
+
+      if (statsModel.statItems.isEmpty()) {
+        EmptyScreenDisclaimer(
+            title = "No ingestions in ${statsModel.selectedOption.emptyRangeText}",
+            description = "Choose a longer duration range to see statistics.",
+        )
+      } else {
+        StatsLoadedContent(statsModel = statsModel, callbacks = callbacks)
+      }
+    }
+  }
+}
+
+@Composable
+private fun StatsLoadedContent(
+    statsModel: StatsModel,
+    callbacks: StatsScreenCallbacks,
+) {
+  val spacing = LocalSpacing.current
+  val performHaptic = rememberHaptic()
+  val isDarkTheme = isSystemInDarkTheme()
+  var selectedBucketIndex by
+      remember(
+          statsModel.selectedOption,
+          statsModel.consumerName,
+          statsModel.chartBuckets,
+      ) {
+        mutableStateOf<Int?>(null)
+      }
+  LazyColumn(
+      modifier = Modifier.fillMaxSize(),
+      contentPadding =
+          PaddingValues(
+              start = spacing.lg,
+              end = spacing.lg,
+              top = spacing.md,
+              bottom = spacing.xxl,
+          ),
+      verticalArrangement = Arrangement.spacedBy(spacing.md),
+  ) {
+    item(key = "overview_row") { StatsOverviewRow(statsModel = statsModel) }
+    item(key = "activity_chart") {
+      StatsActivityChartCard(
+          statsModel = statsModel,
+          selectedBucketIndex = selectedBucketIndex,
+          isDarkTheme = isDarkTheme,
+          onSelectBucket = { idx ->
+            performHaptic(HapticType.TICK)
+            selectedBucketIndex = if (selectedBucketIndex == idx) null else idx
+          },
+          onClearSelection = { selectedBucketIndex = null },
       )
-    } else {
-      Column(modifier = Modifier.padding(padding)) {
-        PrimaryTabRow(
-            selectedTabIndex = statsModel.selectedOption.tabIndex,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-        ) {
-          TimePickerOption.entries.forEachIndexed { index, option ->
-            Tab(
-                text = { Text(option.displayText) },
-                selected = statsModel.selectedOption.tabIndex == index,
+    }
+    item(key = "substances_header") {
+      SubstancesSectionHeader(
+          sortOption = statsModel.sortOption,
+          onChangeSortOption = callbacks.onChangeSortOption,
+      )
+    }
+    items(statsModel.statItems, key = { it.substanceName }) { subStat ->
+      SubstanceStatCard(
+          stat = subStat,
+          totalIngestions = statsModel.totalIngestions,
+          isDarkTheme = isDarkTheme,
+          onClick = {
+            performHaptic(HapticType.SELECTION)
+            callbacks.navigateToSubstanceCompanion(
+                subStat.substanceName,
+                statsModel.consumerName,
+            )
+          },
+      )
+    }
+  }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun StatsTopBar(
+    consumerName: String?,
+    consumerNamesSorted: List<String>,
+    onOpenSpreadsheet: () -> Unit,
+    onChangeConsumerName: (String?) -> Unit,
+    onOpenToleranceChart: () -> Unit,
+) {
+  val performHaptic = rememberHaptic()
+  TopAppBar(
+      title = {
+        Text(
+            text = if (consumerName == null) "Statistics" else "Statistics for $consumerName",
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+      },
+      actions = {
+        IconButton(onClick = onOpenSpreadsheet) {
+          Icon(Icons.Outlined.GridOn, contentDescription = "Show as spreadsheet")
+        }
+        if (consumerNamesSorted.isNotEmpty()) {
+          var isConsumerSelectionExpanded by remember { mutableStateOf(false) }
+          IconButton(
+              onClick = {
+                performHaptic(HapticType.CLICK)
+                isConsumerSelectionExpanded = true
+              }
+          ) {
+            Icon(Icons.Outlined.Person, contentDescription = "Consumer")
+          }
+          DropdownMenu(
+              expanded = isConsumerSelectionExpanded,
+              onDismissRequest = { isConsumerSelectionExpanded = false },
+          ) {
+            ConsumerMenuItem(
+                label = YOU,
+                selected = consumerName == null,
                 onClick = {
                   performHaptic(HapticType.SELECTION)
-                  onTapOption(option)
+                  onChangeConsumerName(null)
+                  isConsumerSelectionExpanded = false
                 },
             )
+            consumerNamesSorted.forEach { name ->
+              ConsumerMenuItem(
+                  label = name,
+                  selected = consumerName == name,
+                  onClick = {
+                    performHaptic(HapticType.SELECTION)
+                    onChangeConsumerName(name)
+                    isConsumerSelectionExpanded = false
+                  },
+              )
+            }
           }
         }
-        if (statsModel.statItems.isNotEmpty()) {
-          val isDarkTheme = isSystemInDarkTheme()
-          Column {
-            Spacer(modifier = Modifier.height(5.dp))
-            Text(
-                text = "Ingestions since ${statsModel.startDateText}",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(start = 10.dp, top = 5.dp),
-            )
-            Text(
-                text = "Showing all substance ingestions",
-                style = MaterialTheme.typography.bodySmall,
-                modifier =
-                    Modifier.padding(
-                        start = 10.dp,
-                        bottom = 10.dp,
-                    ),
-            )
-            BarChart(
-                buckets = statsModel.chartBuckets,
-                startDateText = statsModel.startDateText,
-            )
-            HorizontalDivider()
-            LazyColumn {
-              items(statsModel.statItems, key = { it.substanceName }) { subStat ->
-                SubstanceStatCard(
-                    stat = subStat,
-                    isDarkTheme = isDarkTheme,
-                    onClick = {
-                      performHaptic(HapticType.SELECTION)
-                      navigateToSubstanceCompanion(subStat.substanceName, statsModel.consumerName)
-                    },
+        IconButton(
+            onClick = {
+              performHaptic(HapticType.CLICK)
+              onOpenToleranceChart()
+            }
+        ) {
+          Icon(Icons.Outlined.Schedule, contentDescription = "Tolerance")
+        }
+      },
+  )
+}
+
+@Composable
+private fun ConsumerMenuItem(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+  DropdownMenuItem(
+      text = { Text(label) },
+      onClick = onClick,
+      leadingIcon = {
+        if (selected) {
+          Icon(
+              Icons.Filled.Check,
+              contentDescription = null,
+              modifier = Modifier.size(ButtonDefaults.IconSize),
+          )
+        }
+      },
+  )
+}
+
+@Composable
+private fun StatsOverviewRow(statsModel: StatsModel) {
+  val spacing = LocalSpacing.current
+  Row(
+      modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+      horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+  ) {
+    OverviewKpiCard(
+        label = "Ingestions",
+        value = statsModel.totalIngestions.toString(),
+        modifier = Modifier.weight(1f).fillMaxHeight(),
+    )
+    OverviewKpiCard(
+        label = "Experiences",
+        value = statsModel.totalExperiences.toString(),
+        modifier = Modifier.weight(1f).fillMaxHeight(),
+    )
+    OverviewKpiCard(
+        label = "Substances",
+        value = statsModel.statItems.size.toString(),
+        modifier = Modifier.weight(1f).fillMaxHeight(),
+    )
+  }
+}
+
+@Composable
+private fun OverviewKpiCard(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+) {
+  val spacing = LocalSpacing.current
+  ElevatedCard(modifier = modifier) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(spacing.md),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+      Text(
+          text = label,
+          style = MaterialTheme.typography.labelMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+      )
+      Text(
+          text = value,
+          style = MaterialTheme.typography.titleLarge,
+          fontWeight = FontWeight.SemiBold,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+      )
+    }
+  }
+}
+
+@Composable
+private fun StatsActivityChartCard(
+    statsModel: StatsModel,
+    selectedBucketIndex: Int?,
+    isDarkTheme: Boolean,
+    onSelectBucket: (Int) -> Unit,
+    onClearSelection: () -> Unit,
+) {
+  val spacing = LocalSpacing.current
+  val avg =
+      if (statsModel.chartBuckets.isEmpty()) 0.0
+      else statsModel.totalIngestions.toDouble() / statsModel.chartBuckets.size
+  val avgText = formatSiValue(avg)
+  val avgLineColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.78f)
+
+  ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+    Column(
+        modifier = Modifier.padding(spacing.lg),
+        verticalArrangement = Arrangement.spacedBy(spacing.sm),
+    ) {
+      Text(
+          text = "Ingestions since ${statsModel.startDateText}",
+          style = MaterialTheme.typography.titleMedium,
+      )
+      Row(
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+        Canvas(modifier = Modifier.width(18.dp).height(2.dp)) {
+          drawLine(
+              color = avgLineColor,
+              start = Offset(0f, size.height / 2f),
+              end = Offset(size.width, size.height / 2f),
+              strokeWidth = 1.75.dp.toPx(),
+              pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx()), 0f),
+          )
+        }
+        Text(
+            text =
+                "${statsModel.totalIngestions} total · Avg $avgText ${statsModel.selectedOption.perBucketUnitLabel}",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+      val selectedBucket = selectedBucketIndex?.let { statsModel.chartBuckets.getOrNull(it) }
+      if (selectedBucket != null) {
+        SelectedStatsBucketStrip(
+            bucket = selectedBucket,
+            isDarkTheme = isDarkTheme,
+            onDismiss = onClearSelection,
+        )
+      }
+      BarChart(
+          buckets = statsModel.chartBuckets,
+          selectedIndex = selectedBucketIndex,
+          onBarTapped = onSelectBucket,
+      )
+    }
+  }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SelectedStatsBucketStrip(
+    bucket: StatsChartBucket,
+    isDarkTheme: Boolean,
+    onDismiss: () -> Unit,
+) {
+  val spacing = LocalSpacing.current
+  val countLabel =
+      "${bucket.totalCount} ${if (bucket.totalCount == 1) "ingestion" else "ingestions"}"
+  Surface(
+      shape = RoundedCornerShape(spacing.cornerLg),
+      color = MaterialTheme.colorScheme.secondaryContainer,
+      modifier = Modifier.fillMaxWidth(),
+  ) {
+    Row(
+        modifier =
+            Modifier.padding(
+                start = spacing.md,
+                end = spacing.xs,
+                top = spacing.sm,
+                bottom = spacing.sm,
+            ),
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+      Column(
+          modifier = Modifier.weight(1f),
+          verticalArrangement = Arrangement.spacedBy(4.dp),
+      ) {
+        Text(
+            text = "${bucket.fullDateText} · $countLabel",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+        )
+        if (bucket.items.isNotEmpty()) {
+          FlowRow(
+              horizontalArrangement = Arrangement.spacedBy(8.dp),
+              verticalArrangement = Arrangement.spacedBy(4.dp),
+          ) {
+            bucket.items.forEach { item ->
+              Row(
+                  verticalAlignment = Alignment.CenterVertically,
+                  horizontalArrangement = Arrangement.spacedBy(4.dp),
+              ) {
+                Box(
+                    modifier =
+                        Modifier.size(8.dp)
+                            .clip(CircleShape)
+                            .background(item.color.getComposeColor(isDarkTheme))
+                )
+                val name = item.substanceName.ifBlank { "Substance" }
+                Text(
+                    text = "$name ×${item.count}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                 )
               }
             }
           }
-        } else {
-          EmptyScreenDisclaimer(
-              title = "No ingestions since ${statsModel.selectedOption.longDisplayText}",
-              description = "Choose a longer duration range to see statistics.",
+        }
+      }
+      IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
+        Icon(
+            imageVector = Icons.Default.Close,
+            contentDescription = "Clear selection",
+            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.size(16.dp),
+        )
+      }
+    }
+  }
+}
+
+@Composable
+private fun SubstancesSectionHeader(
+    sortOption: StatsSortOption,
+    onChangeSortOption: (StatsSortOption) -> Unit,
+) {
+  val performHaptic = rememberHaptic()
+  var isSortMenuExpanded by remember { mutableStateOf(false) }
+
+  Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Text("Substances", style = MaterialTheme.typography.titleMedium)
+    Box {
+      FilterChip(
+          selected = false,
+          onClick = { isSortMenuExpanded = true },
+          label = { Text("Sort: ${sortOption.displayText}") },
+          trailingIcon = {
+            Icon(
+                imageVector = Icons.Default.ArrowDropDown,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+          },
+      )
+      DropdownMenu(
+          expanded = isSortMenuExpanded,
+          onDismissRequest = { isSortMenuExpanded = false },
+      ) {
+        StatsSortOption.entries.forEach { option ->
+          DropdownMenuItem(
+              text = { Text(option.displayText) },
+              onClick = {
+                performHaptic(HapticType.SELECTION)
+                onChangeSortOption(option)
+                isSortMenuExpanded = false
+              },
+              leadingIcon = {
+                if (sortOption == option) {
+                  Icon(
+                      Icons.Filled.Check,
+                      contentDescription = null,
+                      modifier = Modifier.size(ButtonDefaults.IconSize),
+                  )
+                }
+              },
           )
         }
       }
@@ -288,90 +595,153 @@ fun StatsScreen(
   }
 }
 
-private val LAST_USED_DATE_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy")
-
 @Composable
 private fun SubstanceStatCard(
     stat: StatItem,
+    totalIngestions: Int,
     isDarkTheme: Boolean,
     onClick: () -> Unit,
 ) {
-  ElevatedCard(
-      modifier =
-          Modifier.fillMaxWidth()
-              .padding(horizontal = horizontalPadding, vertical = 6.dp)
-              .clickable(onClick = onClick)
-  ) {
+  val spacing = LocalSpacing.current
+  val substanceColor = stat.color.getComposeColor(isDarkTheme)
+  val shareRatio =
+      if (totalIngestions > 0) {
+        (stat.ingestionCount.toFloat() / totalIngestions.toFloat()).coerceIn(0.03f, 1f)
+      } else {
+        0f
+      }
+  val primaryDoseText =
+      when {
+        stat.totalDose != null -> formatTotalDose(stat.totalDose)
+        stat.knownTotalDose != null -> "${formatTotalDose(stat.knownTotalDose)}+"
+        stat.hasMixedUnits -> "Mixed units"
+        else -> "Unknown dose"
+      }
+
+  ElevatedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(12.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min).padding(spacing.md),
+        horizontalArrangement = Arrangement.spacedBy(spacing.md),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-      Surface(
-          shape = RoundedCornerShape(4.dp),
-          color = stat.color.getComposeColor(isDarkTheme),
-          modifier = Modifier.size(width = 12.dp, height = 56.dp),
-      ) {}
-      Column(modifier = Modifier.weight(1f)) {
-        Text(stat.substanceName, style = MaterialTheme.typography.titleMedium)
+      Box(
+          modifier =
+              Modifier.width(6.dp)
+                  .fillMaxHeight()
+                  .clip(RoundedCornerShape(3.dp))
+                  .background(substanceColor)
+      )
+      Column(
+          modifier = Modifier.weight(1f),
+          verticalArrangement = Arrangement.spacedBy(3.dp),
+      ) {
+        SubstanceStatCardHeader(stat = stat, primaryDoseText = primaryDoseText)
         Text(
             text =
-                "${stat.ingestionCount} ingestion${if (stat.ingestionCount == 1) "" else "s"} · " +
-                    "${stat.experienceCount} experience${if (stat.experienceCount == 1) "" else "s"}",
-            style = MaterialTheme.typography.bodyMedium,
+                "${stat.ingestionCount} ${if (stat.ingestionCount == 1) "ingestion" else "ingestions"} · " +
+                    "${stat.experienceCount} ${if (stat.experienceCount == 1) "experience" else "experiences"}",
+            style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        val routes =
-            remember(stat.routeCounts) {
-              stat.routeCounts.joinToString(" · ") {
-                "${it.administrationRoute.displayText.lowercase()} ${it.count}x"
-              }
-            }
-        if (routes.isNotBlank()) {
+        val metaLine = rememberMetaLine(stat)
+        if (metaLine.isNotEmpty()) {
           Text(
-              text = routes,
-              style = MaterialTheme.typography.bodySmall,
+              text = metaLine,
+              style = MaterialTheme.typography.labelSmall,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
               maxLines = 1,
               overflow = TextOverflow.Ellipsis,
           )
         }
-        stat.lastUsed?.let { lastUsed ->
-          // Corrupt timestamps can fall outside the supported date range and throw
-          val formatted =
-              remember(lastUsed) {
-                runCatching {
-                      LAST_USED_DATE_FORMATTER.format(lastUsed.atZone(ZoneId.systemDefault()))
-                    }
-                    .getOrNull()
-              }
-          if (formatted != null) {
-            Text(
-                text = "Last used $formatted",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-          }
-        }
-      }
-      Column(horizontalAlignment = Alignment.End) {
-        Text(
-            text = stat.totalDose?.let(::formatTotalDose) ?: "Dose varies",
-            style = MaterialTheme.typography.bodyMedium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        if (stat.unknownDoseCount > 0) {
-          Text(
-              text = "${stat.unknownDoseCount} unknown",
-              style = MaterialTheme.typography.labelSmall,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-          )
+        if (shareRatio > 0f) {
+          SubstanceShareBar(shareRatio = shareRatio, color = substanceColor)
         }
       }
     }
   }
 }
+
+@Composable
+private fun SubstanceStatCardHeader(stat: StatItem, primaryDoseText: String) {
+  val spacing = LocalSpacing.current
+  Row(
+      modifier = Modifier.fillMaxWidth(),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+  ) {
+    Text(
+        text = stat.substanceName,
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.weight(1f),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
+    Column(horizontalAlignment = Alignment.End) {
+      Text(
+          text = primaryDoseText,
+          style = MaterialTheme.typography.bodyMedium,
+          fontWeight = FontWeight.Medium,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+      )
+      if (stat.unknownDoseCount > 0 && (stat.knownTotalDose != null || stat.hasMixedUnits)) {
+        Text(
+            text = "${stat.unknownDoseCount} unknown",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+    }
+    Icon(
+        imageVector = Icons.Default.ChevronRight,
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.size(18.dp),
+    )
+  }
+}
+
+@Composable
+private fun SubstanceShareBar(
+    shareRatio: Float,
+    color: Color,
+) {
+  Box(
+      modifier =
+          Modifier.fillMaxWidth()
+              .padding(top = 2.dp)
+              .height(4.dp)
+              .clip(RoundedCornerShape(50))
+              .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+  ) {
+    Box(
+        modifier =
+            Modifier.fillMaxWidth(shareRatio)
+                .height(4.dp)
+                .clip(RoundedCornerShape(50))
+                .background(color.copy(alpha = 0.85f))
+    )
+  }
+}
+
+@Composable
+private fun rememberMetaLine(stat: StatItem): String =
+    remember(stat.routeCounts, stat.lastUsed) {
+      val routes =
+          stat.routeCounts.joinToString(" · ") {
+            "${it.administrationRoute.displayText.lowercase()} ${it.count}x"
+          }
+      val formattedDate =
+          stat.lastUsed?.let { instant ->
+            // Corrupt timestamps can fall outside the supported date range and throw
+            runCatching { instant.getStringOfPattern("dd MMM yyyy") }.getOrNull()
+          }
+      buildList {
+            if (routes.isNotBlank()) add(routes)
+            if (formattedDate != null) add("Last $formattedDate")
+          }
+          .joinToString(" · ")
+    }
 
 private fun formatTotalDose(totalDose: TotalDose): String {
   val value = totalDose.dose.toReadableString()

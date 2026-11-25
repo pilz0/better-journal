@@ -6,10 +6,12 @@ import assertk.assertions.containsOnly
 import assertk.assertions.isCloseTo
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
+import assertk.assertions.isNull
 import assertk.assertions.isTrue
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
 import foo.pilz.freaklog.data.substances.AdministrationRoute
+import foo.pilz.freaklog.ui.tabs.stats.RouteCount
 import java.time.Instant
 import java.time.ZoneOffset
 import java.util.Locale
@@ -196,5 +198,83 @@ class SubstanceDosageStatsHelperTest {
 
     assertThat(us.buckets.last().label).isEqualTo("4/22")
     assertThat(germany.buckets.last().label).isEqualTo("22.04")
+  }
+
+  @Test
+  fun `days 30 bucket labels include month and single-day buckets omit endDateText`() {
+    val model =
+        SubstanceDosageStatsHelper.build(
+            ingestions = listOf(ingestion(1, "2026-04-29T08:00:00Z", 50.0)),
+            range = DosageTimeRange.DAYS_30,
+            now = now,
+            zone = zone,
+            locale = Locale.US,
+        )
+
+    assertThat(model.buckets.last().label).isEqualTo("4/28")
+    assertThat(model.buckets.last().endDateText).isNull()
+    assertThat(model.buckets.last().ingestionCount).isEqualTo(1)
+  }
+
+  @Test
+  fun `multi-day buckets populate endDateText routeCounts and unknown custom units`() {
+    val unknownUnit =
+        CustomUnit(
+            id = 9,
+            substanceName = "MDMA",
+            name = "Mystery press",
+            creationDate = now,
+            administrationRoute = AdministrationRoute.ORAL,
+            dose = null,
+            estimatedDoseStandardDeviation = null,
+            isEstimate = false,
+            isArchived = false,
+            unit = "pill",
+            originalUnit = "mg",
+            note = "",
+        )
+    val model =
+        SubstanceDosageStatsHelper.build(
+            ingestions =
+                listOf(
+                    ingestion(1, "2026-04-25T10:00:00Z", 100.0, route = AdministrationRoute.ORAL),
+                    ingestion(
+                        2,
+                        "2026-04-25T12:00:00Z",
+                        50.0,
+                        route = AdministrationRoute.INSUFFLATED,
+                    ),
+                    ingestion(
+                        3,
+                        "2026-04-26T10:00:00Z",
+                        40.0,
+                        route = AdministrationRoute.INSUFFLATED,
+                    ),
+                    ingestion(
+                            4,
+                            "2026-04-27T10:00:00Z",
+                            1.0,
+                            units = "pill",
+                            route = AdministrationRoute.ORAL,
+                        )
+                        .copy(customUnitId = unknownUnit.id),
+                ),
+            range = DosageTimeRange.WEEKS_26,
+            now = now,
+            zone = zone,
+            customUnits = mapOf(unknownUnit.id to unknownUnit),
+            locale = Locale.US,
+        )
+
+    assertThat(model.summary.totalIngestions).isEqualTo(4)
+    assertThat(model.summary.unknownDoseCount).isEqualTo(1)
+    assertThat(model.summary.routeCounts)
+        .containsExactly(
+            RouteCount(AdministrationRoute.INSUFFLATED, 2),
+            RouteCount(AdministrationRoute.ORAL, 2),
+        )
+    assertThat(model.buckets.last().fullDateText).isEqualTo("22 Apr 2026")
+    assertThat(model.buckets.last().endDateText).isEqualTo("28 Apr 2026")
+    assertThat(model.buckets.last().ingestionCount).isEqualTo(4)
   }
 }

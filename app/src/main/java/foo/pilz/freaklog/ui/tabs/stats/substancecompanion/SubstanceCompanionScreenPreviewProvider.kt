@@ -25,7 +25,9 @@ import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
 import foo.pilz.freaklog.data.room.experiences.entities.StomachFullness
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
 import foo.pilz.freaklog.data.substances.AdministrationRoute
+import foo.pilz.freaklog.ui.tabs.stats.RouteCount
 import foo.pilz.freaklog.ui.utils.getInstant
+import java.time.Instant
 
 class SubstanceCompanionScreenPreviewProvider :
     PreviewParameterProvider<Pair<SubstanceCompanion, List<IngestionsBurst>>> {
@@ -35,9 +37,9 @@ class SubstanceCompanionScreenPreviewProvider :
         SubstanceDosageStatsModel(
             buckets =
                 listOf(
-                    DosageBucket("W1", "01 Apr 2026", 120.0, 1, "mg"),
-                    DosageBucket("W2", "08 Apr 2026", 0.0, 0, "mg"),
-                    DosageBucket("W3", "15 Apr 2026", 180.0, 2, "mg"),
+                    DosageBucket("W1", "01 Apr 2026", 120.0, 1, "mg", "07 Apr 2026", 2),
+                    DosageBucket("W2", "08 Apr 2026", 0.0, 0, "mg", "14 Apr 2026", 0),
+                    DosageBucket("W3", "15 Apr 2026", 180.0, 2, "mg", "21 Apr 2026", 3),
                 ),
             summary =
                 SubstanceDosageSummary(
@@ -48,7 +50,9 @@ class SubstanceCompanionScreenPreviewProvider :
                     unknownDoseCount = 1,
                     unitsUsed = listOf("mg"),
                     longestGapDays = 14,
-                    currentStreakWeeks = 1,
+                    currentStreakWeeks = 2,
+                    totalIngestions = 5,
+                    routeCounts = listOf(RouteCount(AdministrationRoute.INSUFFLATED, 5)),
                 ),
             hasMixedUnits = false,
         )
@@ -77,7 +81,7 @@ class SubstanceCompanionScreenPreviewProvider :
                                           day = 20,
                                           hourOfDay = 14,
                                           minute = 20,
-                                      )!!,
+                                      ) ?: Instant.EPOCH,
                                   sortDate =
                                       getInstant(
                                           year = 2022,
@@ -85,7 +89,7 @@ class SubstanceCompanionScreenPreviewProvider :
                                           day = 20,
                                           hourOfDay = 14,
                                           minute = 20,
-                                      )!!,
+                                      ) ?: Instant.EPOCH,
                                   text = "",
                                   isFavorite = false,
                                   location = null,
@@ -103,7 +107,7 @@ class SubstanceCompanionScreenPreviewProvider :
                                                       day = 20,
                                                       hourOfDay = 14,
                                                       minute = 20,
-                                                  )!!,
+                                                  ) ?: Instant.EPOCH,
                                               endTime = null,
                                               administrationRoute = AdministrationRoute.INSUFFLATED,
                                               dose = 20.0,
@@ -129,7 +133,7 @@ class SubstanceCompanionScreenPreviewProvider :
                                                       day = 20,
                                                       hourOfDay = 13,
                                                       minute = 40,
-                                                  )!!,
+                                                  ) ?: Instant.EPOCH,
                                               endTime = null,
                                               administrationRoute = AdministrationRoute.INSUFFLATED,
                                               dose = 30.0,
@@ -150,7 +154,7 @@ class SubstanceCompanionScreenPreviewProvider :
                           timeUntil = "2 weeks",
                           experience =
                               Experience(
-                                  id = 1,
+                                  id = 2,
                                   title = "21. Birthday",
                                   creationDate =
                                       getInstant(
@@ -159,7 +163,7 @@ class SubstanceCompanionScreenPreviewProvider :
                                           day = 4,
                                           hourOfDay = 14,
                                           minute = 20,
-                                      )!!,
+                                      ) ?: Instant.EPOCH,
                                   sortDate =
                                       getInstant(
                                           year = 2022,
@@ -167,7 +171,7 @@ class SubstanceCompanionScreenPreviewProvider :
                                           day = 4,
                                           hourOfDay = 14,
                                           minute = 20,
-                                      )!!,
+                                      ) ?: Instant.EPOCH,
                                   text = "",
                                   isFavorite = false,
                                   location = null,
@@ -185,7 +189,7 @@ class SubstanceCompanionScreenPreviewProvider :
                                                       day = 4,
                                                       hourOfDay = 14,
                                                       minute = 20,
-                                                  )!!,
+                                                  ) ?: Instant.EPOCH,
                                               endTime = null,
                                               administrationRoute = AdministrationRoute.INSUFFLATED,
                                               dose = 10.0,
@@ -211,7 +215,7 @@ class SubstanceCompanionScreenPreviewProvider :
                                                       day = 4,
                                                       hourOfDay = 13,
                                                       minute = 40,
-                                                  )!!,
+                                                  ) ?: Instant.EPOCH,
                                               endTime = null,
                                               administrationRoute = AdministrationRoute.INSUFFLATED,
                                               dose = 20.0,

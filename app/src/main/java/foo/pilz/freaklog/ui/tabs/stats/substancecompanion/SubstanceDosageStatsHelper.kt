@@ -3,6 +3,7 @@ package foo.pilz.freaklog.ui.tabs.stats.substancecompanion
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
 import foo.pilz.freaklog.data.substances.classes.roa.DoseUnits
+import foo.pilz.freaklog.ui.tabs.stats.RouteCount
 import java.time.Instant
 import java.time.Period
 import java.time.ZoneId
@@ -28,6 +29,8 @@ data class SubstanceDosageSummary(
     val unitsUsed: List<String>,
     val longestGapDays: Int?,
     val currentStreakWeeks: Int,
+    val totalIngestions: Int = 0,
+    val routeCounts: List<RouteCount> = emptyList(),
 )
 
 object SubstanceDosageStatsHelper {
@@ -63,6 +66,17 @@ object SubstanceDosageStatsHelper {
     val sessions = visible.map { it.experienceId }.toSet()
     val knownDoses = doses.filterNotNull()
     val totalKnownDose = unit?.let { knownDoses.sum() }
+    val unknownDoseCount = visible.count { ingestion ->
+      ingestion.dose == null ||
+          (ingestion.customUnitId != null && customUnits[ingestion.customUnitId]?.dose == null)
+    }
+    val routeCounts =
+        visible
+            .groupBy { it.administrationRoute }
+            .map { (route, group) -> RouteCount(administrationRoute = route, count = group.size) }
+            .sortedWith(
+                compareByDescending<RouteCount> { it.count }.thenBy { it.administrationRoute.name }
+            )
     val summary =
         SubstanceDosageSummary(
             totalSessions = sessions.size,
@@ -72,10 +86,12 @@ object SubstanceDosageStatsHelper {
                   if (sessions.isEmpty()) 0.0 else it / sessions.size
                 },
             peakKnownDose = unit?.let { knownDoses.maxOrNull() ?: 0.0 },
-            unknownDoseCount = visible.count { it.dose == null },
+            unknownDoseCount = unknownDoseCount,
             unitsUsed = unitsUsed,
             longestGapDays = longestGapDays(visible, zone),
             currentStreakWeeks = currentStreakWeeks(visible, now),
+            totalIngestions = visible.size,
+            routeCounts = routeCounts,
         )
     return SubstanceDosageStatsModel(
         buckets = buckets,
@@ -111,7 +127,7 @@ object SubstanceDosageStatsHelper {
     val config = bucketConfig(range, start, end, zone, locale)
     val count = bucketCount(range, start, end, zone, config.step)
     val labelFormat = DateTimeFormatter.ofPattern(config.labelPattern, locale)
-    val fullDateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
+    val fullDateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy", locale)
     val buckets = ArrayDeque<DosageBucket>()
     var bucketEnd = end.atZone(zone)
     var ingestionIndex = ingestions.lastIndex
@@ -121,6 +137,7 @@ object SubstanceDosageStatsHelper {
       val bucketEndInstant = bucketEnd.toInstant()
       val sessionIds = mutableSetOf<Int>()
       var bucketKnownDose = 0.0
+      var bucketIngestionCount = 0
       while (ingestionIndex >= 0) {
         val ingestion = ingestions[ingestionIndex]
         val ingestionTime = ingestion.time
@@ -128,9 +145,16 @@ object SubstanceDosageStatsHelper {
         if (ingestionTime < bucketEndInstant) {
           sessionIds += ingestion.experienceId
           bucketKnownDose += doses[ingestionIndex] ?: 0.0
+          bucketIngestionCount++
         }
         ingestionIndex--
       }
+      val endDateText =
+          if (config.step == Period.ofDays(1)) {
+            null
+          } else {
+            fullDateFormat.format(bucketEnd.minusDays(1))
+          }
       buckets.addFirst(
           DosageBucket(
               label = labelFormat.format(bucketStart),
@@ -138,6 +162,8 @@ object SubstanceDosageStatsHelper {
               totalDose = if (singleUnit == null) 0.0 else bucketKnownDose,
               sessionCount = sessionIds.size,
               unit = singleUnit.orEmpty(),
+              endDateText = endDateText,
+              ingestionCount = bucketIngestionCount,
           )
       )
       bucketEnd = bucketStart
@@ -155,7 +181,7 @@ object SubstanceDosageStatsHelper {
       locale: Locale,
   ): BucketConfig =
       when (range) {
-        DosageTimeRange.DAYS_30 -> BucketConfig(Period.ofDays(1), "dd")
+        DosageTimeRange.DAYS_30 -> BucketConfig(Period.ofDays(1), dayMonthPattern(locale))
         DosageTimeRange.WEEKS_26 -> BucketConfig(Period.ofWeeks(1), dayMonthPattern(locale))
         DosageTimeRange.MONTHS_12 -> BucketConfig(Period.ofMonths(1), "MMM")
         DosageTimeRange.ALL -> {
