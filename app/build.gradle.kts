@@ -18,8 +18,8 @@ android {
     applicationId = "foo.pilz.freaklog"
     minSdk = 31
     targetSdk = 37
-    versionCode = 89
-    versionName = "11.36"
+    versionCode = 90
+    versionName = "11.37"
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
