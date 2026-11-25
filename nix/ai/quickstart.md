@@ -16,6 +16,7 @@ Don't install JDKs or SDKs by hand. If a tool is missing, add it to `devShells.d
 2. Find relevant code with `rg` before editing.
 3. Run the narrowest relevant checks first, then broader ones.
 4. Preserve workflow security posture: `permissions: {}` by default, actions pinned to full commit SHAs, `step-security/harden-runner` first in every job.
+5. Always commit and push your changes to `main` after finishing and verifying a task.
 
 ## Fast file map
 
