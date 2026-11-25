@@ -62,7 +62,7 @@ fun ExplainTimelineScreen() {
                 .padding(horizontal = horizontalPadding)
     ) {
       VerticalSpace()
-      CardWithTitle(title = "Simplifying/False assumptions") {
+      CardWithTitle(title = "Simplifying/false assumptions") {
         val text = buildAnnotatedString {
           append("To be able to draw the timeline with the given data multiple ")
           withStyle(style = SpanStyle(fontWeight = FontWeight.ExtraBold)) {
