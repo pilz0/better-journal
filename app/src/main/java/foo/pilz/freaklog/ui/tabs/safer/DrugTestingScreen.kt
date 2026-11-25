@@ -321,7 +321,7 @@ fun TestingServiceItem(
   ) {
     Icon(
         imageVector = Icons.Outlined.Biotech,
-        contentDescription = "Open Link",
+        contentDescription = "Open link",
     )
     Text(
         text = name,

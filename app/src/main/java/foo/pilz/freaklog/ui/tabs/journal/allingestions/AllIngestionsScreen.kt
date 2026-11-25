@@ -197,7 +197,7 @@ fun AllIngestionsScreenContent(
   ingestionToDelete?.let { ingestionWithCompanion ->
     AlertDialog(
         onDismissRequest = { ingestionToDelete = null },
-        title = { Text("Delete Ingestion?") },
+        title = { Text("Delete ingestion?") },
         text = {
           Text(
               "This will permanently delete this ${ingestionWithCompanion.ingestion.substanceName} ingestion."

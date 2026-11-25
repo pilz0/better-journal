@@ -54,7 +54,7 @@ fun AddCustomSubstanceFromAnodyneSheet(
                 .verticalScroll(rememberScrollState()),
     ) {
       Text(
-          text = "Add as Custom Substance",
+          text = "Add as custom substance",
           style = MaterialTheme.typography.titleLarge,
       )
       Spacer(Modifier.height(8.dp))

@@ -58,6 +58,6 @@ fun Modifier.wholeFieldAboveIme(): Modifier = composed {
       .onGloballyPositioned { bottomInRoot = it.boundsInRoot().bottom }
 }
 
-// ponytail: fixed wait for the field's own cursor scroll to finish (shorter ones get overridden);
-// replace with a scroll-idle signal if it ever proves flaky.
-private const val IME_SETTLE_MS = 300L
+// Debounce, not a timing guess: every keyboard or layout frame (including the field's own cursor
+// scroll) restarts the effect, so this only runs once nothing has moved for ~4 frames.
+private const val IME_SETTLE_MS = 64L

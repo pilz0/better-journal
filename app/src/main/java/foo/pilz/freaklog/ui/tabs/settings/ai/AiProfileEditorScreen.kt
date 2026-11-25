@@ -228,7 +228,8 @@ private fun BaseUrlField(value: String, onChange: (String) -> Unit) {
       placeholder = { Text("https://example.com/v1") },
       singleLine = true,
       isError = insecure,
-      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+      keyboardOptions =
+          KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false),
       supportingText = {
         if (insecure) {
           Text(

@@ -95,9 +95,9 @@ fun AddCustomFormulationScreen(
       ) {
         OutlinedTextField(
             readOnly = true,
-            value = baseRoa.name,
+            value = baseRoa.displayText,
             onValueChange = {},
-            label = { Text("Base Route of Administration") },
+            label = { Text("Base route of administration") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
             modifier =
@@ -110,7 +110,7 @@ fun AddCustomFormulationScreen(
         ) {
           AdministrationRoute.entries.forEach { route ->
             DropdownMenuItem(
-                text = { Text(route.name) },
+                text = { Text(route.displayText) },
                 onClick = {
                   baseRoa = route
                   expanded = false
@@ -123,12 +123,12 @@ fun AddCustomFormulationScreen(
       OutlinedTextField(
           value = name,
           onValueChange = { name = it },
-          label = { Text("Formulation Name (e.g. Extended Release)") },
+          label = { Text("Formulation name (e.g. extended release)") },
           modifier = Modifier.fillMaxWidth(),
       )
 
       Text(
-          "Duration Overrides (Minutes, Optional)",
+          "Duration overrides (minutes, optional)",
           style = MaterialTheme.typography.titleMedium,
           modifier = Modifier.padding(top = 8.dp),
       )
@@ -191,14 +191,14 @@ fun DurationRow(
     OutlinedTextField(
         value = minVal,
         onValueChange = onMinChange,
-        label = { Text("$label Min") },
+        label = { Text("$label min") },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         modifier = Modifier.weight(1f),
     )
     OutlinedTextField(
         value = maxVal,
         onValueChange = onMaxChange,
-        label = { Text("$label Max") },
+        label = { Text("$label max") },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         modifier = Modifier.weight(1f),
     )

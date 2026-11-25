@@ -221,7 +221,7 @@ fun AnodyneDurationSection(substance: AnodyneSubstance) {
   AnodyneCard("Duration & Elimination") {
     substance.durationOfAction?.let {
       Text(
-          text = "Duration of Action",
+          text = "Duration of action",
           style = MaterialTheme.typography.labelSmall,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
       )
@@ -230,7 +230,7 @@ fun AnodyneDurationSection(substance: AnodyneSubstance) {
     }
     substance.halfLife?.let {
       Text(
-          text = "Biological Half-Life",
+          text = "Biological half-life",
           style = MaterialTheme.typography.labelSmall,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
       )
@@ -262,7 +262,7 @@ fun AnodyneToxicitySection(reportedFatalDose: String?, treatment: String?) {
     }
     treatment?.let {
       Text(
-          text = "Treatment & Overdose Management",
+          text = "Treatment & overdose management",
           style = MaterialTheme.typography.labelSmall,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
       )
@@ -374,7 +374,7 @@ fun AnodynePharmacologySection(mechanism: String?, metabolism: String?) {
   AnodyneCard("Pharmacology") {
     mechanism?.let {
       Text(
-          text = "Mechanism of Action",
+          text = "Mechanism of action",
           style = MaterialTheme.typography.labelSmall,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
       )

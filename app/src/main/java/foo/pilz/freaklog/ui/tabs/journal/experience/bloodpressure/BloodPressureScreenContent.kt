@@ -44,7 +44,7 @@ fun BloodPressureScreenContentPreview() {
               IconButton(onClick = {}) {
                 Icon(
                     Icons.Filled.Done,
-                    contentDescription = "Done Icon",
+                    contentDescription = "Done",
                 )
               }
             },

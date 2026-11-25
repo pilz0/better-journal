@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
@@ -37,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -183,6 +185,8 @@ private fun InstanceUrlCard(
           placeholder = { Text(AnodyneRepository.DEFAULT_INSTANCE_URL) },
           isError = !isValid,
           singleLine = true,
+          keyboardOptions =
+              KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false),
           modifier = Modifier.fillMaxWidth(),
       )
       if (!isValid) {

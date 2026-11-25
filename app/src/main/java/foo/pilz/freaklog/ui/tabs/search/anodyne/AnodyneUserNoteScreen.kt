@@ -191,7 +191,7 @@ private fun NoteRoutesCard(note: AnodyneUserNote) {
   ) {
     Column(modifier = Modifier.padding(16.dp)) {
       Text(
-          text = "Routes & Timings",
+          text = "Routes & timings",
           style = MaterialTheme.typography.titleMedium,
           fontWeight = FontWeight.Bold,
           color = MaterialTheme.colorScheme.primary,
