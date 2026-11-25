@@ -207,7 +207,7 @@ kover {
     }
     verify {
       rule("Project line coverage") {
-        minBound(8)
+        minBound(40)
       }
     }
   }

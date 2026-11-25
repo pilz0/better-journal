@@ -84,11 +84,11 @@ import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.ToleranceSection
 import foo.pilz.freaklog.ui.theme.JournalTheme
 import foo.pilz.freaklog.ui.theme.LocalSpacing
-import java.util.Locale
 import foo.pilz.freaklog.ui.utils.HapticType
 import foo.pilz.freaklog.ui.utils.getDateWithWeekdayText
 import foo.pilz.freaklog.ui.utils.getShortTimeText
 import foo.pilz.freaklog.ui.utils.rememberHaptic
+import java.util.Locale
 
 internal fun defaultDosageStatsModel() =
     SubstanceDosageStatsModel(

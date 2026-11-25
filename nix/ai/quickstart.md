@@ -1,6 +1,7 @@
 ## Environment
 
-The toolchain (JDK 17, Android SDK, ripgrep, jq) comes from the flake's devShell. Enter it with
+The toolchain (JDK 17, Android SDK, ripgrep, jq, plus static-analysis tools `statix`, `deadnix`,
+`zizmor`, `actionlint`, and `shellcheck`) comes from the flake's devShell. Enter it with
 `direnv allow` (see `.envrc`) or `nix develop`, or run single commands as `nix develop -c <cmd>`.
 Don't install JDKs or SDKs by hand. If a tool is missing, add it to `devShells.default` in `flake.nix`.
 
@@ -41,8 +42,8 @@ Don't install JDKs or SDKs by hand. If a tool is missing, add it to `devShells.d
 
 # Formatting (treefmt: Nix, Kotlin, YAML, JSON, Markdown, TOML, Shell) and static analysis
 nix fmt
-./gradlew detekt --no-daemon
-./gradlew :app:lintDebug --no-daemon
+./gradlew detektAll --no-daemon
+./gradlew :app:lintDebug :freakquery-android:lintDebug --no-daemon
 
 # Coverage
 ./gradlew :app:koverHtmlReportDebug :app:koverXmlReportDebug :app:koverVerifyDebug --no-daemon

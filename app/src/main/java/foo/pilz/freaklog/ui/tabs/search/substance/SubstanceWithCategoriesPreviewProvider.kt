@@ -21,8 +21,17 @@ package foo.pilz.freaklog.ui.tabs.search.substance
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import foo.pilz.freaklog.data.substances.AdministrationRoute
-import foo.pilz.freaklog.data.substances.classes.*
-import foo.pilz.freaklog.data.substances.classes.roa.*
+import foo.pilz.freaklog.data.substances.classes.Category
+import foo.pilz.freaklog.data.substances.classes.Interactions
+import foo.pilz.freaklog.data.substances.classes.Substance
+import foo.pilz.freaklog.data.substances.classes.SubstanceWithCategories
+import foo.pilz.freaklog.data.substances.classes.Tolerance
+import foo.pilz.freaklog.data.substances.classes.roa.Bioavailability
+import foo.pilz.freaklog.data.substances.classes.roa.DurationRange
+import foo.pilz.freaklog.data.substances.classes.roa.DurationUnits
+import foo.pilz.freaklog.data.substances.classes.roa.Roa
+import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
+import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
 
 class SubstanceWithCategoriesPreviewProvider : PreviewParameterProvider<SubstanceWithCategories> {
   override val values: Sequence<SubstanceWithCategories> =

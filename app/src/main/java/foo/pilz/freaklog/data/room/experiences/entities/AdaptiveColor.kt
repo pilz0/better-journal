@@ -766,17 +766,18 @@ sealed interface AdaptiveColor {
     fun valueOf(name: String): AdaptiveColor {
       if (name.startsWith(CUSTOM_PREFIX)) {
         val hex = name.removePrefix(CUSTOM_PREFIX)
-        if (hex.length != 8 || hex.any { it !in '0'..'9' && it !in 'A'..'F' && it !in 'a'..'f' }) {
-          throw IllegalArgumentException("Malformed custom AdaptiveColor: $name")
-        }
-        return try {
-          Custom(hex.toLong(16).toInt())
-        } catch (e: NumberFormatException) {
-          throw IllegalArgumentException("Malformed custom AdaptiveColor: $name", e)
-        }
+        val parsed =
+            if (hex.length == 8 && hex.all { it in '0'..'9' || it in 'A'..'F' || it in 'a'..'f' }) {
+              hex.toLongOrNull(16)
+            } else {
+              null
+            }
+        requireNotNull(parsed) { "Malformed custom AdaptiveColor: $name" }
+        return Custom(parsed.toInt())
       }
-      return entries.firstOrNull { it.name == name }
-          ?: throw IllegalArgumentException("Unknown AdaptiveColor: $name")
+      return requireNotNull(entries.firstOrNull { it.name == name }) {
+        "Unknown AdaptiveColor: $name"
+      }
     }
   }
 }

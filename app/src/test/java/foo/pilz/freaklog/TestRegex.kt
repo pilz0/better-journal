@@ -24,7 +24,7 @@ import org.junit.Test
 
 class TestRegex {
   @Test
-  fun testRegex() {
+  fun matchesWildcardPattern() {
     val regex =
         Regex(
             pattern = "5-MeO-xxT".replace(oldValue = "x", newValue = "[\\S]*", ignoreCase = true),

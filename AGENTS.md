@@ -6,7 +6,8 @@ The first sections are the quickstart. Everything from "Repository overview" on 
 
 ## Environment
 
-The toolchain (JDK 17, Android SDK, ripgrep, jq) comes from the flake's devShell. Enter it with
+The toolchain (JDK 17, Android SDK, ripgrep, jq, plus static-analysis tools `statix`, `deadnix`,
+`zizmor`, `actionlint`, and `shellcheck`) comes from the flake's devShell. Enter it with
 `direnv allow` (see `.envrc`) or `nix develop`, or run single commands as `nix develop -c <cmd>`.
 Don't install JDKs or SDKs by hand. If a tool is missing, add it to `devShells.default` in `flake.nix`.
 
@@ -47,8 +48,8 @@ Don't install JDKs or SDKs by hand. If a tool is missing, add it to `devShells.d
 
 # Formatting (treefmt: Nix, Kotlin, YAML, JSON, Markdown, TOML, Shell) and static analysis
 nix fmt
-./gradlew detekt --no-daemon
-./gradlew :app:lintDebug --no-daemon
+./gradlew detektAll --no-daemon
+./gradlew :app:lintDebug :freakquery-android:lintDebug --no-daemon
 
 # Coverage
 ./gradlew :app:koverHtmlReportDebug :app:koverXmlReportDebug :app:koverVerifyDebug --no-daemon
@@ -211,8 +212,9 @@ app/src/main/java/foo/pilz/freaklog/
 ./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.ui.*" --no-daemon
 ./gradlew testDebugUnitTest -PtestExclude=foo.pilz.freaklog.data.*,foo.pilz.freaklog.ui.* --no-daemon
 
-# Static analysis (Detekt) and coverage (Kover) — see "Static analysis & coverage" below.
-./gradlew detekt --no-daemon
+# Static analysis (Detekt + Lint) and coverage (Kover) — see "Static analysis & coverage" below.
+./gradlew detektAll --no-daemon
+./gradlew :app:lintDebug :freakquery-android:lintDebug --no-daemon
 ./gradlew :app:koverHtmlReportDebug :app:koverXmlReportDebug :app:koverVerifyDebug --no-daemon
 ```
 
@@ -227,26 +229,28 @@ app/src/main/java/foo/pilz/freaklog/
 
 Workflows live in `.github/workflows/`:
 
-| Workflow file            | Purpose                                                                                                                                                                                                                                                                                                                                             |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `build.yml`              | Wrapper validation, unit tests (3 shards), six JDK/locale/time-zone compatibility jobs, release tests/lint, Detekt, debug lint, Kover, Gradle/Nix APK + AAB builds, architecture checks, test APK compilation, Nix checks (including actionlint/ShellCheck), and the API 31–37 emulator workflow. Runs on every push/PR; all jobs feed `ci-passed`. |
-| `release.yml`            | **Secret-handling.** Sign + Cloudflare R2 + Google Play (Internal & Alpha tracks) + GitHub release + SLSA build provenance. Triggered by `workflow_run` on a successful `Build and test` run on `main` / tags, or `workflow_dispatch`. Pull-request events never reach this workflow.                                                               |
-| `codeql.yml`             | CodeQL analysis for `java-kotlin` and `actions` languages with the `security-extended` query pack.                                                                                                                                                                                                                                                  |
-| `instrumented-tests.yml` | Reusable connected Android tests on API 31–37, called by every build. Also runs weekly and via `workflow_dispatch` (one selected API).                                                                                                                                                                                                              |
-| `dependency-review.yml`  | Blocks PRs that introduce known-vulnerable or AGPL dependencies.                                                                                                                                                                                                                                                                                    |
+| Workflow file            | Purpose                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `build.yml`              | Wrapper validation, unit tests (3 shards), six JDK/locale/time-zone compatibility jobs, release tests/lint, `detektAll`, debug lint (`:app` and `:freakquery-android`), Kover, Gradle/Nix APK + AAB builds, Room schema checks (`schema-verification`), cross-module architecture hygiene (`architecture-hygiene`), test APK compilation, Nix checks (`treefmt`, `statix`, `deadnix`, `zizmor`, `actionlint`, `shellcheck`), and the API 31–37 emulator workflow. Runs on every push/PR; all jobs feed `ci-passed`. |
+| `release.yml`            | **Secret-handling.** Sign + Cloudflare R2 + Google Play (Internal & Alpha tracks) + GitHub release + SLSA build provenance. Triggered by `workflow_run` on a successful `Build and test` run on `main` / tags, or `workflow_dispatch`. Pull-request events never reach this workflow.                                                                                                                                                                                                                               |
+| `codeql.yml`             | CodeQL analysis for `java-kotlin` and `actions` languages with the `security-extended` query pack.                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `instrumented-tests.yml` | Reusable connected Android tests on API 31–37, called by every build. Also runs weekly and via `workflow_dispatch` (one selected API).                                                                                                                                                                                                                                                                                                                                                                              |
+| `dependency-review.yml`  | Blocks PRs that introduce known-vulnerable or AGPL dependencies.                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 
 ```
 push/PR  ──► build.yml
               ├─ wrapper-validation
+              ├─ schema-verification
+              ├─ architecture-hygiene
               ├─ test  (matrix: data | ui | misc)
               ├─ compatibility (JDK 17/21 × Berlin/New York/Tokyo)
               ├─ release-verification (unit tests + lint)
               ├─ connected-tests (emulators: API 31–37)
               ├─ coverage  (Kover, hard-gated minimum)
-              ├─ detekt    (SARIF → code scanning)
-              ├─ lint      (SARIF → code scanning)
+              ├─ detekt    (`detektAll`, SARIF → code scanning)
+              ├─ lint      (`:app` + `:freakquery-android`, SARIF → code scanning)
               ├─ build-app (matrix: apk | aab — unsigned)
-              ├─ nix-checks
+              ├─ nix-checks (`treefmt`, `statix`, `deadnix`, `zizmor`, `actionlint`, `shellcheck`)
               ├─ nix-build (matrix: apk | aab)
               └─ ci-passed (aggregator status check)
 
@@ -618,15 +622,32 @@ All ViewModels use `@HiltViewModel` + `@Inject constructor`. Repositories and DA
   Nix, `ktfmt` for Kotlin/KTS, `prettier` for YAML/JSON/Markdown, `taplo` for
   TOML, `shfmt` for Shell/envrc). Run `nix fmt`; `nix flake check` fails on
   unformatted files. Detekt's ktlint `formatting` rule set is not used.
-- **Detekt**: `./gradlew detekt`. Config in `config/detekt/detekt.yml`,
-  baseline in `config/detekt/baseline.xml`. SARIF uploaded to code scanning.
-  Fix new findings instead of adding them to the baseline.
-- **Android Lint**: `./gradlew :app:lintDebug`. `checkDependencies = true`.
-  SARIF uploaded to code scanning. Lint is clean and `abortOnError = true`.
-- **Kover (coverage)**: `./gradlew :app:koverHtmlReportDebug
-:app:koverXmlReportDebug :app:koverVerifyDebug`. CI fails if coverage
-  drops below the floor configured in `app/build.gradle.kts`. Ratchet
-  upward as the suite grows.
+- **Kotlin compiler**: Strict warnings are enabled on both `:app` and
+  `:freakquery-android` (`allWarningsAsErrors`, `extraWarnings`,
+  `progressiveMode`, `-Xjsr305=strict`; `:app` excludes only KSP Room codegen
+  `REDUNDANT_VISIBILITY_MODIFIER` and `CAN_BE_VAL` warnings).
+- **Detekt**: `./gradlew detektAll`. Config in `config/detekt/detekt.yml`,
+  `:app` baseline in `config/detekt/baseline.xml` (non-UI/prose findings burned
+  down), zero baseline on `:freakquery-android`. SARIF uploaded to code
+  scanning. Fix new findings instead of adding them to the baseline.
+- **Android Lint**: `./gradlew :app:lintDebug :freakquery-android:lintDebug`.
+  `:app` uses `config/lint/lint.xml` (including Compose checks) and
+  `:freakquery-android` uses `config/lint/lint-library.xml`, with
+  `checkDependencies = true`, `checkTestSources = true`,
+  `checkAllWarnings = true`, `warningsAsErrors = true`, and `abortOnError = true`.
+  SARIF uploaded to code scanning.
+- **Fast JVM invariant suite**: `app/src/test/java/foo/pilz/freaklog/StaticAnalysisInvariantsTest.kt`
+  enforces namespace, coroutine/Compose/Room schema/manifest/locale/workflow
+  security invariants during unit test runs.
+- **Nix & workflow security checks**: `nix flake check` validates formatting
+  (`treefmt`), Nix linting (`statix`, `deadnix`), GitHub Actions security
+  (`zizmor` with `.github/zizmor.yml`, `actionlint`, 40-hex SHA pinning, and
+  `persist-credentials: false`), shell scripts (`shellcheck`), dynamic Room
+  schemas (`1..LATEST`), and cross-module legacy namespace leaks. Tools live in
+  `devShells.default`.
+- **Kover (coverage)**: `./gradlew :app:koverHtmlReportDebug :app:koverXmlReportDebug :app:koverVerifyDebug`.
+  CI fails if coverage drops below `minBound(40)` configured in
+  `app/build.gradle.kts`. Ratchet upward as the suite grows.
 
 ### Test file locations
 

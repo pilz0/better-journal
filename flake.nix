@@ -188,7 +188,9 @@
               ''
                 set -eu
                 actionlint -shellcheck=shellcheck -pyflakes= ${./.github/workflows}/*.yml
-                zizmor --offline --config ${./.github/zizmor.yml} ${./.github/workflows}
+                mkdir -p zizmor-root/.github
+                cp -r ${./.github/workflows} zizmor-root/.github/workflows
+                (cd zizmor-root && zizmor --offline --config ${./.github/zizmor.yml} .github/workflows)
                 touch $out
               '';
 

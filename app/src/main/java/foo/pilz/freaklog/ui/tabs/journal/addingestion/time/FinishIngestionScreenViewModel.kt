@@ -64,7 +64,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-const val hourLimitToSeparateIngestions: Long = 12
+const val HOUR_LIMIT_TO_SEPARATE_INGESTIONS: Long = 12
 
 enum class IngestionTimePickerOption {
   POINT_IN_TIME,

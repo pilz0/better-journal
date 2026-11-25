@@ -21,11 +21,11 @@
     <issue id="Recycle" severity="error" />
     <issue id="Registered" severity="error" />
     <issue id="UnsafeImplicitIntentLaunch" severity="error" />
-    <issue id="InvalidPackage" severity="error">
+    <issue id="InvalidPackage">
         <!-- JaCoCo coverage runtime references desktop java.lang.management on the debug test classpath. -->
         <ignore regexp="org\.jacoco\.agent" />
     </issue>
-    <issue id="IconExpectedSize" severity="error">
+    <issue id="IconExpectedSize">
         <!-- Adaptive icon monochrome layers in mipmap-* are sized for the 108dp canvas, not 48dp legacy icons. -->
         <ignore regexp="ic_launcher_monochrome\.webp" />
     </issue>

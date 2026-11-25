@@ -48,21 +48,18 @@ data class RoaDose(
   fun getNumDots(ingestionDose: Double?, ingestionUnits: String? = units): Int? {
     val dose = doseInOwnUnits(ingestionDose, ingestionUnits) ?: return null
     if (heavyMin != null && (heavyMin <= 0.0 || !heavyMin.isFinite())) return null
-    if (lightMin != null && dose < lightMin) {
-      return 0
-    } else if (lightMin != null && commonMin != null && lightMin <= dose && dose < commonMin) {
-      return 1
-    } else if (commonMin != null && strongMin != null && commonMin <= dose && dose < strongMin) {
-      return 2
-    } else if (strongMin != null && heavyMin != null && strongMin <= dose && dose < heavyMin) {
-      return 3
-    } else if (heavyMin != null) {
-      val timesHeavy = floor(dose.div(heavyMin))
-      val rest = dose.rem(heavyMin)
-      val dots = (timesHeavy * 4) + getNumDotsUpTo4(dose = rest)
-      return if (dots in 0.0..Int.MAX_VALUE.toDouble()) dots.roundToInt() else null
-    } else {
-      return null
+    return when {
+      lightMin != null && dose < lightMin -> 0
+      lightMin != null && commonMin != null && lightMin <= dose && dose < commonMin -> 1
+      commonMin != null && strongMin != null && commonMin <= dose && dose < strongMin -> 2
+      strongMin != null && heavyMin != null && strongMin <= dose && dose < heavyMin -> 3
+      heavyMin != null -> {
+        val timesHeavy = floor(dose.div(heavyMin))
+        val rest = dose.rem(heavyMin)
+        val dots = (timesHeavy * 4) + getNumDotsUpTo4(dose = rest)
+        if (dots in 0.0..Int.MAX_VALUE.toDouble()) dots.roundToInt() else null
+      }
+      else -> null
     }
   }
 

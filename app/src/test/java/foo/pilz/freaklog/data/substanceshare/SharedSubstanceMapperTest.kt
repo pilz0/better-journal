@@ -126,8 +126,7 @@ class SharedSubstanceMapperTest {
 
     assertFalse(text.contains("minInSec"))
     assertFalse(text.contains("customSubstanceId"))
-    val decoded =
-        lenientJson.decodeFromString(SharedSubstanceEnvelope.serializer(), text)
+    val decoded = lenientJson.decodeFromString(SharedSubstanceEnvelope.serializer(), text)
     assertEquals(envelope, decoded)
     assertEquals(1200f, decoded.substance.roas.first().duration?.onset?.minInSec)
   }
@@ -137,8 +136,7 @@ class SharedSubstanceMapperTest {
     val text =
         """{"format":"gay.cybercrime.journal.substance","version":1,"substance":
             {"name":"X","units":"mg","description":"","categories":["stimulant"],"futureField":1}}"""
-    val decoded =
-        lenientJson.decodeFromString(SharedSubstanceEnvelope.serializer(), text)
+    val decoded = lenientJson.decodeFromString(SharedSubstanceEnvelope.serializer(), text)
     assertEquals("X", decoded.substance.name)
     assertEquals(true, decoded.format in SHARED_SUBSTANCE_FORMATS)
   }

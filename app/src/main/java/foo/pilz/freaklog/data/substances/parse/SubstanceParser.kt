@@ -20,8 +20,18 @@ package foo.pilz.freaklog.data.substances.parse
 
 import androidx.compose.ui.graphics.Color
 import foo.pilz.freaklog.data.substances.AdministrationRoute
-import foo.pilz.freaklog.data.substances.classes.*
-import foo.pilz.freaklog.data.substances.classes.roa.*
+import foo.pilz.freaklog.data.substances.classes.Category
+import foo.pilz.freaklog.data.substances.classes.Formulation
+import foo.pilz.freaklog.data.substances.classes.Interactions
+import foo.pilz.freaklog.data.substances.classes.Substance
+import foo.pilz.freaklog.data.substances.classes.SubstanceFile
+import foo.pilz.freaklog.data.substances.classes.Tolerance
+import foo.pilz.freaklog.data.substances.classes.roa.Bioavailability
+import foo.pilz.freaklog.data.substances.classes.roa.DurationRange
+import foo.pilz.freaklog.data.substances.classes.roa.DurationUnits
+import foo.pilz.freaklog.data.substances.classes.roa.Roa
+import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
+import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
 import javax.inject.Inject
 import javax.inject.Singleton
 import org.json.JSONArray
@@ -303,14 +313,7 @@ class SubstanceParser @Inject constructor() : SubstanceParserInterface {
     val total = parseDurationRange(jsonTotal)
     val jsonAfterglow = jsonRoaDuration.getOptionalJSONObject("afterglow")
     val afterglow = parseDurationRange(jsonAfterglow)
-    return if (
-        onset == null &&
-            comeup == null &&
-            peak == null &&
-            offset == null &&
-            total == null &&
-            afterglow == null
-    ) {
+    return if (listOf(onset, comeup, peak, offset, total, afterglow).none { it != null }) {
       null
     } else {
       RoaDuration(

@@ -178,5 +178,5 @@ class NotificationSchedulerTest {
 
 // Robolectric 4.18.1 deprecates ScheduledAlarm.operation without providing a non-deprecated getter.
 @Suppress("DEPRECATION")
-private val ShadowAlarmManager.ScheduledAlarm.alarmOperation
+internal val ShadowAlarmManager.ScheduledAlarm.alarmOperation
   get() = operation

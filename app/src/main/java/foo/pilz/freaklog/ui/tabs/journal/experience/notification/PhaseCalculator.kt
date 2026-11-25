@@ -2,7 +2,7 @@ package foo.pilz.freaklog.ui.tabs.journal.experience.notification
 
 import foo.pilz.freaklog.data.substances.classes.roa.DurationRange
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
-import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.hourLimitToSeparateIngestions
+import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.HOUR_LIMIT_TO_SEPARATE_INGESTIONS
 import java.time.Duration
 import java.time.Instant
 
@@ -26,7 +26,7 @@ object PhaseCalculator {
 
   private const val MIN_INTERVAL_SECONDS = 60L
   private const val MAX_INTERVAL_SECONDS = 1800L
-  private val UNKNOWN_DURATION_FALLBACK_SECONDS = hourLimitToSeparateIngestions * 3600f
+  private val UNKNOWN_DURATION_FALLBACK_SECONDS = HOUR_LIMIT_TO_SEPARATE_INGESTIONS * 3600f
 
   fun currentPhase(
       ingestionTime: Instant,

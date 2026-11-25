@@ -33,7 +33,7 @@ import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.YOU
 import foo.pilz.freaklog.ui.main.navigation.graphs.TimelineScreenRoute
-import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.hourLimitToSeparateIngestions
+import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.HOUR_LIMIT_TO_SEPARATE_INGESTIONS
 import foo.pilz.freaklog.ui.tabs.journal.experience.ExperienceViewModel
 import foo.pilz.freaklog.ui.tabs.journal.experience.TimelineDisplayOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.SavedTimeDisplayOption
@@ -119,7 +119,7 @@ constructor(
         ->
         val ingestionTimes = ingestionsWithCompanions.map { it.ingestion.time }
         val lastIngestionTime = ingestionTimes.maxOrNull() ?: return@combine false
-        val limitAgo = currentTime.minus(hourLimitToSeparateIngestions, ChronoUnit.HOURS)
+        val limitAgo = currentTime.minus(HOUR_LIMIT_TO_SEPARATE_INGESTIONS, ChronoUnit.HOURS)
         return@combine limitAgo < lastIngestionTime
       }
 

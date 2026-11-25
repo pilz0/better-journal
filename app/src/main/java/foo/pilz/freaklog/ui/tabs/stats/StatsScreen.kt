@@ -89,10 +89,10 @@ import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
 import foo.pilz.freaklog.ui.tabs.stats.substancecompanion.formatSiValue
 import foo.pilz.freaklog.ui.theme.JournalTheme
 import foo.pilz.freaklog.ui.theme.LocalSpacing
-import java.util.Locale
 import foo.pilz.freaklog.ui.utils.HapticType
 import foo.pilz.freaklog.ui.utils.getStringOfPattern
 import foo.pilz.freaklog.ui.utils.rememberHaptic
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -2,7 +2,6 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>ComplexCondition:SubstanceParser.kt$SubstanceParser$onset == null &amp;&amp; comeup == null &amp;&amp; peak == null &amp;&amp; offset == null &amp;&amp; total == null &amp;&amp; afterglow == null</ID>
     <ID>CyclomaticComplexMethod:Achievement.kt$fun evaluateAchievement(condition: String, ctx: AchievementContext): Boolean</ID>
     <ID>CyclomaticComplexMethod:AndroidScenePainter.kt$fun Canvas.paintScene( scene: GraphScene, graphStyle: GraphStyle, density: Density, progress: Float = 1f, )</ID>
     <ID>CyclomaticComplexMethod:ChooseDoseScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun ChooseDoseScreen( navigateToVolumetricDosingScreen: () -&gt; Unit, navigateToSaferSniffingScreen: () -&gt; Unit, substanceName: String, roaDose: RoaDose?, administrationRoute: AdministrationRoute, doseRemark: String?, doseText: String, onChangeDoseText: (String) -&gt; Unit, estimatedDoseStandardDeviationText: String, onChangeEstimatedDoseStandardDeviationText: (String) -&gt; Unit, isValidDose: Boolean, isEstimate: Boolean, onChangeIsEstimate: (Boolean) -&gt; Unit, navigateToNext: () -&gt; Unit, useUnknownDoseAndNavigate: () -&gt; Unit, currentDoseClass: DoseClass?, purityText: String, onPurityChange: (purity: String) -&gt; Unit, isValidPurity: Boolean, convertedDoseAndUnitText: String?, isShowingUnitsField: Boolean, units: String, onChangeOfUnits: (units: String) -&gt; Unit, navigateToCreateCustomUnit: () -&gt; Unit, roaDuration: foo.pilz.freaklog.data.substances.classes.roa.RoaDuration? = null, intakeLimitStatuses: List&lt;foo.pilz.freaklog.ui.tabs.settings.intakelimits.IntakeLimitStatus&gt; = emptyList(), )</ID>
@@ -227,31 +226,6 @@
     <ID>MaxLineLength:ToleranceChartScreen.kt$"Excluding 2C-B, Bupropion, Ibuprofen, Progesterone, Methylphenidate, 4-MMC, 5-Hydroxytryptophan, Paracetamol, Ketamine, N-Acetylcysteine, and Lisdexamfetamine because of missing tolerance info"</ID>
     <ID>MaxLineLength:UnknownDoseDialog.kt$"You can log an unknown dose. But note that administering the wrong dosage of a substance can lead to negative experiences such as extreme anxiety, uncomfortable physical side effects, hospitalization, or (in extreme cases) death."</ID>
     <ID>MaxLineLength:VolumetricDosingScreen.kt$Search the internet to determine what solvent to use. All substances should dissolve in alcohol, but many substances will not dissolve in water.</ID>
-    <ID>MemberNameEqualsClassName:TestRegex.kt$TestRegex$@Test fun testRegex()</ID>
     <ID>ReturnCount:Achievement.kt$fun evaluateAchievement(condition: String, ctx: AchievementContext): Boolean</ID>
-    <ID>ReturnCount:RoaDose.kt$RoaDose$fun getNumDots(ingestionDose: Double?, ingestionUnits: String? = units): Int?</ID>
-    <ID>ThrowsCount:AdaptiveColor.kt$AdaptiveColor.Companion$fun valueOf(name: String): AdaptiveColor</ID>
-    <ID>TopLevelPropertyNaming:FinishIngestionScreenViewModel.kt$const val hourLimitToSeparateIngestions: Long = 12</ID>
-    <ID>UnusedPrivateMember:CustomCategoriesPickerScreen.kt$@Preview @Composable private fun CustomCategoriesPickerPreview( @PreviewParameter(CategoryListProvider::class) categories: List&lt;Category&gt;, )</ID>
-    <ID>UnusedPrivateMember:CustomColorDialog.kt$@Preview @Composable private fun CustomColorDialogPreview()</ID>
-    <ID>UnusedPrivateMember:EditCustomUnitScreen.kt$@Preview @Composable private fun EditCustomUnitScreenPreview( @PreviewParameter(RoaDosePreviewProvider::class) roaDose: RoaDose, )</ID>
-    <ID>UnusedPrivateMember:FinishAddCustomUnitScreen.kt$@Preview @Composable private fun FinishAddCustomUnitScreenPreview( @PreviewParameter(RoaDosePreviewProvider::class) roaDose: RoaDose, )</ID>
-    <ID>UnusedPrivateMember:MDMACalculator.kt$@Preview @Composable private fun MDMACalculatorPreview()</ID>
-    <ID>UnusedPrivateMember:RatingRow.kt$@Preview @Composable private fun RatingRowPreview( @PreviewParameter(RatingPreviewProvider::class) rating: ShulginRating )</ID>
-    <ID>UnusedPrivateMember:StandardDeviationExplanation.kt$@Preview @Composable private fun StandardDeviationExplanationPreview()</ID>
-    <ID>UseRequire:AdaptiveColor.kt$AdaptiveColor.Companion$throw IllegalArgumentException("Malformed custom AdaptiveColor: $name")</ID>
-    <ID>UseRequire:StomachFullness.kt$StomachFullnessSerializer$throw IllegalArgumentException("$value is not a valid stomach fullness")</ID>
-    <ID>WildcardImport:BarChart.kt$import androidx.compose.foundation.layout.*</ID>
-    <ID>WildcardImport:CategoryChipDelete.kt$import androidx.compose.foundation.layout.*</ID>
-    <ID>WildcardImport:DotRows.kt$import androidx.compose.foundation.layout.*</ID>
-    <ID>WildcardImport:GetTimeDifferenceTextTest.kt$import org.junit.Assert.*</ID>
-    <ID>WildcardImport:RoaDurationView.kt$import androidx.compose.foundation.layout.*</ID>
-    <ID>WildcardImport:SubstanceClassTest.kt$import org.junit.Assert.*</ID>
-    <ID>WildcardImport:SubstanceParser.kt$import foo.pilz.freaklog.data.substances.classes.*</ID>
-    <ID>WildcardImport:SubstanceParser.kt$import foo.pilz.freaklog.data.substances.classes.roa.*</ID>
-    <ID>WildcardImport:SubstanceWithCategoriesPreviewProvider.kt$import foo.pilz.freaklog.data.substances.classes.*</ID>
-    <ID>WildcardImport:SubstanceWithCategoriesPreviewProvider.kt$import foo.pilz.freaklog.data.substances.classes.roa.*</ID>
-    <ID>WildcardImport:TimedNoteScreenContent.kt$import androidx.compose.foundation.layout.*</ID>
-    <ID>WildcardImport:TimedNoteScreenContent.kt$import androidx.compose.material3.*</ID>
   </CurrentIssues>
 </SmellBaseline>
