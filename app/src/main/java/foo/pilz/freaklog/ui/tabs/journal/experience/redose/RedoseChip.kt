@@ -35,7 +35,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
 data class RedoseChipState(
-    val show: Boolean = true,
+    val show: Boolean = false,
     val params: RedoseParameters = RedoseParameters.Default,
 )
 

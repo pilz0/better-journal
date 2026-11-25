@@ -443,7 +443,7 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
 
   val isRedoseShownFlow: Flow<Boolean> =
       dataStore.data.map { prefs ->
-        prefs[PreferencesKeys.KEY_REDOSE_SHOW] ?: true
+        prefs[PreferencesKeys.KEY_REDOSE_SHOW] ?: false
       }
 
   suspend fun saveRedoseShown(value: Boolean) {

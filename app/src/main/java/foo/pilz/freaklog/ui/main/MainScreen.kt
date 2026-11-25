@@ -50,6 +50,10 @@ import foo.pilz.freaklog.ui.main.navigation.graphs.saferGraph
 import foo.pilz.freaklog.ui.main.navigation.graphs.searchGraph
 import foo.pilz.freaklog.ui.main.navigation.graphs.settingsGraph
 import foo.pilz.freaklog.ui.main.navigation.graphs.statsGraph
+import foo.pilz.freaklog.ui.main.navigation.navEnterTransition
+import foo.pilz.freaklog.ui.main.navigation.navExitTransition
+import foo.pilz.freaklog.ui.main.navigation.navPopEnterTransition
+import foo.pilz.freaklog.ui.main.navigation.navPopExitTransition
 import foo.pilz.freaklog.ui.main.navigation.topLevelRoutes
 import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.TeamsChatSkin
 import foo.pilz.freaklog.ui.tabs.journal.experience.teamsskin.TeamsSkinPayload
@@ -187,6 +191,15 @@ fun MainScreen(
           NavHost(
               navController,
               startDestination = JournalTopLevelRoute,
+              enterTransition = { navEnterTransition() },
+              exitTransition = { navExitTransition() },
+              popEnterTransition = { navPopEnterTransition() },
+              popExitTransition = { navPopExitTransition() },
+              // Navigation Compose 2.10 defaults predictivePopExitTransition to scaleOut(0.7f);
+              // reuse the regular pop transitions so gesture back slides/fades instead of zooming
+              // out.
+              predictivePopEnterTransition = { _ -> navPopEnterTransition() },
+              predictivePopExitTransition = { _ -> navPopExitTransition() },
           ) {
             journalGraph(navController)
             statsGraph(navController)

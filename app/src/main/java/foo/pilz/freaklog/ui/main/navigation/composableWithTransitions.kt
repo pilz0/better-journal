@@ -20,6 +20,8 @@ package foo.pilz.freaklog.ui.main.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -32,55 +34,65 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 
+private const val WITHIN_TAB_TRANSITION_TIME_MS = 300
+private const val TAB_SWITCH_TIME_MS = 200
+private const val SLIDE_OFFSET_PX = 300
+
 inline fun <reified T : Any> NavGraphBuilder.composableWithTransitions(
     noinline content: @Composable (AnimatedVisibilityScope.(NavBackStackEntry) -> Unit)
 ) {
-  val withinTabTransitionTimeInMs = 300
-  val tabSwitchTimeInMs = 200
   composable<T>(
-      exitTransition = {
-        if (isChangingTab()) {
-          fadeOut(animationSpec = tween(tabSwitchTimeInMs))
-        } else {
-          slideOutHorizontally(
-              targetOffsetX = { -300 },
-              animationSpec = tween(withinTabTransitionTimeInMs),
-          ) + fadeOut(animationSpec = tween(withinTabTransitionTimeInMs))
-        }
-      },
-      popEnterTransition = {
-        if (isChangingTab()) {
-          fadeIn(animationSpec = tween(tabSwitchTimeInMs))
-        } else {
-          slideInHorizontally(
-              initialOffsetX = { -300 },
-              animationSpec = tween(withinTabTransitionTimeInMs),
-          ) + fadeIn(animationSpec = tween(withinTabTransitionTimeInMs))
-        }
-      },
-      enterTransition = {
-        if (isChangingTab()) {
-          fadeIn(animationSpec = tween(tabSwitchTimeInMs))
-        } else {
-          slideInHorizontally(
-              initialOffsetX = { 300 },
-              animationSpec = tween(withinTabTransitionTimeInMs),
-          ) + fadeIn(animationSpec = tween(withinTabTransitionTimeInMs))
-        }
-      },
-      popExitTransition = {
-        if (isChangingTab()) {
-          fadeOut(animationSpec = tween(tabSwitchTimeInMs))
-        } else {
-          slideOutHorizontally(
-              targetOffsetX = { 300 },
-              animationSpec = tween(withinTabTransitionTimeInMs),
-          ) + fadeOut(animationSpec = tween(withinTabTransitionTimeInMs))
-        }
-      },
+      exitTransition = { navExitTransition() },
+      popEnterTransition = { navPopEnterTransition() },
+      enterTransition = { navEnterTransition() },
+      popExitTransition = { navPopExitTransition() },
       content = content,
   )
 }
+
+/** Enter transition for forward navigation within or across tabs. */
+fun AnimatedContentTransitionScope<NavBackStackEntry>.navEnterTransition(): EnterTransition =
+    if (isChangingTab()) {
+      fadeIn(animationSpec = tween(TAB_SWITCH_TIME_MS))
+    } else {
+      slideInHorizontally(
+          initialOffsetX = { SLIDE_OFFSET_PX },
+          animationSpec = tween(WITHIN_TAB_TRANSITION_TIME_MS),
+      ) + fadeIn(animationSpec = tween(WITHIN_TAB_TRANSITION_TIME_MS))
+    }
+
+/** Exit transition for forward navigation within or across tabs. */
+fun AnimatedContentTransitionScope<NavBackStackEntry>.navExitTransition(): ExitTransition =
+    if (isChangingTab()) {
+      fadeOut(animationSpec = tween(TAB_SWITCH_TIME_MS))
+    } else {
+      slideOutHorizontally(
+          targetOffsetX = { -SLIDE_OFFSET_PX },
+          animationSpec = tween(WITHIN_TAB_TRANSITION_TIME_MS),
+      ) + fadeOut(animationSpec = tween(WITHIN_TAB_TRANSITION_TIME_MS))
+    }
+
+/** Enter transition when popping a destination (button or gesture back). */
+fun AnimatedContentTransitionScope<NavBackStackEntry>.navPopEnterTransition(): EnterTransition =
+    if (isChangingTab()) {
+      fadeIn(animationSpec = tween(TAB_SWITCH_TIME_MS))
+    } else {
+      slideInHorizontally(
+          initialOffsetX = { -SLIDE_OFFSET_PX },
+          animationSpec = tween(WITHIN_TAB_TRANSITION_TIME_MS),
+      ) + fadeIn(animationSpec = tween(WITHIN_TAB_TRANSITION_TIME_MS))
+    }
+
+/** Exit transition when popping a destination (button or gesture back). */
+fun AnimatedContentTransitionScope<NavBackStackEntry>.navPopExitTransition(): ExitTransition =
+    if (isChangingTab()) {
+      fadeOut(animationSpec = tween(TAB_SWITCH_TIME_MS))
+    } else {
+      slideOutHorizontally(
+          targetOffsetX = { SLIDE_OFFSET_PX },
+          animationSpec = tween(WITHIN_TAB_TRANSITION_TIME_MS),
+      ) + fadeOut(animationSpec = tween(WITHIN_TAB_TRANSITION_TIME_MS))
+    }
 
 fun AnimatedContentTransitionScope<NavBackStackEntry>.isChangingTab(): Boolean {
   val initialTopLevel =
