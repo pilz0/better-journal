@@ -137,8 +137,9 @@ class RoaDurationTest {
             total = DurationRange(8f, 12f, DurationUnits.HOURS),
             afterglow = DurationRange(12f, 48f, DurationUnits.HOURS),
         )
-    assertEquals(8f, duration.total!!.min!!, 0.01f)
-    assertEquals(12f, duration.total!!.max!!, 0.01f)
+    val total = requireNotNull(duration.total)
+    assertEquals(8f, requireNotNull(total.min), 0.01f)
+    assertEquals(12f, requireNotNull(total.max), 0.01f)
   }
 
   @Test
@@ -153,8 +154,9 @@ class RoaDurationTest {
             total = DurationRange(10f, 30f, DurationUnits.MINUTES),
             afterglow = DurationRange(15f, 60f, DurationUnits.MINUTES),
         )
-    assertEquals(10f, duration.total!!.min!!, 0.01f)
-    assertEquals(30f, duration.total!!.max!!, 0.01f)
+    val total = requireNotNull(duration.total)
+    assertEquals(10f, requireNotNull(total.min), 0.01f)
+    assertEquals(30f, requireNotNull(total.max), 0.01f)
   }
 
   @Test

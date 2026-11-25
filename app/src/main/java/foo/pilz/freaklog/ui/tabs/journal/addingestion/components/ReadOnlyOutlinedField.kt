@@ -15,7 +15,7 @@ fun ReadOnlyOutlinedField(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     placeholder: String? = null,
-    trailingIcon: (@Composable () -> Unit)? = null,
+    content: (@Composable () -> Unit)? = null,
 ) {
   OutlinedTextField(
       value = value,
@@ -25,7 +25,7 @@ fun ReadOnlyOutlinedField(
       readOnly = true,
       enabled = false,
       singleLine = true,
-      trailingIcon = trailingIcon,
+      trailingIcon = content,
       modifier = modifier.clickable(onClick = onClick),
       colors =
           OutlinedTextFieldDefaults.colors(

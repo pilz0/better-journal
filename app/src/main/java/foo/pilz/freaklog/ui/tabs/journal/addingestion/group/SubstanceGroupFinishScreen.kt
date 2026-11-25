@@ -178,13 +178,13 @@ fun SubstanceGroupFinishScreen(
                     value = selectedExperience?.experience?.title ?: "",
                     placeholder = "New experience",
                     onClick = { isShowingDropDownMenu = true },
-                    trailingIcon = {
+                    modifier = Modifier.fillMaxWidth(),
+                    content = {
                       Icon(
                           imageVector = Icons.Filled.ArrowDropDown,
                           contentDescription = "Choose experience",
                       )
                     },
-                    modifier = Modifier.fillMaxWidth(),
                 )
                 DropdownMenu(
                     expanded = isShowingDropDownMenu,

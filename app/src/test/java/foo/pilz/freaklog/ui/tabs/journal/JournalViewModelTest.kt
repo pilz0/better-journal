@@ -20,7 +20,7 @@ import io.mockk.verify
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancel as cancelScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -135,6 +135,6 @@ class JournalViewModelTest {
     verify(exactly = 1) { searchRepo.getMatchingSubstances("First", any(), any()) }
 
     collectJob.cancel()
-    viewModel.viewModelScope.cancel()
+    viewModel.viewModelScope.cancelScope()
   }
 }

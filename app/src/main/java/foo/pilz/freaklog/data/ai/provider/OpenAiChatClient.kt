@@ -170,5 +170,5 @@ class OpenAiChatClient(private val endpoint: AiEndpoint) : AiChatClient {
 }
 
 /** A non-blank string value; null for a missing key, a JSON null or another type. */
-private fun JSONObject.stringOrNull(name: String): String? =
+internal fun JSONObject.stringOrNull(name: String): String? =
     (opt(name) as? String)?.takeIf { it.isNotBlank() }

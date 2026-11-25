@@ -30,6 +30,7 @@ import android.os.Bundle
 import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract
 import androidx.core.app.NotificationCompat
+import androidx.core.net.toUri
 import androidx.core.os.BundleCompat
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
@@ -266,7 +267,7 @@ class BackupWorkerRunTest {
 
   @Test
   fun `a provider returning a document outside the tree is rejected`() = runTest {
-    provider.createdDocumentUri = Uri.parse("content://$AUTHORITY/document/elsewhere")
+    provider.createdDocumentUri = "content://$AUTHORITY/document/elsewhere".toUri()
 
     val result = worker().doWork()
 

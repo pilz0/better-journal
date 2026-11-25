@@ -33,7 +33,7 @@ constructor(private val experienceRepository: ExperienceRepository) {
   }
 }
 
-private fun List<ExperienceWithIngestions>.toFreakQueryRows(): List<Map<String, Any?>> =
+internal fun List<ExperienceWithIngestions>.toFreakQueryRows(): List<Map<String, Any?>> =
     flatMap { row ->
           row.ingestions.map { ingestion ->
             ingestion.toFreakQueryRow(row.experience)

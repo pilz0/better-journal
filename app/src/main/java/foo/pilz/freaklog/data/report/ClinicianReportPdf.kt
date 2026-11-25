@@ -78,9 +78,9 @@ private fun textPaint(size: Float, bold: Boolean = false, color: Int = INK) =
       this.color = color
     }
 
-private fun solid(color: Int) = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color = color }
+internal fun solid(color: Int) = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color = color }
 
-private fun stroke(color: Int, width: Float = 0.5f) =
+internal fun stroke(color: Int, width: Float = 0.5f) =
     Paint(Paint.ANTI_ALIAS_FLAG).apply {
       this.color = color
       style = Paint.Style.STROKE
@@ -638,9 +638,9 @@ private class PageWriter(
   }
 }
 
-private fun Double.oneDecimal(): String = String.format(Locale.getDefault(), "%.1f", this)
+internal fun Double.oneDecimal(): String = String.format(Locale.getDefault(), "%.1f", this)
 
-private fun layout(text: String, paint: TextPaint, width: Float): StaticLayout =
+internal fun layout(text: String, paint: TextPaint, width: Float): StaticLayout =
     StaticLayout.Builder.obtain(text, 0, text.length, paint, width.toInt().coerceAtLeast(1))
         .setAlignment(Layout.Alignment.ALIGN_NORMAL)
         .build()

@@ -98,9 +98,9 @@ class RoaTest {
             bioavailability = null,
         )
     assertNotNull(roa)
-    assertNotNull(roa.roaDuration)
-    assertNotNull(roa.roaDuration!!.onset)
-    assertNotNull(roa.roaDuration!!.peak)
+    val duration = requireNotNull(roa.roaDuration)
+    assertNotNull(duration.onset)
+    assertNotNull(duration.peak)
   }
 
   @Test

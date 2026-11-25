@@ -5,6 +5,7 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.Signature
 import android.content.pm.SigningInfo
+import androidx.core.content.edit
 import androidx.test.core.app.ApplicationProvider
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
@@ -44,7 +45,7 @@ class JournalClientAccessTest {
 
   @Before
   fun setUp() {
-    context.getSharedPreferences("journal_clients", Context.MODE_PRIVATE).edit().clear().commit()
+    context.getSharedPreferences("journal_clients", Context.MODE_PRIVATE).edit { clear() }
     install("1234")
     ShadowBinder.setCallingUid(clientUid)
   }

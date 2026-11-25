@@ -178,7 +178,7 @@ private const val BATEMAN_SAMPLES = 200
 /**
  * Samples the summed Bateman curves of one substance and route so the scene painter can draw them.
  */
-private fun batemanRawCurve(curves: List<IngestionCurve>): RawTimelineCurve {
+internal fun batemanRawCurve(curves: List<IngestionCurve>): RawTimelineCurve {
   if (curves.isEmpty()) return RawTimelineCurve(emptyList(), emptyList(), 0f, 0f)
   val start = curves.minOf { it.ingestionStartSec }
   val end = curves.maxOf { it.curveEndSec }

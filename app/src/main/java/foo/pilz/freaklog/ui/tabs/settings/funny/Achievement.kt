@@ -388,7 +388,7 @@ private fun hasInteractionInList(
     checker: InteractionChecker,
 ): Boolean = checker.getInteractionsAmong(substances).any { it.matchesType(type) }
 
-private fun countInteractionsInList(
+internal fun countInteractionsInList(
     substances: List<String>,
     type: String,
     checker: InteractionChecker,

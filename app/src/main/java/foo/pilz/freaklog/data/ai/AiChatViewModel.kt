@@ -446,7 +446,7 @@ constructor(
     }
   }
 
-  private fun replaceMessage(id: String, transform: (ChatItem.Message) -> ChatItem.Message) {
+  internal fun replaceMessage(id: String, transform: (ChatItem.Message) -> ChatItem.Message) {
     _uiState.update { state ->
       val newItems =
           state.items.map { item ->
@@ -456,7 +456,7 @@ constructor(
     }
   }
 
-  private fun updateToolEvent(id: String, transform: (ChatItem.ToolEvent) -> ChatItem.ToolEvent) {
+  internal fun updateToolEvent(id: String, transform: (ChatItem.ToolEvent) -> ChatItem.ToolEvent) {
     _uiState.update { state ->
       val newItems =
           state.items.map { item ->
@@ -466,7 +466,7 @@ constructor(
     }
   }
 
-  private fun insertBefore(targetId: String, item: ChatItem) {
+  internal fun insertBefore(targetId: String, item: ChatItem) {
     _uiState.update { state ->
       val idx = state.items.indexOfFirst { it.id == targetId }
       val newItems =

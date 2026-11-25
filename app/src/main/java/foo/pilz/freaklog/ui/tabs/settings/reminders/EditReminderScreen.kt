@@ -53,6 +53,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -247,6 +248,8 @@ private fun TimesOfDayEditor(
     onRemove: (LocalTime) -> Unit,
 ) {
   val context = LocalContext.current
+  val locales = LocalConfiguration.current.locales
+  val locale = if (locales.isEmpty) Locale.ROOT else locales[0]
   val is24h = DateFormat.is24HourFormat(context)
   SectionLabel("Times of day")
   FlowRow(
@@ -270,7 +273,7 @@ private fun TimesOfDayEditor(
                 time.format(
                     DateTimeFormatter.ofPattern(
                         if (is24h) "HH:mm" else "h:mm a",
-                        Locale.getDefault(),
+                        locale,
                     )
                 )
             )

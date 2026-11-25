@@ -523,7 +523,7 @@ internal constructor(
           "or switch to SearXNG or Brave Search in Settings → AI assistant."
 }
 
-private fun parseCharset(contentType: String): Charset {
+internal fun parseCharset(contentType: String): Charset {
   val parts = contentType.split(';')
   for (part in parts) {
     val trimmed = part.trim()

@@ -47,7 +47,7 @@ constructor(
         val template = webhook.template.ifBlank { WebhookService.DEFAULT_TEMPLATE }
         val user = webhook.displayName.ifBlank { "User" }
         try {
-          android.util.Log.d(TAG, "Sending webhook \"${webhook.name}\"")
+          debugLog { "Sending webhook \"${webhook.name}\"" }
           val result =
               webhookService.sendWebhook(
                   url = webhook.url,
@@ -105,12 +105,12 @@ constructor(
     val hooks = enabledHooks.filter { webhook ->
       (selection[webhook.id] ?: true).also { isSelected ->
         if (!isSelected) {
-          android.util.Log.d(TAG, "Webhook \"${webhook.name}\" deselected for this ingestion")
+          debugLog { "Webhook \"${webhook.name}\" deselected for this ingestion" }
         }
       }
     }
     if (hooks.isEmpty()) {
-      android.util.Log.d(TAG, "No enabled webhooks selected, skipping")
+      debugLog { "No enabled webhooks selected, skipping" }
     }
     return hooks
   }
@@ -185,6 +185,12 @@ constructor(
           )
         }
       }
+    }
+  }
+
+  private inline fun debugLog(message: () -> String) {
+    if (android.util.Log.isLoggable(TAG, android.util.Log.DEBUG)) {
+      android.util.Log.d(TAG, message())
     }
   }
 }

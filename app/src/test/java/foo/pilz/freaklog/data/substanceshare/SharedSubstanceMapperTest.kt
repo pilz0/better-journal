@@ -21,6 +21,8 @@ import org.junit.Test
 
 class SharedSubstanceMapperTest {
 
+  private val lenientJson = Json { ignoreUnknownKeys = true }
+
   private val full =
       CustomSubstanceWithEverything(
           substance =
@@ -125,8 +127,7 @@ class SharedSubstanceMapperTest {
     assertFalse(text.contains("minInSec"))
     assertFalse(text.contains("customSubstanceId"))
     val decoded =
-        Json { ignoreUnknownKeys = true }
-            .decodeFromString(SharedSubstanceEnvelope.serializer(), text)
+        lenientJson.decodeFromString(SharedSubstanceEnvelope.serializer(), text)
     assertEquals(envelope, decoded)
     assertEquals(1200f, decoded.substance.roas.first().duration?.onset?.minInSec)
   }
@@ -137,8 +138,7 @@ class SharedSubstanceMapperTest {
         """{"format":"gay.cybercrime.journal.substance","version":1,"substance":
             {"name":"X","units":"mg","description":"","categories":["stimulant"],"futureField":1}}"""
     val decoded =
-        Json { ignoreUnknownKeys = true }
-            .decodeFromString(SharedSubstanceEnvelope.serializer(), text)
+        lenientJson.decodeFromString(SharedSubstanceEnvelope.serializer(), text)
     assertEquals("X", decoded.substance.name)
     assertEquals(true, decoded.format in SHARED_SUBSTANCE_FORMATS)
   }

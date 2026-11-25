@@ -31,7 +31,7 @@ constructor(
     private val PROFILES = stringPreferencesKey("ai_profiles")
     private val ACTIVE_PROFILE_ID = stringPreferencesKey("ai_active_profile_id")
 
-    private fun keyPref(id: String) = stringPreferencesKey("ai_profile_key_$id")
+    internal fun keyPref(id: String) = stringPreferencesKey("ai_profile_key_$id")
 
     // Single-provider settings of earlier versions (plain-text Gemini key and model).
     private val LEGACY_API_KEY = stringPreferencesKey("ai_api_key")

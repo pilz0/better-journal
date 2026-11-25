@@ -21,7 +21,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancel as cancelScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
@@ -193,7 +193,7 @@ class TimelineNotificationService : Service() {
     if (!isExplicitStop && experienceId != -1) {
       TimelineUpdateWorker.schedule(this, experienceId)
     }
-    serviceScope.cancel()
+    serviceScope.cancelScope()
     super.onDestroy()
   }
 }

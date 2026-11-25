@@ -1,10 +1,12 @@
 package foo.pilz.freaklog.data.export
 
+import android.annotation.SuppressLint
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class WebhookRedactionSecurityTest {
+  @SuppressLint("AuthLeak")
   @Test
   fun queryAndFragmentCannotHideTheCredentialFromRedaction() {
     listOf("?thread=anything/later", "#anything/later", "?token=extra-secret#path/later", "")

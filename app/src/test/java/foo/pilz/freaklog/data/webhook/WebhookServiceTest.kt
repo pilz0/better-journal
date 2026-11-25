@@ -18,6 +18,7 @@
 
 package foo.pilz.freaklog.data.webhook
 
+import android.annotation.SuppressLint
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -285,6 +286,7 @@ class WebhookServiceTest {
     )
   }
 
+  @SuppressLint("AuthLeak")
   @Test
   fun secureDestinationsAllowOnlyHttpsAndExactLoopbackHttp() {
     listOf("https://example.com/hook", "http://127.0.0.1/hook", "http://[::1]/hook").forEach {

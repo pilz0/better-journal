@@ -61,7 +61,7 @@ fun IngestionRow(
     ingestionElement: IngestionElement,
     areDosageDotsHidden: Boolean,
     modifier: Modifier = Modifier,
-    time: @Composable () -> Unit,
+    content: @Composable () -> Unit,
 ) {
   val ingestionWithCompanionAndCustomUnit = ingestionElement.ingestionWithCompanionAndCustomUnit
   val ingestion = ingestionWithCompanionAndCustomUnit.ingestion
@@ -75,7 +75,7 @@ fun IngestionRow(
         color = ingestionWithCompanionAndCustomUnit.substanceCompanion?.color ?: AdaptiveColor.RED
     )
     Column {
-      time()
+      content()
       val title =
           if (customUnit != null) {
             "${ingestion.substanceName}, ${customUnit.name}"

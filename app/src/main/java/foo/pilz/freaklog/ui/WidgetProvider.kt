@@ -333,7 +333,7 @@ class MyAppWidget : GlanceAppWidget() {
  * escaped characters in substance names. Note: Uses simple regex-based parsing - substance names in
  * PsychonautWiki typically don't contain problematic characters, but escaping is supported.
  */
-private fun parseSubstanceColors(json: String): Map<String, Int> {
+internal fun parseSubstanceColors(json: String): Map<String, Int> {
   return try {
     val result = mutableMapOf<String, Int>()
     // Use regex to find "name":value pairs more robustly
@@ -360,7 +360,7 @@ private fun parseSubstanceColors(json: String): Map<String, Int> {
 }
 
 /** Extract substance name from line format: "SubstanceName • elapsed • ..." */
-private fun extractSubstanceName(line: String): String? {
+internal fun extractSubstanceName(line: String): String? {
   return try {
     // Look for bullet separator (•) used in new format
     val bulletIndex = line.indexOf(" • ")
@@ -390,7 +390,7 @@ private fun extractSubstanceName(line: String): String? {
  * Condense ingestion line by keeping only key information. Returns the line as-is since it's
  * already formatted by the worker.
  */
-private fun condenseIngestionLine(line: String): String {
+internal fun condenseIngestionLine(line: String): String {
   return line
 }
 

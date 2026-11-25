@@ -15,7 +15,7 @@ import foo.pilz.freaklog.ui.theme.LocalSpacing
 @Composable
 fun SectionHeader(
     text: String,
-    trailing: @Composable RowScope.() -> Unit = {},
+    content: @Composable RowScope.() -> Unit = {},
 ) {
   val spacing = LocalSpacing.current
   Row(
@@ -32,6 +32,6 @@ fun SectionHeader(
         fontWeight = FontWeight.SemiBold,
         modifier = Modifier.weight(1f),
     )
-    trailing()
+    content()
   }
 }

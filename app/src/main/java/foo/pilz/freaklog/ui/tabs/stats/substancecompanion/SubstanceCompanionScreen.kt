@@ -66,6 +66,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -83,12 +84,13 @@ import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.ToleranceSection
 import foo.pilz.freaklog.ui.theme.JournalTheme
 import foo.pilz.freaklog.ui.theme.LocalSpacing
+import java.util.Locale
 import foo.pilz.freaklog.ui.utils.HapticType
 import foo.pilz.freaklog.ui.utils.getDateWithWeekdayText
 import foo.pilz.freaklog.ui.utils.getShortTimeText
 import foo.pilz.freaklog.ui.utils.rememberHaptic
 
-private fun defaultDosageStatsModel() =
+internal fun defaultDosageStatsModel() =
     SubstanceDosageStatsModel(
         buckets = emptyList(),
         summary =
@@ -1032,6 +1034,8 @@ private fun ExperienceBurstCard(
 fun IngestionRowOnSubstanceCompanionScreen(
     ingestionAndCustomUnit: IngestionsBurst.IngestionAndCustomUnit
 ) {
+  val locales = LocalConfiguration.current.locales
+  val locale = if (locales.isEmpty) Locale.ROOT else locales[0]
   Row(
       modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
       horizontalArrangement = Arrangement.SpaceBetween,
@@ -1041,7 +1045,8 @@ fun IngestionRowOnSubstanceCompanionScreen(
       append(ingestionAndCustomUnit.doseDescription)
       ingestionAndCustomUnit.customUnit?.name?.takeIf(String::isNotBlank)?.let { append(" $it") }
       withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
-        val routeText = ingestionAndCustomUnit.ingestion.administrationRoute.displayText.lowercase()
+        val routeText =
+            ingestionAndCustomUnit.ingestion.administrationRoute.displayText.lowercase(locale)
         ingestionAndCustomUnit.customUnitDose?.calculatedDoseDescription?.let { append(" = $it") }
         append(" · $routeText")
       }

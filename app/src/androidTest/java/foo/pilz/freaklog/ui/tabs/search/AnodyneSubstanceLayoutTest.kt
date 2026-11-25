@@ -1,7 +1,7 @@
 package foo.pilz.freaklog.ui.tabs.search
 
 import androidx.compose.ui.test.getBoundsInRoot
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription

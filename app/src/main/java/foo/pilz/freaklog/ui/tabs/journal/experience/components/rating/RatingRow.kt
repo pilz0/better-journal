@@ -34,12 +34,12 @@ import foo.pilz.freaklog.data.room.experiences.entities.ShulginRating
 fun TimedRatingRow(
     modifier: Modifier = Modifier,
     ratingSign: String,
-    timeText: @Composable () -> Unit,
+    content: @Composable () -> Unit,
 ) {
   RatingRow(
       modifier = modifier,
       ratingSign = ratingSign,
-      content = timeText,
+      content = content,
   )
 }
 

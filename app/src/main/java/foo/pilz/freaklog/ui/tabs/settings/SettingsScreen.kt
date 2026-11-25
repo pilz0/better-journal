@@ -477,8 +477,12 @@ fun SettingsScreen(
         SettingsSwitchRow(
             text = "Independent substance heights",
             checked = areSubstanceHeightsIndependent,
+            onCheckedChange = {
+              performHaptic(HapticType.TOGGLE)
+              saveAreSubstanceHeightsIndependent(it)
+            },
             description = "Scale each substance and route independently in timelines.",
-            trailingInfo = {
+            content = {
               val sheetState =
                   rememberBottomSheetState(
                       SheetValue.Hidden,
@@ -517,10 +521,6 @@ fun SettingsScreen(
                   )
                 }
               }
-            },
-            onCheckedChange = {
-              performHaptic(HapticType.TOGGLE)
-              saveAreSubstanceHeightsIndependent(it)
             },
         )
         HorizontalDivider()
@@ -720,9 +720,9 @@ fun SettingsScreen(
 internal fun SettingsSwitchRow(
     text: String,
     checked: Boolean,
-    description: String? = null,
-    trailingInfo: @Composable (() -> Unit)? = null,
     onCheckedChange: (Boolean) -> Unit,
+    description: String? = null,
+    content: (@Composable () -> Unit)? = null,
 ) {
   Row(
       modifier =
@@ -742,7 +742,7 @@ internal fun SettingsSwitchRow(
         )
       }
     }
-    trailingInfo?.invoke()
+    content?.invoke()
     Switch(
         checked = checked,
         onCheckedChange = onCheckedChange,

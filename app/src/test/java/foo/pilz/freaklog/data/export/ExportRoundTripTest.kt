@@ -47,6 +47,7 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
 class ExportRoundTripTest {
+  private val lenientJson = Json { ignoreUnknownKeys = true }
   private lateinit var db: AppDatabase
   private lateinit var repository: ExperienceRepository
 
@@ -106,7 +107,7 @@ class ExportRoundTripTest {
 
     val json = buildJournalExportJson(repository, WebhookRepository(db.webhookDao()))
     repository.deleteEverything()
-    repository.replaceEverything(Json { ignoreUnknownKeys = true }.decodeFromString(json))
+    repository.replaceEverything(lenientJson.decodeFromString(json))
 
     val ingestion = dao.getSortedIngestionsFlow().first().single()
     assertThat(ingestion.administrationSite).isEqualTo("left nostril")
@@ -162,7 +163,7 @@ class ExportRoundTripTest {
         """
             .trimIndent()
 
-    val export = Json { ignoreUnknownKeys = true }.decodeFromString<JournalExport>(legacyJson)
+    val export = lenientJson.decodeFromString<JournalExport>(legacyJson)
     repository.replaceEverything(export)
 
     val ingestion = db.experienceDao().getSortedIngestionsFlow().first().single()

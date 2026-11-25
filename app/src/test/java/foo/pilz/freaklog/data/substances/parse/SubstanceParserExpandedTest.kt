@@ -101,7 +101,7 @@ class SubstanceParserExpandedTest {
               "Units should be present when dose thresholds exist in ${substance.name}",
               dose.units,
           )
-          assertFalse("Units should not be blank in ${substance.name}", dose.units.isNullOrBlank())
+          assertFalse("Units should not be blank in ${substance.name}", dose.units.isBlank())
         }
       }
     }

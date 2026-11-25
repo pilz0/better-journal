@@ -1,5 +1,6 @@
 package foo.pilz.freaklog.scheduled
 
+import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
@@ -76,16 +77,16 @@ class NotificationSchedulerTest {
 
     val snoozeAlarm =
         shadowAlarmManager.scheduledAlarms.first {
-          shadowOf(it.operation).savedIntent.action?.endsWith(".snooze") == true
+          shadowOf(it.alarmOperation).savedIntent.action?.endsWith(".snooze") == true
         }
-    assertEquals(snoozeTime, snoozeAlarm.triggerAtTime)
+    assertEquals(snoozeTime, snoozeAlarm.triggerAtMs)
 
     val regularAlarm =
         shadowAlarmManager.scheduledAlarms.first {
-          shadowOf(it.operation).savedIntent.action ==
+          shadowOf(it.alarmOperation).savedIntent.action ==
               "${NotificationScheduler.ACTION_FIRE_REMINDER}.1"
         }
-    assertEquals(regularTime, regularAlarm.triggerAtTime)
+    assertEquals(regularTime, regularAlarm.triggerAtMs)
   }
 
   @Test
@@ -98,7 +99,7 @@ class NotificationSchedulerTest {
     scheduler.scheduleReminder(rem)
     val hasSnooze =
         shadowAlarmManager.scheduledAlarms.any {
-          shadowOf(it.operation).savedIntent.action?.endsWith(".snooze") == true
+          shadowOf(it.alarmOperation).savedIntent.action?.endsWith(".snooze") == true
         }
     assertTrue(hasSnooze)
   }
@@ -124,7 +125,7 @@ class NotificationSchedulerTest {
     scheduler.cancelReminder(rem.id, includeSnooze = false)
     assertEquals(1, shadowAlarmManager.scheduledAlarms.size)
     assertTrue(
-        shadowOf(shadowAlarmManager.scheduledAlarms.single().operation)
+        shadowOf(shadowAlarmManager.scheduledAlarms.single().alarmOperation)
             .savedIntent
             .action
             ?.endsWith(".snooze") == true
@@ -150,6 +151,7 @@ class NotificationSchedulerTest {
     assertTrue(shadowAlarmManager.scheduledAlarms.isNotEmpty())
   }
 
+  @SuppressLint("InlinedApi")
   @Test
   fun `postReminderNotification fails closed when lock preference read throws`() = runTest {
     every { userPreferences.isLockEnabledFlow } returns
@@ -173,3 +175,8 @@ class NotificationSchedulerTest {
     assertEquals(0, posted.actions?.size ?: 0)
   }
 }
+
+// Robolectric 4.18.1 deprecates ScheduledAlarm.operation without providing a non-deprecated getter.
+@Suppress("DEPRECATION")
+private val ShadowAlarmManager.ScheduledAlarm.alarmOperation
+  get() = operation

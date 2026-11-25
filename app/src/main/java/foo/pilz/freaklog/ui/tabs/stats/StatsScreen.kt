@@ -75,6 +75,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -88,6 +89,7 @@ import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
 import foo.pilz.freaklog.ui.tabs.stats.substancecompanion.formatSiValue
 import foo.pilz.freaklog.ui.theme.JournalTheme
 import foo.pilz.freaklog.ui.theme.LocalSpacing
+import java.util.Locale
 import foo.pilz.freaklog.ui.utils.HapticType
 import foo.pilz.freaklog.ui.utils.getStringOfPattern
 import foo.pilz.freaklog.ui.utils.rememberHaptic
@@ -725,23 +727,26 @@ private fun SubstanceShareBar(
 }
 
 @Composable
-private fun rememberMetaLine(stat: StatItem): String =
-    remember(stat.routeCounts, stat.lastUsed) {
-      val routes =
-          stat.routeCounts.joinToString(" · ") {
-            "${it.administrationRoute.displayText.lowercase()} ${it.count}x"
-          }
-      val formattedDate =
-          stat.lastUsed?.let { instant ->
-            // Corrupt timestamps can fall outside the supported date range and throw
-            runCatching { instant.getStringOfPattern("dd MMM yyyy") }.getOrNull()
-          }
-      buildList {
-            if (routes.isNotBlank()) add(routes)
-            if (formattedDate != null) add("Last $formattedDate")
-          }
-          .joinToString(" · ")
-    }
+private fun rememberMetaLine(stat: StatItem): String {
+  val locales = LocalConfiguration.current.locales
+  val locale = if (locales.isEmpty) Locale.ROOT else locales[0]
+  return remember(stat.routeCounts, stat.lastUsed, locale) {
+    val routes =
+        stat.routeCounts.joinToString(" · ") {
+          "${it.administrationRoute.displayText.lowercase(locale)} ${it.count}x"
+        }
+    val formattedDate =
+        stat.lastUsed?.let { instant ->
+          // Corrupt timestamps can fall outside the supported date range and throw
+          runCatching { instant.getStringOfPattern("dd MMM yyyy") }.getOrNull()
+        }
+    buildList {
+          if (routes.isNotBlank()) add(routes)
+          if (formattedDate != null) add("Last $formattedDate")
+        }
+        .joinToString(" · ")
+  }
+}
 
 private fun formatTotalDose(totalDose: TotalDose): String {
   val value = totalDose.dose.toReadableString()

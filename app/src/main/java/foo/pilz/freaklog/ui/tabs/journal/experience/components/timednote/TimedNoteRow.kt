@@ -57,7 +57,7 @@ fun TimedNoteRowPreview(@PreviewParameter(TimedNotePreviewProvider::class) timed
 fun TimedNoteRow(
     timedNote: TimedNote,
     modifier: Modifier = Modifier,
-    timeText: @Composable () -> Unit,
+    content: @Composable () -> Unit,
 ) {
   Row(
       verticalAlignment = Alignment.CenterVertically,
@@ -90,7 +90,7 @@ fun TimedNoteRow(
           horizontalArrangement = Arrangement.spacedBy(15.dp),
           verticalAlignment = Alignment.Bottom,
       ) {
-        timeText()
+        content()
         if (!timedNote.isPartOfTimeline) {
           Text(text = "(Not in timeline)", style = MaterialTheme.typography.bodySmall)
         }

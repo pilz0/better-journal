@@ -304,7 +304,7 @@ class AnthropicMessagesClient(private val endpoint: AiEndpoint) : AiChatClient {
     return AiMessage.Assistant(text, calls, native)
   }
 
-  private fun errorFrom(error: JSONObject?): AiException {
+  internal fun errorFrom(error: JSONObject?): AiException {
     val type = error?.optString("type").orEmpty()
     val message = error?.optString("message").orEmpty().ifBlank { "Unknown error" }
     return when (type) {

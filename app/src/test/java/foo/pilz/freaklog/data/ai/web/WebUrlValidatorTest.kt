@@ -1,5 +1,6 @@
 package foo.pilz.freaklog.data.ai.web
 
+import android.annotation.SuppressLint
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNull
@@ -41,6 +42,7 @@ class WebUrlValidatorTest {
     assertThat(ipv6Url.host).isEqualTo("example.org")
   }
 
+  @SuppressLint("AuthLeak")
   @Test
   fun rejectsNonHttpsLocalhostCredentialsAndMalformedUrls() {
     val resolver = resolverFor(publicIpv4)

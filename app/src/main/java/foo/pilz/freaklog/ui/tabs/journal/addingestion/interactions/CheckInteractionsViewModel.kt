@@ -160,7 +160,7 @@ constructor(
   )
 }
 
-private fun getTimeAgoText(time: Instant, now: Instant): String {
+internal fun getTimeAgoText(time: Instant, now: Instant): String {
   val difference = getTimeDifferenceText(fromInstant = time, toInstant = now)
   return if (difference == JUST_NOW_TEXT) difference else "$difference ago"
 }
