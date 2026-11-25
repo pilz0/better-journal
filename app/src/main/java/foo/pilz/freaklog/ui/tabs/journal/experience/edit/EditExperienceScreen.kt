@@ -43,6 +43,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 
 @Composable
 fun EditExperienceScreen(
@@ -94,6 +95,7 @@ fun EditExperienceScreen(
   Scaffold(
       topBar = {
         TopAppBar(
+            navigationIcon = { NavigateBackButton() },
             title = { Text("Edit experience") },
             actions = {
               if (isEnteredTitleOk) {

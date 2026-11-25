@@ -26,10 +26,11 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.Webhook
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -52,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
+import foo.pilz.freaklog.ui.components.EmptyScreenDisclaimer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,13 +83,11 @@ fun WebhooksListScreen(
       },
   ) { padding ->
     if (webhooks.isEmpty()) {
-      Box(
-          modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
-          contentAlignment = Alignment.Center,
-      ) {
-        Text(
-            "No webhooks configured. Tap \"Add webhook\" to create one.",
-            style = MaterialTheme.typography.bodyMedium,
+      Box(modifier = Modifier.padding(padding)) {
+        EmptyScreenDisclaimer(
+            title = "No webhooks yet",
+            description = "Add a Discord webhook to post new ingestions to a channel",
+            icon = Icons.Outlined.Webhook,
         )
       }
     } else {
@@ -118,7 +118,7 @@ private fun WebhookRow(
 ) {
   var showMenu by remember { mutableStateOf(false) }
   var showDeleteDialog by remember { mutableStateOf(false) }
-  Card(modifier = Modifier.fillMaxWidth()) {
+  ElevatedCard(modifier = Modifier.fillMaxWidth()) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,

@@ -21,11 +21,9 @@ package foo.pilz.freaklog.ui.tabs.stats
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -61,7 +59,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -69,6 +66,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.ui.YOU
+import foo.pilz.freaklog.ui.components.EmptyScreenDisclaimer
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
 import foo.pilz.freaklog.ui.theme.JournalTheme
 import foo.pilz.freaklog.ui.theme.horizontalPadding
@@ -369,28 +367,4 @@ private fun formatTotalDose(totalDose: TotalDose): String {
   val estimatePrefix =
       if (totalDose.isEstimate && totalDose.estimatedDoseStandardDeviation == null) "~" else ""
   return "$estimatePrefix$value$uncertainty ${totalDose.units}"
-}
-
-@Composable
-fun EmptyScreenDisclaimer(title: String, description: String) {
-  Box(
-      contentAlignment = Alignment.Center,
-      modifier = Modifier.fillMaxSize(),
-  ) {
-    Column(
-        modifier = Modifier.padding(horizontal = 20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-      Text(
-          text = title,
-          style = MaterialTheme.typography.headlineSmall,
-          textAlign = TextAlign.Center,
-      )
-      Spacer(modifier = Modifier.height(10.dp))
-      Text(
-          text = description,
-          textAlign = TextAlign.Center,
-      )
-    }
-  }
 }

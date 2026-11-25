@@ -66,6 +66,8 @@ import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionA
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.substances.classes.roa.DoseClass
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
+import foo.pilz.freaklog.ui.components.NavigateBackButton
+import foo.pilz.freaklog.ui.components.clearOfImeFab
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.CurrentDoseClassInfo
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.StandardDeviationExplanation
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.search.suggestion.models.toStringWith
@@ -176,7 +178,12 @@ private fun FinishAddCustomUnitScreenContent(
     onChangeOfIsArchived: (Boolean) -> Unit,
 ) {
   Scaffold(
-      topBar = { TopAppBar(title = { Text("$substanceName unit") }) },
+      topBar = {
+        TopAppBar(
+            navigationIcon = { NavigateBackButton() },
+            title = { Text("$substanceName unit") },
+        )
+      },
       floatingActionButton = {
         FloatingDoneButton(
             onDone = dismiss,
@@ -242,7 +249,9 @@ fun EditCustomUnitSections(
     isArchived: Boolean,
     onChangeOfIsArchived: (Boolean) -> Unit,
 ) {
-  Column(modifier = Modifier.padding(padding).verticalScroll(rememberScrollState())) {
+  Column(
+      modifier = Modifier.padding(padding).clearOfImeFab().verticalScroll(rememberScrollState())
+  ) {
     Spacer(modifier = Modifier.height(4.dp))
     val textStyle = MaterialTheme.typography.titleMedium
     val focusRequesterName = remember { FocusRequester() }

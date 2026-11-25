@@ -70,7 +70,7 @@ fun AddCustomSubstanceFromAnodyneSheet(
       OutlinedTextField(
           value = name,
           onValueChange = { name = it },
-          label = { Text("Substance Name") },
+          label = { Text("Substance name") },
           modifier = Modifier.fillMaxWidth(),
           singleLine = true,
       )
@@ -79,7 +79,7 @@ fun AddCustomSubstanceFromAnodyneSheet(
       OutlinedTextField(
           value = unit,
           onValueChange = { unit = it },
-          label = { Text("Default Unit") },
+          label = { Text("Default unit") },
           modifier = Modifier.fillMaxWidth(),
           singleLine = true,
       )
@@ -100,7 +100,7 @@ fun AddCustomSubstanceFromAnodyneSheet(
             modifier = Modifier.weight(1f),
             enabled = name.isNotBlank() && unit.isNotBlank(),
         ) {
-          Text("Add Substance")
+          Text("Add substance")
         }
       }
     }

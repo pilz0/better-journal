@@ -77,4 +77,12 @@ class DoubleReadableExtensionKtTest {
       pool.shutdownNow()
     }
   }
+
+  @Test
+  fun preservedStringKeepsDigitsWithoutNoise() {
+    assertEquals("100", 100.0.toPreservedString())
+    assertEquals("0.0001", 0.0001.toPreservedString())
+    assertEquals("12.345678", 12.345678.toPreservedString())
+    assertEquals("1500000", 1.5e6.toPreservedString())
+  }
 }

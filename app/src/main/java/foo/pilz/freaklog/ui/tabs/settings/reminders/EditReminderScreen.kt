@@ -263,7 +263,10 @@ private fun TimesOfDayEditor(
               }
             }
           },
-          label = { Text("%02d:%02d".format(time.hour, time.minute)) },
+          // Same 12/24-hour choice as the picker that edits it.
+          label = {
+            Text(time.format(DateTimeFormatter.ofPattern(if (is24h) "HH:mm" else "h:mm a")))
+          },
           trailingIcon = {
             IconButton(
                 onClick = { onRemove(time) },

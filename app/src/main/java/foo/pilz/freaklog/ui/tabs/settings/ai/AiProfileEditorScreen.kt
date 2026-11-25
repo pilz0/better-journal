@@ -154,7 +154,10 @@ private fun EditorForm(
         onSelect = { standard -> viewModel.edit { it.copy(standard = standard) } },
     )
     BaseUrlField(draft.baseUrl) { value -> viewModel.edit { it.copy(baseUrl = value) } }
-    AiLocalNetworkAccess()
+    // Only self-hosted servers can be on the LAN; hosted presets never need the grant.
+    if (!draft.preset.requiresApiKey || draft.baseUrl != draft.preset.baseUrl) {
+      AiLocalNetworkAccess()
+    }
     ApiKeyField(
         draft = draft,
         onChange = { value -> viewModel.edit { it.copy(apiKey = value) } },

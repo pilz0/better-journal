@@ -65,6 +65,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.Spray
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
 import foo.pilz.freaklog.ui.theme.horizontalPadding
@@ -134,7 +135,8 @@ fun SprayCalculatorScreenContent(
   Scaffold(
       topBar = {
         TopAppBar(
-            title = { Text("Spray Calculator") },
+            navigationIcon = { NavigateBackButton() },
+            title = { Text("Spray calculator") },
             actions = {
               IconButton(onClick = { showInfoDialog = true }) {
                 Icon(Icons.Default.Info, contentDescription = "Info")
@@ -168,7 +170,7 @@ fun SprayCalculatorScreenContent(
             )
             Spacer(modifier = Modifier.width(8.dp))
             IconButton(onClick = onAddSpray) {
-              Icon(Icons.Default.Add, contentDescription = "Add Spray")
+              Icon(Icons.Default.Add, contentDescription = "Add spray")
             }
           }
 
@@ -182,7 +184,7 @@ fun SprayCalculatorScreenContent(
             OutlinedTextField(
                 value = weightPerSpray,
                 onValueChange = onSetWeightPerSpray,
-                label = { Text("Target Strength / Spray") },
+                label = { Text("Target strength per spray") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 modifier = Modifier.weight(1f),
             )
@@ -203,7 +205,7 @@ fun SprayCalculatorScreenContent(
             OutlinedTextField(
                 value = liquidAmountInMl,
                 onValueChange = onSetLiquidAmountInMl,
-                label = { Text("Liquid Volume") },
+                label = { Text("Liquid volume") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 modifier = Modifier.weight(1f),
             )
@@ -229,7 +231,7 @@ fun SprayCalculatorScreenContent(
             OutlinedTextField(
                 value = totalWeight,
                 onValueChange = onSetTotalWeight,
-                label = { Text("Total Weight") },
+                label = { Text("Total weight") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 modifier = Modifier.weight(1f),
             )
@@ -372,7 +374,7 @@ fun SpraySelectionDropdown(
         value = selectedSpray?.name ?: if (sprays.isEmpty()) "No sprays" else "Select spray",
         onValueChange = {},
         readOnly = true,
-        label = { Text("Spray Bottle") },
+        label = { Text("Spray bottle") },
         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
         modifier =
             Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),

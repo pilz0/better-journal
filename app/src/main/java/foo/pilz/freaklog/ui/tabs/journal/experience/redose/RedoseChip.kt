@@ -27,9 +27,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
+import foo.pilz.freaklog.ui.utils.getShortTimeText
 import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -71,9 +70,6 @@ fun rememberRedoseChipState(
     viewModel: RedoseChipViewModel = hiltViewModel()
 ): State<RedoseChipState> = viewModel.stateFlow.collectAsStateWithLifecycle()
 
-private val REDOSE_TIME_FORMATTER: DateTimeFormatter =
-    DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault())
-
 /**
  * Renders a compact "next redose" chip next to an ingestion row. Returns silently if the feature is
  * disabled in settings or the substance has insufficient duration data to compute a meaningful
@@ -89,7 +85,7 @@ fun RedoseChip(
     state: RedoseChipState,
     modifier: Modifier = Modifier,
 ) {
-  if (!state.show) return
+  if (!state.show || !isDoseStillActive(ingestionTime, roaDuration, Instant.now())) return
   val redoseAt =
       remember(ingestionTime, roaDuration, state.params) {
         computeRedoseTime(ingestionTime, roaDuration, state.params)
@@ -110,7 +106,7 @@ fun RedoseChip(
         modifier = Modifier.padding(end = 4.dp),
     )
     Text(
-        text = "Redose ≥ ${REDOSE_TIME_FORMATTER.format(redoseAt)}",
+        text = "Redose not before ${redoseAt.getShortTimeText()}",
         style = MaterialTheme.typography.labelSmall,
         color = MaterialTheme.colorScheme.onSecondaryContainer,
     )

@@ -43,6 +43,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import foo.pilz.freaklog.data.room.experiences.entities.IntakeLimitType
+import foo.pilz.freaklog.ui.components.NavigateBackButton
+import foo.pilz.freaklog.ui.components.clearOfImeFab
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.components.WarningBanner
 import foo.pilz.freaklog.ui.tabs.journal.experience.rating.FloatingDoneButton
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.dose.RoaDoseView
@@ -60,6 +62,7 @@ fun EditIntakeLimitScreen(
   Scaffold(
       topBar = {
         TopAppBar(
+            navigationIcon = { NavigateBackButton() },
             title = { Text(if (viewModel.isEditing) "Edit intake limit" else "New intake limit") },
             actions = {
               if (viewModel.isEditing) {
@@ -80,7 +83,7 @@ fun EditIntakeLimitScreen(
       },
   ) { padding ->
     Column(
-        modifier = Modifier.padding(padding).verticalScroll(rememberScrollState()),
+        modifier = Modifier.padding(padding).clearOfImeFab().verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
       ElevatedCard(

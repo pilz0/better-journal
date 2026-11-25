@@ -167,7 +167,7 @@ private fun FormulaAndMassRow(formula: String?, molarMass: String?) {
     molarMass?.let { mass ->
       Column {
         Text(
-            text = "Molar Mass",
+            text = "Molar mass",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -253,7 +253,7 @@ fun AnodyneToxicitySection(reportedFatalDose: String?, treatment: String?) {
   AnodyneCard("Toxicity & Harm Reduction") {
     reportedFatalDose?.let {
       Text(
-          text = "Reported Fatal Dose",
+          text = "Reported fatal dose",
           style = MaterialTheme.typography.labelSmall,
           color = MaterialTheme.colorScheme.error,
       )
@@ -277,7 +277,7 @@ fun AnodyneHealthWarningsSection(healthEffects: String?, drugWarnings: String?) 
   AnodyneCard("Health Effects & Warnings") {
     drugWarnings?.let {
       Text(
-          text = "Drug Warnings",
+          text = "Drug warnings",
           style = MaterialTheme.typography.labelSmall,
           color = MaterialTheme.colorScheme.error,
       )
@@ -286,7 +286,7 @@ fun AnodyneHealthWarningsSection(healthEffects: String?, drugWarnings: String?) 
     }
     healthEffects?.let {
       Text(
-          text = "Health Effects",
+          text = "Health effects",
           style = MaterialTheme.typography.labelSmall,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
       )

@@ -44,9 +44,11 @@ fun CardWithTitle(
       Text(
           text = title,
           style = MaterialTheme.typography.titleMedium,
+          // Always inset: innerPaddingHorizontal only lets full-width rows (e.g. buttons) reach
+          // the card edge, the title must not touch it.
           modifier =
               Modifier.padding(
-                  horizontal = innerPaddingHorizontal,
+                  horizontal = horizontalPadding,
                   vertical = 4.dp,
               ),
       )

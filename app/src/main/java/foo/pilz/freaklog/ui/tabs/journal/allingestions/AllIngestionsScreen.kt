@@ -72,7 +72,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.theme.horizontalPadding
+import foo.pilz.freaklog.ui.utils.getShortTimeText
 import foo.pilz.freaklog.ui.utils.getStringOfPattern
 import java.time.Duration
 import java.time.Instant
@@ -116,7 +118,8 @@ fun AllIngestionsScreenContent(
   Scaffold(
       topBar = {
         TopAppBar(
-            title = { Text("All Ingestions") },
+            navigationIcon = { NavigateBackButton() },
+            title = { Text("All ingestions") },
             actions = {
               IconToggleButton(
                   checked = isTimeRelative,
@@ -279,7 +282,7 @@ fun IngestionItem(
             if (isTimeRelative) {
               getRelativeTimeString(ingestion.time)
             } else {
-              ingestion.time.getStringOfPattern("HH:mm")
+              ingestion.time.getShortTimeText()
             },
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,

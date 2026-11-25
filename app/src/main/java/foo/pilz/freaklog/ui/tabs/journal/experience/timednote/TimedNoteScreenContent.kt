@@ -37,6 +37,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.ColorPicker
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
 import foo.pilz.freaklog.ui.tabs.journal.experience.rating.TimePickerSection
@@ -49,6 +50,7 @@ fun TimedNoteScreenContentPreview() {
   Scaffold(
       topBar = {
         TopAppBar(
+            navigationIcon = { NavigateBackButton() },
             title = { Text("Add timed note") },
             actions = {
               IconButton(onClick = {}) {

@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.search.substance.SectionText
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 
@@ -59,6 +60,7 @@ fun DoseGuideScreen(
   Scaffold(
       topBar = {
         TopAppBar(
+            navigationIcon = { NavigateBackButton() },
             title = { Text("Dosage guide") },
             actions = {
               TextButton(
@@ -164,7 +166,7 @@ When performing an allergy test, one should note any unusual side effects includ
       SectionText(
           text =
               """
-              |The range and intensity of the effects of a substance depends on upon a number of factors. These include route of administration, dosage, set and setting, and personal and environmental factors.
+              |The range and intensity of the effects of a substance depends upon a number of factors. These include route of administration, dosage, set and setting, and personal and environmental factors.
               |Effective doses can be divided into five categories: threshold, light, common, strong, and heavy.
               """
                   .trimMargin()

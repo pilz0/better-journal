@@ -65,7 +65,7 @@ fun AddCustomFormulationScreen(
   Scaffold(
       topBar = {
         TopAppBar(
-            title = { Text("Add Formulation") },
+            title = { Text("Add formulation") },
             navigationIcon = {
               IconButton(onClick = navigateBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -85,7 +85,7 @@ fun AddCustomFormulationScreen(
       OutlinedTextField(
           value = substanceName,
           onValueChange = { substanceName = it },
-          label = { Text("Substance Name") },
+          label = { Text("Substance name") },
           modifier = Modifier.fillMaxWidth(),
       )
 

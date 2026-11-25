@@ -26,7 +26,7 @@ fun ToleranceInfoSheet(onDismissRequest: () -> Unit) {
   ) {
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 48.dp)) {
       Text(
-          text = "Tolerance Information",
+          text = "Tolerance information",
           style = MaterialTheme.typography.headlineSmall,
       )
 

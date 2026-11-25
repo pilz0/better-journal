@@ -47,6 +47,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 
@@ -82,7 +83,8 @@ fun AddSprayScreenContent(onSave: (name: String, contentInMl: Double, numSprays:
   Scaffold(
       topBar = {
         TopAppBar(
-            title = { Text("Add Spray") },
+            navigationIcon = { NavigateBackButton() },
+            title = { Text("Add spray") },
             actions = {
               if (canSave) {
                 Button(
@@ -107,7 +109,7 @@ fun AddSprayScreenContent(onSave: (name: String, contentInMl: Double, numSprays:
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
-            label = { Text("Spray Name") },
+            label = { Text("Spray name") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
         )

@@ -64,6 +64,9 @@ import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.substances.classes.roa.DoseClass
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
+import foo.pilz.freaklog.ui.components.NavigateBackButton
+import foo.pilz.freaklog.ui.components.clearOfImeFab
+import foo.pilz.freaklog.ui.components.wholeFieldAboveIme
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.StandardDeviationExplanation
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.search.suggestion.models.justUnit
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.dose.RoaDosePreviewProvider
@@ -192,7 +195,7 @@ fun ChooseDoseCustomUnitScreen(
 ) {
   Scaffold(
       topBar = {
-        TopAppBar(title = { Text(customUnit.name) })
+        TopAppBar(navigationIcon = { NavigateBackButton() }, title = { Text(customUnit.name) })
       },
       floatingActionButton = {
         if (isValidDose) {
@@ -210,7 +213,9 @@ fun ChooseDoseCustomUnitScreen(
         }
       },
   ) { padding ->
-    Column(modifier = Modifier.padding(padding).verticalScroll(rememberScrollState())) {
+    Column(
+        modifier = Modifier.padding(padding).clearOfImeFab().verticalScroll(rememberScrollState())
+    ) {
       LinearProgressIndicator(
           progress = { 0.67f },
           modifier = Modifier.fillMaxWidth(),
@@ -289,7 +294,7 @@ fun ChooseDoseCustomUnitScreen(
               },
               textStyle = textStyle,
               label = { Text("Dose", style = textStyle) },
-              isError = !isValidDose,
+              isError = !isValidDose && doseText.isNotBlank(),
               trailingIcon = {
                 Text(
                     text = pluralizableUnit.justUnit(dose ?: 1.0),
@@ -305,7 +310,8 @@ fun ChooseDoseCustomUnitScreen(
                   ),
               keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
               singleLine = true,
-              modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+              modifier =
+                  Modifier.fillMaxWidth().focusRequester(focusRequester).wholeFieldAboveIme(),
           )
           Row(
               verticalAlignment = Alignment.CenterVertically,

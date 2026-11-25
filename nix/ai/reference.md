@@ -602,6 +602,7 @@ maintainer's server).
 3. Create a `@HiltViewModel` ViewModel with `@Inject constructor`
 4. Inject DAOs/repositories via the ViewModel constructor
 5. Collect `StateFlow`/`Flow` with `collectAsStateWithLifecycle()`, never plain `collectAsState()`: with `stateInVm`'s `WhileSubscribed` it stops Room queries and tickers in the background
+6. Follow the design language (`ui/components/`): `NavigateBackButton()` as the top bar `navigationIcon` of every non-tab screen; `ElevatedCard` (or `CardWithTitle`) for sections and list items; `EmptyScreenDisclaimer` for empty states; `ui.theme.SearchBar` for search fields; labelled `ExtendedFloatingActionButton`s; sentence-case labels ("Add spray", not "Add Spray"); times via `getShortTimeText()` (respects 12/24 h). Forms whose FAB floats above the keyboard put `Modifier.clearOfImeFab()` on the scroll container, and `wholeFieldAboveIme()` on a field that is focused on open.
 
 ### Adding a new Room entity
 

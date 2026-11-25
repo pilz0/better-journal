@@ -30,10 +30,9 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.NotificationsOff
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -249,10 +248,9 @@ private fun ReminderRow(
     onDelete: (Reminder) -> Unit,
     onDuplicate: (Reminder) -> Unit,
 ) {
-  Card(
+  ElevatedCard(
       modifier = Modifier.fillMaxWidth(),
       onClick = { onEdit(reminder) },
-      colors = CardDefaults.cardColors(),
   ) {
     Column(modifier = Modifier.padding(16.dp)) {
       Row(verticalAlignment = Alignment.CenterVertically) {

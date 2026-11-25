@@ -90,14 +90,21 @@ fun SaferUseScreen(
       SectionWithTitle(title = "1. Research") {
         SaferText(
             text =
-                "In advance research the duration, subjective effects and potential adverse effects which the substance or combination of substances are likely to produce.\nRead the info in here and also the PsychonautWiki article. Its best to cross-reference with other sources (Tripsit, Erowid, Wikipedia, Bluelight, Reddit, etc). There is no rush."
+                "In advance research the duration, subjective effects and potential adverse " +
+                    "effects which the substance or combination of substances are likely to " +
+                    "produce.\nRead the info in here and also the PsychonautWiki article. It's best" +
+                    " to cross-reference with other sources (Tripsit, Erowid, Wikipedia, Bluelight," +
+                    " Reddit, etc). There is no rush."
         )
       }
       val uriHandler = LocalUriHandler.current
       SectionWithTitle(title = "2. Testing") {
         SaferText(
             text =
-                "Test your substance with anonymous and free drug testing services. If those are not available in your country, use reagent testing kits. Don‘t trust your dealer to sell reliable product. Its better to have a tested stash instead of relying on a source spontaneously."
+                "Test your substance with anonymous and free drug testing services. If those " +
+                    "are not available in your country, use reagent testing kits. Don't trust your " +
+                    "dealer to sell reliable product. It's better to have a tested stash instead of" +
+                    " relying on a source spontaneously."
         )
         Button(
             onClick = navigateToDrugTestingScreen,
@@ -269,11 +276,11 @@ fun SaferUseScreen(
         ) {
           Icon(
               Icons.Outlined.Science,
-              contentDescription = "Spray Calculator",
+              contentDescription = null,
               modifier = Modifier.size(ButtonDefaults.IconSize),
           )
           Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-          Text("Spray Calculator")
+          Text("Spray calculator")
           Spacer(modifier = Modifier.weight(1f))
         }
       }

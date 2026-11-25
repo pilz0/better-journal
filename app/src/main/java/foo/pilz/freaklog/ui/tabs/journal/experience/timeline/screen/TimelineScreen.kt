@@ -49,6 +49,8 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import foo.pilz.freaklog.ui.YOU
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.journal.experience.TimelineDisplayOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.TimeDisplayOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.AllTimelines
@@ -61,7 +63,7 @@ import foo.pilz.freaklog.ui.theme.horizontalPadding
 @Composable
 fun TimelineScreen(viewModel: TimelineScreenViewModel = hiltViewModel()) {
   TimelineScreen(
-      title = viewModel.consumerName,
+      title = viewModel.consumerName.let { if (it == YOU) "Timeline" else "Timeline · $it" },
       timelineDisplayOption =
           viewModel.timelineDisplayOptionFlow.collectAsStateWithLifecycle().value,
       timeDisplayOption = viewModel.timeDisplayOptionFlow.collectAsStateWithLifecycle().value,
@@ -88,7 +90,7 @@ fun TimelineScreen(
 ) {
   Scaffold(
       topBar = {
-        TopAppBar(title = { Text(title) })
+        TopAppBar(navigationIcon = { NavigateBackButton() }, title = { Text(title) })
       }
   ) { padding ->
     Column(

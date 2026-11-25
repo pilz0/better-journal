@@ -23,6 +23,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
@@ -36,8 +38,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.data.substances.AdministrationRoute
+import foo.pilz.freaklog.ui.components.EmptyScreenDisclaimer
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.settings.customunits.CustomUnitRow
-import foo.pilz.freaklog.ui.tabs.stats.EmptyScreenDisclaimer
 
 @Composable
 fun CustomUnitArchiveScreen(
@@ -95,7 +98,10 @@ fun CustomUnitArchiveScreenContent(
 ) {
   Scaffold(
       topBar = {
-        TopAppBar(title = { Text("Custom unit archive") })
+        TopAppBar(
+            navigationIcon = { NavigateBackButton() },
+            title = { Text("Custom unit archive") },
+        )
       }
   ) { padding ->
     Box(
@@ -115,6 +121,7 @@ fun CustomUnitArchiveScreenContent(
         EmptyScreenDisclaimer(
             title = "No archived units yet",
             description = "Archived units don't show up when adding ingestions",
+            icon = Icons.Outlined.Archive,
         )
       }
     }

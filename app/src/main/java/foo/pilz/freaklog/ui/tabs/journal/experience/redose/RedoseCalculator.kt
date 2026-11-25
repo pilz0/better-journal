@@ -71,6 +71,22 @@ fun computeRedoseTime(
   return ingestionTime.plusSeconds(offsetSec.toLong())
 }
 
+/**
+ * True while the dose can still be active at [now], so a redose hint means something. Uses the
+ * longest total duration, or the sum of the longest phases when no total is known.
+ */
+fun isDoseStillActive(ingestionTime: Instant, duration: RoaDuration?, now: Instant): Boolean {
+  if (duration == null) return false
+  val longest =
+      duration.total?.maxInSec
+          ?: listOf(duration.onset, duration.comeup, duration.peak, duration.offset)
+              .mapNotNull { it?.maxInSec ?: it?.minInSec }
+              .takeIf { it.isNotEmpty() }
+              ?.sum()
+          ?: return false
+  return now.isBefore(ingestionTime.plusSeconds(longest.toLong()))
+}
+
 private fun avgSeconds(range: DurationRange?): Float? {
   if (range == null) return null
   val min = range.minInSec

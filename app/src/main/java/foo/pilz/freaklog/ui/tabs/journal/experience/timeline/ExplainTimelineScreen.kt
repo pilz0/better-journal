@@ -35,6 +35,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
 import foo.pilz.freaklog.ui.tabs.search.substance.BulletPoints
 import foo.pilz.freaklog.ui.tabs.search.substance.SectionText
@@ -48,6 +49,7 @@ fun ExplainTimelineScreen() {
   Scaffold(
       topBar = {
         TopAppBar(
+            navigationIcon = { NavigateBackButton() },
             title = { Text("Timeline info") },
         )
       },

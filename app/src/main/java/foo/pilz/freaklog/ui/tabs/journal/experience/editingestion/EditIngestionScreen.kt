@@ -84,6 +84,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.ui.YOU
+import foo.pilz.freaklog.ui.components.NavigateBackButton
+import foo.pilz.freaklog.ui.components.clearOfImeFab
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.StandardDeviationExplanation
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.IngestionCategoryPicker
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.IngestionTimePickerOption
@@ -261,6 +263,7 @@ fun EditIngestionScreen(
   Scaffold(
       topBar = {
         TopAppBar(
+            navigationIcon = { NavigateBackButton() },
             title = { Text("Edit ingestion") },
             actions = {
               var isShowingDeleteDialog by remember { mutableStateOf(false) }
@@ -315,7 +318,8 @@ fun EditIngestionScreen(
   ) { padding ->
     Column(
         modifier =
-            Modifier.verticalScroll(rememberScrollState())
+            Modifier.clearOfImeFab()
+                .verticalScroll(rememberScrollState())
                 .padding(padding)
                 .padding(horizontal = horizontalPadding)
     ) {
@@ -635,7 +639,7 @@ fun EditIngestionScreen(
                   )
           ) {
             TextButton(onClick = onResendWebhook) {
-              Text(text = "Resend Webhook")
+              Text(text = "Resend webhook")
             }
           }
         }

@@ -29,6 +29,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.IntakeLimit
 import foo.pilz.freaklog.data.room.experiences.entities.IntakeLimitType
 import foo.pilz.freaklog.ui.components.EmptyScreenDisclaimer
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.theme.LocalSpacing
 import java.time.Instant
 
@@ -88,7 +89,9 @@ fun IntakeLimitsScreenContent(
 ) {
   val spacing = LocalSpacing.current
   Scaffold(
-      topBar = { TopAppBar(title = { Text("Intake limits") }) },
+      topBar = {
+        TopAppBar(navigationIcon = { NavigateBackButton() }, title = { Text("Intake limits") })
+      },
       floatingActionButton = {
         ExtendedFloatingActionButton(
             modifier = Modifier.imePadding(),

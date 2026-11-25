@@ -54,6 +54,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
 import foo.pilz.freaklog.data.substances.classes.Tolerance
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.ToleranceSection
 import foo.pilz.freaklog.ui.theme.JournalTheme
@@ -171,7 +172,7 @@ fun SubstanceCompanionScreen(
             } else {
               "${substanceCompanion.substanceName} ($consumerName)"
             }
-        TopAppBar(title = { Text(title) })
+        TopAppBar(navigationIcon = { NavigateBackButton() }, title = { Text(title) })
       }
   ) { padding ->
     LazyColumn(

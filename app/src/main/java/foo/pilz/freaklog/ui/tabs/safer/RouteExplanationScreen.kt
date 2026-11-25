@@ -44,6 +44,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import foo.pilz.freaklog.data.substances.AdministrationRoute
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.search.substance.SectionText
 import foo.pilz.freaklog.ui.tabs.search.substance.SectionWithTitle
 import foo.pilz.freaklog.ui.tabs.search.substance.VerticalSpace
@@ -57,6 +58,7 @@ fun RouteExplanationScreen() {
   Scaffold(
       topBar = {
         TopAppBar(
+            navigationIcon = { NavigateBackButton() },
             title = { Text("Routes of administration") },
             actions = {
               TextButton(
@@ -71,13 +73,7 @@ fun RouteExplanationScreen() {
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(padding)
     ) {
-      ElevatedCard(
-          modifier =
-              Modifier.padding(
-                  horizontal = horizontalPadding,
-                  vertical = 3.dp,
-              )
-      ) {
+      ElevatedCard(modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 3.dp)) {
         Column(modifier = Modifier.padding(horizontal = horizontalPadding)) {
           SectionText(
               text =

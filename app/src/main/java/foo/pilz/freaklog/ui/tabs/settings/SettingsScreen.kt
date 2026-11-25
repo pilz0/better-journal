@@ -766,7 +766,7 @@ fun SettingsScreen(
       }
 
       CardWithTitle(title = "App data", innerPaddingHorizontal = 0.dp) {
-        SettingsButton(imageVector = Icons.Outlined.FileUpload, text = "Export File") {
+        SettingsButton(imageVector = Icons.Outlined.FileUpload, text = "Export file") {
           performHaptic(HapticType.CLICK)
           isShowingExportDialog = true
         }
@@ -793,7 +793,7 @@ fun SettingsScreen(
       }
 
       CardWithTitle(title = "App", innerPaddingHorizontal = 0.dp) {
-        SettingsButton(imageVector = Icons.Outlined.Code, text = "Source Code") {
+        SettingsButton(imageVector = Icons.Outlined.Code, text = "Source code") {
           performHaptic(HapticType.CLICK)
           uriHandler.openUri("https://woof.rip/FreakLog/FreakLog-Android")
         }
@@ -1049,7 +1049,7 @@ fun SettingsButton(imageVector: ImageVector, text: String, onClick: () -> Unit) 
   ) {
     Icon(
         imageVector,
-        contentDescription = imageVector.name,
+        contentDescription = null, // decorative: the text says what the button does
         modifier = Modifier.size(ButtonDefaults.IconSize),
     )
     Spacer(Modifier.size(ButtonDefaults.IconSpacing))

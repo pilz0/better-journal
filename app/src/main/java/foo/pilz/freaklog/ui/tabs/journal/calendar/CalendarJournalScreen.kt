@@ -66,6 +66,7 @@ import com.kizitonwose.calendar.core.DayPosition
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsCompanionsAndRatings
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.journal.components.ExperienceRow
 import foo.pilz.freaklog.ui.theme.JournalTheme
 import foo.pilz.freaklog.ui.theme.horizontalPadding
@@ -90,7 +91,8 @@ fun CalendarJournalScreen(
   val today = remember { LocalDate.now() }
   val currentMonth = remember { YearMonth.now() }
   val startMonth = remember { currentMonth.minusYears(20) }
-  val endMonth = remember { currentMonth.plusMonths(10) }
+  // A journal has no future entries: end at this month so it opens on the past, not empty months.
+  val endMonth = currentMonth
   val firstDayOfWeek = remember { firstDayOfWeekFromLocale() }
 
   val state =
@@ -103,6 +105,7 @@ fun CalendarJournalScreen(
   Scaffold(
       topBar = {
         TopAppBar(
+            navigationIcon = { NavigateBackButton() },
             title = { Text("Journal") },
             actions = {
               val coroutineScope = rememberCoroutineScope()

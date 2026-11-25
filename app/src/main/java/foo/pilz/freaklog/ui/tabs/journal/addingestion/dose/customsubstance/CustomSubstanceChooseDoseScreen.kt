@@ -64,6 +64,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import foo.pilz.freaklog.data.substances.AdministrationRoute
+import foo.pilz.freaklog.ui.components.NavigateBackButton
+import foo.pilz.freaklog.ui.components.clearOfImeFab
+import foo.pilz.freaklog.ui.components.wholeFieldAboveIme
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.PurityCalculation
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.StandardDeviationExplanation
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.UnknownDoseDialog
@@ -177,6 +180,7 @@ fun CustomSubstanceChooseDoseScreen(
   Scaffold(
       topBar = {
         TopAppBar(
+            navigationIcon = { NavigateBackButton() },
             title = { Text(administrationRoute.displayText + " " + substanceName + " Dosage") },
             actions = {
               var isShowingUnknownDoseDialog by remember { mutableStateOf(false) }
@@ -211,7 +215,9 @@ fun CustomSubstanceChooseDoseScreen(
         }
       },
   ) { padding ->
-    Column(modifier = Modifier.padding(padding).verticalScroll(rememberScrollState())) {
+    Column(
+        modifier = Modifier.padding(padding).clearOfImeFab().verticalScroll(rememberScrollState())
+    ) {
       LinearProgressIndicator(
           progress = { 0.67f },
           modifier = Modifier.fillMaxWidth(),
@@ -251,7 +257,7 @@ fun CustomSubstanceChooseDoseScreen(
               },
               textStyle = textStyle,
               label = { Text("Pure dose", style = textStyle) },
-              isError = !isValidDose,
+              isError = !isValidDose && doseText.isNotBlank(),
               trailingIcon = {
                 Text(
                     text = units,
@@ -267,7 +273,7 @@ fun CustomSubstanceChooseDoseScreen(
                   ),
               keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
               singleLine = true,
-              modifier = Modifier.fillMaxWidth(),
+              modifier = Modifier.fillMaxWidth().wholeFieldAboveIme(),
           )
           Row(
               verticalAlignment = Alignment.CenterVertically,

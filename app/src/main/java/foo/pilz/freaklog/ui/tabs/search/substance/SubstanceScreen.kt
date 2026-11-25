@@ -76,6 +76,7 @@ import foo.pilz.freaklog.data.substances.classes.Category
 import foo.pilz.freaklog.data.substances.classes.SubstanceWithCategories
 import foo.pilz.freaklog.ui.DOSE_DISCLAIMER
 import foo.pilz.freaklog.ui.FULL_STOMACH_DISCLAIMER
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.ChasingTheDragonText
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.OptionalDosageUnitDisclaimer
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.customunit.CustomUnitRoaDoseView
@@ -189,6 +190,7 @@ fun SubstanceScreen(
   Scaffold(
       topBar = {
         TopAppBar(
+            navigationIcon = { NavigateBackButton() },
             title = { Text(substance.name) },
             actions = {
               TextButton(
@@ -628,7 +630,7 @@ fun SubstanceScreen(
         ) {
           Icon(Icons.AutoMirrored.Outlined.Notes, contentDescription = null)
           Spacer(Modifier.width(8.dp))
-          Text("View User Experience Notes")
+          Text("View user experience notes")
         }
         AnodyneSourcesSection(
             substanceName = anodyneSubstance.title,

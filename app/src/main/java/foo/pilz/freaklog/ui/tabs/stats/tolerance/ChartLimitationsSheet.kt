@@ -26,7 +26,7 @@ fun ChartLimitationsSheet(onDismissRequest: () -> Unit) {
   ) {
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 48.dp)) {
       Text(
-          text = "Chart Limitations",
+          text = "Chart limitations",
           style = MaterialTheme.typography.headlineSmall,
       )
 

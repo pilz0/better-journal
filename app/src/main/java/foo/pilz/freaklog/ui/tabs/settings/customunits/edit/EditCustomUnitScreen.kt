@@ -42,6 +42,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.substances.classes.roa.DoseClass
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.journal.experience.rating.FloatingDoneButton
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.dose.RoaDosePreviewProvider
 import foo.pilz.freaklog.ui.tabs.settings.customunits.add.EditCustomUnitSections
@@ -155,6 +156,7 @@ private fun EditCustomUnitScreenContent(
   Scaffold(
       topBar = {
         TopAppBar(
+            navigationIcon = { NavigateBackButton() },
             title = { Text("$substanceName unit") },
             actions = {
               var isShowingDeleteDialog by remember { mutableStateOf(false) }

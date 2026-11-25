@@ -19,6 +19,8 @@
 package foo.pilz.freaklog.ui.tabs.search.substance.category
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -34,7 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import foo.pilz.freaklog.data.anodyne.AnodyneInstance
 import foo.pilz.freaklog.data.substances.classes.Category
-import foo.pilz.freaklog.ui.tabs.stats.EmptyScreenDisclaimer
+import foo.pilz.freaklog.ui.components.EmptyScreenDisclaimer
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 
 @Composable
@@ -64,12 +67,14 @@ fun CategoryScreen(category: Category?) {
     EmptyScreenDisclaimer(
         title = "Category not found",
         description = "An error happened, please navigate back.",
+        icon = Icons.Outlined.ErrorOutline,
     )
   } else {
     val uriHandler = LocalUriHandler.current
     Scaffold(
         topBar = {
           TopAppBar(
+              navigationIcon = { NavigateBackButton() },
               title = { Text(category.name.replaceFirstChar { it.uppercase() }) },
               actions = {
                 if (category.url != null) {

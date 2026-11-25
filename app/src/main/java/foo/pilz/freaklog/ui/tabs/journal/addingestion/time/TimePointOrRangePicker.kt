@@ -24,6 +24,7 @@ import foo.pilz.freaklog.ui.utils.getShortTimeText
 import java.time.LocalDateTime
 
 @OptIn(ExperimentalLayoutApi::class)
+@Suppress("LongMethod")
 @Composable
 fun TimePointOrRangePicker(
     onChangeTimePickerOption: (option: IngestionTimePickerOption) -> Unit,
@@ -32,21 +33,31 @@ fun TimePointOrRangePicker(
     onChangeStartDateOrTime: (LocalDateTime) -> Unit,
     localDateTimeEnd: LocalDateTime,
     onChangeEndDateOrTime: (LocalDateTime) -> Unit,
+    /** Off where the screen already offers a "Now" shortcut. */
+    showNowButton: Boolean = true,
 ) {
-  SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-    SegmentedButton(
-        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-        onClick = { onChangeTimePickerOption(IngestionTimePickerOption.POINT_IN_TIME) },
-        selected = ingestionTimePickerOption == IngestionTimePickerOption.POINT_IN_TIME,
-    ) {
-      Text("Point in time")
+  Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+    SingleChoiceSegmentedButtonRow(modifier = Modifier.weight(1f)) {
+      SegmentedButton(
+          shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+          onClick = { onChangeTimePickerOption(IngestionTimePickerOption.POINT_IN_TIME) },
+          selected = ingestionTimePickerOption == IngestionTimePickerOption.POINT_IN_TIME,
+      ) {
+        Text("Point in time")
+      }
+      SegmentedButton(
+          shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+          onClick = { onChangeTimePickerOption(IngestionTimePickerOption.TIME_RANGE) },
+          selected = ingestionTimePickerOption == IngestionTimePickerOption.TIME_RANGE,
+      ) {
+        Text("Time range")
+      }
     }
-    SegmentedButton(
-        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-        onClick = { onChangeTimePickerOption(IngestionTimePickerOption.TIME_RANGE) },
-        selected = ingestionTimePickerOption == IngestionTimePickerOption.TIME_RANGE,
-    ) {
-      Text("Time range")
+    // Beside the toggle, not after the date and time: there it wraps onto a line of its own.
+    if (showNowButton && ingestionTimePickerOption == IngestionTimePickerOption.POINT_IN_TIME) {
+      IconButton(onClick = { onChangeStartDateOrTime(LocalDateTime.now()) }) {
+        Icon(Icons.Default.Update, contentDescription = "Update time to now")
+      }
     }
   }
   AnimatedContent(
@@ -67,16 +78,6 @@ fun TimePointOrRangePicker(
               timeString = localDateTimeStart.getShortTimeText(),
               modifier = Modifier.weight(1f),
           )
-          IconButton(
-              onClick = {
-                onChangeStartDateOrTime(LocalDateTime.now())
-              }
-          ) {
-            Icon(
-                Icons.Default.Update,
-                contentDescription = "Update time to now",
-            )
-          }
         }
       }
 

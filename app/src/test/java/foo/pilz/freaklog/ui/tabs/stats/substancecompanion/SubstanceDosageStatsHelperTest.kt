@@ -12,6 +12,7 @@ import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import java.time.Instant
 import java.time.ZoneOffset
+import java.util.Locale
 import org.junit.Test
 
 class SubstanceDosageStatsHelperTest {
@@ -172,5 +173,28 @@ class SubstanceDosageStatsHelperTest {
     assertThat(model.summary.totalSessions).isEqualTo(1)
     assertThat(model.summary.totalKnownDose).isEqualTo(100.0)
     assertThat(model.buckets.sumOf { it.totalDose }).isEqualTo(100.0)
+  }
+
+  @Test
+  fun `day and month bucket labels follow locale date order`() {
+    val us =
+        SubstanceDosageStatsHelper.build(
+            ingestions = emptyList(),
+            range = DosageTimeRange.WEEKS_26,
+            now = now,
+            zone = zone,
+            locale = Locale.US,
+        )
+    val germany =
+        SubstanceDosageStatsHelper.build(
+            ingestions = emptyList(),
+            range = DosageTimeRange.WEEKS_26,
+            now = now,
+            zone = zone,
+            locale = Locale.GERMANY,
+        )
+
+    assertThat(us.buckets.last().label).isEqualTo("4/22")
+    assertThat(germany.buckets.last().label).isEqualTo("22.04")
   }
 }

@@ -12,10 +12,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material3.Card
+import androidx.compose.material.icons.outlined.Medication
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.CustomFormulation
+import foo.pilz.freaklog.ui.components.EmptyScreenDisclaimer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,7 +45,7 @@ fun CustomFormulationsScreen(
   Scaffold(
       topBar = {
         TopAppBar(
-            title = { Text("Custom Formulations") },
+            title = { Text("Custom formulations") },
             navigationIcon = {
               IconButton(onClick = navigateBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -52,17 +54,20 @@ fun CustomFormulationsScreen(
         )
       },
       floatingActionButton = {
-        FloatingActionButton(onClick = navigateToAdd) {
-          Icon(Icons.Default.Add, contentDescription = "Add Formulation")
-        }
+        ExtendedFloatingActionButton(
+            onClick = navigateToAdd,
+            icon = { Icon(Icons.Default.Add, contentDescription = null) },
+            text = { Text("Formulation") },
+        )
       },
   ) { padding ->
     if (formulations.isEmpty()) {
-      Box(
-          modifier = Modifier.fillMaxSize().padding(padding),
-          contentAlignment = Alignment.Center,
-      ) {
-        Text("No custom formulations yet.", style = MaterialTheme.typography.bodyLarge)
+      Box(modifier = Modifier.padding(padding)) {
+        EmptyScreenDisclaimer(
+            title = "No custom formulations yet",
+            description = "Add a formulation, e.g. extended release, to pick it when logging",
+            icon = Icons.Outlined.Medication,
+        )
       }
     } else {
       LazyColumn(modifier = Modifier.fillMaxSize().padding(padding)) {
@@ -82,7 +87,7 @@ fun CustomFormulationItem(
     formulation: CustomFormulation,
     onDelete: () -> Unit,
 ) {
-  Card(
+  ElevatedCard(
       modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
       elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
   ) {

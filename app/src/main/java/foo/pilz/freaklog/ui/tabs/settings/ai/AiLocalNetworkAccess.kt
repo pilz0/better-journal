@@ -7,6 +7,7 @@ import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -40,7 +41,9 @@ internal fun AiLocalNetworkAccess() {
   }
   if (!granted) {
     Text(
-        "To use a server on your local network, allow local network access. LAN servers also require HTTPS."
+        "To use a server on your local network, allow local network access. LAN servers also require HTTPS.",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
     TextButton(
         onClick = {

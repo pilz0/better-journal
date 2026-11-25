@@ -92,7 +92,7 @@ constructor(
                 relevantIngestions.map { it.ingestion.substanceName }.toSet()
             val substanceNamesInToleranceWindows = toleranceWindows.map { it.substanceName }.toSet()
             val substancesWithoutToleranceWindows =
-                (substanceNamesInIngestions - substanceNamesInToleranceWindows).toList()
+                (substanceNamesInIngestions - substanceNamesInToleranceWindows).sorted()
 
             ToleranceData(
                 toleranceWindows = toleranceWindows,

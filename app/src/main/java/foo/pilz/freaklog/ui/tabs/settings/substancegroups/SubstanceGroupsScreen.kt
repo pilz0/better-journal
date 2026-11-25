@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.ui.components.EmptyScreenDisclaimer
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.theme.LocalSpacing
 import foo.pilz.freaklog.ui.theme.SearchBar
 
@@ -69,6 +70,7 @@ fun SubstanceGroupsScreen(
   Scaffold(
       topBar = {
         TopAppBar(
+            navigationIcon = { NavigateBackButton() },
             title = { Text("Substance groups") },
             actions = {
               IconButton(

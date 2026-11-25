@@ -34,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.search.substance.BulletPoints
 import foo.pilz.freaklog.ui.tabs.search.substance.SectionText
 import foo.pilz.freaklog.ui.tabs.search.substance.SectionWithTitle
@@ -47,6 +48,7 @@ fun SaferHallucinogensScreen() {
   Scaffold(
       topBar = {
         TopAppBar(
+            navigationIcon = { NavigateBackButton() },
             title = { Text("Safer hallucinogens") },
         )
       },

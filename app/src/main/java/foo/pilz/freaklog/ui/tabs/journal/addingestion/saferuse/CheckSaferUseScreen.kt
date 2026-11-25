@@ -32,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.NextFAB
 import foo.pilz.freaklog.ui.tabs.search.substance.BulletPoints
 import foo.pilz.freaklog.ui.theme.horizontalPadding
@@ -43,7 +44,12 @@ fun CheckSaferUseScreen(
     viewModel: SaferUseViewModel = hiltViewModel(),
 ) {
   Scaffold(
-      topBar = { TopAppBar(title = { Text("${viewModel.substanceName} safer use") }) },
+      topBar = {
+        TopAppBar(
+            navigationIcon = { NavigateBackButton() },
+            title = { Text("${viewModel.substanceName} safer use") },
+        )
+      },
       floatingActionButton = {
         NextFAB(navigateToNext)
       },

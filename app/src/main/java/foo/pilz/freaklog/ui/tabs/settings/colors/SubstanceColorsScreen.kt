@@ -53,6 +53,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
 import foo.pilz.freaklog.data.substanceshare.shareSubstanceColors
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.ColorPicker
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 
@@ -123,6 +124,7 @@ fun SubstanceColorsScreenContent(
   Scaffold(
       topBar = {
         TopAppBar(
+            navigationIcon = { NavigateBackButton() },
             title = { Text("Substance colors") },
             actions = {
               IconButton(onClick = onImport) {

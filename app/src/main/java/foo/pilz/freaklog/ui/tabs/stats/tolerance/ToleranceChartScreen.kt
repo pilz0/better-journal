@@ -66,16 +66,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import foo.pilz.freaklog.ui.utils.getStringOfPattern
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.time.temporal.ChronoUnit
 
 private val TOLERANCE_DATE_FORMATTER: DateTimeFormatter =
-    DateTimeFormatter.ofPattern("dd. MM. yyyy")
+    DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
 
 @Composable
 fun ToleranceChartScreen(
@@ -110,11 +112,12 @@ fun ToleranceChartScreenContent(
   Scaffold(
       topBar = {
         TopAppBar(
+            navigationIcon = { NavigateBackButton() },
             title = {
               Text(
                   text = "Tolerance",
               )
-            }
+            },
         )
       }
   ) { padding ->
@@ -137,7 +140,7 @@ fun ToleranceChartScreenContent(
           verticalAlignment = Alignment.CenterVertically,
       ) {
         Text(
-            text = "Start Date",
+            text = "Start date",
             style = MaterialTheme.typography.bodyLarge,
         )
         val localDate = sinceDate.atZone(ZoneId.systemDefault()).toLocalDate()
@@ -187,24 +190,26 @@ fun ToleranceChartScreenContent(
 
       Spacer(modifier = Modifier.height(16.dp))
 
-      Text(
-          text =
-              "Excluding 2C-B, Bupropion, Ibuprofen, Progesterone, Methylphenidate, 4-MMC, 5-Hydroxytryptophan, Paracetamol, Ketamine, N-Acetylcysteine, and Lisdexamfetamine because of missing tolerance info",
-          style = MaterialTheme.typography.bodySmall,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
+      val excluded = toleranceData.substancesInIngestionsButNotChart
+      if (excluded.isNotEmpty()) {
+        Text(
+            text = "Excluding ${joinNames(excluded)} because of missing tolerance info",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
 
       Spacer(modifier = Modifier.height(24.dp))
 
       InfoRow(
-          title = "Chart Limitations",
+          title = "Chart limitations",
           onClick = { showLimitationsSheet = true },
       )
 
       Spacer(modifier = Modifier.height(8.dp))
 
       InfoRow(
-          title = "Tolerance Info",
+          title = "Tolerance info",
           onClick = { showInfoSheet = true },
       )
 
@@ -487,3 +492,12 @@ fun ToleranceChartScreenPreview() {
       onChangeIsTimeRelative = {},
   )
 }
+
+/** "A", "A and B", "A, B, and C". */
+internal fun joinNames(names: List<String>): String =
+    when (names.size) {
+      0 -> ""
+      1 -> names[0]
+      2 -> "${names[0]} and ${names[1]}"
+      else -> names.dropLast(1).joinToString(", ") + ", and " + names.last()
+    }

@@ -62,7 +62,7 @@ fun AlcoholCalculator(onApplyDose: (String) -> Unit) {
             )
     ) {
       Text(
-          text = "Alcohol Calculator",
+          text = "Alcohol calculator",
           style = MaterialTheme.typography.titleMedium,
           modifier = Modifier.padding(bottom = 8.dp),
       )

@@ -44,6 +44,6 @@ fun Double.toReadableString(): String {
   return readableFormats.get()!![fractionDigits].format(this)
 }
 
-fun Double.toPreservedString(): String {
-  return this.toString()
-}
+/** Every digit kept, but no "100.0" or "1.0E-4": for prefilling fields the user edits. */
+fun Double.toPreservedString(): String =
+    if (isFinite()) toBigDecimal().stripTrailingZeros().toPlainString() else toString()

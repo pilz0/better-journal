@@ -60,7 +60,8 @@ private val CellText = Color(0xFF212121)
 private val FormulaText = Color(0xFF666666)
 
 private val NumberColWidth = 32.dp
-private val ColumnWidths = listOf(124.dp, 92.dp, 92.dp, 104.dp)
+// 32 + 376 = 408dp: all four columns fit a typical 411dp phone; narrower ones scroll.
+private val ColumnWidths = listOf(112.dp, 80.dp, 92.dp, 92.dp)
 private val ColumnTitles = listOf("Substance", "Ingestions", "Experiences", "Total dose")
 
 @Composable

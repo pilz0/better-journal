@@ -135,7 +135,7 @@ private fun AutoLoadCard(
           modifier = Modifier.fillMaxWidth(),
       ) {
         Column(modifier = Modifier.weight(1f)) {
-          Text("Load Automatically", style = MaterialTheme.typography.titleMedium)
+          Text("Load automatically", style = MaterialTheme.typography.titleMedium)
           Spacer(Modifier.height(4.dp))
           Text(
               "Substance pages load AnodyneWiki data as they open. " +
@@ -214,7 +214,7 @@ private fun DownloadedDataCard(
       modifier = Modifier.fillMaxWidth().padding(vertical = verticalPaddingCards),
   ) {
     Column(modifier = Modifier.padding(16.dp)) {
-      Text("Downloaded Data", style = MaterialTheme.typography.titleMedium)
+      Text("Downloaded data", style = MaterialTheme.typography.titleMedium)
       Spacer(Modifier.height(4.dp))
       Text(
           "$formattedSize downloaded. Substances and index entries are cached locally for faster offline access.",
@@ -235,7 +235,7 @@ private fun DownloadedDataCard(
             modifier = Modifier.size(ButtonDefaults.IconSize),
         )
         Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-        Text("Delete Downloaded Data")
+        Text("Delete downloaded data")
       }
     }
   }
@@ -273,7 +273,7 @@ private fun NavigationActionsCard(
             modifier = Modifier.size(ButtonDefaults.IconSize),
         )
         Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-        Text("Open Wiki Website", modifier = Modifier.weight(1f))
+        Text("Open wiki website", modifier = Modifier.weight(1f))
         Icon(
             Icons.AutoMirrored.Outlined.OpenInNew,
             contentDescription = null,

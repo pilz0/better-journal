@@ -78,6 +78,9 @@ import foo.pilz.freaklog.data.substances.classes.roa.DoseClass
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
 import foo.pilz.freaklog.ui.DOSE_DISCLAIMER
+import foo.pilz.freaklog.ui.components.NavigateBackButton
+import foo.pilz.freaklog.ui.components.clearOfImeFab
+import foo.pilz.freaklog.ui.components.wholeFieldAboveIme
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.DataForOneEffectLine
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.TimeDisplayOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.AllTimelines
@@ -247,7 +250,10 @@ fun ChooseDoseScreen(
 ) {
   Scaffold(
       topBar = {
-        TopAppBar(title = { Text("$substanceName ${administrationRoute.displayText} dose") })
+        TopAppBar(
+            navigationIcon = { NavigateBackButton() },
+            title = { Text("$substanceName ${administrationRoute.displayText} dose") },
+        )
       },
       floatingActionButton = {
         if (isValidDose) {
@@ -265,7 +271,9 @@ fun ChooseDoseScreen(
         }
       },
   ) { padding ->
-    Column(modifier = Modifier.padding(padding).verticalScroll(rememberScrollState())) {
+    Column(
+        modifier = Modifier.padding(padding).clearOfImeFab().verticalScroll(rememberScrollState())
+    ) {
       LinearProgressIndicator(
           progress = { 0.67f },
           modifier = Modifier.fillMaxWidth(),
@@ -340,17 +348,6 @@ fun ChooseDoseScreen(
           OptionalDosageUnitDisclaimer(substanceName)
         }
       }
-      if (substanceName == "Alcohol") {
-        AlcoholCalculator(onApplyDose = onChangeDoseText)
-      } else if (
-          foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.mdma.MDMAFormulas.isMdma(
-              substanceName
-          )
-      ) {
-        foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.mdma.MDMACalculator(
-            onApplyDose = onChangeDoseText
-        )
-      }
       ElevatedCard(
           modifier =
               Modifier.padding(
@@ -389,8 +386,8 @@ fun ChooseDoseScreen(
                 )
               },
               textStyle = textStyle,
-              label = { Text("Pure Dose", style = textStyle) },
-              isError = !isValidDose,
+              label = { Text("Pure dose", style = textStyle) },
+              isError = !isValidDose && doseText.isNotBlank(),
               trailingIcon = {
                 Text(
                     text = units,
@@ -406,7 +403,8 @@ fun ChooseDoseScreen(
                   ),
               keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
               singleLine = true,
-              modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+              modifier =
+                  Modifier.fillMaxWidth().focusRequester(focusRequester).wholeFieldAboveIme(),
           )
           if (isShowingUnitsField) {
             OutlinedTextField(
@@ -496,6 +494,18 @@ fun ChooseDoseScreen(
             }
           }
         }
+      }
+      // Below the dose field: it is focused on open, and the calculators only fill it in.
+      if (substanceName == "Alcohol") {
+        AlcoholCalculator(onApplyDose = onChangeDoseText)
+      } else if (
+          foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.mdma.MDMAFormulas.isMdma(
+              substanceName
+          )
+      ) {
+        foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.mdma.MDMACalculator(
+            onApplyDose = onChangeDoseText
+        )
       }
       ElevatedCard(
           modifier =

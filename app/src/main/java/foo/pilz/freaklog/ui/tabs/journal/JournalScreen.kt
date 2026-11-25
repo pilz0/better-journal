@@ -40,6 +40,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.outlined.Book
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material.icons.outlined.SmartToy
 import androidx.compose.material.icons.outlined.StarOutline
@@ -76,9 +77,9 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsCompanionsAndRatings
+import foo.pilz.freaklog.ui.components.EmptyScreenDisclaimer
 import foo.pilz.freaklog.ui.tabs.journal.components.ExperienceRow
 import foo.pilz.freaklog.ui.tabs.journal.experience.recommendations.AiChatBottomSheet
-import foo.pilz.freaklog.ui.tabs.stats.EmptyScreenDisclaimer
 import foo.pilz.freaklog.ui.theme.JournalTheme
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import foo.pilz.freaklog.ui.utils.HapticType
@@ -128,7 +129,8 @@ fun JournalScreen(
       onChangeSearchText = viewModel::search,
       isSearchEnabled = viewModel.isSearchEnabled.value,
       onChangeIsSearchEnabled = viewModel::onChangeOfIsSearchEnabled,
-      experiences = experiences,
+      experiences = experiences.orEmpty(),
+      isLoaded = experiences != null,
   )
 }
 
@@ -160,6 +162,7 @@ fun ExperiencesScreenPreview(
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
+@Suppress("LongMethod", "LongParameterList")
 @Composable
 fun JournalScreen(
     navigateToExperiencePopNothing: (experienceId: Int) -> Unit,
@@ -176,6 +179,7 @@ fun JournalScreen(
     onChangeIsSearchEnabled: (Boolean) -> Unit,
     experiences: List<ExperienceWithIngestionsCompanionsAndRatings>,
     onOpenAssistant: (() -> Unit)? = null,
+    isLoaded: Boolean = true,
 ) {
   val performHaptic = rememberHaptic()
 
@@ -252,7 +256,7 @@ fun JournalScreen(
               ) {
                 Icon(
                     Icons.AutoMirrored.Filled.List,
-                    contentDescription = "All Ingestions",
+                    contentDescription = "All ingestions",
                 )
               }
             },
@@ -413,16 +417,18 @@ fun JournalScreen(
           }
         }
       }
-      if (experiences.isEmpty() && !isSearchEnabled) {
+      if (isLoaded && experiences.isEmpty() && !isSearchEnabled) {
         if (isFavoriteEnabled) {
           EmptyScreenDisclaimer(
               title = "No favorites",
               description = "Mark experiences as favorites to find them quickly.",
+              icon = Icons.Outlined.StarOutline,
           )
         } else {
           EmptyScreenDisclaimer(
               title = "No experiences yet",
               description = "Add your first ingestion.",
+              icon = Icons.Outlined.Book,
           )
         }
       }

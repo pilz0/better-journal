@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import foo.pilz.freaklog.data.substances.AdministrationRoute
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 
 @Preview
 @Composable
@@ -50,7 +51,7 @@ fun CustomChooseRouteScreenPreview() {
 fun CustomSubstanceChooseRouteScreen(onRouteTap: (AdministrationRoute) -> Unit) {
   Scaffold(
       topBar = {
-        TopAppBar(title = { Text("Route") })
+        TopAppBar(navigationIcon = { NavigateBackButton() }, title = { Text("Route") })
       }
   ) { padding ->
     Column(modifier = Modifier.padding(padding)) {

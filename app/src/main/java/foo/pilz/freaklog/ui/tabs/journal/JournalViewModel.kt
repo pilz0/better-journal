@@ -27,6 +27,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
+import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsCompanionsAndRatings
 import foo.pilz.freaklog.data.substances.repositories.SearchRepository
 import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OUTLOOK_SKIN_MAX_DELAY_MS
 import foo.pilz.freaklog.ui.tabs.journal.outlookskin.OUTLOOK_SKIN_MIN_DELAY_MS
@@ -219,8 +220,9 @@ constructor(
             return@combine experiencesWithIngestions
           }
           .flowOn(Dispatchers.Default)
-          .stateIn(
-              initialValue = emptyList(),
+          // Null until loaded, so the journal doesn't flash "No experiences yet" on start.
+          .stateIn<List<ExperienceWithIngestionsCompanionsAndRatings>?>(
+              initialValue = null,
               scope = viewModelScope,
               started = SharingStarted.WhileSubscribed(5000),
           )

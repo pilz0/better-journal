@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,7 +44,7 @@ import foo.pilz.freaklog.ui.theme.horizontalPadding
 fun SaferSniffingScreen() {
   Scaffold(
       topBar = {
-        TopAppBar(title = { Text("Safer sniffing") })
+        TopAppBar(navigationIcon = { NavigateBackButton() }, title = { Text("Safer sniffing") })
       },
   ) { padding ->
     Column(

@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.search.substance.SectionText
 import foo.pilz.freaklog.ui.tabs.search.substance.VerticalSpace
 import foo.pilz.freaklog.ui.theme.horizontalPadding
@@ -50,6 +51,7 @@ fun ReagentTestingScreen() {
   Scaffold(
       topBar = {
         TopAppBar(
+            navigationIcon = { NavigateBackButton() },
             title = { Text("Reagent testing") },
             actions = {
               TextButton(

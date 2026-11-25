@@ -32,19 +32,18 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -85,6 +84,7 @@ import foo.pilz.freaklog.data.substances.classes.roa.Bioavailability
 import foo.pilz.freaklog.data.substances.classes.roa.DoseClass
 import foo.pilz.freaklog.data.substances.classes.roa.DurationRange
 import foo.pilz.freaklog.data.substances.classes.roa.DurationUnits
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.journal.experience.TimelineDisplayOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.TimeDisplayOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.AllTimelines
@@ -222,9 +222,10 @@ fun CustomDurationEditorScreen(
   Scaffold(
       topBar = {
         TopAppBar(
+            navigationIcon = { NavigateBackButton() },
             title = {
               Column {
-                Text("Edit Route")
+                Text("Edit route")
                 Text(
                     "$substanceName · ${route.displayText}",
                     style = MaterialTheme.typography.bodyMedium,
@@ -240,21 +241,16 @@ fun CustomDurationEditorScreen(
       },
       floatingActionButton = {
         DisappearingFAB(isFabVisible) {
-          FloatingActionButton(onClick = onDone) {
-            Row(
-                modifier = Modifier.padding(horizontal = spacing.lg),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-              Icon(Icons.Outlined.Check, null)
-              Spacer(modifier = Modifier.padding(horizontal = spacing.xs))
-              Text("Save")
-            }
-          }
+          ExtendedFloatingActionButton(
+              onClick = onDone,
+              icon = { Icon(Icons.Outlined.Check, contentDescription = null) },
+              text = { Text("Save") },
+          )
         }
       },
   ) { padding ->
     Column(modifier = Modifier.padding(padding).verticalScroll(scrollState).imePadding()) {
-      Card(modifier = Modifier.fillMaxWidth().padding(spacing.sm)) {
+      ElevatedCard(modifier = Modifier.fillMaxWidth().padding(spacing.sm)) {
         if (roaDuration != null) {
           Column(modifier = Modifier.padding(spacing.lg)) {
             Text(
@@ -340,7 +336,7 @@ fun CustomDurationEditorScreen(
       }
 
       key(copyCount) {
-        OutlinedCard(modifier = Modifier.fillMaxWidth().padding(spacing.sm)) {
+        ElevatedCard(modifier = Modifier.fillMaxWidth().padding(spacing.sm)) {
           if (roaDuration != null) {
             Column(modifier = Modifier.padding(spacing.sm)) {
               Text(
@@ -391,7 +387,7 @@ fun CustomDurationEditorScreen(
         }
       }
 
-      OutlinedCard(modifier = Modifier.fillMaxWidth().padding(spacing.sm)) {
+      ElevatedCard(modifier = Modifier.fillMaxWidth().padding(spacing.sm)) {
         if (roaDose != null) {
           Column(modifier = Modifier.padding(spacing.sm)) {
             Text(
@@ -445,7 +441,7 @@ fun CustomDurationEditorScreen(
         }
       }
 
-      OutlinedCard(modifier = Modifier.fillMaxWidth().padding(spacing.sm)) {
+      ElevatedCard(modifier = Modifier.fillMaxWidth().padding(spacing.sm)) {
         if (roa != null) {
           Column(modifier = Modifier.padding(spacing.sm)) {
             Text(
@@ -559,7 +555,7 @@ fun DurationInputRow(
           )
         }
       } else {
-        Card(
+        ElevatedCard(
             modifier = Modifier.padding(spacing.xs).fillMaxWidth(),
         ) {
           Column {

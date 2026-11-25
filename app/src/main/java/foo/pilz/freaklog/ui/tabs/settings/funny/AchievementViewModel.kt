@@ -35,6 +35,7 @@ constructor(
 ) : ViewModel() {
 
   private val defs = loadAchievements(context)
+
   /**
    * Combines all the journal data the evaluator needs into a single flow, and uses
    * [distinctUntilChanged] to skip re-running the whole evaluator when the underlying entity lists
@@ -44,7 +45,8 @@ constructor(
    * (notes, administrationRoute, time, location, isFavorite, ...) that a cheap ID-only hash would
    * miss.
    */
-  val achievementsFlow: StateFlow<List<UnlockedAchievement>> =
+  /** Null until the first evaluation finished. */
+  val achievementsFlow: StateFlow<List<UnlockedAchievement>?> =
       combine(
               experienceRepo.getAllExperiencesWithIngestionsTimedNotesAndRatingsFlow(),
               experienceRepo.getAllCustomUnitsFlow(),
@@ -85,7 +87,7 @@ constructor(
           .stateIn(
               scope = viewModelScope,
               started = SharingStarted.Eagerly,
-              initialValue = defs.map { UnlockedAchievement(it, false) },
+              initialValue = null,
           )
 
   val seenIdsFlow: StateFlow<Set<String>> =
@@ -97,7 +99,8 @@ constructor(
 
   fun markAllUnlockedAsSeen() {
     viewModelScope.launch {
-      val unlocked = achievementsFlow.value.filter { it.unlocked }.map { it.def.id }.toSet()
+      val unlocked =
+          achievementsFlow.value.orEmpty().filter { it.unlocked }.map { it.def.id }.toSet()
       achievementPreferences.markSeen(unlocked)
     }
   }

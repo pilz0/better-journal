@@ -16,10 +16,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.SsidChart
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -31,6 +31,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import foo.pilz.freaklog.data.substances.classes.IngestionCategory
+import foo.pilz.freaklog.ui.components.clearOfImeFab
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.IngestionCategoryPicker
 import foo.pilz.freaklog.ui.theme.LocalSpacing
 
@@ -64,6 +65,7 @@ fun AddOrEditCustomSubstanceContent(
   Column(
       modifier =
           Modifier.padding(padding)
+              .clearOfImeFab()
               .padding(horizontal = spacing.screenHorizontal)
               .verticalScroll(rememberScrollState())
   ) {
@@ -111,7 +113,7 @@ fun AddOrEditCustomSubstanceContent(
 
     Spacer(modifier = Modifier.height(spacing.sm))
 
-    OutlinedCard(modifier = Modifier.fillMaxWidth()) {
+    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
       Column(modifier = Modifier.padding(horizontal = spacing.lg, vertical = spacing.sm)) {
         Text(
             text = "Default category for ingestions",

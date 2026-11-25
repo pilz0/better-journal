@@ -1,6 +1,7 @@
 package foo.pilz.freaklog.ui.tabs.search.anodyne
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import foo.pilz.freaklog.data.anodyne.model.AnodyneDosing
 import foo.pilz.freaklog.data.anodyne.model.AnodyneTier
+import foo.pilz.freaklog.data.substances.classes.roa.DoseClass
 
 @Composable
 fun AnodyneDoseLadder(
@@ -60,10 +62,12 @@ fun AnodyneDoseLadder(
 
       Spacer(Modifier.height(12.dp))
 
-      dosing.light?.let { TierRow("Light", it, Color(0xFF4CAF50)) }
-      dosing.common?.let { TierRow("Common", it, Color(0xFF2196F3)) }
-      dosing.strong?.let { TierRow("Strong", it, Color(0xFFFF9800)) }
-      dosing.heavy?.let { TierRow("Heavy", it, Color(0xFFF44336)) }
+      // Same colours as the PsychonautWiki dose classes on the same screen.
+      val dark = isSystemInDarkTheme()
+      dosing.light?.let { TierRow("Light", it, DoseClass.LIGHT.getComposeColor(dark)) }
+      dosing.common?.let { TierRow("Common", it, DoseClass.COMMON.getComposeColor(dark)) }
+      dosing.strong?.let { TierRow("Strong", it, DoseClass.STRONG.getComposeColor(dark)) }
+      dosing.heavy?.let { TierRow("Heavy", it, DoseClass.HEAVY.getComposeColor(dark)) }
       dosing.extreme?.let { TierRow("Extreme", it, Color(0xFF9C27B0)) }
 
       Spacer(Modifier.height(8.dp))

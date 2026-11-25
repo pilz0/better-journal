@@ -44,6 +44,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 
 @Composable
@@ -88,7 +89,10 @@ fun CombinationSettingsPreview() {
 fun CombinationSettingsScreen(substanceInteractions: List<SubstanceInteraction>) {
   Scaffold(
       topBar = {
-        TopAppBar(title = { Text("Combinations") })
+        TopAppBar(
+            navigationIcon = { NavigateBackButton() },
+            title = { Text("Interaction settings") },
+        )
       }
   ) { padding ->
     Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(padding)) {

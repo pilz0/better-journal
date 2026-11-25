@@ -25,6 +25,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.journal.experience.rating.TimePickerSection
 import foo.pilz.freaklog.ui.theme.LocalSpacing
 import java.time.LocalDateTime
@@ -37,7 +38,8 @@ fun BloodPressureScreenContentPreview() {
   Scaffold(
       topBar = {
         TopAppBar(
-            title = { Text("Add Blood Pressure Measurement") },
+            navigationIcon = { NavigateBackButton() },
+            title = { Text("Add blood pressure measurement") },
             actions = {
               IconButton(onClick = {}) {
                 Icon(

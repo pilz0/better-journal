@@ -30,15 +30,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AchievementsScreen(viewModel: AchievementViewModel = hiltViewModel()) {
+  // Null until evaluated: showing everything as locked first would put the unlocked ones above
+  // the visible part of the list once they arrive.
   val achievements by viewModel.achievementsFlow.collectAsStateWithLifecycle()
   val (unlocked, locked) =
       remember(achievements) {
-        achievements.partition { it.unlocked }
+        achievements.orEmpty().partition { it.unlocked }
       }
 
   val unlockedIds =
@@ -57,10 +60,11 @@ fun AchievementsScreen(viewModel: AchievementViewModel = hiltViewModel()) {
   Scaffold(
       topBar = {
         TopAppBar(
+            navigationIcon = { NavigateBackButton() },
             title = { Text("Achievements") },
             actions = {
               Text(
-                  text = "${unlocked.size}/${achievements.size}",
+                  text = achievements?.let { "${unlocked.size}/${it.size}" } ?: "",
                   style = MaterialTheme.typography.titleSmall,
                   color = MaterialTheme.colorScheme.onSurfaceVariant,
                   modifier = Modifier.padding(end = 16.dp),

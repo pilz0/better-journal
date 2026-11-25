@@ -84,6 +84,8 @@ import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestion
 import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
 import foo.pilz.freaklog.data.substances.classes.IngestionCategory
 import foo.pilz.freaklog.ui.YOU
+import foo.pilz.freaklog.ui.components.NavigateBackButton
+import foo.pilz.freaklog.ui.components.clearOfImeFab
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.AdministrationSitePicker
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.SaltFormPicker
@@ -281,7 +283,10 @@ fun FinishIngestionScreen(
   val focusManager = LocalFocusManager.current
   Scaffold(
       topBar = {
-        TopAppBar(title = { Text("$substanceName ingestion") })
+        TopAppBar(
+            navigationIcon = { NavigateBackButton() },
+            title = { Text("$substanceName ingestion") },
+        )
       },
       floatingActionButton = {
         AnimatedVisibility(
@@ -297,7 +302,7 @@ fun FinishIngestionScreen(
       },
   ) { padding ->
     Column(
-        modifier = Modifier.padding(padding).imePadding().verticalScroll(rememberScrollState())
+        modifier = Modifier.padding(padding).clearOfImeFab().verticalScroll(rememberScrollState())
     ) {
       LinearProgressIndicator(
           progress = { 0.9f },
@@ -327,6 +332,7 @@ fun FinishIngestionScreen(
               onChangeStartDateOrTime = onChangeStartDateOrTime,
               localDateTimeEnd = localDateTimeEnd,
               onChangeEndDateOrTime = onChangeEndDateOrTime,
+              showNowButton = false,
           )
         }
         CardWithTitle(title = "Experience", modifier = Modifier.fillMaxWidth()) {
@@ -383,12 +389,13 @@ fun FinishIngestionScreen(
             )
           }
         }
-        ElevatedCard(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+        // Same spacing as the CardWithTitle cards around it.
+        ElevatedCard(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
           Column(
               modifier =
                   Modifier.padding(
                       horizontal = horizontalPadding,
-                      vertical = 3.dp,
+                      vertical = 12.dp,
                   )
           ) {
             Text(

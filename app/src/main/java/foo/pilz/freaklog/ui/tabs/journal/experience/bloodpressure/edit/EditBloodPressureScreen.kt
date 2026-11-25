@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.health.connect.client.PermissionController
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.journal.experience.bloodpressure.BloodPressureScreenContent
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.BloodPressureHealthConnect
 import foo.pilz.freaklog.ui.theme.LocalSpacing
@@ -59,6 +60,7 @@ fun EditBloodPressureScreen(
   Scaffold(
       topBar = {
         TopAppBar(
+            navigationIcon = { NavigateBackButton() },
             title = { Text("Edit blood pressure measurement") },
             actions = {
               IconButton(

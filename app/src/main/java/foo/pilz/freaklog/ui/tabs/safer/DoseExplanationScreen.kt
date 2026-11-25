@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import foo.pilz.freaklog.data.substances.classes.roa.DoseClass
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.search.substance.SectionWithTitle
 import foo.pilz.freaklog.ui.tabs.search.substance.VerticalSpace
 import foo.pilz.freaklog.ui.theme.horizontalPadding
@@ -44,7 +45,10 @@ import foo.pilz.freaklog.ui.theme.horizontalPadding
 fun DoseExplanationScreen() {
   Scaffold(
       topBar = {
-        TopAppBar(title = { Text("Dosage classification") })
+        TopAppBar(
+            navigationIcon = { NavigateBackButton() },
+            title = { Text("Dosage classification") },
+        )
       }
   ) { padding ->
     Column(
@@ -54,7 +58,9 @@ fun DoseExplanationScreen() {
       ElevatedCard(modifier = Modifier.padding(vertical = 5.dp, horizontal = horizontalPadding)) {
         Text(
             text =
-                "The range and intensity of the effects of a substance depends on upon a number of factors. These include route of administration, dosage, set and setting, and personal and environmental factors.\n" +
+                "The range and intensity of the effects of a substance depends upon a number of" +
+                    " factors. These include route of administration, dosage, set and setting, and " +
+                    "personal and environmental factors.\n" +
                     "Effective doses can be divided into five categories: threshold, light, common, strong, and heavy.",
             textAlign = TextAlign.Left,
             modifier = Modifier.padding(vertical = 10.dp, horizontal = horizontalPadding),

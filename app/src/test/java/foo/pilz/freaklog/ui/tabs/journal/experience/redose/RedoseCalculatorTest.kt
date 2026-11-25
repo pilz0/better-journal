@@ -115,4 +115,37 @@ class RedoseCalculatorTest {
     val result = computeRedoseTime(t, duration, RedoseParameters.Default)
     assertNull(result)
   }
+
+  @Test
+  fun `dose is active until its longest total duration has passed`() {
+    val t = Instant.parse("2025-01-01T10:00:00Z")
+    val duration =
+        RoaDuration(
+            onset = min(15f, 45f),
+            comeup = null,
+            peak = null,
+            offset = null,
+            total = min(240f, 360f),
+            afterglow = null,
+        )
+    assertEquals(true, isDoseStillActive(t, duration, t.plusSeconds(5 * 3600)))
+    assertEquals(false, isDoseStillActive(t, duration, t.plusSeconds(6 * 3600 + 1)))
+  }
+
+  @Test
+  fun `without a total the longest phases are added up`() {
+    val t = Instant.parse("2025-01-01T10:00:00Z")
+    val duration =
+        RoaDuration(
+            onset = min(10f, 20f),
+            comeup = min(10f, 20f),
+            peak = min(60f, 120f),
+            offset = min(60f, 120f),
+            total = null,
+            afterglow = null,
+        )
+    assertEquals(true, isDoseStillActive(t, duration, t.plusSeconds(279 * 60)))
+    assertEquals(false, isDoseStillActive(t, duration, t.plusSeconds(281 * 60)))
+    assertEquals(false, isDoseStillActive(t, null, t))
+  }
 }

@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.ShulginRatingOption
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.journal.experience.rating.FloatingDoneButton
 import foo.pilz.freaklog.ui.tabs.journal.experience.rating.RatingPickerSection
 import foo.pilz.freaklog.ui.tabs.journal.experience.rating.RatingsExplanationSection
@@ -97,6 +98,7 @@ fun EditRatingScreen(
   Scaffold(
       topBar = {
         TopAppBar(
+            navigationIcon = { NavigateBackButton() },
             title = { Text("Edit Shulgin rating") },
             actions = {
               IconButton(

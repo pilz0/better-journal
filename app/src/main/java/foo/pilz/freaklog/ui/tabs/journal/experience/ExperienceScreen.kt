@@ -68,11 +68,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -83,6 +83,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.Dp
@@ -96,6 +97,7 @@ import foo.pilz.freaklog.data.room.experiences.entities.TimedNote
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.ui.FULL_STOMACH_DISCLAIMER
 import foo.pilz.freaklog.ui.YOU
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.interactions.Interaction
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardTitle
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CumulativeDoseRow
@@ -1184,8 +1186,12 @@ private fun ExperienceTopBar(
     isBloodPressureAvailable: Boolean = false,
     navigateToRecordBloodPressureScreen: () -> Unit = {},
 ) {
-  TopAppBar(
-      title = { Text(oneExperienceScreenModel.title) },
+  // Up to six actions leave no room beside them: the title gets its own line below.
+  MediumTopAppBar(
+      navigationIcon = { NavigateBackButton() },
+      title = {
+        Text(oneExperienceScreenModel.title, maxLines = 2, overflow = TextOverflow.Ellipsis)
+      },
       actions = {
         IconButton(onClick = onShareExperience) {
           Icon(
@@ -1212,7 +1218,7 @@ private fun ExperienceTopBar(
           IconButton(onClick = openAiChat) {
             Icon(
                 androidx.compose.material.icons.Icons.Outlined.SmartToy,
-                contentDescription = "AI Recommendations",
+                contentDescription = "AI assistant",
             )
           }
         }
@@ -1356,7 +1362,7 @@ private fun ExperienceTopBar(
             onDismissRequest = { areAddOptionsExpanded = false },
         ) {
           DropdownMenuItem(
-              text = { Text("Add Ingestion") },
+              text = { Text("Add ingestion") },
               onClick = {
                 addIngestion()
                 areAddOptionsExpanded = false
@@ -1364,7 +1370,7 @@ private fun ExperienceTopBar(
               leadingIcon = {
                 Icon(
                     Icons.Outlined.Add,
-                    contentDescription = "Add Ingestion",
+                    contentDescription = null,
                     modifier = Modifier.size(ButtonDefaults.IconSize),
                 )
               },
@@ -1399,7 +1405,7 @@ private fun ExperienceTopBar(
           )
           if (isBloodPressureAvailable) {
             DropdownMenuItem(
-                text = { Text("Record Blood Pressure") },
+                text = { Text("Record blood pressure") },
                 onClick = {
                   navigateToRecordBloodPressureScreen()
                   areAddOptionsExpanded = false
@@ -1407,7 +1413,7 @@ private fun ExperienceTopBar(
                 leadingIcon = {
                   Icon(
                       Icons.Outlined.Bloodtype,
-                      contentDescription = "Record Blood Pressure",
+                      contentDescription = null,
                       modifier = Modifier.size(ButtonDefaults.IconSize),
                   )
                 },

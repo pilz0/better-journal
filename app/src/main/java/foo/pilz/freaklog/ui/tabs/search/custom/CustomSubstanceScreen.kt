@@ -411,7 +411,7 @@ fun CustomSubstanceScreen(
           ) {
             Icon(Icons.AutoMirrored.Outlined.Notes, contentDescription = null)
             Spacer(Modifier.width(8.dp))
-            Text("View User Experience Notes")
+            Text("View user experience notes")
           }
         }
         item(key = "anodyne_sources") {

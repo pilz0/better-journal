@@ -70,6 +70,7 @@ import foo.pilz.freaklog.data.report.ReportPeriod
 import foo.pilz.freaklog.data.report.ReportSettings
 import foo.pilz.freaklog.data.report.ReportStyle
 import foo.pilz.freaklog.data.substances.classes.IngestionCategory
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import foo.pilz.freaklog.ui.utils.getStringOfPattern
 import java.time.Instant
@@ -120,7 +121,9 @@ fun ExportBackupScreen(viewModel: ExportBackupViewModel = hiltViewModel()) {
       }
 
   Scaffold(
-      topBar = { TopAppBar(title = { Text("Export & backup") }) },
+      topBar = {
+        TopAppBar(navigationIcon = { NavigateBackButton() }, title = { Text("Export & backup") })
+      },
       snackbarHost = { SnackbarHost(viewModel.snackbarHostState) },
   ) { padding ->
     Column(

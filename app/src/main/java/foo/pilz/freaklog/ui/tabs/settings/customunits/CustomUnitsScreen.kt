@@ -20,19 +20,15 @@ package foo.pilz.freaklog.ui.tabs.settings.customunits
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Inventory
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Medication
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -41,20 +37,18 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
-import foo.pilz.freaklog.ui.tabs.stats.EmptyScreenDisclaimer
+import foo.pilz.freaklog.ui.components.EmptyScreenDisclaimer
+import foo.pilz.freaklog.ui.components.NavigateBackButton
+import foo.pilz.freaklog.ui.theme.SearchBar
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 
 @Composable
@@ -104,6 +98,7 @@ fun CustomUnitsScreenContent(
   Scaffold(
       topBar = {
         TopAppBar(
+            navigationIcon = { NavigateBackButton() },
             title = { Text("Custom units") },
             actions = {
               IconButton(onClick = navigateToCustomUnitArchive) {
@@ -126,51 +121,17 @@ fun CustomUnitsScreenContent(
       },
   ) { padding ->
     Column(modifier = Modifier.padding(padding)) {
-      val focusManager = LocalFocusManager.current
-      TextField(
-          modifier = Modifier.fillMaxWidth(),
-          value = searchText,
-          onValueChange = { value ->
-            onSearch(value)
-          },
-          placeholder = { Text(text = "Search") },
-          leadingIcon = {
-            Icon(
-                Icons.Default.Search,
-                contentDescription = "Search",
-            )
-          },
-          trailingIcon = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-              // clear search button
-              if (searchText.isNotEmpty()) {
-                IconButton(
-                    onClick = {
-                      onSearch("")
-                    }
-                ) {
-                  Icon(
-                      Icons.Default.Close,
-                      contentDescription = "Close",
-                  )
-                }
-              }
-            }
-          },
-          keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-          keyboardOptions =
-              KeyboardOptions.Default.copy(
-                  autoCorrectEnabled = false,
-                  imeAction = ImeAction.Done,
-                  capitalization = KeyboardCapitalization.Words,
-              ),
-          singleLine = true,
+      SearchBar(
+          searchText = searchText,
+          onChangeSearchText = onSearch,
+          placeholder = "Search custom units",
       )
       if (filteredUnits.isEmpty()) {
         if (searchText.isEmpty()) {
           EmptyScreenDisclaimer(
               title = "No custom units yet",
               description = "Add your first unit",
+              icon = Icons.Outlined.Medication,
           )
         } else {
           EmptyScreenDisclaimer(

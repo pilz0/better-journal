@@ -106,18 +106,18 @@ class JournalViewModelTest {
 
     val initialExperiences =
         withTimeout(5000) {
-          viewModel.experiences.first { it.size == 2 }
+          viewModel.experiences.first { it?.size == 2 }
         }
-    assertThat(initialExperiences).hasSize(2)
+    assertThat(initialExperiences.orEmpty()).hasSize(2)
 
     viewModel.onChangeFavorite(true)
     val favorites =
         withTimeout(5000) {
           viewModel.experiences.first {
-            it.map { experience -> experience.experience.id } == listOf(2)
+            it?.map { experience -> experience.experience.id } == listOf(2)
           }
         }
-    assertThat(favorites.map { it.experience.id }).containsExactly(2)
+    assertThat(favorites.orEmpty().map { it.experience.id }).containsExactly(2)
 
     viewModel.onChangeFavorite(false)
     viewModel.search("Fir")
@@ -126,10 +126,10 @@ class JournalViewModelTest {
     val searchResults =
         withTimeout(5000) {
           viewModel.experiences.first {
-            it.map { experience -> experience.experience.id } == listOf(1)
+            it?.map { experience -> experience.experience.id } == listOf(1)
           }
         }
-    assertThat(searchResults.map { it.experience.id }).containsExactly(1)
+    assertThat(searchResults.orEmpty().map { it.experience.id }).containsExactly(1)
     verify(exactly = 0) { searchRepo.getMatchingSubstances("Fir", any(), any()) }
     verify(exactly = 0) { searchRepo.getMatchingSubstances("Firs", any(), any()) }
     verify(exactly = 1) { searchRepo.getMatchingSubstances("First", any(), any()) }

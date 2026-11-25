@@ -52,6 +52,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import foo.pilz.freaklog.ui.theme.minimumTouchTargetHeight
 
@@ -61,7 +62,10 @@ import foo.pilz.freaklog.ui.theme.minimumTouchTargetHeight
 fun DrugTestingScreen() {
   Scaffold(
       topBar = {
-        TopAppBar(title = { Text("Drug testing services") })
+        TopAppBar(
+            navigationIcon = { NavigateBackButton() },
+            title = { Text("Drug testing services") },
+        )
       }
   ) { padding ->
     Column(

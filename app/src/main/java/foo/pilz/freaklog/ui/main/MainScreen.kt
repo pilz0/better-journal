@@ -19,10 +19,16 @@
 package foo.pilz.freaklog.ui.main
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,6 +37,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -55,6 +62,8 @@ import foo.pilz.freaklog.ui.utils.HapticFeedbackProvider
 import foo.pilz.freaklog.ui.utils.HapticType
 import foo.pilz.freaklog.ui.utils.rememberHaptic
 
+@OptIn(ExperimentalLayoutApi::class)
+@Suppress("LongMethod")
 @Composable
 fun MainScreen(
     viewModel: MainScreenViewModel = hiltViewModel(),
@@ -117,7 +126,14 @@ fun MainScreen(
       Box(modifier = Modifier.fillMaxSize()) {
         val performHaptic = rememberHaptic()
 
+        val adaptiveLayout =
+            NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(currentWindowAdaptiveInfo())
+        // The keyboard covers a bottom bar, which would still push the screen up by its height:
+        // drop it while typing. A side rail stays.
+        val isBottomBarUnderKeyboard =
+            WindowInsets.isImeVisible && adaptiveLayout == NavigationSuiteType.NavigationBar
         NavigationSuiteScaffold(
+            layoutType = if (isBottomBarUnderKeyboard) NavigationSuiteType.None else adaptiveLayout,
             navigationSuiteItems = {
               val currentDestination = navBackStackEntry?.destination
               topLevelRoutes(hideSafer, hideStats, hideDrugs).forEach { topLevelRoute ->
@@ -129,7 +145,7 @@ fun MainScreen(
                     icon = {
                       Icon(
                           if (selected) topLevelRoute.filledIcon else topLevelRoute.outlinedIcon,
-                          contentDescription = topLevelRoute.name,
+                          contentDescription = null, // the label below already names the tab
                       )
                     },
                     label = { Text(topLevelRoute.name) },
@@ -137,12 +153,16 @@ fun MainScreen(
                     onClick = {
                       performHaptic(HapticType.CLICK)
                       if (selected) {
-                        val isAlreadyOnTopOfTab =
-                            topLevelRoutes(hideSafer, hideStats, hideDrugs).any {
-                              it.route == currentDestination.route
-                            }
-                        if (!isAlreadyOnTopOfTab) {
-                          navController.popBackStack()
+                        // Back to the tab's first screen; a no-op when already there. Popping
+                        // blindly at the root would leave the tab and show Journal.
+                        // The tab's graph is the one directly under the root graph; nested flows
+                        // (e.g. adding an ingestion) are closed as well.
+                        val tabGraph =
+                            currentDestination?.hierarchy?.firstOrNull {
+                              it.parent?.id == navController.graph.id
+                            } as? NavGraph
+                        tabGraph?.let {
+                          navController.popBackStack(it.startDestinationId, inclusive = false)
                         }
                       } else {
                         navController.navigate(topLevelRoute.route) {
@@ -162,7 +182,7 @@ fun MainScreen(
                     },
                 )
               }
-            }
+            },
         ) {
           NavHost(
               navController,

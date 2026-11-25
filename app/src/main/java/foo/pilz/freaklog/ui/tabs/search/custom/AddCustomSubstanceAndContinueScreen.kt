@@ -33,6 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,7 +58,10 @@ fun AddCustomSubstanceAndContinueScreen(
   }
   Scaffold(
       topBar = {
-        TopAppBar(title = { Text("Add custom substance") })
+        TopAppBar(
+            navigationIcon = { NavigateBackButton() },
+            title = { Text("Add custom substance") },
+        )
       },
       floatingActionButton = {
         if (isDraftReady && name.isNotBlank() && units.isNotBlank()) {

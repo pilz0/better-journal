@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import foo.pilz.freaklog.data.substances.classes.InteractionType
 import foo.pilz.freaklog.data.substances.classes.SubstanceWithCategories
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.NextFAB
 import foo.pilz.freaklog.ui.tabs.search.substance.InteractionExplanationButton
 import foo.pilz.freaklog.ui.tabs.search.substance.SubstanceWithCategoriesPreviewProvider
@@ -142,7 +143,12 @@ fun CheckInteractionsScreen(
     navigateToNext: () -> Unit,
 ) {
   Scaffold(
-      topBar = { TopAppBar(title = { Text("$substanceName interactions") }) },
+      topBar = {
+        TopAppBar(
+            navigationIcon = { NavigateBackButton() },
+            title = { Text("$substanceName interactions") },
+        )
+      },
       floatingActionButton = {
         NextFAB(navigateToNext)
       },

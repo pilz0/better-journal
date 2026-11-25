@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -28,7 +29,8 @@ fun IngestionCategoryPicker(
     modifier: Modifier = Modifier,
 ) {
   Column(modifier = modifier) {
-    SingleChoiceSegmentedButtonRow {
+    // Full width with no checkmark, or "Recreational" is squeezed out of the row.
+    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
       val categories = IngestionCategory.entries
 
       SegmentedButton(
@@ -39,7 +41,8 @@ fun IngestionCategoryPicker(
               ),
           onClick = { onIngestionCategoryChange(null) },
           selected = ingestionCategory == null,
-          label = { Text("Default") },
+          icon = {},
+          label = { Text("Default", maxLines = 1) },
       )
       categories.forEachIndexed { index, category ->
         SegmentedButton(
@@ -50,7 +53,8 @@ fun IngestionCategoryPicker(
                 ),
             onClick = { onIngestionCategoryChange(category) },
             selected = ingestionCategory == category,
-            label = { Text(category.displayText) },
+            icon = {},
+            label = { Text(category.displayText, maxLines = 1) },
         )
       }
     }

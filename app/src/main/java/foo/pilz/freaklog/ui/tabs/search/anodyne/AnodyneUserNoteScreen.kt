@@ -243,7 +243,7 @@ private fun NoteEffectsCard(effects: List<String>) {
   ) {
     Column(modifier = Modifier.padding(16.dp)) {
       Text(
-          text = "Reported Effects",
+          text = "Reported effects",
           style = MaterialTheme.typography.titleMedium,
           fontWeight = FontWeight.Bold,
           color = MaterialTheme.colorScheme.primary,

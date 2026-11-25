@@ -32,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.search.substance.SectionWithTitle
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 
@@ -41,7 +42,7 @@ import foo.pilz.freaklog.ui.theme.horizontalPadding
 fun FAQScreen() {
   Scaffold(
       topBar = {
-        TopAppBar(title = { Text("FAQ") })
+        TopAppBar(navigationIcon = { NavigateBackButton() }, title = { Text("FAQ") })
       }
   ) { padding ->
     Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(padding)) {
@@ -54,7 +55,9 @@ fun FAQScreen() {
       QuestionAnswerRow(
           question = "When does the app detect interactions?",
           answer =
-              "If there is an interaction with a substance you ingested less than 2 days ago. It checks interaction both ways and checks if a substance is indirectly mentioned through its psychoactive class.",
+              "If there is an interaction with a substance you ingested less than 2 days ago. " +
+                  "It checks interactions both ways and checks if a substance is indirectly " +
+                  "mentioned through its psychoactive class.",
       )
       QuestionAnswerRow(
           question = "How can the information be changed or added?",

@@ -54,7 +54,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceGroupItem
 import foo.pilz.freaklog.ui.YOU
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.components.SectionHeader
+import foo.pilz.freaklog.ui.components.clearOfImeFab
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.components.ReadOnlyOutlinedField
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.IngestionCategoryPicker
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.time.NoteSection
@@ -87,7 +89,7 @@ fun SubstanceGroupFinishScreen(
 
   Scaffold(
       topBar = {
-        TopAppBar(title = { Text("Save group") })
+        TopAppBar(navigationIcon = { NavigateBackButton() }, title = { Text("Save group") })
       },
       floatingActionButton = {
         FloatingDoneButton(
@@ -102,7 +104,7 @@ fun SubstanceGroupFinishScreen(
       return@Scaffold
     }
     Column(
-        modifier = Modifier.padding(padding).imePadding().verticalScroll(rememberScrollState()),
+        modifier = Modifier.padding(padding).clearOfImeFab().verticalScroll(rememberScrollState()),
     ) {
       Column(
           horizontalAlignment = Alignment.CenterHorizontally,

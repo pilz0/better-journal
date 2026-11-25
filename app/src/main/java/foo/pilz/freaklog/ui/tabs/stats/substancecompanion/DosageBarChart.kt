@@ -29,6 +29,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.log10
 import kotlin.math.pow
@@ -108,6 +109,8 @@ fun DosageBarChart(
   val textMeasurer = rememberTextMeasurer()
   val labelStyle = MaterialTheme.typography.labelSmall
   val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+  // The chart sits in an ElevatedCard: match its container so the label backing is invisible.
+  val labelBackgroundColor = MaterialTheme.colorScheme.surfaceContainerLow
   val gridColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
   val averageLineColor = MaterialTheme.colorScheme.primary // #9 fix: was Color.White
   val trendLineColor = MaterialTheme.colorScheme.tertiary
@@ -222,6 +225,10 @@ fun DosageBarChart(
       val barSpacing = chartW / barCount
       val barWidth = barSpacing * 0.6f
       val barGap = (barSpacing - barWidth) / 2f
+      // Label every n-th bar so that labels never overlap, whatever the bar count and width.
+      val widestLabel =
+          buckets.maxOfOrNull { textMeasurer.measure(it.label, labelStyle).size.width } ?: 0
+      val skip = ceil((widestLabel + 8.dp.toPx()) / barSpacing).toInt().coerceAtLeast(1)
 
       buckets.forEachIndexed { idx, bucket ->
         val x = yAxisLabelWidth + idx * barSpacing + barGap
@@ -247,18 +254,14 @@ fun DosageBarChart(
           )
         }
 
-        // X-axis labels (skip for dense charts)
-        val skip =
-            when {
-              barCount <= 12 -> 1
-              barCount <= 26 -> 2
-              barCount <= 60 -> 5
-              else -> barCount / 6
-            }
         if (idx % skip == 0) {
           val tr = textMeasurer.measure(bucket.label, labelStyle.copy(color = labelColor))
           val cx = yAxisLabelWidth + idx * barSpacing + barSpacing / 2f
-          drawText(tr, topLeft = Offset(cx - tr.size.width / 2f, chartH + 6.dp.toPx()))
+          val left =
+              (cx - tr.size.width / 2f)
+                  .coerceAtMost(w - tr.size.width)
+                  .coerceAtLeast(yAxisLabelWidth)
+          drawText(tr, topLeft = Offset(left, chartH + 6.dp.toPx()))
         }
       }
 
@@ -286,9 +289,17 @@ fun DosageBarChart(
                   pathEffect = PathEffect.dashPathEffect(floatArrayOf(6f, 6f), 0f),
               )
               val tr = textMeasurer.measure(entry.name, labelStyle.copy(color = entry.color))
+              val labelTopLeft = Offset(w - tr.size.width, ty - tr.size.height - 1.dp.toPx())
+              val labelPadX = 2.dp.toPx()
+              drawRoundRect(
+                  color = labelBackgroundColor,
+                  topLeft = Offset(labelTopLeft.x - labelPadX, labelTopLeft.y),
+                  size = Size(tr.size.width + labelPadX * 2f, tr.size.height.toFloat()),
+                  cornerRadius = CornerRadius(2.dp.toPx(), 2.dp.toPx()),
+              )
               drawText(
                   textLayoutResult = tr,
-                  topLeft = Offset(w - tr.size.width, ty - tr.size.height - 1.dp.toPx()),
+                  topLeft = labelTopLeft,
               )
             }
       }
