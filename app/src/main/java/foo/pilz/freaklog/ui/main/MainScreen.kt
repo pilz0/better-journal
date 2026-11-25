@@ -25,7 +25,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
@@ -131,7 +131,7 @@ fun MainScreen(
         val performHaptic = rememberHaptic()
 
         val adaptiveLayout =
-            NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(currentWindowAdaptiveInfo())
+            NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(currentWindowAdaptiveInfoV2())
         // The keyboard covers a bottom bar, which would still push the screen up by its height:
         // drop it while typing. A side rail stays.
         val isBottomBarUnderKeyboard =
@@ -162,7 +162,7 @@ fun MainScreen(
                         // The tab's graph is the one directly under the root graph; nested flows
                         // (e.g. adding an ingestion) are closed as well.
                         val tabGraph =
-                            currentDestination?.hierarchy?.firstOrNull {
+                            currentDestination.hierarchy.firstOrNull {
                               it.parent?.id == navController.graph.id
                             } as? NavGraph
                         tabGraph?.let {

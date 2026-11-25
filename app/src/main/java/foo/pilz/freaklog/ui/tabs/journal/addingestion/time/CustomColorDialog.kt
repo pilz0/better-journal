@@ -38,6 +38,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -59,6 +60,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
+import java.util.Locale
 
 /**
  * Modal dialog for picking an arbitrary RGB color.
@@ -91,13 +93,13 @@ fun CustomColorDialog(
 
   val previewColor = Color.hsv(hue, saturation, value)
   val previewArgb = previewColor.toArgb() or 0xFF000000.toInt()
-  val hexText = "%06X".format(previewArgb and 0xFFFFFF)
+  val hexText = "%06X".format(Locale.ROOT, previewArgb and 0xFFFFFF)
   var hexFieldText by remember { mutableStateOf(hexText) }
   // Re-sync the hex field only when HSV changes (e.g., user dragged the SV/hue picker),
   // not on every recomposition. This lets the user type partial input like "1" without
   // it being immediately overwritten by the current 6-digit value.
   LaunchedEffect(hue, saturation, value) {
-    if (hexFieldText.uppercase() != hexText) {
+    if (hexFieldText.uppercase(Locale.ROOT) != hexText) {
       hexFieldText = hexText
     }
   }
@@ -245,12 +247,20 @@ private fun HueSlider(
     hue: Float,
     onHueChange: (Float) -> Unit,
 ) {
+  val sliderState = rememberSliderState(value = hue, trackRange = 0f..360f)
+  LaunchedEffect(hue) {
+    if (sliderState.value != hue) {
+      sliderState.value = hue
+    }
+  }
   Column {
     Text(text = "Hue: ${hue.toInt()}°", fontSize = 12.sp)
     Slider(
-        value = hue,
-        onValueChange = onHueChange,
-        valueRange = 0f..360f,
+        state = sliderState,
+        onValueChange = {
+          sliderState.value = it
+          onHueChange(it)
+        },
     )
   }
 }

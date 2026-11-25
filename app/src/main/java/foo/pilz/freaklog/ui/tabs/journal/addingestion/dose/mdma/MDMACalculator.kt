@@ -30,9 +30,9 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -90,7 +90,13 @@ fun MDMACalculator(
 
 @Composable
 private fun MDMAMaxDoseSection(onApplyDose: (String) -> Unit) {
-  var weightKg by remember { mutableFloatStateOf(70f) }
+  val weightSliderState =
+      rememberSliderState(
+          value = 70f,
+          steps = ((150 - 40) / 5) - 1,
+          trackRange = 40f..150f,
+      )
+  val weightKg = weightSliderState.value
   var sex by remember { mutableStateOf(MDMAFormulas.Sex.MALE) }
   val maxDose =
       remember(weightKg, sex) {
@@ -102,10 +108,8 @@ private fun MDMAMaxDoseSection(onApplyDose: (String) -> Unit) {
         style = MaterialTheme.typography.bodyMedium,
     )
     Slider(
-        value = weightKg,
-        onValueChange = { weightKg = (it / 5f).roundToInt() * 5f },
-        valueRange = 40f..150f,
-        steps = ((150 - 40) / 5) - 1,
+        state = weightSliderState,
+        onValueChange = { weightSliderState.value = (it / 5f).roundToInt() * 5f },
     )
     SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
       val options = listOf(MDMAFormulas.Sex.MALE, MDMAFormulas.Sex.FEMALE)

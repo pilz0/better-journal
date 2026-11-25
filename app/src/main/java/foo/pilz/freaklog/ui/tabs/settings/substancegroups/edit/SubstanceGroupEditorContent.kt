@@ -195,7 +195,7 @@ private fun formatItemDose(item: SubstanceGroupItem): String {
       when {
         dose == null -> "unknown dose"
         item.isEstimate && item.estimatedDoseStandardDeviation != null ->
-            "$dose ± ${item.estimatedDoseStandardDeviation?.toPreservedString()} $unit"
+            "$dose ± ${item.estimatedDoseStandardDeviation.toPreservedString()} $unit"
 
         item.isEstimate -> "~$dose $unit"
         else -> "$dose $unit"

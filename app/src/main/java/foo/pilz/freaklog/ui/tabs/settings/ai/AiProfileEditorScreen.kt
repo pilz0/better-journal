@@ -11,6 +11,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.TextObfuscationMode
+import androidx.compose.foundation.text.input.clearText
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -31,22 +34,24 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedSecureTextField
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -251,15 +256,23 @@ private fun ApiKeyField(
 ) {
   var visible by remember { mutableStateOf(false) }
   val keepsSaved = draft.hasSavedKey && !draft.removeSavedKey
-  OutlinedTextField(
-      value = draft.apiKey,
-      onValueChange = onChange,
+  val keyState = rememberTextFieldState(initialText = draft.apiKey)
+  val latestOnChange by rememberUpdatedState(onChange)
+  val latestApiKey by rememberUpdatedState(draft.apiKey)
+  LaunchedEffect(keyState) {
+    snapshotFlow { keyState.text.toString() }
+        .collect { text ->
+          if (text != latestApiKey) {
+            latestOnChange(text)
+          }
+        }
+  }
+  OutlinedSecureTextField(
+      state = keyState,
       label = { Text(if (draft.preset.requiresApiKey) "API key" else "API key (optional)") },
       placeholder = { if (keepsSaved) Text("Saved – leave empty to keep it") },
-      singleLine = true,
-      visualTransformation =
-          if (visible) VisualTransformation.None else PasswordVisualTransformation(),
-      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+      textObfuscationMode =
+          if (visible) TextObfuscationMode.Visible else TextObfuscationMode.Hidden,
       trailingIcon = {
         IconButton(onClick = { visible = !visible }) {
           Icon(
@@ -272,7 +285,14 @@ private fun ApiKeyField(
       modifier = Modifier.fillMaxWidth(),
   )
   if (keepsSaved) {
-    TextButton(onClick = onRemoveSaved) { Text("Remove saved key") }
+    TextButton(
+        onClick = {
+          keyState.clearText()
+          onRemoveSaved()
+        }
+    ) {
+      Text("Remove saved key")
+    }
   }
 }
 
