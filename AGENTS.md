@@ -44,7 +44,7 @@ Don't install JDKs or SDKs by hand. If a tool is missing, add it to `devShells.d
 ./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.ui.*" --no-daemon
 ./gradlew testDebugUnitTest -PtestExclude=foo.pilz.freaklog.data.*,foo.pilz.freaklog.ui.* --no-daemon
 
-# Formatting (ktfmt via treefmt) and static analysis
+# Formatting (treefmt: Nix, Kotlin, YAML, JSON, Markdown, TOML, Shell) and static analysis
 nix fmt
 ./gradlew detekt --no-daemon
 ./gradlew :app:lintDebug --no-daemon
@@ -613,8 +613,10 @@ All ViewModels use `@HiltViewModel` + `@Inject constructor`. Repositories and DA
 
 ### Static analysis & coverage
 
-- **Formatting**: ktfmt (default style) through treefmt. Run `nix fmt`; `nix flake check`
-  fails on unformatted files. Detekt's ktlint `formatting` rule set is not used.
+- **Formatting**: Handled exclusively through Nix and `treefmt` (`nixfmt` for
+  Nix, `ktfmt` for Kotlin/KTS, `prettier` for YAML/JSON/Markdown, `taplo` for
+  TOML, `shfmt` for Shell/envrc). Run `nix fmt`; `nix flake check` fails on
+  unformatted files. Detekt's ktlint `formatting` rule set is not used.
 - **Detekt**: `./gradlew detekt`. Config in `config/detekt/detekt.yml`,
   baseline in `config/detekt/baseline.xml`. SARIF uploaded to code scanning.
   Fix new findings instead of adding them to the baseline.

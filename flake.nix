@@ -77,7 +77,7 @@
             nixfmt.enable = true;
             # Kotlin / Kotlin Script files
             ktfmt.enable = true;
-            # YAML, JSON, Markdown, TOML
+            # YAML, JSON, Markdown
             prettier = {
               enable = true;
               # Don't touch generated / data files that must stay as-is.
@@ -87,6 +87,13 @@
                 "gradle.lock"
                 ".*\\.lock"
               ];
+            };
+            # TOML files
+            taplo.enable = true;
+            # Shell scripts and .envrc
+            shfmt = {
+              enable = true;
+              indent_size = 4;
             };
           };
         };

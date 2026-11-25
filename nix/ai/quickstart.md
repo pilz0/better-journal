@@ -38,7 +38,7 @@ Don't install JDKs or SDKs by hand. If a tool is missing, add it to `devShells.d
 ./gradlew testDebugUnitTest --tests "foo.pilz.freaklog.ui.*" --no-daemon
 ./gradlew testDebugUnitTest -PtestExclude=foo.pilz.freaklog.data.*,foo.pilz.freaklog.ui.* --no-daemon
 
-# Formatting (ktfmt via treefmt) and static analysis
+# Formatting (treefmt: Nix, Kotlin, YAML, JSON, Markdown, TOML, Shell) and static analysis
 nix fmt
 ./gradlew detekt --no-daemon
 ./gradlew :app:lintDebug --no-daemon

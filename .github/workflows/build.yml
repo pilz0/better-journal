@@ -172,7 +172,7 @@ jobs:
             extra-allowed-uris = http:// https://
 
       - name: Check formatting with treefmt
-        run: nix fmt -- --fail-on-change
+        run: nix fmt -- --ci
 
   # =========================================================================
   # STAGE 3: STATIC ANALYSIS & ARCHITECTURAL HYGIENE
@@ -998,7 +998,7 @@ jobs:
           echo "           FREAKLOG CI PIPELINE QUALITY GATE             "
           echo "========================================================="
           echo " ✓ Static Analysis (Detekt, Lint, Architecture Hygiene)  "
-          echo " ✓ Formatting (treefmt: Nix, Kotlin, YAML, JSON, Markdown)"
+          echo " ✓ Formatting (treefmt: Nix, Kotlin, YAML, JSON, Markdown, TOML, Shell)"
           echo " ✓ Unit Test Matrix (Data, UI, Misc, FreakQuery Engine)  "
           echo " ✓ JVM & Regional Environment Compatibility (JDK 17, 21) "
           echo " ✓ Build Artifact Verification (APK Debug, Release, AAB) "

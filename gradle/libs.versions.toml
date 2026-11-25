@@ -76,7 +76,6 @@ androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version
 assertk = { module = "com.willowtreeapps.assertk:assertk", version.ref = "assertk" }
 compose = { module = "com.kizitonwose.calendar:compose", version.ref = "compose" }
 compose-markdown = { module = "com.github.jeziellago:compose-markdown", version.ref = "composeMarkdown" }
-# Detekt formatting plugin (rules pulled in at runtime).
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroidCompiler" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltAndroidCompiler" }
 junit = { module = "junit:junit", version.ref = "junit" }

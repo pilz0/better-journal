@@ -537,8 +537,10 @@ All ViewModels use `@HiltViewModel` + `@Inject constructor`. Repositories and DA
 
 ### Static analysis & coverage
 
-- **Formatting**: ktfmt (default style) through treefmt. Run `nix fmt`; `nix flake check`
-  fails on unformatted files. Detekt's ktlint `formatting` rule set is not used.
+- **Formatting**: Handled exclusively through Nix and `treefmt` (`nixfmt` for
+  Nix, `ktfmt` for Kotlin/KTS, `prettier` for YAML/JSON/Markdown, `taplo` for
+  TOML, `shfmt` for Shell/envrc). Run `nix fmt`; `nix flake check` fails on
+  unformatted files. Detekt's ktlint `formatting` rule set is not used.
 - **Detekt**: `./gradlew detekt`. Config in `config/detekt/detekt.yml`,
   baseline in `config/detekt/baseline.xml`. SARIF uploaded to code scanning.
   Fix new findings instead of adding them to the baseline.
