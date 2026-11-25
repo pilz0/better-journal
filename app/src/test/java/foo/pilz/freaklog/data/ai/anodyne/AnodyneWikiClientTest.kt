@@ -139,4 +139,24 @@ class AnodyneWikiClientTest {
     assertThat(result.toString().length < 20_000).isEqualTo(true)
     assertThat(result.getString("dosing")).endsWith("… (truncated)")
   }
+
+  @Test
+  fun repeatedLookupIsServedFromMemoryAsAFreshCopy() = runBlocking {
+    server.enqueue(json("""{"Title":"Caffeine","Biological Half-Life":"5 hours"}"""))
+    val first = client.substance(base(), "Caffeine")!!
+    first.put("status", "success")
+    val second = client.substance(base(), " caffeine ")!!
+    assertThat(server.requestCount).isEqualTo(1)
+    assertThat(second.has("status")).isFalse()
+    assertThat(second.getString("biological_half_life")).isEqualTo("5 hours")
+  }
+
+  @Test
+  fun failedLookupIsNotCached() = runBlocking {
+    server.enqueue(MockResponse().setResponseCode(500))
+    server.enqueue(json("""{"Title":"Caffeine"}"""))
+    runCatching { client.substance(base(), "Caffeine") }
+    assertThat(client.substance(base(), "Caffeine")!!.getString("name")).isEqualTo("Caffeine")
+    assertThat(server.requestCount).isEqualTo(2)
+  }
 }

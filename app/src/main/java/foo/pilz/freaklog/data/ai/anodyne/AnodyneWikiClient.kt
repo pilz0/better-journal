@@ -11,6 +11,8 @@ import java.net.URLEncoder
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -35,6 +37,7 @@ class AnodyneWikiClient @Inject constructor() {
     private const val MAX_STRUCTURED_CHARS = 6000
     private const val MAX_LIST_ITEMS = 10
     private const val INDEX_TTL_MS = 24L * 60 * 60 * 1000
+    private const val MAX_CACHED_PAGES = 32
 
     /** Free-text fields that are kept, with the key they get in the tool result. */
     private val TEXT_FIELDS =
@@ -80,17 +83,37 @@ class AnodyneWikiClient @Inject constructor() {
             .trim()
   }
 
+  private val indexLock = Mutex()
   private var cachedIndex: Pair<String, List<AnodyneIndexEntry>>? = null
   private var cachedAt = 0L
 
+  /** A cleaned page (or null for "no such page") as JSON text, so callers get their own copy. */
+  private class CachedPage(val json: String?, val fetchedAt: Long)
+
+  /** Pages are megabytes on the wire but a few KB cleaned; the assistant often asks twice. */
+  private val pages =
+      object : LinkedHashMap<String, CachedPage>(16, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, CachedPage>) =
+            size > MAX_CACHED_PAGES
+      }
+
   /** Returns the cleaned substance page, or null when the wiki has no page with that name. */
   suspend fun substance(baseUrl: String, name: String): JSONObject? {
+    val key = baseUrl + "\n" + name.trim().lowercase()
+    val now = System.currentTimeMillis()
+    synchronized(pages) { pages[key]?.takeIf { now - it.fetchedAt < INDEX_TTL_MS } }
+        ?.let { cached ->
+          return cached.json?.let(::JSONObject)
+        }
     val url = AiHttp.join(baseUrl, "substance/" + encodePathSegment(name.trim()))
-    return try {
-      AiHttp.get(url, emptyMap()) { stream, _ -> parseSubstance(LimitedInputStream(stream)) }
-    } catch (e: AiException) {
-      if (e.httpCode == 404) null else throw e
-    }
+    val page =
+        try {
+          AiHttp.get(url, emptyMap()) { stream, _ -> parseSubstance(LimitedInputStream(stream)) }
+        } catch (e: AiException) {
+          if (e.httpCode == 404) null else throw e
+        }
+    synchronized(pages) { pages[key] = CachedPage(page?.toString(), now) }
+    return page
   }
 
   /** Searches titles and alternative names in the substance index. */
@@ -113,16 +136,17 @@ class AnodyneWikiClient @Inject constructor() {
     }
   }
 
-  private suspend fun index(baseUrl: String): List<AnodyneIndexEntry> {
+  /** Concurrent callers wait for one download instead of each fetching the whole index. */
+  private suspend fun index(baseUrl: String): List<AnodyneIndexEntry> = indexLock.withLock {
     val now = System.currentTimeMillis()
     cachedIndex?.let { (url, entries) ->
-      if (url == baseUrl && now - cachedAt < INDEX_TTL_MS) return entries
+      if (url == baseUrl && now - cachedAt < INDEX_TTL_MS) return@withLock entries
     }
     val json = AiHttp.getJson(AiHttp.join(baseUrl, "index/substance"), emptyMap())
     val entries = withContext(Dispatchers.Default) { parseIndex(json) }
     cachedIndex = baseUrl to entries
     cachedAt = now
-    return entries
+    entries
   }
 
   internal fun parseIndex(json: JSONObject): List<AnodyneIndexEntry> {

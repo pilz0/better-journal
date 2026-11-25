@@ -14,8 +14,11 @@ sealed interface AiTurnEvent {
   data class ToolFinished(val key: String, val call: AiToolCall, val result: JSONObject) :
       AiTurnEvent
 
-  /** The model answered without asking for more tools. */
-  data class Completed(val text: String) : AiTurnEvent
+  /**
+   * The model answered without asking for more tools. [truncated] means the answer stopped at the
+   * output token limit.
+   */
+  data class Completed(val text: String, val truncated: Boolean = false) : AiTurnEvent
 }
 
 /**
@@ -41,6 +44,9 @@ class AiConversation(
 
     /** Real turns use a handful of tools; a provider asking for more is refused, not run. */
     const val MAX_TOOL_CALLS_PER_TURN = 32
+
+    /** Stop reasons meaning "hit the output limit": OpenAI, Anthropic, Gemini. */
+    private val TRUNCATED_STOP_REASONS = setOf("length", "max_tokens", "MAX_TOKENS")
   }
 
   private val history = mutableListOf<AiMessage>()
@@ -64,16 +70,29 @@ class AiConversation(
       for (round in 0..maxToolRounds) {
         partial.setLength(0)
         var reply: AiMessage.Assistant? = null
+        var stopReason: String? = null
         client.stream(request()).collect { event ->
           when (event) {
             is AiStreamEvent.TextDelta -> {
               partial.append(event.text)
               emit(AiTurnEvent.TextDelta(event.text))
             }
-            is AiStreamEvent.Completed -> reply = event.message
+            is AiStreamEvent.Completed -> {
+              reply = event.message
+              stopReason = event.stopReason
+            }
           }
         }
         val assistant = reply ?: throw AiException("The response ended unexpectedly.")
+        val truncated = stopReason in TRUNCATED_STOP_REASONS
+        // A cut-off tool call has incomplete arguments, and an empty cut-off reply (a thinking
+        // model spending the whole budget) has nothing to show: both need a higher limit.
+        if (truncated && (assistant.toolCalls.isNotEmpty() || assistant.text.isBlank())) {
+          throw AiException(
+              "The reply hit this profile's output limit of $maxOutputTokens tokens. " +
+                  "Raise Max tokens in Settings → AI assistant."
+          )
+        }
         if (assistant.toolCalls.isEmpty()) {
           finished = true
           if (assistant.text.isNotBlank()) {
@@ -85,7 +104,7 @@ class AiConversation(
             history.removeAt(checkpoint)
             lastTurnInHistory = false
           }
-          emit(AiTurnEvent.Completed(assistant.text))
+          emit(AiTurnEvent.Completed(assistant.text, truncated))
           return@flow
         }
         history += assistant

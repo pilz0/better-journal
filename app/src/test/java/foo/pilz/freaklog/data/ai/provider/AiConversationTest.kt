@@ -232,4 +232,41 @@ class AiConversationTest {
     assertThat(chat.messages.map { it::class.simpleName })
         .containsExactly("User", "Assistant", "ToolResults")
   }
+
+  @Test
+  fun answerCutOffAtTheTokenLimitIsKeptAndFlagged() = runTest {
+    val client =
+        ScriptedClient(
+            listOf(
+                AiStreamEvent.TextDelta("Half an"),
+                AiStreamEvent.Completed(AiMessage.Assistant("Half an"), "max_tokens"),
+            )
+        )
+    val chat = conversation(client)
+    val events = chat.send("long question").toList()
+    assertThat(events.last()).isEqualTo(AiTurnEvent.Completed("Half an", truncated = true))
+    assertThat(chat.messages.last()).isEqualTo(AiMessage.Assistant("Half an"))
+  }
+
+  @Test
+  fun cutOffToolCallFailsWithoutRunningItAndLeavesValidHistory() = runTest {
+    val call = AiToolCall("c1", "search", mapOf("q" to "mdm"))
+    val client =
+        ScriptedClient(
+            listOf(AiStreamEvent.Completed(AiMessage.Assistant("", listOf(call)), "length"))
+        )
+    var ran = false
+    val chat =
+        conversation(client) {
+          ran = true
+          JSONObject()
+        }
+    assertFailure { chat.send("search").toList() }
+        .hasMessage(
+            "The reply hit this profile's output limit of 1000 tokens. " +
+                "Raise Max tokens in Settings → AI assistant."
+        )
+    assertThat(ran).isEqualTo(false)
+    assertThat(chat.messages).isEmpty()
+  }
 }

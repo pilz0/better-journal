@@ -406,6 +406,17 @@ constructor(
           } else {
             flush(streaming = false)
           }
+          if (event.truncated) {
+            val notice =
+                ChatItem.Message(
+                    text =
+                        "The answer was cut off at the output limit. Raise Max tokens for " +
+                            "this profile in Settings → AI assistant.",
+                    isUser = false,
+                    isError = true,
+                )
+            _uiState.update { it.copy(items = it.items + notice) }
+          }
           _uiState.update {
             it.copy(isAssistantBusy = false, statusMessage = null, canRetry = true)
           }

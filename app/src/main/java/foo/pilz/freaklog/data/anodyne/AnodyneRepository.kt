@@ -3,6 +3,7 @@ package foo.pilz.freaklog.data.anodyne
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import foo.pilz.freaklog.data.ai.profiles.isInsecureRemoteUrl
+import foo.pilz.freaklog.data.ai.provider.AiException
 import foo.pilz.freaklog.data.ai.provider.AiHttp
 import foo.pilz.freaklog.data.anodyne.model.AnodyneIndexEntry
 import foo.pilz.freaklog.data.anodyne.model.AnodyneSubstance
@@ -99,49 +100,55 @@ constructor(
         cachedLookup(name)?.let {
           return@withContext Result.success(it)
         }
-
-        val baseUrl = getBaseUrl()
-        fetchSubstance(baseUrl, name)?.let { (json, sub) ->
-          saveSubstanceToCache(name, json)
-          return@withContext Result.success(sub)
+        try {
+          Result.success(fetchAndCache(name, otherNames))
+        } catch (e: CancellationException) {
+          throw e
+        } catch (e: Exception) {
+          // Offline or a broken page: report it, don't claim the wiki has no page.
+          Result.failure(e)
         }
-
-        // Try index for alias match. If even the index is unreachable this is a failure, not
-        // "not found".
-        val indexEntries =
-            getIndexEntries().getOrElse {
-              return@withContext Result.failure(it)
-            }
-        val allSearchNames = listOf(name) + otherNames
-        val match = indexEntries.firstOrNull { entry ->
-          allSearchNames.any { entry.matches(it) }
-        }
-
-        if (match != null && !match.title.equals(name, ignoreCase = true)) {
-          fetchSubstance(baseUrl, match.title)?.let { (json, sub) ->
-            saveSubstanceToCache(name, json)
-            saveSubstanceToCache(match.title, json)
-            return@withContext Result.success(sub)
-          }
-        }
-
-        Result.success(null)
       }
 
-  /** The raw page and its parsed form, or null when it is missing or unreachable. */
+  private suspend fun fetchAndCache(name: String, otherNames: List<String>): AnodyneSubstance? {
+    val baseUrl = getBaseUrl()
+    fetchSubstance(baseUrl, name)?.let { (json, sub) ->
+      saveSubstanceToCache(name, json)
+      return sub
+    }
+
+    // Try the index for an alias match.
+    val indexEntries = getIndexEntries().getOrThrow()
+    val allSearchNames = listOf(name) + otherNames
+    val match = indexEntries.firstOrNull { entry ->
+      allSearchNames.any { entry.matches(it) }
+    }
+
+    if (match != null && !match.title.equals(name, ignoreCase = true)) {
+      fetchSubstance(baseUrl, match.title)?.let { (json, sub) ->
+        saveSubstanceToCache(name, json)
+        saveSubstanceToCache(match.title, json)
+        return sub
+      }
+    }
+
+    return null
+  }
+
+  /** The raw page and its parsed form, or null when the wiki has no such page. */
   private suspend fun fetchSubstance(
       baseUrl: String,
       title: String,
-  ): Pair<JSONObject, AnodyneSubstance>? =
-      try {
-        val encoded = URLEncoder.encode(title.trim(), "UTF-8").replace("+", "%20")
-        val json = AiHttp.getJson("$baseUrl/api/substance/$encoded", emptyMap())
-        AnodyneParser.parseSubstance(json)?.let { json to it }
-      } catch (e: CancellationException) {
-        throw e
-      } catch (_: Exception) {
-        null
-      }
+  ): Pair<JSONObject, AnodyneSubstance>? {
+    val encoded = URLEncoder.encode(title.trim(), "UTF-8").replace("+", "%20")
+    val json =
+        try {
+          AiHttp.getJson("$baseUrl/api/substance/$encoded", emptyMap())
+        } catch (e: AiException) {
+          if (e.httpCode == 404) return null else throw e
+        }
+    return AnodyneParser.parseSubstance(json)?.let { json to it }
+  }
 
   suspend fun getIndexEntries(): Result<List<AnodyneIndexEntry>> =
       withContext(Dispatchers.IO) {
