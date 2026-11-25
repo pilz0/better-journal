@@ -86,11 +86,16 @@ data class HealthSettingsActions(
 fun HealthSettingsScreen(viewModel: HealthSettingsViewModel = hiltViewModel()) {
   val context = LocalContext.current
   val scope = rememberCoroutineScope()
-  val isVitalsAvailable = remember { isHealthConnectAvailable(context) }
-  val canInstallHealthConnect = remember { isHealthConnectInstallable(context) }
-  val supportedExtraVitals = remember { VitalKind.entries.filter { it.isSupported(context) } }
+  var isVitalsAvailable by remember { mutableStateOf(isHealthConnectAvailable(context)) }
+  var canInstallHealthConnect by remember { mutableStateOf(isHealthConnectInstallable(context)) }
+  var supportedExtraVitals by remember {
+    mutableStateOf(VitalKind.entries.filter { it.isSupported(context) })
+  }
   var grantedVitalLabels by remember { mutableStateOf<List<String>>(emptyList()) }
   val refreshGrantedLabels: () -> Unit = {
+    isVitalsAvailable = isHealthConnectAvailable(context)
+    canInstallHealthConnect = isHealthConnectInstallable(context)
+    supportedExtraVitals = VitalKind.entries.filter { it.isSupported(context) }
     scope.launch {
       grantedVitalLabels = if (isVitalsAvailable) readGrantedVitalLabels(context) else emptyList()
     }
