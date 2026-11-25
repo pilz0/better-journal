@@ -3,6 +3,8 @@ package foo.pilz.freaklog.data.ai
 import android.util.Log
 import foo.pilz.freaklog.data.ai.anodyne.AiAnodyneTools
 import foo.pilz.freaklog.data.ai.provider.AiToolSpec
+import foo.pilz.freaklog.data.ai.vitals.AiVitalsTools
+import foo.pilz.freaklog.data.ai.web.AiWebTools
 import foo.pilz.freaklog.data.room.experiences.ExperienceDao
 import java.time.Instant
 import javax.inject.Inject
@@ -13,9 +15,10 @@ import org.json.JSONObject
 
 /**
  * Declarations and implementations of the function-calling tools that the AI assistant can invoke:
- * journal lookups here, substance knowledge in [AiSubstanceTools]. [execute] receives the argument
- * map parsed from the model's tool call and returns a JSONObject that is sent back as the tool
- * result.
+ * journal lookups here, substance knowledge in [AiSubstanceTools], AnodyneWiki in [AiAnodyneTools],
+ * web search/fetching in [AiWebTools], and vitals in [AiVitalsTools]. [execute] receives the
+ * argument map parsed from the model's tool call and returns a JSONObject that is sent back as the
+ * tool result.
  */
 @Singleton
 class AiTools
@@ -24,6 +27,8 @@ constructor(
     private val experienceDao: ExperienceDao,
     private val substanceTools: AiSubstanceTools,
     private val anodyneTools: AiAnodyneTools,
+    private val webTools: AiWebTools,
+    private val vitalsTools: AiVitalsTools,
     private val auth: foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthManager,
 ) {
 
@@ -39,7 +44,9 @@ constructor(
   suspend fun specs(): List<AiToolSpec> =
       journalSpecs +
           substanceTools.specs +
-          (if (anodyneTools.isEnabled()) anodyneTools.specs else emptyList())
+          (if (anodyneTools.isEnabled()) anodyneTools.specs else emptyList()) +
+          (if (webTools.isEnabled()) webTools.specs else emptyList()) +
+          (if (vitalsTools.isEnabled()) vitalsTools.specs else emptyList())
 
   private val journalSpecs: List<AiToolSpec> =
       listOf(
@@ -149,6 +156,8 @@ constructor(
             else ->
                 substanceTools.execute(name, args)
                     ?: anodyneTools.execute(name, args)
+                    ?: webTools.execute(name, args)
+                    ?: vitalsTools.execute(name, args)
                     ?: errorResult("Unknown tool '$name'.")
           }
         } catch (ce: CancellationException) {

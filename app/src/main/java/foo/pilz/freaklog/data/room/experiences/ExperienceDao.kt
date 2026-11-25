@@ -373,6 +373,19 @@ interface ExperienceDao {
   suspend fun getAllBloodPressureReadings():
       List<foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading>
 
+  @Query("SELECT * FROM bloodpressurereading WHERE experienceId = :experienceId ORDER BY time")
+  suspend fun getBloodPressureReadings(
+      experienceId: Int
+  ): List<foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading>
+
+  @Query(
+      "SELECT * FROM bloodpressurereading WHERE time >= :fromInstant AND time <= :toInstant ORDER BY time"
+  )
+  suspend fun getBloodPressureReadingsBetween(
+      fromInstant: Instant,
+      toInstant: Instant,
+  ): List<foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading>
+
   @Insert(onConflict = OnConflictStrategy.REPLACE)
   suspend fun insert(intakeLimit: IntakeLimit): Long
 

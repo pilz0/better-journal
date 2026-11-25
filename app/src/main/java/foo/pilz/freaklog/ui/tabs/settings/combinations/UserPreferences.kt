@@ -85,6 +85,7 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
     val AI_ASSISTANT_ENABLED = booleanPreferencesKey("ai_assistant_enabled")
     val AI_ANODYNE_ENABLED = booleanPreferencesKey("ai_anodyne_enabled")
     val AI_ANODYNE_BASE_URL = stringPreferencesKey("ai_anodyne_base_url")
+    val AI_VITALS_ENABLED = booleanPreferencesKey("ai_vitals_enabled")
 
     val ANODYNE_BASE_URL = stringPreferencesKey("anodyne_base_url")
     val ANODYNE_AUTO_LOAD_ENABLED = booleanPreferencesKey("anodyne_auto_load_enabled")
@@ -400,6 +401,14 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
 
   suspend fun saveAiAnodyneEnabled(value: Boolean) {
     dataStore.edit { preferences -> preferences[PreferencesKeys.AI_ANODYNE_ENABLED] = value }
+  }
+
+  /** Whether the assistant may read Health Connect and logged vitals. Off by default. */
+  val aiVitalsEnabledFlow: Flow<Boolean> =
+      dataStore.data.map { preferences -> preferences[PreferencesKeys.AI_VITALS_ENABLED] ?: false }
+
+  suspend fun saveAiVitalsEnabled(value: Boolean) {
+    dataStore.edit { preferences -> preferences[PreferencesKeys.AI_VITALS_ENABLED] = value }
   }
 
   /**

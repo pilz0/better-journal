@@ -14,9 +14,12 @@ import foo.pilz.freaklog.data.ai.profiles.AiKeyCipher
 import foo.pilz.freaklog.data.ai.profiles.AiProfile
 import foo.pilz.freaklog.data.ai.profiles.AiProfileStore
 import foo.pilz.freaklog.data.ai.profiles.AiProviderPreset
+import foo.pilz.freaklog.data.ai.vitals.AiVitalsTools
+import foo.pilz.freaklog.data.ai.web.AiWebTools
 import foo.pilz.freaklog.data.room.AppDatabase
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthManager
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import java.io.File
@@ -66,6 +69,8 @@ class AiChatbotRepositoryPreferenceTest {
             db.experienceDao(),
             mockk<AiSubstanceTools>(relaxed = true),
             mockk<AiAnodyneTools>(relaxed = true),
+            mockk<AiWebTools>(relaxed = true) { coEvery { isEnabled() } returns false },
+            mockk<AiVitalsTools>(relaxed = true) { coEvery { isEnabled() } returns false },
             mockk<BiometricAuthManager> { every { shouldLock } returns MutableStateFlow(false) },
         )
     val repository = AiChatbotRepository(db.experienceDao(), preferences, tools, store)

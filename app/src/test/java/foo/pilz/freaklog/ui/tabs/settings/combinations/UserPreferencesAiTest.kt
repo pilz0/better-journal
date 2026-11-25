@@ -37,4 +37,24 @@ class UserPreferencesAiTest {
       cancelAndIgnoreRemainingEvents()
     }
   }
+
+  @Test
+  fun `ai vitals is disabled by default and can be enabled`() = runTest {
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    val dataStore =
+        PreferenceDataStoreFactory.create(
+            scope = backgroundScope,
+            produceFile = {
+              File(context.cacheDir, "ai-vitals-prefs-${System.nanoTime()}.preferences_pb")
+            },
+        )
+    val preferences = UserPreferences(dataStore)
+
+    preferences.aiVitalsEnabledFlow.test {
+      assertThat(awaitItem()).isEqualTo(false)
+      preferences.saveAiVitalsEnabled(true)
+      assertThat(awaitItem()).isEqualTo(true)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
 }

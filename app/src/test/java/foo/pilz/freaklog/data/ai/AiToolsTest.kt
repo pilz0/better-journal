@@ -4,17 +4,22 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isTrue
 import foo.pilz.freaklog.data.ai.anodyne.AiAnodyneTools
+import foo.pilz.freaklog.data.ai.provider.AiToolSpec
+import foo.pilz.freaklog.data.ai.vitals.AiVitalsTools
+import foo.pilz.freaklog.data.ai.web.AiWebTools
 import foo.pilz.freaklog.data.room.experiences.ExperienceDao
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsTimedNotesAndRatings
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.testing.EntityBuilders
 import foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthManager
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import java.time.Instant
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
+import org.json.JSONObject
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -27,15 +32,35 @@ class AiToolsTest {
   private val experienceDao = mockk<ExperienceDao>()
   private val substanceTools =
       mockk<AiSubstanceTools> {
+        every { specs } returns emptyList()
         coEvery { execute(any(), any()) } returns null
       }
   private val anodyneTools =
       mockk<AiAnodyneTools> {
+        coEvery { isEnabled() } returns false
+        every { specs } returns emptyList()
+        coEvery { execute(any(), any()) } returns null
+      }
+  private val webTools =
+      mockk<AiWebTools> {
+        coEvery { isEnabled() } returns false
+        every { specs } returns
+            listOf(
+                AiToolSpec("web_search", "Search web", JSONObject()),
+                AiToolSpec("fetch_webpage", "Fetch webpage", JSONObject()),
+            )
+        coEvery { execute(any(), any()) } returns null
+      }
+  private val vitalsTools =
+      mockk<AiVitalsTools> {
+        coEvery { isEnabled() } returns false
+        every { specs } returns listOf(AiToolSpec("get_vitals", "Read vitals", JSONObject()))
         coEvery { execute(any(), any()) } returns null
       }
   private val locked = MutableStateFlow(false)
   private val auth = mockk<BiometricAuthManager> { every { shouldLock } returns locked }
-  private val aiTools = AiTools(experienceDao, substanceTools, anodyneTools, auth)
+  private val aiTools =
+      AiTools(experienceDao, substanceTools, anodyneTools, webTools, vitalsTools, auth)
 
   @Test
   fun executeUnknownToolReturnsErrorStatus() = runTest {
@@ -225,8 +250,42 @@ class AiToolsTest {
     locked.value = true
     val result = aiTools.execute("list_recent_experiences", emptyMap())
     assertThat(result.getString("status")).isEqualTo("error")
-    io.mockk.coVerify(exactly = 0) {
+    coVerify(exactly = 0) {
       experienceDao.getRecentExperiencesWithIngestionsTimedNotesAndRatingsSorted(any())
     }
+  }
+
+  @Test
+  fun specsIncludeWebAndVitalsOnlyWhenEnabled() = runTest {
+    val offNames = aiTools.specs().map { it.name }
+    assertThat("web_search" in offNames).isEqualTo(false)
+    assertThat("fetch_webpage" in offNames).isEqualTo(false)
+    assertThat("get_vitals" in offNames).isEqualTo(false)
+
+    coEvery { webTools.isEnabled() } returns true
+    coEvery { vitalsTools.isEnabled() } returns true
+    val onNames = aiTools.specs().map { it.name }
+    assertThat("web_search" in onNames).isEqualTo(true)
+    assertThat("fetch_webpage" in onNames).isEqualTo(true)
+    assertThat("get_vitals" in onNames).isEqualTo(true)
+  }
+
+  @Test
+  fun executeDispatchesToWebAndVitalsAndHonorsBiometricLock() = runTest {
+    coEvery { webTools.execute("web_search", any()) } returns
+        JSONObject().put("status", "success").put("tag", "web")
+    coEvery { vitalsTools.execute("get_vitals", any()) } returns
+        JSONObject().put("status", "success").put("tag", "vitals")
+
+    assertThat(aiTools.execute("web_search", mapOf("query" to "lsd")).getString("tag"))
+        .isEqualTo("web")
+    assertThat(aiTools.execute("get_vitals", emptyMap()).getString("tag")).isEqualTo("vitals")
+
+    locked.value = true
+    assertThat(aiTools.execute("web_search", mapOf("query" to "lsd")).getString("status"))
+        .isEqualTo("error")
+    assertThat(aiTools.execute("get_vitals", emptyMap()).getString("status")).isEqualTo("error")
+    coVerify(exactly = 1) { webTools.execute("web_search", any()) }
+    coVerify(exactly = 1) { vitalsTools.execute("get_vitals", any()) }
   }
 }

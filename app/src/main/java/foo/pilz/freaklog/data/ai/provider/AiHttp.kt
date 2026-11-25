@@ -211,7 +211,7 @@ object AiHttp {
     }
   }
 
-  private inline fun <T> mapNetworkErrors(conn: HttpURLConnection, block: () -> T): T {
+  internal inline fun <T> mapNetworkErrors(conn: HttpURLConnection, block: () -> T): T {
     try {
       return block()
     } catch (e: IOException) {
@@ -252,7 +252,7 @@ object AiHttp {
    * Runs a blocking [block] on [conn] and disconnects the connection as soon as the calling
    * coroutine is cancelled, so a read that is stuck waiting for tokens returns immediately.
    */
-  private suspend fun <T> withDisconnectOnCancel(
+  internal suspend fun <T> withDisconnectOnCancel(
       conn: HttpURLConnection,
       block: suspend () -> T,
   ): T = coroutineScope {
