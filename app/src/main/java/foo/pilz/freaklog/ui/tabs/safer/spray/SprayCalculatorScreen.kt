@@ -52,7 +52,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -64,6 +63,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.Spray
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
@@ -74,13 +74,13 @@ fun SprayCalculatorScreen(
     viewModel: SprayCalculatorViewModel = hiltViewModel(),
     navigateToAddSpray: () -> Unit,
 ) {
-  val sprays by viewModel.spraysFlow.collectAsState()
-  val selectedSprayId by viewModel.selectedSprayId.collectAsState()
-  val weightUnit by viewModel.weightUnit.collectAsState()
-  val weightPerSpray by viewModel.weightPerSpray.collectAsState()
-  val liquidAmountInMl by viewModel.liquidAmountInMl.collectAsState()
-  val totalWeight by viewModel.totalWeight.collectAsState()
-  val purityInPercent by viewModel.purityInPercent.collectAsState()
+  val sprays by viewModel.spraysFlow.collectAsStateWithLifecycle()
+  val selectedSprayId by viewModel.selectedSprayId.collectAsStateWithLifecycle()
+  val weightUnit by viewModel.weightUnit.collectAsStateWithLifecycle()
+  val weightPerSpray by viewModel.weightPerSpray.collectAsStateWithLifecycle()
+  val liquidAmountInMl by viewModel.liquidAmountInMl.collectAsStateWithLifecycle()
+  val totalWeight by viewModel.totalWeight.collectAsStateWithLifecycle()
+  val purityInPercent by viewModel.purityInPercent.collectAsStateWithLifecycle()
   val doseAdjustedToPurity = viewModel.getDoseAdjustedToPurity()
   val concentrationPerMl = viewModel.getConcentrationPerMl()
   val numberOfSprays = viewModel.getNumberOfSprays()

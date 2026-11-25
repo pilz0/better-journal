@@ -35,7 +35,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,13 +43,14 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 
 @Composable
 fun CombinationSettingsScreen(viewModel: CombinationSettingsViewModel = hiltViewModel()) {
   CombinationSettingsScreen(
       substanceInteractions =
-          viewModel.optionsFlow.collectAsState().value.map {
+          viewModel.optionsFlow.collectAsStateWithLifecycle().value.map {
             SubstanceInteraction(
                 name = it.name,
                 isOn = it.enabled,

@@ -243,9 +243,6 @@
     <ID>ReturnCount:RoaDose.kt$RoaDose$fun getNumDots(ingestionDose: Double?, ingestionUnits: String? = units): Int?</ID>
     <ID>ThrowsCount:AdaptiveColor.kt$AdaptiveColor.Companion$fun valueOf(name: String): AdaptiveColor</ID>
     <ID>TopLevelPropertyNaming:FinishIngestionScreenViewModel.kt$const val hourLimitToSeparateIngestions: Long = 12</ID>
-    <ID>UnusedParameter:CustomDurationEditorScreen.kt$unit: String</ID>
-    <ID>UnusedParameter:FinishIngestionScreen.kt$selectedCustomFormulationId: Int?</ID>
-    <ID>UnusedParameter:SaltFormPicker.kt$modifier: Modifier = Modifier</ID>
     <ID>UnusedPrivateMember:CustomCategoriesPickerScreen.kt$@Preview @Composable private fun CustomCategoriesPickerPreview( @PreviewParameter(CategoryListProvider::class) categories: List&lt;Category&gt;, )</ID>
     <ID>UnusedPrivateMember:CustomColorDialog.kt$@Preview @Composable private fun CustomColorDialogPreview()</ID>
     <ID>UnusedPrivateMember:EditCustomUnitScreen.kt$@Preview @Composable private fun EditCustomUnitScreenPreview( @PreviewParameter(RoaDosePreviewProvider::class) roaDose: RoaDose, )</ID>
@@ -253,8 +250,6 @@
     <ID>UnusedPrivateMember:MDMACalculator.kt$@Preview @Composable private fun MDMACalculatorPreview()</ID>
     <ID>UnusedPrivateMember:RatingRow.kt$@Preview @Composable private fun RatingRowPreview( @PreviewParameter(RatingPreviewProvider::class) rating: ShulginRating )</ID>
     <ID>UnusedPrivateMember:StandardDeviationExplanation.kt$@Preview @Composable private fun StandardDeviationExplanationPreview()</ID>
-    <ID>UnusedPrivateProperty:CustomDurationEditorViewModel.kt$CustomDurationEditorViewModel$val substanceCompanion = experienceRepository.getSubstanceCompanion(substanceName)</ID>
-    <ID>UnusedPrivateProperty:CustomSubstanceViewModel.kt$CustomSubstanceViewModel$val companion = experienceRepo.getSubstanceCompanion(substance.substance.name)</ID>
     <ID>UseRequire:AdaptiveColor.kt$AdaptiveColor.Companion$throw IllegalArgumentException("Malformed custom AdaptiveColor: $name")</ID>
     <ID>UseRequire:StomachFullness.kt$StomachFullnessSerializer$throw IllegalArgumentException("$value is not a valid stomach fullness")</ID>
     <ID>WildcardImport:BarChart.kt$import androidx.compose.foundation.layout.*</ID>

@@ -33,7 +33,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.anodyne.model.AnodyneSubstance
 import foo.pilz.freaklog.data.anodyne.model.AnodyneUserNote
 import foo.pilz.freaklog.ui.theme.horizontalPadding
@@ -58,7 +58,7 @@ fun AnodyneSubstanceScreen(
     navigateToUserNotes: (String) -> Unit,
     viewModel: AnodyneSubstanceViewModel = hiltViewModel(),
 ) {
-  val phase by viewModel.phase.collectAsState()
+  val phase by viewModel.phase.collectAsStateWithLifecycle()
   val performHaptic = rememberHaptic()
   var showAddSheet by remember { mutableStateOf(false) }
 

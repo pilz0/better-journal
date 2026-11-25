@@ -37,7 +37,6 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -49,6 +48,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.ui.tabs.journal.experience.TimelineDisplayOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.TimeDisplayOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.AllTimelines
@@ -62,13 +62,15 @@ import foo.pilz.freaklog.ui.theme.horizontalPadding
 fun TimelineScreen(viewModel: TimelineScreenViewModel = hiltViewModel()) {
   TimelineScreen(
       title = viewModel.consumerName,
-      timelineDisplayOption = viewModel.timelineDisplayOptionFlow.collectAsState().value,
-      timeDisplayOption = viewModel.timeDisplayOptionFlow.collectAsState().value,
-      heartRateSamples = viewModel.heartRateSamplesFlow.collectAsState().value,
-      sleepSamples = viewModel.sleepSamplesFlow.collectAsState().value,
-      showSleepStages = viewModel.showSleepStagesFlow.collectAsState().value,
-      bloodPressureReadings = viewModel.bloodPressureReadingsFlow.collectAsState().value,
-      vitalSeries = viewModel.vitalSeriesFlow.collectAsState().value,
+      timelineDisplayOption =
+          viewModel.timelineDisplayOptionFlow.collectAsStateWithLifecycle().value,
+      timeDisplayOption = viewModel.timeDisplayOptionFlow.collectAsStateWithLifecycle().value,
+      heartRateSamples = viewModel.heartRateSamplesFlow.collectAsStateWithLifecycle().value,
+      sleepSamples = viewModel.sleepSamplesFlow.collectAsStateWithLifecycle().value,
+      showSleepStages = viewModel.showSleepStagesFlow.collectAsStateWithLifecycle().value,
+      bloodPressureReadings =
+          viewModel.bloodPressureReadingsFlow.collectAsStateWithLifecycle().value,
+      vitalSeries = viewModel.vitalSeriesFlow.collectAsStateWithLifecycle().value,
   )
 }
 

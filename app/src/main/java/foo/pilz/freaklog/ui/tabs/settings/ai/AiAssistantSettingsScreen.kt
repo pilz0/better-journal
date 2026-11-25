@@ -29,13 +29,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.ai.profiles.AiProfile
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import java.net.URI
@@ -48,10 +48,10 @@ fun AiAssistantSettingsScreen(
     navigateToAnodyneSettings: () -> Unit = {},
     viewModel: AiSettingsViewModel = hiltViewModel(),
 ) {
-  val isEnabled by viewModel.isEnabled.collectAsState()
-  val profiles by viewModel.profiles.collectAsState()
-  val activeId by viewModel.activeProfileId.collectAsState()
-  val withKey by viewModel.profilesWithKey.collectAsState()
+  val isEnabled by viewModel.isEnabled.collectAsStateWithLifecycle()
+  val profiles by viewModel.profiles.collectAsStateWithLifecycle()
+  val activeId by viewModel.activeProfileId.collectAsStateWithLifecycle()
+  val withKey by viewModel.profilesWithKey.collectAsStateWithLifecycle()
 
   Scaffold(
       topBar = {
@@ -106,7 +106,7 @@ fun AiAssistantSettingsScreen(
         Text("Add provider")
       }
       AnodyneSection(
-          enabled = viewModel.isAnodyneEnabled.collectAsState().value,
+          enabled = viewModel.isAnodyneEnabled.collectAsStateWithLifecycle().value,
           onEnabledChange = viewModel::setAnodyneEnabled,
           navigateToAnodyneSettings = navigateToAnodyneSettings,
       )

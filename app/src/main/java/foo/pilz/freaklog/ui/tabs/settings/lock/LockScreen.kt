@@ -29,7 +29,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
@@ -37,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 /**
  * Composable that wraps [content] and overlays the lock screen whenever
@@ -51,7 +51,7 @@ fun BiometricAuthWrapper(
     activity: FragmentActivity,
     content: @Composable () -> Unit,
 ) {
-  val locked by manager.shouldLock.collectAsState()
+  val locked by manager.shouldLock.collectAsStateWithLifecycle()
   val protectedState = rememberSaveableStateHolder()
 
   // Trigger the system prompt automatically when entering the locked state.

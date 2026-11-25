@@ -76,7 +76,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -92,6 +91,7 @@ import androidx.health.connect.client.PermissionController
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.TimedNote
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.ui.FULL_STOMACH_DISCLAIMER
@@ -151,10 +151,11 @@ fun ExperienceScreen(
     navigateBack: () -> Unit,
 ) {
   LaunchedEffect(Unit) { viewModel.runTeamsSkin() }
-  val ingestionsWithCompanions = viewModel.ingestionsWithCompanionsFlow.collectAsState().value
-  val experience = viewModel.experienceFlow.collectAsState().value
-  val isFavorite = viewModel.isFavoriteFlow.collectAsState().value
-  val isAiAssistantEnabled = viewModel.aiAssistantEnabledFlow.collectAsState().value
+  val ingestionsWithCompanions =
+      viewModel.ingestionsWithCompanionsFlow.collectAsStateWithLifecycle().value
+  val experience = viewModel.experienceFlow.collectAsStateWithLifecycle().value
+  val isFavorite = viewModel.isFavoriteFlow.collectAsStateWithLifecycle().value
+  val isAiAssistantEnabled = viewModel.aiAssistantEnabledFlow.collectAsStateWithLifecycle().value
   val oneExperienceScreenModel =
       OneExperienceScreenModel(
           id = experience?.id ?: 0,
@@ -166,15 +167,19 @@ fun ExperienceScreen(
                   ?: Instant.now(),
           notes = experience?.text ?: "",
           locationName = experience?.location?.name ?: "",
-          isCurrentExperience = viewModel.isCurrentExperienceFlow.collectAsState().value,
-          ingestionElements = viewModel.ingestionElementsFlow.collectAsState().value,
-          cumulativeDoses = viewModel.cumulativeDosesFlow.collectAsState().value,
-          interactions = viewModel.interactionsFlow.collectAsState().value,
-          interactionExplanations = viewModel.interactionExplanationsFlow.collectAsState().value,
-          ratings = viewModel.ratingsFlow.collectAsState().value,
-          timedNotesSorted = viewModel.timedNotesSortedFlow.collectAsState().value,
-          consumersWithIngestions = viewModel.consumersWithIngestionsFlow.collectAsState().value,
-          dataForEffectLines = viewModel.dataForEffectTimelinesFlow.collectAsState().value,
+          isCurrentExperience =
+              viewModel.isCurrentExperienceFlow.collectAsStateWithLifecycle().value,
+          ingestionElements = viewModel.ingestionElementsFlow.collectAsStateWithLifecycle().value,
+          cumulativeDoses = viewModel.cumulativeDosesFlow.collectAsStateWithLifecycle().value,
+          interactions = viewModel.interactionsFlow.collectAsStateWithLifecycle().value,
+          interactionExplanations =
+              viewModel.interactionExplanationsFlow.collectAsStateWithLifecycle().value,
+          ratings = viewModel.ratingsFlow.collectAsStateWithLifecycle().value,
+          timedNotesSorted = viewModel.timedNotesSortedFlow.collectAsStateWithLifecycle().value,
+          consumersWithIngestions =
+              viewModel.consumersWithIngestionsFlow.collectAsStateWithLifecycle().value,
+          dataForEffectLines =
+              viewModel.dataForEffectTimelinesFlow.collectAsStateWithLifecycle().value,
       )
 
   var showAiChat by remember { mutableStateOf(false) }
@@ -185,9 +190,10 @@ fun ExperienceScreen(
       ) { granted ->
         if (granted) viewModel.toggleNotification(context)
       }
-  val isNotificationActive = viewModel.isNotificationActiveFlow.collectAsState().value
+  val isNotificationActive = viewModel.isNotificationActiveFlow.collectAsStateWithLifecycle().value
 
-  val timelineDisplayOption = viewModel.timelineDisplayOptionFlow.collectAsState().value
+  val timelineDisplayOption =
+      viewModel.timelineDisplayOptionFlow.collectAsStateWithLifecycle().value
   val healthPermissionLauncher =
       rememberLauncherForActivityResult(
           PermissionController.createRequestPermissionResultContract()
@@ -201,7 +207,7 @@ fun ExperienceScreen(
           Toast.makeText(context, "Health Connect permission denied", Toast.LENGTH_SHORT).show()
         }
       }
-  val isVitalsEnabled = viewModel.isVitalsEnabledFlow.collectAsState().value
+  val isVitalsEnabled = viewModel.isVitalsEnabledFlow.collectAsStateWithLifecycle().value
   val isHeartRateAvailable = remember { HeartRateHealthConnect.isAvailable(context) }
   val bloodPressurePermissionLauncher =
       rememberLauncherForActivityResult(
@@ -213,7 +219,7 @@ fun ExperienceScreen(
           Toast.makeText(context, "Health Connect permission denied", Toast.LENGTH_SHORT).show()
         }
       }
-  val bloodPressureDisplay = viewModel.bloodPressureDisplayFlow.collectAsState().value
+  val bloodPressureDisplay = viewModel.bloodPressureDisplayFlow.collectAsStateWithLifecycle().value
   val isBloodPressureAvailable = remember { BloodPressureHealthConnect.isAvailable(context) }
   val isBloodPressureActive =
       isVitalsEnabled &&
@@ -249,7 +255,8 @@ fun ExperienceScreen(
   ExperienceScreen(
       oneExperienceScreenModel = oneExperienceScreenModel,
       timelineDisplayOption = timelineDisplayOption,
-      isOralDisclaimerHidden = viewModel.isOralTimelineDisclaimerHidden.collectAsState().value,
+      isOralDisclaimerHidden =
+          viewModel.isOralTimelineDisclaimerHidden.collectAsStateWithLifecycle().value,
       onChangeIsOralDisclaimerHidden = viewModel::saveOralDisclaimerIsHidden,
       addIngestion = {
         viewModel.saveLastIngestionTimeOfExperience()
@@ -259,9 +266,9 @@ fun ExperienceScreen(
       onShareExperience = {
         (context as? androidx.activity.ComponentActivity)?.let(viewModel::shareExperience)
       },
-      heartRateSamples = viewModel.heartRateSamplesFlow.collectAsState().value,
-      sleepSamples = viewModel.sleepSamplesFlow.collectAsState().value,
-      sleepStagesEnabled = viewModel.sleepStagesEnabledFlow.collectAsState().value,
+      heartRateSamples = viewModel.heartRateSamplesFlow.collectAsStateWithLifecycle().value,
+      sleepSamples = viewModel.sleepSamplesFlow.collectAsStateWithLifecycle().value,
+      sleepStagesEnabled = viewModel.sleepStagesEnabledFlow.collectAsStateWithLifecycle().value,
       isHeartRateButtonVisible = isVitalsEnabled && isHeartRateAvailable,
       onToggleHeartRate = {
         viewModel.toggleHeartRate(context) {
@@ -270,8 +277,9 @@ fun ExperienceScreen(
           )
         }
       },
-      vitalSeries = viewModel.vitalSeriesFlow.collectAsState().value,
-      bloodPressureReadings = viewModel.bloodPressureReadingsFlow.collectAsState().value,
+      vitalSeries = viewModel.vitalSeriesFlow.collectAsStateWithLifecycle().value,
+      bloodPressureReadings =
+          viewModel.bloodPressureReadingsFlow.collectAsStateWithLifecycle().value,
       isBloodPressureAvailable = isBloodPressureAvailable,
       isBloodPressureInSubstanceList = isBloodPressureInSubstanceList,
       onToggleBloodPressureInSubstanceList = {
@@ -308,13 +316,13 @@ fun ExperienceScreen(
       isAiAssistantEnabled = isAiAssistantEnabled,
       navigateToEditRatingScreen = navigateToEditRatingScreen,
       navigateToEditTimedNoteScreen = navigateToEditTimedNoteScreen,
-      savedTimeDisplayOption = viewModel.savedTimeDisplayOption.collectAsState().value,
-      timeDisplayOption = viewModel.timeDisplayOptionFlow.collectAsState().value,
+      savedTimeDisplayOption = viewModel.savedTimeDisplayOption.collectAsStateWithLifecycle().value,
+      timeDisplayOption = viewModel.timeDisplayOptionFlow.collectAsStateWithLifecycle().value,
       onChangeTimeDisplayOption = viewModel::saveTimeDisplayOption,
       navigateToTimelineScreen = navigateToTimelineScreen,
-      areDosageDotsHidden = viewModel.areDosageDotsHiddenFlow.collectAsState().value,
-      isTimelineHidden = viewModel.isTimelineHiddenFlow.collectAsState().value,
-      matchedAchievements = viewModel.matchedAchievementsFlow.collectAsState().value,
+      areDosageDotsHidden = viewModel.areDosageDotsHiddenFlow.collectAsStateWithLifecycle().value,
+      isTimelineHidden = viewModel.isTimelineHiddenFlow.collectAsStateWithLifecycle().value,
+      matchedAchievements = viewModel.matchedAchievementsFlow.collectAsStateWithLifecycle().value,
   )
 }
 

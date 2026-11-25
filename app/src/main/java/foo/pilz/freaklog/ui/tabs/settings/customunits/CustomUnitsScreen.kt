@@ -44,7 +44,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
@@ -53,6 +52,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.ui.tabs.stats.EmptyScreenDisclaimer
 import foo.pilz.freaklog.ui.theme.horizontalPadding
@@ -65,11 +65,11 @@ fun CustomUnitsScreen(
     navigateToCustomUnitArchive: () -> Unit,
 ) {
   CustomUnitsScreenContent(
-      filteredUnits = viewModel.filteredCustomUnitsFlow.collectAsState().value,
+      filteredUnits = viewModel.filteredCustomUnitsFlow.collectAsStateWithLifecycle().value,
       navigateToEditCustomUnit = navigateToEditCustomUnit,
       navigateToAddCustomUnit = navigateToAddCustomUnit,
       navigateToCustomUnitArchive = navigateToCustomUnitArchive,
-      searchText = viewModel.searchTextFlow.collectAsState().value,
+      searchText = viewModel.searchTextFlow.collectAsStateWithLifecycle().value,
       onSearch = viewModel::onSearch,
   )
 }

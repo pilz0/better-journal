@@ -28,9 +28,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.ui.tabs.journal.experience.timednote.TimedNoteScreenContent
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,7 +60,7 @@ fun AddTimedNoteScreen(
       }
   ) { padding ->
     TimedNoteScreenContent(
-        selectedTime = viewModel.localDateTimeFlow.collectAsState().value,
+        selectedTime = viewModel.localDateTimeFlow.collectAsStateWithLifecycle().value,
         onTimeChange = viewModel::onChangeTime,
         note = viewModel.note,
         onNoteChange = viewModel::onChangeNote,

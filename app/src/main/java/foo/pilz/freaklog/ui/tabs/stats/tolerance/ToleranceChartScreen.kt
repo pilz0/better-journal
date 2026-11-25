@@ -50,7 +50,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,6 +65,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import foo.pilz.freaklog.ui.utils.getStringOfPattern
 import java.time.Duration
@@ -81,9 +81,9 @@ private val TOLERANCE_DATE_FORMATTER: DateTimeFormatter =
 fun ToleranceChartScreen(
     viewModel: ToleranceChartViewModel = hiltViewModel(),
 ) {
-  val toleranceData by viewModel.toleranceDataFlow.collectAsState()
-  val sinceDate by viewModel.sinceDate.collectAsState()
-  val isTimeRelative by viewModel.isTimeRelative.collectAsState()
+  val toleranceData by viewModel.toleranceDataFlow.collectAsStateWithLifecycle()
+  val sinceDate by viewModel.sinceDate.collectAsStateWithLifecycle()
+  val isTimeRelative by viewModel.isTimeRelative.collectAsStateWithLifecycle()
 
   ToleranceChartScreenContent(
       toleranceData = toleranceData,

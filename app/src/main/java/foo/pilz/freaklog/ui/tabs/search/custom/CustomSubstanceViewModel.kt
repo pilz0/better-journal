@@ -9,7 +9,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.anodyne.AnodyneRepository
 import foo.pilz.freaklog.data.anodyne.model.AnodyneSubstance
 import foo.pilz.freaklog.data.room.experiences.CustomSubstanceRepository
-import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.relations.CustomSubstanceWithEverything
 import foo.pilz.freaklog.data.substances.classes.Category
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
@@ -35,7 +34,6 @@ class CustomSubstanceViewModel
 constructor(
     substanceRepo: SubstanceRepository,
     private val customRepo: CustomSubstanceRepository,
-    private val experienceRepo: ExperienceRepository,
     val anodyneRepo: AnodyneRepository,
     val userPreferences: UserPreferences,
     state: SavedStateHandle,
@@ -114,7 +112,6 @@ constructor(
                 }
             if (infosWithDurations.isEmpty()) return@combine TimelineDisplayOption.NotWorthDrawing
 
-            val companion = experienceRepo.getSubstanceCompanion(substance.substance.name)
             val dataForLines = infosWithDurations.mapIndexed { index, info ->
               DataForOneEffectLine(
                   substanceName = "name$index",

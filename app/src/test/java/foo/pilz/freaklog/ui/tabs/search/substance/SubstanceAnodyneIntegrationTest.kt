@@ -168,7 +168,6 @@ class SubstanceAnodyneIntegrationTest {
           every { getWithEverythingFlow(42) } returns flowOf(customSubstanceWithEverything)
           coEvery { getWithEverything(42) } returns customSubstanceWithEverything
         }
-    val experienceRepo = mockk<ExperienceRepository>()
 
     val anodyneRepo =
         mockk<AnodyneRepository> {
@@ -187,7 +186,6 @@ class SubstanceAnodyneIntegrationTest {
         CustomSubstanceViewModel(
             substanceRepo = substanceRepo,
             customRepo = customRepo,
-            experienceRepo = experienceRepo,
             anodyneRepo = anodyneRepo,
             userPreferences = userPrefs,
             state = savedStateHandle,
@@ -218,7 +216,6 @@ class SubstanceAnodyneIntegrationTest {
           every { getWithEverythingFlow(42) } returns flowOf(customSubstanceWithEverything)
           coEvery { getWithEverything(42) } returns customSubstanceWithEverything
         }
-    val experienceRepo = mockk<ExperienceRepository>()
 
     val anodyneRepo =
         mockk<AnodyneRepository> {
@@ -237,7 +234,6 @@ class SubstanceAnodyneIntegrationTest {
         CustomSubstanceViewModel(
             substanceRepo = substanceRepo,
             customRepo = customRepo,
-            experienceRepo = experienceRepo,
             anodyneRepo = anodyneRepo,
             userPreferences = userPrefs,
             state = savedStateHandle,

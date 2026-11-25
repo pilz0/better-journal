@@ -37,7 +37,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,6 +49,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.ai.profiles.AiProviderPreset
 import foo.pilz.freaklog.data.ai.profiles.isInsecureRemoteUrl
 import foo.pilz.freaklog.data.ai.provider.AiApiStandard
@@ -61,7 +61,7 @@ fun AiProfileEditorScreen(
     navigateBack: () -> Unit,
     viewModel: AiProfileEditorViewModel = hiltViewModel(),
 ) {
-  val state by viewModel.state.collectAsState()
+  val state by viewModel.state.collectAsStateWithLifecycle()
   val draft = state.draft
   var confirmDelete by remember { mutableStateOf(false) }
 

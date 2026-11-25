@@ -15,7 +15,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
@@ -69,7 +69,7 @@ class RedoseChipViewModel @Inject constructor(userPreferences: UserPreferences) 
 @Composable
 fun rememberRedoseChipState(
     viewModel: RedoseChipViewModel = hiltViewModel()
-): State<RedoseChipState> = viewModel.stateFlow.collectAsState()
+): State<RedoseChipState> = viewModel.stateFlow.collectAsStateWithLifecycle()
 
 private val REDOSE_TIME_FORMATTER: DateTimeFormatter =
     DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault())

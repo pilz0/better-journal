@@ -39,7 +39,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,6 +53,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.search.AddIngestionSearchViewModel
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.search.SubstanceRowAddIngestion
@@ -71,12 +71,13 @@ fun AddIngestionSearchScreen(
   AddIngestionSearchScreen(
       navigateToChooseRoute = navigateToChooseRoute,
       navigateToCustomSubstanceChooseRoute = navigateToCustomSubstanceChooseRoute,
-      searchText = viewModel.searchTextFlow.collectAsState().value,
+      searchText = viewModel.searchTextFlow.collectAsStateWithLifecycle().value,
       onChangeSearchText = {
         viewModel.updateSearchText(it)
       },
-      filteredSubstances = viewModel.filteredSubstancesFlow.collectAsState().value,
-      filteredCustomSubstances = viewModel.filteredCustomSubstancesFlow.collectAsState().value,
+      filteredSubstances = viewModel.filteredSubstancesFlow.collectAsStateWithLifecycle().value,
+      filteredCustomSubstances =
+          viewModel.filteredCustomSubstancesFlow.collectAsStateWithLifecycle().value,
   )
 }
 

@@ -32,7 +32,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +39,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.anodyne.AnodyneRepository
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import foo.pilz.freaklog.ui.theme.verticalPaddingCards
@@ -51,11 +51,11 @@ fun AnodyneSettingsScreen(
     navigateToBrowse: () -> Unit,
     viewModel: AnodyneSettingsViewModel = hiltViewModel(),
 ) {
-  val isAutoLoad by viewModel.isAutoLoadEnabled.collectAsState()
-  val configuredUrl by viewModel.configuredBaseUrl.collectAsState()
-  val draftUrl by viewModel.draftUrl.collectAsState()
-  val isValid by viewModel.isDraftValid.collectAsState()
-  val cacheSize by viewModel.cacheSizeBytes.collectAsState()
+  val isAutoLoad by viewModel.isAutoLoadEnabled.collectAsStateWithLifecycle()
+  val configuredUrl by viewModel.configuredBaseUrl.collectAsStateWithLifecycle()
+  val draftUrl by viewModel.draftUrl.collectAsStateWithLifecycle()
+  val isValid by viewModel.isDraftValid.collectAsStateWithLifecycle()
+  val cacheSize by viewModel.cacheSizeBytes.collectAsStateWithLifecycle()
 
   val context = LocalContext.current
   val uriHandler = LocalUriHandler.current

@@ -28,7 +28,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -45,6 +44,7 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.anodyne.AnodyneInstance
 import foo.pilz.freaklog.data.anodyne.AnodyneTextCleaner
 import foo.pilz.freaklog.data.anodyne.model.AnodyneUserNote
@@ -63,7 +63,7 @@ fun AnodyneUserNoteScreen(
     viewModel: AnodyneUserNotesViewModel = hiltViewModel(),
 ) {
   val performHaptic = rememberHaptic()
-  val notes by viewModel.notes.collectAsState()
+  val notes by viewModel.notes.collectAsStateWithLifecycle()
   val note: AnodyneUserNote? = notes.firstOrNull {
     it.user.equals(user, ignoreCase = true) &&
         (substanceName.isBlank() || it.substanceName.equals(substanceName, ignoreCase = true))

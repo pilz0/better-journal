@@ -66,7 +66,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -82,6 +81,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
 import foo.pilz.freaklog.ui.YOU
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.dose.StandardDeviationExplanation
@@ -115,24 +115,25 @@ fun EditIngestionScreen(
       onEstimatedDoseStandardDeviationChange = viewModel::onChangeEstimatedDoseStandardDeviation,
       units = viewModel.units,
       onUnitsChange = { viewModel.units = it },
-      experiences = viewModel.relevantExperiences.collectAsState().value,
+      experiences = viewModel.relevantExperiences.collectAsStateWithLifecycle().value,
       selectedExperienceId = viewModel.experienceId,
       onChangeId = { viewModel.experienceId = it },
       navigateBack = navigateBack,
       deleteIngestion = viewModel::deleteIngestion,
       onDone = { viewModel.onDoneClicked(onSaved = navigateBack) },
-      ingestionTimePickerOption = viewModel.ingestionTimePickerOptionFlow.collectAsState().value,
+      ingestionTimePickerOption =
+          viewModel.ingestionTimePickerOptionFlow.collectAsStateWithLifecycle().value,
       onChangeTimePickerOption = viewModel::onChangeTimePickerOption,
       onChangeStartDateOrTime = viewModel::onChangeStartTime,
-      localDateTimeStart = viewModel.localDateTimeStartFlow.collectAsState().value,
-      localDateTimeEnd = viewModel.localDateTimeEndFlow.collectAsState().value,
+      localDateTimeStart = viewModel.localDateTimeStartFlow.collectAsStateWithLifecycle().value,
+      localDateTimeEnd = viewModel.localDateTimeEndFlow.collectAsStateWithLifecycle().value,
       onChangeEndDateOrTime = viewModel::onChangeEndTime,
       consumerName = viewModel.consumerName,
       onChangeConsumerName = viewModel::onChangeConsumerName,
-      consumerNamesSorted = viewModel.sortedConsumerNamesFlow.collectAsState().value,
+      consumerNamesSorted = viewModel.sortedConsumerNamesFlow.collectAsStateWithLifecycle().value,
       customUnit = viewModel.customUnit,
       onCustomUnitChange = viewModel::onChangeCustomUnit,
-      otherCustomUnits = viewModel.otherCustomUnits.collectAsState().value,
+      otherCustomUnits = viewModel.otherCustomUnits.collectAsStateWithLifecycle().value,
       addIngestionWithClonedTime = {
         viewModel.saveClonedIngestionTime()
         navigateBack()
@@ -145,7 +146,7 @@ fun EditIngestionScreen(
       saltForm = viewModel.saltForm,
       onSaltFormChange = viewModel::onChangeSaltForm,
       onResendWebhook = viewModel::resendWebhook,
-      hasEnabledWebhooks = viewModel.hasEnabledWebhooksFlow.collectAsState().value,
+      hasEnabledWebhooks = viewModel.hasEnabledWebhooksFlow.collectAsStateWithLifecycle().value,
       ingestionCategory = viewModel.ingestionCategory,
       onIngestionCategoryChange = { viewModel.ingestionCategory = it },
   )

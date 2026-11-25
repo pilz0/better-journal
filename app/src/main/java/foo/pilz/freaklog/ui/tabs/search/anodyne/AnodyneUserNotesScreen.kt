@@ -27,13 +27,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.anodyne.AnodyneTextCleaner
 import foo.pilz.freaklog.data.anodyne.model.AnodyneUserNote
 import foo.pilz.freaklog.ui.theme.horizontalPadding
@@ -47,9 +47,9 @@ fun AnodyneUserNotesScreen(
     navigateBack: () -> Unit,
     navigateToNoteDetail: (user: String, substanceName: String) -> Unit,
 ) {
-  val notes by viewModel.notes.collectAsState()
-  val isLoading by viewModel.isLoading.collectAsState()
-  val error by viewModel.error.collectAsState()
+  val notes by viewModel.notes.collectAsStateWithLifecycle()
+  val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+  val error by viewModel.error.collectAsStateWithLifecycle()
   val performHaptic = rememberHaptic()
 
   Scaffold(

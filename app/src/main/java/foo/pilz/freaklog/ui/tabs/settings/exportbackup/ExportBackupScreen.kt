@@ -54,7 +54,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,6 +64,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.export.ExportFilter
 import foo.pilz.freaklog.data.report.ReportPeriod
 import foo.pilz.freaklog.data.report.ReportSettings
@@ -80,13 +80,13 @@ import java.time.format.DateTimeFormatter
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExportBackupScreen(viewModel: ExportBackupViewModel = hiltViewModel()) {
-  val filter = viewModel.exportFilterFlow.collectAsState().value
-  val usedSubstanceNames = viewModel.usedSubstanceNamesFlow.collectAsState().value
-  val exportPassphrase = viewModel.exportPassphrase.collectAsState().value
-  val pendingEncryptedImport = viewModel.pendingEncryptedImport.collectAsState().value
-  val backupDirUri = viewModel.backupDirUriFlow.collectAsState().value
-  val lastBackupTime = viewModel.lastBackupTimeFlow.collectAsState().value
-  val reportSettings = viewModel.reportSettingsFlow.collectAsState().value
+  val filter = viewModel.exportFilterFlow.collectAsStateWithLifecycle().value
+  val usedSubstanceNames = viewModel.usedSubstanceNamesFlow.collectAsStateWithLifecycle().value
+  val exportPassphrase = viewModel.exportPassphrase.collectAsStateWithLifecycle().value
+  val pendingEncryptedImport = viewModel.pendingEncryptedImport.collectAsStateWithLifecycle().value
+  val backupDirUri = viewModel.backupDirUriFlow.collectAsStateWithLifecycle().value
+  val lastBackupTime = viewModel.lastBackupTimeFlow.collectAsStateWithLifecycle().value
+  val reportSettings = viewModel.reportSettingsFlow.collectAsStateWithLifecycle().value
 
   var showSubstanceDialog by remember { mutableStateOf(false) }
   var importToConfirm by remember { mutableStateOf<Uri?>(null) }
@@ -109,7 +109,7 @@ fun ExportBackupScreen(viewModel: ExportBackupViewModel = hiltViewModel()) {
       rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         importToConfirm = uri
       }
-  val substanceCollision = viewModel.substanceCollision.collectAsState().value
+  val substanceCollision = viewModel.substanceCollision.collectAsStateWithLifecycle().value
   val launcherSubstance =
       rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let(viewModel::importSubstanceFile)

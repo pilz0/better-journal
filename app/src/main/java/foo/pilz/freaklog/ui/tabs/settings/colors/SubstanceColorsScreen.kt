@@ -42,7 +42,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,6 +49,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceCompanion
 import foo.pilz.freaklog.data.substanceshare.shareSubstanceColors
@@ -65,7 +65,7 @@ fun SubstanceColorsScreen(
   }
   val context = LocalContext.current
   val snackbarHostState = remember { SnackbarHostState() }
-  val snackbarText = viewModel.snackbar.collectAsState().value
+  val snackbarText = viewModel.snackbar.collectAsStateWithLifecycle().value
   LaunchedEffect(snackbarText) {
     snackbarText?.let {
       snackbarHostState.showSnackbar(it)
@@ -77,13 +77,13 @@ fun SubstanceColorsScreen(
         uri?.let { viewModel.importColors(context, it) }
       }
   SubstanceColorsScreenContent(
-      substanceCompanions = viewModel.substanceCompanionsFlow.collectAsState().value,
+      substanceCompanions = viewModel.substanceCompanionsFlow.collectAsStateWithLifecycle().value,
       onShare = { shareSubstanceColors(context, viewModel.colorsForExport()) },
       onImport = { importLauncher.launch(arrayOf("application/json", "*/*")) },
       snackbarHostState = snackbarHostState,
       updateColor = viewModel::updateColor,
-      alreadyUsedColors = viewModel.alreadyUsedColorsFlow.collectAsState().value,
-      otherColors = viewModel.otherColorsFlow.collectAsState().value,
+      alreadyUsedColors = viewModel.alreadyUsedColorsFlow.collectAsStateWithLifecycle().value,
+      otherColors = viewModel.otherColorsFlow.collectAsStateWithLifecycle().value,
   )
 }
 

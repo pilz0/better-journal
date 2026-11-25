@@ -38,7 +38,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -55,6 +54,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import java.time.Duration
 import java.time.Instant
@@ -65,9 +65,9 @@ fun ToleranceScreen(
     navigateBack: () -> Unit,
     viewModel: ToleranceViewModel = hiltViewModel(),
 ) {
-  val recentTolerances = viewModel.recentTolerances.collectAsState().value
-  val searchedTolerance = viewModel.searchedTolerance.collectAsState().value
-  val isLoading = viewModel.isLoading.collectAsState().value
+  val recentTolerances = viewModel.recentTolerances.collectAsStateWithLifecycle().value
+  val searchedTolerance = viewModel.searchedTolerance.collectAsStateWithLifecycle().value
+  val isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value
 
   Scaffold(
       topBar = {

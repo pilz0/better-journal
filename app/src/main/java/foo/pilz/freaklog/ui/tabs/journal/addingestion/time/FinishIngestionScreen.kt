@@ -63,7 +63,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -79,6 +78,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestions
 import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
@@ -97,31 +97,32 @@ fun FinishIngestionScreen(
     dismissAddIngestionScreens: () -> Unit,
     viewModel: FinishIngestionScreenViewModel = hiltViewModel(),
 ) {
-  val localDateTime = viewModel.localDateTimeStartFlow.collectAsState().value
+  val localDateTime = viewModel.localDateTimeStartFlow.collectAsStateWithLifecycle().value
   FinishIngestionScreen(
       createSaveAndDismissAfter = {
         viewModel.onDoneClicked(dismiss = dismissAddIngestionScreens)
       },
-      ingestionTimePickerOption = viewModel.ingestionTimePickerOptionFlow.collectAsState().value,
+      ingestionTimePickerOption =
+          viewModel.ingestionTimePickerOptionFlow.collectAsStateWithLifecycle().value,
       onChangeTimePickerOption = viewModel::onChangeTimePickerOption,
       onChangeStartDateOrTime = viewModel::onChangeStartDateOrTime,
       onTimePresetSelected = { viewModel.applyTimePreset(it) },
       localDateTimeStart = localDateTime,
-      localDateTimeEnd = viewModel.localDateTimeEndFlow.collectAsState().value,
+      localDateTimeEnd = viewModel.localDateTimeEndFlow.collectAsStateWithLifecycle().value,
       onChangeEndDateOrTime = viewModel::onChangeEndDateOrTime,
       isLoadingColor = viewModel.isLoadingColor,
       isShowingColorPicker = viewModel.isShowingColorPicker,
       selectedColor = viewModel.selectedColor,
       onChangeColor = { viewModel.selectedColor = it },
-      alreadyUsedColors = viewModel.alreadyUsedColorsFlow.collectAsState().value,
-      otherColors = viewModel.otherColorsFlow.collectAsState().value,
-      previousNotes = viewModel.previousNotesFlow.collectAsState().value,
+      alreadyUsedColors = viewModel.alreadyUsedColorsFlow.collectAsStateWithLifecycle().value,
+      otherColors = viewModel.otherColorsFlow.collectAsStateWithLifecycle().value,
+      previousNotes = viewModel.previousNotesFlow.collectAsStateWithLifecycle().value,
       note = viewModel.note,
       onNoteChange = {
         viewModel.note = it
       },
-      experiencesInRange = viewModel.experiencesInRangeFlow.collectAsState().value,
-      selectedExperience = viewModel.selectedExperienceFlow.collectAsState().value,
+      experiencesInRange = viewModel.experiencesInRangeFlow.collectAsStateWithLifecycle().value,
+      selectedExperience = viewModel.selectedExperienceFlow.collectAsStateWithLifecycle().value,
       onChangeOfSelectedExperience = viewModel::onChangeOfSelectedExperience,
       substanceName = viewModel.substanceName,
       enteredTitle = viewModel.enteredTitle,
@@ -129,22 +130,22 @@ fun FinishIngestionScreen(
       isEnteredTitleOk = viewModel.isEnteredTitleOk,
       consumerName = viewModel.consumerName,
       onChangeOfConsumerName = viewModel::changeConsumerName,
-      consumerNamesSorted = viewModel.sortedConsumerNamesFlow.collectAsState().value,
+      consumerNamesSorted = viewModel.sortedConsumerNamesFlow.collectAsStateWithLifecycle().value,
       showSiteSelection = viewModel.showSiteSelection,
       siteOptions = viewModel.siteOptions,
       administrationSite = viewModel.administrationSite,
       onChangeOfAdministrationSite = viewModel::changeAdministrationSite,
-      enabledWebhooks = viewModel.enabledWebhooksFlow.collectAsState().value,
+      enabledWebhooks = viewModel.enabledWebhooksFlow.collectAsStateWithLifecycle().value,
       isWebhookSelected = { id -> viewModel.selectedWebhookIds[id] ?: true },
       onWebhookSelectedChange = viewModel::setWebhookSelected,
-      availableFormulations = viewModel.availableFormulationsFlow.collectAsState().value,
+      availableFormulations =
+          viewModel.availableFormulationsFlow.collectAsStateWithLifecycle().value,
       selectedFormulationName = viewModel.selectedFormulationName,
-      selectedCustomFormulationId = viewModel.selectedCustomFormulationId,
       onFormulationChange = { name, isCustom, id ->
         viewModel.selectedFormulationName = name
         viewModel.selectedCustomFormulationId = id
       },
-      previousSaltForms = viewModel.previousSaltFormsFlow.collectAsState().value,
+      previousSaltForms = viewModel.previousSaltFormsFlow.collectAsStateWithLifecycle().value,
       saltForm = viewModel.saltForm,
       onSaltFormChange = viewModel::changeSaltForm,
       ingestionCategory = viewModel.ingestionCategory,
@@ -219,7 +220,6 @@ fun FinishIngestionScreenPreview() {
               )
           ),
       selectedFormulationName = null,
-      selectedCustomFormulationId = null,
       onFormulationChange = { _, _, _ -> },
       previousSaltForms = listOf("HCL", "Freebase"),
       saltForm = "",
@@ -270,7 +270,6 @@ fun FinishIngestionScreen(
     onWebhookSelectedChange: (Int, Boolean) -> Unit,
     availableFormulations: List<FinishIngestionScreenViewModel.FormulationOption>,
     selectedFormulationName: String?,
-    selectedCustomFormulationId: Int?,
     onFormulationChange: (name: String?, isCustom: Boolean, customId: Int?) -> Unit,
     previousSaltForms: List<String>,
     saltForm: String,

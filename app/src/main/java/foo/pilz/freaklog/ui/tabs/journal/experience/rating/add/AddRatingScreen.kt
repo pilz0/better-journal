@@ -37,12 +37,12 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.ShulginRatingOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.rating.FloatingDoneButton
 import foo.pilz.freaklog.ui.tabs.journal.experience.rating.RatingPickerSection
@@ -76,11 +76,12 @@ fun AddRatingScreen(
         viewModel.onDoneTap()
         navigateBack()
       },
-      selectedTime = viewModel.localDateTimeFlow.collectAsState().value,
+      selectedTime = viewModel.localDateTimeFlow.collectAsStateWithLifecycle().value,
       onTimeChange = viewModel::onChangeTime,
       selectedRating = viewModel.selectedRating,
       onRatingChange = viewModel::onChangeRating,
-      canAddOverallRating = !viewModel.isThereAlreadyAnOverallRatingFlow.collectAsState().value,
+      canAddOverallRating =
+          !viewModel.isThereAlreadyAnOverallRatingFlow.collectAsStateWithLifecycle().value,
       isOverallRating = viewModel.isThisOverallRating,
       onChangeIsOverallRating = { viewModel.isThisOverallRating = it },
   )

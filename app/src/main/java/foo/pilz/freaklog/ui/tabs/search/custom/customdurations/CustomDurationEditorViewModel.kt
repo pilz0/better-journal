@@ -78,8 +78,6 @@ class CustomDurationEditorViewModel(
               roaDurationFlow,
               ingestionPreviewTimeFlow,
           ) { roaDuration, ingestionTime ->
-            val substanceCompanion = experienceRepository.getSubstanceCompanion(substanceName)
-
             val dataForEffectLine =
                 DataForOneEffectLine(
                     substanceName = substanceName,

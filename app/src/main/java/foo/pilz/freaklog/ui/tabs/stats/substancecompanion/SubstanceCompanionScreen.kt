@@ -38,7 +38,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
@@ -66,7 +65,7 @@ import foo.pilz.freaklog.ui.utils.getShortTimeText
 fun SubstanceCompanionScreen(
     viewModel: SubstanceCompanionViewModel = hiltViewModel(),
 ) {
-  val companion = viewModel.thisCompanionFlow.collectAsState().value
+  val companion = viewModel.thisCompanionFlow.collectAsStateWithLifecycle().value
   val frequency by viewModel.frequencyFlow.collectAsStateWithLifecycle()
   if (companion == null) {
     Surface(
@@ -76,18 +75,18 @@ fun SubstanceCompanionScreen(
   } else {
     SubstanceCompanionScreen(
         substanceCompanion = companion,
-        ingestionBursts = viewModel.ingestionBurstsFlow.collectAsState().value,
+        ingestionBursts = viewModel.ingestionBurstsFlow.collectAsStateWithLifecycle().value,
         tolerance = viewModel.tolerance,
         crossTolerances = viewModel.crossTolerances,
         consumerName = viewModel.consumerName,
-        dosageStats = viewModel.dosageStatsFlow.collectAsState().value,
-        selectedTimeRange = viewModel.selectedTimeRange.collectAsState().value,
+        dosageStats = viewModel.dosageStatsFlow.collectAsStateWithLifecycle().value,
+        selectedTimeRange = viewModel.selectedTimeRange.collectAsStateWithLifecycle().value,
         onTimeRangeSelected = viewModel::setTimeRange,
-        showAverage = viewModel.showAverage.collectAsState().value,
+        showAverage = viewModel.showAverage.collectAsStateWithLifecycle().value,
         onToggleShowAverage = viewModel::toggleShowAverage,
-        showTrendLine = viewModel.showTrendLine.collectAsState().value,
+        showTrendLine = viewModel.showTrendLine.collectAsStateWithLifecycle().value,
         onToggleShowTrendLine = viewModel::toggleShowTrendLine,
-        selectedMetric = viewModel.selectedMetric.collectAsState().value,
+        selectedMetric = viewModel.selectedMetric.collectAsStateWithLifecycle().value,
         onMetricSelected = viewModel::setMetric,
         doseThresholds = viewModel.doseThresholds,
         frequency = frequency,

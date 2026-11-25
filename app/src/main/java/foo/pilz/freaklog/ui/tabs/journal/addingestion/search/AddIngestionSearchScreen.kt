@@ -52,7 +52,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -67,6 +66,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
@@ -101,7 +101,7 @@ fun AddIngestionSearchScreen(
     navigateToSubstanceGroupFinish: (groupId: Int) -> Unit,
     viewModel: AddIngestionSearchViewModel = hiltViewModel(),
 ) {
-  val searchText = viewModel.searchTextFlow.collectAsState().value
+  val searchText = viewModel.searchTextFlow.collectAsStateWithLifecycle().value
   AddIngestionSearchScreen(
       navigateToCheckInteractions = navigateToCheckInteractions,
       navigateToCheckSaferUse = navigateToCheckSaferUse,
@@ -114,15 +114,17 @@ fun AddIngestionSearchScreen(
         navigateToAddCustomSubstanceScreen(searchText)
       },
       navigateToCustomUnitChooseDose = navigateToCustomUnitChooseDose,
-      suggestions = viewModel.filteredSuggestions.collectAsState().value,
+      suggestions = viewModel.filteredSuggestions.collectAsStateWithLifecycle().value,
       searchText = searchText,
       onChangeSearchText = {
         viewModel.updateSearchText(it)
       },
-      filteredSubstances = viewModel.filteredSubstancesFlow.collectAsState().value,
-      filteredCustomUnits = viewModel.filteredCustomUnitsFlow.collectAsState().value,
-      filteredCustomSubstances = viewModel.filteredCustomSubstancesFlow.collectAsState().value,
-      filteredSubstanceGroups = viewModel.filteredSubstanceGroupsFlow.collectAsState().value,
+      filteredSubstances = viewModel.filteredSubstancesFlow.collectAsStateWithLifecycle().value,
+      filteredCustomUnits = viewModel.filteredCustomUnitsFlow.collectAsStateWithLifecycle().value,
+      filteredCustomSubstances =
+          viewModel.filteredCustomSubstancesFlow.collectAsStateWithLifecycle().value,
+      filteredSubstanceGroups =
+          viewModel.filteredSubstanceGroupsFlow.collectAsStateWithLifecycle().value,
       navigateToSubstanceGroupFinish = navigateToSubstanceGroupFinish,
   )
 }

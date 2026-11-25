@@ -58,7 +58,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -75,6 +74,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsCompanionsAndRatings
 import foo.pilz.freaklog.ui.tabs.journal.components.ExperienceRow
 import foo.pilz.freaklog.ui.tabs.journal.experience.recommendations.AiChatBottomSheet
@@ -94,13 +94,13 @@ fun JournalScreen(
     navigateToAiSettings: () -> Unit = {},
     viewModel: JournalViewModel = hiltViewModel(),
 ) {
-  val experiences = viewModel.experiences.collectAsState().value
+  val experiences = viewModel.experiences.collectAsStateWithLifecycle().value
   LaunchedEffect(Unit) {
     viewModel.maybeMigrate()
   }
   LaunchedEffect(Unit) { viewModel.runOutlookSkin() }
   var showAssistant by rememberSaveable { mutableStateOf(false) }
-  val isAssistantEnabled = viewModel.isAiAssistantEnabledFlow.collectAsState().value
+  val isAssistantEnabled = viewModel.isAiAssistantEnabledFlow.collectAsStateWithLifecycle().value
   if (showAssistant && isAssistantEnabled) {
     AiChatBottomSheet(
         experienceId = null,
@@ -120,11 +120,11 @@ fun JournalScreen(
       },
       navigateToCalendar = navigateToCalendar,
       navigateToAllIngestions = navigateToAllIngestions,
-      isFavoriteEnabled = viewModel.isFavoriteEnabledFlow.collectAsState().value,
+      isFavoriteEnabled = viewModel.isFavoriteEnabledFlow.collectAsStateWithLifecycle().value,
       onChangeIsFavorite = viewModel::onChangeFavorite,
       isTimeRelativeToNow = viewModel.isTimeRelativeToNow.value,
       onChangeIsRelative = viewModel::onChangeRelative,
-      searchText = viewModel.searchTextFlow.collectAsState().value,
+      searchText = viewModel.searchTextFlow.collectAsStateWithLifecycle().value,
       onChangeSearchText = viewModel::search,
       isSearchEnabled = viewModel.isSearchEnabled.value,
       onChangeIsSearchEnabled = viewModel::onChangeOfIsSearchEnabled,

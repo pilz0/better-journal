@@ -34,11 +34,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.ShulginRatingOption
 import foo.pilz.freaklog.ui.tabs.journal.experience.rating.FloatingDoneButton
 import foo.pilz.freaklog.ui.tabs.journal.experience.rating.RatingPickerSection
@@ -71,7 +71,7 @@ fun EditRatingScreen(
         viewModel.onDoneTap()
         navigateBack()
       },
-      selectedTime = viewModel.localDateTimeFlow.collectAsState().value,
+      selectedTime = viewModel.localDateTimeFlow.collectAsStateWithLifecycle().value,
       onTimeChange = viewModel::onChangeTime,
       selectedRating = viewModel.selectedRatingOption,
       onRatingChange = viewModel::onChangeRating,
@@ -79,7 +79,7 @@ fun EditRatingScreen(
         viewModel.delete()
         navigateBack()
       },
-      isOverallRating = viewModel.isOverallRatingFlow.collectAsState().value,
+      isOverallRating = viewModel.isOverallRatingFlow.collectAsStateWithLifecycle().value,
   )
 }
 

@@ -743,7 +743,8 @@ fun DosageClassificationInput(
     )
     Spacer(modifier = Modifier.padding(top = spacing.sm))
     Text(
-        doseClass.name.lowercase().replaceFirstChar { it.titlecase(Locale.UK) },
+        doseClass.name.lowercase().replaceFirstChar { it.titlecase(Locale.UK) } +
+            if (unit.isBlank()) "" else " ($unit)",
         color = doseColor,
         textAlign = TextAlign.Center,
         modifier = Modifier.fillMaxWidth(),

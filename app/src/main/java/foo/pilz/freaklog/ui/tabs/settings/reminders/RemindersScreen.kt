@@ -47,7 +47,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,6 +60,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.reminders.entities.Reminder
 import foo.pilz.freaklog.scheduled.ReminderSchedule
 
@@ -71,7 +71,7 @@ fun RemindersScreen(
     navigateToEdit: (Int) -> Unit,
     viewModel: RemindersViewModel = hiltViewModel(),
 ) {
-  val reminders by viewModel.reminders.collectAsState()
+  val reminders by viewModel.reminders.collectAsStateWithLifecycle()
   val context = LocalContext.current
   var canExact by remember { mutableStateOf(viewModel.canScheduleExactAlarms()) }
   val lifecycleOwner = LocalLifecycleOwner.current

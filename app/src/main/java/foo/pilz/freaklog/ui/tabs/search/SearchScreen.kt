@@ -40,7 +40,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,6 +53,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
 import foo.pilz.freaklog.ui.tabs.search.substancerow.SubstanceRow
 import foo.pilz.freaklog.ui.theme.horizontalPadding
@@ -113,7 +113,7 @@ private fun SearchBodyContent(
 ) {
   val performHaptic = rememberHaptic()
   Column(modifier = modifier) {
-    val searchText = searchViewModel.searchTextFlow.collectAsState().value
+    val searchText = searchViewModel.searchTextFlow.collectAsStateWithLifecycle().value
     SearchField(
         modifier =
             Modifier.fillMaxWidth()
@@ -122,14 +122,14 @@ private fun SearchBodyContent(
                 .clearAndSetSemantics {},
         searchText = searchText,
         onChange = { searchViewModel.filterSubstances(searchText = it) },
-        categories = searchViewModel.chipCategoriesFlow.collectAsState().value,
+        categories = searchViewModel.chipCategoriesFlow.collectAsStateWithLifecycle().value,
         onFilterTapped = {
           performHaptic(HapticType.SELECTION)
           searchViewModel.onFilterTapped(it)
         },
         isShowingFilter = true,
     )
-    val chipCategories = searchViewModel.chipCategoriesFlow.collectAsState().value
+    val chipCategories = searchViewModel.chipCategoriesFlow.collectAsStateWithLifecycle().value
     val activeFilters = remember(chipCategories) { chipCategories.filter { it.isActive } }
     ActiveFiltersRow(
         activeFilters = activeFilters,
@@ -138,9 +138,10 @@ private fun SearchBodyContent(
           searchViewModel.onFilterTapped(chipName)
         },
     )
-    val filteredSubstances = searchViewModel.filteredSubstancesFlow.collectAsState().value
+    val filteredSubstances =
+        searchViewModel.filteredSubstancesFlow.collectAsStateWithLifecycle().value
     val filteredCustomSubstances =
-        searchViewModel.filteredCustomSubstancesFlow.collectAsState().value
+        searchViewModel.filteredCustomSubstancesFlow.collectAsStateWithLifecycle().value
     if (filteredSubstances.isEmpty() && filteredCustomSubstances.isEmpty()) {
       val activeCategoryNames = remember(activeFilters) { activeFilters.map { it.chipName } }
       SearchEmptyResults(

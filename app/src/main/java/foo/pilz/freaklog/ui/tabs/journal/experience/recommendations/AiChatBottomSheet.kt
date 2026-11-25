@@ -59,7 +59,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -81,6 +80,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.jeziellago.compose.markdowntext.MarkdownText
 import foo.pilz.freaklog.data.ai.AiChatUiState
 import foo.pilz.freaklog.data.ai.AiChatViewModel
@@ -100,7 +100,7 @@ fun AiChatBottomSheet(
     viewModel.initialize(experienceId)
   }
 
-  val uiState by viewModel.uiState.collectAsState()
+  val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
   ModalBottomSheet(
       onDismissRequest = onDismiss,

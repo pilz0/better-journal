@@ -35,6 +35,7 @@ fun SaltFormPicker(
   ExposedDropdownMenuBox(
       expanded = expanded,
       onExpandedChange = { expanded = !expanded },
+      modifier = modifier,
   ) {
     OutlinedTextField(
         value = saltForm,

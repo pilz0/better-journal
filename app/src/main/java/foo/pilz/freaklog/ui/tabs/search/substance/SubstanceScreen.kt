@@ -58,7 +58,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,6 +67,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.data.anodyne.AnodyneInstance
 import foo.pilz.freaklog.data.anodyne.model.AnodyneSubstance
 import foo.pilz.freaklog.data.room.experiences.entities.CustomUnit
@@ -120,8 +120,9 @@ fun SubstanceScreen(
     viewModel: SubstanceViewModel = hiltViewModel(),
 ) {
   SubstanceScreen(
-      timelineDisplayOption = viewModel.timelineDisplayOptionFlow.collectAsState().value,
-      ingestionTime = viewModel.ingestionTimeFlow.collectAsState().value,
+      timelineDisplayOption =
+          viewModel.timelineDisplayOptionFlow.collectAsStateWithLifecycle().value,
+      ingestionTime = viewModel.ingestionTimeFlow.collectAsStateWithLifecycle().value,
       onChangeIngestionTime = viewModel::changeIngestionTime,
       navigateToDosageExplanationScreen = navigateToDosageExplanationScreen,
       navigateToSaferHallucinogensScreen = navigateToSaferHallucinogensScreen,
@@ -130,10 +131,10 @@ fun SubstanceScreen(
       navigateToCategoryScreen = navigateToCategoryScreen,
       navigateToExplainTimeline = navigateToExplainTimeline,
       substanceWithCategories = viewModel.substanceWithCategories,
-      customUnits = viewModel.customUnitsFlow.collectAsState().value,
-      anodyneSubstance = viewModel.anodyneSubstanceFlow.collectAsState().value,
-      isAnodyneLoading = viewModel.isAnodyneLoadingFlow.collectAsState().value,
-      anodyneProblem = viewModel.anodyneProblemFlow.collectAsState().value,
+      customUnits = viewModel.customUnitsFlow.collectAsStateWithLifecycle().value,
+      anodyneSubstance = viewModel.anodyneSubstanceFlow.collectAsStateWithLifecycle().value,
+      isAnodyneLoading = viewModel.isAnodyneLoadingFlow.collectAsStateWithLifecycle().value,
+      anodyneProblem = viewModel.anodyneProblemFlow.collectAsStateWithLifecycle().value,
       onLoadAnodyne = viewModel::loadAnodyneData,
       navigateToUserNotes = navigateToUserNotes,
   )

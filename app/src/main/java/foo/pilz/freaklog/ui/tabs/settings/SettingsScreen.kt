@@ -80,7 +80,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -93,6 +92,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.ui.VERSION_NAME
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.BloodPressureHealthConnect
@@ -269,27 +269,29 @@ fun SettingsScreen(
       importFile = viewModel::importFile,
       exportFile = viewModel::exportFile,
       snackbarHostState = viewModel.snackbarHostState,
-      areDosageDotsHidden = viewModel.areDosageDotsHiddenFlow.collectAsState().value,
+      areDosageDotsHidden = viewModel.areDosageDotsHiddenFlow.collectAsStateWithLifecycle().value,
       saveDosageDotsAreHidden = viewModel::saveDosageDotsAreHidden,
-      isTimelineHidden = viewModel.isTimelineHiddenFlow.collectAsState().value,
+      isTimelineHidden = viewModel.isTimelineHiddenFlow.collectAsStateWithLifecycle().value,
       saveIsTimelineHidden = viewModel::saveIsTimelineHidden,
       timelineNotificationAutoStart =
-          viewModel.isTimelineNotificationAutoStartFlow.collectAsState().value,
+          viewModel.isTimelineNotificationAutoStartFlow.collectAsStateWithLifecycle().value,
       saveTimelineNotificationAutoStart = viewModel::saveTimelineNotificationAutoStart,
       isUltraFunModeEnabled =
-          viewModel.funnyConfigFlow.collectAsState().value.let { it.enableFunny && it.teamsSkin },
+          viewModel.funnyConfigFlow.collectAsStateWithLifecycle().value.let {
+            it.enableFunny && it.teamsSkin
+          },
       saveUltraFunModeEnabled = {
         viewModel.saveFunnyConfig(FunnyConfig(enableFunny = it, teamsSkin = it))
       },
       isVitalsAvailable = isVitalsAvailable,
-      isVitalsEnabled = viewModel.isVitalsEnabledFlow.collectAsState().value,
+      isVitalsEnabled = viewModel.isVitalsEnabledFlow.collectAsStateWithLifecycle().value,
       saveIsVitalsEnabled = saveIsVitalsEnabled,
-      sleepStagesEnabled = viewModel.sleepStagesEnabledFlow.collectAsState().value,
+      sleepStagesEnabled = viewModel.sleepStagesEnabledFlow.collectAsStateWithLifecycle().value,
       saveSleepStagesEnabled = viewModel::saveSleepStagesEnabled,
-      bloodPressureDisplay = viewModel.bloodPressureDisplayFlow.collectAsState().value,
+      bloodPressureDisplay = viewModel.bloodPressureDisplayFlow.collectAsStateWithLifecycle().value,
       saveBloodPressureDisplay = viewModel::saveBloodPressureDisplay,
       supportedExtraVitals = supportedExtraVitals,
-      extraVitals = viewModel.extraVitalsFlow.collectAsState().value,
+      extraVitals = viewModel.extraVitalsFlow.collectAsStateWithLifecycle().value,
       saveExtraVitalEnabled = saveExtraVitalEnabled,
       installHealthConnect =
           if (canInstallHealthConnect) {
@@ -304,29 +306,31 @@ fun SettingsScreen(
             null
           },
       areSubstanceHeightsIndependent =
-          viewModel.areSubstanceHeightsIndependentFlow.collectAsState().value,
+          viewModel.areSubstanceHeightsIndependentFlow.collectAsStateWithLifecycle().value,
       saveAreSubstanceHeightsIndependent = viewModel::saveAreSubstanceHeightsIndependent,
-      isStatsHidden = viewModel.isStatsHiddenFlow.collectAsState().value,
+      isStatsHidden = viewModel.isStatsHiddenFlow.collectAsStateWithLifecycle().value,
       saveIsStatsHidden = viewModel::saveIsStatsHidden,
-      isDrugsHidden = viewModel.isDrugsHiddenFlow.collectAsState().value,
+      isDrugsHidden = viewModel.isDrugsHiddenFlow.collectAsStateWithLifecycle().value,
       saveIsDrugsHidden = viewModel::saveIsDrugsHidden,
-      activateSafer = viewModel.activateSaferFlow.collectAsState().value,
+      activateSafer = viewModel.activateSaferFlow.collectAsStateWithLifecycle().value,
       saveActivateSafer = viewModel::saveActivateSafer,
-      isRedoseShown = viewModel.isRedoseShownFlow.collectAsState().value,
+      isRedoseShown = viewModel.isRedoseShownFlow.collectAsStateWithLifecycle().value,
       saveRedoseShown = viewModel::saveRedoseShown,
-      redoseOnsetFraction = viewModel.redoseOnsetFractionFlow.collectAsState().value,
-      redoseComeupFraction = viewModel.redoseComeupFractionFlow.collectAsState().value,
-      redosePeakFraction = viewModel.redosePeakFractionFlow.collectAsState().value,
+      redoseOnsetFraction = viewModel.redoseOnsetFractionFlow.collectAsStateWithLifecycle().value,
+      redoseComeupFraction = viewModel.redoseComeupFractionFlow.collectAsStateWithLifecycle().value,
+      redosePeakFraction = viewModel.redosePeakFractionFlow.collectAsStateWithLifecycle().value,
       saveRedoseFractions = viewModel::saveRedoseFractions,
-      isHapticFeedbackEnabled = viewModel.isHapticFeedbackEnabledFlow.collectAsState().value,
+      isHapticFeedbackEnabled =
+          viewModel.isHapticFeedbackEnabledFlow.collectAsStateWithLifecycle().value,
       saveHapticFeedbackEnabled = viewModel::saveHapticFeedbackEnabled,
-      aiAssistantEnabled = viewModel.aiAssistantEnabledFlow.collectAsState().value,
+      aiAssistantEnabled = viewModel.aiAssistantEnabledFlow.collectAsStateWithLifecycle().value,
       saveAiAssistantEnabled = viewModel::saveAiAssistantEnabled,
-      useIntranasalForRectal = viewModel.useIntranasalForRectalFlow.collectAsState().value,
+      useIntranasalForRectal =
+          viewModel.useIntranasalForRectalFlow.collectAsStateWithLifecycle().value,
       saveUseIntranasalForRectal = viewModel::saveUseIntranasalForRectal,
-      isLockEnabled = viewModel.isLockEnabledFlow.collectAsState().value,
+      isLockEnabled = viewModel.isLockEnabledFlow.collectAsStateWithLifecycle().value,
       saveLockEnabled = viewModel::saveLockEnabled,
-      lockTimeOption = viewModel.lockTimeOptionFlow.collectAsState().value,
+      lockTimeOption = viewModel.lockTimeOptionFlow.collectAsStateWithLifecycle().value,
       saveLockTimeOption = viewModel::saveLockTimeOption,
       biometricAvailability = viewModel.biometricAvailability(),
   )

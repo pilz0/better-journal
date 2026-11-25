@@ -25,10 +25,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -65,10 +65,10 @@ fun MainScreen(
     shouldNavigateToExperienceId: Int? = null,
     onExperienceNavigated: () -> Unit = {},
 ) {
-  if (viewModel.isAcceptedFlow.collectAsState().value) {
+  if (viewModel.isAcceptedFlow.collectAsStateWithLifecycle().value) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val isHapticEnabled = viewModel.isHapticFeedbackEnabledFlow.collectAsState().value
+    val isHapticEnabled = viewModel.isHapticFeedbackEnabledFlow.collectAsStateWithLifecycle().value
 
     // Handle navigation to Add Ingestion when triggered from widget
     // The guard condition prevents re-execution when state is reset to false
@@ -108,9 +108,9 @@ fun MainScreen(
       }
     }
 
-    val hideSafer = viewModel.activateSaferFlow.collectAsState().value
-    val hideStats = viewModel.isStatsHiddenFlow.collectAsState().value
-    val hideDrugs = viewModel.isDrugsHiddenFlow.collectAsState().value
+    val hideSafer = viewModel.activateSaferFlow.collectAsStateWithLifecycle().value
+    val hideStats = viewModel.isStatsHiddenFlow.collectAsStateWithLifecycle().value
+    val hideDrugs = viewModel.isDrugsHiddenFlow.collectAsStateWithLifecycle().value
 
     HapticFeedbackProvider(isEnabled = isHapticEnabled) {
       // The disguise skins are drawn over the whole app, so everything shares one Box.
@@ -177,7 +177,7 @@ fun MainScreen(
         }
         val skinHostViewModel: UltraFunSkinHostViewModel = hiltViewModel()
         val skinController = skinHostViewModel.controller
-        when (val skin = skinController.state.collectAsState().value) {
+        when (val skin = skinController.state.collectAsStateWithLifecycle().value) {
           is TeamsSkinPayload ->
               TeamsChatSkin(
                   ingestions = skin.ingestions,
