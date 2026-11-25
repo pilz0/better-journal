@@ -202,7 +202,7 @@ fun NavGraphBuilder.addIngestionGraph(navController: NavController) {
                     administrationRoute = administrationRoute,
                 )
             )
-          }
+          },
       )
     }
     composableWithTransitions<ChooseCustomSubstanceDoseRoute> { backStackEntry ->

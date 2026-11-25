@@ -54,7 +54,10 @@ fun CustomSubstanceChooseRouteScreen(
 ) {
   Scaffold(
       topBar = {
-        TopAppBar(navigationIcon = { NavigateBackButton() }, title = { Text("$substanceName route".trim()) })
+        TopAppBar(
+            navigationIcon = { NavigateBackButton() },
+            title = { Text("$substanceName route".trim()) },
+        )
       }
   ) { padding ->
     Column(modifier = Modifier.padding(padding)) {
