@@ -28,7 +28,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
-import foo.pilz.freaklog.data.room.experiences.CustomFormulationRepository
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.room.experiences.entities.Experience
@@ -88,19 +87,12 @@ constructor(
     private val userPreferences: UserPreferences,
     private val webhookRepository: WebhookRepository,
     private val ingestionWebhookSender: IngestionWebhookSender,
-    private val customFormulationRepository: CustomFormulationRepository,
     private val substanceRepository: SubstanceRepositoryInterface,
     @ApplicationScope private val externalScope: CoroutineScope,
     @dagger.hilt.android.qualifiers.ApplicationContext
     private val appContext: android.content.Context,
     state: SavedStateHandle,
 ) : ViewModel() {
-
-  data class FormulationOption(
-      val name: String,
-      val isCustom: Boolean,
-      val customFormulationId: Int? = null,
-  )
 
   private val finishIngestionRoute: FinishIngestionRoute? =
       runCatching { state.toRoute<FinishIngestionRoute>() }.getOrNull()
@@ -141,7 +133,6 @@ constructor(
     get() = _administrationRoute.siteOptions
 
   var selectedFormulationName by mutableStateOf<String?>(null)
-  var selectedCustomFormulationId by mutableStateOf<Int?>(null)
 
   val localDateTimeStartFlow = MutableStateFlow(LocalDateTime.now())
   val localDateTimeEndFlow = MutableStateFlow(LocalDateTime.now().plusMinutes(30))
@@ -256,32 +247,13 @@ constructor(
               started = SharingStarted.WhileSubscribed(5000),
           )
 
-  val availableFormulationsFlow: StateFlow<List<FormulationOption>> =
-      customFormulationRepository
-          .getAll()
-          .map { allCustoms ->
-            val matchingCustoms = allCustoms.filter {
-              it.substanceName == substanceName && it.baseRoa == _administrationRoute
-            }
-            val builtin =
-                substanceRepository.getSubstance(substanceName)?.formulations?.filter {
-                  it.route == _administrationRoute
-                } ?: emptyList()
-
-            val options = mutableListOf<FormulationOption>()
-            builtin.forEach { options.add(FormulationOption(name = it.name, isCustom = false)) }
-            matchingCustoms.forEach {
-              options.add(
-                  FormulationOption(name = it.name, isCustom = true, customFormulationId = it.id)
-              )
-            }
-            options
-          }
-          .stateIn(
-              initialValue = emptyList(),
-              scope = viewModelScope,
-              started = SharingStarted.WhileSubscribed(5000),
-          )
+  val availableFormulations: List<String> =
+      substanceRepository
+          .getSubstance(substanceName)
+          ?.formulations
+          ?.filter { it.route == _administrationRoute }
+          ?.map { it.name }
+          .orEmpty()
 
   var isLoadingColor by mutableStateOf(true)
   var isShowingColorPicker by mutableStateOf(false)
@@ -580,7 +552,6 @@ constructor(
         customUnitId = customUnitId,
         administrationSite = administrationSite.ifBlank { null },
         formulationName = selectedFormulationName,
-        customFormulationId = selectedCustomFormulationId,
         saltForm = saltForm.ifBlank { null },
         category = ingestionCategory,
     )

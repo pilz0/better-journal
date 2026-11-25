@@ -27,7 +27,6 @@ import assertk.assertions.isEqualTo
 import foo.pilz.freaklog.data.room.AppDatabase
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.experiences.entities.CustomCategoryAssignment
-import foo.pilz.freaklog.data.room.experiences.entities.CustomFormulation
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRecipe
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRecipeComponent
 import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
@@ -75,23 +74,13 @@ class ExportRoundTripTest {
   fun recipesFormulationsIngestionDetailsAndCategoriesSurviveARestore() = runTest {
     val dao = db.experienceDao()
     val experienceId = dao.insert(EntityBuilders.experience()).toInt()
-    val formulationId =
-        db.customFormulationDao()
-            .insert(
-                CustomFormulation(
-                    substanceName = "Methylphenidate",
-                    baseRoa = AdministrationRoute.ORAL,
-                    name = "Medikinet retard",
-                )
-            )
-            .toInt()
     dao.insert(
         EntityBuilders.ingestion(
                 substanceName = "Methylphenidate",
                 experienceId = experienceId,
                 administrationSite = "left nostril",
             )
-            .copy(formulationName = "Medikinet retard", customFormulationId = formulationId)
+            .copy(formulationName = "Medikinet retard")
     )
     db.customRecipeDao()
         .insertRecipeWithComponents(
@@ -122,8 +111,6 @@ class ExportRoundTripTest {
     val ingestion = dao.getSortedIngestionsFlow().first().single()
     assertThat(ingestion.administrationSite).isEqualTo("left nostril")
     assertThat(ingestion.formulationName).isEqualTo("Medikinet retard")
-    assertThat(db.customFormulationDao().getAllOnce().single().id)
-        .isEqualTo(ingestion.customFormulationId)
     val recipe = db.customRecipeDao().getAllRecipesWithComponents().single()
     assertThat(recipe.recipe.name).isEqualTo("Morning")
     assertThat(recipe.components.map { it.substanceName }).containsExactly("Caffeine")
@@ -133,5 +120,53 @@ class ExportRoundTripTest {
             }
         )
         .containsExactly("stimulant")
+  }
+
+  @Test
+  fun legacyExportsWithCustomFormulationsStillRestoreFormulationName() = runTest {
+    val legacyJson =
+        """
+        {
+          "experiences": [
+            {
+              "title": "Study session",
+              "text": "",
+              "creationDate": 1700000000000,
+              "sortDate": 1700000000000,
+              "ingestions": [
+                {
+                  "substanceName": "Methylphenidate",
+                  "time": 1700000000000,
+                  "endTime": null,
+                  "creationDate": 1700000000000,
+                  "administrationRoute": "ORAL",
+                  "dose": 20.0,
+                  "isDoseAnEstimate": false,
+                  "estimatedDoseStandardDeviation": null,
+                  "units": "mg",
+                  "formulationName": "Medikinet retard",
+                  "customFormulationId": 7
+                }
+              ]
+            }
+          ],
+          "customFormulations": [
+            {
+              "id": 7,
+              "substanceName": "Methylphenidate",
+              "baseRoa": "ORAL",
+              "name": "Medikinet retard"
+            }
+          ]
+        }
+        """
+            .trimIndent()
+
+    val export = Json { ignoreUnknownKeys = true }.decodeFromString<JournalExport>(legacyJson)
+    repository.replaceEverything(export)
+
+    val ingestion = db.experienceDao().getSortedIngestionsFlow().first().single()
+    assertThat(ingestion.substanceName).isEqualTo("Methylphenidate")
+    assertThat(ingestion.formulationName).isEqualTo("Medikinet retard")
   }
 }

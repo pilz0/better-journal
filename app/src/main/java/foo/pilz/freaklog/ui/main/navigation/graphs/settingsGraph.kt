@@ -31,8 +31,6 @@ import foo.pilz.freaklog.ui.tabs.settings.ai.AiAssistantSettingsScreen
 import foo.pilz.freaklog.ui.tabs.settings.ai.AiProfileEditorScreen
 import foo.pilz.freaklog.ui.tabs.settings.colors.SubstanceColorsScreen
 import foo.pilz.freaklog.ui.tabs.settings.combinations.CombinationSettingsScreen
-import foo.pilz.freaklog.ui.tabs.settings.customformulations.CustomFormulationsScreen
-import foo.pilz.freaklog.ui.tabs.settings.customformulations.add.AddCustomFormulationScreen
 import foo.pilz.freaklog.ui.tabs.settings.customsubstances.CustomSubstancesScreen
 import foo.pilz.freaklog.ui.tabs.settings.customunits.CustomUnitsScreen
 import foo.pilz.freaklog.ui.tabs.settings.customunits.archive.CustomUnitArchiveScreen
@@ -71,9 +69,6 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
           },
           navigateToCustomSubstances = { navController.navigate(CustomSubstancesRoute) },
           navigateToSubstanceGroups = { navController.navigate(SubstanceGroupsRoute) },
-          navigateToCustomFormulations = {
-            navController.navigate(CustomFormulationsRoute)
-          },
           navigateToWebhook = {
             navController.navigate(WebhooksListRoute)
           },
@@ -273,15 +268,6 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
     composableWithTransitions<EditCustomUnitRoute> {
       EditCustomUnitScreen(navigateBack = navController::popBackStack)
     }
-    composableWithTransitions<CustomFormulationsRoute> {
-      CustomFormulationsScreen(
-          navigateBack = navController::popBackStack,
-          navigateToAdd = { navController.navigate(AddCustomFormulationRoute) },
-      )
-    }
-    composableWithTransitions<AddCustomFormulationRoute> {
-      AddCustomFormulationScreen(navigateBack = navController::popBackStack)
-    }
   }
 }
 
@@ -330,10 +316,6 @@ data class EditIntakeLimitRoute(
 
 /** [profileId] is empty when adding a new provider profile. */
 @Serializable data class AiProfileEditorRoute(val profileId: String)
-
-@Serializable object CustomFormulationsRoute
-
-@Serializable object AddCustomFormulationRoute
 
 @Serializable object CustomSubstancesRoute
 

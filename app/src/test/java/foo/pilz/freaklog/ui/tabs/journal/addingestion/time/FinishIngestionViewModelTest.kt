@@ -5,9 +5,9 @@ import androidx.lifecycle.viewModelScope
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isTrue
-import foo.pilz.freaklog.data.room.experiences.CustomFormulationRepository
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.data.room.webhooks.WebhookRepository
+import foo.pilz.freaklog.data.substances.repositories.SubstanceRepositoryInterface
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -40,7 +40,7 @@ class FinishIngestionViewModelTest {
   private val experienceRepo = mockk<ExperienceRepository>()
   private val userPreferences = mockk<UserPreferences>()
   private val webhookRepository = mockk<WebhookRepository>()
-  private val customFormulationRepository = mockk<CustomFormulationRepository>()
+  private val substanceRepository = mockk<SubstanceRepositoryInterface>()
   private val originalTimeZone = TimeZone.getDefault()
   private lateinit var viewModel: FinishIngestionScreenViewModel
   private val now = Instant.parse("2026-11-01T12:34:56Z")
@@ -60,15 +60,14 @@ class FinishIngestionViewModelTest {
     every { userPreferences.lastIngestionTimeOfExperienceFlow } returns flowOf(null)
     every { userPreferences.clonedIngestionTimeFlow } returns flowOf(null)
     every { webhookRepository.getEnabledFlow() } returns flowOf(emptyList())
-    every { customFormulationRepository.getAll() } returns flowOf(emptyList())
+    every { substanceRepository.getSubstance(any()) } returns null
     viewModel =
         FinishIngestionScreenViewModel(
             experienceRepo = experienceRepo,
             userPreferences = userPreferences,
             webhookRepository = webhookRepository,
             ingestionWebhookSender = mockk(),
-            customFormulationRepository = customFormulationRepository,
-            substanceRepository = mockk(),
+            substanceRepository = substanceRepository,
             externalScope = externalScope,
             appContext = mockk(),
             state = SavedStateHandle(mapOf("substanceName" to "Caffeine")),

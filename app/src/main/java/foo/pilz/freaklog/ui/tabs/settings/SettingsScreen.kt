@@ -117,7 +117,6 @@ fun SettingsPreview() {
       navigateToComboSettings = {},
       navigateToSubstanceColors = {},
       navigateToCustomUnits = {},
-      navigateToCustomFormulations = {},
       navigateToReminders = {},
       navigateToWebhook = {},
       navigateToFreakQueryShell = {},
@@ -233,7 +232,6 @@ fun SettingsScreen(
     navigateToCustomUnits: () -> Unit,
     navigateToCustomSubstances: () -> Unit = {},
     navigateToSubstanceGroups: () -> Unit = {},
-    navigateToCustomFormulations: () -> Unit,
     navigateToReminders: () -> Unit,
     navigateToAchievements: () -> Unit = {},
     navigateToIntakeLimits: () -> Unit = {},
@@ -257,7 +255,6 @@ fun SettingsScreen(
       navigateToCustomUnits = navigateToCustomUnits,
       navigateToCustomSubstances = navigateToCustomSubstances,
       navigateToSubstanceGroups = navigateToSubstanceGroups,
-      navigateToCustomFormulations = navigateToCustomFormulations,
       navigateToReminders = navigateToReminders,
       navigateToAchievements = navigateToAchievements,
       navigateToIntakeLimits = navigateToIntakeLimits,
@@ -347,7 +344,6 @@ fun SettingsScreen(
     navigateToCustomUnits: () -> Unit,
     navigateToCustomSubstances: () -> Unit = {},
     navigateToSubstanceGroups: () -> Unit = {},
-    navigateToCustomFormulations: () -> Unit,
     navigateToReminders: () -> Unit,
     navigateToAchievements: () -> Unit = {},
     navigateToIntakeLimits: () -> Unit = {},
@@ -481,14 +477,6 @@ fun SettingsScreen(
         ) {
           performHaptic(HapticType.CLICK)
           navigateToExportBackup()
-        }
-        HorizontalDivider()
-        SettingsButton(
-            imageVector = Icons.Outlined.Medication,
-            text = "Custom formulations",
-        ) {
-          performHaptic(HapticType.CLICK)
-          navigateToCustomFormulations()
         }
         HorizontalDivider()
         SettingsButton(

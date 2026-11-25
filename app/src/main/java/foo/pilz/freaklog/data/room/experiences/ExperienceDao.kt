@@ -531,7 +531,6 @@ interface ExperienceDao {
                 customUnitId = ingestionSerializable.customUnitId?.takeIf { it > 0 },
                 administrationSite = ingestionSerializable.administrationSite,
                 formulationName = ingestionSerializable.formulationName,
-                customFormulationId = ingestionSerializable.customFormulationId?.takeIf { it > 0 },
                 saltForm = ingestionSerializable.saltForm,
                 category = ingestionSerializable.category,
             )
@@ -968,9 +967,6 @@ interface ExperienceDao {
   @Query("UPDATE SubstanceGroupItem SET substanceName = :new WHERE substanceName = :old")
   suspend fun renameInSubstanceGroupItems(old: String, new: String)
 
-  @Query("UPDATE custom_formulation SET substanceName = :new WHERE substanceName = :old")
-  suspend fun renameInCustomFormulations(old: String, new: String)
-
   @Query("UPDATE CustomRecipeComponent SET substanceName = :new WHERE substanceName = :old")
   suspend fun renameInRecipeComponents(old: String, new: String)
 
@@ -1000,7 +996,6 @@ interface ExperienceDao {
     renameInCustomInteractionTargets(old, new)
     renameInIntakeLimits(old, new)
     renameInSubstanceGroupItems(old, new)
-    renameInCustomFormulations(old, new)
     renameInRecipeComponents(old, new)
     renameInReminders(old, new)
     return true

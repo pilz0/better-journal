@@ -63,9 +63,6 @@ data class ExportData(
     val bloodPressureReadings:
         List<foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading> =
         emptyList(),
-    val customFormulations:
-        List<foo.pilz.freaklog.data.room.experiences.entities.CustomFormulation> =
-        emptyList(),
 ) {
   fun filtered(filter: ExportFilter): ExportData {
     if (!filter.isActive) return this
@@ -119,8 +116,6 @@ data class ExportData(
             substanceCompanions.filter { !prune || it.substanceName in keptSubstanceNames },
         customSubstances = customSubstances.filter { !prune || it.name in keptSubstanceNames },
         intakeLimits = intakeLimits.filter { !prune || it.substanceName in keptSubstanceNames },
-        customFormulations =
-            customFormulations.filter { !prune || it.substanceName in keptSubstanceNames },
         customSubstanceDetails =
             customSubstanceDetails.filter { !prune || it.name in keptSubstanceNames },
         bloodPressureReadings =

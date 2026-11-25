@@ -229,7 +229,7 @@ To upgrade: run `./gradlew versionCatalogUpdate --interactive --no-configuration
 
 ### Room database (`data/room/AppDatabase.kt`)
 
-Current schema version: **31**. All migrations from v1 to v31 are handled by `@AutoMigration`.
+Current schema version: **32**. All migrations from v1 to v32 are handled by `@AutoMigration`.
 The `16 → 17` step uses an `AutoMigrationSpec` (`AppDatabase.ReminderV16To17`) that
 back-fills `scheduleType = 'INTERVAL'` on legacy reminder rows so they don't silently
 disable when the new column default (`DAILY_AT_TIMES`) is applied without `timesOfDay`.
@@ -640,7 +640,7 @@ maintainer's server).
 - No provider SDK is used — see [AI assistant](#ai-assistant-dataai). New provider features go into the `provider/` clients; keep `NativeContent` echoing intact so Gemini `thoughtSignature`s and Anthropic thinking signatures survive.
 - Robolectric has no Android Keystore, so tests use a fake `AiKeyCipher`.
 - `AnodyneRepository.lookup` returns `Result.success(null)` only when the wiki really has no page (404 / `NotFound`, no alias match); being offline or a server error is a `Result.failure`, so the UI says "Couldn't reach AnodyneWiki" instead of "no page".
-- `JournalExport` covers experiences (with ingestions, ratings, timed notes, locations and legacy blood pressure rows), substance companions, custom substances with their profiles, custom units, custom formulations, intake limits, substance groups, custom recipes, reminders and webhooks. Filtered (partial) exports leave out substance groups, custom recipes, reminders and webhooks. Other settings are not part of the export payload.
+- `JournalExport` covers experiences (with ingestions, ratings, timed notes, locations and legacy blood pressure rows), substance companions, custom substances with their profiles, custom units, intake limits, substance groups, custom recipes, reminders and webhooks. Filtered (partial) exports leave out substance groups, custom recipes, reminders and webhooks. Other settings are not part of the export payload.
 - `compileSdk` is 37.1 (`release(37) { minorApiLevel = 1 }`) because Compose 1.13 refuses to build against anything lower; the Nix SDK includes platform `37.1` for it. `targetSdk` is also 37; LAN AI servers require the Android 17 `ACCESS_LOCAL_NETWORK` runtime permission, requested from AI settings or the profile editor.
 - Use `androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel`; the `androidx.hilt.navigation.compose` one is deprecated.
 

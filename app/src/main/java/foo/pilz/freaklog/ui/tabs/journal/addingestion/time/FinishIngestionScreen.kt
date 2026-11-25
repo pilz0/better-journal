@@ -140,13 +140,9 @@ fun FinishIngestionScreen(
       enabledWebhooks = viewModel.enabledWebhooksFlow.collectAsStateWithLifecycle().value,
       isWebhookSelected = { id -> viewModel.selectedWebhookIds[id] ?: true },
       onWebhookSelectedChange = viewModel::setWebhookSelected,
-      availableFormulations =
-          viewModel.availableFormulationsFlow.collectAsStateWithLifecycle().value,
+      availableFormulations = viewModel.availableFormulations,
       selectedFormulationName = viewModel.selectedFormulationName,
-      onFormulationChange = { name, isCustom, id ->
-        viewModel.selectedFormulationName = name
-        viewModel.selectedCustomFormulationId = id
-      },
+      onFormulationChange = { name -> viewModel.selectedFormulationName = name },
       previousSaltForms = viewModel.previousSaltFormsFlow.collectAsStateWithLifecycle().value,
       saltForm = viewModel.saltForm,
       onSaltFormChange = viewModel::changeSaltForm,
@@ -214,15 +210,9 @@ fun FinishIngestionScreenPreview() {
           ),
       isWebhookSelected = { true },
       onWebhookSelectedChange = { _, _ -> },
-      availableFormulations =
-          listOf(
-              FinishIngestionScreenViewModel.FormulationOption(
-                  name = "Extended-Release (XR)",
-                  isCustom = false,
-              )
-          ),
+      availableFormulations = listOf("Extended-Release (XR)"),
       selectedFormulationName = null,
-      onFormulationChange = { _, _, _ -> },
+      onFormulationChange = {},
       previousSaltForms = listOf("HCL", "Freebase"),
       saltForm = "",
       onSaltFormChange = {},
@@ -270,9 +260,9 @@ fun FinishIngestionScreen(
     enabledWebhooks: List<Webhook>,
     isWebhookSelected: (Int) -> Boolean,
     onWebhookSelectedChange: (Int, Boolean) -> Unit,
-    availableFormulations: List<FinishIngestionScreenViewModel.FormulationOption>,
+    availableFormulations: List<String>,
     selectedFormulationName: String?,
-    onFormulationChange: (name: String?, isCustom: Boolean, customId: Int?) -> Unit,
+    onFormulationChange: (String?) -> Unit,
     previousSaltForms: List<String>,
     saltForm: String,
     onSaltFormChange: (String) -> Unit,
@@ -523,19 +513,15 @@ fun FinishIngestionScreen(
                 DropdownMenuItem(
                     text = { Text("Base formulation") },
                     onClick = {
-                      onFormulationChange(null, false, null)
+                      onFormulationChange(null)
                       isShowingFormulationMenu = false
                     },
                 )
                 availableFormulations.forEach { option ->
                   DropdownMenuItem(
-                      text = { Text(option.name) },
+                      text = { Text(option) },
                       onClick = {
-                        onFormulationChange(
-                            option.name,
-                            option.isCustom,
-                            option.customFormulationId,
-                        )
+                        onFormulationChange(option)
                         isShowingFormulationMenu = false
                       },
                   )

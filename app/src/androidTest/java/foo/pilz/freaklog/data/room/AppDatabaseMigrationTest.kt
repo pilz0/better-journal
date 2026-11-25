@@ -244,6 +244,68 @@ class AppDatabaseMigrationTest {
     }
   }
 
+  @Test
+  fun migrate_v21_to_v32_drops_custom_formulations_and_preserves_triggers_and_formulation_name() {
+    helper.createDatabase(TEST_DB, 21).use { db ->
+      db.execSQL(
+          "INSERT INTO Experience (id, title, text, creationDate, sortDate, isFavorite)" +
+              " VALUES (1, 'test', '', 0, 0, 0)"
+      )
+      db.execSQL(
+          "INSERT INTO custom_formulation (id, substanceName, baseRoa, name)" +
+              " VALUES (7, 'Methylphenidate', 'ORAL', 'Medikinet retard')"
+      )
+      db.execSQL(
+          "INSERT INTO Ingestion (id, substanceName, time, administrationRoute, dose, isDoseAnEstimate, experienceId, formulationName, customFormulationId)" +
+              " VALUES (10, 'Methylphenidate', 1000, 'ORAL', 20.0, 0, 1, 'Medikinet retard', 7)"
+      )
+    }
+    helper
+        .runMigrationsAndValidate(
+            TEST_DB,
+            AppDatabase.LATEST_SCHEMA_VERSION,
+            /* validateDroppedTables = */ true,
+            AppDatabase.MIGRATION_21_22,
+        )
+        .use { db ->
+          db.query(
+                  "SELECT name FROM sqlite_master WHERE type='table' AND name='custom_formulation'"
+              )
+              .use { cursor -> assertEquals(0, cursor.count) }
+
+          val ingestionColumns = buildSet {
+            db.query("PRAGMA table_info(Ingestion)").use { cursor ->
+              val nameIndex = cursor.getColumnIndexOrThrow("name")
+              while (cursor.moveToNext()) {
+                add(cursor.getString(nameIndex))
+              }
+            }
+          }
+          assertEquals(false, "customFormulationId" in ingestionColumns)
+          assertEquals(true, "formulationName" in ingestionColumns)
+
+          db.query("SELECT formulationName FROM Ingestion WHERE id = 10").use { cursor ->
+            check(cursor.moveToFirst())
+            assertEquals("Medikinet retard", cursor.getString(0))
+          }
+
+          db.query("SELECT name FROM sqlite_master WHERE type='trigger' AND tbl_name='Ingestion'")
+              .use { cursor -> assertEquals(3, cursor.count) }
+          db.query(
+                  "SELECT name FROM sqlite_master WHERE type='trigger' AND name='ingestion_change_log_cap'"
+              )
+              .use { cursor -> check(cursor.moveToFirst()) }
+
+          db.execSQL("UPDATE Ingestion SET dose = 30.0 WHERE id = 10")
+          db.query("SELECT ingestion_id, op FROM ingestion_change_log ORDER BY seq DESC LIMIT 1")
+              .use { cursor ->
+                check(cursor.moveToFirst())
+                assertEquals(10, cursor.getInt(0))
+                assertEquals("UPDATE", cursor.getString(1))
+              }
+        }
+  }
+
   companion object {
     private const val TEST_DB = "migration-test.db"
 
@@ -284,6 +346,7 @@ class AppDatabaseMigrationTest {
             28 to 29,
             29 to 30,
             30 to 31,
+            31 to 32,
         )
   }
 }

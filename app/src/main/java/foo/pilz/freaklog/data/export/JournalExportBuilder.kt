@@ -35,7 +35,6 @@ suspend fun loadExportData(experienceRepository: ExperienceRepository): ExportDa
         intakeLimits = experienceRepository.getAllIntakeLimits(),
         customSubstanceDetails = experienceRepository.getAllCustomSubstanceDetails(),
         bloodPressureReadings = experienceRepository.getAllBloodPressureReadings(),
-        customFormulations = experienceRepository.getAllCustomFormulations(),
     )
 
 /**
@@ -103,7 +102,6 @@ private fun ExportData.toJournalExport(
     JournalExport(
         substanceGroups = substanceGroups,
         customRecipes = customRecipes,
-        customFormulations = customFormulations,
         experiences =
             experiences.map { experience ->
               val readings = bpByExperienceId[experience.experience.id].orEmpty()
@@ -182,7 +180,6 @@ private fun foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithInge
                   customUnitId = ingestion.customUnitId,
                   administrationSite = ingestion.administrationSite,
                   formulationName = ingestion.formulationName,
-                  customFormulationId = ingestion.customFormulationId,
                   saltForm = ingestion.saltForm,
                   category = ingestion.category,
               )

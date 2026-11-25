@@ -140,7 +140,7 @@ constructor(
                 },
         )
       }
-      insertRecipesAndFormulations(journalExport, validCustomUnitIds)
+      insertRecipes(journalExport, validCustomUnitIds)
       // The substance rows were just inserted with new ids; attach each one's details by name.
       journalExport.customSubstanceDetails.forEach { shared ->
         val substanceId =
@@ -175,7 +175,6 @@ constructor(
       webhookDao.deleteAll()
       db.customRecipeDao().deleteAllComponents()
       db.customRecipeDao().deleteAllRecipes()
-      db.customFormulationDao().deleteAll()
       journalExport.webhooks.forEach { webhookDao.insert(it.toEntity()) }
       val validCustomUnitIds = journalExport.customUnits.map { it.id }.filter { it > 0 }.toSet()
       journalExport.substanceGroups.forEach { group ->
@@ -187,7 +186,7 @@ constructor(
                 },
         )
       }
-      insertRecipesAndFormulations(journalExport, validCustomUnitIds)
+      insertRecipes(journalExport, validCustomUnitIds)
       val customSubstanceIdByName =
           experienceDao.getAllCustomSubstances().associate { it.name to it.id }
       journalExport.customSubstanceDetails.forEach { shared ->
@@ -229,7 +228,6 @@ constructor(
       webhookDao.deleteAll()
       db.customRecipeDao().deleteAllComponents()
       db.customRecipeDao().deleteAllRecipes()
-      db.customFormulationDao().deleteAll()
     }
     notifyJournalChanged()
   }
@@ -467,21 +465,16 @@ constructor(
   ): List<IngestionWithCompanionAndCustomUnit> =
       experienceDao.getIngestionsWithCustomUnitsForSubstanceSince(substanceName, since)
 
-  /** Details of every custom substance that has any; substances with only a name are left out. */
-  suspend fun getAllCustomFormulations() = db.customFormulationDao().getAllOnce()
-
   suspend fun getAllCustomRecipesWithComponents() =
       db.customRecipeDao().getAllRecipesWithComponents()
 
   /**
-   * Formulations keep their ids, like custom units, so ingestions still point at them. Recipes get
-   * new ids; their components keep a custom unit only if that unit was imported too.
+   * Recipes get new ids; their components keep a custom unit only if that unit was imported too.
    */
-  private suspend fun insertRecipesAndFormulations(
+  private suspend fun insertRecipes(
       journalExport: JournalExport,
       validCustomUnitIds: Set<Int>,
   ) {
-    journalExport.customFormulations.forEach { db.customFormulationDao().insert(it) }
     journalExport.customRecipes.forEach { recipe ->
       db.customRecipeDao()
           .insertRecipeWithComponents(
@@ -511,6 +504,7 @@ constructor(
     }
   }
 
+  /** Details of every custom substance that has any; substances with only a name are left out. */
   suspend fun getAllCustomSubstanceDetails():
       List<foo.pilz.freaklog.data.substanceshare.SharedSubstance> =
       experienceDao

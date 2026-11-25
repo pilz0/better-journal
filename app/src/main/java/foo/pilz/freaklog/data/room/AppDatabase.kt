@@ -20,6 +20,7 @@ package foo.pilz.freaklog.data.room
 
 import androidx.room.AutoMigration
 import androidx.room.Database
+import androidx.room.DeleteColumn
 import androidx.room.DeleteTable
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
@@ -55,7 +56,7 @@ import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
     AdministrationRouteConverter::class,
 )
 @Database(
-    version = 31,
+    version = 32,
     entities =
         [
             Experience::class,
@@ -72,7 +73,6 @@ import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
             Webhook::class,
             IngestionWebhookMessage::class,
             IngestionChangeLog::class,
-            foo.pilz.freaklog.data.room.experiences.entities.CustomFormulation::class,
             foo.pilz.freaklog.data.room.experiences.entities.IntakeLimit::class,
             foo.pilz.freaklog.data.room.experiences.entities.CustomRoa::class,
             foo.pilz.freaklog.data.room.experiences.entities.CustomRoaDose::class,
@@ -114,6 +114,7 @@ import foo.pilz.freaklog.data.room.webhooks.entities.Webhook
             AutoMigration(from = 28, to = 29),
             AutoMigration(from = 29, to = 30),
             AutoMigration(from = 30, to = 31, spec = AppDatabase.DropInventory::class),
+            AutoMigration(from = 31, to = 32, spec = AppDatabase.DropCustomFormulations::class),
         ],
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -128,8 +129,6 @@ abstract class AppDatabase : RoomDatabase() {
   abstract fun webhookDao(): WebhookDao
 
   abstract fun ingestionWebhookMessageDao(): IngestionWebhookMessageDao
-
-  abstract fun customFormulationDao(): foo.pilz.freaklog.data.room.experiences.CustomFormulationDao
 
   /**
    * Legacy reminders (schema ≤ 16) only had interval-based scheduling. The v17 schema adds a
@@ -181,12 +180,22 @@ abstract class AppDatabase : RoomDatabase() {
   /** The inventory tab was removed in schema 31. */
   @DeleteTable(tableName = "InventoryItem") class DropInventory : AutoMigrationSpec
 
+  /** Custom formulations were removed in schema 32. */
+  @DeleteTable(tableName = "custom_formulation")
+  @DeleteColumn(tableName = "Ingestion", columnName = "customFormulationId")
+  class DropCustomFormulations : AutoMigrationSpec {
+    override fun onPostMigrate(db: SupportSQLiteDatabase) {
+      // Room recreates `Ingestion` when dropping a column, which drops its triggers.
+      createChangeLogTriggers(db)
+    }
+  }
+
   companion object {
     /**
      * The current schema version. Kept in sync with the `version = ` field on the `@Database`
      * annotation above. Exposed for migration tests so they don't have to hard-code the value.
      */
-    const val LATEST_SCHEMA_VERSION: Int = 31
+    const val LATEST_SCHEMA_VERSION: Int = 32
 
     /**
      * Installs change-log triggers on the Ingestion table. Called from both [MIGRATION_21_22]

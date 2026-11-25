@@ -37,9 +37,6 @@ data class JournalExport(
     val customSubstances: List<CustomSubstance> = emptyList(),
     val customUnits: List<CustomUnitSerializable> = emptyList(),
     val customRecipes: List<CustomRecipeSerializable> = emptyList(),
-    val customFormulations:
-        List<foo.pilz.freaklog.data.room.experiences.entities.CustomFormulation> =
-        emptyList(),
     val reminders: List<Reminder> = emptyList(),
     /**
      * Multi-webhook configuration. Backwards-compatible default ensures older exports (which lacked
@@ -218,7 +215,6 @@ data class IngestionSerializable(
     var customUnitId: Int? = null,
     var administrationSite: String? = null,
     var formulationName: String? = null,
-    var customFormulationId: Int? = null,
     var saltForm: String? = null,
     var category: foo.pilz.freaklog.data.substances.classes.IngestionCategory? = null,
 )

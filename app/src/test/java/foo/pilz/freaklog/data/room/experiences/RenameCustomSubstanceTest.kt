@@ -27,7 +27,6 @@ import assertk.assertions.isFalse
 import assertk.assertions.isNotNull
 import assertk.assertions.isTrue
 import foo.pilz.freaklog.data.room.AppDatabase
-import foo.pilz.freaklog.data.room.experiences.entities.CustomFormulation
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRecipe
 import foo.pilz.freaklog.data.room.experiences.entities.CustomRecipeComponent
 import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
@@ -58,7 +57,6 @@ class RenameCustomSubstanceTest {
           "ingestion",
           "IntakeLimit",
           "SubstanceGroupItem",
-          "custom_formulation",
           "CustomRecipeComponent",
           "reminder",
       )
@@ -109,14 +107,6 @@ class RenameCustomSubstanceTest {
             )
         ),
     )
-    db.customFormulationDao()
-        .insert(
-            CustomFormulation(
-                substanceName = name,
-                baseRoa = AdministrationRoute.ORAL,
-                name = "Retard",
-            )
-        )
     db.customRecipeDao()
         .insertRecipeWithComponents(
             CustomRecipe(name = "Recipe"),
