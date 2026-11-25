@@ -118,6 +118,7 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
           },
       )
     }
+    customSubstanceEditorDestinations(navController)
     composableWithTransitions<AddCustomSubstanceRouteOnSettingsGraph> {
       AddCustomSubstanceScreen(
           navigateBack = navController::popBackStack,

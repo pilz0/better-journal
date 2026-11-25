@@ -32,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import foo.pilz.freaklog.data.substances.AdministrationRoute
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.route.AdministrationRoutePicker
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.route.ChooseRouteViewModel
 
@@ -53,6 +54,8 @@ fun ChooseRouteDuringAddCustomUnitScreen(
                       contentDescription = "Back",
                   )
                 }
+              } else {
+                NavigateBackButton()
               }
             },
         )

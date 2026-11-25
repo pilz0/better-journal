@@ -181,7 +181,7 @@ fun CustomSubstanceChooseDoseScreen(
       topBar = {
         TopAppBar(
             navigationIcon = { NavigateBackButton() },
-            title = { Text(administrationRoute.displayText + " " + substanceName + " Dosage") },
+            title = { Text("$substanceName ${administrationRoute.displayText} dose") },
             actions = {
               var isShowingUnknownDoseDialog by remember { mutableStateOf(false) }
               IconButton(onClick = { isShowingUnknownDoseDialog = true }) {

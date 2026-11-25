@@ -54,6 +54,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import foo.pilz.freaklog.data.substances.AdministrationRoute
+import foo.pilz.freaklog.ui.components.NavigateBackButton
 
 @Composable
 fun ChooseRouteScreen(
@@ -137,6 +138,8 @@ fun ChooseRouteScreen(
                       contentDescription = "Back",
                   )
                 }
+              } else {
+                NavigateBackButton()
               }
             },
             actions = {

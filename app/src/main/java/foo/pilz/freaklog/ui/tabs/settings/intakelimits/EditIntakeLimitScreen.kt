@@ -137,7 +137,9 @@ fun EditIntakeLimitScreen(
                         modifier = Modifier.padding(horizontal = spacing.sm),
                     )
                   },
-                  isError = viewModel.maxDoseText.toDoubleOrNull() == null,
+                  isError =
+                      viewModel.maxDoseText.isNotBlank() &&
+                          viewModel.maxDoseText.toDoubleOrNull() == null,
                   keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                   singleLine = true,
                   modifier = Modifier.fillMaxWidth(),
@@ -171,7 +173,9 @@ fun EditIntakeLimitScreen(
                     viewModel.maxCountText = it.filter { c -> c.isDigit() }
                   },
                   label = { Text("Maximum ingestions") },
-                  isError = (viewModel.maxCountText.toIntOrNull() ?: 0) <= 0,
+                  isError =
+                      viewModel.maxCountText.isNotBlank() &&
+                          (viewModel.maxCountText.toIntOrNull() ?: 0) <= 0,
                   keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                   singleLine = true,
                   modifier = Modifier.fillMaxWidth(),
@@ -249,7 +253,9 @@ fun EditIntakeLimitScreen(
                     viewModel.customWindowValueText = it.filter { c -> c.isDigit() }
                   },
                   label = { Text("Length") },
-                  isError = (viewModel.customWindowValueText.toLongOrNull() ?: 0L) <= 0L,
+                  isError =
+                      viewModel.customWindowValueText.isNotBlank() &&
+                          (viewModel.customWindowValueText.toLongOrNull() ?: 0L) <= 0L,
                   keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                   singleLine = true,
                   modifier = Modifier.fillMaxWidth(),

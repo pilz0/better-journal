@@ -35,6 +35,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import foo.pilz.freaklog.data.room.experiences.entities.SubstanceGroupItem
 import foo.pilz.freaklog.ui.components.SectionHeader
+import foo.pilz.freaklog.ui.tabs.search.substance.roa.toPreservedString
 import foo.pilz.freaklog.ui.theme.LocalSpacing
 
 @Composable
@@ -187,13 +188,14 @@ private fun SubstanceGroupItemRow(
 
 private fun formatItemDose(item: SubstanceGroupItem): String {
   val route = item.administrationRoute.displayText
-  val dose = item.dose
+  // "80 mg", not "80.0 mg"
+  val dose = item.dose?.toPreservedString()
   val unit = item.units ?: ""
   val dosePart =
       when {
         dose == null -> "unknown dose"
         item.isEstimate && item.estimatedDoseStandardDeviation != null ->
-            "$dose ± ${item.estimatedDoseStandardDeviation} $unit"
+            "$dose ± ${item.estimatedDoseStandardDeviation?.toPreservedString()} $unit"
 
         item.isEstimate -> "~$dose $unit"
         else -> "$dose $unit"

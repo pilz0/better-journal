@@ -550,7 +550,9 @@ fun EditCustomUnitSections(
                       focusManager.clearFocus()
                     }
                 ),
-            isError = foo.pilz.freaklog.ui.utils.evaluateNumericExpression(doseText) == null,
+            isError =
+                doseText.isNotBlank() &&
+                    foo.pilz.freaklog.ui.utils.evaluateNumericExpression(doseText) == null,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
             singleLine = true,
             modifier = Modifier.fillMaxWidth().focusRequester(focusRequesterDose),

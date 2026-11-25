@@ -48,10 +48,13 @@ fun CustomChooseRouteScreenPreview() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CustomSubstanceChooseRouteScreen(onRouteTap: (AdministrationRoute) -> Unit) {
+fun CustomSubstanceChooseRouteScreen(
+    onRouteTap: (AdministrationRoute) -> Unit,
+    substanceName: String = "",
+) {
   Scaffold(
       topBar = {
-        TopAppBar(navigationIcon = { NavigateBackButton() }, title = { Text("Route") })
+        TopAppBar(navigationIcon = { NavigateBackButton() }, title = { Text("$substanceName route".trim()) })
       }
   ) { padding ->
     Column(modifier = Modifier.padding(padding)) {

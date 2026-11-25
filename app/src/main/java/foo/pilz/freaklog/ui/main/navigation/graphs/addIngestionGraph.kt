@@ -194,6 +194,7 @@ fun NavGraphBuilder.addIngestionGraph(navController: NavController) {
     composableWithTransitions<CustomSubstanceChooseRouteRoute> { backStackEntry ->
       val route = backStackEntry.toRoute<CustomSubstanceChooseRouteRoute>()
       CustomSubstanceChooseRouteScreen(
+          substanceName = route.customSubstanceName,
           onRouteTap = { administrationRoute ->
             navController.navigate(
                 ChooseCustomSubstanceDoseRoute(

@@ -89,7 +89,7 @@ fun SubstanceGroupFinishScreen(
 
   Scaffold(
       topBar = {
-        TopAppBar(navigationIcon = { NavigateBackButton() }, title = { Text("Save group") })
+        TopAppBar(navigationIcon = { NavigateBackButton() }, title = { Text("Log group") })
       },
       floatingActionButton = {
         FloatingDoneButton(
@@ -129,7 +129,8 @@ fun SubstanceGroupFinishScreen(
                 fontWeight = FontWeight.SemiBold,
             )
             Text(
-                text = "${loadedGroup.items.size} substances",
+                text =
+                    loadedGroup.items.size.let { if (it == 1) "1 substance" else "$it substances" },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -449,7 +450,7 @@ private fun GroupFinishItemRow(
     Checkbox(checked = checked, onCheckedChange = { onToggle() })
     Column(modifier = Modifier.weight(1f)) {
       Text(
-          text = "${item.substanceName} · ${item.administrationRoute.displayText.lowercase()}",
+          text = "${item.substanceName} · ${item.administrationRoute.displayText}",
           style = MaterialTheme.typography.titleMedium,
           fontWeight = FontWeight.SemiBold,
       )

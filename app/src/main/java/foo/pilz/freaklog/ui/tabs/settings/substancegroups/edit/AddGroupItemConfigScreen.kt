@@ -15,6 +15,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material3.DropdownMenu
@@ -67,7 +68,7 @@ fun AddGroupItemConfigScreen(
       floatingActionButton = {
         ExtendedFloatingActionButton(
             text = { Text("Add to group") },
-            icon = { Icon(Icons.Default.ArrowDropDown, contentDescription = null) },
+            icon = { Icon(Icons.Default.Add, contentDescription = null) },
             onClick = { viewModel.saveAndDismiss(onSaved) },
             containerColor =
                 if (viewModel.canSave) MaterialTheme.colorScheme.primaryContainer
