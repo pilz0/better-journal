@@ -18,15 +18,10 @@
 
 package foo.pilz.freaklog.ui.tabs.settings
 
-import android.net.Uri
-import android.util.Log
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import foo.pilz.freaklog.data.export.JournalExport
-import foo.pilz.freaklog.data.export.buildJournalExportJson
 import foo.pilz.freaklog.data.room.experiences.ExperienceRepository
 import foo.pilz.freaklog.scheduled.NotificationScheduler
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
@@ -35,21 +30,17 @@ import foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthManager
 import foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAvailability
 import foo.pilz.freaklog.ui.tabs.settings.lock.LockTimeOption
 import javax.inject.Inject
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
 
 @HiltViewModel
 class SettingsViewModel
 @Inject
 constructor(
     private val experienceRepository: ExperienceRepository,
-    private val fileSystemConnection: FileSystemConnection,
     private val userPreferences: UserPreferences,
     private val biometricAuthManager: BiometricAuthManager,
-    private val webhookRepository: foo.pilz.freaklog.data.room.webhooks.WebhookRepository,
     private val notificationScheduler: NotificationScheduler,
 ) : ViewModel() {
 
@@ -237,69 +228,6 @@ constructor(
   }
 
   val snackbarHostState = SnackbarHostState()
-
-  fun importFile(uri: Uri) {
-    if (biometricAuthManager.shouldLock.value) return
-    viewModelScope.launch {
-      if (biometricAuthManager.shouldLock.value) return@launch
-      val text = fileSystemConnection.getTextFromUri(uri)
-      if (text == null) {
-        snackbarHostState.showSnackbar(
-            message = "File not found",
-            duration = SnackbarDuration.Short,
-        )
-      } else {
-        try {
-          val json = Json { ignoreUnknownKeys = true }
-          val journalExport = json.decodeFromString<JournalExport>(text)
-          // Cancel alarms for old reminders before replacing the DB, then arm the imported ones.
-          experienceRepository.getAllReminders().forEach {
-            notificationScheduler.cancelReminder(it.id)
-          }
-          // One transaction: a document that fails to insert leaves the journal as it was.
-          experienceRepository.replaceEverything(journalExport)
-          notificationScheduler.rescheduleAll()
-          snackbarHostState.showSnackbar(
-              message = "Import successful",
-              duration = SnackbarDuration.Short,
-          )
-        } catch (ce: CancellationException) {
-          throw ce
-        } catch (e: Exception) {
-          Log.e("SettingsViewModel", "Error when decoding: ${e.message}", e)
-          snackbarHostState.showSnackbar(
-              message = "Decoding file failed",
-              duration = SnackbarDuration.Short,
-          )
-        }
-      }
-    }
-  }
-
-  fun exportFile(uri: Uri) {
-    if (biometricAuthManager.shouldLock.value) return
-    viewModelScope.launch {
-      if (biometricAuthManager.shouldLock.value) return@launch
-      try {
-        val jsonList =
-            buildJournalExportJson(
-                experienceRepository,
-                webhookRepository,
-            )
-        if (biometricAuthManager.shouldLock.value) return@launch
-        fileSystemConnection.saveTextInUri(uri, text = jsonList)
-        snackbarHostState.showSnackbar(
-            message = "Export successful",
-            duration = SnackbarDuration.Short,
-        )
-      } catch (_: Exception) {
-        snackbarHostState.showSnackbar(
-            message = "Export failed",
-            duration = SnackbarDuration.Short,
-        )
-      }
-    }
-  }
 
   fun deleteEverything() {
     if (biometricAuthManager.shouldLock.value) return

@@ -21,6 +21,7 @@ package foo.pilz.freaklog.ui.tabs.settings.exportbackup
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -37,6 +38,9 @@ import androidx.compose.foundation.text.input.TextObfuscationMode
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
@@ -45,6 +49,8 @@ import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedSecureTextField
@@ -82,6 +88,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
+@Suppress("LongMethod")
 @Composable
 fun ExportBackupScreen(viewModel: ExportBackupViewModel = hiltViewModel()) {
   val filter = viewModel.exportFilterFlow.collectAsStateWithLifecycle().value
@@ -92,6 +99,7 @@ fun ExportBackupScreen(viewModel: ExportBackupViewModel = hiltViewModel()) {
   val lastBackupTime = viewModel.lastBackupTimeFlow.collectAsStateWithLifecycle().value
   val reportSettings = viewModel.reportSettingsFlow.collectAsStateWithLifecycle().value
 
+  var showFilterControls by remember { mutableStateOf(filter.isActive) }
   var showSubstanceDialog by remember { mutableStateOf(false) }
   var importToConfirm by remember { mutableStateOf<Uri?>(null) }
   var backupFolderToSetUp by remember { mutableStateOf<Uri?>(null) }
@@ -125,7 +133,10 @@ fun ExportBackupScreen(viewModel: ExportBackupViewModel = hiltViewModel()) {
 
   Scaffold(
       topBar = {
-        TopAppBar(navigationIcon = { NavigateBackButton() }, title = { Text("Export & backup") })
+        TopAppBar(
+            navigationIcon = { NavigateBackButton() },
+            title = { Text("Export, import & backup") },
+        )
       },
       snackbarHost = { SnackbarHost(viewModel.snackbarHostState) },
   ) { padding ->
@@ -136,14 +147,6 @@ fun ExportBackupScreen(viewModel: ExportBackupViewModel = hiltViewModel()) {
                 .padding(horizontal = horizontalPadding, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-      SectionCard("What to export") {
-        ExportFilterControls(
-            filter = filter,
-            setFilter = viewModel::setExportFilter,
-            usedSubstanceCount = usedSubstanceNames.size,
-            onPickSubstances = { showSubstanceDialog = true },
-        )
-      }
       SectionCard("Export") {
         Button(onClick = { launcherEncrypted.launch("$exportName.enc") }, Modifier.fillMaxWidth()) {
           Text("Export encrypted")
@@ -152,41 +155,65 @@ fun ExportBackupScreen(viewModel: ExportBackupViewModel = hiltViewModel()) {
             onClick = { launcherPlaintext.launch("$exportName.json") },
             Modifier.fillMaxWidth(),
         ) {
-          Text("Export plaintext")
+          Text("Export plaintext (JSON)")
         }
-      }
-      SectionCard("Report for a doctor or therapist") {
-        ClinicianReportControls(
-            settings = reportSettings,
-            setSettings = viewModel::setReportSettings,
-            onSharePdf = viewModel::shareReportPdf,
-            onShareText = viewModel::shareReportText,
-        )
+        HorizontalDivider()
+        Row(
+            modifier =
+                Modifier.fillMaxWidth()
+                    .clickable { showFilterControls = !showFilterControls }
+                    .padding(vertical = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+          Column(modifier = Modifier.weight(1f)) {
+            Text("Filter what to export", style = MaterialTheme.typography.bodyMedium)
+            Text(
+                text = if (filter.isActive) "Filtered subset active" else "Exporting all data",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
+          Icon(
+              imageVector =
+                  if (showFilterControls) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+              contentDescription = if (showFilterControls) "Hide filters" else "Show filters",
+          )
+        }
+        AnimatedVisibility(visible = showFilterControls) {
+          Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            ExportFilterControls(
+                filter = filter,
+                setFilter = viewModel::setExportFilter,
+                usedSubstanceCount = usedSubstanceNames.size,
+                onPickSubstances = { showSubstanceDialog = true },
+            )
+          }
+        }
       }
       SectionCard("Import") {
         Text(
-            "Importing replaces everything currently in the journal. Plaintext and encrypted exports " +
-                "are both accepted.",
+            "Importing a journal file replaces everything currently in the app. Plaintext (.json) " +
+                "and encrypted (.enc) exports are both accepted.",
             style = MaterialTheme.typography.bodySmall,
         )
-        OutlinedButton(
+        Button(
             onClick = { launcherImport.launch(arrayOf("*/*")) },
             Modifier.fillMaxWidth(),
         ) {
-          Text("Import file")
+          Text("Import journal file")
         }
-      }
-      SectionCard("Custom substances") {
+        HorizontalDivider()
         Text(
             "Adds a custom substance from a shared substance file, including its doses, durations " +
-                "and interactions. To share one, open it in the search tab and use Doses & effects.",
+                "and interactions.",
             style = MaterialTheme.typography.bodySmall,
         )
         OutlinedButton(
             onClick = { launcherSubstance.launch(arrayOf("*/*")) },
             Modifier.fillMaxWidth(),
         ) {
-          Text("Import substance file")
+          Text("Import custom substance")
         }
       }
       SectionCard("Automatic backups") {
@@ -210,6 +237,14 @@ fun ExportBackupScreen(viewModel: ExportBackupViewModel = hiltViewModel()) {
             Text("Turn off automatic backups")
           }
         }
+      }
+      SectionCard("Report for a doctor or therapist") {
+        ClinicianReportControls(
+            settings = reportSettings,
+            setSettings = viewModel::setReportSettings,
+            onSharePdf = viewModel::shareReportPdf,
+            onShareText = viewModel::shareReportText,
+        )
       }
     }
   }
@@ -426,7 +461,7 @@ private fun ClinicianReportControls(
   Button(onClick = onSharePdf, Modifier.fillMaxWidth()) { Text("Share PDF") }
   OutlinedButton(onClick = onShareText, Modifier.fillMaxWidth()) { Text("Share as text") }
   Text(
-      "Uses the filters under \"What to export\". Only your own ingestions are included.",
+      "Uses the export filters above. Only your own ingestions are included.",
       style = MaterialTheme.typography.bodySmall,
   )
 

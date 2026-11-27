@@ -52,6 +52,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -79,7 +80,11 @@ constructor(
   private val lenientJson = Json { ignoreUnknownKeys = true }
 
   val exportFilterFlow = MutableStateFlow(ExportFilter())
-  val usedSubstanceNamesFlow = MutableStateFlow<List<String>>(emptyList())
+  val usedSubstanceNamesFlow: StateFlow<List<String>> =
+      experienceRepository
+          .getAllSubstanceCompanionsFlow()
+          .map { companions -> companions.map { it.substanceName }.sorted() }
+          .stateInVm(viewModelScope, emptyList())
 
   /** Set after an encrypted export so the UI can show the one-time passphrase. */
   private val _exportPassphrase = MutableStateFlow<String?>(null)
@@ -91,13 +96,6 @@ constructor(
 
   val backupDirUriFlow = userPreferences.backupDirUriFlow.stateInVm(viewModelScope, null)
   val lastBackupTimeFlow = userPreferences.lastBackupTimeFlow.stateInVm(viewModelScope, null)
-
-  init {
-    viewModelScope.launch {
-      usedSubstanceNamesFlow.value =
-          experienceRepository.getAllSubstanceCompanions().map { it.substanceName }.sorted()
-    }
-  }
 
   fun setExportFilter(filter: ExportFilter) {
     exportFilterFlow.value = filter
@@ -255,6 +253,7 @@ constructor(
           snackbarHostState.showSnackbar("Decoding file failed")
           return
         }
+    if (auth.shouldLock.value) return
     val message =
         try {
           experienceRepository.getAllReminders().forEach {

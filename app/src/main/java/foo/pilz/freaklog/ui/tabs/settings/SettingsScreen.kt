@@ -18,9 +18,6 @@
 
 package foo.pilz.freaklog.ui.tabs.settings
 
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -40,8 +37,6 @@ import androidx.compose.material.icons.outlined.Backup
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.EmojiEvents
-import androidx.compose.material.icons.outlined.FileDownload
-import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Medication
 import androidx.compose.material.icons.outlined.MonitorHeart
@@ -95,9 +90,7 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.components.CardWithTitle
 import foo.pilz.freaklog.ui.tabs.settings.funny.FunnyConfig
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import foo.pilz.freaklog.ui.utils.HapticType
-import foo.pilz.freaklog.ui.utils.getStringOfPattern
 import foo.pilz.freaklog.ui.utils.rememberHaptic
-import java.time.Instant
 import java.util.Locale
 import kotlinx.coroutines.launch
 
@@ -113,8 +106,6 @@ fun SettingsPreview() {
       navigateToReminders = {},
       navigateToWebhook = {},
       navigateToFreakQueryShell = {},
-      importFile = {},
-      exportFile = {},
       snackbarHostState = remember { SnackbarHostState() },
       areDosageDotsHidden = false,
       saveDosageDotsAreHidden = {},
@@ -186,8 +177,6 @@ fun SettingsScreen(
       navigateToAnodyneSettings = navigateToAnodyneSettings,
       navigateToHealthSettings = navigateToHealthSettings,
       deleteEverything = viewModel::deleteEverything,
-      importFile = viewModel::importFile,
-      exportFile = viewModel::exportFile,
       snackbarHostState = viewModel.snackbarHostState,
       areDosageDotsHidden = viewModel.areDosageDotsHiddenFlow.collectAsStateWithLifecycle().value,
       saveDosageDotsAreHidden = viewModel::saveDosageDotsAreHidden,
@@ -254,8 +243,6 @@ fun SettingsScreen(
     navigateToAnodyneSettings: () -> Unit = {},
     navigateToHealthSettings: () -> Unit = {},
     deleteEverything: () -> Unit,
-    importFile: (uri: Uri) -> Unit,
-    exportFile: (uri: Uri) -> Unit,
     snackbarHostState: SnackbarHostState,
     areDosageDotsHidden: Boolean,
     saveDosageDotsAreHidden: (Boolean) -> Unit,
@@ -307,27 +294,9 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
     ) {
       var isShowingVisibleTabsDialog by remember { mutableStateOf(false) }
-      var isShowingExportDialog by remember { mutableStateOf(false) }
-      var isShowingImportDialog by remember { mutableStateOf(false) }
       var isShowingDeleteDialog by remember { mutableStateOf(false) }
-      val jsonMIMEType = "application/json"
       val scope = rememberCoroutineScope()
       val uriHandler = LocalUriHandler.current
-      val launcherExport =
-          rememberLauncherForActivityResult(
-              contract = ActivityResultContracts.CreateDocument(mimeType = jsonMIMEType)
-          ) { uri ->
-            if (uri != null) {
-              exportFile(uri)
-            }
-          }
-      val launcherImport =
-          rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri
-            ->
-            if (uri != null) {
-              importFile(uri)
-            }
-          }
 
       CardWithTitle(title = "Manage", innerPaddingHorizontal = 0.dp) {
         SettingsButton(
@@ -360,14 +329,6 @@ fun SettingsScreen(
         ) {
           performHaptic(HapticType.CLICK)
           navigateToIntakeLimits()
-        }
-        HorizontalDivider()
-        SettingsButton(
-            imageVector = Icons.Outlined.Backup,
-            text = "Export & backup",
-        ) {
-          performHaptic(HapticType.CLICK)
-          navigateToExportBackup()
         }
         HorizontalDivider()
         SettingsButton(
@@ -610,14 +571,12 @@ fun SettingsScreen(
       }
 
       CardWithTitle(title = "App data", innerPaddingHorizontal = 0.dp) {
-        SettingsButton(imageVector = Icons.Outlined.FileUpload, text = "Export file") {
+        SettingsButton(
+            imageVector = Icons.Outlined.Backup,
+            text = "Export, import & backup",
+        ) {
           performHaptic(HapticType.CLICK)
-          isShowingExportDialog = true
-        }
-        HorizontalDivider()
-        SettingsButton(imageVector = Icons.Outlined.FileDownload, text = "Import file") {
-          performHaptic(HapticType.CLICK)
-          isShowingImportDialog = true
+          navigateToExportBackup()
         }
         HorizontalDivider()
         SettingsButton(
@@ -672,28 +631,6 @@ fun SettingsScreen(
           activateSafer = activateSafer,
           saveActivateSafer = saveActivateSafer,
           performHaptic = performHaptic,
-      )
-      ConfirmActionDialog(
-          visible = isShowingExportDialog,
-          title = "Export file?",
-          text = "Export all app data into a JSON file.",
-          confirmText = "Export",
-          onDismiss = { isShowingExportDialog = false },
-          onConfirm = {
-            isShowingExportDialog = false
-            launcherExport.launch("Journal ${Instant.now().getStringOfPattern("dd MMM yyyy")}.json")
-          },
-      )
-      ConfirmActionDialog(
-          visible = isShowingImportDialog,
-          title = "Import file?",
-          text = "Importing replaces the data currently stored in the app.",
-          confirmText = "Import",
-          onDismiss = { isShowingImportDialog = false },
-          onConfirm = {
-            isShowingImportDialog = false
-            launcherImport.launch(jsonMIMEType)
-          },
       )
       ConfirmActionDialog(
           visible = isShowingDeleteDialog,
