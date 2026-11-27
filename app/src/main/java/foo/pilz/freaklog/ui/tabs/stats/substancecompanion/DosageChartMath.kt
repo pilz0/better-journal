@@ -126,31 +126,39 @@ internal fun computeChartYScale(maxValue: Double, integerOnly: Boolean): ChartYS
         ticks = (0..gridLines).map { yMax * it / gridLines },
     )
   }
-  val maxInt = ceil(safeMax).toInt().coerceAtLeast(1)
-  if (maxInt <= 4) {
+  val maxLong = ceil(safeMax).toLong().coerceAtLeast(1L)
+  if (maxLong <= 5L) {
+    val count = maxLong.toInt()
     return ChartYScale(
-        yMax = maxInt.toDouble(),
-        gridLines = maxInt,
-        ticks = (0..maxInt).map { it.toDouble() },
+        yMax = maxLong.toDouble(),
+        gridLines = count,
+        ticks = (0..count).map { it.toDouble() },
     )
   }
-  val rawStep = ceil(maxInt / 4.0)
-  val mag = 10.0.pow(floor(log10(rawStep)))
-  val norm = rawStep / mag
-  val stepDouble =
-      when {
-        norm <= 1.0 -> 1.0 * mag
-        norm <= 2.0 -> 2.0 * mag
-        mag >= 10.0 && norm <= 2.5 -> 2.5 * mag
-        norm <= 5.0 -> 5.0 * mag
-        else -> 10.0 * mag
+  val baseMag = 10.0.pow(floor(log10(maxLong / 5.0)).coerceAtLeast(0.0))
+  val stepMultipliers = listOf(1.0, 2.0, 2.5, 5.0, 10.0, 20.0, 25.0, 50.0)
+  val gridCounts = listOf(4, 3, 5)
+  var bestStep = maxLong
+  var bestGridLines = 4
+  var bestYMax = Long.MAX_VALUE
+  for (mult in stepMultipliers) {
+    val raw = baseMag * mult
+    val step = raw.roundToLong()
+    if (step >= 1L && abs(raw - step.toDouble()) < 1e-6) {
+      for (lines in gridCounts) {
+        val candidateMax = step * lines
+        if (candidateMax in maxLong until bestYMax) {
+          bestYMax = candidateMax
+          bestStep = step
+          bestGridLines = lines
+        }
       }
-  val step = stepDouble.roundToInt().coerceAtLeast(1)
-  val gridLines = 4
+    }
+  }
   return ChartYScale(
-      yMax = (step * gridLines).toDouble(),
-      gridLines = gridLines,
-      ticks = (0..gridLines).map { (it * step).toDouble() },
+      yMax = bestYMax.toDouble(),
+      gridLines = bestGridLines,
+      ticks = (0..bestGridLines).map { (it * bestStep).toDouble() },
   )
 }
 

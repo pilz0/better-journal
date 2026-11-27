@@ -4,6 +4,7 @@ import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isCloseTo
 import assertk.assertions.isEqualTo
+import assertk.assertions.isGreaterThanOrEqualTo
 import assertk.assertions.isNotNull
 import assertk.assertions.isNull
 import foo.pilz.freaklog.data.substances.AdministrationRoute
@@ -49,12 +50,22 @@ class DosageBarChartMathTest {
     assertThat(max3.ticks).containsExactly(0.0, 1.0, 2.0, 3.0)
 
     val max5 = computeChartYScale(5.0, integerOnly = true)
-    assertThat(max5.gridLines).isEqualTo(4)
-    assertThat(max5.ticks).containsExactly(0.0, 2.0, 4.0, 6.0, 8.0)
+    assertThat(max5.gridLines).isEqualTo(5)
+    assertThat(max5.ticks).containsExactly(0.0, 1.0, 2.0, 3.0, 4.0, 5.0)
+
+    val max9 = computeChartYScale(9.0, integerOnly = true)
+    assertThat(max9.gridLines).isEqualTo(5)
+    assertThat(max9.ticks).containsExactly(0.0, 2.0, 4.0, 6.0, 8.0, 10.0)
 
     val max13 = computeChartYScale(13.0, integerOnly = true)
-    assertThat(max13.gridLines).isEqualTo(4)
-    assertThat(max13.ticks).containsExactly(0.0, 5.0, 10.0, 15.0, 20.0)
+    assertThat(max13.gridLines).isEqualTo(3)
+    assertThat(max13.ticks).containsExactly(0.0, 5.0, 10.0, 15.0)
+
+    for (count in 1..200) {
+      val scale = computeChartYScale(count.toDouble(), integerOnly = true)
+      assertThat(scale.yMax).isGreaterThanOrEqualTo(count.toDouble())
+      assertThat(count.toDouble() / scale.yMax).isGreaterThanOrEqualTo(0.73)
+    }
   }
 
   @Test

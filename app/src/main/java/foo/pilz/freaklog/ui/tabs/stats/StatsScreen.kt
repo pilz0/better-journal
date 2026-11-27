@@ -18,7 +18,6 @@
 
 package foo.pilz.freaklog.ui.tabs.stats
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -72,9 +71,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -420,37 +417,22 @@ private fun StatsActivityChartCard(
       if (statsModel.chartBuckets.isEmpty()) 0.0
       else statsModel.totalIngestions.toDouble() / statsModel.chartBuckets.size
   val avgText = formatSiValue(avg)
-  val avgLineColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.78f)
 
   ElevatedCard(modifier = Modifier.fillMaxWidth()) {
     Column(
-        modifier = Modifier.padding(spacing.lg),
+        modifier = Modifier.padding(spacing.md),
         verticalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
       Text(
           text = "Ingestions since ${statsModel.startDateText}",
           style = MaterialTheme.typography.titleMedium,
       )
-      Row(
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.spacedBy(8.dp),
-      ) {
-        Canvas(modifier = Modifier.width(18.dp).height(2.dp)) {
-          drawLine(
-              color = avgLineColor,
-              start = Offset(0f, size.height / 2f),
-              end = Offset(size.width, size.height / 2f),
-              strokeWidth = 1.75.dp.toPx(),
-              pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx()), 0f),
-          )
-        }
-        Text(
-            text =
-                "${statsModel.totalIngestions} total · Avg $avgText ${statsModel.selectedOption.perBucketUnitLabel}",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-      }
+      Text(
+          text =
+              "${statsModel.totalIngestions} total · Avg $avgText ${statsModel.selectedOption.perBucketUnitLabel}",
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
       val selectedBucket = selectedBucketIndex?.let { statsModel.chartBuckets.getOrNull(it) }
       if (selectedBucket != null) {
         SelectedStatsBucketStrip(
