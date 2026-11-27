@@ -71,7 +71,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -83,7 +82,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import foo.pilz.freaklog.ui.YOU
 import foo.pilz.freaklog.ui.components.EmptyScreenDisclaimer
 import foo.pilz.freaklog.ui.tabs.search.substance.roa.toReadableString
-import foo.pilz.freaklog.ui.tabs.stats.substancecompanion.formatSiValue
 import foo.pilz.freaklog.ui.theme.JournalTheme
 import foo.pilz.freaklog.ui.theme.LocalSpacing
 import foo.pilz.freaklog.ui.utils.HapticType
@@ -244,7 +242,6 @@ private fun StatsLoadedContent(
     items(statsModel.statItems, key = { it.substanceName }) { subStat ->
       SubstanceStatCard(
           stat = subStat,
-          totalIngestions = statsModel.totalIngestions,
           isDarkTheme = isDarkTheme,
           onClick = {
             performHaptic(HapticType.SELECTION)
@@ -349,58 +346,43 @@ private fun ConsumerMenuItem(
   )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun StatsOverviewRow(statsModel: StatsModel) {
   val spacing = LocalSpacing.current
-  Row(
-      modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-      horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-  ) {
-    OverviewKpiCard(
-        label = "Ingestions",
-        value = statsModel.totalIngestions.toString(),
-        modifier = Modifier.weight(1f).fillMaxHeight(),
-    )
-    OverviewKpiCard(
-        label = "Experiences",
-        value = statsModel.totalExperiences.toString(),
-        modifier = Modifier.weight(1f).fillMaxHeight(),
-    )
-    OverviewKpiCard(
-        label = "Substances",
-        value = statsModel.statItems.size.toString(),
-        modifier = Modifier.weight(1f).fillMaxHeight(),
-    )
+  ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+    FlowRow(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = spacing.md, vertical = spacing.sm),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.spacedBy(spacing.xs),
+    ) {
+      OverviewMetricItem(label = "Ingestions", value = statsModel.totalIngestions.toString())
+      OverviewMetricItem(label = "Experiences", value = statsModel.totalExperiences.toString())
+      OverviewMetricItem(label = "Substances", value = statsModel.statItems.size.toString())
+    }
   }
 }
 
 @Composable
-private fun OverviewKpiCard(
+private fun OverviewMetricItem(
     label: String,
     value: String,
-    modifier: Modifier = Modifier,
 ) {
-  val spacing = LocalSpacing.current
-  ElevatedCard(modifier = modifier) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(spacing.md),
-        verticalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-      Text(
-          text = label,
-          style = MaterialTheme.typography.labelMedium,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-          maxLines = 1,
-          overflow = TextOverflow.Ellipsis,
-      )
-      Text(
-          text = value,
-          style = MaterialTheme.typography.titleLarge,
-          fontWeight = FontWeight.SemiBold,
-          maxLines = 1,
-          overflow = TextOverflow.Ellipsis,
-      )
-    }
+  Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+    Text(
+        text = value,
+        style = MaterialTheme.typography.titleSmall,
+        fontWeight = FontWeight.SemiBold,
+        maxLines = 1,
+        modifier = Modifier.alignByBaseline(),
+    )
+    Text(
+        text = label,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = 1,
+        modifier = Modifier.alignByBaseline(),
+    )
   }
 }
 
@@ -413,10 +395,6 @@ private fun StatsActivityChartCard(
     onClearSelection: () -> Unit,
 ) {
   val spacing = LocalSpacing.current
-  val avg =
-      if (statsModel.chartBuckets.isEmpty()) 0.0
-      else statsModel.totalIngestions.toDouble() / statsModel.chartBuckets.size
-  val avgText = formatSiValue(avg)
 
   ElevatedCard(modifier = Modifier.fillMaxWidth()) {
     Column(
@@ -426,12 +404,6 @@ private fun StatsActivityChartCard(
       Text(
           text = "Ingestions since ${statsModel.startDateText}",
           style = MaterialTheme.typography.titleMedium,
-      )
-      Text(
-          text =
-              "${statsModel.totalIngestions} total · Avg $avgText ${statsModel.selectedOption.perBucketUnitLabel}",
-          style = MaterialTheme.typography.bodySmall,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
       )
       val selectedBucket = selectedBucketIndex?.let { statsModel.chartBuckets.getOrNull(it) }
       if (selectedBucket != null) {
@@ -582,18 +554,11 @@ private fun SubstancesSectionHeader(
 @Composable
 private fun SubstanceStatCard(
     stat: StatItem,
-    totalIngestions: Int,
     isDarkTheme: Boolean,
     onClick: () -> Unit,
 ) {
   val spacing = LocalSpacing.current
   val substanceColor = stat.color.getComposeColor(isDarkTheme)
-  val shareRatio =
-      if (totalIngestions > 0) {
-        (stat.ingestionCount.toFloat() / totalIngestions.toFloat()).coerceIn(0.03f, 1f)
-      } else {
-        0f
-      }
   val primaryDoseText =
       when {
         stat.totalDose != null -> formatTotalDose(stat.totalDose)
@@ -637,9 +602,6 @@ private fun SubstanceStatCard(
               overflow = TextOverflow.Ellipsis,
           )
         }
-        if (shareRatio > 0f) {
-          SubstanceShareBar(shareRatio = shareRatio, color = substanceColor)
-        }
       }
     }
   }
@@ -681,29 +643,6 @@ private fun SubstanceStatCardHeader(stat: StatItem, primaryDoseText: String) {
         contentDescription = null,
         tint = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.size(18.dp),
-    )
-  }
-}
-
-@Composable
-private fun SubstanceShareBar(
-    shareRatio: Float,
-    color: Color,
-) {
-  Box(
-      modifier =
-          Modifier.fillMaxWidth()
-              .padding(top = 2.dp)
-              .height(4.dp)
-              .clip(RoundedCornerShape(50))
-              .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-  ) {
-    Box(
-        modifier =
-            Modifier.fillMaxWidth(shareRatio)
-                .height(4.dp)
-                .clip(RoundedCornerShape(50))
-                .background(color.copy(alpha = 0.85f))
     )
   }
 }

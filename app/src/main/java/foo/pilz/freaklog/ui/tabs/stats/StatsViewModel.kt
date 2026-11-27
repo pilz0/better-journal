@@ -517,7 +517,6 @@ enum class TimePickerOption {
     override val displayText = "7D"
     override val longDisplayText = "Last week"
     override val emptyRangeText = "the last 7 days"
-    override val perBucketUnitLabel = "/ day"
     override val tabIndex = 0
     override val bucketCount = 7
     override val oneBucketSize: Period = Period.ofDays(1)
@@ -527,7 +526,6 @@ enum class TimePickerOption {
     override val displayText = "30D"
     override val longDisplayText = "Last month"
     override val emptyRangeText = "the last 30 days"
-    override val perBucketUnitLabel = "/ day"
     override val tabIndex = 1
     override val bucketCount = 30
     override val oneBucketSize: Period = Period.ofDays(1)
@@ -537,7 +535,6 @@ enum class TimePickerOption {
     override val displayText = "26W"
     override val longDisplayText = "Half year"
     override val emptyRangeText = "the last 26 weeks"
-    override val perBucketUnitLabel = "/ week"
     override val tabIndex = 2
     override val bucketCount = 26
     override val oneBucketSize: Period = Period.ofDays(7)
@@ -547,7 +544,6 @@ enum class TimePickerOption {
     override val displayText = "12M"
     override val longDisplayText = "Last year"
     override val emptyRangeText = "the last 12 months"
-    override val perBucketUnitLabel = "/ month"
     override val tabIndex = 3
     override val bucketCount = 12
     override val oneBucketSize: Period = Period.ofMonths(1)
@@ -557,7 +553,6 @@ enum class TimePickerOption {
     override val displayText = "10Y"
     override val longDisplayText = "10 years"
     override val emptyRangeText = "the last 10 years"
-    override val perBucketUnitLabel = "/ year"
     override val tabIndex = 4
     override val bucketCount = 10
     override val oneBucketSize: Period = Period.ofYears(1)
@@ -567,7 +562,6 @@ enum class TimePickerOption {
   abstract val displayText: String
   abstract val longDisplayText: String
   abstract val emptyRangeText: String
-  abstract val perBucketUnitLabel: String
   abstract val tabIndex: Int
   abstract val bucketCount: Int
   abstract val oneBucketSize: Period

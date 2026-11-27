@@ -11,34 +11,49 @@ import org.junit.Test
 class BarChartLayoutTest {
 
   @Test
-  fun `computeStatsBarGeometry scales width cleanly and never overlaps adjacent bars`() {
+  fun `computeStatsYScale matches exact maxCount so peak bar uses full chart height`() {
+    assertThat(computeStatsYScale(1).ticks).containsExactly(0, 1)
+    assertThat(computeStatsYScale(3).ticks).containsExactly(0, 1, 2, 3)
+    assertThat(computeStatsYScale(5).ticks).containsExactly(0, 3, 5)
+    assertThat(computeStatsYScale(8).ticks).containsExactly(0, 2, 4, 6, 8)
+    assertThat(computeStatsYScale(9).ticks).containsExactly(0, 3, 6, 9)
+    assertThat(computeStatsYScale(10).ticks).containsExactly(0, 5, 10)
+    assertThat(computeStatsYScale(11).ticks).containsExactly(0, 6, 11)
+
+    for (count in 1..100) {
+      val scale = computeStatsYScale(count)
+      assertThat(scale.yMax).isEqualTo(count)
+      assertThat(scale.ticks.first()).isEqualTo(0)
+      assertThat(scale.ticks.last()).isEqualTo(count)
+    }
+  }
+
+  @Test
+  fun `computeStatsBarGeometry uses 85 percent of column width without overlapping`() {
     val dense =
         computeStatsBarGeometry(
             plotWidth = 300f,
             bucketCount = 30,
             minBarWidthPx = 2.5f,
-            maxBarWidthPx = 32f,
         )
     assertThat(dense.barSpacing).isCloseTo(10f, 1e-4f)
-    assertThat(dense.barWidth).isCloseTo(7.2f, 1e-4f)
-    assertThat(dense.barGap).isCloseTo(1.4f, 1e-4f)
+    assertThat(dense.barWidth).isCloseTo(8.5f, 1e-4f)
+    assertThat(dense.barGap).isCloseTo(0.75f, 1e-4f)
 
-    val wide =
+    val sevenDay =
         computeStatsBarGeometry(
-            plotWidth = 700f,
+            plotWidth = 350f,
             bucketCount = 7,
             minBarWidthPx = 2.5f,
-            maxBarWidthPx = 32f,
         )
-    assertThat(wide.barSpacing).isCloseTo(100f, 1e-4f)
-    assertThat(wide.barWidth).isEqualTo(32f)
+    assertThat(sevenDay.barSpacing).isCloseTo(50f, 1e-4f)
+    assertThat(sevenDay.barWidth).isCloseTo(42.5f, 1e-4f)
 
     val cramped =
         computeStatsBarGeometry(
             plotWidth = 60f,
             bucketCount = 30,
             minBarWidthPx = 5f,
-            maxBarWidthPx = 32f,
         )
     assertThat(cramped.barWidth).isLessThan(cramped.barSpacing)
   }

@@ -51,10 +51,9 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import foo.pilz.freaklog.ui.tabs.stats.substancecompanion.ChartYScale
-import foo.pilz.freaklog.ui.tabs.stats.substancecompanion.computeChartYScale
 import foo.pilz.freaklog.ui.tabs.stats.substancecompanion.formatSiValue
 import kotlin.math.ceil
+import kotlin.math.roundToInt
 
 private data class StatsBarChartColors(
     val labelColor: Color,
@@ -77,6 +76,11 @@ private data class StatsPlotBounds(
     get() = (plotBottom - plotTop).coerceAtLeast(1f)
 }
 
+internal data class StatsYScale(
+    val yMax: Int,
+    val ticks: List<Int>,
+)
+
 internal data class StatsBarGeometry(
     val barSpacing: Float,
     val barWidth: Float,
@@ -88,17 +92,29 @@ internal data class PlacedXAxisLabel(
     val leftX: Float,
 )
 
+internal fun computeStatsYScale(maxCount: Int): StatsYScale {
+  val safeMax = maxCount.coerceAtLeast(1)
+  val ticks =
+      when {
+        safeMax <= 4 -> (0..safeMax).toList()
+        safeMax % 4 == 0 -> (0..4).map { safeMax * it / 4 }
+        safeMax % 3 == 0 -> (0..3).map { safeMax * it / 3 }
+        safeMax % 2 == 0 -> listOf(0, safeMax / 2, safeMax)
+        else -> listOf(0, (safeMax / 2.0).roundToInt(), safeMax)
+      }
+  return StatsYScale(yMax = safeMax, ticks = ticks)
+}
+
 internal fun computeStatsBarGeometry(
     plotWidth: Float,
     bucketCount: Int,
     minBarWidthPx: Float,
-    maxBarWidthPx: Float,
 ): StatsBarGeometry {
   val safeCount = bucketCount.coerceAtLeast(1)
   val spacing = plotWidth.coerceAtLeast(1f) / safeCount
-  val maxAllowedWidth = maxBarWidthPx.coerceAtMost((spacing - 1f).coerceAtLeast(1f))
+  val maxAllowedWidth = (spacing - 1.5f).coerceAtLeast(1f)
   val minAllowedWidth = minBarWidthPx.coerceAtMost(maxAllowedWidth)
-  val width = (spacing * 0.72f).coerceIn(minAllowedWidth, maxAllowedWidth)
+  val width = (spacing * 0.85f).coerceIn(minAllowedWidth, maxAllowedWidth)
   val gap = ((spacing - width) / 2f).coerceAtLeast(0f)
   return StatsBarGeometry(barSpacing = spacing, barWidth = width, barGap = gap)
 }
@@ -135,7 +151,7 @@ internal fun placeStatsXAxisLabels(
 fun BarChart(
     buckets: List<StatsChartBucket>,
     modifier: Modifier = Modifier,
-    height: Dp = 240.dp,
+    height: Dp = 190.dp,
     selectedIndex: Int? = null,
     onBarTapped: ((Int) -> Unit)? = null,
 ) {
@@ -157,14 +173,14 @@ fun BarChart(
   val yScale =
       remember(buckets) {
         val maxCount = buckets.maxOfOrNull { it.totalCount }?.coerceAtLeast(1) ?: 1
-        computeChartYScale(maxCount.toDouble(), integerOnly = true)
+        computeStatsYScale(maxCount)
       }
-  val tickLabels = remember(yScale) { yScale.ticks.map(::formatSiValue) }
+  val tickLabels = remember(yScale) { yScale.ticks.map { formatSiValue(it.toDouble()) } }
   val density = LocalDensity.current
   val yAxisLabelWidth =
       remember(tickLabels, labelStyle, density) {
         val widest = tickLabels.maxOfOrNull { textMeasurer.measure(it, labelStyle).size.width } ?: 0
-        with(density) { widest.toFloat() + 6.dp.toPx() }
+        with(density) { widest.toFloat() + 4.dp.toPx() }
       }
   val labelHeight =
       remember(labelStyle, textMeasurer) {
@@ -198,7 +214,7 @@ fun BarChart(
 @Composable
 private fun StatsBarChartCanvas(
     buckets: List<StatsChartBucket>,
-    yScale: ChartYScale,
+    yScale: StatsYScale,
     tickLabels: List<String>,
     yAxisLabelWidth: Float,
     labelHeight: Float,
@@ -226,8 +242,8 @@ private fun StatsBarChartCanvas(
                 .onSizeChanged(onCanvasSizeChanged)
                 .tapToSelectStatsBucket(buckets.size, yAxisLabelWidth, canvasSize, onBarTapped)
     ) {
-      val topPad = (labelHeight / 2f + 4.dp.toPx()).coerceAtLeast(10.dp.toPx())
-      val bottomPad = labelHeight + 8.dp.toPx()
+      val topPad = 2.dp.toPx()
+      val bottomPad = labelHeight + 4.dp.toPx()
       val bounds =
           StatsPlotBounds(
               yAxisLabelWidth = yAxisLabelWidth,
@@ -238,7 +254,7 @@ private fun StatsBarChartCanvas(
       drawStatsGrid(bounds, yScale, tickLabels, textMeasurer, labelStyle, colors)
       drawStatsStackedBars(
           buckets = buckets,
-          yMax = yScale.yMax,
+          yMax = yScale.yMax.toDouble(),
           selectedIndex = selectedIndex,
           isDarkTheme = isDarkTheme,
           bounds = bounds,
@@ -272,30 +288,31 @@ private fun Modifier.tapToSelectStatsBucket(
 @Suppress("LongParameterList")
 private fun DrawScope.drawStatsGrid(
     bounds: StatsPlotBounds,
-    yScale: ChartYScale,
+    yScale: StatsYScale,
     tickLabels: List<String>,
     textMeasurer: TextMeasurer,
     labelStyle: TextStyle,
     colors: StatsBarChartColors,
 ) {
-  val count = yScale.gridLines.coerceAtLeast(1)
-  for (i in 0..count) {
-    val frac = i.toFloat() / count
+  yScale.ticks.forEachIndexed { index, tick ->
+    val frac = tick.toFloat() / yScale.yMax.toFloat()
     val y = bounds.plotBottom - bounds.plotHeight * frac
     drawLine(
-        color = if (i == 0) colors.axisColor else colors.gridColor,
+        color = if (tick == 0) colors.axisColor else colors.gridColor,
         start = Offset(bounds.yAxisLabelWidth, y),
         end = Offset(bounds.totalWidth, y),
         strokeWidth = 1.dp.toPx(),
     )
-    val labelText = tickLabels.getOrNull(i) ?: continue
+    val labelText = tickLabels.getOrNull(index) ?: return@forEachIndexed
     val tr = textMeasurer.measure(labelText, labelStyle.copy(color = colors.labelColor))
+    val maxLabelTop = (bounds.plotBottom - tr.size.height).coerceAtLeast(0f)
+    val labelY = (y - tr.size.height / 2f).coerceIn(0f, maxLabelTop)
     drawText(
         textLayoutResult = tr,
         topLeft =
             Offset(
-                x = (bounds.yAxisLabelWidth - tr.size.width - 6.dp.toPx()).coerceAtLeast(0f),
-                y = y - tr.size.height / 2f,
+                x = (bounds.yAxisLabelWidth - tr.size.width - 4.dp.toPx()).coerceAtLeast(0f),
+                y = labelY,
             ),
     )
   }
@@ -317,11 +334,10 @@ private fun DrawScope.drawStatsStackedBars(
           plotWidth = bounds.plotWidth,
           bucketCount = buckets.size,
           minBarWidthPx = 2.5.dp.toPx(),
-          maxBarWidthPx = 32.dp.toPx(),
       )
   val minTotalBarHeight = 3.dp.toPx()
   val stubHeight = 2.dp.toPx()
-  val radius = (barGeometry.barWidth * 0.25f).coerceAtMost(4.dp.toPx())
+  val radius = (barGeometry.barWidth * 0.22f).coerceAtMost(4.dp.toPx())
 
   buckets.forEachIndexed { idx, bucket ->
     drawSingleStatsBucket(
@@ -370,7 +386,7 @@ private fun DrawScope.drawStatsXAxisLabels(
           targetGapPx = 8.dp.toPx(),
           minGapPx = 4.dp.toPx(),
       )
-  val labelTopY = bounds.plotBottom + 6.dp.toPx()
+  val labelTopY = bounds.plotBottom + 4.dp.toPx()
   for (placed in placements) {
     drawText(measured[placed.bucketIndex], topLeft = Offset(placed.leftX, labelTopY))
   }
