@@ -5,8 +5,11 @@ import foo.pilz.freaklog.data.room.experiences.entities.Ingestion
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsTimedNotesAndRatings
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.substances.repositories.SubstanceRepositoryInterface
+import foo.pilz.freaklog.ui.tabs.journal.addingestion.interactions.Interaction
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.interactions.InteractionChecker
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import java.time.Instant
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -222,5 +225,51 @@ class AchievementPredicateTest {
     assertFalse(evaluateAchievement("invalid_func()", ctx))
     assertFalse(evaluateAchievement("min_ingestions(not_a_number)", ctx))
     assertFalse(evaluateAchievement("((((unterminated", ctx))
+  }
+
+  @Test
+  fun evaluateAchievement_memoizesInteractionsAndCountsAcrossPredicates() {
+    val checker = mockk<InteractionChecker>()
+    every { checker.getInteractionsAmong(any()) } returns
+        listOf(
+            Interaction(
+                aName = "MDMA",
+                bName = "Tramadol",
+                interactionType = foo.pilz.freaklog.data.substances.classes.InteractionType.UNSAFE,
+            )
+        )
+    val ingestions =
+        listOf(
+            testIngestion("MDMA", AdministrationRoute.ORAL).copy(notes = "good"),
+            testIngestion("Tramadol", AdministrationRoute.ORAL),
+        )
+    val exp =
+        ExperienceWithIngestionsTimedNotesAndRatings(
+            experience = testExperience(7),
+            ingestions = ingestions,
+            timedNotes = emptyList(),
+            ratings = emptyList(),
+        )
+    val ctx =
+        AchievementContext(
+            experiences = listOf(exp),
+            allIngestions = ingestions,
+            allTimedNotes = emptyList(),
+            allRatings = emptyList(),
+            customUnits = emptyList(),
+            customRecipes = emptyList(),
+            substanceRepo = substanceRepo,
+            interactionChecker = checker,
+        )
+
+    assertTrue(evaluateAchievement("interaction(unsafe)", ctx))
+    assertTrue(evaluateAchievement("min_interactions(1, unsafe)", ctx))
+    assertFalse(evaluateAchievement("interaction(dangerous)", ctx))
+    assertTrue(evaluateAchievement("substance(MDMA)", ctx))
+    assertTrue(evaluateAchievement("substance_count(MDMA, 1)", ctx))
+    assertTrue(evaluateAchievement("route_count(ORAL, 2)", ctx))
+    assertTrue(evaluateAchievement("has_note() & min_notes(1)", ctx))
+
+    verify(exactly = 1) { checker.getInteractionsAmong(listOf("MDMA", "Tramadol")) }
   }
 }

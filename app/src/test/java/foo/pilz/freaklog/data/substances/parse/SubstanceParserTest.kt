@@ -19,6 +19,7 @@
 package foo.pilz.freaklog.data.substances.parse
 
 import foo.pilz.freaklog.data.substances.AdministrationRoute
+import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -428,5 +429,51 @@ class SubstanceParserTest {
     assertTrue(result!!.contains("Caffeine"))
     assertTrue(result.contains("Nicotine"))
     assertTrue(result.contains("Alcohol"))
+  }
+
+  @Test
+  fun testParseSubstanceFile_realAssetParityWithOrgJson() {
+    val assetFile =
+        listOf(
+                File("app/src/main/assets/Substances.json"),
+                File("../app/src/main/assets/Substances.json"),
+            )
+            .firstOrNull { it.isFile } ?: error("Could not locate Substances.json")
+    val json = assetFile.readText()
+    val fastResult = parser.parseSubstanceFile(json)
+    val legacyResult = parser.parseWithOrgJson(json)
+
+    assertTrue(fastResult.categories.isNotEmpty())
+    assertTrue(fastResult.substances.isNotEmpty())
+    assertEquals(legacyResult.categories, fastResult.categories)
+    assertEquals(legacyResult.substances, fastResult.substances)
+  }
+
+  @Test
+  fun testParseSubstanceFile_fallsBackGracefullyOnTypeCoercionMismatch() {
+    val coercedJson =
+        """
+        {
+          "categories": [{"name": "stimulant", "description": "desc", "color": 123}],
+          "substances": [
+            {
+              "name": "Test",
+              "url": "https://example.com",
+              "commonNames": [null, "Test", "Alias"],
+              "roas": [
+                {
+                  "name": "oral",
+                  "dose": {"units": "mg", "lightMin": "10", "commonMin": 20}
+                }
+              ]
+            }
+          ]
+        }
+        """
+            .trimIndent()
+    val fastResult = parser.parseSubstanceFile(coercedJson)
+    val legacyResult = parser.parseWithOrgJson(coercedJson)
+    assertEquals(legacyResult.categories, fastResult.categories)
+    assertEquals(legacyResult.substances, fastResult.substances)
   }
 }

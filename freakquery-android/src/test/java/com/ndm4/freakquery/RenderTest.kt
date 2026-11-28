@@ -105,4 +105,32 @@ class RenderTest {
     val ctx = Context(rows, FreakQueryConfig(), nowMs = jan01Year2025)
     assertEquals("1", FreakQuery.executeTag("week | count", rows, ctx))
   }
+
+  @Test
+  fun norm_handlesAsciiDiacriticsPunctuationAndWhitespace() {
+    assertEquals("", Aliases.norm(null))
+    assertEquals("", Aliases.norm("   ---  "))
+    assertEquals("4 aco dmt", Aliases.norm("  4-AcO_DMT  "))
+    assertEquals("4 aco dmt!!?", Aliases.norm("  4-AcO_DMT!!? "))
+    assertEquals("4 aco dmt", Aliases.norm("4-AcO_DMT"))
+    assertEquals("cafe creme", Aliases.norm("Café-Crème"))
+  }
+
+  @Test(timeout = 5_000)
+  fun filtersAndGrouping_handleFiveHundredRowsEfficiently() {
+    val startMs = 1_700_000_000_000L
+    val rows =
+        (0 until 500).map { i ->
+          mapOf(
+              "substance" to if (i % 2 == 0) "LSD" else "MDMA",
+              "dose" to 50 + (i % 50),
+              "unit" to "mg",
+              "route" to "oral",
+              "time" to startMs + i * 3_600_000L,
+          )
+        }
+    assertEquals("250", FreakQuery.query("substance=LSD | count", rows))
+    val streaks = FreakQuery.query("streaks | group_count", rows)
+    org.junit.Assert.assertTrue(streaks.toInt() >= 1)
+  }
 }

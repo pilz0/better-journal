@@ -151,4 +151,51 @@ class StatsCalculatorTest {
     assertEquals("the last 12 months", TimePickerOption.MONTHS_12.emptyRangeText)
     assertEquals("the last 10 years", TimePickerOption.YEARS_10.emptyRangeText)
   }
+
+  @Test
+  fun `backward bucket sweep and sortStatItems match sorted counts across ranges`() {
+    val experiences =
+        listOf(
+            experienceWithItems(
+                id = 1,
+                sortDate = now,
+                ingestionItem(1, "Alpha", 10.0, "mg", now.minusSeconds(3600), 1),
+                ingestionItem(2, "Alpha", 20.0, "mg", now.minusSeconds(7200), 1),
+                ingestionItem(3, "Beta", 5.0, "mg", now.minusSeconds(86400L * 10), 1),
+            ),
+            experienceWithItems(
+                id = 2,
+                sortDate = now.minusSeconds(86400L * 40),
+                ingestionItem(4, "Beta", 15.0, "mg", now.minusSeconds(86400L * 40), 2),
+                ingestionItem(5, "Beta", 15.0, "mg", now.minusSeconds(86400L * 90), 2),
+            ),
+        )
+    val base =
+        StatsCalculator.build(
+            experiences = experiences,
+            companions = emptyList(),
+            option = TimePickerOption.MONTHS_12,
+            consumerName = null,
+            sortOption = StatsSortOption.EXPERIENCES,
+            now = now,
+            zone = ZoneOffset.UTC,
+            locale = Locale.US,
+        )
+    assertEquals(12, base.chartBuckets.size)
+    assertEquals(5, base.chartBuckets.sumOf { it.totalCount })
+    val reSortedRecent = StatsCalculator.sortStatItems(base.statItems, StatsSortOption.RECENT)
+    val builtRecent =
+        StatsCalculator.build(
+                experiences = experiences,
+                companions = emptyList(),
+                option = TimePickerOption.MONTHS_12,
+                consumerName = null,
+                sortOption = StatsSortOption.RECENT,
+                now = now,
+                zone = ZoneOffset.UTC,
+                locale = Locale.US,
+            )
+            .statItems
+    assertEquals(builtRecent, reSortedRecent)
+  }
 }

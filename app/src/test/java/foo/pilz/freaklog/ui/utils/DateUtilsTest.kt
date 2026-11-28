@@ -19,7 +19,9 @@
 package foo.pilz.freaklog.ui.utils
 
 import java.time.Instant
+import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import java.util.Locale
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
@@ -158,6 +160,26 @@ class DateUtilsTest {
     val fromDate = Instant.now().minus(2, ChronoUnit.DAYS).plus(3, ChronoUnit.HOURS)
     val text = getTimeDifferenceText(fromDate, Instant.now())
     assertEquals("45 hours", text)
+  }
+
+  @Test
+  fun testGetShortTimeText_andMediumDateText_acrossLocales() {
+    val previousLocale = Locale.getDefault()
+    try {
+      val instant = Instant.parse("2026-06-15T14:30:00Z")
+      val date = LocalDate.of(2026, 6, 15)
+      for (locale in listOf(Locale.US, Locale.GERMANY, Locale.JAPAN)) {
+        Locale.setDefault(locale)
+        val shortTime = instant.getShortTimeText()
+        val mediumDate = date.getMediumDateText()
+        assertTrue(shortTime.isNotBlank())
+        assertTrue(mediumDate.isNotBlank())
+        assertEquals(shortTime, instant.getShortTimeText())
+        assertEquals(mediumDate, date.getMediumDateText())
+      }
+    } finally {
+      Locale.setDefault(previousLocale)
+    }
   }
 
   private fun assertTrue(condition: Boolean) {

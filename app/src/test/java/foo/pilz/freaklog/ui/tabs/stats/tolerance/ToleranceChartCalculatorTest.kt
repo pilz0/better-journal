@@ -627,4 +627,41 @@ class ToleranceChartCalculatorTest {
     val full = result.first { it.toleranceType == ToleranceType.FULL }
     assertThat(full.end).isEqualTo(day.plus(Duration.ofHours(252)))
   }
+
+  @Test
+  fun `merges 500 overlapping ingestion windows cleanly without quadratic slowdowns`() {
+    val names = listOf("LSD", "2C-B", "MDMA", "Ketamine", "Caffeine")
+    names.forEach { name ->
+      every { substanceRepo.getSubstance(name) } returns
+          createSubstance(name, halfTolerance = "3 days", zeroTolerance = "1 week")
+    }
+    val base = Instant.parse("2025-01-01T12:00:00Z")
+    val inputs =
+        (0 until 500).map { idx ->
+          SubstanceAndDay(
+              substanceName = names[idx % names.size],
+              day = base.plus(Duration.ofDays((idx / 2).toLong())),
+          )
+        }
+
+    val windows =
+        ToleranceChartCalculator.getToleranceWindows(
+            substanceAndDays = inputs,
+            substanceCompanions = emptyList(),
+            substanceRepository = substanceRepo,
+        )
+
+    assertThat(windows.isNotEmpty()).isTrue()
+    for (name in names) {
+      val full = windows.filter {
+        it.substanceName == name && it.toleranceType == ToleranceType.FULL
+      }
+      val half = windows.filter {
+        it.substanceName == name && it.toleranceType == ToleranceType.HALF
+      }
+      assertThat(full).hasSize(1)
+      assertThat(half).hasSize(1)
+      assertThat(half.single().start).isEqualTo(full.single().end)
+    }
+  }
 }

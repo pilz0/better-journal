@@ -23,6 +23,7 @@ import foo.pilz.freaklog.data.substances.parse.SubstanceParser
 import foo.pilz.freaklog.data.substances.parse.SubstanceParserInterface
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -85,5 +86,20 @@ class SubstanceRepositoryTest {
     assertThat(emptyRepository.getAllSubstancesWithCategories()).isEmpty()
     assertThat(emptyRepository.getSubstanceWithCategories("2C-B")).isNull()
     assertThat(emptyRepository.getCategory("common")).isNull()
+  }
+
+  @Test
+  fun `repository initializes lazily until preload or first getter call`() {
+    val parser = mockk<SubstanceParserInterface>()
+    every { parser.parseSubstanceFile(any()) } returns SubstanceFile(emptyList(), emptyList())
+
+    val lazyRepository =
+        SubstanceRepository(ApplicationProvider.getApplicationContext<Context>(), parser)
+
+    verify(exactly = 0) { parser.parseSubstanceFile(any()) }
+
+    lazyRepository.preload()
+    lazyRepository.getAllSubstances()
+    verify(exactly = 1) { parser.parseSubstanceFile(any()) }
   }
 }

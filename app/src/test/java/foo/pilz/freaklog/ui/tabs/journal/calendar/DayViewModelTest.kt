@@ -1,5 +1,6 @@
 package foo.pilz.freaklog.ui.tabs.journal.calendar
 
+import androidx.lifecycle.viewModelScope
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEmpty
@@ -15,8 +16,19 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import java.time.Instant
 import java.time.LocalDate
+import java.time.YearMonth
+import java.time.ZoneId
 import java.util.TimeZone
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import org.junit.Test
 
 class DayViewModelTest {
@@ -116,9 +128,67 @@ class DayViewModelTest {
     }
   }
 
-  private fun ingestion(id: Int, experienceId: Int, color: AdaptiveColor?): IngestionWithCompanion =
+  @Test
+  fun `loadMonthInfo queries full month once across DST and groups by local date`() = runTest {
+    val berlin = ZoneId.of("Europe/Berlin")
+    val march28LateUtc = Instant.parse("2026-03-28T23:30:00Z") // 2026-03-29 00:30 CET
+    val march29LateUtc = Instant.parse("2026-03-29T21:30:00Z") // 2026-03-29 23:30 CEST
+    coEvery { experienceRepo.getIngestionsWithCompanions(any(), any()) } returns
+        listOf(
+            ingestion(1, 10, AdaptiveColor.RED, march28LateUtc),
+            ingestion(2, 10, AdaptiveColor.BLUE, march29LateUtc),
+            ingestion(3, 12, AdaptiveColor.GREEN, march29LateUtc),
+        )
+
+    val monthMap = viewModel.loadMonthInfo(YearMonth.of(2026, 3), berlin)
+
+    coVerify(exactly = 1) {
+      experienceRepo.getIngestionsWithCompanions(
+          Instant.parse("2026-02-28T23:00:00Z"),
+          Instant.parse("2026-03-31T22:00:00Z"),
+      )
+    }
+    val day29Info = requireNotNull(monthMap[LocalDate.of(2026, 3, 29)])
+    assertThat(day29Info.experienceIds).containsExactly(10, 12)
+    assertThat(day29Info.colors)
+        .containsExactly(AdaptiveColor.RED, AdaptiveColor.BLUE, AdaptiveColor.GREEN)
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  @Test
+  fun `ensureMonthLoaded caches result and avoids duplicate queries`() = runTest {
+    val dispatcher = UnconfinedTestDispatcher(testScheduler)
+    Dispatchers.setMain(dispatcher)
+    val vm = DayViewModel(experienceRepo)
+    try {
+      val march = YearMonth.of(2026, 3)
+      coEvery { experienceRepo.getIngestionsWithCompanions(any(), any()) } returns
+          listOf(ingestion(1, 7, AdaptiveColor.RED, Instant.parse("2026-03-10T12:00:00Z")))
+
+      vm.ensureMonthLoaded(march)
+      vm.ensureMonthLoaded(march)
+
+      val loaded =
+          withContext(Dispatchers.Default) {
+            withTimeout(5_000) { vm.monthData.first { it.containsKey(march) } }
+          }
+      val march10 = requireNotNull(loaded[march]?.get(LocalDate.of(2026, 3, 10)))
+      assertThat(march10.experienceIds).containsExactly(7)
+      coVerify(exactly = 1) { experienceRepo.getIngestionsWithCompanions(any(), any()) }
+    } finally {
+      vm.viewModelScope.cancel()
+      Dispatchers.resetMain()
+    }
+  }
+
+  private fun ingestion(
+      id: Int,
+      experienceId: Int,
+      color: AdaptiveColor?,
+      time: Instant = Instant.parse("2026-01-01T12:00:00Z"),
+  ): IngestionWithCompanion =
       IngestionWithCompanion(
-          ingestion = EntityBuilders.ingestion(id = id, experienceId = experienceId),
+          ingestion = EntityBuilders.ingestion(id = id, experienceId = experienceId, time = time),
           substanceCompanion =
               color?.let { SubstanceCompanion(substanceName = "Caffeine", color = it) },
       )
