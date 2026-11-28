@@ -25,16 +25,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -71,6 +67,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -568,40 +568,39 @@ private fun SubstanceStatCard(
       }
 
   ElevatedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
-    Row(
-        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min).padding(spacing.md),
-        horizontalArrangement = Arrangement.spacedBy(spacing.md),
-        verticalAlignment = Alignment.CenterVertically,
+    Column(
+        modifier =
+            Modifier.fillMaxWidth()
+                .padding(spacing.md)
+                .drawBehind {
+                  val radius = 3.dp.toPx()
+                  drawRoundRect(
+                      color = substanceColor,
+                      topLeft = Offset.Zero,
+                      size = Size(6.dp.toPx(), size.height),
+                      cornerRadius = CornerRadius(radius, radius),
+                  )
+                }
+                .padding(start = 6.dp + spacing.md),
+        verticalArrangement = Arrangement.spacedBy(3.dp),
     ) {
-      Box(
-          modifier =
-              Modifier.width(6.dp)
-                  .fillMaxHeight()
-                  .clip(RoundedCornerShape(3.dp))
-                  .background(substanceColor)
+      SubstanceStatCardHeader(stat = stat, primaryDoseText = primaryDoseText)
+      Text(
+          text =
+              "${stat.ingestionCount} ${if (stat.ingestionCount == 1) "ingestion" else "ingestions"} · " +
+                  "${stat.experienceCount} ${if (stat.experienceCount == 1) "experience" else "experiences"}",
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
       )
-      Column(
-          modifier = Modifier.weight(1f),
-          verticalArrangement = Arrangement.spacedBy(3.dp),
-      ) {
-        SubstanceStatCardHeader(stat = stat, primaryDoseText = primaryDoseText)
+      val metaLine = rememberMetaLine(stat)
+      if (metaLine.isNotEmpty()) {
         Text(
-            text =
-                "${stat.ingestionCount} ${if (stat.ingestionCount == 1) "ingestion" else "ingestions"} · " +
-                    "${stat.experienceCount} ${if (stat.experienceCount == 1) "experience" else "experiences"}",
-            style = MaterialTheme.typography.bodySmall,
+            text = metaLine,
+            style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
-        val metaLine = rememberMetaLine(stat)
-        if (metaLine.isNotEmpty()) {
-          Text(
-              text = metaLine,
-              style = MaterialTheme.typography.labelSmall,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-              maxLines = 1,
-              overflow = TextOverflow.Ellipsis,
-          )
-        }
       }
     }
   }

@@ -305,7 +305,12 @@ fun ToleranceChart(
   // Distinct substances, sorted if needed. The input list toleranceWindows contains all windows.
   // We need to know which substance goes to which row.
   // The view model seems to provide them sorted by name or so.
-  val substanceNames = toleranceWindows.map { it.substanceName }.distinct().sorted()
+  val substanceNames =
+      remember(toleranceWindows) { toleranceWindows.map { it.substanceName }.distinct().sorted() }
+  val substanceIndexByName =
+      remember(substanceNames) {
+        substanceNames.withIndex().associate { (index, name) -> name to index }
+      }
   val numberOfRows = substanceNames.size
 
   val rowHeight = 32.dp
@@ -337,27 +342,26 @@ fun ToleranceChart(
 
       // Chart Area
       val nowLineColor = MaterialTheme.colorScheme.onSurface
+      val gridColor =
+          if (isDarkTheme) Color.White.copy(alpha = 0.1f) else Color.Black.copy(alpha = 0.1f)
+      val maxTimeMillis = maxTime.toEpochMilli()
+      val oneWeekMillis = Duration.ofDays(7).toMillis()
       Box(modifier = Modifier.weight(1f).height(chartHeight)) {
         Canvas(modifier = Modifier.fillMaxSize()) {
           val canvasWidth = size.width
           val canvasHeight = size.height
           val singleRowHeight = canvasHeight / numberOfRows
+          val cornerRadiusPx = 4.dp.toPx()
+          val cornerRadius = CornerRadius(cornerRadiusPx, cornerRadiusPx)
+          val barHeight = singleRowHeight * 0.6f
+          val barTopOffset = (singleRowHeight - barHeight) / 2f
 
-          // Draw vertical grid lines (every 7 days? Or monthly?)
-          // Screenshot shows monthly/weekly lines. Let's stick to weekly for now or calculate
-          // roughly.
-          val oneWeekMillis = Duration.ofDays(7).toMillis()
           var currentGridTime = minTimeMillis
-
-          // Alleviate start offset to align with week boundaries if possible, but simple fixed step
-          // is fine for now
-          while (currentGridTime <= maxTime.toEpochMilli()) {
+          while (currentGridTime <= maxTimeMillis) {
             val gridX = ((currentGridTime - minTimeMillis).toFloat() / totalDuration) * canvasWidth
             if (gridX in 0f..canvasWidth) {
               drawLine(
-                  color =
-                      if (isDarkTheme) Color.White.copy(alpha = 0.1f)
-                      else Color.Black.copy(alpha = 0.1f),
+                  color = gridColor,
                   start = Offset(gridX, 0f),
                   end = Offset(gridX, canvasHeight),
                   strokeWidth = 1f,
@@ -367,7 +371,7 @@ fun ToleranceChart(
           }
 
           toleranceWindows.forEach { window ->
-            val substanceIndex = substanceNames.indexOf(window.substanceName)
+            val substanceIndex = substanceIndexByName[window.substanceName] ?: -1
             if (substanceIndex >= 0) {
               val startMillis = window.start.toEpochMilli().coerceAtLeast(minTimeMillis)
               val endMillis = window.end.toEpochMilli()
@@ -378,15 +382,11 @@ fun ToleranceChart(
                 val topY = substanceIndex * singleRowHeight
                 val barWidth = (endX - startX).coerceAtLeast(2f) // Minimum visible width
 
-                // Bar height slightly smaller than row
-                val barHeight = singleRowHeight.toDp().toPx() * 0.6f
-                val barTopOffset = (singleRowHeight - barHeight) / 2
-
                 drawRoundRect(
                     color = window.barColor(isDarkTheme),
                     topLeft = Offset(startX, topY + barTopOffset),
                     size = Size(barWidth, barHeight),
-                    cornerRadius = CornerRadius(4.dp.toPx(), 4.dp.toPx()),
+                    cornerRadius = cornerRadius,
                 )
               }
             }

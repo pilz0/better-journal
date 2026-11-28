@@ -328,6 +328,8 @@ class MyAppWidget : GlanceAppWidget() {
   }
 }
 
+private val SUBSTANCE_COLOR_PATTERN = "\"((?:[^\"\\\\]|\\\\.)*)\"\\s*:\\s*(-?\\d+)".toRegex()
+
 /**
  * Simple JSON parser for substance colors format: {"substance1":color1,"substance2":color2} Handles
  * escaped characters in substance names. Note: Uses simple regex-based parsing - substance names in
@@ -336,9 +338,7 @@ class MyAppWidget : GlanceAppWidget() {
 internal fun parseSubstanceColors(json: String): Map<String, Int> {
   return try {
     val result = mutableMapOf<String, Int>()
-    // Use regex to find "name":value pairs more robustly
-    val pattern = "\"((?:[^\"\\\\]|\\\\.)*)\"\\s*:\\s*(-?\\d+)".toRegex()
-    pattern.findAll(json).forEach { match ->
+    SUBSTANCE_COLOR_PATTERN.findAll(json).forEach { match ->
       val escapedName = match.groupValues[1]
       val colorInt = match.groupValues[2].toIntOrNull()
       if (colorInt != null) {
@@ -730,12 +730,45 @@ class TimelineWidgetWorker(
     // ---- effect curves ----
     // Render translucent fill first so strokes stay crisp on top.
     val peakHeight = graphHeight * WidgetConstants.PEAK_HEIGHT_FRACTION
+    val path = Path()
+    val fillPath = Path()
+    val cornerPathEffect =
+        android.graphics.CornerPathEffect(WidgetConstants.CORNER_PATH_EFFECT_RADIUS)
+    val dashLength = WidgetConstants.STROKE_WIDTH * 4
+    val gapLength = WidgetConstants.STROKE_WIDTH * 3
+    val dashPathEffect = android.graphics.DashPathEffect(floatArrayOf(dashLength, gapLength), 0f)
+    val strokePaint =
+        Paint().apply {
+          style = Paint.Style.STROKE
+          strokeWidth = WidgetConstants.STROKE_WIDTH
+          isAntiAlias = true
+          strokeCap = Paint.Cap.ROUND
+          strokeJoin = Paint.Join.ROUND
+        }
+    val fillPaint =
+        Paint().apply {
+          style = Paint.Style.FILL
+          isAntiAlias = true
+        }
+    val dotPaint =
+        Paint().apply {
+          style = Paint.Style.FILL
+          isAntiAlias = true
+        }
+    val dotOutlinePaint =
+        Paint().apply {
+          color = if (isDarkMode) Color.argb(180, 0, 0, 0) else Color.argb(180, 255, 255, 255)
+          style = Paint.Style.STROKE
+          strokeWidth = 2f
+          isAntiAlias = true
+        }
+    val fillAlpha = (DefaultGraphStyle.shapeAlpha * 255).toInt()
 
     for (group in model.groups) {
       if (group.points.size < 2) continue
       val androidColor = getAndroidColor(group.color, isDarkMode)
 
-      val path = Path()
+      path.reset()
       var started = false
       var firstX = graphLeft
       var lastX = graphLeft
@@ -753,38 +786,18 @@ class TimelineWidgetWorker(
       }
       if (!started) continue
 
-      val strokePaint =
-          Paint().apply {
-            this.color = androidColor
-            style = Paint.Style.STROKE
-            strokeWidth = WidgetConstants.STROKE_WIDTH
-            isAntiAlias = true
-            strokeCap = Paint.Cap.ROUND
-            strokeJoin = Paint.Join.ROUND
-            pathEffect =
-                if (group.isComplete) {
-                  android.graphics.CornerPathEffect(WidgetConstants.CORNER_PATH_EFFECT_RADIUS)
-                } else {
-                  val dashLength = WidgetConstants.STROKE_WIDTH * 4
-                  val gapLength = WidgetConstants.STROKE_WIDTH * 3
-                  android.graphics.DashPathEffect(floatArrayOf(dashLength, gapLength), 0f)
-                }
-          }
+      strokePaint.color = androidColor
+      strokePaint.pathEffect = if (group.isComplete) cornerPathEffect else dashPathEffect
 
       // Fill a translucent area beneath the stroke.
-      val fillPaint =
-          Paint().apply {
-            this.color =
-                Color.argb(
-                    (DefaultGraphStyle.shapeAlpha * 255).toInt(),
-                    Color.red(androidColor),
-                    Color.green(androidColor),
-                    Color.blue(androidColor),
-                )
-            style = Paint.Style.FILL
-            isAntiAlias = true
-          }
-      val fillPath = Path(path)
+      fillPaint.color =
+          Color.argb(
+              fillAlpha,
+              Color.red(androidColor),
+              Color.green(androidColor),
+              Color.blue(androidColor),
+          )
+      fillPath.set(path)
       fillPath.lineTo(lastX, baselineY + strokePaint.strokeWidth / 2f)
       fillPath.lineTo(firstX, baselineY + strokePaint.strokeWidth / 2f)
       fillPath.close()
@@ -792,19 +805,7 @@ class TimelineWidgetWorker(
       canvas.drawPath(path, strokePaint)
 
       // Ingestion dots on the baseline.
-      val dotPaint =
-          Paint().apply {
-            this.color = androidColor
-            style = Paint.Style.FILL
-            isAntiAlias = true
-          }
-      val dotOutlinePaint =
-          Paint().apply {
-            color = if (isDarkMode) Color.argb(180, 0, 0, 0) else Color.argb(180, 255, 255, 255)
-            style = Paint.Style.STROKE
-            strokeWidth = 2f
-            isAntiAlias = true
-          }
+      dotPaint.color = androidColor
       for (sec in group.ingestionDotsSecondsFromStart) {
         if (sec < 0f || sec > widthInSeconds) continue
         val dx = secToPixel(sec).coerceIn(graphLeft, graphRight)

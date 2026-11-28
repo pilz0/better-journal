@@ -28,11 +28,13 @@ import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import java.time.Duration
 import java.time.Instant
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
@@ -101,6 +103,7 @@ constructor(
                 substanceCompanions = companions,
             )
           }
+          .flowOn(Dispatchers.Default)
           .stateIn(
               scope = viewModelScope,
               started = SharingStarted.WhileSubscribed(5000),

@@ -85,6 +85,16 @@ constructor(
           }
           .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000), replay = 1)
 
+  // Coarser minute ticker for aggregate stats and frequency (no sub-minute UI counters).
+  private val currentMinuteFlow: Flow<Instant> =
+      flow {
+            while (true) {
+              emit(Instant.now())
+              delay(timeMillis = 60_000L)
+            }
+          }
+          .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000), replay = 1)
+
   private val substanceCompanionRoute = state.toRoute<SubstanceCompanionRoute>()
   val substanceName: String = substanceCompanionRoute.substanceName
   val consumerName = substanceCompanionRoute.consumerName
@@ -238,7 +248,7 @@ constructor(
           )
 
   val dosageStatsFlow: StateFlow<SubstanceDosageStatsModel?> =
-      combine(allIngestionsFlow, selectedTimeRange, currentTimeFlow, doseThresholdsFlow) {
+      combine(allIngestionsFlow, selectedTimeRange, currentMinuteFlow, doseThresholdsFlow) {
               ingestions,
               timeRange,
               currentTime,
@@ -321,7 +331,7 @@ constructor(
    * the "Usage frequency" section of the screen.
    */
   val frequencyFlow: StateFlow<SubstanceFrequency?> =
-      combine(allIngestionsFlow, currentTimeFlow) { ingestions, now ->
+      combine(allIngestionsFlow, currentMinuteFlow) { ingestions, now ->
             SubstanceFrequency.compute(
                 ingestions = ingestions.map { it.ingestion },
                 now = now,

@@ -113,6 +113,7 @@ import foo.pilz.freaklog.ui.tabs.journal.experience.components.rating.TimedRatin
 import foo.pilz.freaklog.ui.tabs.journal.experience.components.timednote.TimedNoteRow
 import foo.pilz.freaklog.ui.tabs.journal.experience.models.ConsumerWithIngestions
 import foo.pilz.freaklog.ui.tabs.journal.experience.models.CumulativeDose
+import foo.pilz.freaklog.ui.tabs.journal.experience.models.IngestionElement
 import foo.pilz.freaklog.ui.tabs.journal.experience.models.OneExperienceScreenModel
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.AllTimelines
 import foo.pilz.freaklog.ui.tabs.journal.experience.timeline.BloodPressureHealthConnect
@@ -981,14 +982,11 @@ private fun MyIngestionList(
         remember(ingestionElements) {
           ingestionElements.map { it.ingestionWithCompanionAndCustomUnit.ingestion.time }
         }
-    // Readings taken before the first ingestion come first, the rest follow the ingestion they came
-    // after.
-    val readingsBefore = bloodPressureReadings.filter { reading ->
-      ingestionElements.none {
-        it.ingestionWithCompanionAndCustomUnit.ingestion.time <= reading.time
-      }
-    }
-    readingsBefore.forEach { reading ->
+    val partitionedReadings =
+        remember(ingestionElements, bloodPressureReadings) {
+          partitionBloodPressureReadings(ingestionElements, bloodPressureReadings)
+        }
+    partitionedReadings.beforeFirstIngestion.forEach { reading ->
       BloodPressureReadingRow(
           reading = reading,
           timeDisplayOption = timeDisplayOption,
@@ -998,16 +996,7 @@ private fun MyIngestionList(
       HorizontalDivider()
     }
     ingestionElements.forEachIndexed { index, ingestionElement ->
-      val ingestionTime = ingestionElement.ingestionWithCompanionAndCustomUnit.ingestion.time
-      val nextIngestionTime =
-          ingestionElements
-              .getOrNull(index + 1)
-              ?.ingestionWithCompanionAndCustomUnit
-              ?.ingestion
-              ?.time
-      val readingsAfter = bloodPressureReadings.filter {
-        it.time >= ingestionTime && (nextIngestionTime == null || it.time < nextIngestionTime)
-      }
+      val readingsAfter = partitionedReadings.afterEachIngestion[index]
       IngestionRow(
           ingestionElement = ingestionElement,
           areDosageDotsHidden = areDosageDotsHidden,
@@ -1578,6 +1567,32 @@ private fun LastIngestionRelativeToNowText(lastIngestionTime: Instant) {
       style = MaterialTheme.typography.titleSmall,
       modifier = Modifier.padding(vertical = 5.dp, horizontal = horizontalPadding),
   )
+}
+
+private class PartitionedBloodPressureReadings(
+    val beforeFirstIngestion: List<BloodPressureReading>,
+    val afterEachIngestion: List<List<BloodPressureReading>>,
+)
+
+private fun partitionBloodPressureReadings(
+    ingestionElements: List<IngestionElement>,
+    readings: List<BloodPressureReading>,
+): PartitionedBloodPressureReadings {
+  if (readings.isEmpty() || ingestionElements.isEmpty()) {
+    return PartitionedBloodPressureReadings(
+        beforeFirstIngestion = readings,
+        afterEachIngestion = List(ingestionElements.size) { emptyList() },
+    )
+  }
+  val firstTime = ingestionElements.minOf { it.ingestionWithCompanionAndCustomUnit.ingestion.time }
+  val before = readings.filter { it.time < firstTime }
+  val afterByIndex = ingestionElements.mapIndexed { index, element ->
+    val start = element.ingestionWithCompanionAndCustomUnit.ingestion.time
+    val next =
+        ingestionElements.getOrNull(index + 1)?.ingestionWithCompanionAndCustomUnit?.ingestion?.time
+    readings.filter { it.time >= start && (next == null || it.time < next) }
+  }
+  return PartitionedBloodPressureReadings(before, afterByIndex)
 }
 
 @Composable

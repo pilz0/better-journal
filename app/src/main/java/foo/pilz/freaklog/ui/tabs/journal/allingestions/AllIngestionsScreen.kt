@@ -65,13 +65,12 @@ import foo.pilz.freaklog.ui.components.EmptyScreenDisclaimer
 import foo.pilz.freaklog.ui.components.NavigateBackButton
 import foo.pilz.freaklog.ui.theme.SearchBar
 import foo.pilz.freaklog.ui.theme.horizontalPadding
+import foo.pilz.freaklog.ui.utils.getMediumDateText
 import foo.pilz.freaklog.ui.utils.getShortTimeText
 import foo.pilz.freaklog.ui.utils.getStringOfPattern
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 
 @Composable
 fun AllIngestionsScreen(
@@ -218,9 +217,8 @@ private fun DeleteIngestionDialog(
 
 @Composable
 fun SectionHeader(date: LocalDate) {
-  val dateFormatter = remember { DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM) }
   Text(
-      text = date.format(dateFormatter),
+      text = date.getMediumDateText(),
       style = MaterialTheme.typography.titleMedium,
       fontWeight = FontWeight.Bold,
       modifier = Modifier.fillMaxWidth().padding(horizontal = horizontalPadding, vertical = 8.dp),

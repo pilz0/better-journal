@@ -35,11 +35,14 @@ import foo.pilz.freaklog.ui.tabs.journal.addingestion.search.suggestion.models.D
 import foo.pilz.freaklog.ui.tabs.journal.addingestion.search.suggestion.models.Suggestion
 import java.time.Instant
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -75,6 +78,7 @@ constructor(
                 )
                 .map { it.toSubstanceModel() }
           }
+          .flowOn(Dispatchers.Default)
           .stateIn(
               initialValue = emptyList(),
               scope = viewModelScope,
@@ -96,6 +100,7 @@ constructor(
               }
             }
           }
+          .flowOn(Dispatchers.Default)
           .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
   val filteredCustomUnitsFlow =
@@ -104,7 +109,7 @@ constructor(
               filteredSubstancesFlow,
               searchTextFlow,
           ) { customUnit, filteredSubstances, searchText ->
-            val filteredSubstanceNames = filteredSubstances.map { it.name }.toSet()
+            val filteredSubstanceNames = filteredSubstances.mapTo(HashSet()) { it.name }
             customUnit.filter { custom ->
               custom.substanceName in filteredSubstanceNames ||
                   custom.name.contains(
@@ -122,21 +127,30 @@ constructor(
                   custom.note.contains(other = searchText, ignoreCase = true)
             }
           }
+          .flowOn(Dispatchers.Default)
           .stateIn(
               initialValue = emptyList(),
               scope = viewModelScope,
               started = SharingStarted.WhileSubscribed(5000),
           )
 
-  private val customSubstancesFlow = experienceRepo.getCustomSubstancesFlow()
+  private val customSubstancesFlow =
+      experienceRepo
+          .getCustomSubstancesFlow()
+          .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000), replay = 1)
 
   val filteredCustomSubstancesFlow =
       customSubstancesFlow
           .combine(searchTextFlow) { customSubstances, searchText ->
-            customSubstances.filter { custom ->
-              custom.name.contains(other = searchText, ignoreCase = true)
+            if (searchText.isEmpty()) {
+              customSubstances
+            } else {
+              customSubstances.filter { custom ->
+                custom.name.contains(other = searchText, ignoreCase = true)
+              }
             }
           }
+          .flowOn(Dispatchers.Default)
           .stateIn(
               initialValue = emptyList(),
               scope = viewModelScope,
@@ -145,11 +159,13 @@ constructor(
 
   private val allSuggestionsFlow =
       combine(
-          experienceRepo.getSortedIngestionsWithSubstanceCompanionsFlow(limit = 1000),
-          customSubstancesFlow,
-      ) { ingestions, customSubstances ->
-        getSuggestions(ingestions, customSubstances)
-      }
+              experienceRepo.getSortedIngestionsWithSubstanceCompanionsFlow(limit = 1000),
+              customSubstancesFlow,
+          ) { ingestions, customSubstances ->
+            getSuggestions(ingestions, customSubstances)
+          }
+          .flowOn(Dispatchers.Default)
+          .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000), replay = 1)
 
   val filteredSuggestions: StateFlow<List<Suggestion>> =
       combine(
@@ -157,7 +173,7 @@ constructor(
               filteredSubstancesFlow,
               searchTextFlow,
           ) { suggestions, filteredSubstances, searchText ->
-            val substanceNamesSet = filteredSubstances.map { it.name }.toSet()
+            val substanceNamesSet = filteredSubstances.mapTo(HashSet()) { it.name }
             suggestions.filter { sug ->
               sug.isInSearch(
                   searchText = searchText,
@@ -165,6 +181,7 @@ constructor(
               )
             }
           }
+          .flowOn(Dispatchers.Default)
           .stateIn(
               initialValue = emptyList(),
               scope = viewModelScope,
@@ -175,12 +192,13 @@ constructor(
       ingestions: List<IngestionWithCompanionAndCustomUnit>,
       customSubstances: List<CustomSubstance>,
   ): List<Suggestion> {
+    val customSubstancesByName = customSubstances.associateBy { it.name }
     val groupedBySubstance = ingestions.groupBy { it.ingestion.substanceName }
     val suggestions = groupedBySubstance.flatMap { entry ->
       return@flatMap getSuggestionsForSubstance(
           substanceName = entry.key,
           ingestionsGroupedBySubstance = entry.value,
-          customSubstances = customSubstances,
+          customSubstancesByName = customSubstancesByName,
       )
     }
     return suggestions.sortedByDescending { it.sortInstant }
@@ -189,13 +207,13 @@ constructor(
   private fun getSuggestionsForSubstance(
       substanceName: String,
       ingestionsGroupedBySubstance: List<IngestionWithCompanionAndCustomUnit>,
-      customSubstances: List<CustomSubstance>,
+      customSubstancesByName: Map<String, CustomSubstance>,
   ): List<Suggestion> {
     val color =
         ingestionsGroupedBySubstance.firstOrNull()?.substanceCompanion?.color ?: return emptyList()
     val substance = substanceRepo.getSubstance(substanceName)
     val isPredefinedSubstance = substance != null
-    val customSubstance = customSubstances.firstOrNull { it.name == substanceName }
+    val customSubstance = customSubstancesByName[substanceName]
     val groupedRoute = ingestionsGroupedBySubstance.groupBy { it.ingestion.administrationRoute }
     if (!isPredefinedSubstance && customSubstance == null) {
       return emptyList()

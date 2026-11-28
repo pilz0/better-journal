@@ -37,6 +37,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -185,10 +186,14 @@ private fun EmptyDosageChartPlaceholder(
 private data class DosageChartGeometry(
     val yScale: ChartYScale,
     val convertedThresholds: DoseThresholds?,
-    val tickLabels: List<String>,
+    val tickLayouts: List<TextLayoutResult>,
+    val bucketLabelLayouts: List<TextLayoutResult>,
+    val widestBucketLabel: Int,
+    val thresholdLayouts: List<TextLayoutResult>,
     val yAxisLabelWidth: Float,
     val labelHeight: Float,
     val chartDescription: String,
+    val summaryStats: DosageChartSummaryStats?,
 )
 
 @Composable
@@ -196,6 +201,7 @@ private fun rememberDosageChartGeometry(
     buckets: List<DosageBucket>,
     yValues: List<Double>,
     config: DosageBarChartConfig,
+    colors: ChartColors,
     textMeasurer: TextMeasurer,
     labelStyle: TextStyle,
 ): DosageChartGeometry {
@@ -213,15 +219,33 @@ private fun rememberDosageChartGeometry(
         else convertDoseThresholds(config.doseThresholds, unit)
       }
   val density = LocalDensity.current
+  val coloredLabelStyle =
+      remember(labelStyle, colors.labelColor) { labelStyle.copy(color = colors.labelColor) }
   val tickLabels =
       remember(yScale, showUnit, unit) {
         yScale.ticks.mapIndexed { index, tick ->
           formatSiValue(tick) + if (showUnit && index == yScale.ticks.lastIndex) " $unit" else ""
         }
       }
+  val tickLayouts =
+      remember(tickLabels, coloredLabelStyle, textMeasurer) {
+        tickLabels.map { textMeasurer.measure(it, coloredLabelStyle) }
+      }
+  val bucketLabelLayouts =
+      remember(buckets, coloredLabelStyle, textMeasurer) {
+        buckets.map { textMeasurer.measure(it.label, coloredLabelStyle) }
+      }
+  val widestBucketLabel =
+      remember(bucketLabelLayouts) { bucketLabelLayouts.maxOfOrNull { it.size.width } ?: 0 }
+  val thresholdLayouts =
+      remember(colors.thresholdColors, labelStyle, textMeasurer) {
+        listOf("light", "common", "strong", "heavy").mapIndexed { index, name ->
+          textMeasurer.measure(name, labelStyle.copy(color = colors.thresholdColors[index]))
+        }
+      }
   val yAxisLabelWidth =
-      remember(tickLabels, labelStyle, density) {
-        val widest = tickLabels.maxOfOrNull { textMeasurer.measure(it, labelStyle).size.width } ?: 0
+      remember(tickLayouts, density) {
+        val widest = tickLayouts.maxOfOrNull { it.size.width } ?: 0
         with(density) { widest.toFloat() + 10.dp.toPx() }
       }
   val labelHeight =
@@ -233,13 +257,28 @@ private fun rememberDosageChartGeometry(
         val nonEmpty = buckets.count { it.totalDose > 0 || it.sessionCount > 0 }
         "${config.metric.displayText} chart with ${buckets.size} buckets and $nonEmpty non-empty buckets"
       }
+  val summaryStats =
+      remember(yValues, config.metric, config.showAverage, config.showTrendLine) {
+        if ((!config.showAverage && !config.showTrendLine) || yValues.isEmpty()) {
+          null
+        } else {
+          computeDosageChartSummaryStats(
+              yValues = yValues,
+              activeOnly = config.metric == DosageMetric.AVG_DOSE_PER_SESSION,
+          )
+        }
+      }
   return DosageChartGeometry(
       yScale = yScale,
       convertedThresholds = convertedThresholds,
-      tickLabels = tickLabels,
+      tickLayouts = tickLayouts,
+      bucketLabelLayouts = bucketLabelLayouts,
+      widestBucketLabel = widestBucketLabel,
+      thresholdLayouts = thresholdLayouts,
       yAxisLabelWidth = yAxisLabelWidth,
       labelHeight = labelHeight,
       chartDescription = chartDescription,
+      summaryStats = summaryStats,
   )
 }
 
@@ -255,7 +294,18 @@ private fun DosageBarChartCanvas(
   val textMeasurer = rememberTextMeasurer()
   val labelStyle = MaterialTheme.typography.labelSmall
   val colors = rememberChartColors(config.barColor, isDarkTheme)
-  val geometry = rememberDosageChartGeometry(buckets, yValues, config, textMeasurer, labelStyle)
+  val geometry =
+      rememberDosageChartGeometry(buckets, yValues, config, colors, textMeasurer, labelStyle)
+  val density = LocalDensity.current
+  val reusablePath = remember { Path() }
+  val thresholdDash =
+      remember(density) {
+        with(density) { PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 4.dp.toPx()), 0f) }
+      }
+  val averageDash =
+      remember(density) {
+        with(density) { PathEffect.dashPathEffect(floatArrayOf(8.dp.toPx(), 6.dp.toPx()), 0f) }
+      }
   var canvasSize by remember { mutableStateOf(IntSize.Zero) }
 
   Box(
@@ -280,12 +330,10 @@ private fun DosageBarChartCanvas(
               plotBottom = (size.height - bottomPad).coerceAtLeast(topPad + 1f),
           )
       drawYAxisGrid(
-          bounds,
-          geometry.yScale,
-          geometry.tickLabels,
-          textMeasurer,
-          labelStyle,
-          colors,
+          bounds = bounds,
+          yScale = geometry.yScale,
+          tickLayouts = geometry.tickLayouts,
+          colors = colors,
       )
       drawDosageBars(
           buckets = buckets,
@@ -293,25 +341,27 @@ private fun DosageBarChartCanvas(
           yMax = geometry.yScale.yMax,
           selectedIndex = config.selectedIndex,
           bounds = bounds,
-          textMeasurer = textMeasurer,
-          labelStyle = labelStyle,
+          bucketLabelLayouts = geometry.bucketLabelLayouts,
+          widestLabel = geometry.widestBucketLabel,
           colors = colors,
+          path = reusablePath,
       )
       drawThresholds(
           thresholds = geometry.convertedThresholds,
           yMax = geometry.yScale.yMax,
           bounds = bounds,
           labelHeight = geometry.labelHeight,
-          textMeasurer = textMeasurer,
-          labelStyle = labelStyle,
+          thresholdLayouts = geometry.thresholdLayouts,
+          dash = thresholdDash,
           colors = colors,
       )
       drawAverageAndTrendLines(
-          yValues = yValues,
+          bucketCount = yValues.size,
           yMax = geometry.yScale.yMax,
-          metric = config.metric,
+          summaryStats = geometry.summaryStats,
           showAverage = config.showAverage,
           showTrendLine = config.showTrendLine,
+          averageDash = averageDash,
           bounds = bounds,
           colors = colors,
       )
@@ -361,16 +411,15 @@ private fun Modifier.tapToSelectBar(
   }
 }
 
-@Suppress("LongParameterList")
 private fun DrawScope.drawYAxisGrid(
     bounds: ChartPlotBounds,
     yScale: ChartYScale,
-    tickLabels: List<String>,
-    textMeasurer: TextMeasurer,
-    labelStyle: TextStyle,
+    tickLayouts: List<TextLayoutResult>,
     colors: ChartColors,
 ) {
   val count = yScale.gridLines.coerceAtLeast(1)
+  val strokeWidthPx = 1.dp.toPx()
+  val labelRightPadPx = 6.dp.toPx()
   for (i in 0..count) {
     val frac = i.toFloat() / count
     val y = bounds.plotBottom - bounds.plotHeight * frac
@@ -378,15 +427,14 @@ private fun DrawScope.drawYAxisGrid(
         color = if (i == 0) colors.axisColor else colors.gridColor,
         start = Offset(bounds.yAxisLabelWidth, y),
         end = Offset(bounds.totalWidth, y),
-        strokeWidth = 1.dp.toPx(),
+        strokeWidth = strokeWidthPx,
     )
-    val labelText = tickLabels.getOrNull(i) ?: continue
-    val tr = textMeasurer.measure(labelText, labelStyle.copy(color = colors.labelColor))
+    val tr = tickLayouts.getOrNull(i) ?: continue
     drawText(
         textLayoutResult = tr,
         topLeft =
             Offset(
-                x = (bounds.yAxisLabelWidth - tr.size.width - 6.dp.toPx()).coerceAtLeast(0f),
+                x = (bounds.yAxisLabelWidth - tr.size.width - labelRightPadPx).coerceAtLeast(0f),
                 y = y - tr.size.height / 2f,
             ),
     )
@@ -400,24 +448,24 @@ private fun DrawScope.drawDosageBars(
     yMax: Double,
     selectedIndex: Int?,
     bounds: ChartPlotBounds,
-    textMeasurer: TextMeasurer,
-    labelStyle: TextStyle,
+    bucketLabelLayouts: List<TextLayoutResult>,
+    widestLabel: Int,
     colors: ChartColors,
+    path: Path,
 ) {
   val barCount = buckets.size
   val barSpacing = bounds.plotWidth / barCount
   val barWidth = (barSpacing * 0.62f).coerceAtLeast(2.dp.toPx())
   val barGap = (barSpacing - barWidth) / 2f
-  val widestLabel =
-      buckets.maxOfOrNull { textMeasurer.measure(it.label, labelStyle).size.width } ?: 0
   val skip = ceil((widestLabel + 8.dp.toPx()) / barSpacing).toInt().coerceAtLeast(1)
   val minBarHeight = 3.dp.toPx()
   val stubHeight = 2.dp.toPx()
   val radius = (barWidth * 0.25f).coerceAtMost(4.dp.toPx())
   val minLabelGap = 6.dp.toPx()
+  val labelTopY = bounds.plotBottom + 6.dp.toPx()
   var lastLabelRight = Float.NEGATIVE_INFINITY
 
-  buckets.forEachIndexed { idx, bucket ->
+  buckets.forEachIndexed { idx, _ ->
     val columnLeft = bounds.yAxisLabelWidth + idx * barSpacing
     if (selectedIndex == idx) {
       drawRect(
@@ -438,6 +486,7 @@ private fun DrawScope.drawDosageBars(
           topLeft = Offset(x, top),
           size = Size(barWidth, barHeight),
           radius = radius.coerceAtMost(barHeight / 2f),
+          path = path,
       )
     } else {
       drawRoundRect(
@@ -448,14 +497,14 @@ private fun DrawScope.drawDosageBars(
       )
     }
     if (idx % skip == 0) {
-      val tr = textMeasurer.measure(bucket.label, labelStyle.copy(color = colors.labelColor))
+      val tr = bucketLabelLayouts[idx]
       val cx = columnLeft + barSpacing / 2f
       val left =
           (cx - tr.size.width / 2f)
               .coerceAtMost(bounds.totalWidth - tr.size.width)
               .coerceAtLeast(bounds.yAxisLabelWidth)
       if (left >= lastLabelRight + minLabelGap) {
-        drawText(tr, topLeft = Offset(left, bounds.plotBottom + 6.dp.toPx()))
+        drawText(tr, topLeft = Offset(left, labelTopY))
         lastLabelRight = left + tr.size.width
       }
     }
@@ -467,22 +516,21 @@ private fun DrawScope.drawTopRoundedBar(
     topLeft: Offset,
     size: Size,
     radius: Float,
+    path: Path,
 ) {
-  val path =
-      Path().apply {
-        addRoundRect(
-            RoundRect(
-                left = topLeft.x,
-                top = topLeft.y,
-                right = topLeft.x + size.width,
-                bottom = topLeft.y + size.height,
-                topLeftCornerRadius = CornerRadius(radius, radius),
-                topRightCornerRadius = CornerRadius(radius, radius),
-                bottomLeftCornerRadius = CornerRadius.Zero,
-                bottomRightCornerRadius = CornerRadius.Zero,
-            )
-        )
-      }
+  path.reset()
+  path.addRoundRect(
+      RoundRect(
+          left = topLeft.x,
+          top = topLeft.y,
+          right = topLeft.x + size.width,
+          bottom = topLeft.y + size.height,
+          topLeftCornerRadius = CornerRadius(radius, radius),
+          topRightCornerRadius = CornerRadius(radius, radius),
+          bottomLeftCornerRadius = CornerRadius.Zero,
+          bottomRightCornerRadius = CornerRadius.Zero,
+      )
+  )
   drawPath(path = path, color = color)
 }
 
@@ -492,8 +540,8 @@ private fun DrawScope.drawThresholds(
     yMax: Double,
     bounds: ChartPlotBounds,
     labelHeight: Float,
-    textMeasurer: TextMeasurer,
-    labelStyle: TextStyle,
+    thresholdLayouts: List<TextLayoutResult>,
+    dash: PathEffect,
     colors: ChartColors,
 ) {
   if (thresholds == null) return
@@ -513,29 +561,31 @@ private fun DrawScope.drawThresholds(
           labelHeight = labelHeight,
           minGapPx = 3.dp.toPx(),
       )
-  val dash = PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 4.dp.toPx()), 0f)
+  val padX = 3.dp.toPx()
+  val rightMargin = 2.dp.toPx()
+  val bgCorner = CornerRadius(3.dp.toPx(), 3.dp.toPx())
+  val bgColor = colors.labelBackgroundColor.copy(alpha = 0.92f)
   placed.forEach { item ->
     val baseColor = colors.thresholdColors[item.levelIndex]
     val lineColor = baseColor.copy(alpha = 0.65f)
     drawLine(
         color = lineColor,
         start = Offset(bounds.yAxisLabelWidth, item.lineY),
-        end = Offset(bounds.totalWidth - 2.dp.toPx(), item.lineY),
+        end = Offset(bounds.totalWidth - rightMargin, item.lineY),
         strokeWidth = 1.dp.toPx(),
         pathEffect = dash,
     )
     val labelTopY = item.labelTopY ?: return@forEach
-    val tr = textMeasurer.measure(item.name, labelStyle.copy(color = baseColor))
-    val padX = 3.dp.toPx()
+    val tr = thresholdLayouts[item.levelIndex]
     val labelX =
-        (bounds.totalWidth - tr.size.width - padX - 2.dp.toPx()).coerceAtLeast(
+        (bounds.totalWidth - tr.size.width - padX - rightMargin).coerceAtLeast(
             bounds.yAxisLabelWidth + padX
         )
     drawRoundRect(
-        color = colors.labelBackgroundColor.copy(alpha = 0.92f),
+        color = bgColor,
         topLeft = Offset(labelX - padX, labelTopY),
         size = Size(tr.size.width + padX * 2f, tr.size.height.toFloat()),
-        cornerRadius = CornerRadius(3.dp.toPx(), 3.dp.toPx()),
+        cornerRadius = bgCorner,
     )
     drawText(textLayoutResult = tr, topLeft = Offset(labelX, labelTopY))
   }
@@ -543,20 +593,17 @@ private fun DrawScope.drawThresholds(
 
 @Suppress("LongParameterList")
 private fun DrawScope.drawAverageAndTrendLines(
-    yValues: List<Double>,
+    bucketCount: Int,
     yMax: Double,
-    metric: DosageMetric,
+    summaryStats: DosageChartSummaryStats?,
     showAverage: Boolean,
     showTrendLine: Boolean,
+    averageDash: PathEffect,
     bounds: ChartPlotBounds,
     colors: ChartColors,
 ) {
-  if ((!showAverage && !showTrendLine) || yValues.isEmpty()) return
-  val stats =
-      computeDosageChartSummaryStats(
-          yValues = yValues,
-          activeOnly = metric == DosageMetric.AVG_DOSE_PER_SESSION,
-      )
+  val stats = summaryStats ?: return
+  if (bucketCount <= 0) return
   if (showAverage && stats.average > 0.0 && stats.average <= yMax) {
     val avgY =
         (bounds.plotBottom - (stats.average / yMax * bounds.plotHeight).toFloat()).coerceIn(
@@ -568,7 +615,7 @@ private fun DrawScope.drawAverageAndTrendLines(
         start = Offset(bounds.yAxisLabelWidth, avgY),
         end = Offset(bounds.totalWidth, avgY),
         strokeWidth = 1.75.dp.toPx(),
-        pathEffect = PathEffect.dashPathEffect(floatArrayOf(8.dp.toPx(), 6.dp.toPx()), 0f),
+        pathEffect = averageDash,
     )
   }
   if (showTrendLine && stats.hasTrend) {
@@ -583,7 +630,7 @@ private fun DrawScope.drawAverageAndTrendLines(
                     bounds.plotHeight))
             .toFloat()
     if (y0.isFinite() && y1.isFinite()) {
-      val barSpacing = bounds.plotWidth / yValues.size
+      val barSpacing = bounds.plotWidth / bucketCount
       val x0 = bounds.yAxisLabelWidth + (stats.trendStartIndex + 0.5f) * barSpacing
       val x1 = bounds.yAxisLabelWidth + (stats.trendEndIndex + 0.5f) * barSpacing
       drawLine(

@@ -17,8 +17,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -26,27 +26,17 @@ import kotlinx.coroutines.launch
 class AchievementViewModel
 @Inject
 constructor(
-    private val experienceRepo: ExperienceRepository,
+    experienceRepo: ExperienceRepository,
     private val substanceRepo: SubstanceRepository,
-    private val customRecipeRepository: CustomRecipeRepository,
+    customRecipeRepository: CustomRecipeRepository,
     private val achievementPreferences: AchievementPreferences,
     interactionChecker: InteractionChecker,
     @ApplicationContext context: Context,
 ) : ViewModel() {
 
-  private val defs = loadAchievements(context)
+  private val defsFlow = flow { emit(loadAchievements(context)) }.flowOn(Dispatchers.IO)
 
-  /**
-   * Combines all the journal data the evaluator needs into a single flow, and uses
-   * [distinctUntilChanged] to skip re-running the whole evaluator when the underlying entity lists
-   * are structurally equal between emissions. Room's `Flow` queries already emit only on real
-   * changes, so this is mostly a guard against rapid duplicate emissions; using the default
-   * structural-equality check is safe because achievement predicates inspect many non-ID fields
-   * (notes, administrationRoute, time, location, isFavorite, ...) that a cheap ID-only hash would
-   * miss.
-   */
-  /** Null until the first evaluation finished. */
-  val achievementsFlow: StateFlow<List<UnlockedAchievement>?> =
+  private val journalInputsFlow =
       combine(
               experienceRepo.getAllExperiencesWithIngestionsTimedNotesAndRatingsFlow(),
               experienceRepo.getAllCustomUnitsFlow(),
@@ -55,7 +45,10 @@ constructor(
             Triple(experiences, customUnits, recipes)
           }
           .distinctUntilChanged()
-          .map { (experiences, customUnits, customRecipes) ->
+
+  /** Null until the first evaluation finished. */
+  val achievementsFlow: StateFlow<List<UnlockedAchievement>?> =
+      combine(defsFlow, journalInputsFlow) { defs, (experiences, customUnits, customRecipes) ->
             val allIngestions = experiences.flatMap { it.ingestions }
             val allTimedNotes = experiences.flatMap { it.timedNotes }
             val allRatings = experiences.flatMap { it.ratings }

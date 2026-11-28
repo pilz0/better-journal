@@ -42,10 +42,12 @@ fun RelativeDateTextNew(
     dateTime: Instant,
     style: TextStyle = MaterialTheme.typography.bodyMedium,
 ) {
-  val now: MutableState<Instant> = remember { mutableStateOf(Instant.now()) }
-  LaunchedEffect(key1 = "updateTime") {
+  val now: MutableState<Instant> = remember(dateTime) { mutableStateOf(Instant.now()) }
+  LaunchedEffect(dateTime) {
     while (true) {
-      delay(60000L) // update every minute
+      val ageDays = Duration.between(dateTime, now.value).toDays()
+      if (ageDays > 20) break
+      delay(if (ageDays >= 1) 900_000L else 60_000L)
       now.value = Instant.now()
     }
   }
@@ -71,10 +73,16 @@ fun RelativeDateTextNew(
   )
 }
 
+private val oneDecimalFormatter = ThreadLocal.withInitial {
+  DecimalFormat("#.#", DecimalFormatSymbols.getInstance(Locale.US))
+}
+
 fun roundToOneDecimal(num: Double): String {
   return try {
-    val df = DecimalFormat("#.#", DecimalFormatSymbols.getInstance(Locale.US))
-    df.format(num)
+    val formatter =
+        oneDecimalFormatter.get()
+            ?: DecimalFormat("#.#", DecimalFormatSymbols.getInstance(Locale.US))
+    formatter.format(num)
   } catch (e: NumberFormatException) {
     Log.w("RelativeDateText", "Failed to format number", e)
     ""

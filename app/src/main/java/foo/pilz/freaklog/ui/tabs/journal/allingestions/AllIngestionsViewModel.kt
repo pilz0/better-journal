@@ -28,11 +28,13 @@ import foo.pilz.freaklog.data.webhook.IngestionWebhookSender
 import java.time.LocalDate
 import java.time.ZoneId
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -76,6 +78,7 @@ constructor(
                 }
             groupIngestionsByDate(filtered)
           }
+          .flowOn(Dispatchers.Default)
           .stateIn(
               scope = viewModelScope,
               started = SharingStarted.WhileSubscribed(5000),
@@ -85,9 +88,10 @@ constructor(
   private fun groupIngestionsByDate(
       ingestions: List<IngestionWithCompanionAndCustomUnit>
   ): List<IngestionSection> {
+    val zone = ZoneId.systemDefault()
     return ingestions
         .groupBy { ingestionWithCompanion ->
-          ingestionWithCompanion.ingestion.time.atZone(ZoneId.systemDefault()).toLocalDate()
+          ingestionWithCompanion.ingestion.time.atZone(zone).toLocalDate()
         }
         .map { (date, ingestionList) ->
           IngestionSection(

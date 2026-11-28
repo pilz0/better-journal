@@ -44,8 +44,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.TextMeasurer
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
@@ -177,11 +176,22 @@ fun BarChart(
       }
   val tickLabels = remember(yScale) { yScale.ticks.map { formatSiValue(it.toDouble()) } }
   val density = LocalDensity.current
+  val coloredLabelStyle =
+      remember(labelStyle, colors.labelColor) { labelStyle.copy(color = colors.labelColor) }
+  val tickLayouts =
+      remember(tickLabels, coloredLabelStyle, textMeasurer) {
+        tickLabels.map { textMeasurer.measure(it, coloredLabelStyle) }
+      }
   val yAxisLabelWidth =
-      remember(tickLabels, labelStyle, density) {
-        val widest = tickLabels.maxOfOrNull { textMeasurer.measure(it, labelStyle).size.width } ?: 0
+      remember(tickLayouts, density) {
+        val widest = tickLayouts.maxOfOrNull { it.size.width } ?: 0
         with(density) { widest.toFloat() + 4.dp.toPx() }
       }
+  val xLabelLayouts =
+      remember(buckets, coloredLabelStyle, textMeasurer) {
+        buckets.map { textMeasurer.measure(it.label, coloredLabelStyle) }
+      }
+  val xLabelWidths = remember(xLabelLayouts) { xLabelLayouts.map { it.size.width } }
   val labelHeight =
       remember(labelStyle, textMeasurer) {
         textMeasurer.measure("0", labelStyle).size.height.toFloat()
@@ -193,15 +203,15 @@ fun BarChart(
   StatsBarChartCanvas(
       buckets = buckets,
       yScale = yScale,
-      tickLabels = tickLabels,
+      tickLayouts = tickLayouts,
+      xLabelLayouts = xLabelLayouts,
+      xLabelWidths = xLabelWidths,
       yAxisLabelWidth = yAxisLabelWidth,
       labelHeight = labelHeight,
       totalIngestions = totalIngestions,
       height = height,
       selectedIndex = selectedIndex,
       isDarkTheme = isDarkTheme,
-      textMeasurer = textMeasurer,
-      labelStyle = labelStyle,
       colors = colors,
       canvasSize = canvasSize,
       onCanvasSizeChanged = { canvasSize = it },
@@ -215,21 +225,22 @@ fun BarChart(
 private fun StatsBarChartCanvas(
     buckets: List<StatsChartBucket>,
     yScale: StatsYScale,
-    tickLabels: List<String>,
+    tickLayouts: List<TextLayoutResult>,
+    xLabelLayouts: List<TextLayoutResult>,
+    xLabelWidths: List<Int>,
     yAxisLabelWidth: Float,
     labelHeight: Float,
     totalIngestions: Int,
     height: Dp,
     selectedIndex: Int?,
     isDarkTheme: Boolean,
-    textMeasurer: TextMeasurer,
-    labelStyle: TextStyle,
     colors: StatsBarChartColors,
     canvasSize: IntSize,
     onCanvasSizeChanged: (IntSize) -> Unit,
     onBarTapped: ((Int) -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
+  val reusablePath = remember { Path() }
   Box(
       modifier =
           modifier.fillMaxWidth().height(height).semantics {
@@ -251,16 +262,17 @@ private fun StatsBarChartCanvas(
               plotTop = topPad,
               plotBottom = (size.height - bottomPad).coerceAtLeast(topPad + 1f),
           )
-      drawStatsGrid(bounds, yScale, tickLabels, textMeasurer, labelStyle, colors)
+      drawStatsGrid(bounds, yScale, tickLayouts, colors)
       drawStatsStackedBars(
           buckets = buckets,
           yMax = yScale.yMax.toDouble(),
           selectedIndex = selectedIndex,
           isDarkTheme = isDarkTheme,
           bounds = bounds,
-          textMeasurer = textMeasurer,
-          labelStyle = labelStyle,
+          xLabelLayouts = xLabelLayouts,
+          xLabelWidths = xLabelWidths,
           colors = colors,
+          path = reusablePath,
       )
     }
   }
@@ -289,11 +301,11 @@ private fun Modifier.tapToSelectStatsBucket(
 private fun DrawScope.drawStatsGrid(
     bounds: StatsPlotBounds,
     yScale: StatsYScale,
-    tickLabels: List<String>,
-    textMeasurer: TextMeasurer,
-    labelStyle: TextStyle,
+    tickLayouts: List<TextLayoutResult>,
     colors: StatsBarChartColors,
 ) {
+  val strokeWidthPx = 1.dp.toPx()
+  val labelRightPadPx = 4.dp.toPx()
   yScale.ticks.forEachIndexed { index, tick ->
     val frac = tick.toFloat() / yScale.yMax.toFloat()
     val y = bounds.plotBottom - bounds.plotHeight * frac
@@ -301,17 +313,16 @@ private fun DrawScope.drawStatsGrid(
         color = if (tick == 0) colors.axisColor else colors.gridColor,
         start = Offset(bounds.yAxisLabelWidth, y),
         end = Offset(bounds.totalWidth, y),
-        strokeWidth = 1.dp.toPx(),
+        strokeWidth = strokeWidthPx,
     )
-    val labelText = tickLabels.getOrNull(index) ?: return@forEachIndexed
-    val tr = textMeasurer.measure(labelText, labelStyle.copy(color = colors.labelColor))
+    val tr = tickLayouts.getOrNull(index) ?: return@forEachIndexed
     val maxLabelTop = (bounds.plotBottom - tr.size.height).coerceAtLeast(0f)
     val labelY = (y - tr.size.height / 2f).coerceIn(0f, maxLabelTop)
     drawText(
         textLayoutResult = tr,
         topLeft =
             Offset(
-                x = (bounds.yAxisLabelWidth - tr.size.width - 4.dp.toPx()).coerceAtLeast(0f),
+                x = (bounds.yAxisLabelWidth - tr.size.width - labelRightPadPx).coerceAtLeast(0f),
                 y = labelY,
             ),
     )
@@ -325,9 +336,10 @@ private fun DrawScope.drawStatsStackedBars(
     selectedIndex: Int?,
     isDarkTheme: Boolean,
     bounds: StatsPlotBounds,
-    textMeasurer: TextMeasurer,
-    labelStyle: TextStyle,
+    xLabelLayouts: List<TextLayoutResult>,
+    xLabelWidths: List<Int>,
     colors: StatsBarChartColors,
+    path: Path,
 ) {
   val barGeometry =
       computeStatsBarGeometry(
@@ -354,32 +366,26 @@ private fun DrawScope.drawStatsStackedBars(
         isDarkTheme = isDarkTheme,
         bounds = bounds,
         colors = colors,
+        path = path,
     )
   }
   drawStatsXAxisLabels(
-      buckets = buckets,
       barSpacing = barGeometry.barSpacing,
       bounds = bounds,
-      textMeasurer = textMeasurer,
-      labelStyle = labelStyle,
-      colors = colors,
+      xLabelLayouts = xLabelLayouts,
+      xLabelWidths = xLabelWidths,
   )
 }
 
-@Suppress("LongParameterList")
 private fun DrawScope.drawStatsXAxisLabels(
-    buckets: List<StatsChartBucket>,
     barSpacing: Float,
     bounds: StatsPlotBounds,
-    textMeasurer: TextMeasurer,
-    labelStyle: TextStyle,
-    colors: StatsBarChartColors,
+    xLabelLayouts: List<TextLayoutResult>,
+    xLabelWidths: List<Int>,
 ) {
-  val coloredStyle = labelStyle.copy(color = colors.labelColor)
-  val measured = buckets.map { textMeasurer.measure(it.label, coloredStyle) }
   val placements =
       placeStatsXAxisLabels(
-          labelWidths = measured.map { it.size.width },
+          labelWidths = xLabelWidths,
           plotLeft = bounds.yAxisLabelWidth,
           totalWidth = bounds.totalWidth,
           barSpacing = barSpacing,
@@ -388,7 +394,7 @@ private fun DrawScope.drawStatsXAxisLabels(
       )
   val labelTopY = bounds.plotBottom + 4.dp.toPx()
   for (placed in placements) {
-    drawText(measured[placed.bucketIndex], topLeft = Offset(placed.leftX, labelTopY))
+    drawText(xLabelLayouts[placed.bucketIndex], topLeft = Offset(placed.leftX, labelTopY))
   }
 }
 
@@ -407,6 +413,7 @@ private fun DrawScope.drawSingleStatsBucket(
     isDarkTheme: Boolean,
     bounds: StatsPlotBounds,
     colors: StatsBarChartColors,
+    path: Path,
 ) {
   val columnLeft = bounds.yAxisLabelWidth + idx * barSpacing
   if (selectedIndex == idx) {
@@ -438,6 +445,7 @@ private fun DrawScope.drawSingleStatsBucket(
             topLeft = Offset(x, yTop),
             size = Size(barWidth, actualHeight),
             radius = radius.coerceAtMost(actualHeight / 2f),
+            path = path,
         )
       } else {
         drawRect(color = segColor, topLeft = Offset(x, yTop), size = Size(barWidth, actualHeight))
@@ -459,21 +467,20 @@ private fun DrawScope.drawTopRoundedStackCap(
     topLeft: Offset,
     size: Size,
     radius: Float,
+    path: Path,
 ) {
-  val path =
-      Path().apply {
-        addRoundRect(
-            RoundRect(
-                left = topLeft.x,
-                top = topLeft.y,
-                right = topLeft.x + size.width,
-                bottom = topLeft.y + size.height,
-                topLeftCornerRadius = CornerRadius(radius, radius),
-                topRightCornerRadius = CornerRadius(radius, radius),
-                bottomLeftCornerRadius = CornerRadius.Zero,
-                bottomRightCornerRadius = CornerRadius.Zero,
-            )
-        )
-      }
+  path.reset()
+  path.addRoundRect(
+      RoundRect(
+          left = topLeft.x,
+          top = topLeft.y,
+          right = topLeft.x + size.width,
+          bottom = topLeft.y + size.height,
+          topLeftCornerRadius = CornerRadius(radius, radius),
+          topRightCornerRadius = CornerRadius(radius, radius),
+          bottomLeftCornerRadius = CornerRadius.Zero,
+          bottomRightCornerRadius = CornerRadius.Zero,
+      )
+  )
   drawPath(path = path, color = color)
 }

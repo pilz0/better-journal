@@ -18,22 +18,40 @@
 
 package foo.pilz.freaklog.ui.utils
 
-import java.text.DateFormat
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Date
+import java.time.format.FormatStyle
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 
 private val dateTimeFormatters = ConcurrentHashMap<Pair<String, Locale>, DateTimeFormatter>()
+private val shortTimeFormatters = ConcurrentHashMap<Locale, DateTimeFormatter>()
+private val mediumDateFormatters = ConcurrentHashMap<Locale, DateTimeFormatter>()
 
 private fun getDateTimeFormatter(pattern: String): DateTimeFormatter {
   val locale = Locale.getDefault(Locale.Category.FORMAT)
   return dateTimeFormatters.getOrPut(pattern to locale) {
     DateTimeFormatter.ofPattern(pattern, locale)
   }
+}
+
+private fun getShortTimeFormatter(): DateTimeFormatter {
+  val locale = Locale.getDefault(Locale.Category.FORMAT)
+  return shortTimeFormatters.getOrPut(locale) {
+    DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale)
+  }
+}
+
+fun LocalDate.getMediumDateText(): String {
+  val locale = Locale.getDefault(Locale.Category.FORMAT)
+  val formatter =
+      mediumDateFormatters.getOrPut(locale) {
+        DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale)
+      }
+  return format(formatter)
 }
 
 fun getInstant(year: Int, month: Int, day: Int, hourOfDay: Int, minute: Int): Instant? {
@@ -60,9 +78,8 @@ fun Instant.getShortTimeWithWeekdayText(): String {
 }
 
 fun Instant.getShortTimeText(): String {
-  val timeFormat: DateFormat = DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault())
-  val date = Date.from(this)
-  return timeFormat.format(date)
+  val dateTime = LocalDateTime.ofInstant(this, ZoneId.systemDefault())
+  return dateTime.format(getShortTimeFormatter())
 }
 
 fun LocalDateTime.getStringOfPattern(pattern: String): String {

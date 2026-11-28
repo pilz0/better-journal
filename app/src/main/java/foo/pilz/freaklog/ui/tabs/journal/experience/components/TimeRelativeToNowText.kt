@@ -28,8 +28,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
+import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import kotlin.math.abs
 import kotlinx.coroutines.delay
 
 @Composable
@@ -37,10 +39,18 @@ fun TimeRelativeToNowText(
     time: Instant,
     style: TextStyle = MaterialTheme.typography.bodyMedium,
 ) {
-  val now: MutableState<Instant> = remember { mutableStateOf(Instant.now()) }
-  LaunchedEffect(key1 = "updateTime") {
+  val now: MutableState<Instant> = remember(time) { mutableStateOf(Instant.now()) }
+  LaunchedEffect(time) {
     while (true) {
-      delay(10000L) // update every 10 seconds
+      val absMinutes = abs(Duration.between(time, now.value).toMinutes())
+      val delayMs =
+          when {
+            absMinutes < 60 -> 10_000L
+            absMinutes < 24 * 60 -> 60_000L
+            absMinutes < 30 * 24 * 60 -> 300_000L
+            else -> break
+          }
+      delay(delayMs)
       now.value = Instant.now()
     }
   }

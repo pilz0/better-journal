@@ -13,11 +13,17 @@ import java.io.File
 import java.net.URL
 import java.net.URLEncoder
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -29,11 +35,24 @@ constructor(
     @ApplicationContext private val context: Context,
     private val userPreferences: UserPreferences,
 ) {
+  private class CachedEntry<T>(
+      val value: T,
+      val cachedAtMs: Long,
+      val fileLastModifiedMs: Long,
+      val baseUrl: String = "",
+  )
+
+  private val substanceMemoryCache = ConcurrentHashMap<String, CachedEntry<AnodyneSubstance>>()
+  @Volatile private var indexMemoryCache: CachedEntry<List<AnodyneIndexEntry>>? = null
+  @Volatile private var userNotesMemoryCache: CachedEntry<List<AnodyneUserNote>>? = null
+
   companion object {
     const val DEFAULT_INSTANCE_URL = "https://anodyne.wiki"
     private const val SUBSTANCE_TTL_MS = 7L * 24 * 60 * 60 * 1000
     private const val INDEX_TTL_MS = 24L * 60 * 60 * 1000
     private const val USER_NOTES_TTL_MS = 24L * 60 * 60 * 1000
+    private const val USER_NOTES_FETCH_CONCURRENCY = 4
+    private val UNSAFE_CACHE_KEY_REGEX = Regex("[^a-z0-9]")
 
     fun normalizeUrl(raw: String): String? {
       var text = raw.trim()
@@ -83,11 +102,26 @@ constructor(
 
   fun cachedLookup(name: String): AnodyneSubstance? {
     val file = getSubstanceCacheFile(name)
-    if (!file.exists()) return null
-    if (System.currentTimeMillis() - file.lastModified() > SUBSTANCE_TTL_MS) return null
+    if (!file.exists()) {
+      substanceMemoryCache.remove(safeCacheKey(name))
+      return null
+    }
+    val now = System.currentTimeMillis()
+    val lastMod = file.lastModified()
+    if (now - lastMod > SUBSTANCE_TTL_MS) return null
+    val key = safeCacheKey(name)
+    substanceMemoryCache[key]?.let { entry ->
+      if (entry.fileLastModifiedMs == lastMod && now - entry.cachedAtMs <= SUBSTANCE_TTL_MS) {
+        return entry.value
+      }
+    }
     return try {
       val json = JSONObject(file.readText())
-      AnodyneParser.parseSubstance(json)
+      val parsed = AnodyneParser.parseSubstance(json)
+      if (parsed != null) {
+        substanceMemoryCache[key] = CachedEntry(parsed, lastMod, lastMod)
+      }
+      parsed
     } catch (_: Exception) {
       null
     }
@@ -114,7 +148,7 @@ constructor(
   private suspend fun fetchAndCache(name: String, otherNames: List<String>): AnodyneSubstance? {
     val baseUrl = getBaseUrl()
     fetchSubstance(baseUrl, name)?.let { (json, sub) ->
-      saveSubstanceToCache(name, json)
+      saveSubstanceToCache(name, json, sub)
       return sub
     }
 
@@ -127,8 +161,8 @@ constructor(
 
     if (match != null && !match.title.equals(name, ignoreCase = true)) {
       fetchSubstance(baseUrl, match.title)?.let { (json, sub) ->
-        saveSubstanceToCache(name, json)
-        saveSubstanceToCache(match.title, json)
+        saveSubstanceToCache(name, json, sub)
+        saveSubstanceToCache(match.title, json, sub)
         return sub
       }
     }
@@ -153,14 +187,25 @@ constructor(
 
   suspend fun getIndexEntries(): Result<List<AnodyneIndexEntry>> =
       withContext(Dispatchers.IO) {
+        val baseUrl = getBaseUrl()
         val indexFile = File(cacheDir, "index.json")
-        if (
-            indexFile.exists() &&
-                System.currentTimeMillis() - indexFile.lastModified() < INDEX_TTL_MS
-        ) {
+        val now = System.currentTimeMillis()
+        if (indexFile.exists() && now - indexFile.lastModified() < INDEX_TTL_MS) {
+          val lastMod = indexFile.lastModified()
+          indexMemoryCache?.let { entry ->
+            if (
+                entry.baseUrl == baseUrl &&
+                    entry.fileLastModifiedMs == lastMod &&
+                    now - entry.cachedAtMs < INDEX_TTL_MS
+            ) {
+              return@withContext Result.success(entry.value)
+            }
+          }
           try {
             val json = JSONObject(indexFile.readText())
-            return@withContext Result.success(AnodyneParser.parseIndex(json))
+            val entries = AnodyneParser.parseIndex(json)
+            indexMemoryCache = CachedEntry(entries, lastMod, lastMod, baseUrl)
+            return@withContext Result.success(entries)
           } catch (ce: CancellationException) {
             throw ce
           } catch (_: Exception) {
@@ -168,12 +213,13 @@ constructor(
           }
         }
 
-        val baseUrl = getBaseUrl()
         try {
           val url = "$baseUrl/api/index/substance"
           val json = AiHttp.getJson(url, emptyMap())
           indexFile.writeText(json.toString())
           val entries = AnodyneParser.parseIndex(json)
+          val savedAt = System.currentTimeMillis()
+          indexMemoryCache = CachedEntry(entries, savedAt, indexFile.lastModified(), baseUrl)
           Result.success(entries)
         } catch (ce: CancellationException) {
           throw ce
@@ -184,20 +230,30 @@ constructor(
 
   suspend fun getUserNotes(names: List<String>): Result<List<AnodyneUserNote>> =
       withContext(Dispatchers.IO) {
+        val baseUrl = getBaseUrl()
         val notesFile = File(cacheDir, "user_notes.json")
-        val allNotes = mutableListOf<AnodyneUserNote>()
+        val now = System.currentTimeMillis()
 
-        if (
-            notesFile.exists() &&
-                System.currentTimeMillis() - notesFile.lastModified() < USER_NOTES_TTL_MS
-        ) {
+        if (notesFile.exists() && now - notesFile.lastModified() < USER_NOTES_TTL_MS) {
+          val lastMod = notesFile.lastModified()
+          userNotesMemoryCache?.let { entry ->
+            if (
+                entry.baseUrl == baseUrl &&
+                    entry.fileLastModifiedMs == lastMod &&
+                    now - entry.cachedAtMs < USER_NOTES_TTL_MS
+            ) {
+              return@withContext Result.success(filterNotes(entry.value, names))
+            }
+          }
           try {
             val arr = JSONArray(notesFile.readText())
+            val cachedNotes = mutableListOf<AnodyneUserNote>()
             for (i in 0 until arr.length()) {
               val obj = arr.optJSONObject(i) ?: continue
-              allNotes.addAll(AnodyneParser.parseUserNotes(obj))
+              cachedNotes.addAll(AnodyneParser.parseUserNotes(obj))
             }
-            return@withContext Result.success(filterNotes(allNotes, names))
+            userNotesMemoryCache = CachedEntry(cachedNotes, lastMod, lastMod, baseUrl)
+            return@withContext Result.success(filterNotes(cachedNotes, names))
           } catch (ce: CancellationException) {
             throw ce
           } catch (_: Exception) {
@@ -205,31 +261,47 @@ constructor(
           }
         }
 
-        val baseUrl = getBaseUrl()
         try {
           val indexUrl = "$baseUrl/api/index/user"
           val indexJson = AiHttp.getJson(indexUrl, emptyMap())
           val entries = indexJson.optJSONArray("Entries") ?: JSONArray()
+          val titles =
+              (0 until entries.length()).mapNotNull { i ->
+                entries.optJSONObject(i)?.optString("Title")?.takeIf { it.isNotBlank() }
+              }
+          val semaphore = Semaphore(USER_NOTES_FETCH_CONCURRENCY)
+          val fetchedUsers = coroutineScope {
+            titles
+                .map { userTitle ->
+                  async {
+                    semaphore.withPermit {
+                      val encodedUser = URLEncoder.encode(userTitle, "UTF-8").replace("+", "%20")
+                      val userUrl = "$baseUrl/api/user/$encodedUser"
+                      try {
+                        val userJson = AiHttp.getJson(userUrl, emptyMap())
+                        userJson to AnodyneParser.parseUserNotes(userJson)
+                      } catch (ce: CancellationException) {
+                        throw ce
+                      } catch (_: Exception) {
+                        // Ignore individual user note failures
+                        null
+                      }
+                    }
+                  }
+                }
+                .awaitAll()
+                .filterNotNull()
+          }
           val collectedUserJsons = JSONArray()
-
-          for (i in 0 until entries.length()) {
-            val userTitle =
-                entries.optJSONObject(i)?.optString("Title").takeIf { !it.isNullOrBlank() }
-                    ?: continue
-            val encodedUser = URLEncoder.encode(userTitle, "UTF-8").replace("+", "%20")
-            val userUrl = "$baseUrl/api/user/$encodedUser"
-            try {
-              val userJson = AiHttp.getJson(userUrl, emptyMap())
-              collectedUserJsons.put(userJson)
-              allNotes.addAll(AnodyneParser.parseUserNotes(userJson))
-            } catch (ce: CancellationException) {
-              throw ce
-            } catch (_: Exception) {
-              // Ignore individual user note failures
-            }
+          val allNotes = mutableListOf<AnodyneUserNote>()
+          for ((userJson, notes) in fetchedUsers) {
+            collectedUserJsons.put(userJson)
+            allNotes.addAll(notes)
           }
 
           notesFile.writeText(collectedUserJsons.toString())
+          val savedAt = System.currentTimeMillis()
+          userNotesMemoryCache = CachedEntry(allNotes, savedAt, notesFile.lastModified(), baseUrl)
           Result.success(filterNotes(allNotes, names))
         } catch (ce: CancellationException) {
           throw ce
@@ -254,19 +326,31 @@ constructor(
   }
 
   fun clearCache() {
+    substanceMemoryCache.clear()
+    indexMemoryCache = null
+    userNotesMemoryCache = null
     cacheDir.listFiles()?.forEach { it.delete() }
   }
 
+  private fun safeCacheKey(name: String): String =
+      name.lowercase(Locale.ROOT).replace(UNSAFE_CACHE_KEY_REGEX, "_")
+
   private fun getSubstanceCacheFile(name: String): File {
-    val safe = name.lowercase(Locale.ROOT).replace(Regex("[^a-z0-9]"), "_")
     // "page_": older "substance_" files held a lossy re-encoding of the page; ignore them.
-    return File(cacheDir, "page_$safe.json")
+    return File(cacheDir, "page_${safeCacheKey(name)}.json")
   }
 
   /** Caches the raw page so a cached lookup parses exactly like a fresh one. */
-  private fun saveSubstanceToCache(lookupKey: String, json: JSONObject) {
+  private fun saveSubstanceToCache(
+      lookupKey: String,
+      json: JSONObject,
+      parsed: AnodyneSubstance,
+  ) {
     try {
-      getSubstanceCacheFile(lookupKey).writeText(json.toString())
+      val file = getSubstanceCacheFile(lookupKey)
+      file.writeText(json.toString())
+      val modTime = file.lastModified()
+      substanceMemoryCache[safeCacheKey(lookupKey)] = CachedEntry(parsed, modTime, modTime)
     } catch (_: Exception) {
       // Best effort cache write
     }

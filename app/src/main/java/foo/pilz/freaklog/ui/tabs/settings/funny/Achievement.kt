@@ -17,8 +17,11 @@ import foo.pilz.freaklog.ui.tabs.journal.addingestion.interactions.InteractionCh
 import foo.pilz.freaklog.ui.tabs.settings.funny.condition.AchievementEngine
 import foo.pilz.freaklog.ui.tabs.settings.funny.condition.EvalContext
 import foo.pilz.freaklog.ui.tabs.settings.funny.condition.SubstanceInfo
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
+import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 import org.json.JSONArray
 
 enum class AchievementTier {
@@ -44,9 +47,14 @@ data class UnlockedAchievement(
 
 class RepositorySubstanceInfo(private val substanceRepo: SubstanceRepositoryInterface) :
     SubstanceInfo {
+  private val categoriesCache = ConcurrentHashMap<String, Set<String>>()
+
   override fun categories(substanceName: String): Set<String> =
-      substanceRepo.getSubstance(substanceName)?.categories?.map { it.lowercase() }?.toSet()
-          ?: emptySet()
+      categoriesCache.getOrPut(substanceName) {
+        substanceRepo.getSubstance(substanceName)?.categories?.mapTo(HashSet()) {
+          it.lowercase(Locale.ROOT)
+        } ?: emptySet()
+      }
 
   override fun doseClass(
       substanceName: String,
@@ -75,41 +83,93 @@ data class AchievementContext(
     val interactionChecker: InteractionChecker,
     val checkActive: () -> Unit = {},
 ) {
+  internal val substanceCounts: Map<String, Int> by lazy {
+    allIngestions.groupingBy { it.substanceName }.eachCount()
+  }
+
+  internal val routeCounts: Map<AdministrationRoute, Int> by lazy {
+    allIngestions.groupingBy { it.administrationRoute }.eachCount()
+  }
+
+  internal val routeCountsByName: Map<String, Int> by lazy {
+    routeCounts.entries.associate { (route, count) -> route.name to count }
+  }
+
+  internal val sortedIngestionDates: List<LocalDate> by lazy {
+    computeSortedIngestionDates(allIngestions)
+  }
+
+  internal val hasNonBlankIngestionNote: Boolean by lazy {
+    allIngestions.any { !it.notes.isNullOrBlank() }
+  }
+
+  internal val nonBlankIngestionNoteCount: Int by lazy {
+    allIngestions.count { !it.notes.isNullOrBlank() }
+  }
+
+  private val interactionsByExperience = ConcurrentHashMap<Int, List<Interaction>>()
+
+  internal fun interactionsForExperience(
+      exp: ExperienceWithIngestionsTimedNotesAndRatings
+  ): List<Interaction> =
+      interactionsByExperience.getOrPut(exp.experience.id) {
+        val substances = exp.ingestions.map { it.substanceName }.distinct()
+        interactionChecker.getInteractionsAmong(substances)
+      }
+
   val evalContext: EvalContext by lazy {
-    val substancesByExperience = experiences.associate { experience ->
-      experience.experience.id to experience.ingestions.map { it.substanceName }.distinct()
-    }
+    val experiencesById = experiences.associateBy { it.experience.id }
     EvalContext(
         experiences = experiences.map { ExperienceWithIngestions(it.experience, it.ingestions) },
         ingestions = allIngestions,
         substanceInfo = RepositorySubstanceInfo(substanceRepo),
         interactionCount = { experienceId, filter ->
-          countInteractionsInList(
-              substances = substancesByExperience[experienceId].orEmpty(),
-              type = filter.name.lowercase(),
-              checker = interactionChecker,
-          )
+          val exp = experiencesById[experienceId]
+          if (exp == null) {
+            0
+          } else {
+            val filterType = filter.name.lowercase(Locale.ROOT)
+            interactionsForExperience(exp).count { it.matchesType(filterType) }
+          }
         },
     )
   }
 }
 
+private val achievementCacheLock = Any()
+@Volatile private var cachedAchievementDefs: List<AchievementDef>? = null
+
+internal fun clearAchievementCacheForTest() {
+  cachedAchievementDefs = null
+}
+
 fun loadAchievements(context: Context): List<AchievementDef> {
-  val json = context.assets.open("achievements.json").bufferedReader().use { it.readText() }
-  val array = JSONArray(json)
-  return (0 until array.length()).map { i ->
-    val obj = array.getJSONObject(i)
-    val tierStr = if (obj.has("tier") && !obj.isNull("tier")) obj.getString("tier") else null
-    AchievementDef(
-        id = obj.getString("id"),
-        title = obj.getString("title"),
-        description = obj.getString("description"),
-        condition = obj.getString("condition"),
-        tier =
-            tierStr?.let {
-              runCatching { AchievementTier.valueOf(it.uppercase()) }.getOrNull()
-            },
-    )
+  cachedAchievementDefs?.let {
+    return it
+  }
+  return synchronized(achievementCacheLock) {
+    cachedAchievementDefs?.let {
+      return@synchronized it
+    }
+    val json = context.assets.open("achievements.json").bufferedReader().use { it.readText() }
+    val array = JSONArray(json)
+    val parsed =
+        (0 until array.length()).map { i ->
+          val obj = array.getJSONObject(i)
+          val tierStr = if (obj.has("tier") && !obj.isNull("tier")) obj.getString("tier") else null
+          AchievementDef(
+              id = obj.getString("id"),
+              title = obj.getString("title"),
+              description = obj.getString("description"),
+              condition = obj.getString("condition"),
+              tier =
+                  tierStr?.let {
+                    runCatching { AchievementTier.valueOf(it.uppercase(Locale.ROOT)) }.getOrNull()
+                  },
+          )
+        }
+    cachedAchievementDefs = parsed
+    parsed
   }
 }
 
@@ -208,12 +268,9 @@ fun evaluateAchievement(condition: String, ctx: AchievementContext): Boolean {
       }
     }
 
-    "substance" -> ctx.allIngestions.any { it.substanceName == args.trim() }
+    "substance" -> (ctx.substanceCounts[args.trim()] ?: 0) > 0
 
-    "route" -> {
-      val route = args.trim()
-      ctx.allIngestions.any { it.administrationRoute.name == route }
-    }
+    "route" -> (ctx.routeCountsByName[args.trim()] ?: 0) > 0
 
     "min_ingestions" -> {
       val n = args.trim().toIntOrNull() ?: return false
@@ -227,7 +284,7 @@ fun evaluateAchievement(condition: String, ctx: AchievementContext): Boolean {
 
     "min_substances" -> {
       val n = args.trim().toIntOrNull() ?: return false
-      ctx.allIngestions.distinctBy { it.substanceName }.size >= n
+      ctx.substanceCounts.size >= n
     }
 
     "min_combo" -> {
@@ -249,22 +306,22 @@ fun evaluateAchievement(condition: String, ctx: AchievementContext): Boolean {
       if (parts.size != 2) return false
       val substanceName = parts[0]
       val level = parts[1]
-      ctx.allIngestions
-          .filter { it.substanceName == substanceName }
-          .any { checkDoseLevel(it, level, ctx.substanceRepo) }
+      ctx.allIngestions.any {
+        it.substanceName == substanceName && checkDoseLevel(it, level, ctx.substanceRepo)
+      }
     }
 
     "category" -> {
       val cat = args.trim()
-      ctx.allIngestions.any { ingestion ->
-        val substance = ctx.substanceRepo.getSubstance(ingestion.substanceName)
+      ctx.substanceCounts.keys.any { substanceName ->
+        val substance = ctx.substanceRepo.getSubstance(substanceName)
         substance?.categories?.any { it.equals(cat, ignoreCase = true) } == true
       }
     }
 
     "min_routes" -> {
       val n = args.trim().toIntOrNull() ?: return false
-      ctx.allIngestions.distinctBy { it.administrationRoute }.size >= n
+      ctx.routeCounts.size >= n
     }
 
     "substance_count" -> {
@@ -272,12 +329,12 @@ fun evaluateAchievement(condition: String, ctx: AchievementContext): Boolean {
       if (parts.size != 2) return false
       val substanceName = parts[0]
       val n = parts[1].toIntOrNull() ?: return false
-      ctx.allIngestions.count { it.substanceName == substanceName } >= n
+      (ctx.substanceCounts[substanceName] ?: 0) >= n
     }
 
     "any_substance_count" -> {
       val n = args.trim().toIntOrNull() ?: return false
-      ctx.allIngestions.groupingBy { it.substanceName }.eachCount().any { it.value >= n }
+      ctx.substanceCounts.any { it.value >= n }
     }
 
     "route_count" -> {
@@ -285,14 +342,14 @@ fun evaluateAchievement(condition: String, ctx: AchievementContext): Boolean {
       if (parts.size != 2) return false
       val route = parts[0]
       val n = parts[1].toIntOrNull() ?: return false
-      ctx.allIngestions.count { it.administrationRoute.name == route } >= n
+      (ctx.routeCountsByName[route] ?: 0) >= n
     }
 
-    "has_note" -> ctx.allIngestions.any { !it.notes.isNullOrBlank() }
+    "has_note" -> ctx.hasNonBlankIngestionNote
 
     "min_notes" -> {
       val n = args.trim().toIntOrNull() ?: return false
-      ctx.allIngestions.count { !it.notes.isNullOrBlank() } >= n
+      ctx.nonBlankIngestionNoteCount >= n
     }
 
     "has_favorite" -> ctx.experiences.any { it.experience.isFavorite }
@@ -301,12 +358,12 @@ fun evaluateAchievement(condition: String, ctx: AchievementContext): Boolean {
 
     "streak" -> {
       val n = args.trim().toIntOrNull() ?: return false
-      longestConsecutiveDayStreak(ctx.allIngestions) >= n
+      longestConsecutiveDayStreakFromDates(ctx.sortedIngestionDates) >= n
     }
 
     "sober_streak" -> {
       val n = args.trim().toIntOrNull() ?: return false
-      longestSoberStreak(ctx.allIngestions) >= n
+      longestSoberStreakFromDates(ctx.sortedIngestionDates) >= n
     }
 
     "journal_span_days" -> {
@@ -355,21 +412,19 @@ fun evaluateAchievement(condition: String, ctx: AchievementContext): Boolean {
     "has_redose_in_peak" -> hasRedoseInPeak(ctx)
 
     "interaction" -> {
-      val type = args.trim().lowercase()
+      val type = args.trim().lowercase(Locale.ROOT)
       ctx.experiences.any { exp ->
-        val substances = exp.ingestions.map { it.substanceName }.distinct()
-        hasInteractionInList(substances, type, ctx.interactionChecker)
+        ctx.interactionsForExperience(exp).any { it.matchesType(type) }
       }
     }
 
     "min_interactions" -> {
       val splitArgs = args.split(",").map { it.trim() }
       val n = splitArgs.getOrNull(0)?.toIntOrNull() ?: return false
-      val type = splitArgs.getOrNull(1) ?: return false
+      val type = splitArgs.getOrNull(1)?.lowercase(Locale.ROOT) ?: return false
 
       ctx.experiences.any { exp ->
-        val substances = exp.ingestions.map { it.substanceName }.distinct()
-        countInteractionsInList(substances, type, ctx.interactionChecker) >= n
+        ctx.interactionsForExperience(exp).count { it.matchesType(type) } >= n
       }
     }
 
@@ -382,19 +437,13 @@ fun evaluateAchievement(condition: String, ctx: AchievementContext): Boolean {
   }
 }
 
-private fun hasInteractionInList(
-    substances: List<String>,
-    type: String,
-    checker: InteractionChecker,
-): Boolean = checker.getInteractionsAmong(substances).any { it.matchesType(type) }
-
 internal fun countInteractionsInList(
     substances: List<String>,
     type: String,
     checker: InteractionChecker,
 ): Int = checker.getInteractionsAmong(substances).count { it.matchesType(type) }
 
-private fun Interaction.matchesType(type: String): Boolean =
+internal fun Interaction.matchesType(type: String): Boolean =
     when (type) {
       "dangerous" -> interactionType == InteractionType.DANGEROUS
       "unsafe" -> interactionType == InteractionType.UNSAFE
@@ -403,14 +452,19 @@ private fun Interaction.matchesType(type: String): Boolean =
       else -> false
     }
 
-internal fun longestConsecutiveDayStreak(ingestions: List<Ingestion>): Int {
-  val dates =
-      ingestions
-          .mapNotNull {
-            runCatching { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }.getOrNull()
-          }
-          .distinct()
-          .sorted()
+internal fun computeSortedIngestionDates(ingestions: List<Ingestion>): List<LocalDate> {
+  if (ingestions.isEmpty()) return emptyList()
+  val zone = ZoneId.systemDefault()
+  return ingestions
+      .mapNotNull { runCatching { it.time.atZone(zone).toLocalDate() }.getOrNull() }
+      .distinct()
+      .sorted()
+}
+
+internal fun longestConsecutiveDayStreak(ingestions: List<Ingestion>): Int =
+    longestConsecutiveDayStreakFromDates(computeSortedIngestionDates(ingestions))
+
+private fun longestConsecutiveDayStreakFromDates(dates: List<LocalDate>): Int {
   if (dates.isEmpty()) return 0
   var longest = 1
   var current = 1
@@ -428,14 +482,10 @@ internal fun longestConsecutiveDayStreak(ingestions: List<Ingestion>): Int {
 }
 
 /** Longest gap, in days, between consecutive ingestion dates (i.e. longest sober streak). */
-internal fun longestSoberStreak(ingestions: List<Ingestion>): Int {
-  val dates =
-      ingestions
-          .mapNotNull {
-            runCatching { it.time.atZone(ZoneId.systemDefault()).toLocalDate() }.getOrNull()
-          }
-          .distinct()
-          .sorted()
+internal fun longestSoberStreak(ingestions: List<Ingestion>): Int =
+    longestSoberStreakFromDates(computeSortedIngestionDates(ingestions))
+
+private fun longestSoberStreakFromDates(dates: List<LocalDate>): Int {
   if (dates.size < 2) return 0
   var longest = 0L
   for (i in 1 until dates.size) {

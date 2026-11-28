@@ -1,18 +1,17 @@
 package foo.pilz.freaklog.ui.tabs.journal.experience.timeline
 
 import android.graphics.Paint
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -30,6 +29,7 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -40,7 +40,8 @@ import androidx.compose.ui.unit.toSize
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import foo.pilz.freaklog.data.room.experiences.entities.ShulginRatingOption
-import foo.pilz.freaklog.ui.graph.paint.paintScene
+import foo.pilz.freaklog.ui.graph.paint.compileComposeScene
+import foo.pilz.freaklog.ui.graph.paint.drawCompiledScene
 import foo.pilz.freaklog.ui.graph.scene.GraphPrimitive
 import foo.pilz.freaklog.ui.graph.scene.MarkerRole
 import foo.pilz.freaklog.ui.graph.scene.Vec2
@@ -60,6 +61,14 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
+
+private val RATING_LINES: Map<ShulginRatingOption, List<String>> =
+    ShulginRatingOption.entries.associateWith { it.verticalSign.split("\n") }
+
+private class CachedBpTick(
+    val y: Float,
+    val layoutResult: TextLayoutResult,
+)
 
 @Composable
 fun AllTimelines(
@@ -104,21 +113,21 @@ fun AllTimelines(
         }
       }
 
-  var currentTime by remember { mutableStateOf(Instant.now()) }
+  val currentTimeState = remember { mutableStateOf(Instant.now()) }
 
   if (isShowingCurrentTime) {
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-      currentTime = Instant.now()
+      currentTimeState.value = Instant.now()
     }
     LaunchedEffect(Unit) {
       while (true) {
         delay(5000L.milliseconds)
-        currentTime = Instant.now()
+        currentTimeState.value = Instant.now()
       }
     }
   }
 
-  var dragPoint by remember { mutableStateOf<Offset?>(null) }
+  val dragPointState = remember { mutableStateOf<Offset?>(null) }
   val verticalDistanceFromFinger = remember(density) { density.run { 60.dp.toPx() } }
   val reusablePath = remember { Path() }
 
@@ -151,7 +160,7 @@ fun AllTimelines(
       }
 
   val sleepLines =
-      remember(sleepSamples, model) {
+      remember(sleepSamples, model, showSleepStages) {
         SleepHealthConnect.buildGraphShapes(
             sleepSamples,
             model.startTime,
@@ -167,198 +176,301 @@ fun AllTimelines(
 
   // Haptic feedback for satisfying timeline scrubbing
   val performHaptic = rememberHaptic()
-  var lastHapticX by remember { mutableFloatStateOf(0f) }
+  val lastHapticX = remember { mutableFloatStateOf(0f) }
   val hapticThreshold = 15f
 
-  Canvas(
+  Box(
       modifier =
-          modifier.pointerInput(Unit) {
-            detectHorizontalDragGestures(
-                onDragStart = { startOffset ->
-                  performHaptic(HapticType.HEAVY_CLICK)
-                  lastHapticX = startOffset.x
-                },
-                onHorizontalDrag = { change, _ ->
-                  change.consume()
-                  dragPoint = change.position
-                  if (abs(change.position.x - lastHapticX) >= hapticThreshold) {
-                    performHaptic(HapticType.TIMELINE_SCRUB)
-                    lastHapticX = change.position.x
+          modifier
+              .pointerInput(Unit) {
+                detectHorizontalDragGestures(
+                    onDragStart = { startOffset ->
+                      performHaptic(HapticType.HEAVY_CLICK)
+                      lastHapticX.floatValue = startOffset.x
+                    },
+                    onHorizontalDrag = { change, _ ->
+                      change.consume()
+                      dragPointState.value = change.position
+                      if (abs(change.position.x - lastHapticX.floatValue) >= hapticThreshold) {
+                        performHaptic(HapticType.TIMELINE_SCRUB)
+                        lastHapticX.floatValue = change.position.x
+                      }
+                    },
+                    onDragEnd = {
+                      dragPointState.value = null
+                      performHaptic(HapticType.CLICK)
+                    },
+                    onDragCancel = { dragPointState.value = null },
+                )
+              }
+              .drawWithCache {
+                val canvasWithLabelsHeight = size.height
+                val labelsHeight = axisLabelSize.toPx()
+                val canvasWidth = size.width
+                val pixelsPerSec =
+                    if (model.widthInSeconds > 0f) canvasWidth / model.widthInSeconds else 0f
+                val strokeWidth = 2.dp.toPx()
+                val insetBottom = labelsHeight + strokeWidth
+                val canvasHeightWithVerticalLine =
+                    (canvasWithLabelsHeight - insetBottom).coerceAtLeast(0f)
+
+                val compiledScene =
+                    compileComposeScene(
+                        scene = scene,
+                        style = graphStyle,
+                        density = this,
+                        width = canvasWidth,
+                        height = canvasHeightWithVerticalLine,
+                        textMeasurer = textMeasurer,
+                    )
+                val axisLabels =
+                    buildAxisLabels(
+                        startTime = model.startTime,
+                        widthInSeconds = model.widthInSeconds,
+                        canvasWidthPx = canvasWidth,
+                    )
+                val vitalStroke =
+                    Stroke(
+                        width = 1.5.dp.toPx(),
+                        cap = StrokeCap.Round,
+                        join = StrokeJoin.Round,
+                    )
+                val vitalDotRadius = 2.dp.toPx()
+                val bpStroke = vitalStroke
+                val bpOutlineStroke =
+                    Stroke(
+                        width = 1.5.dp.toPx() + 2.dp.toPx(),
+                        cap = StrokeCap.Round,
+                        join = StrokeJoin.Round,
+                    )
+                val bpDotOuterRadius = 3.dp.toPx()
+                val bpDotInnerRadius = 2.dp.toPx()
+                val bpTickColor = onSurfaceColor.copy(alpha = 0.4f)
+                val bpTickLength = 6.dp.toPx()
+                val bpTickStrokeWidth = 1.dp.toPx()
+                val bpLabelPadding = 8.dp.toPx()
+                val bpTickStyle = TextStyle(fontSize = 9.sp, color = graphStyle.axisLabelColor)
+                val cachedBpTicks =
+                    if (bloodPressurePolylines.hasScale) {
+                      roundBloodPressureTicks(
+                              bloodPressurePolylines.minPressure,
+                              bloodPressurePolylines.maxPressure,
+                          )
+                          .map { tick ->
+                            val y =
+                                bloodPressureYFraction(
+                                    tick.toDouble(),
+                                    bloodPressurePolylines.minPressure,
+                                    bloodPressurePolylines.maxPressure,
+                                ) * canvasHeightWithVerticalLine
+                            CachedBpTick(
+                                y = y,
+                                layoutResult =
+                                    textMeasurer.measure(tick.toString(), style = bpTickStyle),
+                            )
+                          }
+                    } else {
+                      emptyList()
+                    }
+                val markerStrokeWidth = graphStyle.markerStrokeWidth.toPx()
+                val timedNoteDash =
+                    PathEffect.dashPathEffect(floatArrayOf(strokeWidth * 2, strokeWidth * 2))
+                val sleepLineHeight = SLEEP_GRAPH_LINE_HEIGHT.dp.toPx()
+                val sleepLineRoundingRadius = SLEEP_GRAPH_LINE_ROUNDING.dp.toPx()
+                val sleepLineRounding =
+                    CornerRadius(sleepLineRoundingRadius, sleepLineRoundingRadius)
+                val sleepZeroRounding = CornerRadius(0f, 0f)
+                val sleepLinePos =
+                    canvasWithLabelsHeight -
+                        labelsHeight -
+                        SLEEP_GRAPH_LINE_MARGIN_BOTTOM.dp.toPx() -
+                        sleepLineHeight
+
+                onDrawBehind {
+                  inset(left = 0f, top = 0f, right = 0f, bottom = insetBottom) {
+                    val plotHeight = size.height
+                    val marker =
+                        currentTimeMarker(
+                            model,
+                            currentTimeState.value,
+                            isShowingCurrentTime,
+                            graphStyle,
+                        )
+                    drawVitalPolylines(
+                        polylines = heartRatePolylines,
+                        color = graphStyle.heartRateColor,
+                        canvasHeight = plotHeight,
+                        path = reusablePath,
+                        stroke = vitalStroke,
+                        dotRadius = vitalDotRadius,
+                    )
+                    vitalPolylines.forEach { (color, polylines) ->
+                      drawVitalPolylines(
+                          polylines = polylines,
+                          color = color,
+                          canvasHeight = plotHeight,
+                          path = reusablePath,
+                          stroke = vitalStroke,
+                          dotRadius = vitalDotRadius,
+                      )
+                    }
+
+                    drawCompiledScene(compiledScene)
+                    if (marker != null) {
+                      val markerX = marker.xFraction * size.width
+                      drawLine(
+                          color = Color(marker.color),
+                          start = Offset(markerX, plotHeight),
+                          end = Offset(markerX, 0f),
+                          strokeWidth = markerStrokeWidth,
+                          cap = StrokeCap.Round,
+                      )
+                    }
+
+                    drawBloodPressurePolyline(
+                        points = bloodPressurePolylines.diastolic,
+                        color = graphStyle.bloodPressureDiastolicColor,
+                        outlineColor = cardColor,
+                        canvasHeight = plotHeight,
+                        path = reusablePath,
+                        stroke = bpStroke,
+                        outlineStroke = bpOutlineStroke,
+                        outerDotRadius = bpDotOuterRadius,
+                        innerDotRadius = bpDotInnerRadius,
+                    )
+                    drawBloodPressurePolyline(
+                        points = bloodPressurePolylines.systolic,
+                        color = graphStyle.bloodPressureSystolicColor,
+                        outlineColor = cardColor,
+                        canvasHeight = plotHeight,
+                        path = reusablePath,
+                        stroke = bpStroke,
+                        outlineStroke = bpOutlineStroke,
+                        outerDotRadius = bpDotOuterRadius,
+                        innerDotRadius = bpDotInnerRadius,
+                    )
+                    cachedBpTicks.forEach { tick ->
+                      drawLine(
+                          color = bpTickColor,
+                          start = Offset(0f, tick.y),
+                          end = Offset(bpTickLength, tick.y),
+                          strokeWidth = bpTickStrokeWidth,
+                      )
+                      drawText(
+                          textLayoutResult = tick.layoutResult,
+                          topLeft =
+                              Offset(
+                                  bpLabelPadding,
+                                  tick.y - tick.layoutResult.size.height / 2f,
+                              ),
+                      )
+                    }
+
+                    sleepLines.forEach { line ->
+                      reusablePath.reset()
+                      reusablePath.addRoundRect(
+                          RoundRect(
+                              rect =
+                                  Rect(
+                                      offset = Offset(line.x1 * size.width, sleepLinePos),
+                                      size =
+                                          Size((line.x2 - line.x1) * size.width, sleepLineHeight),
+                                  ),
+                              topLeft =
+                                  if (line.roundLeft) sleepLineRounding else sleepZeroRounding,
+                              bottomLeft =
+                                  if (line.roundLeft) sleepLineRounding else sleepZeroRounding,
+                              topRight =
+                                  if (line.roundRight) sleepLineRounding else sleepZeroRounding,
+                              bottomRight =
+                                  if (line.roundRight) sleepLineRounding else sleepZeroRounding,
+                          )
+                      )
+                      drawPath(
+                          path = reusablePath,
+                          color = line.color,
+                          alpha = 0.9f,
+                      )
+                    }
+
+                    model.dataForRatings.forEach { dataForOneRating ->
+                      drawRating(
+                          startTime = model.startTime,
+                          ratingTime = dataForOneRating.time,
+                          pixelsPerSec = pixelsPerSec,
+                          canvasHeightOuter = plotHeight,
+                          rating = dataForOneRating.option,
+                          textPaint = ratingTextPaint,
+                          strokeWidth = strokeWidth,
+                      )
+                    }
+
+                    model.timedNotes.forEach { dataForOneTimedNote ->
+                      val noteColor = dataForOneTimedNote.color.getComposeColor(isDarkTheme)
+                      drawTimedNote(
+                          startTime = model.startTime,
+                          noteTime = dataForOneTimedNote.time,
+                          color = noteColor,
+                          pixelsPerSec = pixelsPerSec,
+                          canvasHeightOuter = plotHeight,
+                          strokeWidth = strokeWidth,
+                          pathEffect = timedNoteDash,
+                      )
+                    }
+
+                    dragPointState.value?.let {
+                      drawDragPointLineAndTimeLabel(
+                          it,
+                          canvasWidth,
+                          plotHeight,
+                          pixelsPerSec,
+                          model,
+                          verticalDistanceFromFinger,
+                          textMeasurer,
+                          dragTimeTextSize,
+                          timeDisplayOption,
+                          lineColor = onSurfaceColor,
+                          backgroundColor = onSurfaceColor,
+                          textColor = surfaceColor,
+                          heartRateSamples = heartRateSamples,
+                          flattenedSleepStages = flattenedSleepStages,
+                          showSleepStages = showSleepStages,
+                          vitalSeries = vitalSeries,
+                      )
+                    }
                   }
-                },
-                onDragEnd = {
-                  dragPoint = null
-                  performHaptic(HapticType.CLICK)
-                },
-                onDragCancel = { dragPoint = null },
-            )
-          }
-  ) {
-    val canvasWithLabelsHeight = size.height
-    val labelsHeight = axisLabelSize.toPx()
-    val canvasWidth = size.width
-    val pixelsPerSec = if (model.widthInSeconds > 0f) canvasWidth / model.widthInSeconds else 0f
-    val strokeWidth = 2.dp.toPx()
 
-    inset(left = 0f, top = 0f, right = 0f, bottom = labelsHeight + strokeWidth) {
-      val canvasHeightWithVerticalLine = size.height
-
-      val marker = currentTimeMarker(model, currentTime, isShowingCurrentTime, graphStyle)
-      drawVitalPolylines(
-          heartRatePolylines,
-          graphStyle.heartRateColor,
-          canvasHeightWithVerticalLine,
-          reusablePath,
-      )
-      vitalPolylines.forEach { (color, polylines) ->
-        drawVitalPolylines(polylines, color, canvasHeightWithVerticalLine, reusablePath)
-      }
-
-      paintScene(scene, graphStyle, textMeasurer)
-      if (marker != null) {
-        val markerX = marker.xFraction * size.width
-        drawLine(
-            color = Color(marker.color),
-            start = Offset(markerX, canvasHeightWithVerticalLine),
-            end = Offset(markerX, 0f),
-            strokeWidth = graphStyle.markerStrokeWidth.toPx(),
-            cap = StrokeCap.Round,
-        )
-      }
-
-      drawBloodPressurePolyline(
-          points = bloodPressurePolylines.diastolic,
-          color = graphStyle.bloodPressureDiastolicColor,
-          outlineColor = cardColor,
-          canvasHeight = canvasHeightWithVerticalLine,
-          path = reusablePath,
-      )
-      drawBloodPressurePolyline(
-          points = bloodPressurePolylines.systolic,
-          color = graphStyle.bloodPressureSystolicColor,
-          outlineColor = cardColor,
-          canvasHeight = canvasHeightWithVerticalLine,
-          path = reusablePath,
-      )
-      if (bloodPressurePolylines.hasScale) {
-        drawBloodPressureScale(
-            polylines = bloodPressurePolylines,
-            canvasHeight = canvasHeightWithVerticalLine,
-            textMeasurer = textMeasurer,
-            tickColor = onSurfaceColor,
-            labelColor = graphStyle.axisLabelColor,
-        )
-      }
-
-      sleepLines.forEach { line ->
-        reusablePath.reset()
-        val lineHeight = SLEEP_GRAPH_LINE_HEIGHT.dp.toPx()
-        val lineRoundingRadius = SLEEP_GRAPH_LINE_ROUNDING.dp.toPx()
-        val linePos =
-            canvasWithLabelsHeight -
-                labelsHeight -
-                SLEEP_GRAPH_LINE_MARGIN_BOTTOM.dp.toPx() -
-                lineHeight
-
-        val lineRounding = CornerRadius(lineRoundingRadius, lineRoundingRadius)
-        val zeroRounding = CornerRadius(0f, 0f)
-        reusablePath.addRoundRect(
-            RoundRect(
-                rect =
-                    Rect(
-                        offset = Offset(line.x1 * size.width, linePos),
-                        size = Size((line.x2 - line.x1) * size.width, lineHeight),
-                    ),
-                topLeft = if (line.roundLeft) lineRounding else zeroRounding,
-                bottomLeft = if (line.roundLeft) lineRounding else zeroRounding,
-                topRight = if (line.roundRight) lineRounding else zeroRounding,
-                bottomRight = if (line.roundRight) lineRounding else zeroRounding,
-            )
-        )
-        drawPath(
-            path = reusablePath,
-            color = line.color,
-            alpha = 0.9f,
-        )
-      }
-
-      model.dataForRatings.forEach { dataForOneRating ->
-        drawRating(
-            startTime = model.startTime,
-            ratingTime = dataForOneRating.time,
-            pixelsPerSec = pixelsPerSec,
-            canvasHeightOuter = canvasHeightWithVerticalLine,
-            rating = dataForOneRating.option,
-            textPaint = ratingTextPaint,
-        )
-      }
-
-      model.timedNotes.forEach { dataForOneTimedNote ->
-        val noteColor = dataForOneTimedNote.color.getComposeColor(isDarkTheme)
-
-        drawTimedNote(
-            startTime = model.startTime,
-            noteTime = dataForOneTimedNote.time,
-            color = noteColor,
-            pixelsPerSec = pixelsPerSec,
-            canvasHeightOuter = canvasHeightWithVerticalLine,
-        )
-      }
-
-      dragPoint?.let {
-        drawDragPointLineAndTimeLabel(
-            it,
-            canvasWidth,
-            canvasHeightWithVerticalLine,
-            pixelsPerSec,
-            model,
-            verticalDistanceFromFinger,
-            textMeasurer,
-            dragTimeTextSize,
-            timeDisplayOption,
-            lineColor = onSurfaceColor,
-            backgroundColor = onSurfaceColor,
-            textColor = surfaceColor,
-            heartRateSamples = heartRateSamples,
-            flattenedSleepStages = flattenedSleepStages,
-            showSleepStages = showSleepStages,
-            vitalSeries = vitalSeries,
-        )
-      }
-    }
-
-    val axisLabels =
-        buildAxisLabels(
-            startTime = model.startTime,
-            widthInSeconds = model.widthInSeconds,
-            canvasWidthPx = canvasWidth,
-        )
-    drawContext.canvas.nativeCanvas.apply {
-      axisLabels.forEach { axisLabel ->
-        drawText(
-            axisLabel.label,
-            axisLabel.xFraction * canvasWidth,
-            canvasWithLabelsHeight,
-            axisLabelTextPaint,
-        )
-      }
-    }
-  }
+                  drawContext.canvas.nativeCanvas.apply {
+                    axisLabels.forEach { axisLabel ->
+                      drawText(
+                          axisLabel.label,
+                          axisLabel.xFraction * canvasWidth,
+                          canvasWithLabelsHeight,
+                          axisLabelTextPaint,
+                      )
+                    }
+                  }
+                }
+              }
+  )
 }
 
 /** Thin lines for heart rate and the other vitals; an isolated sample becomes a dot. */
+@Suppress("LongParameterList")
 private fun DrawScope.drawVitalPolylines(
     polylines: List<List<Vec2>>,
     color: Color,
     canvasHeight: Float,
     path: Path,
+    stroke: Stroke,
+    dotRadius: Float,
 ) {
   polylines.forEach { polyline ->
     if (polyline.size == 1) {
       val point = polyline.single()
       drawCircle(
           color = color,
-          radius = 2.dp.toPx(),
+          radius = dotRadius,
           center = Offset(point.x * size.width, point.y * canvasHeight),
       )
       return@forEach
@@ -372,39 +484,7 @@ private fun DrawScope.drawVitalPolylines(
     drawPath(
         path = path,
         color = color,
-        style = Stroke(width = 1.5.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round),
-    )
-  }
-}
-
-private fun DrawScope.drawBloodPressureScale(
-    polylines: BloodPressurePolyLines,
-    canvasHeight: Float,
-    textMeasurer: TextMeasurer,
-    tickColor: Color,
-    labelColor: Color,
-) {
-  val ticks = roundBloodPressureTicks(polylines.minPressure, polylines.maxPressure)
-  val tickLength = 6.dp.toPx()
-  val labelPadding = 8.dp.toPx()
-  ticks.forEach { tick ->
-    val y =
-        bloodPressureYFraction(tick.toDouble(), polylines.minPressure, polylines.maxPressure) *
-            canvasHeight
-    drawLine(
-        color = tickColor.copy(alpha = 0.4f),
-        start = Offset(0f, y),
-        end = Offset(tickLength, y),
-        strokeWidth = 1.dp.toPx(),
-    )
-    val measured =
-        textMeasurer.measure(
-            tick.toString(),
-            style = TextStyle(fontSize = 9.sp, color = labelColor),
-        )
-    drawText(
-        textLayoutResult = measured,
-        topLeft = Offset(labelPadding, y - measured.size.height / 2f),
+        style = stroke,
     )
   }
 }
@@ -418,20 +498,23 @@ private fun roundBloodPressureTicks(min: Double, max: Double): List<Int> {
   }
 }
 
+@Suppress("LongParameterList")
 private fun DrawScope.drawBloodPressurePolyline(
     points: List<Vec2>,
     color: Color,
     outlineColor: Color,
     canvasHeight: Float,
     path: Path,
+    stroke: Stroke,
+    outlineStroke: Stroke,
+    outerDotRadius: Float,
+    innerDotRadius: Float,
 ) {
   if (points.isEmpty()) return
-  val lineWidth = 1.5.dp.toPx()
-  val outlineWidth = lineWidth + 2.dp.toPx()
   if (points.size == 1) {
     val center = Offset(points.single().x * size.width, points.single().y * canvasHeight)
-    drawCircle(color = outlineColor, radius = 3.dp.toPx(), center = center)
-    drawCircle(color = color, radius = 2.dp.toPx(), center = center)
+    drawCircle(color = outlineColor, radius = outerDotRadius, center = center)
+    drawCircle(color = color, radius = innerDotRadius, center = center)
     return
   }
   path.reset()
@@ -443,12 +526,12 @@ private fun DrawScope.drawBloodPressurePolyline(
   drawPath(
       path = path,
       color = outlineColor,
-      style = Stroke(width = outlineWidth, cap = StrokeCap.Round, join = StrokeJoin.Round),
+      style = outlineStroke,
   )
   drawPath(
       path = path,
       color = color,
-      style = Stroke(width = lineWidth, cap = StrokeCap.Round, join = StrokeJoin.Round),
+      style = stroke,
   )
 }
 
@@ -595,10 +678,11 @@ private fun DrawScope.drawDragTimeLabelWithBackground(
           )
           .joinToString("\n")
 
+  val labelStyle = dragTimeTextSize.copy(color = textColor, fontSize = 16.sp)
   val measuredText =
       textMeasurer.measure(
           fullLabel,
-          style = TextStyle(fontSize = 16.sp),
+          style = labelStyle,
       )
   val textSize = measuredText.size
   val padding = 12.dp.toPx()
@@ -630,14 +714,12 @@ private fun DrawScope.drawDragTimeLabelWithBackground(
   )
 
   drawText(
-      textMeasurer,
-      text = fullLabel,
+      textLayoutResult = measuredText,
       topLeft =
           Offset(
               x = rectTopLeft.x + (rectSize.width - textSize.width) / 2,
               y = rectTopLeft.y + (rectSize.height - textSize.height) / 2,
           ),
-      style = dragTimeTextSize.copy(color = textColor, fontSize = 16.sp),
   )
 }
 
@@ -662,14 +744,14 @@ fun DrawScope.drawRating(
     canvasHeightOuter: Float,
     rating: ShulginRatingOption,
     textPaint: Paint,
+    strokeWidth: Float = 2.dp.toPx(),
 ) {
   val timeStartInSec = Duration.between(startTime, ratingTime).seconds
   val timeStartX = timeStartInSec * pixelsPerSec
   val lineHeight = textPaint.textSize
-  val lines = rating.verticalSign.split("\n")
+  val lines = RATING_LINES[rating] ?: rating.verticalSign.split("\n")
   val signHeight = lines.size * lineHeight
   val verticalLineHeight = (canvasHeightOuter - 2 * lineHeight - signHeight) / 2
-  val strokeWidth = 2.dp.toPx()
 
   drawLine(
       color = Color.Gray,
@@ -702,10 +784,12 @@ fun DrawScope.drawTimedNote(
     pixelsPerSec: Float,
     canvasHeightOuter: Float,
     color: Color,
+    strokeWidth: Float = 2.dp.toPx(),
+    pathEffect: PathEffect =
+        PathEffect.dashPathEffect(floatArrayOf(strokeWidth * 2, strokeWidth * 2)),
 ) {
   val timeStartInSec = Duration.between(startTime, noteTime).seconds
   val timeStartX = timeStartInSec * pixelsPerSec
-  val strokeWidth = 2.dp.toPx()
 
   drawLine(
       color = color,
@@ -713,6 +797,6 @@ fun DrawScope.drawTimedNote(
       end = Offset(x = timeStartX, y = canvasHeightOuter),
       strokeWidth = strokeWidth,
       cap = StrokeCap.Round,
-      pathEffect = PathEffect.dashPathEffect(floatArrayOf(strokeWidth * 2, strokeWidth * 2)),
+      pathEffect = pathEffect,
   )
 }

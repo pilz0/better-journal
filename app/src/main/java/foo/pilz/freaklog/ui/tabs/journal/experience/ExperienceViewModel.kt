@@ -101,6 +101,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -297,36 +298,41 @@ constructor(
           )
 
   private val sortedIngestionsWithCompanionsFlow =
-      ingestionsWithCompanionsFlow.map { ingestionsWithCompanions ->
-        ingestionsWithCompanions.sortedBy { it.ingestion.time }
-      }
+      ingestionsWithCompanionsFlow
+          .map { ingestionsWithCompanions ->
+            ingestionsWithCompanions.sortedBy { it.ingestion.time }
+          }
+          .flowOn(Dispatchers.Default)
+          .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000), replay = 1)
 
   private val ingestionsWithAssociatedDataFlow: Flow<List<IngestionWithAssociatedData>> =
       combine(
-          sortedIngestionsWithCompanionsFlow,
-          customProfiles.byNameFlow,
-          userPreferences.useIntranasalForRectalFlow,
-      ) { ingestionsWithComps, profiles, useIntranasalForRectal ->
-        ingestionsWithComps.map { oneIngestionWithComp ->
-          val ingestion = oneIngestionWithComp.ingestion
-          val roa =
-              substanceRepo
-                  .getSubstance(oneIngestionWithComp.ingestion.substanceName)
-                  ?.getEffectiveRoa(ingestion.administrationRoute, useIntranasalForRectal)
-                  ?: foo.pilz.freaklog.data.room.experiences.findEffectiveRoa(
-                      profiles,
-                      ingestion.substanceName,
-                      ingestion.administrationRoute,
-                      useIntranasalForRectal,
-                  )
-          val roaDuration = roa?.roaDuration
-          IngestionWithAssociatedData(
-              ingestionWithCompanionAndCustomUnit = oneIngestionWithComp,
-              roaDuration = roaDuration,
-              roaDose = roa?.roaDose,
-          )
-        }
-      }
+              sortedIngestionsWithCompanionsFlow,
+              customProfiles.byNameFlow,
+              userPreferences.useIntranasalForRectalFlow,
+          ) { ingestionsWithComps, profiles, useIntranasalForRectal ->
+            ingestionsWithComps.map { oneIngestionWithComp ->
+              val ingestion = oneIngestionWithComp.ingestion
+              val roa =
+                  substanceRepo
+                      .getSubstance(oneIngestionWithComp.ingestion.substanceName)
+                      ?.getEffectiveRoa(ingestion.administrationRoute, useIntranasalForRectal)
+                      ?: foo.pilz.freaklog.data.room.experiences.findEffectiveRoa(
+                          profiles,
+                          ingestion.substanceName,
+                          ingestion.administrationRoute,
+                          useIntranasalForRectal,
+                      )
+              val roaDuration = roa?.roaDuration
+              IngestionWithAssociatedData(
+                  ingestionWithCompanionAndCustomUnit = oneIngestionWithComp,
+                  roaDuration = roaDuration,
+                  roaDose = roa?.roaDose,
+              )
+            }
+          }
+          .flowOn(Dispatchers.Default)
+          .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000), replay = 1)
 
   private val myIngestionsWithAssociatedDataFlow =
       ingestionsWithAssociatedDataFlow.map { ingestions ->
@@ -394,9 +400,8 @@ constructor(
 
   val ingestionElementsFlow =
       myIngestionsWithAssociatedDataFlow
-          .map {
-            getIngestionElements(it)
-          }
+          .map { getIngestionElements(it) }
+          .flowOn(Dispatchers.Default)
           .stateIn(
               initialValue = emptyList(),
               scope = viewModelScope,
@@ -416,6 +421,7 @@ constructor(
                 substances = substances,
             )
           }
+          .flowOn(Dispatchers.Default)
           .stateIn(
               initialValue = emptyList(),
               scope = viewModelScope,
@@ -424,9 +430,8 @@ constructor(
 
   val cumulativeDosesFlow =
       myIngestionsWithAssociatedDataFlow
-          .map {
-            getCumulativeDoses(it)
-          }
+          .map { getCumulativeDoses(it) }
+          .flowOn(Dispatchers.Default)
           .stateIn(
               initialValue = emptyList(),
               scope = viewModelScope,
@@ -503,6 +508,7 @@ constructor(
                   )
                 }
           }
+          .flowOn(Dispatchers.Default)
           .stateIn(
               initialValue = emptyList(),
               scope = viewModelScope,
@@ -792,8 +798,7 @@ constructor(
           it.ingestionWithCompanionAndCustomUnit.ingestion.time
         }
     if (lastIngestionTime != null) {
-      userPreferences.saveLastIngestionTimeOfExperience(lastIngestionTime)
-      userPreferences.saveClonedIngestionTime(null)
+      userPreferences.saveLastIngestionTimeAndClearCloned(lastIngestionTime)
     }
   }
 

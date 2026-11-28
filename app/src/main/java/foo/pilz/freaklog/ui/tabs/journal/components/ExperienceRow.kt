@@ -18,21 +18,15 @@
 
 package foo.pilz.freaklog.ui.tabs.journal.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
@@ -40,9 +34,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
@@ -51,7 +47,6 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import foo.pilz.freaklog.data.room.experiences.entities.AdaptiveColor
 import foo.pilz.freaklog.data.room.experiences.relations.ExperienceWithIngestionsCompanionsAndRatings
-import foo.pilz.freaklog.data.room.experiences.relations.IngestionWithCompanionAndCustomUnit
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import foo.pilz.freaklog.ui.utils.getDateWithWeekdayText
 
@@ -63,138 +58,135 @@ fun ExperienceRow(
     navigateToExperienceScreen: () -> Unit = {},
     isTimeRelativeToNow: Boolean = true,
 ) {
-  Row(
+  val isDarkTheme = isSystemInDarkTheme()
+  val ingestions =
+      remember(experienceWithIngestionsCompanionsAndRatings) {
+        experienceWithIngestionsCompanionsAndRatings.ingestionsWithCompanions.sortedBy {
+          it.ingestion.time
+        }
+      }
+  val barBrush =
+      remember(ingestions, isDarkTheme) {
+        if (ingestions.size >= 2) {
+          val colors = ingestions.map {
+            (it.substanceCompanion?.color ?: AdaptiveColor.RED).getComposeColor(isDarkTheme)
+          }
+          Brush.verticalGradient(colors = colors)
+        } else {
+          null
+        }
+      }
+  val barColor =
+      remember(ingestions, isDarkTheme) {
+        when (ingestions.size) {
+          0 -> Color.LightGray.copy(alpha = 0.1f)
+          1 ->
+              (ingestions.first().substanceCompanion?.color ?: AdaptiveColor.RED).getComposeColor(
+                  isDarkTheme
+              )
+          else -> Color.Transparent
+        }
+      }
+  val experience = experienceWithIngestionsCompanionsAndRatings.experience
+  val formattedDate =
+      remember(experienceWithIngestionsCompanionsAndRatings.sortInstant) {
+        experienceWithIngestionsCompanionsAndRatings.sortInstant.getDateWithWeekdayText()
+      }
+
+  Column(
       modifier =
           Modifier.clickable {
                 navigateToExperienceScreen()
               }
               .fillMaxWidth()
-              .height(IntrinsicSize.Min)
-              .padding(horizontal = horizontalPadding, vertical = 5.dp),
-      horizontalArrangement = Arrangement.spacedBy(10.dp),
-      verticalAlignment = Alignment.CenterVertically,
+              .padding(horizontal = horizontalPadding, vertical = 5.dp)
+              .drawBehind {
+                val barWidth = 11.dp.toPx()
+                val radius = 3.dp.toPx()
+                val cornerRadius = CornerRadius(radius, radius)
+                val barSize = Size(barWidth, size.height)
+                if (barBrush != null) {
+                  drawRoundRect(
+                      brush = barBrush,
+                      topLeft = Offset.Zero,
+                      size = barSize,
+                      cornerRadius = cornerRadius,
+                  )
+                } else {
+                  drawRoundRect(
+                      color = barColor,
+                      topLeft = Offset.Zero,
+                      size = barSize,
+                      cornerRadius = cornerRadius,
+                  )
+                }
+              }
+              .padding(start = 21.dp)
   ) {
-    val ingestions =
-        remember(experienceWithIngestionsCompanionsAndRatings) {
-          experienceWithIngestionsCompanionsAndRatings.ingestionsWithCompanions.sortedBy {
-            it.ingestion.time
-          }
-        }
-    val experience = experienceWithIngestionsCompanionsAndRatings.experience
-    ColorRectangle(ingestions = ingestions)
-    Column {
-      Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = experience.title,
-            style = MaterialTheme.typography.titleMedium,
-        )
-        if (experience.isFavorite) {
-          Icon(imageVector = Icons.Filled.Star, contentDescription = "Is favorite")
-        }
-      }
-      Row(
-          horizontalArrangement = Arrangement.SpaceBetween,
-          modifier = Modifier.fillMaxWidth(),
-      ) {
-        val substanceNames =
-            remember(ingestions) {
-              ingestions
-                  .map { it.ingestion.substanceName }
-                  .distinct()
-                  .joinToString(separator = ", ")
-            }
-        if (substanceNames.isNotEmpty()) {
-          Text(text = substanceNames)
-        } else {
-          Text(
-              text = "No substance yet",
-          )
-        }
-        val rating = experienceWithIngestionsCompanionsAndRatings.rating?.sign
-        if (rating != null) {
-          Text(text = rating)
-        }
-      }
-      val consumerNames =
-          remember(ingestions) {
-            ingestions
-                .mapNotNull { it.ingestion.consumerName }
-                .distinct()
-                .joinToString(separator = ", ")
-          }
-      if (consumerNames.isNotEmpty()) {
-        Text(text = "With: $consumerNames", style = MaterialTheme.typography.labelSmall)
-      }
-      Row(
-          horizontalArrangement = Arrangement.SpaceBetween,
-          modifier = Modifier.fillMaxWidth(),
-      ) {
-        val timeStyle = MaterialTheme.typography.labelMedium
-        if (isTimeRelativeToNow) {
-          RelativeDateTextNew(
-              dateTime = experienceWithIngestionsCompanionsAndRatings.sortInstant,
-              style = timeStyle,
-          )
-        } else {
-          Text(
-              text =
-                  experienceWithIngestionsCompanionsAndRatings.sortInstant.getDateWithWeekdayText(),
-              style = timeStyle,
-          )
-        }
-        Spacer(modifier = Modifier.width(10.dp))
-        val location = experience.location
-        if (location != null) {
-          Text(
-              text = location.name,
-              style = MaterialTheme.typography.labelMedium,
-              textAlign = TextAlign.End,
-          )
-        }
+    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+      Text(
+          text = experience.title,
+          style = MaterialTheme.typography.titleMedium,
+      )
+      if (experience.isFavorite) {
+        Icon(imageVector = Icons.Filled.Star, contentDescription = "Is favorite")
       }
     }
-  }
-}
-
-@Composable
-fun ColorRectangle(ingestions: List<IngestionWithCompanionAndCustomUnit>) {
-  val isDarkTheme = isSystemInDarkTheme()
-  val width = 11.dp
-  val cornerRadius = 3.dp
-  if (ingestions.size >= 2) {
-    val brush =
-        remember(ingestions, isDarkTheme) {
-          val colors = ingestions.map {
-            (it.substanceCompanion?.color ?: AdaptiveColor.RED).getComposeColor(isDarkTheme)
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+      val substanceNames =
+          remember(ingestions) {
+            ingestions.map { it.ingestion.substanceName }.distinct().joinToString(separator = ", ")
           }
-          Brush.verticalGradient(colors = colors)
-        }
-    Box(
-        modifier =
-            Modifier.width(width)
-                .fillMaxHeight()
-                .clip(RoundedCornerShape(cornerRadius))
-                .background(brush),
-    ) {}
-  } else if (ingestions.size == 1) {
-    val color =
-        (ingestions.first().substanceCompanion?.color ?: AdaptiveColor.RED).getComposeColor(
-            isDarkTheme
+      if (substanceNames.isNotEmpty()) {
+        Text(text = substanceNames)
+      } else {
+        Text(
+            text = "No substance yet",
         )
-    Box(
-        modifier =
-            Modifier.width(width)
-                .fillMaxHeight()
-                .clip(RoundedCornerShape(cornerRadius))
-                .background(color),
-    ) {}
-  } else {
-    Box(
-        modifier =
-            Modifier.width(width)
-                .fillMaxHeight()
-                .clip(RoundedCornerShape(cornerRadius))
-                .background(Color.LightGray.copy(0.1f)),
-    ) {}
+      }
+      val rating = experienceWithIngestionsCompanionsAndRatings.rating?.sign
+      if (rating != null) {
+        Text(text = rating)
+      }
+    }
+    val consumerNames =
+        remember(ingestions) {
+          ingestions
+              .mapNotNull { it.ingestion.consumerName }
+              .distinct()
+              .joinToString(separator = ", ")
+        }
+    if (consumerNames.isNotEmpty()) {
+      Text(text = "With: $consumerNames", style = MaterialTheme.typography.labelSmall)
+    }
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+      val timeStyle = MaterialTheme.typography.labelMedium
+      if (isTimeRelativeToNow) {
+        RelativeDateTextNew(
+            dateTime = experienceWithIngestionsCompanionsAndRatings.sortInstant,
+            style = timeStyle,
+        )
+      } else {
+        Text(
+            text = formattedDate,
+            style = timeStyle,
+        )
+      }
+      Spacer(modifier = Modifier.width(10.dp))
+      val location = experience.location
+      if (location != null) {
+        Text(
+            text = location.name,
+            style = MaterialTheme.typography.labelMedium,
+            textAlign = TextAlign.End,
+        )
+      }
+    }
   }
 }

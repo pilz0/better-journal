@@ -46,6 +46,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
 import java.time.format.FormatStyle
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -108,24 +109,36 @@ constructor(
       groupedIngestions: List<IngestionWithCompanionAndCustomUnit>
   ): TotalDose? = StatsCalculator.computeTotalDose(groupedIngestions)
 
-  val statsModelFlow: StateFlow<StatsModel?> =
+  private val baseStatsModelFlow =
       combine(
               allExperiencesSortedFlow,
               companionFlow,
               optionFlow,
               consumerFlow,
-              sortOptionFlow,
-          ) { experiences, companions, option, consumerName, sortOption ->
+          ) { experiences, companions, option, consumerName ->
             StatsCalculator.build(
                 experiences = experiences,
                 companions = companions,
                 option = option,
                 consumerName = consumerName,
-                sortOption = sortOption,
+                sortOption = StatsSortOption.EXPERIENCES,
                 now = Instant.now(),
                 zone = ZoneId.systemDefault(),
                 locale = Locale.getDefault(),
             )
+          }
+          .flowOn(Dispatchers.Default)
+
+  val statsModelFlow: StateFlow<StatsModel?> =
+      combine(baseStatsModelFlow, sortOptionFlow) { base, sortOption ->
+            if (sortOption == base.sortOption) {
+              base
+            } else {
+              base.copy(
+                  statItems = StatsCalculator.sortStatItems(base.statItems, sortOption),
+                  sortOption = sortOption,
+              )
+            }
           }
           .flowOn(Dispatchers.Default)
           .stateIn(
@@ -142,6 +155,7 @@ constructor(
                 .mapNotNull { it.ingestion.consumerName }
                 .distinct()
           }
+          .flowOn(Dispatchers.Default)
           .stateIn(
               initialValue = emptyList(),
               scope = viewModelScope,
@@ -182,6 +196,11 @@ constructor(
 
 internal object StatsCalculator {
   private val yearPatternRegex = Regex("^[^dMyYu]*[yYu]+[^dMyYu]*|[^dMyYu]*[yYu]+[^dMyYu]*$")
+  private val formattersCache = ConcurrentHashMap<Pair<String, Locale>, DateTimeFormatter>()
+  private val dayMonthPatternCache = ConcurrentHashMap<Locale, String>()
+
+  private fun formatterFor(pattern: String, locale: Locale): DateTimeFormatter =
+      formattersCache.getOrPut(pattern to locale) { DateTimeFormatter.ofPattern(pattern, locale) }
 
   private data class FilteredIngestion(
       val experienceId: Int,
@@ -208,7 +227,7 @@ internal object StatsCalculator {
     val rangeStart = endOfToday.minus(option.allBucketSizes)
     val rangeStartInstant = rangeStart.toInstant()
     val endOfTodayInstant = endOfToday.toInstant()
-    val startDateText = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy", locale).format(rangeStart)
+    val startDateText = formatterFor("EEE, dd MMM yyyy", locale).format(rangeStart)
 
     val filtered = experiences.flatMap { exp ->
       exp.ingestionsWithCompanionAndCustomUnit
@@ -239,7 +258,7 @@ internal object StatsCalculator {
         chartBuckets = chartBuckets,
         consumerName = consumerName,
         totalIngestions = filtered.size,
-        totalExperiences = filtered.map { it.experienceId }.toSet().size,
+        totalExperiences = filtered.mapTo(HashSet()) { it.experienceId }.size,
         sortOption = sortOption,
     )
   }
@@ -259,26 +278,38 @@ internal object StatsCalculator {
           TimePickerOption.MONTHS_12 -> "MMM"
           TimePickerOption.YEARS_10 -> "yyyy"
         }
-    val labelFormat = DateTimeFormatter.ofPattern(labelPattern, locale)
-    val fullDateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy", locale)
+    val labelFormat = formatterFor(labelPattern, locale)
+    val fullDateFormat = formatterFor("dd MMM yyyy", locale)
     val isSingleDayBucket = option.oneBucketSize == Period.ofDays(1)
-    val buckets = ArrayDeque<StatsChartBucket>()
+    val sortedFiltered = filtered.sortedBy { it.data.ingestion.time }
+    val buckets = ArrayDeque<StatsChartBucket>(option.bucketCount)
     var bucketEnd = endOfToday
+    var ingestionIndex = sortedFiltered.lastIndex
     repeat(option.bucketCount) {
       val bucketStart = bucketEnd.minus(option.oneBucketSize)
       val bucketStartInstant = bucketStart.toInstant()
       val bucketEndInstant = bucketEnd.toInstant()
-      val inBucket = filtered.filter {
-        val t = it.data.ingestion.time
-        t >= bucketStartInstant && t < bucketEndInstant
+      while (
+          ingestionIndex >= 0 &&
+              sortedFiltered[ingestionIndex].data.ingestion.time >= bucketEndInstant
+      ) {
+        ingestionIndex--
+      }
+      val countsBySubstance = HashMap<String, Int>()
+      while (
+          ingestionIndex >= 0 &&
+              sortedFiltered[ingestionIndex].data.ingestion.time >= bucketStartInstant
+      ) {
+        val name = sortedFiltered[ingestionIndex].data.ingestion.substanceName
+        countsBySubstance[name] = (countsBySubstance[name] ?: 0) + 1
+        ingestionIndex--
       }
       val items =
-          inBucket
-              .groupBy { it.data.ingestion.substanceName }
-              .map { (substanceName, group) ->
+          countsBySubstance
+              .map { (substanceName, count) ->
                 ColorCount(
                     color = companionsByName[substanceName]?.color ?: AdaptiveColor.BLUE,
-                    count = group.size,
+                    count = count,
                     substanceName = substanceName,
                 )
               }
@@ -311,7 +342,7 @@ internal object StatsCalculator {
       val groupedIngestions = entries.map { it.data }
       val ingestions = groupedIngestions.map { it.ingestion }
       val color = companionsByName[name]?.color ?: AdaptiveColor.BLUE
-      val experienceCount = entries.map { it.experienceId }.toSet().size
+      val experienceCount = entries.mapTo(HashSet()) { it.experienceId }.size
       val totalDose = computeTotalDose(groupedIngestions)
       val knownOnly = groupedIngestions.filter { it.pureDose != null }
       val knownTotalDose =
@@ -331,27 +362,30 @@ internal object StatsCalculator {
           hasMixedUnits = hasMixedUnits,
       )
     }
-    return when (sortOption) {
-      StatsSortOption.EXPERIENCES ->
-          items.sortedWith(
-              compareByDescending<StatItem> { it.experienceCount }
-                  .thenByDescending { it.ingestionCount }
-                  .thenBy { it.substanceName }
-          )
-      StatsSortOption.INGESTIONS ->
-          items.sortedWith(
-              compareByDescending<StatItem> { it.ingestionCount }
-                  .thenByDescending { it.experienceCount }
-                  .thenBy { it.substanceName }
-          )
-      StatsSortOption.RECENT ->
-          items.sortedWith(
-              compareByDescending<StatItem> { it.lastUsed ?: Instant.MIN }
-                  .thenByDescending { it.experienceCount }
-                  .thenBy { it.substanceName }
-          )
-    }
+    return sortStatItems(items, sortOption)
   }
+
+  fun sortStatItems(items: List<StatItem>, sortOption: StatsSortOption): List<StatItem> =
+      when (sortOption) {
+        StatsSortOption.EXPERIENCES ->
+            items.sortedWith(
+                compareByDescending<StatItem> { it.experienceCount }
+                    .thenByDescending { it.ingestionCount }
+                    .thenBy { it.substanceName }
+            )
+        StatsSortOption.INGESTIONS ->
+            items.sortedWith(
+                compareByDescending<StatItem> { it.ingestionCount }
+                    .thenByDescending { it.experienceCount }
+                    .thenBy { it.substanceName }
+            )
+        StatsSortOption.RECENT ->
+            items.sortedWith(
+                compareByDescending<StatItem> { it.lastUsed ?: Instant.MIN }
+                    .thenByDescending { it.experienceCount }
+                    .thenBy { it.substanceName }
+            )
+      }
 
   private fun getRouteCounts(groupedIngestions: List<Ingestion>): List<RouteCount> =
       groupedIngestions
@@ -361,16 +395,17 @@ internal object StatsCalculator {
               compareByDescending<RouteCount> { it.count }.thenBy { it.administrationRoute.name }
           )
 
-  private fun dayMonthPattern(locale: Locale): String {
-    val shortPattern =
-        DateTimeFormatterBuilder.getLocalizedDateTimePattern(
-            FormatStyle.SHORT,
-            null,
-            IsoChronology.INSTANCE,
-            locale,
-        )
-    return shortPattern.replace(yearPatternRegex, "").trim().ifEmpty { "dd.MM" }
-  }
+  private fun dayMonthPattern(locale: Locale): String =
+      dayMonthPatternCache.getOrPut(locale) {
+        val shortPattern =
+            DateTimeFormatterBuilder.getLocalizedDateTimePattern(
+                FormatStyle.SHORT,
+                null,
+                IsoChronology.INSTANCE,
+                locale,
+            )
+        shortPattern.replace(yearPatternRegex, "").trim().ifEmpty { "dd.MM" }
+      }
 
   fun computeTotalDose(groupedIngestions: List<IngestionWithCompanionAndCustomUnit>): TotalDose? {
     // Every dose is converted to its family's base unit (mg or ml) so g, mg, µg and custom units

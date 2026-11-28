@@ -13,6 +13,7 @@ import java.time.format.DateTimeFormatterBuilder
 import java.time.format.FormatStyle
 import java.time.temporal.ChronoUnit
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 
 data class SubstanceDosageStatsModel(
     val buckets: List<DosageBucket>,
@@ -35,6 +36,11 @@ data class SubstanceDosageSummary(
 
 object SubstanceDosageStatsHelper {
   private val yearPatternRegex = Regex("^[^dMyYu]*[yYu]+[^dMyYu]*|[^dMyYu]*[yYu]+[^dMyYu]*$")
+  private val formattersCache = ConcurrentHashMap<Pair<String, Locale>, DateTimeFormatter>()
+  private val dayMonthPatternCache = ConcurrentHashMap<Locale, String>()
+
+  private fun formatterFor(pattern: String, locale: Locale): DateTimeFormatter =
+      formattersCache.getOrPut(pattern to locale) { DateTimeFormatter.ofPattern(pattern, locale) }
 
   fun build(
       ingestions: List<Ingestion>,
@@ -126,8 +132,8 @@ object SubstanceDosageStatsHelper {
   ): List<DosageBucket> {
     val config = bucketConfig(range, start, end, zone, locale)
     val count = bucketCount(range, start, end, zone, config.step)
-    val labelFormat = DateTimeFormatter.ofPattern(config.labelPattern, locale)
-    val fullDateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy", locale)
+    val labelFormat = formatterFor(config.labelPattern, locale)
+    val fullDateFormat = formatterFor("dd MMM yyyy", locale)
     val buckets = ArrayDeque<DosageBucket>()
     var bucketEnd = end.atZone(zone)
     var ingestionIndex = ingestions.lastIndex
@@ -195,16 +201,17 @@ object SubstanceDosageStatsHelper {
         }
       }
 
-  private fun dayMonthPattern(locale: Locale): String {
-    val shortPattern =
-        DateTimeFormatterBuilder.getLocalizedDateTimePattern(
-            FormatStyle.SHORT,
-            null,
-            IsoChronology.INSTANCE,
-            locale,
-        )
-    return shortPattern.replace(yearPatternRegex, "").trim().ifEmpty { "dd.MM" }
-  }
+  private fun dayMonthPattern(locale: Locale): String =
+      dayMonthPatternCache.getOrPut(locale) {
+        val shortPattern =
+            DateTimeFormatterBuilder.getLocalizedDateTimePattern(
+                FormatStyle.SHORT,
+                null,
+                IsoChronology.INSTANCE,
+                locale,
+            )
+        shortPattern.replace(yearPatternRegex, "").trim().ifEmpty { "dd.MM" }
+      }
 
   private fun bucketCount(
       range: DosageTimeRange,
@@ -246,14 +253,19 @@ object SubstanceDosageStatsHelper {
   private fun currentStreakWeeks(ingestions: List<Ingestion>, now: Instant): Int {
     val currentEpochMs = now.toEpochMilli()
     val weekMs = 7L * 24 * 60 * 60 * 1000
-    val sessionWeekIndices =
-        ingestions
-            .map { it.time.toEpochMilli() }
-            .filter { it <= currentEpochMs }
-            .map { ((currentEpochMs - it) / weekMs).toInt() }
-            .toHashSet()
+    val maxWeeks = 104
+    val sessionWeekIndices = HashSet<Int>()
+    for (ingestion in ingestions) {
+      val timeMs = ingestion.time.toEpochMilli()
+      if (timeMs <= currentEpochMs) {
+        val weekIdx = ((currentEpochMs - timeMs) / weekMs).toInt()
+        if (weekIdx in 0 until maxWeeks) {
+          sessionWeekIndices.add(weekIdx)
+        }
+      }
+    }
     var streak = 0
-    for (weekIndex in 0 until 104) {
+    for (weekIndex in 0 until maxWeeks) {
       if (weekIndex in sessionWeekIndices) streak++ else break
     }
     return streak

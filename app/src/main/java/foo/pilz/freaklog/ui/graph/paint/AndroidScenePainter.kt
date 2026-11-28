@@ -72,17 +72,22 @@ fun Canvas.paintScene(
       }
   val textPaint = Paint(Paint.ANTI_ALIAS_FLAG)
   val rectF = RectF()
+  val reusablePath = Path()
 
   scene.primitives.forEach { primitive ->
     when (primitive) {
       is GraphPrimitive.StrokePath -> {
         val paint = if (primitive.role == StrokeRole.Dotted) dottedStroke else solidStroke
         paint.color = primitive.color
-        drawPath(primitive.ops.toAndroidPath(w, h, progress), paint)
+        reusablePath.reset()
+        reusablePath.fillAndroidPath(primitive.ops, w, h, progress)
+        drawPath(reusablePath, paint)
       }
       is GraphPrimitive.FillPath -> {
         fillPaint.color = withAlpha(primitive.color, primitive.alpha)
-        drawPath(primitive.ops.toAndroidPath(w, h, progress), fillPaint)
+        reusablePath.reset()
+        reusablePath.fillAndroidPath(primitive.ops, w, h, progress)
+        drawPath(reusablePath, fillPaint)
       }
       is GraphPrimitive.Dot -> {
         opaqueFill.color = primitive.color
@@ -150,21 +155,19 @@ private fun withAlpha(color: Int, alpha: Float): Int {
   return (color and 0x00FFFFFF) or (a shl 24)
 }
 
-private fun List<PathOp>.toAndroidPath(w: Float, h: Float, progress: Float): Path {
-  val path = Path()
-  forEach { op ->
+private fun Path.fillAndroidPath(ops: List<PathOp>, w: Float, h: Float, progress: Float) {
+  for (op in ops) {
     when (op) {
-      is PathOp.MoveTo -> path.moveTo(op.to.x * w, h - op.to.y * h * progress)
-      is PathOp.LineTo -> path.lineTo(op.to.x * w, h - op.to.y * h * progress)
+      is PathOp.MoveTo -> moveTo(op.to.x * w, h - op.to.y * h * progress)
+      is PathOp.LineTo -> lineTo(op.to.x * w, h - op.to.y * h * progress)
       is PathOp.QuadTo ->
-          path.quadTo(
+          quadTo(
               op.control.x * w,
               h - op.control.y * h * progress,
               op.to.x * w,
               h - op.to.y * h * progress,
           )
-      PathOp.Close -> path.close()
+      PathOp.Close -> close()
     }
   }
-  return path
 }

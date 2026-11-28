@@ -154,8 +154,8 @@ object ToleranceChartCalculator {
           intervals.filter { it.toleranceType == ToleranceType.HALF }.map { it.start to it.end }
 
       val mergedFullIntervals = mergeIntervals(fullToleranceIntervals)
-      val halfWithoutFullIntervals = subtractIntervals(halfToleranceIntervals, mergedFullIntervals)
-      val mergedHalfIntervals = mergeIntervals(halfWithoutFullIntervals)
+      val mergedHalfCandidates = mergeIntervals(halfToleranceIntervals)
+      val mergedHalfIntervals = subtractMergedIntervals(mergedHalfCandidates, mergedFullIntervals)
 
       val resultFull = mergedFullIntervals.map { (start, end) ->
         SubstanceInterval(
@@ -203,36 +203,42 @@ object ToleranceChartCalculator {
     return result
   }
 
-  private fun subtractIntervals(
+  /**
+   * Subtracts sorted disjoint [subtracting] intervals from sorted disjoint [intervals] in O(N+M).
+   */
+  private fun subtractMergedIntervals(
       intervals: List<Pair<Instant, Instant>>,
       subtracting: List<Pair<Instant, Instant>>,
   ): List<Pair<Instant, Instant>> {
-    var result = intervals.toMutableList()
+    if (intervals.isEmpty() || subtracting.isEmpty()) return intervals
 
-    for (sub in subtracting) {
-      result =
-          result
-              .flatMap { interval ->
-                val (start, end) = interval
-                val (subStart, subEnd) = sub
-
-                // No overlap
-                if (end <= subStart || start >= subEnd) {
-                  listOf(interval)
-                } else {
-                  val parts = mutableListOf<Pair<Instant, Instant>>()
-                  if (start < subStart) {
-                    parts.add(start to subStart)
-                  }
-                  if (end > subEnd) {
-                    parts.add(subEnd to end)
-                  }
-                  parts
-                }
-              }
-              .toMutableList()
+    val result = ArrayList<Pair<Instant, Instant>>(intervals.size)
+    var j = 0
+    for (interval in intervals) {
+      var curStart = interval.first
+      val curEnd = interval.second
+      if (curStart >= curEnd) continue
+      while (j < subtracting.size && subtracting[j].second <= curStart) {
+        j++
+      }
+      while (j < subtracting.size && subtracting[j].first < curEnd) {
+        val (subStart, subEnd) = subtracting[j]
+        if (subStart > curStart) {
+          result.add(curStart to minOf(curEnd, subStart))
+        }
+        if (subEnd >= curEnd) {
+          curStart = curEnd
+          break
+        }
+        if (subEnd > curStart) {
+          curStart = subEnd
+        }
+        j++
+      }
+      if (curStart < curEnd) {
+        result.add(curStart to curEnd)
+      }
     }
-
     return result
   }
 
