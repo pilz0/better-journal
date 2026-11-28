@@ -7,6 +7,8 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.height
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import foo.pilz.freaklog.data.anodyne.model.AnodyneSubstance
 import foo.pilz.freaklog.data.room.experiences.entities.CustomSubstance
@@ -18,6 +20,7 @@ import foo.pilz.freaklog.ui.tabs.search.substance.SubstanceWithCategoriesPreview
 import foo.pilz.freaklog.ui.theme.JournalTheme
 import java.time.LocalDateTime
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -85,7 +88,8 @@ class AnodyneSubstanceLayoutTest {
       }
     }
 
-    compose.onNodeWithContentDescription("Structure of Mystery").assertExists()
+    val bounds = compose.onNodeWithContentDescription("Structure of Mystery").getBoundsInRoot()
+    assertTrue("Structure height (${bounds.height}) exceeded 180.dp", bounds.height <= 180.dp)
   }
 
   @Test
