@@ -32,15 +32,34 @@ import foo.pilz.freaklog.data.substances.classes.roa.DurationUnits
 import foo.pilz.freaklog.data.substances.classes.roa.Roa
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDose
 import foo.pilz.freaklog.data.substances.classes.roa.RoaDuration
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
 import org.json.JSONArray
 import org.json.JSONObject
 
 @Singleton
 class SubstanceParser @Inject constructor() : SubstanceParserInterface {
 
+  private val json = Json {
+    ignoreUnknownKeys = true
+    isLenient = true
+  }
+
   override fun parseSubstanceFile(string: String): SubstanceFile {
+    return try {
+      decodeFast(string)
+    } catch (_: SerializationException) {
+      parseWithOrgJson(string)
+    } catch (_: IllegalArgumentException) {
+      parseWithOrgJson(string)
+    }
+  }
+
+  internal fun parseWithOrgJson(string: String): SubstanceFile {
     return try {
       val wholeFile = JSONObject(string)
       SubstanceFile(
@@ -52,6 +71,166 @@ class SubstanceParser @Inject constructor() : SubstanceParserInterface {
       SubstanceFile(emptyList(), emptyList())
     }
   }
+
+  private fun decodeFast(string: String): SubstanceFile {
+    val raw = json.decodeFromString(RawSubstanceFile.serializer(), string)
+    val rawCategories = raw.categories ?: throw SerializationException("Missing categories array")
+    val rawSubstances = raw.substances ?: throw SerializationException("Missing substances array")
+    val categories = rawCategories.mapNotNull { it?.toDomain() }
+    val substances = rawSubstances.mapNotNull { it?.toDomain() }
+    return SubstanceFile(categories = categories, substances = substances)
+  }
+
+  private fun RawCategory.toDomain(): Category? {
+    val catName = name ?: return null
+    val catDescription = description ?: return null
+    return Category(
+        name = catName,
+        description = catDescription,
+        url = url,
+        color = Color(color ?: 4278876927L),
+    )
+  }
+
+  private fun RawSubstance.toDomain(): Substance {
+    val substanceName = name ?: throw SerializationException("Missing substance name")
+    val substanceUrl = url ?: throw SerializationException("Missing substance url")
+    val mappedCommonNames = commonNames?.filterNotNull()?.filter { it != substanceName }.orEmpty()
+    return Substance(
+        name = substanceName,
+        commonNames = mappedCommonNames,
+        url = substanceUrl,
+        isApproved = isApproved ?: false,
+        tolerance = tolerance?.toDomain(),
+        crossTolerances = crossTolerances?.filterNotNull().orEmpty(),
+        addictionPotential = addictionPotential,
+        toxicities = toxicities?.filterNotNull().orEmpty(),
+        categories = categories?.filterNotNull().orEmpty(),
+        summary = summary,
+        effectsSummary = effectsSummary,
+        dosageRemark = dosageRemark,
+        generalRisks = generalRisks,
+        longtermRisks = longtermRisks,
+        saferUse = saferUse?.filterNotNull().orEmpty(),
+        interactions = interactions?.toDomain(),
+        roas = roas?.mapNotNull { it?.toDomain() }.orEmpty(),
+        formulations = formulations?.mapNotNull { it?.toDomain() }.orEmpty(),
+    )
+  }
+
+  private fun RawInteractions.toDomain(): Interactions =
+      Interactions(
+          dangerous = dangerous?.filterNotNull().orEmpty(),
+          unsafe = unsafe?.filterNotNull().orEmpty(),
+          uncertain = uncertain?.filterNotNull().orEmpty(),
+      )
+
+  private fun RawTolerance.toDomain(): Tolerance? {
+    return if (full == null && half == null && zero == null) {
+      null
+    } else {
+      Tolerance(full, half, zero)
+    }
+  }
+
+  private fun RawRoa.toDomain(): Roa? {
+    val parsedRoute = parseAdministrationRoute(name) ?: return null
+    return Roa(
+        route = parsedRoute,
+        roaDose = dose?.toDomain(),
+        roaDuration = duration?.toDomain(),
+        bioavailability = bioavailability?.toDomain(),
+    )
+  }
+
+  private fun RawFormulation.toDomain(): Formulation? {
+    val formName = name ?: return null
+    val parsedRoute = parseAdministrationRoute(route) ?: return null
+    return Formulation(
+        name = formName,
+        route = parsedRoute,
+        dose = dose?.toDomain(),
+        duration = duration?.toDomain(),
+    )
+  }
+
+  private fun RawRoaDose.toDomain(): RoaDose {
+    val doseUnits = units ?: throw SerializationException("Missing dose units")
+    return RoaDose(
+        units = doseUnits,
+        lightMin = lightMin,
+        commonMin = commonMin,
+        strongMin = strongMin,
+        heavyMin = heavyMin,
+    )
+  }
+
+  private fun RawRoaDuration.toDomain(): RoaDuration? {
+    val mappedOnset = onset?.toDomain()
+    val mappedComeup = comeup?.toDomain()
+    val mappedPeak = peak?.toDomain()
+    val mappedOffset = offset?.toDomain()
+    val mappedTotal = total?.toDomain()
+    val mappedAfterglow = afterglow?.toDomain()
+    val hasPhase =
+        (mappedOnset
+            ?: mappedComeup
+            ?: mappedPeak
+            ?: mappedOffset
+            ?: mappedTotal
+            ?: mappedAfterglow) != null
+    return if (!hasPhase) {
+      null
+    } else {
+      RoaDuration(
+          onset = mappedOnset,
+          comeup = mappedComeup,
+          peak = mappedPeak,
+          offset = mappedOffset,
+          total = mappedTotal,
+          afterglow = mappedAfterglow,
+      )
+    }
+  }
+
+  private fun RawDurationRange.toDomain(): DurationRange? {
+    val rangeUnits = units
+    if ((min == null && max == null) || rangeUnits == null) return null
+    return DurationRange(
+        min = min?.toFloat(),
+        max = max?.toFloat(),
+        units = parseDurationUnits(rangeUnits),
+    )
+  }
+
+  private fun RawBioavailability.toDomain(): Bioavailability? =
+      if (min == null && max == null) null else Bioavailability(min, max)
+
+  private fun parseAdministrationRoute(rawRoute: String?): AdministrationRoute? {
+    return when (rawRoute?.uppercase(Locale.ROOT)) {
+      AdministrationRoute.ORAL.name -> AdministrationRoute.ORAL
+      AdministrationRoute.SUBLINGUAL.name -> AdministrationRoute.SUBLINGUAL
+      AdministrationRoute.BUCCAL.name -> AdministrationRoute.BUCCAL
+      AdministrationRoute.INSUFFLATED.name -> AdministrationRoute.INSUFFLATED
+      AdministrationRoute.RECTAL.name -> AdministrationRoute.RECTAL
+      AdministrationRoute.TRANSDERMAL.name -> AdministrationRoute.TRANSDERMAL
+      AdministrationRoute.SUBCUTANEOUS.name -> AdministrationRoute.SUBCUTANEOUS
+      AdministrationRoute.INTRAMUSCULAR.name -> AdministrationRoute.INTRAMUSCULAR
+      AdministrationRoute.INTRAVENOUS.name -> AdministrationRoute.INTRAVENOUS
+      AdministrationRoute.SMOKED.name -> AdministrationRoute.SMOKED
+      AdministrationRoute.INHALED.name -> AdministrationRoute.INHALED
+      else -> null
+    }
+  }
+
+  private fun parseDurationUnits(units: String): DurationUnits? =
+      when (units) {
+        DurationUnits.SECONDS.text -> DurationUnits.SECONDS
+        DurationUnits.MINUTES.text -> DurationUnits.MINUTES
+        DurationUnits.HOURS.text -> DurationUnits.HOURS
+        DurationUnits.DAYS.text -> DurationUnits.DAYS
+        else -> null
+      }
 
   override fun extractSubstanceString(string: String): String? {
     return try {
@@ -371,3 +550,101 @@ class SubstanceParser @Inject constructor() : SubstanceParserInterface {
     return tolNames
   }
 }
+
+@Serializable
+private data class RawSubstanceFile(
+    val categories: List<RawCategory?>? = null,
+    val substances: List<RawSubstance?>? = null,
+)
+
+@Serializable
+private data class RawCategory(
+    val name: String? = null,
+    val description: String? = null,
+    val url: String? = null,
+    val color: Long? = null,
+)
+
+@Serializable
+private data class RawSubstance(
+    val name: String? = null,
+    val commonNames: List<String?>? = null,
+    val url: String? = null,
+    val isApproved: Boolean? = null,
+    val tolerance: RawTolerance? = null,
+    val crossTolerances: List<String?>? = null,
+    val addictionPotential: String? = null,
+    val toxicities: List<String?>? = null,
+    val categories: List<String?>? = null,
+    val summary: String? = null,
+    val effectsSummary: String? = null,
+    val dosageRemark: String? = null,
+    val generalRisks: String? = null,
+    val longtermRisks: String? = null,
+    val saferUse: List<String?>? = null,
+    val interactions: RawInteractions? = null,
+    val roas: List<RawRoa?>? = null,
+    val formulations: List<RawFormulation?>? = null,
+)
+
+@Serializable
+private data class RawTolerance(
+    val full: String? = null,
+    val half: String? = null,
+    val zero: String? = null,
+)
+
+@Serializable
+private data class RawInteractions(
+    val dangerous: List<String?>? = null,
+    val unsafe: List<String?>? = null,
+    val uncertain: List<String?>? = null,
+)
+
+@Serializable
+private data class RawRoa(
+    val name: String? = null,
+    val dose: RawRoaDose? = null,
+    val duration: RawRoaDuration? = null,
+    val bioavailability: RawBioavailability? = null,
+)
+
+@Serializable
+private data class RawFormulation(
+    val name: String? = null,
+    val route: String? = null,
+    val dose: RawRoaDose? = null,
+    val duration: RawRoaDuration? = null,
+)
+
+@Serializable
+private data class RawRoaDose(
+    val units: String? = null,
+    val lightMin: Double? = null,
+    val commonMin: Double? = null,
+    val strongMin: Double? = null,
+    val heavyMin: Double? = null,
+)
+
+@Serializable
+private data class RawRoaDuration(
+    val onset: RawDurationRange? = null,
+    val comeup: RawDurationRange? = null,
+    val peak: RawDurationRange? = null,
+    val offset: RawDurationRange? = null,
+    val total: RawDurationRange? = null,
+    val afterglow: RawDurationRange? = null,
+)
+
+@Serializable
+private data class RawDurationRange(
+    val min: Double? = null,
+    val max: Double? = null,
+    val units: String? = null,
+)
+
+@Serializable
+private data class RawBioavailability(
+    val min: Double? = null,
+    val max: Double? = null,
+)

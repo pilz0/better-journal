@@ -33,55 +33,69 @@ class SubstanceRepository
 @Inject
 constructor(
     @ApplicationContext private val appContext: Context,
-    substanceParser: SubstanceParserInterface,
+    private val substanceParser: SubstanceParserInterface,
 ) : SubstanceRepositoryInterface {
 
-  private val substanceFile: SubstanceFile
+  private class LoadedData(
+      val substanceFile: SubstanceFile,
+      val categoriesMap: Map<String, Category>,
+      val substancesWithCategoriesList: List<SubstanceWithCategories>,
+      val substancesWithCategoriesMap: Map<String, SubstanceWithCategories>,
+  )
 
-  init {
-    val fileContent = getAssetsSubstanceFileContent()
-    substanceFile = substanceParser.parseSubstanceFile(string = fileContent)
-  }
-
-  private val categoriesMap: Map<String, Category> =
-      substanceFile.categories.associateBy { it.name }
-  private val substancesWithCategoriesList: List<SubstanceWithCategories> =
-      substanceFile.substances.map { substance ->
-        SubstanceWithCategories(
-            substance = substance,
-            categories = substance.categories.mapNotNull { categoriesMap[it] },
+  private val loaded: LoadedData by
+      lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+        val fileContent = getAssetsSubstanceFileContent()
+        val substanceFile = substanceParser.parseSubstanceFile(string = fileContent)
+        val categoriesMap = substanceFile.categories.associateBy { it.name }
+        val substancesWithCategoriesList =
+            substanceFile.substances.map { substance ->
+              SubstanceWithCategories(
+                  substance = substance,
+                  categories = substance.categories.mapNotNull { categoriesMap[it] },
+              )
+            }
+        val substancesWithCategoriesMap = substancesWithCategoriesList.associateBy {
+          it.substance.name
+        }
+        LoadedData(
+            substanceFile = substanceFile,
+            categoriesMap = categoriesMap,
+            substancesWithCategoriesList = substancesWithCategoriesList,
+            substancesWithCategoriesMap = substancesWithCategoriesMap,
         )
       }
-  private val substancesWithCategoriesMap: Map<String, SubstanceWithCategories> =
-      substancesWithCategoriesList.associateBy {
-        it.substance.name
-      }
+
+  /** Pre-warms the parsed substance cache; safe to call from a background dispatcher. */
+  fun preload() {
+    loaded
+  }
 
   private fun getAssetsSubstanceFileContent(): String {
     return appContext.assets.open("Substances.json").bufferedReader().use { it.readText() }
   }
 
   override fun getAllSubstances(): List<Substance> {
-    return substanceFile.substances
+    return loaded.substanceFile.substances
   }
 
   override fun getAllSubstancesWithCategories(): List<SubstanceWithCategories> {
-    return substancesWithCategoriesList
+    return loaded.substancesWithCategoriesList
   }
 
   override fun getAllCategories(): List<Category> {
-    return substanceFile.categories
+    return loaded.substanceFile.categories
   }
 
   override fun getSubstance(substanceName: String): Substance? {
-    return substanceFile.substancesMap.getOrDefault(key = substanceName, defaultValue = null)
+    return loaded.substanceFile.substancesMap.getOrDefault(key = substanceName, defaultValue = null)
   }
 
   override fun getCategory(categoryName: String): Category? {
-    return categoriesMap[categoryName]
+    return loaded.categoriesMap[categoryName]
   }
 
   override fun getSubstanceWithCategories(substanceName: String): SubstanceWithCategories? {
-    return substancesWithCategoriesMap[substanceName]
+    return loaded.substancesWithCategoriesMap[substanceName]
   }
 }

@@ -22,9 +22,11 @@ import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
 import foo.pilz.freaklog.data.anodyne.AnodyneInstance
 import foo.pilz.freaklog.data.room.webhooks.WebhookSeeder
+import foo.pilz.freaklog.data.substances.repositories.SubstanceRepository
 import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @HiltAndroidApp
@@ -38,6 +40,8 @@ class JournalApplication : Application() {
   lateinit var customSubstanceProfiles:
       foo.pilz.freaklog.data.room.experiences.CustomSubstanceProfiles
 
+  @Inject lateinit var substanceRepository: SubstanceRepository
+
   @Inject @ApplicationScope lateinit var applicationScope: CoroutineScope
 
   @Inject lateinit var userPreferences: UserPreferences
@@ -47,10 +51,11 @@ class JournalApplication : Application() {
     foo.pilz.freaklog.ui.tabs.journal.experience.notification.TimelineNotificationChannel.create(
         this
     )
+    applicationScope.launch(Dispatchers.IO) { substanceRepository.preload() }
     applicationScope.launch {
       userPreferences.anodyneBaseUrlFlow.collect { AnodyneInstance.baseUrl = it }
     }
-    applicationScope.launch {
+    applicationScope.launch(Dispatchers.IO) {
       // Migrate the legacy single-webhook configuration into the new
       // multi-webhook tables on first launch after upgrade. Idempotent.
       // Wrap in try/catch so a failed migration cannot crash app startup.

@@ -29,6 +29,7 @@ import foo.pilz.freaklog.ui.tabs.settings.combinations.UserPreferences
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -48,6 +49,7 @@ constructor(
           .map { preferences ->
             preferences[ARE_CONDITIONS_ACCEPTED] ?: false
           }
+          .distinctUntilChanged()
           .stateIn(
               initialValue = true,
               scope = viewModelScope,

@@ -38,13 +38,14 @@ import foo.pilz.freaklog.ui.main.MainScreen
 import foo.pilz.freaklog.ui.tabs.journal.experience.notification.TimelineNotificationService.Companion.GLOBAL_TIMELINE_ID
 import foo.pilz.freaklog.ui.tabs.settings.lock.BiometricAuthManager
 import foo.pilz.freaklog.ui.theme.JournalTheme
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : FragmentActivity() {
 
   @javax.inject.Inject
-  lateinit var notificationScheduler: foo.pilz.freaklog.scheduled.NotificationScheduler
+  lateinit var notificationScheduler: dagger.Lazy<foo.pilz.freaklog.scheduled.NotificationScheduler>
 
   @javax.inject.Inject lateinit var biometricAuthManager: BiometricAuthManager
 
@@ -68,16 +69,23 @@ class MainActivity : FragmentActivity() {
 
     handleIntent(intent)
 
-    // Update all widgets on launch
-    lifecycleScope.launch {
-      val manager = GlanceAppWidgetManager(this@MainActivity)
-      val glanceIds = manager.getGlanceIds(MyAppWidget::class.java)
-      glanceIds.forEach { glanceId ->
-        foo.pilz.freaklog.ui.enqueueRefresh(
-            context = this@MainActivity,
-            appWidgetId = manager.getAppWidgetId(glanceId),
-        )
+    if (savedInstanceState == null) {
+      // Update all widgets on launch
+      lifecycleScope.launch(Dispatchers.IO) {
+        val manager = GlanceAppWidgetManager(this@MainActivity)
+        val glanceIds = manager.getGlanceIds(MyAppWidget::class.java)
+        glanceIds.forEach { glanceId ->
+          foo.pilz.freaklog.ui.enqueueRefresh(
+              context = this@MainActivity,
+              appWidgetId = manager.getAppWidgetId(glanceId),
+          )
+        }
       }
+
+      // Re-arm all reminder alarms on each launch. AlarmManager forgets alarms across
+      // process death/reboot, and BootCompletedReceiver is the first line of defence;
+      // this catches the cases where the receiver was disabled (e.g. force-stopped app).
+      lifecycleScope.launch(Dispatchers.IO) { notificationScheduler.get().rescheduleAll() }
     }
 
     // While app lock is on, keep journal content out of the Overview (recents) snapshot,
@@ -92,13 +100,6 @@ class MainActivity : FragmentActivity() {
           window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
       }
-    }
-
-    // Re-arm all reminder alarms on each launch. AlarmManager forgets alarms across
-    // process death/reboot, and BootCompletedReceiver is the first line of defence;
-    // this catches the cases where the receiver was disabled (e.g. force-stopped app).
-    lifecycleScope.launch {
-      notificationScheduler.rescheduleAll()
     }
 
     setContent {

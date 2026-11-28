@@ -49,6 +49,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -110,12 +111,13 @@ constructor(
   val isSearchEnabled = mutableStateOf(false)
 
   fun resetAddIngestionTimes() = viewModelScope.launch {
-    userPreferences.saveLastIngestionTimeOfExperience(null)
-    userPreferences.saveClonedIngestionTime(null)
+    userPreferences.resetAddIngestionTimes()
   }
 
   fun maybeMigrate() {
-    viewModelScope.launch {
+    viewModelScope.launch(Dispatchers.IO) {
+      val current = dataStore.data.first()
+      if (current[IS_MIGRATED_0] != null && current[IS_MIGRATED_1] != null) return@launch
       dataStore.edit { settings ->
         if (settings[IS_MIGRATED_0] == null) {
           experienceRepo.migrateBenzydamine()
