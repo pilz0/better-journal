@@ -22,14 +22,19 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -107,32 +112,34 @@ class ExportBackupViewModelTest {
   @Test
   fun `exportEncryptedFile and importWithPassphrase round-trip encrypted archive`() {
     val exportUri = mockk<Uri>()
-    var savedBytes: ByteArray? = null
+    val savedBytes = AtomicReference<ByteArray?>()
     every { fileSystemConnection.saveBytesInUri(exportUri, any()) } answers
         {
-          savedBytes = secondArg()
+          savedBytes.set(secondArg())
         }
 
     val vm = createViewModel()
     vm.exportEncryptedFile(exportUri)
 
-    verify(timeout = 5_000) { fileSystemConnection.saveBytesInUri(exportUri, any()) }
-    val passphrase = vm.exportPassphrase.value
+    val passphrase = runBlocking {
+      withTimeout(5_000) { vm.exportPassphrase.filterNotNull().first() }
+    }
+    verify { fileSystemConnection.saveBytesInUri(exportUri, any()) }
     assertThat(passphrase).isNotNull()
-    assertThat(savedBytes).isNotNull()
+    assertThat(savedBytes.get()).isNotNull()
 
     val importUri = mockk<Uri>()
-    every { fileSystemConnection.getBytesFromUri(importUri) } answers { savedBytes }
+    every { fileSystemConnection.getBytesFromUri(importUri) } answers { savedBytes.get() }
     vm.handleImportFile(importUri)
 
-    val deadline = System.currentTimeMillis() + 5_000
-    while (vm.pendingEncryptedImport.value == null && System.currentTimeMillis() < deadline) {
-      Thread.sleep(10)
+    val pendingUri = runBlocking {
+      withTimeout(5_000) { vm.pendingEncryptedImport.filterNotNull().first() }
     }
-    assertThat(vm.pendingEncryptedImport.value).isEqualTo(importUri)
+    assertThat(pendingUri).isEqualTo(importUri)
 
-    vm.importWithPassphrase(passphrase!!)
-    coVerify(timeout = 5_000) { experienceRepository.replaceEverything(any()) }
+    vm.importWithPassphrase(passphrase)
+    coVerify(timeout = 5_000) { notificationScheduler.rescheduleAll() }
+    coVerify { experienceRepository.replaceEverything(any()) }
     assertThat(vm.pendingEncryptedImport.value).isNull()
   }
 }
