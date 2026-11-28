@@ -21,6 +21,7 @@ package foo.pilz.freaklog.data.substances.classes
 import foo.pilz.freaklog.data.substances.AdministrationRoute
 import foo.pilz.freaklog.data.substances.classes.roa.Roa
 import foo.pilz.freaklog.ui.utils.getInteractionExplanationURLForSubstance
+import java.util.Locale
 
 data class Substance(
     val name: String,
@@ -65,27 +66,18 @@ data class Substance(
       }
     }
 
-  val isHallucinogen
-    get() = categories.any {
-      val hallucinogens =
-          setOf(
-              "hallucinogen",
-              "psychedelic",
-              "dissociative",
-              "deliriant",
-          )
-      hallucinogens.contains(it.lowercase())
-    }
+  val isHallucinogen: Boolean
+    get() = categories.any { it.lowercase(Locale.ROOT) in HALLUCINOGEN_CATEGORIES }
 
-  val isStimulant
-    get() = categories.any {
-      val stimulants =
-          setOf(
-              "stimulant",
-          )
-      stimulants.contains(it.lowercase())
-    }
+  val isStimulant: Boolean
+    get() = categories.any { it.lowercase(Locale.ROOT) in STIMULANT_CATEGORIES }
 
   val interactionExplanationURL
     get() = getInteractionExplanationURLForSubstance(url)
+
+  companion object {
+    private val HALLUCINOGEN_CATEGORIES =
+        setOf("hallucinogen", "psychedelic", "dissociative", "deliriant")
+    private val STIMULANT_CATEGORIES = setOf("stimulant")
+  }
 }

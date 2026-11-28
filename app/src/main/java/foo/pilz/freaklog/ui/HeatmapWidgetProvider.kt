@@ -194,21 +194,21 @@ class HeatmapWidgetWorker(
       val oneYearAgo = Instant.now().minus(365, ChronoUnit.DAYS)
       val now = Instant.now()
 
-      val ingestions =
-          experienceDao.getIngestionsWithCompanions(
+      val ingestionTimes =
+          experienceDao.getIngestionTimesBetween(
               fromInstant = oneYearAgo,
               toInstant = now,
           )
 
       val (hasData, imagePath, ingestionCount) =
-          if (ingestions.isNotEmpty()) {
+          if (ingestionTimes.isNotEmpty()) {
             val path =
                 generateHeatmapGraph(
                     applicationContext,
-                    ingestions.map { it.ingestion.time },
+                    ingestionTimes,
                     appWidgetId,
                 )
-            Triple(true, path, ingestions.size.toString())
+            Triple(true, path, ingestionTimes.size.toString())
           } else {
             File(applicationContext.cacheDir, "widget_heatmap_$appWidgetId.png")
                 .takeIf { it.exists() }

@@ -5,32 +5,77 @@ import java.util.Locale
 import kotlin.random.Random
 
 internal object Filters {
+  private sealed interface ParsedFilter {
+    val needsDate: Boolean
+
+    data object Day : ParsedFilter {
+      override val needsDate = true
+    }
+
+    data object Week : ParsedFilter {
+      override val needsDate = true
+    }
+
+    data object Month : ParsedFilter {
+      override val needsDate = true
+    }
+
+    data object Year : ParsedFilter {
+      override val needsDate = true
+    }
+
+    data class KeyValue(val key: String, val value: String) : ParsedFilter {
+      override val needsDate = false
+    }
+
+    data object PassThrough : ParsedFilter {
+      override val needsDate = false
+    }
+  }
+
+  private fun parseFilter(raw: String): ParsedFilter {
+    val low = raw.trim().lowercase(Locale.ROOT)
+    return when {
+      low == "day" || low == "today" -> ParsedFilter.Day
+      low == "week" -> ParsedFilter.Week
+      low == "month" -> ParsedFilter.Month
+      low == "year" -> ParsedFilter.Year
+      "=" in low -> ParsedFilter.KeyValue(low.substringBefore("="), low.substringAfter("="))
+      else -> ParsedFilter.PassThrough
+    }
+  }
+
   fun apply(rows: Rows, plan: QueryPlan, ctx: Context): Rows {
     if (plan.filters.isEmpty()) return rows
-    val now = localDate(ctx.nowMs)
+    val parsedFilters = plan.filters.map(::parseFilter)
+    val needsDate = parsedFilters.any { it.needsDate }
+    val calendar = if (needsDate) newIsoCalendar() else null
+    val now = if (calendar != null) dayFields(ctx.nowMs, calendar) else null
 
     return rows.filter { row ->
-      val dt = rowTime(row, ctx.config).takeIf { it > 0L }?.let { dayFields(it) }
-      plan.filters.all { filter ->
-        val low = filter.trim().lowercase(Locale.ROOT)
-        when {
-          low in setOf("day", "today") -> dt != null && dt == now
-          low == "week" -> dt != null && dt.weekYear == now.weekYear && dt.week == now.week
-          low == "month" -> dt != null && dt.year == now.year && dt.month == now.month
-          low == "year" -> dt != null && dt.year == now.year
-          "=" in low -> {
-            val key = low.substringBefore("=")
-            val value = low.substringAfter("=")
-            val rowValue = Aliases.rowGet(ctx.config, row, key)
-            rowValue != null && Aliases.sameValue(ctx.config, key, rowValue, value)
+      val dt =
+          if (calendar != null) {
+            rowTime(row, ctx.config).takeIf { it > 0L }?.let { dayFields(it, calendar) }
+          } else {
+            null
           }
-          else -> true
+      parsedFilters.all { filter ->
+        when (filter) {
+          ParsedFilter.Day -> dt != null && dt == now
+          ParsedFilter.Week ->
+              dt != null && now != null && dt.weekYear == now.weekYear && dt.week == now.week
+          ParsedFilter.Month ->
+              dt != null && now != null && dt.year == now.year && dt.month == now.month
+          ParsedFilter.Year -> dt != null && now != null && dt.year == now.year
+          is ParsedFilter.KeyValue -> {
+            val rowValue = Aliases.rowGet(ctx.config, row, filter.key)
+            rowValue != null && Aliases.sameValue(ctx.config, filter.key, rowValue, filter.value)
+          }
+          ParsedFilter.PassThrough -> true
         }
       }
     }
   }
-
-  private fun localDate(ms: Long): DayFields = dayFields(ms)
 }
 
 internal object Grouping {
@@ -70,15 +115,15 @@ internal object Grouping {
 
   private fun buildBinges(rows: Rows, config: FreakQueryConfig): List<Rows> {
     if (rows.isEmpty()) return emptyList()
-    val ordered = rows.sortedBy { rowTime(it, config) }
+    val ordered = rows.map { it to rowTime(it, config) }.sortedBy { it.second }
     val maxGap = config.bingeGapHours * 60L * 60L * 1000L
     val groups = mutableListOf<Rows>()
     var current = mutableListOf<Row>()
 
     for (i in 0 until ordered.lastIndex) {
-      val a = ordered[i]
-      val b = ordered[i + 1]
-      val diff = rowTime(b, config) - rowTime(a, config)
+      val (a, timeA) = ordered[i]
+      val (b, timeB) = ordered[i + 1]
+      val diff = timeB - timeA
       if (diff <= maxGap) {
         if (current.isEmpty()) current += a
         current += b
@@ -94,10 +139,15 @@ internal object Grouping {
 
   private fun buildStreaks(rows: Rows, config: FreakQueryConfig): List<Rows> {
     if (rows.isEmpty()) return emptyList()
+    val calendar = Calendar.getInstance()
     val byDay =
         rows
-            .sortedBy { rowTime(it, config) }
-            .groupBy { dayStart(rowTime(it, config)) }
+            .map { it to rowTime(it, config) }
+            .sortedBy { it.second }
+            .groupBy(
+                keySelector = { dayStart(it.second, calendar) },
+                valueTransform = { it.first },
+            )
             .toSortedMap()
     if (byDay.isEmpty()) return emptyList()
 
@@ -109,7 +159,7 @@ internal object Grouping {
 
     while (iterator.hasNext()) {
       val entry = iterator.next()
-      if (entry.key == nextDayStart(previous)) {
+      if (entry.key == nextDayStart(previous, calendar)) {
         current += entry.value
       } else {
         groups += current.toList()
@@ -178,10 +228,15 @@ internal data class DayFields(
     val weekYear: Int,
 )
 
-internal fun dayFields(ms: Long): DayFields {
-  val calendar = Calendar.getInstance()
-  calendar.firstDayOfWeek = Calendar.MONDAY
-  calendar.minimalDaysInFirstWeek = 4
+internal fun dayFields(ms: Long): DayFields = dayFields(ms, newIsoCalendar())
+
+internal fun newIsoCalendar(): Calendar =
+    Calendar.getInstance().apply {
+      firstDayOfWeek = Calendar.MONDAY
+      minimalDaysInFirstWeek = 4
+    }
+
+internal fun dayFields(ms: Long, calendar: Calendar): DayFields {
   calendar.timeInMillis = ms
   val year = calendar.get(Calendar.YEAR)
   val month = calendar.get(Calendar.MONTH)
@@ -201,8 +256,9 @@ internal fun dayFields(ms: Long): DayFields {
   )
 }
 
-internal fun dayStart(ms: Long): Long {
-  val calendar = Calendar.getInstance()
+internal fun dayStart(ms: Long): Long = dayStart(ms, Calendar.getInstance())
+
+internal fun dayStart(ms: Long, calendar: Calendar): Long {
   calendar.timeInMillis = ms
   calendar.set(Calendar.HOUR_OF_DAY, 0)
   calendar.set(Calendar.MINUTE, 0)
@@ -211,8 +267,9 @@ internal fun dayStart(ms: Long): Long {
   return calendar.timeInMillis
 }
 
-internal fun nextDayStart(ms: Long): Long {
-  val calendar = Calendar.getInstance()
+internal fun nextDayStart(ms: Long): Long = nextDayStart(ms, Calendar.getInstance())
+
+internal fun nextDayStart(ms: Long, calendar: Calendar): Long {
   calendar.timeInMillis = ms
   calendar.add(Calendar.DAY_OF_YEAR, 1)
   return calendar.timeInMillis

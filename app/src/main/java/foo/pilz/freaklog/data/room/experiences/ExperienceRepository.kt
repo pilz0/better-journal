@@ -358,7 +358,10 @@ constructor(
       experienceDao.getAllExperiencesWithIngestionsTimedNotesAndRatingsSorted()
 
   fun getAllExperiencesWithIngestionsTimedNotesAndRatingsFlow() =
-      experienceDao.getAllExperiencesWithIngestionsTimedNotesAndRatingsFlow()
+      experienceDao
+          .getAllExperiencesWithIngestionsTimedNotesAndRatingsFlow()
+          .flowOn(Dispatchers.IO)
+          .conflate()
 
   suspend fun getAllCustomUnitsSorted(): List<CustomUnit> = experienceDao.getAllCustomUnitsSorted()
 

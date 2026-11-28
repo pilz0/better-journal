@@ -49,6 +49,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,6 +60,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kizitonwose.calendar.compose.VerticalCalendar
 import com.kizitonwose.calendar.compose.rememberCalendarState
 import com.kizitonwose.calendar.core.CalendarDay
@@ -72,6 +74,7 @@ import foo.pilz.freaklog.ui.theme.JournalTheme
 import foo.pilz.freaklog.ui.theme.horizontalPadding
 import java.time.LocalDate
 import java.time.YearMonth
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 @Preview
@@ -95,6 +98,8 @@ fun CalendarJournalScreen(
   val endMonth = currentMonth
   val firstDayOfWeek = remember { firstDayOfWeekFromLocale() }
 
+  val monthData by dayViewModel.monthData.collectAsStateWithLifecycle()
+
   val state =
       rememberCalendarState(
           startMonth = startMonth,
@@ -102,6 +107,20 @@ fun CalendarJournalScreen(
           firstVisibleMonth = currentMonth,
           firstDayOfWeek = firstDayOfWeek,
       )
+  LaunchedEffect(state) {
+    snapshotFlow { state.layoutInfo.visibleMonthsInfo.map { it.month.yearMonth } }
+        .distinctUntilChanged()
+        .collect { visibleMonths ->
+          for (ym in visibleMonths) {
+            for (offset in -1L..1L) {
+              val candidate = ym.plusMonths(offset)
+              if (candidate in startMonth..endMonth) {
+                dayViewModel.ensureMonthLoaded(candidate)
+              }
+            }
+          }
+        }
+  }
   Scaffold(
       topBar = {
         TopAppBar(
@@ -154,15 +173,18 @@ fun CalendarJournalScreen(
         modifier = Modifier.padding(padding),
         state = state,
         dayContent = { calendarDay ->
+          val experienceInfos =
+              monthData[YearMonth.from(calendarDay.date)]?.get(calendarDay.date)
+                  ?: EMPTY_EXPERIENCE_INFO
           Day(
               day = calendarDay,
               today = today,
+              experienceInfos = experienceInfos,
               navigateToExperiencePopNothing = navigateToExperiencePopNothing,
               chooseBetweenExperiences = { experienceIds ->
                 experienceIdsToShowInSheet = experienceIds
                 showBottomSheet = true
               },
-              viewModel = dayViewModel,
           )
         },
         contentPadding = PaddingValues(horizontalPadding),
@@ -218,28 +240,18 @@ fun ExperienceRowWithFetch(
   }
 }
 
+private val EMPTY_EXPERIENCE_INFO =
+    ExperienceInfo(experienceIds = emptyList(), colors = emptyList())
+
 @Composable
 fun Day(
     day: CalendarDay,
     today: LocalDate,
+    experienceInfos: ExperienceInfo,
     navigateToExperiencePopNothing: (experienceId: Int) -> Unit,
     chooseBetweenExperiences: (experienceIds: List<Int>) -> Unit,
-    viewModel: DayViewModel = hiltViewModel(),
 ) {
   if (day.position == DayPosition.MonthDate) {
-    val experienceInfoState: MutableState<ExperienceInfo> =
-        remember(day) {
-          mutableStateOf(
-              ExperienceInfo(
-                  experienceIds = emptyList(),
-                  colors = emptyList(),
-              )
-          )
-        }
-    LaunchedEffect(day) {
-      experienceInfoState.value = viewModel.getExperienceInfo(day)
-    }
-    val experienceInfos = experienceInfoState.value
     val aspectRatioModifier = Modifier.aspectRatio(1f) // This is important for square sizing!
     val modifier =
         if (experienceInfos.experienceIds.count() == 1) {

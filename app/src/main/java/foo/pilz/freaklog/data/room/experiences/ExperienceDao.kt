@@ -273,6 +273,9 @@ interface ExperienceDao {
       toInstant: Instant,
   ): Flow<List<IngestionWithExperienceAndCustomUnit>>
 
+  @Query("SELECT time FROM ingestion WHERE time >= :fromInstant AND time < :toInstant")
+  suspend fun getIngestionTimesBetween(fromInstant: Instant, toInstant: Instant): List<Instant>
+
   @Transaction
   @Query("SELECT * FROM ingestion WHERE time >= :fromInstant AND time < :toInstant")
   suspend fun getIngestionsWithCompanions(
@@ -317,6 +320,35 @@ interface ExperienceDao {
   suspend fun migrateMushroomsCustomUnits()
 
   @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(experience: Experience): Long
+
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  suspend fun insertExperiences(experiences: List<Experience>)
+
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  suspend fun insertIngestions(ingestions: List<Ingestion>)
+
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  suspend fun insertTimedNotes(timedNotes: List<TimedNote>)
+
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  suspend fun insertRatings(ratings: List<ShulginRating>)
+
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  suspend fun insertBloodPressureReadings(
+      readings: List<foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading>
+  )
+
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  suspend fun insertSubstanceCompanions(companions: List<SubstanceCompanion>)
+
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  suspend fun insertCustomSubstances(customSubstances: List<CustomSubstance>)
+
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  suspend fun insertCustomUnits(customUnits: List<CustomUnit>)
+
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  suspend fun insertIntakeLimits(intakeLimits: List<IntakeLimit>)
 
   @Update(onConflict = OnConflictStrategy.REPLACE) suspend fun update(experience: Experience)
 
@@ -500,9 +532,16 @@ interface ExperienceDao {
 
   @Transaction
   suspend fun insertEverything(journalExport: JournalExport) {
+    val experiences = ArrayList<Experience>(journalExport.experiences.size)
+    val ingestions = mutableListOf<Ingestion>()
+    val timedNotes = mutableListOf<TimedNote>()
+    val ratings = mutableListOf<ShulginRating>()
+    val bpReadings =
+        mutableListOf<foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading>()
+
     journalExport.experiences.forEachIndexed { indexExperience, experienceSerializable ->
       val experienceID = indexExperience + 1
-      val newExperience =
+      experiences +=
           Experience(
               id = experienceID,
               title = experienceSerializable.title,
@@ -511,67 +550,57 @@ interface ExperienceDao {
               sortDate = experienceSerializable.sortDate,
               isFavorite = experienceSerializable.isFavorite,
               location =
-                  if (experienceSerializable.location != null) {
+                  experienceSerializable.location?.let { loc ->
                     Location(
-                        name = experienceSerializable.location.name,
-                        longitude = experienceSerializable.location.longitude,
-                        latitude = experienceSerializable.location.latitude,
+                        name = loc.name,
+                        longitude = loc.longitude,
+                        latitude = loc.latitude,
                     )
-                  } else {
-                    null
                   },
           )
-      insert(newExperience)
-      experienceSerializable.ingestions.forEach { ingestionSerializable ->
-        val newIngestion =
-            Ingestion(
-                substanceName = ingestionSerializable.substanceName,
-                time = ingestionSerializable.time,
-                endTime = ingestionSerializable.endTime,
-                creationDate = ingestionSerializable.creationDate,
-                administrationRoute = ingestionSerializable.administrationRoute,
-                dose = ingestionSerializable.dose,
-                isDoseAnEstimate = ingestionSerializable.isDoseAnEstimate,
-                estimatedDoseStandardDeviation =
-                    ingestionSerializable.estimatedDoseStandardDeviation,
-                units = ingestionSerializable.units,
-                experienceId = experienceID,
-                notes = ingestionSerializable.notes,
-                stomachFullness = ingestionSerializable.stomachFullness,
-                consumerName = ingestionSerializable.consumerName,
-                // Room assigns a new id to a unit exported without one (id 0), so nothing can refer
-                // to it.
-                customUnitId = ingestionSerializable.customUnitId?.takeIf { it > 0 },
-                administrationSite = ingestionSerializable.administrationSite,
-                formulationName = ingestionSerializable.formulationName,
-                saltForm = ingestionSerializable.saltForm,
-                category = ingestionSerializable.category,
-            )
-        insert(newIngestion)
+      experienceSerializable.ingestions.mapTo(ingestions) { ingestionSerializable ->
+        Ingestion(
+            substanceName = ingestionSerializable.substanceName,
+            time = ingestionSerializable.time,
+            endTime = ingestionSerializable.endTime,
+            creationDate = ingestionSerializable.creationDate,
+            administrationRoute = ingestionSerializable.administrationRoute,
+            dose = ingestionSerializable.dose,
+            isDoseAnEstimate = ingestionSerializable.isDoseAnEstimate,
+            estimatedDoseStandardDeviation = ingestionSerializable.estimatedDoseStandardDeviation,
+            units = ingestionSerializable.units,
+            experienceId = experienceID,
+            notes = ingestionSerializable.notes,
+            stomachFullness = ingestionSerializable.stomachFullness,
+            consumerName = ingestionSerializable.consumerName,
+            // Room assigns a new id to a unit exported without one (id 0), so nothing can refer
+            // to it.
+            customUnitId = ingestionSerializable.customUnitId?.takeIf { it > 0 },
+            administrationSite = ingestionSerializable.administrationSite,
+            formulationName = ingestionSerializable.formulationName,
+            saltForm = ingestionSerializable.saltForm,
+            category = ingestionSerializable.category,
+        )
       }
-      experienceSerializable.timedNotes.forEach { timedNoteSerializable ->
-        val newTimedNote =
-            TimedNote(
-                time = timedNoteSerializable.time,
-                creationDate = timedNoteSerializable.creationDate,
-                experienceId = experienceID,
-                isPartOfTimeline = timedNoteSerializable.isPartOfTimeline,
-                color = timedNoteSerializable.color,
-                note = timedNoteSerializable.note,
-            )
-        insert(newTimedNote)
+      experienceSerializable.timedNotes.mapTo(timedNotes) { timedNoteSerializable ->
+        TimedNote(
+            time = timedNoteSerializable.time,
+            creationDate = timedNoteSerializable.creationDate,
+            experienceId = experienceID,
+            isPartOfTimeline = timedNoteSerializable.isPartOfTimeline,
+            color = timedNoteSerializable.color,
+            note = timedNoteSerializable.note,
+        )
       }
-      experienceSerializable.ratings.forEach { ratingSerializable ->
-        val newRating =
-            ShulginRating(
-                time = ratingSerializable.time,
-                creationDate = ratingSerializable.creationDate,
-                option = ratingSerializable.option,
-                experienceId = experienceID,
-            )
-        insert(newRating)
+      experienceSerializable.ratings.mapTo(ratings) { ratingSerializable ->
+        ShulginRating(
+            time = ratingSerializable.time,
+            creationDate = ratingSerializable.creationDate,
+            option = ratingSerializable.option,
+            experienceId = experienceID,
+        )
       }
-      experienceSerializable.bloodPressure.forEach {
+      experienceSerializable.bloodPressure.mapTo(bpReadings) {
         require(
             it.systolic in 1..400 &&
                 it.diastolic in 1..400 &&
@@ -579,52 +608,64 @@ interface ExperienceDao {
         ) {
           "Invalid blood-pressure measurement"
         }
-        insert(
-            foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading(
-                experienceId = experienceID,
-                time = it.time,
-                systolic = it.systolic,
-                diastolic = it.diastolic,
-                pulse = it.pulse,
-            )
+        foo.pilz.freaklog.data.room.experiences.entities.BloodPressureReading(
+            experienceId = experienceID,
+            time = it.time,
+            systolic = it.systolic,
+            diastolic = it.diastolic,
+            pulse = it.pulse,
         )
       }
     }
-    journalExport.substanceCompanions.forEach { insert(it) }
-    journalExport.customSubstances.forEach { insert(it) }
-    journalExport.customUnits.forEach {
-      insert(
-          CustomUnit(
-              id = it.id,
-              substanceName = it.substanceName,
-              name = it.name,
-              creationDate = it.creationDate,
-              administrationRoute = it.administrationRoute,
-              dose = it.dose,
-              estimatedDoseStandardDeviation = it.estimatedDoseStandardDeviation,
-              isEstimate = it.isEstimate,
-              isArchived = it.isArchived,
-              unit = it.unit,
-              unitPlural = it.unitPlural,
-              originalUnit = it.originalUnit,
-              note = it.note,
-              defaultCategory = it.defaultCategory,
-          )
+
+    if (experiences.isNotEmpty()) insertExperiences(experiences)
+    if (ingestions.isNotEmpty()) insertIngestions(ingestions)
+    if (timedNotes.isNotEmpty()) insertTimedNotes(timedNotes)
+    if (ratings.isNotEmpty()) insertRatings(ratings)
+    if (bpReadings.isNotEmpty()) insertBloodPressureReadings(bpReadings)
+    if (journalExport.substanceCompanions.isNotEmpty()) {
+      insertSubstanceCompanions(journalExport.substanceCompanions)
+    }
+    if (journalExport.customSubstances.isNotEmpty()) {
+      insertCustomSubstances(journalExport.customSubstances)
+    }
+    if (journalExport.customUnits.isNotEmpty()) {
+      insertCustomUnits(
+          journalExport.customUnits.map {
+            CustomUnit(
+                id = it.id,
+                substanceName = it.substanceName,
+                name = it.name,
+                creationDate = it.creationDate,
+                administrationRoute = it.administrationRoute,
+                dose = it.dose,
+                estimatedDoseStandardDeviation = it.estimatedDoseStandardDeviation,
+                isEstimate = it.isEstimate,
+                isArchived = it.isArchived,
+                unit = it.unit,
+                unitPlural = it.unitPlural,
+                originalUnit = it.originalUnit,
+                note = it.note,
+                defaultCategory = it.defaultCategory,
+            )
+          }
       )
     }
-    journalExport.intakeLimits.forEach {
-      insert(
-          IntakeLimit(
-              substanceName = it.substanceName,
-              creationDate = it.creationDate,
-              limitType = it.limitType,
-              maxDose = it.maxDose,
-              unit = it.unit,
-              maxCount = it.maxCount,
-              windowSeconds = it.windowSeconds,
-              warningPercent = it.warningPercent,
-              isEnabled = it.isEnabled,
-          )
+    if (journalExport.intakeLimits.isNotEmpty()) {
+      insertIntakeLimits(
+          journalExport.intakeLimits.map {
+            IntakeLimit(
+                substanceName = it.substanceName,
+                creationDate = it.creationDate,
+                limitType = it.limitType,
+                maxDose = it.maxDose,
+                unit = it.unit,
+                maxCount = it.maxCount,
+                windowSeconds = it.windowSeconds,
+                warningPercent = it.warningPercent,
+                isEnabled = it.isEnabled,
+            )
+          }
       )
     }
   }

@@ -114,6 +114,7 @@ private fun SearchBodyContent(
   val performHaptic = rememberHaptic()
   Column(modifier = modifier) {
     val searchText = searchViewModel.searchTextFlow.collectAsStateWithLifecycle().value
+    val chipCategories = searchViewModel.chipCategoriesFlow.collectAsStateWithLifecycle().value
     SearchField(
         modifier =
             Modifier.fillMaxWidth()
@@ -122,14 +123,13 @@ private fun SearchBodyContent(
                 .clearAndSetSemantics {},
         searchText = searchText,
         onChange = { searchViewModel.filterSubstances(searchText = it) },
-        categories = searchViewModel.chipCategoriesFlow.collectAsStateWithLifecycle().value,
+        categories = chipCategories,
         onFilterTapped = {
           performHaptic(HapticType.SELECTION)
           searchViewModel.onFilterTapped(it)
         },
         isShowingFilter = true,
     )
-    val chipCategories = searchViewModel.chipCategoriesFlow.collectAsStateWithLifecycle().value
     val activeFilters = remember(chipCategories) { chipCategories.filter { it.isActive } }
     ActiveFiltersRow(
         activeFilters = activeFilters,
