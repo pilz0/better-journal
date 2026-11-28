@@ -439,7 +439,7 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
 
   val anodyneAutoLoadEnabledFlow: Flow<Boolean> =
       dataStore.data.map { preferences ->
-        preferences[PreferencesKeys.ANODYNE_AUTO_LOAD_ENABLED] ?: false
+        preferences[PreferencesKeys.ANODYNE_AUTO_LOAD_ENABLED] ?: true
       }
 
   suspend fun saveAnodyneAutoLoadEnabled(value: Boolean) {

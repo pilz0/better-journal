@@ -26,7 +26,7 @@ constructor(
       userPreferences.anodyneAutoLoadEnabledFlow.stateIn(
           viewModelScope,
           SharingStarted.WhileSubscribed(5000),
-          false,
+          true,
       )
 
   val configuredBaseUrl: StateFlow<String> =

@@ -57,4 +57,24 @@ class UserPreferencesAiTest {
       cancelAndIgnoreRemainingEvents()
     }
   }
+
+  @Test
+  fun `anodyne auto load is enabled by default and can be disabled`() = runTest {
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    val dataStore =
+        PreferenceDataStoreFactory.create(
+            scope = backgroundScope,
+            produceFile = {
+              File(context.cacheDir, "anodyne-prefs-${System.nanoTime()}.preferences_pb")
+            },
+        )
+    val preferences = UserPreferences(dataStore)
+
+    preferences.anodyneAutoLoadEnabledFlow.test {
+      assertThat(awaitItem()).isEqualTo(true)
+      preferences.saveAnodyneAutoLoadEnabled(false)
+      assertThat(awaitItem()).isEqualTo(false)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
 }

@@ -28,13 +28,19 @@ class AnodyneSettingsViewModelTest {
   fun setUp() {
     Dispatchers.setMain(testDispatcher)
     every { prefs.anodyneBaseUrlFlow } returns flowOf("https://anodyne.wiki")
-    every { prefs.anodyneAutoLoadEnabledFlow } returns flowOf(false)
+    every { prefs.anodyneAutoLoadEnabledFlow } returns flowOf(true)
     every { repo.getCacheSizeBytes() } returns 1024L
   }
 
   @After
   fun tearDown() {
     Dispatchers.resetMain()
+  }
+
+  @Test
+  fun testAutoLoadEnabledByDefaultBeforeSubscription() {
+    val vm = AnodyneSettingsViewModel(prefs, repo)
+    assertTrue(vm.isAutoLoadEnabled.value)
   }
 
   @Test
